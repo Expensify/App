@@ -7086,6 +7086,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     }),
                 },
             },
+            merge: {
+                approvalMode: 'Goedkeuringsmodus',
+                finalApprover: 'Laatste fiatteur',
+            },
             zenefits: {
                 title: 'TriNet',
                 connect: 'Verbinden',

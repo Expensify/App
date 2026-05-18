@@ -7031,6 +7031,10 @@ ${reportName}
                     }),
                 },
             },
+            merge: {
+                approvalMode: '承認モード',
+                finalApprover: '最終承認者',
+            },
             zenefits: {
                 title: 'TriNet',
                 connect: '接続',

@@ -7087,6 +7087,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                     }),
                 },
             },
+            merge: {
+                approvalMode: 'Modo de aprovação',
+                finalApprover: 'Aprovador final',
+            },
             zenefits: {
                 title: 'TriNet',
                 connect: 'Conectar',

@@ -902,6 +902,7 @@ const CONST = {
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         WORKSPACE_ROOMS_PAGE: 'workspaceRoomsPage',
         CERTINIA: 'financialForceNewDot',
+        MERGE_HR: 'mergeHRConnections',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
