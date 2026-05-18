@@ -15,7 +15,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 import CertiniaPrerequisitesStep from './prerequisites/CertiniaPrerequisitesStep';
 
 type CertiniaPrerequisitesStepExtraProps = SubPageProps & {

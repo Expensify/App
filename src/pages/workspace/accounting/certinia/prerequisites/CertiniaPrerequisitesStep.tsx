@@ -29,38 +29,45 @@ function CertiniaPrerequisitesStep({onNext, currentPageName, onConnect}: Certini
 
     const bundleInstallHref = CONST.CERTINIA_FFA_BUNDLE_INSTALL_URL.PRODUCTION;
 
+    let stepContent;
+    if (currentPageName === pageNames.INSTALL_BUNDLE) {
+        stepContent = (
+            <View style={[styles.flex1, styles.mb3, styles.ph5]}>
+                <RenderHTML
+                    html={translate('workspace.certinia.prerequisites.installBundleDescription', {
+                        href: bundleInstallHref,
+                    })}
+                />
+            </View>
+        );
+    } else if (currentPageName === pageNames.SETUP_CONTACTS) {
+        stepContent = (
+            <View style={[styles.flex1, styles.mb3, styles.ph5]}>
+                {[
+                    translate('workspace.certinia.prerequisites.setupContactsBullet1'),
+                    translate('workspace.certinia.prerequisites.setupContactsBullet2'),
+                    translate('workspace.certinia.prerequisites.setupContactsBullet3'),
+                ].map((bullet) => (
+                    <View
+                        key={bullet}
+                        style={[styles.flexRow, styles.alignItemsStart, styles.mb2]}
+                    >
+                        <Text style={[styles.ph2, styles.textNormal]}>•</Text>
+                        <View style={styles.flex1}>
+                            <Text style={styles.textNormal}>{bullet}</Text>
+                        </View>
+                    </View>
+                ))}
+            </View>
+        );
+    } else {
+        stepContent = <Text style={[styles.flex1, styles.mb3, styles.ph5, styles.mutedTextLabel]}>{translate(descriptionKey)}</Text>;
+    }
+
     return (
         <View style={styles.flex1}>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate(titleKey)}</Text>
-            {currentPageName === pageNames.INSTALL_BUNDLE ? (
-                <View style={[styles.flex1, styles.mb3, styles.ph5]}>
-                    <RenderHTML
-                        html={translate('workspace.certinia.prerequisites.installBundleDescription', {
-                            href: bundleInstallHref,
-                        })}
-                    />
-                </View>
-            ) : currentPageName === pageNames.SETUP_CONTACTS ? (
-                <View style={[styles.flex1, styles.mb3, styles.ph5]}>
-                    {[
-                        translate('workspace.certinia.prerequisites.setupContactsBullet1'),
-                        translate('workspace.certinia.prerequisites.setupContactsBullet2'),
-                        translate('workspace.certinia.prerequisites.setupContactsBullet3'),
-                    ].map((bullet) => (
-                        <View
-                            key={bullet}
-                            style={[styles.flexRow, styles.alignItemsStart, styles.mb2]}
-                        >
-                            <Text style={[styles.ph2, styles.textNormal]}>•</Text>
-                            <View style={styles.flex1}>
-                                <Text style={styles.textNormal}>{bullet}</Text>
-                            </View>
-                        </View>
-                    ))}
-                </View>
-            ) : (
-                <Text style={[styles.flex1, styles.mb3, styles.ph5, styles.mutedTextLabel]}>{translate(descriptionKey)}</Text>
-            )}
+            {stepContent}
             <FixedFooter style={[styles.mtAuto]}>
                 <Button
                     success
