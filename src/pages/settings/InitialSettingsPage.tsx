@@ -118,6 +118,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         'Exit',
         'Lightbulb',
         'Lock',
+        'Users',
         'Emoji',
         'CreditCard',
         'Wallet',
@@ -161,7 +162,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [stashedCredentials] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS);
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
     const [hasAgentErrors] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT, {
-        selector: (agents) => Object.values(agents ?? {}).some((agent) => !isEmptyObject(agent?.nameErrors) || !isEmptyObject(agent?.promptErrors)),
+        selector: (agents) => Object.values(agents ?? {}).some((agent) => !isEmptyObject(agent?.nameErrors) || !isEmptyObject(agent?.promptErrors) || !isEmptyObject(agent?.avatarErrors)),
     });
     const privateSubscription = usePrivateSubscription();
     const subscriptionPlan = useSubscriptionPlan();
@@ -282,6 +283,13 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             screenName: SCREENS.SETTINGS.PREFERENCES.ROOT,
             sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.PREFERENCES,
             action: () => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES),
+        },
+        {
+            translationKey: 'delegate.copilot',
+            icon: icons.Users,
+            screenName: SCREENS.SETTINGS.COPILOT,
+            sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.COPILOT,
+            action: () => Navigation.navigate(ROUTES.SETTINGS_COPILOT),
         },
         {
             translationKey: 'initialSettingsPage.security',

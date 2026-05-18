@@ -31,9 +31,21 @@ jest.mock('@hooks/useThemeStyles', () =>
 );
 
 jest.mock('@hooks/useStyleUtils', () =>
-    jest.fn(() => ({
-        getWidthAndHeightStyle: jest.fn(() => ({})),
-    })),
+    jest.fn(
+        () =>
+            new Proxy(
+                {},
+                {
+                    get: (_, prop) => {
+                        if (prop === 'parseStyleFromFunction') {
+                            return (style: unknown) =>
+                                typeof style === 'function' ? (style as (mockState: Record<string, boolean>) => unknown)({pressed: false, focused: false, hovered: false}) : style;
+                        }
+                        return jest.fn(() => ({}));
+                    },
+                },
+            ),
+    ),
 );
 
 jest.mock('@hooks/useLazyAsset', () => ({
