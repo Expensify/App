@@ -180,6 +180,7 @@ export type {default as ConnectPolicyToFinancialForceParams} from './ConnectPoli
 export type {default as UpdateFinancialForceGenericTypeParams} from './UpdateFinancialForceGenericTypeParams';
 export type {default as OpenWorkspaceInvitePageParams} from './OpenWorkspaceInvitePageParams';
 export type {default as OpenWorkspaceMembersPageParams} from './OpenWorkspaceMembersPageParams';
+export type {default as OpenWorkspaceRoomsPageParams} from './OpenWorkspaceRoomsPageParams';
 export type {default as OpenPolicyCategoriesPageParams} from './OpenPolicyCategoriesPageParams';
 export type {default as OpenPolicyTagsPageParams} from './OpenPolicyTagsPageParams';
 export type {default as VerifyAddSecondaryLoginCodeParams} from './VerifyAddSecondaryLoginCodeParams';
