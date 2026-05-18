@@ -73,11 +73,12 @@ function ConfirmationFieldList({
     const theme = useTheme();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles', 'DownArrow']);
-    const {action, iouType, transactionID, policyID, isReadOnly, isPolicyExpenseChat} = useConfirmationFields();
+    const {action, iouType, transactionID, policyID, isReadOnly, isPolicyExpenseChat, isEditingSplitBill} = useConfirmationFields();
 
+    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
     const [existingTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
-    const transaction = draftTransaction ?? existingTransaction;
+    const transaction = isEditingSplitBill ? (splitDraftTransaction ?? existingTransaction) : (draftTransaction ?? existingTransaction);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
