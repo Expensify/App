@@ -61,7 +61,6 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
         transactionThreadReportID,
         transactionThreadReport,
         parentReportActionForTransactionThread,
-        shouldAddCreatedAction,
         treatAsNoPaginationAnchor,
         setTreatAsNoPaginationAnchor,
     } = useReportActionsPagination(reportID, reportActionIDFromRoute);
@@ -255,7 +254,6 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
                 treatAsNoPaginationAnchor={treatAsNoPaginationAnchor}
                 setTreatAsNoPaginationAnchor={setTreatAsNoPaginationAnchor}
                 listID={listID}
-                hasCreatedActionAdded={shouldAddCreatedAction}
                 showHiddenHistory={!showFullHistory}
                 hasPreviousMessages={hasPreviousMessages}
                 onShowPreviousMessages={handleShowPreviousMessages}
