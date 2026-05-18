@@ -293,6 +293,7 @@ function ReportActionsList({
     const prevUnreadMarkerReportActionID = useRef<string | null>(null);
     const [unreadMarkerTime, setUnreadMarkerTime] = useState(reportLastReadTime);
     const [unreadMarkerReportActionID, unreadMarkerReportActionIndex] = useMemo(() => {
+        // eslint-disable-next-line react-hooks/refs
         const scanned = getUnreadMarkerReportAction({
             visibleReportActions: sortedVisibleReportActions,
             earliestReceivedOfflineMessageIndex,
@@ -516,23 +517,6 @@ function ReportActionsList({
             reportScrollManager.scrollToBottom();
         });
     }, [draftAutoScrollKey, hasNewestReportAction, previousDraftAutoScrollKey, reportScrollManager, scrollOffsetRef, setIsFloatingMessageCounterVisible]);
-
-    useEffect(() => {
-        userActiveSince.current = DateUtils.getDBTime();
-        prevReportID = report.reportID;
-    }, [report.reportID]);
-
-    useScrollToEndOnNewMessageReceived({
-        sizeChangeType: 'changed',
-        scrollOffsetRef,
-        lastActionID: lastAction?.reportActionID,
-        visibleActionsLength: sortedVisibleReportActions.length,
-        hasNewestReportAction,
-        setIsFloatingMessageCounterVisible,
-        scrollToEnd: reportScrollManager.scrollToBottom,
-        // Include reportID so list-length / last-id baselines reset when the same screen instance shows another report.
-        resetKey: `${report.reportID}:${linkedReportActionID}`,
-    });
 
     useEffect(() => {
         userActiveSince.current = DateUtils.getDBTime();
