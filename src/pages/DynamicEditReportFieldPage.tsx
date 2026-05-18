@@ -86,7 +86,7 @@ function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 shouldEnableMaxHeight
-                testID="EditReportFieldPage"
+                testID="DynamicEditReportFieldPage"
             >
                 <FullPageNotFoundView shouldShow />
             </ScreenWrapper>

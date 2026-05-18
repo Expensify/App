@@ -249,7 +249,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
 
     return (
         <ScreenWrapper
-            testID="NewReportWorkspaceSelectionPage"
+            testID="DynamicNewReportWorkspaceSelectionPage"
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
@@ -263,7 +263,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
                         <View style={[styles.flex1, styles.fullScreenLoading]}>
                             <ActivityIndicator
                                 size="large"
-                                reasonAttributes={{context: 'NewReportWorkspaceSelectionPage', isLoadingApp: !!isLoadingApp}}
+                                reasonAttributes={{context: 'DynamicNewReportWorkspaceSelectionPage', isLoadingApp: !!isLoadingApp}}
                             />
                         </View>
                     ) : (
