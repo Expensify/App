@@ -1979,9 +1979,7 @@ function deleteDomainSecurityGroup(domainAccountID: number, groupID: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
             value: {
-                [SECURITY_GROUP_KEY]: {
-                    errors: null,
-                },
+                [SECURITY_GROUP_KEY]: null,
             },
         },
     ];
@@ -2030,9 +2028,7 @@ function deleteDomainSecurityGroup(domainAccountID: number, groupID: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
             value: {
-                [SECURITY_GROUP_KEY]: {
-                    errors: null,
-                },
+                [SECURITY_GROUP_KEY]: null,
             },
         },
     ];

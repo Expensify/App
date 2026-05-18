@@ -2773,6 +2773,7 @@ ${amount} pour ${merchant} - ${date}`,
             genericUpdate: 'Un problème est survenu lors de la mise à jour de cet agent',
             updateName: 'Un problème est survenu lors de la mise à jour du nom de cet agent',
             updatePrompt: 'Un problème est survenu lors de la mise à jour des instructions de cet agent',
+            updateAvatar: "Un problème est survenu lors de la mise à jour de l'avatar de cet agent",
         },
     },
     addAgentPage: {
@@ -2780,21 +2781,22 @@ ${amount} pour ${merchant} - ${date}`,
         agentName: 'Nom de l’agent',
         instructions: 'Rédiger des instructions personnalisées',
         createAgent: 'Créer un agent',
-        switchAvatar: "Changer d'avatar",
+        editAvatar: "Changer d'avatar",
         defaultAgentName: (displayName: string) => `Agent de ${displayName}`,
         defaultPrompt:
             'Rejeter les dépenses liées aux jeux d’argent, aux films ou à d’autres motifs manifestement non professionnels.\n\nRappeler à l’utilisateur d’inclure systématiquement une image du reçu où le pourboire est clairement visible.\n\nApprouver le rapport s’il est très similaire aux rapports précédents du même utilisateur.\n\nRejeter les rapports contenant plus de 500 $ de frais de déplacement.',
     },
     editAgentPage: {
-        title: "Modifier l'agent",
-        agentName: "Nom de l'agent",
-        instructions: 'Rédiger des instructions personnalisées',
-        deleteAgent: "Supprimer l'agent",
-        deleteAgentTitle: "Supprimer l'agent ?",
+        title: 'Modifier l’agent',
+        agentName: 'Nom de l’agent',
+        instructions: 'Écrire des instructions personnalisées',
+        deleteAgent: 'Supprimer l’agent',
+        deleteAgentTitle: 'Supprimer l’agent ?',
         deleteAgentMessage: 'Voulez-vous vraiment supprimer cet agent ? Cette action est irréversible.',
     },
-    editAgentNamePage: {title: "Nom de l'agent"},
-    editAgentPromptPage: {title: 'Rédiger des instructions personnalisées', error: {emptyPrompt: 'Veuillez saisir les instructions pour votre agent.'}},
+    editAgentAvatarPage: {title: 'Modifier l’avatar'},
+    editAgentNamePage: {title: 'Nom de l’agent'},
+    editAgentPromptPage: {title: 'Écrire des instructions personnalisées', error: {emptyPrompt: 'Veuillez saisir des instructions pour votre agent.'}},
     expenseRulesPage: {
         title: 'Règles de dépenses',
         findRule: 'Rechercher une règle',
@@ -3330,7 +3332,6 @@ ${amount} pour ${merchant} - ${date}`,
         enterPhoneNumber: 'Quel est votre numéro de téléphone ?',
         personalDetails: 'Informations personnelles',
         privateDataMessage: 'Ces informations sont utilisées pour les déplacements et les paiements. Elles ne s’affichent jamais sur votre profil public.',
-        basicDetails: 'Détails de base',
         legalName: 'Nom légal',
         legalFirstName: 'Prénom légal',
         legalLastName: 'Nom de famille légal',
@@ -4382,6 +4383,7 @@ ${amount} pour ${merchant} - ${date}`,
             travelInvoicingVendor: 'Fournisseur de voyages',
             travelInvoicingPayableAccount: 'Compte fournisseur déplacements',
             hr: 'RH',
+            rooms: 'Salons',
         },
         createdForClient: {
             title: 'Vous avez créé un espace de travail pour votre client !',
@@ -5609,8 +5611,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                         subtitle: 'Félicitations ! Vous êtes prêt à réserver et gérer des voyages sur cet espace de travail.',
                         manageTravelLabel: 'Gérer les déplacements',
                     },
-                    centralInvoicingSection: {
-                        title: 'Facturation centralisée',
+                    travelInvoicingSection: {
+                        title: 'Facturation de voyages',
                         subtitle: 'Centralisez toutes les dépenses de voyage dans une facture mensuelle au lieu de payer au moment de l’achat.',
                         learnHow: 'Découvrez comment.',
                         subsections: {
@@ -5628,7 +5630,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                             reduceLimitWarning:
                                 'Si vous réduisez la limite, les membres ayant déjà dépensé plus que ce montant ne pourront pas effectuer de nouvelles réservations de voyage avant le mois prochain.',
                             provisioningError:
-                                'Nous n’avons pas pu configurer certains membres de votre espace de travail pour la facturation centralisée. Veuillez réessayer plus tard ou contacter Concierge pour obtenir de l’aide.',
+                                'Nous n’avons pas pu provisionner certains membres de votre espace de travail pour la facturation de voyage. Veuillez réessayer plus tard ou contacter Concierge pour obtenir de l’aide.',
                         },
                     },
                     disableModal: {
@@ -5649,7 +5651,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     exportToCSV: 'Exporter en CSV',
                     selectDateRangeError: 'Veuillez sélectionner une plage de dates à exporter',
                     invalidDateRangeError: 'La date de début doit être antérieure à la date de fin',
-                    enabled: 'Facturation centralisée activée !',
+                    enabled: 'Facturation des déplacements activée !',
                     enabledDescription: 'Toutes les dépenses de voyage sur cet espace de travail seront désormais centralisées dans une facture mensuelle.',
                 },
                 personalDetailsDescription: 'Pour pouvoir réserver un voyage, veuillez saisir votre nom légal tel qu’il apparaît sur votre pièce d’identité délivrée par le gouvernement.',
@@ -5813,7 +5815,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 subtitle: 'Définissez un taux horaire facturable pour le suivi du temps.',
                 defaultHourlyRate: 'Taux horaire par défaut',
             },
-            hrWarningModal: {disconnectText: 'Pour désactiver les RH, veuillez d’abord déconnecter Gusto de cet espace de travail.'},
+            hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Pour désactiver les RH, veuillez d'abord déconnecter ${integration} de cet espace de travail.`},
         },
         reports: {
             reportsCustomTitleExamples: 'Exemples :',
@@ -7106,15 +7108,21 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
                     case 'gustoSyncTitle':
-                        return 'Synchronizing Gusto Employees';
+                        return 'Synchronisation des employés Gusto';
                     case 'gustoSyncLoadData':
-                        return 'Loading data from Gusto';
+                        return 'Chargement des données depuis Gusto';
                     case 'gustoSyncProvisioning':
-                        return 'Provisioning employees in policy';
+                        return 'Affectation des employés à la politique';
+                    case 'zenefitsSyncTitle':
+                        return 'Synchronisation des employés TriNet';
+                    case 'zenefitsSyncLoadData':
+                        return 'Chargement des données depuis TriNet';
+                    case 'zenefitsSyncProvisioning':
+                        return 'Affectation des employés à la politique';
                     case 'jobDone':
                         return 'En attente du chargement des données importées';
                     default: {
-                        return `Traduction manquante pour l’étape : ${stage}`;
+                        return `Traduction manquante pour l'étape : ${stage}`;
                     }
                 }
             },
@@ -7141,6 +7149,41 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 syncError: 'Impossible de se connecter à Gusto',
                 disconnectTitle: 'Déconnecter Gusto',
                 disconnectPrompt: 'Voulez-vous vraiment déconnecter Gusto ?',
+                syncResults: {
+                    title: 'Résultats de la synchronisation Gusto',
+                    successTitle: 'Connexion Gusto synchronisée avec succès !',
+                    added: 'Ajouté',
+                    removed: 'Supprimé',
+                    skipped: 'Ignoré',
+                    employeeCount: () => ({
+                        one: '1 employé',
+                        other: (count: number) => `${count} employés`,
+                    }),
+                },
+            },
+            zenefits: {
+                title: 'TriNet',
+                connect: 'Connecter',
+                syncNow: 'Synchroniser maintenant',
+                disconnect: 'Déconnecter',
+                lastSync: (relativeDate: string) => `Dernière synchronisation ${relativeDate}`,
+                syncError: 'Impossible de se connecter à TriNet',
+                disconnectTitle: 'Déconnecter TriNet',
+                disconnectPrompt: 'Voulez-vous vraiment déconnecter TriNet ?',
+                connectionDescription: 'Connectez TriNet pour synchroniser les approbations des employés avec votre espace de travail.',
+                approvalMode: 'Mode d’approbation',
+                finalApprover: 'Approbateur final',
+                notSet: 'Non défini',
+                approvalModeDescription: 'Les membres et les responsables sont configurés pour se synchroniser avec TriNet.',
+                approvalModeWarningTitle: 'Changer le mode d’approbation ?',
+                approvalModeWarningPrompt: (helpSiteURL: string) =>
+                    `Voulez-vous vraiment modifier le mode d’approbation de cet espace de travail ? En savoir plus sur les différents modes de workflow compatibles TriNet sur notre <a href="${helpSiteURL}">site d’aide</a>.`,
+                approvalModeWarningConfirm: 'Modifier le mode d’approbation',
+                approvalModes: {
+                    basic: {label: 'Approbation de base', description: 'Tous les utilisateurs soumettent à une seule personne pour traitement et approbation.'},
+                    manager: {label: 'Approbation du responsable', description: 'Les employés soumettent des notes de frais à leur supérieur hiérarchique direct configuré dans TriNet.'},
+                    custom: {label: 'Approbation personnalisée', description: 'Je configurerai manuellement les workflows d’approbation dans Expensify.'},
+                },
             },
         },
     },
@@ -7851,7 +7894,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `Tous les ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `Toutes les cartes CSV importées${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
-                centralInvoicing: 'Facturation centralisée',
+                travelInvoicing: 'Facturation de voyages',
             },
             reportField: (name: string, value: string) => `${name} est ${value}`,
             current: 'Actuel',
@@ -7885,7 +7928,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Carte Expensify',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Remboursement',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Facturation centralisée',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Facturation de voyages',
             },
             is: 'Est',
             action: {
@@ -8139,7 +8182,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         oooEventSummaryFullDay: (summary: string, dayCount: number, date: string) => `${summary} pour ${dayCount} ${dayCount === 1 ? 'jour' : 'jours'} jusqu’au ${date}`,
         oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${summary} du ${timePeriod} le ${date}`,
         startTimer: 'Démarrer le minuteur',
-        stopTimer: 'Arrêter le minuteur',
+        stopTimer: (duration: string) => `Arrêter le minuteur (${duration})`,
         scheduleOOO: 'Planifier une absence',
         scheduleOOOTitle: 'Planifier une absence du bureau',
         date: 'Date',
@@ -8308,7 +8351,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         personalCard: 'Carte personnelle',
         companyCard: 'Carte d’entreprise',
         expensifyCard: 'Carte Expensify',
-        centralInvoicing: 'Facturation centralisée',
+        travelInvoicing: 'Facturation de voyages',
         travelCard: 'Carte de voyage',
     },
     distance: {
