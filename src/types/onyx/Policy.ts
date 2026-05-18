@@ -3,7 +3,7 @@ import type {ValueOf} from 'type-fest';
 import type {GustoSyncResult} from '@libs/API/GustoSyncResult';
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
-import type {MergeHRConnectionName} from '@src/CONST/MERGE_HR_PROVIDERS';
+import type MERGE_HR_PROVIDERS from '@src/CONST/MERGE_HR_PROVIDERS';
 import type * as OnyxTypes from '.';
 import type * as OnyxCommon from './OnyxCommon';
 import type {WorkspaceTravelSettings} from './TravelSettings';
@@ -1539,7 +1539,7 @@ type GustoConnectionConfig = HRConnectionConfigBase;
 /** Merge HR connection config (shared by all Merge-backed HR integrations) */
 type MergeHRConnectionConfig = HRConnectionConfigBase & {
     /** Merge provider slug identifying the connected HR system */
-    mergeProviderSlug: MergeHRConnectionName;
+    mergeProviderSlug: keyof typeof MERGE_HR_PROVIDERS;
 };
 
 /** TriNet (Zenefits) connection data */
