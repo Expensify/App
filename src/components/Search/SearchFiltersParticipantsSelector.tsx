@@ -86,12 +86,7 @@ function SearchFiltersParticipantsSelector({
         [personalDetails, recentAttendees, currentUserEmail, currentUserAccountID, shouldAllowNameOnlyOptions],
     );
 
-    const expensifyTeamExclusions = useMemo(() => {
-        if (!shouldExcludeExpensifyTeamMembers) {
-            return CONST.EMPTY_OBJECT as Record<string, boolean>;
-        }
-        return getExpensifyTeamExclusions(personalDetails, currentUserEmail);
-    }, [shouldExcludeExpensifyTeamMembers, personalDetails, currentUserEmail]);
+    const expensifyTeamExclusions = !shouldExcludeExpensifyTeamMembers ? (CONST.EMPTY_OBJECT as Record<string, boolean>) : getExpensifyTeamExclusions(personalDetails, currentUserEmail);
 
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, setSelectedOptions, toggleSelection, areOptionsInitialized, onListEndReached} =
         useSearchSelector({
