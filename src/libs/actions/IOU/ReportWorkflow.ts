@@ -276,6 +276,9 @@ function getBadgeFromIOUReport(
     if (canBePaidNow) {
         return CONST.REPORT.ACTION_BADGE.PAY;
     }
+    // Pay-elsewhere path: covers negative reimbursable spend (mark-as-paid flow for credits).
+    // Skip the PAY badge when every expense is non-reimbursable — paying is optional and
+    // should not pin the report in the LHN.
     const canBePaidElsewhere = canIOUBePaid(iouReport, chatReport, policy, undefined, currentUserLogin, currentUserAccountID, undefined, true, undefined, invoiceReceiverPolicy);
     if (canBePaidElsewhere) {
         return hasOnlyNonReimbursableTransactions(iouReport?.reportID) ? undefined : CONST.REPORT.ACTION_BADGE.PAY;

@@ -3659,6 +3659,126 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(result).toBe(CONST.REPORT.ACTION_BADGE.PAY);
         });
 
+        it('should skip PAY badge for non-reimbursable-only report via pay-elsewhere path', async () => {
+            const iouReportID = '1400';
+            const chatReportID = '1401';
+            const policyID = '1402';
+
+            // REIMBURSEMENT_NO policy with no approval mode — submitted reports go straight to pay
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                type: CONST.POLICY.TYPE.TEAM,
+                role: CONST.POLICY.ROLE.ADMIN,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+            };
+
+            const fakeChatReport: Report = {
+                ...createRandomReport(Number(chatReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: chatReportID,
+                policyID,
+            };
+
+            // Non-reimbursable-only report: total=0, nonReimbursableTotal=-5000
+            // canBePaidNow returns false (REIMBURSEMENT_NO early-exits when onlyShowPayElsewhere=false)
+            // canBePaidElsewhere returns true (SUBMITTED status + non-reimbursable spend)
+            // But since all transactions are non-reimbursable, PAY badge should be skipped
+            const fakeIouReport: Report = {
+                ...createRandomReport(Number(iouReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: iouReportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: RORY_ACCOUNT_ID,
+                total: 0,
+                nonReimbursableTotal: -5000,
+                isWaitingOnBankAccount: false,
+            };
+
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(0),
+                reportID: iouReportID,
+                amount: 5000,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                bank: '',
+                reimbursable: false,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, fakeChatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, fakeIouReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
+            await waitForBatchedUpdates();
+
+            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID);
+            expect(result).toBeUndefined();
+        });
+
+        it('should return PAY badge for mixed reimbursable and non-reimbursable report', async () => {
+            const iouReportID = '1500';
+            const chatReportID = '1501';
+            const policyID = '1502';
+
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                role: CONST.POLICY.ROLE.ADMIN,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+            };
+
+            const fakeChatReport: Report = {
+                ...createRandomReport(Number(chatReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: chatReportID,
+                policyID,
+            };
+
+            // Mixed report: has both reimbursable and non-reimbursable spend
+            // PAY badge should still be shown because not all transactions are non-reimbursable
+            const fakeIouReport: Report = {
+                ...createRandomReport(Number(iouReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: iouReportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                managerID: RORY_ACCOUNT_ID,
+                total: -8000,
+                nonReimbursableTotal: -3000,
+                isWaitingOnBankAccount: false,
+            };
+
+            const fakeReimbursableTransaction: Transaction = {
+                ...createRandomTransaction(0),
+                reportID: iouReportID,
+                amount: 5000,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                bank: '',
+                reimbursable: true,
+            };
+
+            const fakeNonReimbursableTransaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: iouReportID,
+                amount: 3000,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                bank: '',
+                reimbursable: false,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, fakeChatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, fakeIouReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeReimbursableTransaction.transactionID}`, fakeReimbursableTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeNonReimbursableTransaction.transactionID}`, fakeNonReimbursableTransaction);
+            await waitForBatchedUpdates();
+
+            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID);
+            expect(result).toBe(CONST.REPORT.ACTION_BADGE.PAY);
+        });
+
         it('should return undefined badge for settled report', async () => {
             const iouReportID = '1300';
             const chatReportID = '1301';
