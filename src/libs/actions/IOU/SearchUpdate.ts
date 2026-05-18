@@ -189,6 +189,12 @@ function getSearchOnyxUpdate({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
                 value: {
+                    search: {
+                        type: currentSearchQueryJSON.type,
+                        status: currentSearchQueryJSON.status,
+                        hasResults: true,
+                        isLoading: false,
+                    },
                     data: optimisticSnapshotData,
                 },
             },
@@ -236,4 +242,3 @@ function getSearchOnyxUpdate({
 }
 
 export {getSearchOnyxUpdate, shouldOptimisticallyUpdateSearch};
-export type {GetSearchOnyxUpdateParams};
