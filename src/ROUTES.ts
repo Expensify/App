@@ -10,7 +10,6 @@ import type {MultifactorAuthenticationPromptType} from './components/Multifactor
 import type {SearchFilterKey, SearchQueryString, UserFriendlyKey} from './components/Search/types';
 import type CONST from './CONST';
 import type {IOUAction, IOUType, OdometerImageType} from './CONST';
-import type {MergeHRProviderSlug} from './CONST/MERGE_HR_PROVIDERS';
 import type {ReplacementReason} from './libs/actions/Card';
 import type {IOURequestType} from './libs/actions/IOU';
 import Log from './libs/Log';
@@ -2441,12 +2440,12 @@ const ROUTES = {
         },
     },
     WORKSPACE_HR_MERGE_APPROVAL_MODE: {
-        route: 'workspaces/:policyID/hr/merge/:connectionSlug/approval-mode',
-        getRoute: (policyID: string, connectionSlug: MergeHRProviderSlug) => `workspaces/${policyID}/hr/merge/${connectionSlug}/approval-mode` as const,
+        route: 'workspaces/:policyID/hr/merge/approval-mode',
+        getRoute: (policyID: string) => `workspaces/${policyID}/hr/merge/approval-mode` as const,
     },
     WORKSPACE_HR_MERGE_FINAL_APPROVER: {
-        route: 'workspaces/:policyID/hr/merge/:connectionSlug/final-approver',
-        getRoute: (policyID: string, connectionSlug: MergeHRProviderSlug) => `workspaces/${policyID}/hr/merge/${connectionSlug}/final-approver` as const,
+        route: 'workspaces/:policyID/hr/merge/final-approver',
+        getRoute: (policyID: string) => `workspaces/${policyID}/hr/merge/final-approver` as const,
     },
     WORKSPACE_TAGS: {
         route: 'workspaces/:policyID/tags',
