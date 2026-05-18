@@ -1,5 +1,4 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {getReportActionsForReportIDs} from '@selectors/ReportAction';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -8,6 +7,7 @@ import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -15,14 +15,13 @@ import {getOriginalMessage, isMoneyRequestAction, isTripPreview} from '@libs/Rep
 import {
     canCurrentUserOpenReport,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
-    getOriginalReportID,
     isArchivedReport,
     navigateToLinkedReportAction,
     shouldExcludeAncestorReportAction,
 } from '@libs/ReportUtils';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Report, ReportAction, ReportActions, ReportActionsDrafts, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {PersonalDetailsList, Report, ReportAction, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import RepliesDivider from './RepliesDivider';
 import ReportActionItem from './ReportActionItem';
@@ -62,9 +61,6 @@ type ReportActionItemParentActionProps = {
 
     /** Personal details list */
     personalDetails: OnyxEntry<PersonalDetailsList>;
-
-    /** Whether the report is archived */
-    isReportArchived: boolean;
 };
 
 function ReportActionItemParentAction({
@@ -78,7 +74,6 @@ function ReportActionItemParentAction({
     isFirstVisibleReportAction = false,
     shouldUseThreadDividerLine = false,
     personalDetails,
-    isReportArchived = false,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const ancestors = useAncestors(report, shouldExcludeAncestorReportAction);
@@ -87,6 +82,7 @@ function ReportActionItemParentAction({
     const transactionID = isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID;
     const [allBetas] = useOnyx(ONYXKEYS.BETAS);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const isReportArchived = useReportIsArchived(report?.reportID);
 
     const getLinkedTransactionRouteError = useCallback((transaction: OnyxEntry<Transaction>) => {
         return transaction?.errorFields?.route;
@@ -117,44 +113,6 @@ function ReportActionItemParentAction({
         [ancestors],
     );
 
-    const ancestorReportActionsSelector = useCallback(
-        (allReportActions: OnyxCollection<ReportActions>) => {
-            const reportIDs = ancestors.map((ancestor) => ancestor.report.reportID);
-            return getReportActionsForReportIDs(allReportActions, reportIDs);
-        },
-        [ancestors],
-    );
-
-    const [ancestorsReportActions] = useOnyx(
-        ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-        {
-            selector: ancestorReportActionsSelector,
-        },
-        [ancestors],
-    );
-
-    const ancestorDraftSelector = useCallback(
-        (allDrafts: OnyxCollection<ReportActionsDrafts>) => {
-            if (!allDrafts) {
-                return {};
-            }
-            const result: OnyxCollection<ReportActionsDrafts> = {};
-            for (const ancestor of ancestors) {
-                const origID = getOriginalReportID(
-                    ancestor.report.reportID,
-                    ancestor.reportAction,
-                    ancestorsReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestor.report.reportID}`],
-                );
-                const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${origID}`;
-                result[key] = allDrafts[key];
-            }
-            return result;
-        },
-        [ancestors, ancestorsReportActions],
-    );
-
-    const [ancestorDraftMessages] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS, {selector: ancestorDraftSelector}, [ancestors, ancestorsReportActions]);
-
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
@@ -175,15 +133,6 @@ function ReportActionItemParentAction({
                     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(ancestorReport, isReportArchived);
                     const shouldDisplayThreadDivider = !isTripPreview(ancestorReportAction);
                     const isAncestorReportArchived = isArchivedReport(ancestorsReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestorReport.reportID}`]);
-
-                    const originalReportID = getOriginalReportID(
-                        ancestorReport.reportID,
-                        ancestorReportAction,
-                        ancestorsReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestorReport.reportID}`],
-                    );
-                    const reportDraftMessages = originalReportID ? ancestorDraftMessages?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`] : undefined;
-                    const matchingDraftMessage = reportDraftMessages?.[ancestorReportAction.reportActionID];
-                    const matchingDraftMessageString = matchingDraftMessage?.message;
 
                     return (
                         <OfflineWithFeedback
@@ -219,7 +168,6 @@ function ReportActionItemParentAction({
                                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                                 isThreadReportParentAction
                                 personalDetails={personalDetails}
-                                draftMessage={matchingDraftMessageString}
                                 linkedTransactionRouteError={linkedTransactionRouteError}
                             />
                         </OfflineWithFeedback>

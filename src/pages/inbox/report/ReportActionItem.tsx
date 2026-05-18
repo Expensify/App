@@ -10,11 +10,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Transaction} from '@src/types/onyx';
 import type {PureReportActionItemProps} from './PureReportActionItem';
 import PureReportActionItem from './PureReportActionItem';
+import {useReportActionActiveEdit} from './ReportActionEditMessageContext';
 
 type ReportActionItemProps = PureReportActionItemProps & {
-    /** Whether to show the draft message or not */
-    shouldShowDraftMessage?: boolean;
-
     /** Draft message for the report action */
     draftMessage?: string;
 
@@ -22,7 +20,7 @@ type ReportActionItemProps = PureReportActionItemProps & {
     personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
-function ReportActionItem({action, report, draftMessage, personalDetails, linkedTransactionRouteError: linkedTransactionRouteErrorProp, ...props}: ReportActionItemProps) {
+function ReportActionItem({action, report, draftMessage: draftMessageProp, personalDetails, linkedTransactionRouteError: linkedTransactionRouteErrorProp, ...props}: ReportActionItemProps) {
     const reportID = report?.reportID;
     const originalReportID = useOriginalReportID(reportID, action);
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
@@ -41,9 +39,12 @@ function ReportActionItem({action, report, draftMessage, personalDetails, linked
 
     const [linkedTransactionRouteError] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {selector: getLinkedTransactionRouteError});
 
+    const {editingMessage, editingReportAction} = useReportActionActiveEdit();
+    const draftMessageFromEditingContext = editingReportAction && action && editingReportAction.reportActionID === action.reportActionID ? (editingMessage ?? undefined) : undefined;
+    const draftMessage = draftMessageProp ?? draftMessageFromEditingContext;
+
     return (
         <PureReportActionItem
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             action={action}
             report={report}

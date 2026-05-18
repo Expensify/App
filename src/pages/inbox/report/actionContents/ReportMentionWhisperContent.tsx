@@ -4,6 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import type {ActionableItem} from '@components/ReportActionItem/ActionableItemButtons';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import ReportActionItemMessage from '@pages/inbox/report/ReportActionItemMessage';
 import {resolveActionableReportMentionWhisper} from '@userActions/Report';
@@ -14,10 +15,10 @@ type ReportMentionWhisperContentProps = {
     action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER>;
     reportID: string | undefined;
     actionReport: OnyxEntry<Report>;
-    isReportArchived: boolean;
 };
 
-function ReportMentionWhisperContent({action, reportID, actionReport, isReportArchived}: ReportMentionWhisperContentProps) {
+function ReportMentionWhisperContent({action, reportID, actionReport}: ReportMentionWhisperContentProps) {
+    const isReportArchived = useReportIsArchived(reportID);
     const resolution = getOriginalMessage(action)?.resolution;
     const mentionReportContextValue = {currentReportID: reportID, exactlyMatch: true};
 

@@ -7,6 +7,7 @@ import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/M
 import {useBlockedFromConcierge} from '@components/OnyxListItemProvider';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {parseFollowupsFromHtml} from '@libs/ReportActionFollowupUtils';
 import {
@@ -60,6 +61,8 @@ function ChatMessageContent({
     const styles = useThemeStyles();
 
     const blockedFromConcierge = useBlockedFromConcierge();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const isEditingInline = !shouldUseNarrowLayout && draftMessage !== undefined;
 
     const mentionReportContextValue = {currentReportID: report?.reportID, exactlyMatch: true};
 
@@ -78,7 +81,17 @@ function ChatMessageContent({
     return (
         <MentionReportContext.Provider value={mentionReportContextValue}>
             <AttachmentContext.Provider value={attachmentContextValue}>
-                {draftMessage === undefined ? (
+                {isEditingInline ? (
+                    <ReportActionItemMessageEdit
+                        action={action}
+                        reportID={reportID}
+                        originalReportID={originalReportID}
+                        policyID={report?.policyID}
+                        index={index}
+                        shouldDisableEmojiPicker={(chatIncludesConcierge(report) && isBlockedFromConcierge(blockedFromConcierge)) || isArchivedNonExpenseReport(report, isArchivedRoom)}
+                        isGroupPolicyReport={!!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE}
+                    />
+                ) : (
                     <View style={displayAsGroup && hasBeenFlagged ? styles.blockquote : {}}>
                         <ReportActionItemMessage
                             reportID={reportID}
@@ -110,23 +123,10 @@ function ChatMessageContent({
                             />
                         )}
                     </View>
-                ) : (
-                    <ReportActionItemMessageEdit
-                        action={action}
-                        draftMessage={draftMessage}
-                        reportID={reportID}
-                        originalReportID={originalReportID}
-                        policyID={report?.policyID}
-                        index={index}
-                        shouldDisableEmojiPicker={(chatIncludesConcierge(report) && isBlockedFromConcierge(blockedFromConcierge)) || isArchivedNonExpenseReport(report, isArchivedRoom)}
-                        isGroupPolicyReport={!!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE}
-                    />
                 )}
             </AttachmentContext.Provider>
         </MentionReportContext.Provider>
     );
 }
-
-ChatMessageContent.displayName = 'ChatMessageContent';
 
 export default ChatMessageContent;

@@ -23,9 +23,11 @@ export type {default as ConnectBankAccountParams} from './ConnectBankAccountPara
 export type {default as OpenDuplicatePolicyPageParams} from './OpenDuplicatePolicyPageParams';
 export type {default as ConnectPolicyToAccountingIntegrationParams} from './ConnectPolicyToAccountingIntegrationParams';
 export type {default as ConnectPolicyToGustoParams} from './ConnectPolicyToGustoParams';
+export type {default as ConnectPolicyToZenefitsParams} from './ConnectPolicyToZenefitsParams';
 export type {default as OpenPolicyProfilePageParams} from './OpenPolicyProfilePageParams';
 export type {default as OpenPolicyInitialPageParams} from './OpenPolicyInitialPageParams';
 export type {default as SyncPolicyToGustoParams} from './SyncPolicyToGustoParams';
+export type {default as SyncPolicyToZenefitsParams} from './SyncPolicyToZenefitsParams';
 export type {default as SyncPolicyToQuickbooksOnlineParams} from './SyncPolicyToQuickbooksOnlineParams';
 export type {default as SyncPolicyToXeroParams} from './SyncPolicyToXeroParams';
 export type {default as SyncPolicyToNetSuiteParams} from './SyncPolicyToNetSuiteParams';
@@ -174,6 +176,8 @@ export type {default as DeleteMembersFromWorkspaceParams} from './DeleteMembersF
 export type {default as OpenWorkspaceParams} from './OpenWorkspaceParams';
 export type {default as OpenWorkspaceViewParams} from './OpenWorkspaceViewParams';
 export type {default as ConnectPolicyToSageIntacctParams} from './ConnectPolicyToSageIntacctParams';
+export type {default as ConnectPolicyToFinancialForceParams} from './ConnectPolicyToFinancialForceParams';
+export type {default as UpdateFinancialForceGenericTypeParams} from './UpdateFinancialForceGenericTypeParams';
 export type {default as OpenWorkspaceInvitePageParams} from './OpenWorkspaceInvitePageParams';
 export type {default as OpenWorkspaceMembersPageParams} from './OpenWorkspaceMembersPageParams';
 export type {default as OpenPolicyCategoriesPageParams} from './OpenPolicyCategoriesPageParams';
@@ -250,6 +254,8 @@ export type {default as EnablePolicyReportFieldsParams} from './EnablePolicyRepo
 export type {default as EnablePolicyExpensifyCardsParams} from './EnablePolicyExpensifyCardsParams';
 export type {default as UpdateGustoApprovalModeParams} from './UpdateGustoApprovalModeParams';
 export type {default as UpdateGustoFinalApproverParams} from './UpdateGustoFinalApproverParams';
+export type {default as UpdateZenefitsApprovalModeParams} from './UpdateZenefitsApprovalModeParams';
+export type {default as UpdateZenefitsFinalApproverParams} from './UpdateZenefitsFinalApproverParams';
 export type {default as AcceptJoinRequestParams} from './AcceptJoinRequest';
 export type {default as DeclineJoinRequestParams} from './DeclineJoinRequest';
 export type {default as JoinPolicyInviteLinkParams} from './JoinPolicyInviteLink';
@@ -528,3 +534,7 @@ export type {default as SetDefaultDomainSecurityGroupParams} from './SetDefaultD
 export type {default as DeleteDomainSecurityGroupParams} from './DeleteDomainSecurityGroupParams';
 export type {default as CreateAgentParams} from './CreateAgentParams';
 export type {default as CreateDomainSecurityGroupParams} from './CreateDomainSecurityGroupParams';
+export type {default as UpdateAgentNameParams} from './UpdateAgentNameParams';
+export type {default as UpdateAgentPromptParams} from './UpdateAgentPromptParams';
+export type {default as UpdateAgentAvatarParams} from './UpdateAgentAvatarParams';
+export type {default as DeleteAgentParams} from './DeleteAgentParams';

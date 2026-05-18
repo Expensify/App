@@ -16,14 +16,11 @@ type ReportActionItemFrameProps = {
     /** Report for this action */
     report: OnyxEntry<OnyxTypes.Report>;
 
-    /** The IOU/Expense report we are paying */
-    iouReport?: OnyxTypes.Report;
-
     /** Should the comment have the appearance of being grouped with the previous comment? */
     displayAsGroup: boolean;
 
-    /** Whether the action has a draft message — selects between Draft / Single / Grouped wrap. */
-    hasDraft: boolean;
+    /** True when this message is edited inline on a wide layout; right-aligns the reaction row under the composer. */
+    isEditingInline: boolean;
 
     /** Whether the report action is a whisper */
     isWhisper: boolean;
@@ -36,12 +33,26 @@ type ReportActionItemFrameProps = {
 
     /** Whether the report action is currently active (linked, not occluded by context menu) */
     isActive: boolean;
+
+    /** The IOU/Expense report we are paying */
+    iouReport?: OnyxTypes.Report;
 };
 
-function ReportActionItemFrame({children, action, report, iouReport, displayAsGroup, hasDraft, isWhisper, isOnSearch, hovered, isActive}: ReportActionItemFrameProps): React.JSX.Element {
+function ReportActionItemFrame({
+    children,
+    action,
+    report,
+    displayAsGroup,
+    isEditingInline,
+    isWhisper,
+    isOnSearch,
+    hovered,
+    isActive,
+    iouReport,
+}: ReportActionItemFrameProps): React.JSX.Element {
     const styles = useThemeStyles();
 
-    if (hasDraft) {
+    if (isEditingInline) {
         return <ReportActionItemDraft>{children}</ReportActionItemDraft>;
     }
 
@@ -49,7 +60,7 @@ function ReportActionItemFrame({children, action, report, iouReport, displayAsGr
         return (
             <ReportActionItemSingle
                 action={action}
-                showHeader
+                showHeader={!isEditingInline}
                 wrapperStyle={{
                     ...(isOnSearch && styles.p0),
                     ...(isWhisper && styles.pt1),

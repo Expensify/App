@@ -44,7 +44,7 @@ import {
     isReportActionVisible,
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction, chatIncludesChronosWithID, getOriginalReportID, getReportLastVisibleActionCreated, isHarvestCreatedExpenseReport, isUnread} from '@libs/ReportUtils';
+import {canUserPerformWriteAction, chatIncludesChronosWithID, getReportLastVisibleActionCreated, isHarvestCreatedExpenseReport, isUnread} from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Visibility from '@libs/Visibility';
@@ -129,15 +129,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const personalDetails = usePersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    // reportActions is passed as an array because it's sorted chronologically for FlatList rendering and pagination.
-    // However, getOriginalReportID expects the Onyx object format (keyed by reportActionID) for efficient lookups.
-    const reportActionsObject = useMemo(() => {
-        const obj: OnyxTypes.ReportActions = {};
-        for (const action of reportActions) {
-            obj[action.reportActionID] = action;
-        }
-        return obj;
-    }, [reportActions]);
+
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], false, reportTransactionIDs);
     const firstVisibleReportActionID = useMemo(() => getFirstVisibleReportActionID(reportActions, isOffline), [reportActions, isOffline]);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
@@ -214,7 +206,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         reportID,
         reportActions,
         allReportActionIDs: reportActionIDs,
-        transactionThreadReport,
+        transactionThreadReportID,
         hasOlderActions,
         hasNewerActions,
         newestFetchedReportActionID: reportPaginationState?.newestFetchedReportActionID,
@@ -559,8 +551,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                 !isConsecutiveChronosAutomaticTimerAction(visibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
                 hasNextActionMadeBySameActor(visibleReportActions, index, isOffline);
 
-            const originalReportID = getOriginalReportID(report?.reportID, reportAction, reportActionsObject);
-
             return (
                 <ReportActionsListItemRenderer
                     reportAction={reportAction}
@@ -576,15 +566,12 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                     shouldHideThreadDividerLine
                     linkedReportActionID={linkedReportActionID}
                     personalDetails={personalDetails}
-                    originalReportID={originalReportID}
-                    isReportArchived={isReportArchived}
                     isHarvestCreatedExpenseReport={shouldShowHarvestCreatedAction}
                 />
             );
         },
         [
             visibleReportActions,
-            reportActionsObject,
             parentReportAction,
             report,
             isOffline,
@@ -593,7 +580,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             firstVisibleReportActionID,
             linkedReportActionID,
             personalDetails,
-            isReportArchived,
             shouldShowHarvestCreatedAction,
         ],
     );

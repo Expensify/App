@@ -25,17 +25,17 @@ type ReportActionItemThreadProps = {
     /** Whether the thread item / message is being hovered */
     isHovered: boolean;
 
-    /** Whether the thread item / message is active */
-    isActive?: boolean;
-
     /** The function that should be called when the thread is LongPressed or right-clicked */
     onSecondaryInteraction: (event: GestureResponderEvent | MouseEvent) => void;
 
-    /** Whether the action has a draft message — controls thread-row alignment when the row is in edit mode */
-    hasDraft: boolean;
+    /** True when this message is edited inline on a wide layout; right-aligns the reaction row under the composer. */
+    isEditingInline: boolean;
+
+    /** Whether the thread item / message is active */
+    isActive?: boolean;
 };
 
-function ReportActionItemThread({report, reportAction, isHovered, onSecondaryInteraction, isActive, hasDraft}: ReportActionItemThreadProps) {
+function ReportActionItemThread({report, reportAction, isHovered, onSecondaryInteraction, isEditingInline, isActive}: ReportActionItemThreadProps) {
     const styles = useThemeStyles();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {translate, datetimeToCalendarTime} = useLocalize();
@@ -56,7 +56,7 @@ function ReportActionItemThread({report, reportAction, isHovered, onSecondaryInt
     const replyText = numberOfReplies === 1 ? translate('threads.reply') : translate('threads.replies');
 
     const timeStamp = datetimeToCalendarTime(mostRecentReply, false);
-    const wrapperStyle = hasDraft ? styles.chatItemReactionsDraftRight : {};
+    const wrapperStyle = isEditingInline ? styles.chatItemReactionsDraftRight : {};
 
     return (
         <View style={wrapperStyle}>

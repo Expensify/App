@@ -154,7 +154,6 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
                     shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}
                     renderProductTrainingTooltip={renderProductTrainingTooltip}
                     equalWidth={equalWidth}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                 />
             );
@@ -174,7 +173,6 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
     return (
         <TabFocusTrapContext.Provider value={setTabFocusTrapContainerElement}>
             <TopTab.Navigator
-                /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...rest}
                 id={id}
                 initialRouteName={validInitialTab}
