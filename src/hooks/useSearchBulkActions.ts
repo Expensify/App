@@ -120,7 +120,7 @@ function getRestrictedPolicyID(
 
 type ShouldShowBulkDuplicateParams = {
     selectedTransactionsKeys: string[];
-    selectedTransactions: Record<string, {reportID?: string}>;
+    selectedTransactions: Record<string, {reportID?: string; transaction?: Transaction}>;
     allTransactions: OnyxCollection<Transaction> | undefined;
     allReports: OnyxCollection<Report> | undefined;
     allTransactionViolations: OnyxCollection<TransactionViolations> | undefined;
@@ -130,6 +130,29 @@ type ShouldShowBulkDuplicateParams = {
     typeExpenseReport: boolean;
     searchData: Record<string, unknown> | undefined;
 };
+
+function getAllTransactionsForDuplicate({
+    selectedTransactionsKeys,
+    selectedTransactions,
+    allTransactions,
+    searchData,
+}: Pick<ShouldShowBulkDuplicateParams, 'selectedTransactionsKeys' | 'selectedTransactions' | 'allTransactions' | 'searchData'>): OnyxCollection<Transaction> {
+    const allTransactionsForDuplicate = {...(allTransactions ?? {})};
+
+    for (const id of selectedTransactionsKeys) {
+        const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${id}`;
+        if (allTransactionsForDuplicate[transactionKey]) {
+            continue;
+        }
+
+        const transaction = selectedTransactions[id]?.transaction ?? (searchData?.[transactionKey] as Transaction | undefined);
+        if (transaction) {
+            allTransactionsForDuplicate[transactionKey] = transaction;
+        }
+    }
+
+    return allTransactionsForDuplicate;
+}
 
 /**
  * Determines whether the bulk duplicate option should be shown for the selected transactions.
@@ -158,8 +181,10 @@ function shouldShowBulkDuplicateOption({
               .filter((report): report is Report => report != null && 'reportID' in report)
         : [];
 
+    const allTransactionsForDuplicate = getAllTransactionsForDuplicate({selectedTransactionsKeys, selectedTransactions, allTransactions, searchData});
+
     return selectedTransactionsKeys.every((id) => {
-        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
+        const transaction = allTransactionsForDuplicate[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
         if (!transaction || isManagedCardTransaction(transaction) || isScanning(transaction)) {
             return false;
         }
@@ -882,12 +907,23 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         [currentUserPersonalDetails.accountID, defaultExpensePolicy?.id],
     );
 
+    const allTransactionsForDuplicate = useMemo(
+        () =>
+            getAllTransactionsForDuplicate({
+                selectedTransactionsKeys,
+                selectedTransactions,
+                allTransactions,
+                searchData: currentSearchResults?.data,
+            }),
+        [selectedTransactionsKeys, selectedTransactions, allTransactions, currentSearchResults?.data],
+    );
+
     const isDuplicateOptionVisible = useMemo(
         () =>
             shouldShowBulkDuplicateOption({
                 selectedTransactionsKeys,
                 selectedTransactions,
-                allTransactions,
+                allTransactions: allTransactionsForDuplicate,
                 allReports,
                 allTransactionViolations,
                 allReportNameValuePairs,
@@ -899,7 +935,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         [
             selectedTransactionsKeys,
             selectedTransactions,
-            allTransactions,
+            allTransactionsForDuplicate,
             allReports,
             allTransactionViolations,
             allReportNameValuePairs,
@@ -1644,12 +1680,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         setDuplicateHandler,
         isDuplicateReportOptionVisible,
         setDuplicateReportHandler,
-        allTransactions,
+        allTransactions: allTransactionsForDuplicate,
         allReports,
         searchData: currentSearchResults?.data,
     };
 }
 
 export default useSearchBulkActions;
-export {shouldShowBulkDuplicateOption};
+export {getAllTransactionsForDuplicate, shouldShowBulkDuplicateOption};
 export type {SearchHeaderOptionValue};

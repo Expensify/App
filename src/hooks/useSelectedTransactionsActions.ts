@@ -48,7 +48,7 @@ import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 import useReportIsArchived from './useReportIsArchived';
-import {shouldShowBulkDuplicateOption} from './useSearchBulkActions';
+import {getAllTransactionsForDuplicate, shouldShowBulkDuplicateOption} from './useSearchBulkActions';
 
 const {HOLD, UNHOLD, MOVE, MERGE, SPLIT, DUPLICATE} = CONST.REPORT.SELECTED_TRANSACTIONS_BULK_ACTION_TYPES;
 
@@ -157,13 +157,24 @@ function useSelectedTransactionsActions({
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
 
     const selectedTransactionsForDuplicate = useMemo(() => {
-        const map: Record<string, {reportID?: string}> = {};
+        const map: Record<string, {reportID?: string; transaction?: Transaction}> = {};
         for (const id of selectedTransactionIDs) {
             const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
-            map[id] = {reportID: transaction?.reportID};
+            map[id] = selectedTransactionsMeta[id] ?? {reportID: transaction?.reportID, transaction};
         }
         return map;
-    }, [selectedTransactionIDs, allTransactions]);
+    }, [selectedTransactionIDs, selectedTransactionsMeta, allTransactions]);
+
+    const allTransactionsForDuplicate = useMemo(
+        () =>
+            getAllTransactionsForDuplicate({
+                selectedTransactionsKeys: selectedTransactionIDs,
+                selectedTransactions: selectedTransactionsForDuplicate,
+                allTransactions,
+                searchData: undefined,
+            }),
+        [selectedTransactionIDs, selectedTransactionsForDuplicate, allTransactions],
+    );
 
     const activePolicyExpenseChat = useMemo(() => getPolicyExpenseChat(currentUserAccountID, defaultExpensePolicy?.id), [currentUserAccountID, defaultExpensePolicy?.id]);
 
@@ -172,7 +183,7 @@ function useSelectedTransactionsActions({
             shouldShowBulkDuplicateOption({
                 selectedTransactionsKeys: selectedTransactionIDs,
                 selectedTransactions: selectedTransactionsForDuplicate,
-                allTransactions,
+                allTransactions: allTransactionsForDuplicate,
                 allReports,
                 allTransactionViolations,
                 allReportNameValuePairs,
@@ -184,7 +195,7 @@ function useSelectedTransactionsActions({
         [
             selectedTransactionIDs,
             selectedTransactionsForDuplicate,
-            allTransactions,
+            allTransactionsForDuplicate,
             allReports,
             allTransactionViolations,
             allReportNameValuePairs,
@@ -535,7 +546,7 @@ function useSelectedTransactionsActions({
         hideDeleteModal,
         isDuplicateOptionVisible,
         setDuplicateHandler,
-        allTransactions,
+        allTransactions: allTransactionsForDuplicate,
         allReports,
     };
 }
