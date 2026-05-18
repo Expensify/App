@@ -24,7 +24,6 @@ function ActionableItemSkeleton() {
                 width={BAR_WIDTH + BAR_PADDING * 2}
                 backgroundColor={theme.buttonHoveredBG}
                 foregroundColor={theme.skeletonLHNOut}
-                speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
             >
                 <SkeletonRect
                     transform={[{translateX: BAR_PADDING}, {translateY: BAR_PADDING}]}
