@@ -7,7 +7,10 @@ import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptio
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TabNavigatorParamList, WorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import createWorkspaceNavigator from '@navigation/AppNavigator/createWorkspaceNavigator';
+import DomainsListPage from '@pages/domain/DomainListPage';
+import WorkspacesListPage from '@pages/workspace/WorkspacesListPage';
 import NAVIGATORS from '@src/NAVIGATORS';
+import SCREENS from '@src/SCREENS';
 import DomainSplitNavigator from './DomainSplitNavigator';
 import WorkspaceSplitNavigator from './WorkspaceSplitNavigator';
 import WorkspacesSplitNavigator from './WorkspacesSplitNavigator';
@@ -27,10 +30,24 @@ function WorkspaceNavigator({route}: PlatformStackScreenProps<TabNavigatorParamL
             }}
             parentRoute={route}
         >
-            <Stack.Screen
-                name={NAVIGATORS.WORKSPACES_SPLIT_NAVIGATOR}
-                component={WorkspacesSplitNavigator}
-            />
+            {shouldUseNarrowLayout ? (
+                <>
+                    <Stack.Screen
+                        name={SCREENS.WORKSPACES_LIST}
+                        component={WorkspacesListPage}
+                    />
+                    <Stack.Screen
+                        name={SCREENS.WORKSPACES_DOMAINS}
+                        component={DomainsListPage}
+                    />
+                </>
+            ) : (
+                <Stack.Screen
+                    name={NAVIGATORS.WORKSPACES_SPLIT_NAVIGATOR}
+                    component={WorkspacesSplitNavigator}
+                />
+            )}
+
             <Stack.Screen
                 name={NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}
                 options={splitNavigatorOptions}

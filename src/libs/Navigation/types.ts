@@ -2948,6 +2948,8 @@ type WorkspacesSplitNavigatorParamList = {
 };
 
 type WorkspaceNavigatorParamList = {
+    [SCREENS.WORKSPACES_LIST]: {backTo?: Routes};
+    [SCREENS.WORKSPACES_DOMAINS]: undefined;
     [NAVIGATORS.WORKSPACES_SPLIT_NAVIGATOR]: NavigatorScreenParams<WorkspacesSplitNavigatorParamList>;
     [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: NavigatorScreenParams<WorkspaceSplitNavigatorParamList>;
     [NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR]: NavigatorScreenParams<DomainSplitNavigatorParamList>;
@@ -3407,4 +3409,5 @@ export type {
     DomainScreenName,
     SearchColumnsParamList,
     MultifactorAuthenticationParamList,
+    WorkspacesSplitNavigatorParamList,
 };
