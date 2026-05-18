@@ -1878,26 +1878,6 @@ function isAnyHRReadOnlyWorkflowMode(policy?: OnyxEntry<Policy>): boolean {
     return false;
 }
 
-/** Returns the `finalApprover` configured on any connected HR provider, or null if none is set. */
-function getHRFinalApprover(policy?: OnyxEntry<Policy>): string | null {
-    if (!policy?.connections) {
-        return null;
-    }
-    const gustoFinalApprover = policy.connections.gusto?.config?.finalApprover;
-    if (gustoFinalApprover) {
-        return gustoFinalApprover;
-    }
-    const zenefitsFinalApprover = policy.connections.zenefits?.config?.finalApprover;
-    if (zenefitsFinalApprover) {
-        return zenefitsFinalApprover;
-    }
-    const mergeHRFinalApprover = policy.connections.merge_hris?.config?.finalApprover;
-    if (mergeHRFinalApprover) {
-        return mergeHRFinalApprover;
-    }
-    return null;
-}
-
 /** Returns the approval mode configured for a specific HR connection, or null if not found. */
 function getHRApprovalMode(policy?: OnyxEntry<Policy>, connectionName?: HRConnectionName): ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | ValueOf<typeof CONST.MERGE_HR.APPROVAL_MODE> | null {
     if (!connectionName || !policy?.connections) {
@@ -2468,7 +2448,6 @@ export {
     isAnyHRConnected,
     isAnyHRReadOnlyWorkflowMode,
     getHRApprovalMode,
-    getHRFinalApprover,
     isSubmitPolicy,
     isPolicyEditor,
 };

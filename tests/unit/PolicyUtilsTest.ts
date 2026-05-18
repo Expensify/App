@@ -17,7 +17,6 @@ import {
     getDefaultTimeTrackingRate,
     getEligibleBankAccountShareRecipients,
     getHRApprovalMode,
-    getHRFinalApprover,
     getManagerAccountID,
     getPolicyEmployeeAccountIDs,
     getRateDisplayValue,
@@ -2834,68 +2833,6 @@ describe('PolicyUtils', () => {
                     connections: {},
                 } as Policy;
                 expect(getHRApprovalMode(policy, 'gusto')).toBeNull();
-            });
-        });
-
-        describe('getHRFinalApprover', () => {
-            it('returns null when policy is undefined', () => {
-                expect(getHRFinalApprover(undefined)).toBeNull();
-            });
-
-            it('returns null when policy has no connections', () => {
-                const policy = createRandomPolicy(0);
-                expect(getHRFinalApprover(policy)).toBeNull();
-            });
-
-            it('returns Gusto finalApprover when Gusto is connected', () => {
-                const policy = {
-                    ...createRandomPolicy(0),
-                    connections: {
-                        [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: {config: {approvalMode: 'basic', finalApprover: 'gusto-approver@example.com', isConfigured: true}},
-                    },
-                } as unknown as Policy;
-                expect(getHRFinalApprover(policy)).toBe('gusto-approver@example.com');
-            });
-
-            it('returns Zenefits finalApprover when Zenefits is connected', () => {
-                const policy = {
-                    ...createRandomPolicy(0),
-                    connections: {
-                        [CONST.POLICY.CONNECTIONS.NAME.ZENEFITS]: {config: {approvalMode: 'manager', finalApprover: 'zenefits-approver@example.com', isConfigured: true}},
-                    },
-                } as unknown as Policy;
-                expect(getHRFinalApprover(policy)).toBe('zenefits-approver@example.com');
-            });
-
-            it('returns Merge HR finalApprover when Merge HR is connected', () => {
-                const policy = {
-                    ...createRandomPolicy(0),
-                    connections: {
-                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {config: {approvalMode: 'basic', finalApprover: 'workday-approver@example.com', integration: 'workday'}},
-                    },
-                } as unknown as Policy;
-                expect(getHRFinalApprover(policy)).toBe('workday-approver@example.com');
-            });
-
-            it('returns first found finalApprover when multiple HR connections exist', () => {
-                const policy = {
-                    ...createRandomPolicy(0),
-                    connections: {
-                        [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: {config: {approvalMode: 'basic', finalApprover: 'gusto-approver@example.com', isConfigured: true}},
-                        [CONST.POLICY.CONNECTIONS.NAME.ZENEFITS]: {config: {approvalMode: 'manager', finalApprover: 'zenefits-approver@example.com', isConfigured: true}},
-                    },
-                } as unknown as Policy;
-                expect(getHRFinalApprover(policy)).toBe('gusto-approver@example.com');
-            });
-
-            it('returns null when HR connections exist but all have finalApprover as null', () => {
-                const policy = {
-                    ...createRandomPolicy(0),
-                    connections: {
-                        [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: {config: {approvalMode: 'basic', finalApprover: null, isConfigured: true}},
-                    },
-                } as unknown as Policy;
-                expect(getHRFinalApprover(policy)).toBeNull();
             });
         });
 
