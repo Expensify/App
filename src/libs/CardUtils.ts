@@ -960,38 +960,54 @@ function getFilteredCardList(
     feedName?: CompanyCardFeedWithDomainID,
 ): UnassignedCard[] {
     const {cardList: customFeedCardsToAssign, ...cards} = list ?? {};
-    const assignedCards = new Set(Object.values(cards).map((card) => card.cardName));
+
+    // For direct feeds, filter by cardName (which is unique for direct/OAuth feeds)
+    const assignedCardNames = new Set(Object.values(cards).map((card) => card.cardName));
+
+    // For commercial feeds, filter by encryptedCardNumber (unique per physical card).
+    // Using cardName would incorrectly exclude unassigned cards that share a masked PAN
+    // with an already-assigned card (e.g. two cards both ending in "7012").
+    const assignedEncryptedCardNumbers = new Set(
+        Object.values(cards)
+            .map((card) => card.encryptedCardNumber)
+            .filter(Boolean),
+    );
 
     // Get cards assigned across all workspaces
-    const allWorkspaceAssignedCards = new Set<string>();
+    const allWorkspaceAssignedCardNames = new Set<string>();
+    const allWorkspaceAssignedEncryptedCardNumbers = new Set<string>();
     for (const workspaceCards of Object.values(workspaceCardFeeds ?? {})) {
         if (!workspaceCards) {
             continue;
         }
         const {cardList, ...workspaceCardItems} = workspaceCards;
         for (const card of Object.values(workspaceCardItems)) {
-            if (!card?.cardName) {
-                continue;
+            if (card?.cardName) {
+                allWorkspaceAssignedCardNames.add(card.cardName);
             }
-            allWorkspaceAssignedCards.add(card.cardName);
+            if (card?.encryptedCardNumber) {
+                allWorkspaceAssignedEncryptedCardNumbers.add(card.encryptedCardNumber);
+            }
         }
     }
 
     // For direct feeds (Plaid/OAuth): displayName === cardIdentifier
     if (accountList) {
         return filterAmexDirectParentCard(accountList, feedName)
-            .filter((cardName) => !assignedCards.has(cardName) && !allWorkspaceAssignedCards.has(cardName))
+            .filter((cardName) => !assignedCardNames.has(cardName) && !allWorkspaceAssignedCardNames.has(cardName))
             .map((cardName) => ({
                 cardName,
                 cardID: cardName,
             }));
     }
 
-    // For commercial feeds: displayName is the key, cardIdentifier is the encrypted value
+    // For commercial feeds: key is the encrypted card number, value is the masked PAN display name.
+    // Filter by encrypted card number (unique per physical card) to correctly handle
+    // multiple cards that share the same masked PAN.
     return Object.entries(customFeedCardsToAssign ?? {})
-        .filter(([cardName]) => !assignedCards.has(cardName) && !allWorkspaceAssignedCards.has(cardName))
-        .map(([cardName, encryptedCardNumber]) => ({
-            cardName,
+        .filter(([encryptedCardNumber]) => !assignedEncryptedCardNumbers.has(encryptedCardNumber) && !allWorkspaceAssignedEncryptedCardNumbers.has(encryptedCardNumber))
+        .map(([encryptedCardNumber, maskedPAN]) => ({
+            cardName: maskedPAN,
             cardID: encryptedCardNumber,
         }));
 }
