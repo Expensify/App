@@ -927,6 +927,10 @@ function Search({
             return;
         }
 
+        // Bail out when the rebuilt selection is deeply equal to the current one. Without this,
+        // a dep that re-derives to a new reference but the same value re-runs this effect, which
+        // calls setSelectedTransactions with an equivalent payload and loops until React aborts
+        // with "Maximum update depth exceeded". See https://github.com/Expensify/App/issues/89588
         if (deepEqual(newTransactionList, selectedTransactions)) {
             return;
         }
