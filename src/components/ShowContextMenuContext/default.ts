@@ -1,0 +1,18 @@
+import type {ShowContextMenuActionsContextType, ShowContextMenuStateContextType} from './types';
+
+const defaultShowContextMenuStateContextValue: ShowContextMenuStateContextType = {
+    anchor: null,
+    report: undefined,
+    action: undefined,
+    transactionThreadReport: undefined,
+    isDisabled: true,
+    shouldDisplayContextMenu: true,
+    originalReportID: undefined,
+};
+
+const defaultShowContextMenuActionsContextValue: ShowContextMenuActionsContextType = {
+    checkIfContextMenuActive: () => {},
+    onShowContextMenu: (callback) => callback(),
+};
+
+export {defaultShowContextMenuStateContextValue, defaultShowContextMenuActionsContextValue};

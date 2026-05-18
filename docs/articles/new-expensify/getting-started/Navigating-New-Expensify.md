@@ -1,0 +1,180 @@
+---
+title: Navigating New Expensify
+description: Learn how to move around New Expensify using the navigation tabs, including Home, Inbox, Spend, Workspaces, and Account on web and mobile.
+keywords: [New Expensify, navigation tabs, navigation, Home tab, Inbox tab, Spend tab, Workspaces tab, Account tab, Scan button, Create button, workspace filter]
+internalScope: Audience is all Expensify members. Covers how to navigate Expensify using the navigation tabs and primary action buttons. Does not explain the detailed behavior of the Home tab sections.
+---
+
+# Navigating New Expensify 
+
+New Expensify uses a consistent navigation layout across web and mobile so you can quickly move between Home, Inbox, Spend, Workspaces, and Account settings.
+
+This guide explains where to find each tab and what it’s used for.
+
+---
+
+## How to use navigation tabs
+
+The **navigation tabs** are your main way to move through the app.
+
+- **Web:** Navigation tabs appear on the left side of the screen.
+- **Mobile:** Navigation tabs appear on the bottom of the screen.
+
+Tabs include:
+
+- **Home**
+- **Inbox**
+- **Spend**
+- **Workspaces**
+- **Account**
+
+---
+
+## What the Home tab is used for
+
+The **Home** tab is the first screen you see when you sign in.
+
+Use Home to get oriented and see whether anything needs attention. From the Home tab, you can navigate to Inbox, Spend, or Workspaces as needed.
+
+For a full breakdown of what appears on Home, see the [Expensify Home overview](/articles/new-expensify/getting-started/Expensify-Home-Overview).
+
+---
+
+## What the Inbox tab is used for
+
+The **Inbox** tab is where conversations and action-related items are managed.
+
+Use Inbox to:
+
+- Respond to approval requests
+- Comment on reports
+- Review notifications
+- Communicate with other members
+
+---
+
+## What the Spend tab is used for
+
+**Spend** is the main place to search and act on expenses and expense reports.
+
+From **Spend**, you can:
+
+- Open **Explore** and choose **Reports** (expense reports), **Expenses**, or **Chats**
+- Use **To-do** shortcuts such as **Submit**, **Approve**, **Pay**, and **Export**
+- Apply filters and narrow results using the **Workspace filter** inside **Filters**
+
+---
+
+## What the Workspaces tab is used for
+
+The **Workspaces** tab displays all workspaces you are a member of. 
+
+Workspace Admins can open a workspace to manage workspace-level settings.
+
+From **Workspaces**, Workspace Admins can:
+
+- Create a new workspace
+- Manage members under **Members**
+- Enable features under **More features**
+- Configure workflows
+- Connect accounting integrations under **Accounting**
+- Manage categories and tags
+
+Learn how to [create and set up a company workspace](/articles/new-expensify/getting-started/Create-a-company-workspace). 
+
+---
+
+## What the Account tab is used for
+
+The **Account** tab contains personal and account-level settings.
+
+From Account, you can manage:
+
+ - **Profile** to update your personal details
+ - **Subscription** to manage your Expensify subscription
+ - **Wallet** to manage bank accounts and linked credit cards
+ - **Expense rules** to create and edit personal expense rules
+ - **Preferences** to update app settings
+ - **Security** to manage security options and Copilot delegated access
+
+You can also access: 
+ - **Help** to access help and support resources, including support contacts
+ - **What's new** to view product updates
+ - **About** to see app details
+ - **Troubleshoot** to run diagnostics or switch to Expensify Classic
+ - **Save the world** to explore Expensify.org campaigns
+ - **Sign out** to log out of your account
+
+Use Account for personal settings and billing. 
+
+---
+
+## How to find your assigned support contacts on the Help page
+
+Paid Workspace Admins may have dedicated support contacts assigned to their account, such as an Account Manager, Partner Manager, or Setup Specialist. These contacts appear directly on the **Help** page so you can quickly start a conversation with them.
+
+1. Click the navigation tabs (on the left on web, on the bottom on mobile).
+2. Select **Settings**.
+3. Select **Help**.
+4. Below **Concierge**, look for your assigned support contacts.
+5. Click a contact to open a direct message with them.
+
+---
+
+## How to use the Scan and Create buttons
+
+In addition to the navigation tabs, you’ll see two primary action buttons:
+
+- The green **Scan** button to scan or manually add an expense.
+- The grey **➕ Create** button to start actions like creating a report, sending money, requesting money, or tracking distance.
+
+The **Scan** and **Create** buttons are available from all screens so you can quickly take action.
+
+---
+
+## How to navigate New Expensify quickly
+
+If you’re not sure where to go:
+
+- Use **Home** to see what needs attention.
+- Use **Inbox** to manage conversations and approvals.
+- Use **Spend** to view or filter expense reports.
+- Use **Workspaces** to manage workspace settings.
+- Use **Account** to update personal settings or subscription details.
+
+---
+
+# FAQ
+
+## Where are navigation tabs located in Expensify?
+
+On web, navigation tabs appear on the left. On mobile, navigation tabs appear on the bottom.
+
+## Where do I manage workspace settings?
+
+Open the **Workspaces** tab from the navigation tabs.
+
+## Where do I update my personal profile or billing information?
+
+Open the **Account** tab from the navigation tabs.
+
+## What does the green Scan button do?
+
+The green **Scan** button lets you scan or manually add an expense.
+
+## What does the ➕ Create button do?
+
+The **➕ Create** button starts actions such as creating a report, sending money, requesting money, or tracking distance.
+
+## Why don't I see assigned support contacts on the Help page?
+
+Assigned support contacts only appear if:
+
+- You are a Workspace Admin on a paid plan
+- A support contact has been assigned to your account
+
+If no contacts are assigned, these options will not appear on the **Help** page.
+
+## How do I get an Account Manager assigned?
+
+Account Managers are typically assigned to accounts with subscriptions that include 10 or more members. Contact **Concierge** if you believe your account qualifies.

@@ -1,0 +1,280 @@
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import CONST from '@src/CONST';
+import type {Unit} from '@src/types/onyx/Policy';
+import type Policy from '@src/types/onyx/Policy';
+import createRandomTransaction from '../utils/collections/transaction';
+import {translateLocal} from '../utils/TestHelper';
+
+const customUnitRateIDWithTaxClaimablePercentage = 'FG515011039A4';
+const rateWithTaxClaimablePercentage = 100;
+const totalDistance = 1000;
+const taxClaimablePercentage = 0.5;
+const distanceUnit: Unit = CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+const customUnitRateIDWithOutTaxClaimablePercentage = 'EB515052039A4';
+const FAKE_POLICY: Policy = {
+    id: 'CEEEDB0EC660F71A',
+    name: 'Test',
+    role: 'admin',
+    type: 'corporate',
+    owner: 'work.sa1206+travel@gmail.com',
+    outputCurrency: 'USD',
+    isPolicyExpenseChatEnabled: true,
+    customUnits: {
+        C9031B6F4725D: {
+            attributes: {
+                taxEnabled: true,
+                unit: distanceUnit,
+            },
+            customUnitID: 'C9031B6F4725D',
+            defaultCategory: '',
+            enabled: true,
+            name: 'Distance',
+            rates: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '222AAF6B93BCB': {
+                    attributes: {},
+                    currency: 'USD',
+                    customUnitRateID: '222AAF6B93BCB',
+                    enabled: true,
+                    name: 'Default Rate',
+                    rate: 67,
+                    subRates: [],
+                },
+                EE75E6DBC6FF8: {
+                    attributes: {},
+                    currency: 'USD',
+                    customUnitRateID: 'EE75E6DBC6FF8',
+                    enabled: true,
+                    name: 'Default Rate 1',
+                    rate: 100,
+                    subRates: [],
+                },
+                B593F3FBBB0BD: {
+                    currency: 'USD',
+                    name: 'New Rate',
+                    rate: 900,
+                    customUnitRateID: 'B593F3FBBB0BD',
+                    enabled: true,
+                    attributes: {},
+                    subRates: [],
+                    pendingFields: {},
+                },
+                [customUnitRateIDWithOutTaxClaimablePercentage]: {
+                    currency: 'USD',
+                    customUnitRateID: `${customUnitRateIDWithOutTaxClaimablePercentage}`,
+                    enabled: true,
+                    name: 'Default Rate',
+                    rate: 72.5,
+                    subRates: [],
+                    attributes: {
+                        taxRateExternalID: 'id_TAX_RATE_1',
+                    },
+                    pendingFields: {},
+                },
+                [customUnitRateIDWithTaxClaimablePercentage]: {
+                    currency: 'USD',
+                    customUnitRateID: `${customUnitRateIDWithTaxClaimablePercentage}`,
+                    enabled: true,
+                    name: 'Default Rate',
+                    rate: rateWithTaxClaimablePercentage,
+                    subRates: [],
+                    attributes: {
+                        taxRateExternalID: 'id_TAX_RATE_1',
+                        taxClaimablePercentage,
+                    },
+                    pendingFields: {},
+                },
+            },
+        },
+    },
+};
+
+describe('DistanceRequestUtils', () => {
+    describe('getDistanceRequestAmount', () => {
+        test.each([
+            [350, 8605.146, 'mi', 65.5],
+            [561, 8605.146, 'km', 65.1],
+        ] as const)('Correctly calculates amount %s for %s%s at a rate of %s per unit', (expectedResult: number, distance: number, unit: Unit, rate: number) => {
+            expect(DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate)).toBe(expectedResult);
+        });
+    });
+    describe('getCustomUnitRateID', () => {
+        it('returns Fake P2P custom unit rateID if reportID is undefined', () => {
+            const reportID = undefined;
+            const isPolicyExpenseChat = false;
+
+            const result = DistanceRequestUtils.getCustomUnitRateID({
+                reportID,
+                isPolicyExpenseChat,
+                policy: undefined,
+                lastSelectedDistanceRates: undefined,
+            });
+
+            expect(result).toBe(CONST.CUSTOM_UNITS.FAKE_P2P_ID);
+        });
+
+        it('returns Fake P2P custom unit rateID if isPolicyExpenseChat is false', () => {
+            const reportID = '1234';
+            const isPolicyExpenseChat = false;
+
+            const result = DistanceRequestUtils.getCustomUnitRateID({
+                reportID,
+                isPolicyExpenseChat,
+                policy: undefined,
+                lastSelectedDistanceRates: undefined,
+            });
+
+            expect(result).toBe(CONST.CUSTOM_UNITS.FAKE_P2P_ID);
+        });
+
+        it('returns Fake P2P custom unit rateID if policy is undefined', () => {
+            const reportID = '1234';
+            const isPolicyExpenseChat = true;
+
+            const result = DistanceRequestUtils.getCustomUnitRateID({
+                reportID,
+                isPolicyExpenseChat,
+                policy: undefined,
+                lastSelectedDistanceRates: undefined,
+            });
+
+            expect(result).toBe(CONST.CUSTOM_UNITS.FAKE_P2P_ID);
+        });
+
+        it('returns policy default rateID custom unit rateID if lastSelectedDistanceRates is undefined', () => {
+            const reportID = '1234';
+            const isPolicyExpenseChat = true;
+
+            const result = DistanceRequestUtils.getCustomUnitRateID({
+                reportID,
+                isPolicyExpenseChat,
+                policy: FAKE_POLICY,
+                lastSelectedDistanceRates: undefined,
+            });
+
+            expect(result).toBe('222AAF6B93BCB');
+        });
+
+        it('returns policy last selected rateID custom unit rateID if lastSelectedDistanceRates is defined', () => {
+            const reportID = '1234';
+            const isPolicyExpenseChat = true;
+
+            const lastSelectedDistanceRates = {
+                [FAKE_POLICY.id]: 'B593F3FBBB0BD',
+            };
+
+            const result = DistanceRequestUtils.getCustomUnitRateID({
+                reportID,
+                isPolicyExpenseChat,
+                policy: FAKE_POLICY,
+                lastSelectedDistanceRates,
+            });
+
+            expect(result).toBe('B593F3FBBB0BD');
+        });
+
+        it('returns policy default rateID custom unit for isTrackDistanceExpense', () => {
+            const reportID = '1234';
+
+            const result = DistanceRequestUtils.getCustomUnitRateID({
+                reportID,
+                isPolicyExpenseChat: false,
+                policy: FAKE_POLICY,
+                lastSelectedDistanceRates: undefined,
+                isTrackDistanceExpense: true,
+            });
+
+            expect(result).toBe('222AAF6B93BCB');
+        });
+    });
+
+    describe('getDistanceForDisplay', () => {
+        it('returns empty string when distance is 0 and isManualDistanceRequest is false', () => {
+            const result = DistanceRequestUtils.getDistanceForDisplay(true, 0, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, 67, translateLocal, false, false);
+            expect(result).toBe('');
+        });
+
+        it('formats zero distance when isManualDistanceRequest is true', () => {
+            const result = DistanceRequestUtils.getDistanceForDisplay(true, 0, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, 67, translateLocal, false, true);
+            expect(result).toBe(`0.00 ${translateLocal('common.miles')}`);
+        });
+    });
+
+    describe('getRate', () => {
+        it('returns the rate from policyForMovingExpenses if an unreported transaction rate belongs to it', () => {
+            const transaction = {...createRandomTransaction(1), reportID: '0', comment: {customUnit: {customUnitRateID: 'EE75E6DBC6FF8'}}};
+            const result = DistanceRequestUtils.getRate({policyForMovingExpenses: FAKE_POLICY, transaction, policy: undefined});
+            expect(result.customUnitRateID).toBe('EE75E6DBC6FF8');
+        });
+
+        it('does not return the default rate of the policy if the customUnitRateID of the tracked transaction does not exist', () => {
+            const transaction = {...createRandomTransaction(1), reportID: '0', comment: {customUnit: {customUnitRateID: 'some-rate'}}};
+            const result = DistanceRequestUtils.getRate({policy: FAKE_POLICY, transaction});
+            expect(result.customUnitRateID).toBeUndefined();
+        });
+    });
+
+    describe('getDistanceMerchant', () => {
+        const toLocaleDigitMock = (dot: string): string => dot;
+        const getCurrencySymbolMock = (currency: string): string | undefined => {
+            if (currency === 'USD') {
+                return '$';
+            }
+            return undefined;
+        };
+
+        it('formats zero distance when isManualDistanceRequest is true', () => {
+            const result = DistanceRequestUtils.getDistanceMerchant(
+                true,
+                0,
+                CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                67,
+                'USD',
+                translateLocal,
+                toLocaleDigitMock,
+                getCurrencySymbolMock,
+                true,
+            );
+            expect(result).toBe('0.00 mi @ $0.67 / mi');
+        });
+    });
+
+    describe('getTaxableAmount', () => {
+        it('should return 0 if tax reclaimable percentage is undefined', () => {
+            const result = DistanceRequestUtils.getTaxableAmount(FAKE_POLICY, customUnitRateIDWithOutTaxClaimablePercentage, totalDistance);
+            expect(result).toBe(0);
+        });
+
+        it('should return taxable amount that is greater than 0 if tax reclaimable percentage is greater than 0', () => {
+            const result = DistanceRequestUtils.getTaxableAmount(FAKE_POLICY, customUnitRateIDWithTaxClaimablePercentage, totalDistance);
+            const expectedTaxableAmount = taxClaimablePercentage * DistanceRequestUtils.getDistanceRequestAmount(totalDistance, distanceUnit, rateWithTaxClaimablePercentage);
+            expect(result).toEqual(expectedTaxableAmount);
+        });
+    });
+
+    describe('getRateForExpenseDisplay', () => {
+        const toLocaleDigitMock = (dot: string): string => dot;
+        const getCurrencySymbolMock = (currency: string): string | undefined => {
+            if (currency === 'USD') {
+                return '$';
+            }
+            return currency;
+        };
+        const rateParams = ['mi' as const, 67, 'USD', translateLocal, toLocaleDigitMock, getCurrencySymbolMock, false] as const;
+
+        it('should return rate name for workspace expenses', () => {
+            const result = DistanceRequestUtils.getRateForExpenseDisplay('Default Rate', false, ...rateParams);
+            expect(result).toBe('Default Rate');
+        });
+
+        it('should return formatted rate value for P2P expenses (no rate name)', () => {
+            const result = DistanceRequestUtils.getRateForExpenseDisplay(undefined, false, ...rateParams);
+            expect(result).toBe(`$0.67 / ${translateLocal('common.mile')}`);
+        });
+
+        it('should return out-of-policy message for workspace expenses with invalid rate', () => {
+            const result = DistanceRequestUtils.getRateForExpenseDisplay('Default Rate', true, ...rateParams);
+            expect(result).toBe(translateLocal('common.rateOutOfPolicy'));
+        });
+    });
+});

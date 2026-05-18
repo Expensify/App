@@ -1,0 +1,23 @@
+name: Check consistency of search parser files
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches-ignore: [staging, production]
+    paths:
+      - "src/libs/SearchParser/**"
+
+jobs:
+  verify:
+    if: github.actor != 'OSBotify' && github.actor != 'imgbot[bot]'
+    runs-on: blacksmith-6vcpu-macos-latest
+    steps:
+      - name: Checkout
+        # v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Verify parser files consistency
+        run: ./.github/scripts/checkParser.sh

@@ -1,0 +1,9 @@
+# @desc   Switch the bottom navigation tab from Home to Spend (legacy name: Reports). Triggers the ManualNavigateToReports Sentry span end-to-end (BottomTab click -> Spend screen layout completion). Assumes the user is signed in and the bottom nav bar is visible.
+# @pre    text="Home"
+# @pre    text="Spend"
+# @post   text="Spend"
+# @tag    navigation
+# @tag    perf
+# @tag    sentry-ManualNavigateToReports
+press "label=\"Home\""
+press "label=\"Spend\""

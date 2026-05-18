@@ -1,0 +1,11 @@
+type CreateAppReportParams = {
+    policyID?: string;
+    type: string;
+    reportID: string;
+    reportActionID: string;
+    reportPreviewReportActionID: string;
+    ownerEmail?: string;
+    shouldDismissEmptyReportsConfirmation?: boolean;
+    reportName?: string;
+};
+export default CreateAppReportParams;
