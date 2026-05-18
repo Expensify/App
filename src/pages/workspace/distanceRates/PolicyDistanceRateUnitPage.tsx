@@ -41,9 +41,9 @@ function PolicyDistanceRateUnitPage({route}: PolicyDistanceRateUnitPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED}
         >
             <ScreenWrapper
-                style={[styles.pb0]}
-                includePaddingTop={false}
+                style={styles.pb0}
                 enableEdgeToEdgeBottomSafeAreaPadding
+                shouldEnableKeyboardAvoidingView={false}
                 testID={PolicyDistanceRateUnitPage.displayName}
             >
                 <HeaderWithBackButton title={translate('workspace.distanceRates.unit')} />
