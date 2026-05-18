@@ -40,8 +40,8 @@ import {getPolicyExpenseChat, getTransactionDetails, isMoneyRequestReport, isPol
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getRequestType, getTaxValue, hasReceipt, isDistanceRequest, isExpenseUnreported} from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
-import {setMoneyRequestAmount, setMoneyRequestTaxAmount, setMoneyRequestTaxRate} from '@userActions/IOU';
-import {getMoneyRequestParticipantsFromReport, setMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
+import {setMoneyRequestAmount} from '@userActions/IOU';
+import {getMoneyRequestParticipantsFromReport, setMoneyRequestParticipantsFromReport, setMoneyRequestTaxAmount, setMoneyRequestTaxRate} from '@userActions/IOU/MoneyRequest';
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
 import {resetSplitShares, setDraftSplitTransaction, setSplitShares} from '@userActions/IOU/Split';
 import {trackExpense} from '@userActions/IOU/TrackExpense';
@@ -445,12 +445,11 @@ function IOURequestStepAmount({
     const saveAmountAndCurrency = ({amount, paymentMethod}: AmountParams) => {
         const newAmount = convertToBackendAmount(Number.parseFloat(amount));
 
-        // Edits to the amount from the splits page should reset the split shares.
-        if (transaction?.splitShares) {
-            resetSplitShares(transaction, newAmount, selectedCurrency);
-        }
-
         if (!isEditing) {
+            // Edits to the amount from the splits page should reset the split shares.
+            if (transaction?.splitShares) {
+                resetSplitShares(transaction, newAmount, selectedCurrency, true);
+            }
             navigateToNextPage({amount, paymentMethod});
             return;
         }
@@ -473,6 +472,11 @@ function IOURequestStepAmount({
             setDraftSplitTransaction(transactionID, splitDraftTransaction, {amount: newAmount, currency: selectedCurrency, taxCode, taxAmount});
             navigateBack();
             return;
+        }
+
+        // Reset split shares for non-split-bill edits (split-bill share recalculation is handled by the confirmation list).
+        if (transaction?.splitShares) {
+            resetSplitShares(transaction, newAmount, selectedCurrency, false);
         }
 
         updateMoneyRequestAmountAndCurrency({

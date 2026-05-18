@@ -192,6 +192,31 @@ describe('getViolationsOnyxData', () => {
 
             expect(result.value).not.toContainEqual(customUnitOutOfPolicyViolation);
         });
+
+        it('should keep the customUnitOutOfPolicy violation if the rate exists but is disabled', () => {
+            const customUnitRateID = 'rate_id';
+            policy.customUnits = {
+                unitId: {
+                    attributes: {unit: 'mi'},
+                    customUnitID: 'unitId',
+                    defaultCategory: 'Car',
+                    enabled: true,
+                    name: 'Distance',
+                    rates: {
+                        [customUnitRateID]: {
+                            currency: 'USD',
+                            customUnitRateID,
+                            enabled: false,
+                            name: 'Default Rate',
+                            rate: 65.5,
+                        },
+                    },
+                },
+            };
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+
+            expect(result.value).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+        });
     });
 
     describe('per diem rate validation', () => {

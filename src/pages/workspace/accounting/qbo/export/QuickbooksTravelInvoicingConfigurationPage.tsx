@@ -19,8 +19,8 @@ function QuickbooksTravelInvoicingConfigurationPage({policy}: WithPolicyConnecti
 
     const policyID = policy?.id ?? String(CONST.DEFAULT_NUMBER_ID);
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
-    const {accountPayable} = policy?.connections?.quickbooksOnline?.data ?? {};
-    const travelPayableAccount = accountPayable?.find((a) => a.id === qboConfig?.travelInvoicingPayableAccountID);
+    const {creditCards} = policy?.connections?.quickbooksOnline?.data ?? {};
+    const travelPayableAccount = creditCards?.find((a) => a.id === qboConfig?.travelInvoicingPayableAccountID);
 
     return (
         <ConnectionLayout

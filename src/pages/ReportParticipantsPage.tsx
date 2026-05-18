@@ -1,7 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import Badge from '@components/Badge';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -27,6 +26,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
+import useSearchResults from '@hooks/useSearchResults';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -90,7 +90,6 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     const isFocused = useIsFocused();
     const {isOffline} = useNetwork();
     const canSelectMultiple = isGroupChat && isCurrentUserAdmin && (isSmallScreenWidth ? isMobileSelectionModeEnabled : true);
-    const [searchValue, setSearchValue] = useState('');
 
     const {personalDetailsParticipants, participantsForDisplay} = getReportPersonalDetailsParticipants(report, personalDetails, reportMetadata);
     const participantsForDisplayMap = participantsForDisplay.reduce<Record<number, TupleToUnion<typeof participantsForDisplay>>>((acc, participant) => {
@@ -106,6 +105,13 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     };
 
     const [selectedMembers, setSelectedMembers] = useFilteredSelection(personalDetailsParticipants, filterParticipants);
+
+    const [searchValue, setSearchValue, searchFilteredParticipants] = useSearchResults(
+        participantsForDisplay,
+        (participant, search) => isSearchStringMatchUserDetails(participant.details, search),
+        undefined,
+        (participant) => isOffline || !participant.isPendingDelete,
+    );
 
     // Get the active chat members by filtering out the pending members with delete action
     const activeParticipants = participantsForDisplay.filter((participant) => isOffline || !participant.isPendingDelete);
@@ -172,10 +178,9 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
         const accountIDsToRemove = selectedMembers.filter((id) => id !== currentUserAccountID);
         removeFromGroupChat(report, accountIDsToRemove);
         setSearchValue('');
-        InteractionManager.runAfterInteractions(() => {
-            setSelectedMembers([]);
-            clearUserSearchPhrase();
-        });
+
+        setSelectedMembers([]);
+        clearUserSearchPhrase();
     };
 
     const showRemoveMembersModal = async () => {
@@ -215,16 +220,8 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
 
     // Build participants list
     let participants: MemberOption[] = [];
-    for (const participantForDisplay of participantsForDisplay) {
-        const {accountID, details, isDisabled, isPendingDelete, pendingAction, role} = participantForDisplay;
-
-        if (searchValue.trim() && !isSearchStringMatchUserDetails(details, searchValue)) {
-            continue;
-        }
-
-        if (!isOffline && isPendingDelete) {
-            continue;
-        }
+    for (const participantForDisplay of searchFilteredParticipants) {
+        const {accountID, details, isDisabled, pendingAction, role} = participantForDisplay;
 
         const isAdmin = role === CONST.REPORT.ROLE.ADMIN;
 
