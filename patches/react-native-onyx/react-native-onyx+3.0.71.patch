@@ -1,0 +1,67 @@
+diff --git a/node_modules/react-native-onyx/dist/OnyxUtils.js b/node_modules/react-native-onyx/dist/OnyxUtils.js
+index de56f94..495d378 100644
+--- a/node_modules/react-native-onyx/dist/OnyxUtils.js
++++ b/node_modules/react-native-onyx/dist/OnyxUtils.js
+@@ -868,24 +868,6 @@ function subscribeToKey(connectOptions) {
+     const subscriptionID = lastSubscriptionID++;
+     callbackToStateMapping[subscriptionID] = mapping;
+     callbackToStateMapping[subscriptionID].subscriptionID = subscriptionID;
+-    // If the subscriber is attempting to connect to a collection member whose ID is skippable (e.g. "undefined", "null", etc.)
+-    // we suppress wiring the subscription fully to avoid unnecessary callback emissions such as for "report_undefined".
+-    // We still return a valid subscriptionID so callers can disconnect safely.
+-    try {
+-        const skippableIDs = getSkippableCollectionMemberIDs();
+-        if (skippableIDs.size) {
+-            const [, collectionMemberID] = OnyxKeys_1.default.splitCollectionMemberKey(mapping.key);
+-            if (skippableIDs.has(collectionMemberID)) {
+-                // Clean up the provisional mapping to avoid retaining unused subscribers.
+-                OnyxCache_1.default.addNullishStorageKey(mapping.key);
+-                delete callbackToStateMapping[subscriptionID];
+-                return subscriptionID;
+-            }
+-        }
+-    }
+-    catch (e) {
+-        // Not a collection member key, proceed as usual.
+-    }
+     // When keyChanged is called, a key is passed and the method looks through all the Subscribers in callbackToStateMapping for the matching key to get the subscriptionID
+     // to avoid having to loop through all the Subscribers all the time (even when just one connection belongs to one key),
+     // We create a mapping from key to lists of subscriptionIDs to access the specific list of subscriptionIDs.
+@@ -1394,12 +1376,6 @@ function logKeyChanged(onyxMethod, key, value, hasChanged) {
+ function logKeyRemoved(onyxMethod, key) {
+     Logger.logInfo(`${onyxMethod} called for key: ${key} => null passed, so key was removed`);
+ }
+-/**
+- * Getter - returns the callback to state mapping, useful in test environments.
+- */
+-function getCallbackToStateMapping() {
+-    return callbackToStateMapping;
+-}
+ /**
+  * Clear internal variables used in this file, useful in test environments.
+  */
+@@ -1458,6 +1434,5 @@ const OnyxUtils = {
+     setWithRetry,
+     multiSetWithRetry,
+     setCollectionWithRetry,
+-    getCallbackToStateMapping,
+ };
+ exports.default = OnyxUtils;
+diff --git a/node_modules/react-native-onyx/dist/useOnyx.js b/node_modules/react-native-onyx/dist/useOnyx.js
+index 9213cff..2e48c73 100644
+--- a/node_modules/react-native-onyx/dist/useOnyx.js
++++ b/node_modules/react-native-onyx/dist/useOnyx.js
+@@ -220,12 +220,8 @@ function useOnyx(key, options, dependencies = []) {
+             newValueRef.current = null;
+             sourceValueRef.current = undefined;
+             resultRef.current = [undefined, { status: (options === null || options === void 0 ? void 0 : options.initWithStoredValues) === false ? 'loaded' : 'loading' }];
++            shouldGetCachedValueRef.current = true;
+         }
+-        // Force a cache re-read on every (re)subscription so any side effects from
+-        // subscribeToKey (e.g. addNullishStorageKey for skippable collection member ids)
+-        // are reflected in the next getSnapshot. Resetting this flag does not change
+-        // resultRef by itself, so it doesn't cause an extra mount render.
+-        shouldGetCachedValueRef.current = true;
+         hasMountedRef.current = true;
+         isConnectingRef.current = true;
+         onStoreChangeFnRef.current = onStoreChange;
