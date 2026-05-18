@@ -18,6 +18,7 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import openWorkspaceRoomsPage from '@libs/actions/Policy/Room';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {isChatRoom, isPolicyExpenseChat} from '@libs/ReportUtils';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -118,7 +119,10 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                     renderItem={({item}) => (
                         <WorkspaceRoomsListItem
                             report={item}
-                            onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.reportID))}
+                            onPress={() => {
+                                const targetRoute = isPolicyAdmin(policy) ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(item.reportID) : ROUTES.REPORT_WITH_ID.getRoute(item.reportID);
+                                Navigation.navigate(targetRoute);
+                            }}
                         />
                     )}
                 />
