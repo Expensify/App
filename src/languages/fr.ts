@@ -4364,6 +4364,7 @@ ${amount} pour ${merchant} - ${date}`,
             travelInvoicingVendor: 'Fournisseur de voyages',
             travelInvoicingPayableAccount: 'Compte fournisseur déplacements',
             hr: 'RH',
+            rooms: 'Salons',
         },
         createdForClient: {
             title: 'Vous avez créé un espace de travail pour votre client !',

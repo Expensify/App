@@ -3,6 +3,11 @@ import {useState} from 'react';
 import type {PermissionStatus} from 'react-native-permissions';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDebounce from '@hooks/useDebounce';
+import useDebouncedState from '@hooks/useDebouncedState';
+import useOnyx from '@hooks/useOnyx';
+import useSortedActions from '@hooks/useSortedActions';
 import type {GetOptionsConfig, Option, Options, SearchOption} from '@libs/OptionsListUtils';
 import {getEmptyOptions, getSearchOptions, getSearchValueForPhoneOrEmail, getValidOptions} from '@libs/OptionsListUtils';
 import {getPersonalDetailSearchTerms} from '@libs/OptionsListUtils/searchMatchUtils';
@@ -10,11 +15,6 @@ import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
-import useDebounce from './useDebounce';
-import useDebouncedState from './useDebouncedState';
-import useOnyx from './useOnyx';
-import useSortedActions from './useSortedActions';
 
 type SearchSelectorContext = (typeof CONST.SEARCH_SELECTOR)[keyof Pick<
     typeof CONST.SEARCH_SELECTOR,

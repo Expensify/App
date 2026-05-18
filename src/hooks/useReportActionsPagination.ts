@@ -24,7 +24,6 @@ type UseReportActionsPaginationResult = {
     transactionThreadReportID: string | undefined;
     transactionThreadReport: OnyxEntry<Report>;
     parentReportActionForTransactionThread: ReportAction | undefined;
-    shouldAddCreatedAction: boolean;
     treatAsNoPaginationAnchor: boolean;
     setTreatAsNoPaginationAnchor: (value: boolean) => void;
 };
@@ -54,14 +53,10 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
 
-    const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
-    const isLoadingInitialReportActions = reportLoadingState?.isLoadingInitialReportActions;
-
     const isReportTransactionThread = isReportTransactionThreadUtil(report);
-    const isInitiallyLoadingTransactionThread = isReportTransactionThread && (!!isLoadingInitialReportActions || (allReportActions ?? [])?.length <= 1);
 
     const lastAction = allReportActions?.at(-1);
-    const shouldAddCreatedAction = !isCreatedAction(lastAction) && (isMoneyRequestReport(report) || isInvoiceReport(report) || isInitiallyLoadingTransactionThread || isConciergeChat);
+    const shouldAddCreatedAction = !isCreatedAction(lastAction) && (isMoneyRequestReport(report) || isInvoiceReport(report) || isReportTransactionThread || isConciergeChat);
 
     const reportPreviewAction = useMemo(() => getReportPreviewAction(report?.chatReportID, report?.reportID), [report?.chatReportID, report?.reportID]);
 
@@ -94,7 +89,6 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
         transactionThreadReportID: thread.transactionThreadReportID,
         transactionThreadReport: thread.transactionThreadReport,
         parentReportActionForTransactionThread: thread.parentReportActionForTransactionThread,
-        shouldAddCreatedAction,
         treatAsNoPaginationAnchor,
         setTreatAsNoPaginationAnchor,
     };

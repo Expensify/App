@@ -899,6 +899,8 @@ const CONST = {
         BULK_EDIT: 'bulkEdit',
         NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
         SUBMIT_2026: 'submit2026',
+        BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
+        WORKSPACE_ROOMS_PAGE: 'workspaceRoomsPage',
         CERTINIA: 'financialForceNewDot',
     },
     BUTTON_STATES: {
@@ -2085,6 +2087,7 @@ const CONST = {
             SEARCH_PRE_INSERT: 'search_pre_insert',
             REPORT_PRE_INSERT: 'report_pre_insert',
             DISMISS_MODAL: 'dismiss_modal',
+            DISMISS_TO_REPORT: 'dismiss_to_report',
             REPORT_IN_RHP_DISMISS: 'report_in_rhp_dismiss',
             SEARCH_DISMISS: 'search_dismiss',
             DEFAULT: 'default',
@@ -7688,6 +7691,7 @@ const CONST = {
         BULK_ACTION_TYPES: {
             EDIT: 'edit',
             EXPORT: 'export',
+            DOWNLOAD_PDF: 'downloadPDF',
             APPROVE: 'approve',
             CHANGE_APPROVER: 'changeApprover',
             PAY: 'pay',
@@ -9463,6 +9467,7 @@ const CONST = {
             INITIAL: {
                 PROFILE: 'WorkspaceInitial-Profile',
                 MEMBERS: 'WorkspaceInitial-Members',
+                ROOMS: 'WorkspaceInitial-Rooms',
                 REPORTS: 'WorkspaceInitial-Reports',
                 ACCOUNTING: 'WorkspaceInitial-Accounting',
                 HR: 'WorkspaceInitial-HR',
