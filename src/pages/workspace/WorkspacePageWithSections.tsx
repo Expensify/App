@@ -4,7 +4,6 @@ import type {ReactNode} from 'react';
 import React, {useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -20,7 +19,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {openWorkspaceView} from '@libs/actions/BankAccounts';
 import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFromWorkspaceSettingPages';
 import Navigation from '@libs/Navigation/Navigation';
-import {canEditWorkspaceSettings, canMemberRead, canMemberWrite, isPendingDeletePolicy, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
+import {canEditWorkspaceSettings, getPolicyFeaturePermission, isPendingDeletePolicy, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
+import type {PolicyFeature, PolicyFeatureAccess} from '@libs/PolicyUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -30,9 +30,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
-
-type RequiredPolicyFeature = ValueOf<typeof CONST.POLICY.POLICY_FEATURE>;
-type RequiredPolicyFeatureAccess = ValueOf<typeof CONST.POLICY.POLICY_FEATURE_ACCESS>;
 
 type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
     Pick<HeaderWithBackButtonProps, 'shouldShowThreeDotsButton' | 'threeDotsMenuItems' | 'shouldShowBackButton' | 'onBackButtonPress'> & {
@@ -63,10 +60,10 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
         shouldShowNonAdmin?: boolean;
 
         /** Policy feature permission needed to show this page */
-        requiredPolicyFeature?: RequiredPolicyFeature;
+        requiredPolicyFeature?: PolicyFeature;
 
         /** Access level needed for the policy feature */
-        requiredPolicyFeatureAccess?: RequiredPolicyFeatureAccess;
+        requiredPolicyFeatureAccess?: PolicyFeatureAccess;
 
         /** Whether to show the not found page */
         shouldShowNotFoundPage?: boolean;
@@ -175,11 +172,7 @@ function WorkspacePageWithSections({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     const shouldShowPolicy = useMemo(() => shouldShowPolicyUtil(policy, false, currentUserLogin), [policy, currentUserLogin]);
-    const hasRequiredPolicyPermission = requiredPolicyFeature
-        ? requiredPolicyFeatureAccess === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE
-            ? canMemberWrite(policy, currentUserLogin, requiredPolicyFeature)
-            : canMemberRead(policy, currentUserLogin, requiredPolicyFeature)
-        : undefined;
+    const hasRequiredPolicyPermission = getPolicyFeaturePermission(policy, currentUserLogin, requiredPolicyFeature, requiredPolicyFeatureAccess);
     const isPendingDelete = isPendingDeletePolicy(policy);
     const prevIsPendingDelete = isPendingDeletePolicy(prevPolicy);
 

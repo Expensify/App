@@ -2,7 +2,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {FullPageNotFoundViewProps} from '@components/BlockingViews/FullPageNotFoundView';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -17,14 +16,14 @@ import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFrom
 import Navigation from '@libs/Navigation/Navigation';
 import {
     canEditWorkspaceSettings,
-    canMemberRead,
-    canMemberWrite,
     canSendInvoice,
+    getPolicyFeaturePermission,
     isControlPolicy,
     isGroupPolicy,
     isPolicyAccessible,
     isPolicyFeatureEnabled as isPolicyFeatureEnabledUtil,
 } from '@libs/PolicyUtils';
+import type {PolicyFeature, PolicyFeatureAccess} from '@libs/PolicyUtils';
 import {canCreateRequest} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -74,8 +73,6 @@ const ACCESS_VARIANTS = {
 >;
 
 type AccessVariant = keyof typeof ACCESS_VARIANTS;
-type RequiredPolicyFeature = ValueOf<typeof CONST.POLICY.POLICY_FEATURE>;
-type RequiredPolicyFeatureAccess = ValueOf<typeof CONST.POLICY.POLICY_FEATURE_ACCESS>;
 
 type AccessOrNotFoundWrapperChildrenProps = {
     /** The report that holds the transaction */
@@ -105,10 +102,10 @@ type AccessOrNotFoundWrapperProps = {
     featureName?: PolicyFeatureName;
 
     /** Policy feature permission needed to access the page */
-    requiredPolicyFeature?: RequiredPolicyFeature;
+    requiredPolicyFeature?: PolicyFeature;
 
     /** Access level needed for the policy feature */
-    requiredPolicyFeatureAccess?: RequiredPolicyFeatureAccess;
+    requiredPolicyFeatureAccess?: PolicyFeatureAccess;
 
     /** Props for customizing fallback pages */
     fullPageNotFoundViewProps?: FullPageNotFoundViewProps;
@@ -199,11 +196,7 @@ function AccessOrNotFoundWrapper({
         }
         return acc && accessFunction(policy, login, report, allPolicies ?? null, betas, iouType, isReportArchived);
     }, true);
-    const hasRequiredPolicyPermission = requiredPolicyFeature
-        ? requiredPolicyFeatureAccess === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE
-            ? canMemberWrite(policy, login, requiredPolicyFeature)
-            : canMemberRead(policy, login, requiredPolicyFeature)
-        : true;
+    const hasRequiredPolicyPermission = getPolicyFeaturePermission(policy, login, requiredPolicyFeature, requiredPolicyFeatureAccess) ?? true;
 
     const isPolicyNotAccessible = !isPolicyAccessible(policy, login);
     const shouldShowNotFoundPage = isFocused && ((!isMoneyRequest && !isFromGlobalCreate && isPolicyNotAccessible) || !isPageAccessible || !hasRequiredPolicyPermission || shouldBeBlocked);

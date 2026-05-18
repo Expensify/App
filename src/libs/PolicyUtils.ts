@@ -175,7 +175,7 @@ const ROLE_PERMISSION_BUNDLES: Record<string, Partial<Record<PolicyFeature, Poli
 };
 
 function hasPolicyPermission(policy: OnyxInputOrEntry<Policy>, login: string | undefined, feature: PolicyFeature, requiredAccess: PolicyFeatureAccess): boolean {
-    const role = getPolicyRole(policy, login);
+    const role = login && policy?.employeeList?.[login]?.role ? getPolicyRole(policy, login, false) : getPolicyRole(policy, login);
     const access = role ? ROLE_PERMISSION_BUNDLES[role]?.[feature] : undefined;
 
     if (requiredAccess === CONST.POLICY.POLICY_FEATURE_ACCESS.READ) {
@@ -191,6 +191,19 @@ function canMemberRead(policy: OnyxInputOrEntry<Policy>, login: string | undefin
 
 function canMemberWrite(policy: OnyxInputOrEntry<Policy>, login: string | undefined, feature: PolicyFeature): boolean {
     return hasPolicyPermission(policy, login, feature, CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE);
+}
+
+function getPolicyFeaturePermission(
+    policy: OnyxInputOrEntry<Policy>,
+    login: string | undefined,
+    feature: PolicyFeature | undefined,
+    requiredAccess: PolicyFeatureAccess = CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+): boolean | undefined {
+    if (!feature) {
+        return;
+    }
+
+    return requiredAccess === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE ? canMemberWrite(policy, login, feature) : canMemberRead(policy, login, feature);
 }
 
 /**
@@ -2310,6 +2323,7 @@ export {
     canEditWorkspaceSettings,
     canMemberRead,
     canMemberWrite,
+    getPolicyFeaturePermission,
     isGroupPolicy,
     isPendingDeletePolicy,
     isPolicyAdmin,
@@ -2436,4 +2450,4 @@ export {
     isPolicyEditor,
 };
 
-export type {MemberEmailsToAccountIDs};
+export type {MemberEmailsToAccountIDs, PolicyFeature, PolicyFeatureAccess};

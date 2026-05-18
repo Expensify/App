@@ -247,6 +247,19 @@ describe('PolicyUtils', () => {
             expect(canMemberRead(buildPolicy(CONST.POLICY.ROLE.USER), undefined, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD)).toBe(false);
         });
 
+        it('uses the requested member role when login is provided', () => {
+            const policy = {
+                ...buildPolicy(CONST.POLICY.ROLE.ADMIN),
+                employeeList: {
+                    'member@test.com': {
+                        role: CONST.POLICY.ROLE.USER,
+                    },
+                },
+            };
+
+            expect(canMemberWrite(policy, 'member@test.com', CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD)).toBe(false);
+        });
+
         it('allows admins to write every policy feature', () => {
             const policy = buildPolicy(CONST.POLICY.ROLE.ADMIN);
 
