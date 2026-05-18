@@ -28,14 +28,14 @@ type ReportActionItemEmojiReactionsProps = {
     /** The ID of the chat report this action belongs to */
     reportID: string | undefined;
 
+    /** Whether the action has a draft message — controls reaction-row alignment when the row is in edit mode */
+    hasDraft: boolean;
+
     /** We disable reacting with emojis on report actions that have errors */
     shouldBlockReactions?: boolean;
 
     /** Function to update emoji picker state */
     setIsEmojiPickerActive?: (state: boolean) => void;
-
-    /** Whether the action has a draft message — controls reaction-row alignment when the row is in edit mode */
-    hasDraft: boolean;
 };
 
 type FormattedReaction = {
@@ -64,7 +64,7 @@ type FormattedReaction = {
     pendingAction?: PendingAction;
 };
 
-function ReportActionItemEmojiReactions({reportAction, reportID, shouldBlockReactions = false, setIsEmojiPickerActive, hasDraft}: ReportActionItemEmojiReactionsProps) {
+function ReportActionItemEmojiReactions({reportAction, reportID, hasDraft, shouldBlockReactions = false, setIsEmojiPickerActive}: ReportActionItemEmojiReactionsProps) {
     const styles = useThemeStyles();
     const {preferredLocale} = useLocalize();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();

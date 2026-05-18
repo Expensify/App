@@ -16,9 +16,6 @@ type ReportActionItemFrameProps = {
     /** Report for this action */
     report: OnyxEntry<OnyxTypes.Report>;
 
-    /** The IOU/Expense report we are paying */
-    iouReport?: OnyxTypes.Report;
-
     /** Should the comment have the appearance of being grouped with the previous comment? */
     displayAsGroup: boolean;
 
@@ -36,9 +33,12 @@ type ReportActionItemFrameProps = {
 
     /** Whether the report action is currently active (linked, not occluded by context menu) */
     isActive: boolean;
+
+    /** The IOU/Expense report we are paying */
+    iouReport?: OnyxTypes.Report;
 };
 
-function ReportActionItemFrame({children, action, report, iouReport, displayAsGroup, hasDraft, isWhisper, isOnSearch, hovered, isActive}: ReportActionItemFrameProps): React.JSX.Element {
+function ReportActionItemFrame({children, action, report, displayAsGroup, hasDraft, isWhisper, isOnSearch, hovered, isActive, iouReport}: ReportActionItemFrameProps): React.JSX.Element {
     const styles = useThemeStyles();
 
     if (hasDraft) {
