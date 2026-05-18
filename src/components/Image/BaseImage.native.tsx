@@ -9,13 +9,13 @@ import type {BaseImageProps} from './types';
 function BaseImage({onLoad, source, style, ...props}: BaseImageProps) {
     const isLoadedRef = useRef(false);
     const attachmentContext = useContext(AttachmentStateContext);
-    const {setAttachmentLoaded, isAttachmentLoaded} = attachmentContext || {};
+    const {setAttachmentLoaded, getAttachmentLoadedState} = attachmentContext || {};
 
     useEffect(() => {
-        if (isAttachmentLoaded?.(source as AttachmentSource)) {
+        if (getAttachmentLoadedState?.(source as AttachmentSource) === true) {
             return;
         }
-        setAttachmentLoaded(source as AttachmentSource, false);
+        setAttachmentLoaded?.(source as AttachmentSource, false);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -26,7 +26,7 @@ function BaseImage({onLoad, source, style, ...props}: BaseImageProps) {
 
     const imageLoadedSuccessfully = useCallback(
         (event: ImageLoadEventData) => {
-            setAttachmentLoaded(source as AttachmentSource, true);
+            setAttachmentLoaded?.(source as AttachmentSource, true);
             if (!onLoad) {
                 return;
             }

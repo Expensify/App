@@ -34,6 +34,7 @@ import VideoPlayerControls from './VideoPlayerControls';
 function BaseVideoPlayer({
     url,
     onSourceLoaded,
+    onError,
     isLooping = false,
     style,
     videoPlayerStyle,
@@ -299,6 +300,7 @@ function BaseVideoPlayer({
     useEventListener(videoPlayerRef.current, 'statusChange', (payload: StatusChangeEventPayload) => {
         if (payload.status === 'error') {
             setHasErrorIconVisible(true);
+            onError?.();
         } else {
             updatePlayerStatus(payload.status);
         }
