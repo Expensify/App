@@ -4,7 +4,7 @@ import {deepEqual} from 'fast-equals';
 import mapValues from 'lodash/mapValues';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, TextInput} from 'react-native';
-import {Keyboard, View} from 'react-native';
+import {Keyboard, Platform, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import Hoverable from '@components/Hoverable';
@@ -1039,7 +1039,7 @@ function PureReportActionItem({
                 withoutFocusOnSecondaryInteraction
                 accessibilityLabel={accessibilityLabel}
                 accessibilityHint={translate('accessibilityHints.chatMessage')}
-                accessibilityRole={CONST.ROLE.BUTTON}
+                accessibilityRole={Platform.OS !== CONST.PLATFORM.WEB ? CONST.ROLE.BUTTON : undefined}
                 sentryLabel={CONST.SENTRY_LABEL.REPORT.PURE_REPORT_ACTION_ITEM}
             >
                 <Hoverable
