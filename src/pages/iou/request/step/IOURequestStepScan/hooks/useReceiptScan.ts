@@ -235,4 +235,3 @@ function useReceiptScan({
 }
 
 export default useReceiptScan;
-export type {UseReceiptScanParams};

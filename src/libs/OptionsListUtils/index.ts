@@ -16,8 +16,8 @@ import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from '@libs/LocalePhoneNumber';
 import {translateLocal} from '@libs/Localize';
 import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
-import {MaxHeap} from '@libs/MaxHeap';
-import {MinHeap} from '@libs/MinHeap';
+import MaxHeap from '@libs/MaxHeap';
+import MinHeap from '@libs/MinHeap';
 import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
@@ -3447,26 +3447,4 @@ export {
     processSearchString,
 };
 
-export type {
-    FilterUserToInviteConfig,
-    GetOptionsConfig,
-    GetUserToInviteConfig,
-    GetValidOptionsSharedConfig,
-    GetValidReportsConfig,
-    MemberForList,
-    Option,
-    OptionList,
-    OptionTree,
-    OptionWithKey,
-    Options,
-    OrderOptionsConfig,
-    OrderReportOptionsConfig,
-    PayeePersonalDetails,
-    PreviewConfig,
-    ReportAndPersonalDetailOptions,
-    SearchOption,
-    SearchOptionData,
-    Section,
-    SectionBase,
-    SectionForSearchTerm,
-} from './types';
+export type {GetOptionsConfig, MemberForList, Option, OptionList, OptionTree, Options, SearchOption, SearchOptionData} from './types';

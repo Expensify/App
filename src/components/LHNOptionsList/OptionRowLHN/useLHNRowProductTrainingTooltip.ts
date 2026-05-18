@@ -6,7 +6,7 @@ import CONST from '@src/CONST';
 
 /**
  * Resolves the product-training tooltip state (CONCIERGE_LHN_GBR) for an LHN row.
- * Used by both ProductTrainingTooltipInner (render the tooltip) and OptionRowPressable (hide on press).
+ * Used by both ProductTrainingTooltipInner (render the tooltip) and OptionRow/Pressable (hide on press).
  */
 function useLHNRowProductTrainingTooltip() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
