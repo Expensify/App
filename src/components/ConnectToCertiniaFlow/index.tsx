@@ -1,13 +1,13 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useLayoutEffect, useState} from 'react';
 import PopoverMenu from '@components/PopoverMenu';
 import useHasReusablePoliciesConnectedTo from '@hooks/useHasReusablePoliciesConnectedTo';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import usePopoverPosition from '@hooks/usePopoverPosition';
 import {isAuthenticationError} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
-import {useAccountingState} from '@pages/workspace/accounting/AccountingContext';
+import {popoverAnchorRefsInitialValue} from '@pages/workspace/accounting/AccountingContext/default';
 import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -17,24 +17,25 @@ type ConnectToCertiniaFlowProps = {
     policyID: string;
 };
 
+const anchorAlignment = {
+    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+};
+
 function ConnectToCertiniaFlow({policyID}: ConnectToCertiniaFlowProps) {
     const {translate} = useLocalize();
 
     const hasReusablePoliciesConnectedToCertinia = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.CERTINIA, policyID);
 
-    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
-
     const [isReuseConnectionsPopoverOpen, setIsReuseConnectionsPopoverOpen] = useState(false);
-    const [reuseConnectionPopoverPosition, setReuseConnectionPopoverPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
-    const {popoverAnchorRefs} = useAccountingState();
+    const [reuseConnectionPopoverPosition, setReuseConnectionPopoverPosition] = useState<AnchorPosition | null>(null);
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const icons = useMemoizedLazyExpensifyIcons(['Copy', 'LinkCopy']);
     const isAuthError = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.CERTINIA);
 
-    const threeDotsMenuContainerRef = popoverAnchorRefs?.current?.[CONST.POLICY.CONNECTIONS.NAME.CERTINIA];
+    const threeDotsMenuContainerRef = popoverAnchorRefsInitialValue[CONST.POLICY.CONNECTIONS.NAME.CERTINIA];
+    const {calculatePopoverPosition} = usePopoverPosition();
 
     const connectionOptions = [
         {
@@ -64,38 +65,36 @@ function ConnectToCertiniaFlow({policyID}: ConnectToCertiniaFlowProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    if (threeDotsMenuContainerRef) {
-        if (!isSmallScreenWidth) {
-            threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
-                const horizontal = x + width;
-                const vertical = y + height;
-                if (reuseConnectionPopoverPosition.horizontal !== horizontal || reuseConnectionPopoverPosition.vertical !== vertical) {
-                    setReuseConnectionPopoverPosition({horizontal, vertical});
-                }
-            });
+    useLayoutEffect(() => {
+        if (!isReuseConnectionsPopoverOpen) {
+            return;
         }
 
-        return (
-            <PopoverMenu
-                isVisible={isReuseConnectionsPopoverOpen}
-                onClose={() => {
-                    setIsReuseConnectionsPopoverOpen(false);
-                }}
-                menuItems={connectionOptions}
-                onItemSelected={(item) => {
-                    if (!item?.onSelected) {
-                        return;
-                    }
-                    item.onSelected();
-                }}
-                anchorPosition={reuseConnectionPopoverPosition}
-                anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
-                anchorRef={threeDotsMenuContainerRef}
-            />
-        );
+        calculatePopoverPosition(threeDotsMenuContainerRef, anchorAlignment).then(setReuseConnectionPopoverPosition);
+    }, [isReuseConnectionsPopoverOpen, calculatePopoverPosition]);
+
+    if (!threeDotsMenuContainerRef || !reuseConnectionPopoverPosition) {
+        return null;
     }
 
-    return null;
+    return (
+        <PopoverMenu
+            isVisible={isReuseConnectionsPopoverOpen}
+            onClose={() => {
+                setIsReuseConnectionsPopoverOpen(false);
+            }}
+            menuItems={connectionOptions}
+            onItemSelected={(item) => {
+                if (!item?.onSelected) {
+                    return;
+                }
+                item.onSelected();
+            }}
+            anchorPosition={reuseConnectionPopoverPosition}
+            anchorAlignment={anchorAlignment}
+            anchorRef={threeDotsMenuContainerRef}
+        />
+    );
 }
 
 export default ConnectToCertiniaFlow;
