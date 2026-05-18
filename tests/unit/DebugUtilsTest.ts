@@ -30,6 +30,8 @@ const MOCK_REPORT_ACTION: ReportAction = {
 const MOCK_TRANSACTION: Transaction = createRandomTransaction(0);
 
 const MOCK_DRAFT_REPORT_ACTION = DebugUtils.onyxDataToString(MOCK_REPORT_ACTION);
+const RORY_EMAIL = 'rory@email.com';
+const RORY_ACCOUNT_ID = 5;
 
 const MOCK_CONST_ENUM = {
     foo: 'foo',
@@ -1006,7 +1008,7 @@ describe('DebugUtils', () => {
             Onyx.clear();
         });
         it('returns undefined reason when report is not defined', () => {
-            const {reason} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(undefined) ?? {};
+            const {reason} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(undefined, RORY_EMAIL, RORY_ACCOUNT_ID) ?? {};
             expect(reason).toBeUndefined();
         });
         it('returns correct reason when report has a join request', async () => {
@@ -1024,50 +1026,70 @@ describe('DebugUtils', () => {
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`, MOCK_REPORT_ACTIONS);
             const {reason} =
-                DebugUtils.getReasonAndReportActionForGBRInLHNRow({
-                    reportID: '1',
-                }) ?? {};
+                DebugUtils.getReasonAndReportActionForGBRInLHNRow(
+                    {
+                        reportID: '1',
+                    },
+                    RORY_EMAIL,
+                    RORY_ACCOUNT_ID,
+                ) ?? {};
             expect(reason).toBe('debug.reasonGBR.hasJoinRequest');
         });
         it('returns correct reason when report is unread with mention', () => {
             const {reason} =
-                DebugUtils.getReasonAndReportActionForGBRInLHNRow({
-                    reportID: '1',
-                    lastMentionedTime: '2024-08-10 18:70:44.171',
-                    lastReadTime: '2024-08-08 18:70:44.171',
-                }) ?? {};
+                DebugUtils.getReasonAndReportActionForGBRInLHNRow(
+                    {
+                        reportID: '1',
+                        lastMentionedTime: '2024-08-10 18:70:44.171',
+                        lastReadTime: '2024-08-08 18:70:44.171',
+                    },
+                    RORY_EMAIL,
+                    RORY_ACCOUNT_ID,
+                ) ?? {};
             expect(reason).toBe('debug.reasonGBR.isUnreadWithMention');
         });
         it('returns correct reason when report has a task which is waiting for assignee to complete it', async () => {
             await Onyx.set(ONYXKEYS.SESSION, {accountID: 12345});
             const {reason} =
-                DebugUtils.getReasonAndReportActionForGBRInLHNRow({
-                    reportID: '1',
-                    type: CONST.REPORT.TYPE.TASK,
-                    hasParentAccess: false,
-                    managerID: 12345,
-                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                }) ?? {};
+                DebugUtils.getReasonAndReportActionForGBRInLHNRow(
+                    {
+                        reportID: '1',
+                        type: CONST.REPORT.TYPE.TASK,
+                        hasParentAccess: false,
+                        managerID: 12345,
+                        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    },
+                    RORY_EMAIL,
+                    RORY_ACCOUNT_ID,
+                ) ?? {};
             expect(reason).toBe('debug.reasonGBR.isWaitingForAssigneeToCompleteAction');
         });
         it('returns correct reason when report has a child report awaiting action from the user', () => {
             const {reason} =
-                DebugUtils.getReasonAndReportActionForGBRInLHNRow({
-                    reportID: '1',
-                    hasOutstandingChildRequest: true,
-                }) ?? {};
+                DebugUtils.getReasonAndReportActionForGBRInLHNRow(
+                    {
+                        reportID: '1',
+                        hasOutstandingChildRequest: true,
+                    },
+                    RORY_EMAIL,
+                    RORY_ACCOUNT_ID,
+                ) ?? {};
             expect(reason).toBe('debug.reasonGBR.hasChildReportAwaitingAction');
         });
         it('returns undefined reason when report has no GBR', () => {
             const {reason} =
-                DebugUtils.getReasonAndReportActionForGBRInLHNRow({
-                    reportID: '1',
-                }) ?? {};
+                DebugUtils.getReasonAndReportActionForGBRInLHNRow(
+                    {
+                        reportID: '1',
+                    },
+                    RORY_EMAIL,
+                    RORY_ACCOUNT_ID,
+                ) ?? {};
             expect(reason).toBeUndefined();
         });
         it('returns undefined reportAction when report is not defined', () => {
-            const {reportAction} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(undefined) ?? {};
+            const {reportAction} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(undefined, RORY_EMAIL, RORY_ACCOUNT_ID) ?? {};
             expect(reportAction).toBeUndefined();
         });
         it('returns the report action which is a join request', async () => {
@@ -1091,9 +1113,13 @@ describe('DebugUtils', () => {
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`, MOCK_REPORT_ACTIONS);
             const {reportAction} =
-                DebugUtils.getReasonAndReportActionForGBRInLHNRow({
-                    reportID: '1',
-                }) ?? {};
+                DebugUtils.getReasonAndReportActionForGBRInLHNRow(
+                    {
+                        reportID: '1',
+                    },
+                    RORY_EMAIL,
+                    RORY_ACCOUNT_ID,
+                ) ?? {};
             expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['1']);
         });
         it('returns the report action which is awaiting action', async () => {
@@ -1157,17 +1183,22 @@ describe('DebugUtils', () => {
                 },
                 [ONYXKEYS.SESSION]: {
                     accountID: 12345,
+                    email: RORY_EMAIL,
                 },
             });
             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-            const {reportAction} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(MOCK_REPORTS[`${ONYXKEYS.COLLECTION.REPORT}1`] as Report) ?? {};
+            const {reportAction} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(MOCK_REPORTS[`${ONYXKEYS.COLLECTION.REPORT}1`] as Report, RORY_EMAIL, 12345) ?? {};
             expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['1']);
         });
         it('returns undefined report action when report has no GBR', () => {
             const {reportAction} =
-                DebugUtils.getReasonAndReportActionForGBRInLHNRow({
-                    reportID: '1',
-                }) ?? {};
+                DebugUtils.getReasonAndReportActionForGBRInLHNRow(
+                    {
+                        reportID: '1',
+                    },
+                    RORY_EMAIL,
+                    RORY_ACCOUNT_ID,
+                ) ?? {};
             expect(reportAction).toBeUndefined();
         });
     });

@@ -8,7 +8,7 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -96,7 +96,20 @@ function SearchChangeApproverPage() {
     const [onyxReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: getOnyxReports});
 
     const hasAutoAppliedRef = useRef(false);
+    // Set when navigating to WORKSPACE_UPGRADE; prevents the auto-close in useLayoutEffect from
+    // dismissing the RHP if selectedReports goes transiently empty before this page unmounts
+    // TODO: drop this ref once the CHANGE_APPROVER_SEARCH_RHP `backTo` is removed so navigation matches the regular
+    // "Change approver" flow after upgrading workspace. See https://github.com/Expensify/App/pull/89192.
+    const hasInitiatedUpgradeRef = useRef(false);
     const prevSelectedReportsLength = useRef(0);
+
+    useEffect(() => {
+        if (selectedReports.length === 0) {
+            return;
+        }
+        hasInitiatedUpgradeRef.current = false;
+    }, [selectedReports.length]);
+
     useEffect(() => {
         if (!hasLoadedApp || !selectedReports.length || prevSelectedReportsLength.current === selectedReports.length) {
             return;
@@ -123,12 +136,19 @@ function SearchChangeApproverPage() {
             const policiesToUpgrade = selectedPolicies.filter((policy) => !isControlPolicy(policy));
             if (policiesToUpgrade.length > 1) {
                 // Bulk upgrade is not supported, so show a general page to guide the user to upgrade manually
-                Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(undefined, undefined, ROUTES.CHANGE_APPROVER_SEARCH_RHP));
+                hasInitiatedUpgradeRef.current = true;
+                Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(undefined, undefined, ROUTES.CHANGE_APPROVER_ADD_APPROVER_SEARCH_RHP), {forceReplace: true});
                 return;
             }
             if (policiesToUpgrade.length === 1) {
+                hasInitiatedUpgradeRef.current = true;
                 Navigation.navigate(
-                    ROUTES.WORKSPACE_UPGRADE.getRoute(policiesToUpgrade.at(0)?.id, CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.alias, ROUTES.CHANGE_APPROVER_SEARCH_RHP),
+                    ROUTES.WORKSPACE_UPGRADE.getRoute(
+                        policiesToUpgrade.at(0)?.id,
+                        CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.alias,
+                        ROUTES.CHANGE_APPROVER_ADD_APPROVER_SEARCH_RHP,
+                    ),
+                    {forceReplace: true},
                 );
                 return;
             }
@@ -208,6 +228,12 @@ function SearchChangeApproverPage() {
             return;
         }
 
+        // Skip during an upgrade round-trip: selectedReports may be transiently empty while
+        // navigating to WORKSPACE_UPGRADE, and closing the RHP would kill the Add Approver flow.
+        if (hasInitiatedUpgradeRef.current) {
+            return;
+        }
+
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             Navigation.closeRHPFlow();
         });
@@ -273,7 +299,7 @@ function SearchChangeApproverPage() {
             ) : (
                 <SelectionList
                     data={approverTypes}
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     alternateNumberOfSupportedLines={2}
                     onSelectRow={(option) => {
                         if (!option.keyForList) {

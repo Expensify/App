@@ -4,6 +4,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getForReportAction, getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import ReportActionItemMessageWithExplain from '@pages/inbox/report/ReportActionItemMessageWithExplain';
 import CONST from '@src/CONST';
@@ -13,15 +14,15 @@ import type {Report, ReportAction} from '@src/types/onyx';
 type ModifiedExpenseContentProps = {
     action: ReportAction;
     report: OnyxEntry<Report>;
-    childReport: OnyxEntry<Report>;
     originalReport: OnyxEntry<Report>;
 };
 
-function ModifiedExpenseContent({action, report, childReport, originalReport}: ModifiedExpenseContentProps) {
+function ModifiedExpenseContent({action, report, originalReport}: ModifiedExpenseContentProps) {
     const {translate} = useLocalize();
     const {email: currentUserEmail} = useCurrentUserPersonalDetails();
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(action.childReportID)}`);
 
     // When expense is moved from self-DM to workspace, policyID is temporarily OWNER_EMAIL_FAKE.
     // Fall back to policyForMovingExpensesID (actual destination workspace) for correct tag list.

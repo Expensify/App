@@ -140,7 +140,7 @@ function UploadDocuments({onNext, isEditing, policyID}: UploadDocumentsProps) {
                         onRemove={(fileName) => {
                             handleRemoveFile(fileName, uploadedIDs, copyOfIDInputID, setUploadedID);
                         }}
-                        acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
+                        acceptedFileTypes={[...CONST.CORPAY_DOCUMENT.ALLOWED_FILE_TYPES]}
                         value={uploadedIDs}
                         inputID={copyOfIDInputID}
                         setError={(error) => {
@@ -168,7 +168,7 @@ function UploadDocuments({onNext, isEditing, policyID}: UploadDocumentsProps) {
                         onRemove={(fileName) => {
                             handleRemoveFile(fileName, uploadedProofsOfAddress, addressProofInputID, setUploadedProofOfAddress);
                         }}
-                        acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
+                        acceptedFileTypes={[...CONST.CORPAY_DOCUMENT.ALLOWED_FILE_TYPES]}
                         value={uploadedProofsOfAddress}
                         inputID={addressProofInputID}
                         setError={(error) => {
@@ -195,7 +195,7 @@ function UploadDocuments({onNext, isEditing, policyID}: UploadDocumentsProps) {
                         onRemove={(fileName) => {
                             handleRemoveFile(fileName, uploadedProofsOfDirectors, directorsProofInputID, setUploadedProofsOfDirectors);
                         }}
-                        acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
+                        acceptedFileTypes={[...CONST.CORPAY_DOCUMENT.ALLOWED_FILE_TYPES]}
                         value={uploadedProofsOfDirectors}
                         inputID={directorsProofInputID}
                         setError={(error) => {

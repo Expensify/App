@@ -1,7 +1,6 @@
 import type * as ReactNavigation from '@react-navigation/native';
 import {act, renderHook} from '@testing-library/react-native';
 import useOnyx from '@hooks/useOnyx';
-// eslint-disable-next-line no-restricted-syntax -- needed for jest.requireActual typing
 import * as OptionsListUtilsModule from '@libs/OptionsListUtils';
 import type {SearchOption} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';

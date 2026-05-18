@@ -1,16 +1,13 @@
 import type {SeverityLevel} from '@sentry/react-native';
 import * as Sentry from '@sentry/react-native';
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {AuthorizeTransactionCancelConfirmModal} from '@components/MultifactorAuthentication/components/Modals';
 import ScenarioConfigs from '@components/MultifactorAuthentication/config/scenarios';
-import {
-    AlreadyReviewedFailureScreen,
-    DeniedTransactionServerFailureScreen,
-    DeniedTransactionSuccessScreen,
-} from '@components/MultifactorAuthentication/config/scenarios/AuthorizeTransaction';
+import {DeniedTransactionServerFailureScreen, DeniedTransactionSuccessScreen} from '@components/MultifactorAuthentication/config/scenarios/AuthorizeTransaction';
 import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useBeforeRemove from '@hooks/useBeforeRemove';
@@ -116,18 +113,39 @@ function MultifactorAuthenticationScenarioAuthorizeTransactionPage({route}: Mult
         Navigation.closeRHPFlow();
     };
 
+    // Automatically navigate away if transaction becomes nullish and we didn't deny it here
+    // User must have actioned it on a different device.
+    useEffect(() => {
+        if (transaction || isDenyingTransaction || denyOutcomeScreen) {
+            return;
+        }
+        addBreadcrumb('Transaction disappeared (actioned on another device)', {transactionID}, 'info');
+        Navigation.closeRHPFlow();
+    }, [denyOutcomeScreen, transaction, isDenyingTransaction, transactionID]);
+
     if (denyOutcomeScreen) {
         return <ScreenWrapper testID={MultifactorAuthenticationScenarioAuthorizeTransactionPage.displayName}>{denyOutcomeScreen}</ScreenWrapper>;
     }
 
+    // This will briefly be true after the transaction deny call has succeeded and Onyx has removed the transaction
+    // from state, but denyTransaction has not yet resolved. If we reach this case and isDenyingTransaction isn't
+    // true, then something unexpected has happened (we should've navigated away due to the useEffect above)
     if (!transaction) {
-        addBreadcrumb('Transaction unavailable', {transactionID, isDenyingTransaction}, 'warning');
-        // isDenyingTransaction is handled here because:
-        // When the transaction denial succeeds, the transaction gets removed from the queue slightly sooner than denyTransaction resolves.
-        // We handle this case specially here so that the user does not see a momentary flash of the AlreadyReviewedFailureScreen
+        if (!isDenyingTransaction) {
+            addBreadcrumb('Transaction unavailable', {transactionID}, 'warning');
+        }
         return (
             <ScreenWrapper testID={MultifactorAuthenticationScenarioAuthorizeTransactionPage.displayName}>
-                {isDenyingTransaction ? <DeniedTransactionSuccessScreen /> : <AlreadyReviewedFailureScreen />}
+                <HeaderWithBackButton
+                    title={translate('multifactorAuthentication.reviewTransaction.reviewTransaction')}
+                    onBackButtonPress={() => {
+                        Navigation.closeRHPFlow();
+                    }}
+                    shouldShowBackButton
+                />
+                <View style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween]}>
+                    <FullScreenLoadingIndicator reasonAttributes={{context: 'MultifactorAuthenticationScenarioAuthorizeTransactionPage'}} />
+                </View>
             </ScreenWrapper>
         );
     }

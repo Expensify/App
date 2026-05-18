@@ -16,7 +16,7 @@ import useOnyx from './useOnyx';
  * - Split expense: Transaction doesn't exist
  * - Money request: Action is not a money request OR user cannot edit it
  */
-// eslint-disable-next-line rulesdir/no-negated-variables
+
 const useShowNotFoundPageInIOUStep = (action: IOUAction, iouType: IOUType, reportActionID: string | undefined, report: OnyxInputOrEntry<Report>, transaction: OnyxEntry<Transaction>) => {
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
@@ -50,7 +50,6 @@ const useShowNotFoundPageInIOUStep = (action: IOUAction, iouType: IOUType, repor
         [getReportActionSelector],
     );
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     let shouldShowNotFoundPage = false;
     const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && areRequiredFieldsEmpty(transaction, iouReport);
     const canEditSplitExpense = isSplitExpense && !!transaction;

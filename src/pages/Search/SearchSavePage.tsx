@@ -16,18 +16,17 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {saveSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {getSearchColumnTranslationKey, mapFiltersFormToLabelValueList} from '@libs/SearchUIUtils';
+import {getCustomColumnDefault, getSearchColumnTranslationKey, mapFiltersFormToLabelValueList} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import INPUT_IDS from '@src/types/form/SearchSaveForm';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -36,7 +35,7 @@ type FilterValueProps = {
 };
 
 type FilterValueWithKeyProps = FilterValueProps & {
-    filterKey: SearchAdvancedFiltersKey;
+    filterKey: SearchFilter['key'];
 };
 
 function FilterUserValue({value}: FilterValueProps) {
@@ -47,16 +46,16 @@ function FilterWorkspaceValue({value}: FilterValueProps) {
     return useFilterWorkspaceValue(value);
 }
 
-function FilterFeedValue() {
-    return useFilterFeedValue();
+function FilterFeedValue({value}: FilterValueProps) {
+    return useFilterFeedValue(value as string[]);
 }
 
-function FilterCardValue() {
-    return useFilterCardValue();
+function FilterCardValue({value}: FilterValueProps) {
+    return useFilterCardValue(value as string[]);
 }
 
-function FilterTaxRateValue() {
-    return useFilterTaxRateValue();
+function FilterTaxRateValue({value}: FilterValueProps) {
+    return useFilterTaxRateValue(value as string[]);
 }
 
 function FilterReportValue({value}: FilterValueProps) {
@@ -64,27 +63,32 @@ function FilterReportValue({value}: FilterValueProps) {
 }
 
 function FilterValue({filterKey, value}: FilterValueWithKeyProps) {
-    if (filterKey === FILTER_KEYS.FROM || filterKey === FILTER_KEYS.TO || filterKey === FILTER_KEYS.ATTENDEE || filterKey === FILTER_KEYS.ASSIGNEE) {
+    if (
+        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
+        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
+        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE ||
+        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE
+    ) {
         return <FilterUserValue value={value} />;
     }
 
-    if (filterKey === FILTER_KEYS.POLICY_ID) {
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
         return <FilterWorkspaceValue value={value} />;
     }
 
-    if (filterKey === FILTER_KEYS.FEED) {
-        return <FilterFeedValue />;
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
+        return <FilterFeedValue value={value} />;
     }
 
-    if (filterKey === FILTER_KEYS.CARD_ID) {
-        return <FilterCardValue />;
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
+        return <FilterCardValue value={value} />;
     }
 
-    if (filterKey === FILTER_KEYS.TAX_RATE) {
-        return <FilterTaxRateValue />;
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
+        return <FilterTaxRateValue value={value} />;
     }
 
-    if (filterKey === FILTER_KEYS.IN) {
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
         return <FilterReportValue value={value} />;
     }
 
@@ -93,8 +97,9 @@ function FilterValue({filterKey, value}: FilterValueWithKeyProps) {
 
 function getAppliedDisplays(searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>, queryJSON: SearchQueryJSON | undefined, translate: LocalizedTranslate) {
     const appliedDisplays = [];
-    if (searchAdvancedFiltersForm.groupBy) {
-        appliedDisplays.push({label: translate('search.display.groupBy'), value: translate(`search.filters.groupBy.${searchAdvancedFiltersForm.groupBy}`)});
+    const groupBy = searchAdvancedFiltersForm.groupBy;
+    if (groupBy) {
+        appliedDisplays.push({label: translate('search.display.groupBy'), value: translate(`search.filters.groupBy.${groupBy}`)});
     }
 
     if (searchAdvancedFiltersForm.groupCurrency) {
@@ -118,7 +123,14 @@ function getAppliedDisplays(searchAdvancedFiltersForm: Partial<SearchAdvancedFil
     }
 
     if (searchAdvancedFiltersForm.columns?.length) {
-        appliedDisplays.push({label: translate('search.columns'), value: searchAdvancedFiltersForm.columns?.map((column) => translate(getSearchColumnTranslationKey(column))).join(', ')});
+        const queryType = searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
+        const defaultCustomColumns = [...getCustomColumnDefault(groupBy), ...getCustomColumnDefault(queryType)];
+        const columns = searchAdvancedFiltersForm.columns;
+
+        const isDefaultState = columns.length === defaultCustomColumns.length && columns.every((col, index) => col === defaultCustomColumns.at(index));
+        if (!isDefaultState) {
+            appliedDisplays.push({label: translate('search.columns'), value: columns.map((column) => translate(getSearchColumnTranslationKey(column))).join(', ')});
+        }
     }
 
     return appliedDisplays;
@@ -127,6 +139,7 @@ function getAppliedDisplays(searchAdvancedFiltersForm: Partial<SearchAdvancedFil
 function SearchSavePage() {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
+    const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [name, setName] = useState('');
 
@@ -143,7 +156,7 @@ function SearchSavePage() {
         Navigation.goBack();
     };
 
-    const appliedFilters = mapFiltersFormToLabelValueList(searchAdvancedFiltersForm, undefined, undefined, translate, localeCompare);
+    const appliedFilters = mapFiltersFormToLabelValueList(searchAdvancedFiltersForm, undefined, undefined, translate, localeCompare, convertToDisplayStringWithoutCurrency);
     const appliedDisplays = getAppliedDisplays(searchAdvancedFiltersForm, currentSearchQueryJSON, translate);
 
     const {inputCallbackRef} = useAutoFocusInput();

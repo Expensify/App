@@ -86,4 +86,3 @@ function isDataTransferItemDirectory(item: DataTransferItem | undefined) {
 }
 
 export default validateAttachmentFile;
-export type {ValidateAttachmentResult, ValidateAttachmentValidResult, ValidateAttachmentInvalidResult};

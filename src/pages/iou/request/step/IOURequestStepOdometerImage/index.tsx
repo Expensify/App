@@ -314,7 +314,7 @@ function IOURequestStepOdometerImage({
         for (const file of files) {
             const blobUrl = URL.createObjectURL(file);
             blobUrls.push(blobUrl);
-            // eslint-disable-next-line no-param-reassign
+
             file.uri = blobUrl;
         }
         dropBlobUrlsRef.current = blobUrls;
@@ -347,7 +347,6 @@ function IOURequestStepOdometerImage({
             />
             <View
                 style={[styles.uploadFileViewTextContainer, styles.userSelectNone]}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...panResponder.panHandlers}
             >
                 <Text style={[styles.textFileUpload, styles.mb2]}>{title}</Text>
@@ -406,7 +405,6 @@ function IOURequestStepOdometerImage({
 
 IOURequestStepOdometerImage.displayName = 'IOURequestStepOdometerImage';
 
-// eslint-disable-next-line rulesdir/no-negated-variables -- withFullTransactionOrNotFound HOC requires this pattern
 const IOURequestStepOdometerImageWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepOdometerImage);
 
 export default IOURequestStepOdometerImageWithFullTransactionOrNotFound;

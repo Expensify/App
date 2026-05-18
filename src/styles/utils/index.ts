@@ -44,6 +44,7 @@ import type {
     AvatarStyle,
     ButtonSizeValue,
     ButtonStateName,
+    ButtonVariantStyles,
     EReceiptColorName,
     EreceiptColorStyle,
     ParsableStyle,
@@ -586,42 +587,58 @@ function getIconWidthAndHeightStyle(
     }
 }
 
-function getButtonStyleWithIcon(
-    styles: ThemeStyles,
-    extraSmall: boolean,
-    small: boolean,
-    medium: boolean,
-    large: boolean,
-    hasIcon?: boolean,
-    hasText?: boolean,
-    shouldShowRightIcon?: boolean,
-): ViewStyle | undefined {
-    const useDefaultButtonStyles = !!(hasIcon && shouldShowRightIcon) || !!(!hasIcon && !shouldShowRightIcon);
-    switch (true) {
-        case extraSmall: {
-            const verticalStyle = hasIcon ? styles.pl2 : styles.pr2;
-            return useDefaultButtonStyles ? styles.buttonExtraSmall : {...styles.buttonExtraSmall, ...(hasText ? verticalStyle : styles.ph0)};
-        }
-        case small: {
-            const verticalStyle = hasIcon ? styles.pl2 : styles.pr2;
-            return useDefaultButtonStyles ? styles.buttonSmall : {...styles.buttonSmall, ...(hasText ? verticalStyle : styles.ph0)};
-        }
-        case medium: {
-            const verticalStyle = hasIcon ? styles.pl3 : styles.pr3;
-            return useDefaultButtonStyles ? styles.buttonMedium : {...styles.buttonMedium, ...(hasText ? verticalStyle : styles.ph0)};
-        }
-        case large: {
-            const verticalStyle = hasIcon ? styles.pl4 : styles.pr4;
-            return useDefaultButtonStyles ? styles.buttonLarge : {...styles.buttonLarge, ...(hasText ? verticalStyle : styles.ph0)};
-        }
-        default: {
-            if (hasIcon && !hasText) {
-                return {...styles.buttonMedium, ...styles.ph0};
-            }
+function getButtonSizeStyle(styles: ThemeStyles, size?: ButtonSizeValue): ViewStyle | undefined {
+    const sizeStyleMap: Record<ButtonSizeValue, ViewStyle> = {
+        [CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL]: styles.buttonExtraSmall,
+        [CONST.DROPDOWN_BUTTON_SIZE.SMALL]: styles.buttonSmall,
+        [CONST.DROPDOWN_BUTTON_SIZE.MEDIUM]: styles.buttonMedium,
+        [CONST.DROPDOWN_BUTTON_SIZE.LARGE]: styles.buttonLarge,
+    };
+    return size ? sizeStyleMap[size] : undefined;
+}
 
-            return undefined;
-        }
+function getButtonPaddingStyle(styles: ThemeStyles, size?: ButtonSizeValue, hasIcon?: boolean, hasText?: boolean, shouldShowRightIcon?: boolean): ViewStyle | undefined {
+    if (!size) {
+        return hasIcon && !hasText ? {...styles.buttonMedium, ...styles.ph0} : undefined;
     }
+
+    const hasSymmetricIcons = !!hasIcon === !!shouldShowRightIcon;
+    if (hasSymmetricIcons) {
+        return undefined;
+    }
+
+    if (!hasText) {
+        return styles.ph0;
+    }
+
+    const horizontalPaddingBySize: Record<ButtonSizeValue, ViewStyle> = {
+        [CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL]: hasIcon ? styles.pl2 : styles.pr2,
+        [CONST.DROPDOWN_BUTTON_SIZE.SMALL]: hasIcon ? styles.pl2 : styles.pr2,
+        [CONST.DROPDOWN_BUTTON_SIZE.MEDIUM]: hasIcon ? styles.pl3 : styles.pr3,
+        [CONST.DROPDOWN_BUTTON_SIZE.LARGE]: hasIcon ? styles.pl4 : styles.pr4,
+    };
+    return horizontalPaddingBySize[size];
+}
+
+function getButtonStyleWithIcon(styles: ThemeStyles, size?: ButtonSizeValue, hasIcon?: boolean, hasText?: boolean, shouldShowRightIcon?: boolean): StyleProp<ViewStyle> {
+    const buttonSizeStyle = getButtonSizeStyle(styles, size);
+    const buttonPaddingStyle = getButtonPaddingStyle(styles, size, hasIcon, hasText, shouldShowRightIcon);
+    return [buttonSizeStyle, buttonPaddingStyle];
+}
+
+function getButtonVariantStyles(styles: ThemeStyles): ButtonVariantStyles {
+    return {
+        normal: {
+            success: styles.buttonSuccess,
+            danger: styles.buttonDanger,
+            link: {},
+        },
+        disabled: {
+            success: [styles.buttonOpacityDisabled],
+            danger: [styles.buttonOpacityDisabled],
+            link: [styles.buttonOpacityDisabled, styles.buttonDisabled],
+        },
+    };
 }
 
 type MarginPaddingValue = ViewStyle['marginTop' | 'marginBottom' | 'paddingTop' | 'paddingBottom'];
@@ -1126,9 +1143,9 @@ function getColorStyle(color: string): TextColorStyle {
 }
 
 /**
- * Returns the checkbox pressable style
+ * Returns the selection button pressable style
  */
-function getCheckboxPressableStyle(borderRadius = 6): ViewStyle {
+function getSelectionButtonPressableStyle(borderRadius = 6): ViewStyle {
     return {
         justifyContent: 'center',
         alignItems: 'center',
@@ -1383,7 +1400,7 @@ const staticStyleUtils = {
     getReportWelcomeBackgroundContainerStyle,
     getBaseAutoCompleteSuggestionContainerStyle,
     getBorderColorStyle,
-    getCheckboxPressableStyle,
+    getSelectionButtonPressableStyle,
     getComposeTextAreaPadding,
     getColorStyle,
     getDefaultWorkspaceAvatarColor,
@@ -1426,6 +1443,9 @@ const staticStyleUtils = {
     getMultiGestureCanvasContainerStyle,
     getIconWidthAndHeightStyle,
     getButtonStyleWithIcon,
+    getButtonSizeStyle,
+    getButtonPaddingStyle,
+    getButtonVariantStyles,
     getCharacterWidth,
     getAmountWidth,
     getBorderRadiusStyle,
@@ -1608,9 +1628,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     },
 
     /**
-     * Returns the checkbox container style
+     * Returns the selection button container style
      */
-    getCheckboxContainerStyle: (size: number, borderRadius = 4): ViewStyle => ({
+    getSelectionButtonContainerStyle: (size: number, borderRadius = 4): ViewStyle => ({
         backgroundColor: theme.componentBG,
         height: size,
         width: size,
@@ -1822,24 +1842,32 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         borderRadius: 0,
         borderBottomWidth: isLastItem ? 0 : 1,
         borderColor: isSelected ? theme.buttonHoveredBG : theme.border,
-        ...(isLastItem ? styles.searchTableBottomRadius : {}),
+        ...(isLastItem ? styles.tableBottomRadius : {}),
     }),
 
     getSearchTableGroupRowBorderStyle: (isFirstItem?: boolean, isLastItem?: boolean, isSelected?: boolean): ViewStyle => ({
         borderRadius: 0,
         borderTopWidth: isFirstItem ? 0 : 1,
         borderColor: isSelected ? theme.buttonHoveredBG : theme.border,
-        ...(isLastItem ? styles.searchTableBottomRadius : {}),
+        ...(isLastItem ? styles.tableBottomRadius : {}),
     }),
 
     getSearchTableRowPressableStyle: (isLastItem?: boolean, isSelected?: boolean, padding?: {vertical?: number; horizontal?: number}): ViewStyle => ({
         minHeight: variables.tableRowHeight,
-        borderRadius: 0,
+        borderTopLeftRadius: 0,
+        borderTopRightRadius: 0,
+        borderBottomLeftRadius: 0,
+        borderBottomRightRadius: 0,
         borderBottomWidth: isLastItem ? 0 : 1,
         borderColor: isSelected ? theme.buttonHoveredBG : theme.border,
-        ...(isLastItem ? styles.searchTableBottomRadius : {}),
+        ...(isLastItem ? styles.tableBottomRadius : {}),
         ...(padding?.vertical !== undefined && {paddingVertical: padding.vertical}),
         ...(padding?.horizontal !== undefined && {paddingHorizontal: padding.horizontal}),
+    }),
+
+    getSelectedBorderBottomStyle: (isSelected?: boolean): ViewStyle => ({
+        ...styles.borderBottom,
+        borderColor: isSelected ? theme.buttonHoveredBG : theme.border,
     }),
 
     getSearchTableHighlightBorderRadius: (isLargeScreenWidth: boolean): number => (isLargeScreenWidth ? 0 : variables.componentBorderRadius),
@@ -1888,7 +1916,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 columnWidth = {...getWidthStyle(isExportedColumnWide ? variables.w92 : variables.w72)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.DATE:
-                columnWidth = {...getWidthStyle(isDateColumnWide ? variables.w92 : variables.w52)};
+                columnWidth = {...getWidthStyle(isDateColumnWide ? variables.w92 : variables.w62)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN:
@@ -2028,13 +2056,6 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
      * Returns the styles for the Tools modal
      */
     getTestToolsModalStyle: (windowWidth: number): ViewStyle[] => [styles.settingsPageBody, styles.p5, {width: windowWidth * 0.9}],
-
-    getMultiselectListStyles: (isSelected: boolean, isDisabled: boolean): ViewStyle => ({
-        ...(isSelected && styles.checkedContainer),
-        ...(isSelected && styles.borderColorFocus),
-        ...(isDisabled && styles.cursorDisabled),
-        ...(isDisabled && styles.buttonOpacityDisabled),
-    }),
 
     /**
      * When adding a new prefix character, adjust this method to add expected character width.
