@@ -306,7 +306,6 @@ function SearchAutocompleteList({
         loginList,
         policies,
         visibleReportActionsData,
-        sortedActions,
         currentUserAccountID,
         currentUserEmail,
         personalDetails,
