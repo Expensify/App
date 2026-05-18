@@ -272,17 +272,17 @@ function getBadgeFromIOUReport(
     currentUserAccountID: number,
 ): ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined {
     // Show to the actual payer, or to policy admins via the pay-elsewhere path for negative expenses
-    // Non-reimbursable-only reports: no badge needed, skip all pay/approve/submit logic
-    const isNonReimbursableOnly = hasOnlyNonReimbursableTransactions(iouReport?.reportID);
-    if (isNonReimbursableOnly) {
-        return undefined;
-    }
-
-    if (
-        canIOUBePaid(iouReport, chatReport, policy, undefined, currentUserLogin, currentUserAccountID, undefined, undefined, undefined, invoiceReceiverPolicy) ||
-        canIOUBePaid(iouReport, chatReport, policy, undefined, currentUserLogin, currentUserAccountID, undefined, true, undefined, invoiceReceiverPolicy)
-    ) {
+    const canBePaidNow = canIOUBePaid(iouReport, chatReport, policy, undefined, currentUserLogin, currentUserAccountID, undefined, undefined, undefined, invoiceReceiverPolicy);
+    if (canBePaidNow) {
         return CONST.REPORT.ACTION_BADGE.PAY;
+    }
+    const canBePaidElsewhere = canIOUBePaid(iouReport, chatReport, policy, undefined, currentUserLogin, currentUserAccountID, undefined, true, undefined, invoiceReceiverPolicy);
+    if (canBePaidElsewhere) {
+        // Non-reimbursable-only reports: paying is optional, do not pin in LHN
+        const isNonReimbursableOnly = hasOnlyNonReimbursableTransactions(iouReport?.reportID);
+        if (!isNonReimbursableOnly) {
+            return CONST.REPORT.ACTION_BADGE.PAY;
+        }
     }
     if (canApproveIOU(iouReport, policy, reportMetadata, currentUserAccountID)) {
         return CONST.REPORT.ACTION_BADGE.APPROVE;
