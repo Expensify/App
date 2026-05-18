@@ -281,6 +281,7 @@ import {
     hasMissingSmartscanFields as hasMissingSmartscanFieldsTransactionUtils,
     hasNoticeTypeViolation,
     hasReceipt as hasReceiptTransactionUtils,
+    hasValidModifiedAmount,
     hasViolation,
     hasWarningTypeViolation,
     isManagedCardTransaction as isCardTransactionTransactionUtils,
@@ -13298,6 +13299,11 @@ function getTransactionSortValue(transaction: Transaction, key: SortableColumnNa
         case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
             return getTransactionAmount(transaction, isExpenseReport(report), transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
         case CONST.SEARCH.TABLE_COLUMNS.TOTAL:
+            // When a transaction has a valid modifiedAmount (e.g., after editing), prefer it.
+            // This ensures edits to $0.00 are properly reflected when sorting.
+            if (hasValidModifiedAmount(transaction)) {
+                return Math.abs(Number(transaction.modifiedAmount));
+            }
             return Math.abs(transaction.convertedAmount ?? 0);
         case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
             return Parser.htmlToText(transaction.comment?.comment ?? '');

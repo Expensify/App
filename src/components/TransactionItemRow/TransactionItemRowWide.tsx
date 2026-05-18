@@ -32,6 +32,7 @@ import {
     getOriginalCurrencyForDisplay,
     getReimbursable,
     getTaxName,
+    hasValidModifiedAmount,
     isDeletedTransaction as isDeletedTransactionUtil,
     isExpenseUnreported,
     isScanning,
@@ -538,12 +539,16 @@ function TransactionItemRowWide({
             case CONST.SEARCH.TABLE_COLUMNS.TOTAL: {
                 const isFromExpenseReport = isExpenseReport(transactionItem.report ?? report);
                 const hasConvertedAmount = transactionItem.convertedAmount != null;
-                // Offline expenses don't have a BE-computed convertedAmount yet — fall back to the unconverted
-                // amount in the transaction's own currency so users don't see a misleading $0.00 placeholder.
-                // Pass isFromExpenseReport so IOU reports stay positive while expense reports get NewDot's signed display.
-                const totalAmount = hasConvertedAmount ? getConvertedAmount(transactionItem, isFromExpenseReport) : getAmount(transactionItem, isFromExpenseReport);
+                // When a transaction has a valid modifiedAmount (e.g., after editing), prefer it over the converted amount.
+                // This ensures edits to $0.00 are properly reflected in the table.
+                const hasModifiedAmount = hasValidModifiedAmount(transactionItem);
+                const totalAmount = hasModifiedAmount
+                    ? Number(transactionItem.modifiedAmount)
+                    : hasConvertedAmount
+                      ? getConvertedAmount(transactionItem, isFromExpenseReport)
+                      : getAmount(transactionItem, isFromExpenseReport);
                 // When converted, display in the report's output currency; otherwise use the transaction's own currency.
-                const totalCurrency = hasConvertedAmount ? (report?.currency ?? policy?.outputCurrency ?? getCurrency(transactionItem)) : getCurrency(transactionItem);
+                const totalCurrency = hasModifiedAmount || hasConvertedAmount ? (report?.currency ?? policy?.outputCurrency ?? getCurrency(transactionItem)) : getCurrency(transactionItem);
                 return (
                     <View
                         key={column}
