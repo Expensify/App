@@ -40,7 +40,7 @@ jest.mock('@libs/ReportUtils', () => ({
 }));
 
 jest.mock('@libs/ChronosUtils', () => ({
-    isChronosTimerRunningFromVisibleActions: () => false,
+    getTimeOfChronosTimerRunningFromVisibleActions: () => null,
 }));
 
 jest.mock('@libs/ReportActionsUtils', () => ({

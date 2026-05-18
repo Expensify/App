@@ -1077,15 +1077,17 @@ function completeSplitBill(
 /**
  * Sets the `splitShares` map that holds individual shares of a split bill
  */
-function setSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, amount: number, currency: string, newAccountIDs: number[]) {
+function setSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, amount: number, currency: string, newAccountIDs: number[], isDraft = true) {
     if (!transaction) {
         return;
     }
 
+    const collectionKey = isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION;
+
     // For pending split distance requests, we don't want to set split shares to zero amount
     // instead we will reset it which would mean splitting the amount equally when the pending distance is resolved.
     if (isDistanceRequestTransactionUtils(transaction) && !amount) {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, {splitShares: null});
+        Onyx.merge(`${collectionKey}${transaction.transactionID}`, {splitShares: null});
         return;
     }
 
@@ -1116,10 +1118,10 @@ function setSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, amount: n
         return acc;
     }, {});
 
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, {splitShares});
+    Onyx.merge(`${collectionKey}${transaction.transactionID}`, {splitShares});
 }
 
-function resetSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, newAmount?: number, currency?: string) {
+function resetSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, newAmount?: number, currency?: string, isDraft = true) {
     if (!transaction) {
         return;
     }
@@ -1127,7 +1129,7 @@ function resetSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, newAmou
     if (!accountIDs) {
         return;
     }
-    setSplitShares(transaction, newAmount ?? transaction.amount, currency ?? transaction.currency, accountIDs);
+    setSplitShares(transaction, newAmount ?? transaction.amount, currency ?? transaction.currency, accountIDs, isDraft);
 }
 
 function setDraftSplitTransaction(
