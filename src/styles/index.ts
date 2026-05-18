@@ -694,6 +694,13 @@ const staticStyles = (theme: ThemeColors) =>
             height: variables.bottomTabHeight,
         },
 
+        tabNavigatorBarContainer: {
+            zIndex: 1,
+            width: variables.navigationTabBarSize + variables.sideBarWithLHBWidth,
+            marginRight: -variables.sideBarWithLHBWidth,
+            overflow: 'visible',
+        },
+
         navigationTabBarContainer: {
             flexDirection: 'row',
             height: variables.bottomTabHeight,

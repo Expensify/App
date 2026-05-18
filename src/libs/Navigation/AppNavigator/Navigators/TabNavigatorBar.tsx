@@ -13,7 +13,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import isTabRouteAtRoot from '@libs/Navigation/helpers/isTabRouteAtRoot';
 import cancelTabNavigationSpans from '@libs/telemetry/cancelTabNavigationSpans';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 
@@ -81,15 +80,9 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
         );
     }
 
-    const wideTabBarStyle = {
-        zIndex: 1,
-        width: variables.navigationTabBarSize + variables.sideBarWithLHBWidth,
-        marginRight: -variables.sideBarWithLHBWidth,
-    };
-
     return (
         <View
-            style={[styles.overflowVisible, wideTabBarStyle]}
+            style={[styles.tabNavigatorBarContainer]}
             pointerEvents="box-none"
         >
             <NavigationTabBar selectedTab={selectedTab} />
