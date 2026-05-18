@@ -67,21 +67,25 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const reportAttributes = useReportAttributes();
     const archivedReportsIdSet = useArchivedReportsIdSet();
 
-    const [policyReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
-        selector: (allReports) => {
-            const list: Report[] = [];
-            for (const report of Object.values(allReports ?? {})) {
-                if (!report || report.policyID !== policyID) {
-                    continue;
+    const [policyReports] = useOnyx(
+        ONYXKEYS.COLLECTION.REPORT,
+        {
+            selector: (allReports) => {
+                const list: Report[] = [];
+                for (const report of Object.values(allReports ?? {})) {
+                    if (!report || report.policyID !== policyID) {
+                        continue;
+                    }
+                    if (!isChatRoom(report) && !isPolicyExpenseChat(report)) {
+                        continue;
+                    }
+                    list.push(report);
                 }
-                if (!isChatRoom(report) && !isPolicyExpenseChat(report)) {
-                    continue;
-                }
-                list.push(report);
-            }
-            return list;
+                return list;
+            },
         },
-    });
+        [policyID],
+    );
 
     const rows: WorkspaceRoomsRow[] = (policyReports ?? [])
         .filter((report) => !archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`) && !isHiddenForCurrentUser(report))
