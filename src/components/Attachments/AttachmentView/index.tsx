@@ -151,6 +151,16 @@ function AttachmentView({
     const actions = useAttachmentCarouselPagerActions();
     const {onAttachmentError, onTap} = actions ?? {};
     const {setAttachmentLoaded} = useContext(AttachmentStateContext);
+    const handleAttachmentLoaded = (attachmentSource: AttachmentSource) => {
+        setAttachmentLoaded(attachmentSource, true);
+        onAttachmentError?.(attachmentSource, false);
+    };
+
+    const handleAttachmentError = (attachmentSource: AttachmentSource) => {
+        setAttachmentLoaded(attachmentSource, false);
+        onAttachmentError?.(attachmentSource, true);
+    };
+
     const theme = useTheme();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const styles = useThemeStyles();
@@ -234,8 +244,7 @@ function AttachmentView({
         const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source as string, encryptedAuthToken) : (source as string);
 
         const onPDFLoadComplete = (path: string) => {
-            setAttachmentLoaded(source, true);
-            onAttachmentError?.(source, false);
+            handleAttachmentLoaded(source);
             const id = transaction?.transactionID ?? reportActionID;
             if (path && id) {
                 addCachedPDFPaths(id, path);
@@ -246,8 +255,7 @@ function AttachmentView({
         };
 
         const onPDFLoadError = () => {
-            setAttachmentLoaded(source, false);
-            onAttachmentError?.(source, true);
+            handleAttachmentError(source);
             setHasPDFFailedToLoad(true);
             onPDFLoadErrorProp();
         };
@@ -357,15 +365,14 @@ function AttachmentView({
                         isImage={isImage}
                         onPress={onPress}
                         onLoad={() => {
-                            setAttachmentLoaded(source, true);
-                            onAttachmentError?.(source, false);
+                            handleAttachmentLoaded(source);
                         }}
                         onError={() => {
                             if (isOffline) {
                                 return;
                             }
 
-                            setAttachmentLoaded(source, false);
+                            handleAttachmentError(source);
                             setImageError(true);
                         }}
                     />
@@ -389,12 +396,10 @@ function AttachmentView({
                 reportID={reportID}
                 onTap={onTap}
                 onLoad={() => {
-                    setAttachmentLoaded(source, true);
-                    onAttachmentError?.(source, false);
+                    handleAttachmentLoaded(source);
                 }}
                 onError={() => {
-                    setAttachmentLoaded(source, false);
-                    onAttachmentError?.(source, true);
+                    handleAttachmentError(source);
                 }}
             />
         );
