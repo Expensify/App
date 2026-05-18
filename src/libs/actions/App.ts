@@ -12,6 +12,7 @@ import clearWorkboxRecoveryCaches from '@libs/clearWorkboxRecoveryCaches';
 import DateUtils from '@libs/DateUtils';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
+import willRouteNavigateToRHP from '@libs/Navigation/helpers/willRouteNavigateToRHP';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import isTrackOnboardingChoice from '@libs/OnboardingUtils';
 import {isPublicRoom, isValidReport} from '@libs/ReportUtils';
@@ -130,7 +131,6 @@ const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.MODAL,
     ONYXKEYS.NETWORK,
     ONYXKEYS.SESSION,
-    ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
     ONYXKEYS.NVP_TRY_FOCUS_MODE,
     ONYXKEYS.PREFERRED_THEME,
     ONYXKEYS.NVP_PREFERRED_LOCALE,
@@ -634,9 +634,16 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
         if (transitionFromOldDot) {
             Navigation.navigate(routeToNavigate);
         } else if (Navigation.isTopmostRouteModalScreen()) {
-            Navigation.dismissModal({
-                afterTransition: () => Navigation.navigate(routeToNavigate),
-            });
+            // `revealRouteBeforeDismissingModal` only works for fullscreen targets. Modal targets
+            // (e.g. workspace confirmation success) still need to open after the current RHP closes.
+            if (willRouteNavigateToRHP(routeToNavigate)) {
+                Navigation.dismissModal({
+                    afterTransition: () => Navigation.navigate(routeToNavigate),
+                });
+                return;
+            }
+
+            Navigation.revealRouteBeforeDismissingModal(routeToNavigate);
         } else {
             Navigation.navigate(routeToNavigate, {forceReplace: true});
         }

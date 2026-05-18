@@ -3,6 +3,7 @@ import type {ValueOf} from 'type-fest';
 import type {GustoSyncResult} from '@libs/API/GustoSyncResult';
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
+import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
 import type * as OnyxTypes from '.';
 import type * as OnyxCommon from './OnyxCommon';
 import type {WorkspaceTravelSettings} from './TravelSettings';
@@ -1364,15 +1365,162 @@ type SageIntacctConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
     SageIntacctOfflineStateKeys | keyof SageIntacctSyncConfig | keyof SageIntacctAutoSyncConfig | keyof SageIntacctExportConfig
 >;
 
+/** Certinia (FinancialForce) export destination — FFA Payable Invoice vs PSA Expense Report */
+type FinancialForceExportDestination = ValueOf<typeof CONST.CERTINIA_EXPORT_DESTINATION>;
+
+/** Certinia PSA parent tag mapping mode */
+type FinancialForceParentTagMappingMode = ValueOf<typeof CONST.CERTINIA_PARENT_TAG_MAPPING>;
+
+/** Keys on {@link FinancialForceConnectionConfig} tracked for offline pending / error field state */
+type FinancialForceOfflineStateKeys = ValueOf<typeof CONST.CERTINIA_CONFIG>;
+
+/** Synced Certinia entity with display name and external ID */
+type FinancialForceSyncedEntity = {
+    /** Display name of the synced entity */
+    name: string;
+
+    /** External ID of the synced entity */
+    id: string;
+};
+
+/** Data synced from Certinia (parent sync service); arrays may be empty until sync completes */
+type FinancialForceConnectionData = {
+    /** Salesforce Accounts used as Default Vendor options (FFA) */
+    vendors: FinancialForceSyncedEntity[];
+
+    /** Certinia companies (c2g__codaCompany__c); FFA validates presence when applicable */
+    companies: FinancialForceSyncedEntity[];
+
+    /** PSA: projects synced for mapping (Release 2) */
+    projects?: FinancialForceSyncedEntity[];
+
+    /** PSA: assignments synced for mapping (Release 2) */
+    assignments?: FinancialForceSyncedEntity[];
+};
+
+/** Certinia credentials (Salesforce / Certinia org); fields populate as OAuth / sync complete */
+type FinancialForceCredentials = {
+    /** Certinia company ID */
+    companyID?: string;
+
+    /** Salesforce enterprise / instance URL */
+    enterpriseUrl?: string;
+
+    /** Whether this is a sandbox connection */
+    isSandbox?: boolean;
+};
+
+/** Certinia import / coding settings */
+type FinancialForceCodingConfig = {
+    /** Dimension 1 mapping */
+    dimension1?: ValueOf<typeof CONST.CERTINIA_MAPPING_VALUE>;
+
+    /** Dimension 2 mapping */
+    dimension2?: ValueOf<typeof CONST.CERTINIA_MAPPING_VALUE>;
+
+    /** Dimension 3 mapping */
+    dimension3?: ValueOf<typeof CONST.CERTINIA_MAPPING_VALUE>;
+
+    /** Dimension 4 mapping */
+    dimension4?: ValueOf<typeof CONST.CERTINIA_MAPPING_VALUE>;
+
+    /** Whether tax should be synced */
+    syncTax?: boolean;
+
+    /** PSA: how parent tags map to projects / assignments */
+    parentTagMapping?: FinancialForceParentTagMappingMode;
+
+    /** PSA: sync milestones */
+    syncMilestones?: boolean;
+};
+
+/** Certinia export settings (FFA and PSA) */
+type FinancialForceExportConfig = {
+    /** FFA / PSA: reimbursable expenses destination */
+    reimbursable?: FinancialForceExportDestination;
+
+    /** FFA / PSA: non-reimbursable expenses destination */
+    nonReimbursable?: FinancialForceExportDestination;
+
+    /** Payable invoice / expense report export status. */
+    exportStatus?: ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS>;
+
+    /** Date basis for export */
+    exportDate?: ValueOf<typeof CONST.CERTINIA_EXPORT_DATE>;
+
+    /** Preferred exporter email */
+    exporter?: string;
+
+    /** FFA: default vendor Salesforce Account ID */
+    vendorAccount?: string;
+
+    /** PSA / SRP: company ID for export */
+    companyID?: string;
+
+    /** PSA: report-level export status. */
+    reportExportStatus?: ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS>;
+};
+
+/** Certinia auto-sync */
+type FinancialForceAutoSyncConfig = {
+    /** Whether daily auto-sync is enabled */
+    enabled: boolean;
+};
+
+/** Certinia advanced settings */
+type FinancialForceAdvancedConfig = {
+    /** When a Payable Invoice is paid in FFA, mark the Expensify report reimbursed */
+    syncReimbursedReports: boolean;
+
+    /** PSA: default whether tax is non-billable */
+    taxNonBillable?: boolean;
+
+    /** PSA: export in foreign currency */
+    exportForeignCurrency?: boolean;
+};
+
+/** Certinia (FinancialForce) connection config */
+type FinancialForceConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** Certinia credentials */
+        credentials: FinancialForceCredentials;
+
+        /** True when only PSA is enabled (no FFA) */
+        hasPSAOnly?: boolean;
+
+        /** Whether the PSA module is active */
+        hasPSA?: boolean;
+
+        /** Whether the connection has been fully set up */
+        isConfigured?: boolean;
+
+        /** Certinia import / coding settings */
+        coding: FinancialForceCodingConfig;
+
+        /** Certinia export settings */
+        export: FinancialForceExportConfig;
+
+        /** Certinia auto-sync settings */
+        autoSync: FinancialForceAutoSyncConfig;
+
+        /** Certinia advanced settings */
+        advanced: FinancialForceAdvancedConfig;
+
+        /** Collection of errors coming from the backend */
+        errors?: OnyxCommon.Errors;
+
+        /** Collection of form field errors */
+        errorFields?: OnyxCommon.ErrorFields;
+    },
+    FinancialForceOfflineStateKeys
+>;
+
 /** Gusto connection data */
 type GustoConnectionData = Record<string, never>;
 
-/** Gusto connection config */
-type GustoConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
+/** Shared config for HR integrations (Gusto, Merge HR) */
+type HRConnectionConfigBase = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
-        /** Gusto approval mode */
-        approvalMode: ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | null;
-
         /** Workspace member who acts as the final approver */
         finalApprover: string | null;
 
@@ -1381,6 +1529,36 @@ type GustoConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
     },
     'approvalMode' | 'finalApprover'
 >;
+
+/** Gusto connection config */
+type GustoConnectionConfig = HRConnectionConfigBase & {
+    /** Approval mode */
+    approvalMode: ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | null;
+};
+
+/** Merge HR connection data */
+type MergeHRConnectionData = Record<string, never>;
+
+/** Merge HR connection config */
+type MergeHRConnectionConfig = HRConnectionConfigBase & {
+    /** Integration provider slug */
+    integration: MergeHRProviderSlug;
+
+    /** Approval mode */
+    approvalMode: ValueOf<typeof CONST.MERGE_HR.APPROVAL_MODE> | null;
+};
+
+/** TriNet (Zenefits) connection data */
+type ZenefitsConnectionData = Record<string, never>;
+
+/** TriNet (Zenefits) connection config */
+type ZenefitsConnectionConfig = HRConnectionConfigBase & {
+    /** Zenefits approval mode */
+    approvalMode: ValueOf<typeof CONST.ZENEFITS.APPROVAL_MODE> | null;
+
+    /** Whether the connection has been configured */
+    isConfigured: boolean;
+};
 
 /**
  * Data imported from QuickBooks Desktop.
@@ -1514,10 +1692,16 @@ type Connections = {
     [CONST.POLICY.CONNECTIONS.NAME.QBD]: Connection<QBDConnectionData, QBDConnectionConfig>;
 
     /** Certinia integration connection */
-    [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: Connection<Record<string, never>, Record<string, never>>;
+    [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: Connection<FinancialForceConnectionData, FinancialForceConnectionConfig>;
 
     /** Gusto integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: Connection<GustoConnectionData, GustoConnectionConfig>;
+
+    /** TriNet (Zenefits) integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.ZENEFITS]: Connection<ZenefitsConnectionData, ZenefitsConnectionConfig>;
+
+    /** Merge HR integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: Connection<MergeHRConnectionData, MergeHRConnectionConfig>;
 };
 
 /** All integration connections, including unsupported ones */
@@ -2241,6 +2425,8 @@ export type {
     SageIntacctDataElement,
     SageIntacctConnectionsConfig,
     SageIntacctExportConfig,
+    FinancialForceConnectionConfig,
+    FinancialForceConnectionData,
     ACHAccount,
     ApprovalRule,
     ExpenseRule,
