@@ -45,7 +45,10 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                 return;
             }
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS) {
-                putTransactionsOnHold(selectedTransactionIDs, comment, reportID, isOffline, currentUserLogin ?? '', currentUserAccountID, ancestors, allTransactionViolations);
+                for (const transactionID of selectedTransactionIDs) {
+                    const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+                    putTransactionsOnHold([transactionID], comment, reportID, isOffline, currentUserLogin ?? '', currentUserAccountID, ancestors, transactionViolations);
+                }
                 clearSelectedTransactions(true);
             } else {
                 const transactionIDs = Object.keys(selectedTransactions);

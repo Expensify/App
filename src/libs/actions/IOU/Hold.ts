@@ -48,7 +48,7 @@ function putOnHold(
     currentUserLogin: string,
     currentUserAccountID: number,
     ancestors: Ancestor[] = [],
-    transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations> = [],
+    transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>,
 ) {
     const allTransactions = getAllTransactions();
     const allReports = getAllReports();
@@ -350,11 +350,10 @@ function putTransactionsOnHold(
     currentUserLogin: string,
     currentUserAccountID: number,
     ancestors: Ancestor[] = [],
-    allTransactionViolationsParam: OnyxCollection<OnyxTypes.TransactionViolations> = {},
+    transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>,
 ) {
     for (const transactionID of transactionsID) {
         const {childReportID} = getIOUActionForReportID(reportID, transactionID) ?? {};
-        const transactionViolations = allTransactionViolationsParam?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
         putOnHold(transactionID, comment, childReportID, isOffline, currentUserLogin, currentUserAccountID, ancestors, transactionViolations);
     }
 }
