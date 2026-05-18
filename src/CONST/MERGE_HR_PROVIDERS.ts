@@ -1,31 +1,33 @@
 import type {ValueOf} from 'type-fest';
 
+const MERGE_HR_PREFIX = 'merge_hr_';
+
 type MergeHRProviderEntry = {
     /** Human-readable label used in the UI */
     displayName: string;
 
-    /** Provider logo served from the Expensify CDN */
+    /** Provider logo served from the Merge CDN */
     iconUrl: string;
 
-    /** Onyx/Policy connection key; must start with 'merge_hr_' */
-    connectionName: `merge_hr_${string}`;
+    /** Onyx/Policy connection key */
+    connectionName: `${typeof MERGE_HR_PREFIX}${string}`;
 };
 
 const MERGE_HR_PROVIDERS = {
     workday: {
         displayName: 'Workday',
         iconUrl: '',
-        connectionName: 'merge_hr_workday',
+        connectionName: `${MERGE_HR_PREFIX}workday`,
     },
     bamboohr: {
         displayName: 'BambooHR',
         iconUrl: '',
-        connectionName: 'merge_hr_bamboohr',
+        connectionName: `${MERGE_HR_PREFIX}bamboohr`,
     },
     hibob: {
         displayName: 'HiBob',
         iconUrl: '',
-        connectionName: 'merge_hr_hibob',
+        connectionName: `${MERGE_HR_PREFIX}hibob`,
     },
 } as const satisfies Record<string, MergeHRProviderEntry>;
 
