@@ -10,6 +10,8 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
 
+const NONE_OPTION_KEY = '__none_option__';
+
 type SearchSingleSelectionPickerItem = {
     name: string;
     value: string;
@@ -50,7 +52,7 @@ function SearchSingleSelectionPicker({
             ? [
                   {
                       text: translate('common.none'),
-                      keyForList: '__none_option__',
+                      keyForList: NONE_OPTION_KEY,
                       isSelected: !selectedItem?.value,
                       value: '',
                   },
