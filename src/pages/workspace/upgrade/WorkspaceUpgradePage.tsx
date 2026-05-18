@@ -244,7 +244,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 break;
             }
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.id:
-                enablePolicyConnections(policyID, true);
+                enablePolicyConnections(policyID, true, false);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.travelSubmit.id:
                 enablePolicyTravel(policyID, true);
