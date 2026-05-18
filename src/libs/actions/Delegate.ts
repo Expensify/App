@@ -9,6 +9,7 @@ import Log from '@libs/Log';
 import {clearPreservedSearchNavigatorStates} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
+import Pusher from '@libs/Pusher';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -213,6 +214,11 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
                     return clearOnyxForDelegateTransition();
                 })
                 .then(() => {
+                    // Tear down the stale Pusher connection so the old user channel
+                    // (which would 403 on AuthenticatePusher with the new restricted token)
+                    // is removed. Pusher will be re-initialized with the delegate's
+                    // accountID once the session updates after openApp().
+                    Pusher.disconnect();
                     confirmReadyToOpenApp();
                     return openApp().then(() => {
                         if (!CONFIG.IS_HYBRID_APP || !policyID) {
@@ -312,6 +318,11 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
                     return clearOnyxForDelegateTransition();
                 })
                 .then(() => {
+                    // Tear down the delegate's Pusher connection so the delegate
+                    // user channel is removed. Pusher will be re-initialized with
+                    // the original account's accountID once the session updates
+                    // after openApp().
+                    Pusher.disconnect();
                     Onyx.set(ONYXKEYS.CREDENTIALS, {
                         ...stashedCredentials,
                         accountID: response.requesterID,
@@ -679,6 +690,9 @@ function updateDelegateRole({email, role, validateCode, delegatedAccess}: Update
 
 function restoreDelegateSession<TKey extends OnyxKey>(authenticateResponse: Response<TKey>) {
     clearOnyxForDelegateTransition().then(() => {
+        // Tear down the delegate's Pusher connection so the delegate
+        // user channel is removed before restoring the original session.
+        Pusher.disconnect();
         updateSessionAuthTokens(authenticateResponse?.authToken, authenticateResponse?.encryptedAuthToken);
         updateSessionUser(authenticateResponse?.accountID, authenticateResponse?.email);
 

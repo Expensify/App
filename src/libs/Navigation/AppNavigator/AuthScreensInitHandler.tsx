@@ -71,12 +71,26 @@ function AuthScreensInitHandler() {
     const reportAttributesRef = useRef(reportAttributes);
     reportAttributesRef.current = reportAttributes;
 
+    const prevAccountIDRef = useRef<number | undefined>(undefined);
+
     useEffect(() => {
-        if (!Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
+        // Detect account switches (delegate connect/disconnect) by comparing
+        // the current accountID to the previously seen one. On first mount
+        // prevAccountIDRef is undefined so this is false — avoiding duplicate
+        // initialization with the mount effect below.
+        const isAccountSwitch = prevAccountIDRef.current !== undefined && prevAccountIDRef.current !== session?.accountID;
+        prevAccountIDRef.current = session?.accountID;
+
+        if (!isAccountSwitch && !Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
             return;
         }
-        // This means sign in in RHP was successful, so we can subscribe to user events
-        initializePusher(session?.accountID, session?.email, () => reportAttributesRef.current);
+        if (!session?.accountID) {
+            return;
+        }
+        // Re-initialize Pusher for the new account. After a delegate transition
+        // Pusher.disconnect() has been called, so Pusher.init() will create a
+        // fresh socket and subscribeToUserEvents will bind the correct channel.
+        initializePusher(session.accountID, session.email, () => reportAttributesRef.current);
     }, [session?.accountID, session?.email]);
 
     useEffect(() => {
