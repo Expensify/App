@@ -2,6 +2,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {write} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ExportDownload from '@src/types/onyx/ExportDownload';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
@@ -62,11 +63,12 @@ function clearStaleExportDownloads() {
                 return;
             }
             for (const key of Object.keys(exportDownloads)) {
-                if (!exportDownloads[key]) {
+                const exportDownload = exportDownloads[key];
+                if (!exportDownload || exportDownload.state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING) {
                     continue;
                 }
                 const exportID = key.replace(ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD, '');
-                clearExportDownload(exportID, exportDownloads[key]);
+                clearExportDownload(exportID, exportDownload);
             }
         },
     });
