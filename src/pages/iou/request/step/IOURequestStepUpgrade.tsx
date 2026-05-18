@@ -10,6 +10,7 @@ import {useSearchActionsContext, useSearchStateContext} from '@components/Search
 import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
 import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/WorkspaceConfirmationForm';
 import useActivePolicy from '@hooks/useActivePolicy';
+import useCreateNewReport from '@hooks/useCreateNewReport';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
@@ -23,7 +24,6 @@ import {createNewReport} from '@libs/actions/Report';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import type CreateWorkspaceParams from '@libs/API/parameters/CreateWorkspaceParams';
 import getPlatform from '@libs/getPlatform';
-import {navigateToCreateReportWorkspaceSelection} from '@libs/Navigation/helpers/getCreateReportRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
@@ -31,7 +31,7 @@ import {getParticipantsOption} from '@libs/OptionsListUtils';
 import {getPersonalDetailsForAccountID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import UpgradeConfirmation from '@pages/workspace/upgrade/UpgradeConfirmation';
 import UpgradeIntro from '@pages/workspace/upgrade/UpgradeIntro';
-import {setCustomUnitRateID, setMoneyRequestParticipants} from '@userActions/IOU';
+import {setCustomUnitRateID, setMoneyRequestParticipants} from '@userActions/IOU/MoneyRequest';
 import CONST from '@src/CONST';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -76,6 +76,7 @@ function IOURequestStepUpgrade({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const createReportForCurrentUser = useCreateNewReport();
 
     // Hooks for bulk move functionality
     const {selectedTransactions} = useSearchStateContext();
@@ -195,14 +196,16 @@ function IOURequestStepUpgrade({
                 break;
             }
             case CONST.UPGRADE_PATHS.REPORTS:
-                Navigation.goBack();
-                if (action === CONST.IOU.ACTION.CREATE) {
-                    // Coming from "Create report" without a workspace. After upgrade, continue through the
-                    // Reports-anchored workspace selection flow so the created report opens in Reports.
+                if (action === CONST.IOU.ACTION.CREATE && policyID) {
+                    // Coming from "Create report" (no workspace) — create directly with the just-created
+                    // workspace. forceReplace removes the upgrade screen from history so back returns to
+                    // the originating screen, not the upgrade step.
+                    const {reportID: newReportID} = createReportForCurrentUser(policyID);
                     Navigation.setNavigationActionToMicrotaskQueue(() => {
-                        navigateToCreateReportWorkspaceSelection();
+                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newReportID), {forceReplace: true});
                     });
                 } else {
+                    Navigation.goBack();
                     navigateWithMicrotask(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
                 }
 
@@ -238,6 +241,7 @@ function IOURequestStepUpgrade({
         iouType,
         isTrack,
         allPolicyTags,
+        createReportForCurrentUser,
     ]);
 
     const participant = transaction?.participants?.[0];

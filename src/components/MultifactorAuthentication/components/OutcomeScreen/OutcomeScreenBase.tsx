@@ -99,4 +99,3 @@ function OutcomeScreenBase({headerTitle, illustration, iconWidth, iconHeight, ti
 OutcomeScreenBase.displayName = 'OutcomeScreenBase';
 
 export default OutcomeScreenBase;
-export type {OutcomeScreenBaseProps};
