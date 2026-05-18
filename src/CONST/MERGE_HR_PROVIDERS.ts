@@ -32,6 +32,7 @@ const MERGE_HR_PROVIDERS = {
 } as const satisfies Record<string, MergeHRProviderEntry>;
 
 type MergeHRConnectionName = ValueOf<typeof MERGE_HR_PROVIDERS>['connectionName'];
+type MergeHRProviderSlug = keyof typeof MERGE_HR_PROVIDERS;
 
-export type {MergeHRConnectionName};
+export type {MergeHRConnectionName, MergeHRProviderSlug};
 export default MERGE_HR_PROVIDERS;

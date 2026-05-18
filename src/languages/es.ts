@@ -6294,6 +6294,10 @@ ${amount} para ${merchant} - ${date}`,
                     }),
                 },
             },
+            merge: {
+                approvalMode: 'Modo de aprobación',
+                finalApprover: 'Aprobador final',
+            },
             zenefits: {
                 title: 'TriNet',
                 connect: 'Conectar',
