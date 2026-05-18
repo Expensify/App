@@ -215,6 +215,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         navigateToGustoSettings();
     }, [navigateToGustoSettings, showConfirmModal, translate]);
 
+    const navigateToSubmitWorkspaceApprovalsUpgrade = useCallback(() => {
+        Navigation.navigate(
+            ROUTES.WORKSPACE_UPGRADE.getRoute(route.params.policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.alias, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID)),
+        );
+    }, [route.params.policyID]);
+
     // User should be allowed to add new Approval Workflow only if he's upgraded to Control Plan, otherwise redirected to the Upgrade Page
     const addApprovalAction = useCallback(() => {
         setApprovalWorkflow({
@@ -224,13 +230,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         });
 
         if (canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled)) {
-            Navigation.navigate(
-                ROUTES.WORKSPACE_UPGRADE.getRoute(
-                    route.params.policyID,
-                    CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.alias,
-                    ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID),
-                ),
-            );
+            navigateToSubmitWorkspaceApprovalsUpgrade();
             return;
         }
 
@@ -246,7 +246,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         }
 
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID));
-    }, [policy, route.params.policyID, availableMembers, usedApproverEmails, isSubmit2026BetaEnabled]);
+    }, [policy, route.params.policyID, availableMembers, usedApproverEmails, isSubmit2026BetaEnabled, navigateToSubmitWorkspaceApprovalsUpgrade]);
 
     const filteredApprovalWorkflows =
         policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED || policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL
@@ -341,6 +341,16 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             </View>
         );
         const approvalOptionSubtitle = isGustoConnected || !isSmartLimitEnabled ? approvalSubtitle : translate('workspace.moreFeatures.workflows.disableApprovalPrompt');
+
+        const getAddApprovalsToggleDisabledAction = () => {
+            if (canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled)) {
+                return navigateToSubmitWorkspaceApprovalsUpgrade;
+            }
+            if (isGustoConnected) {
+                return promptConfigureApprovalsInGusto;
+            }
+            return undefined;
+        };
 
         return [
             {
@@ -461,7 +471,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                     </>
                 ),
                 disabled: isSmartLimitEnabled || isDEWEnabled || isGustoConnected || canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled),
-                disabledAction: isGustoConnected ? promptConfigureApprovalsInGusto : undefined,
+                disabledAction: getAddApprovalsToggleDisabledAction(),
                 isActive:
                     isGustoConnected ||
                     isDEWEnabled ||
@@ -645,6 +655,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         shouldBlockApprovalWorkflowEditing,
         approvalSubtitle,
         promptConfigureApprovalsInGusto,
+        navigateToSubmitWorkspaceApprovalsUpgrade,
         isDEWEnabled,
         shouldUseNarrowLayout,
         expensifyIcons.Info,
