@@ -104,7 +104,7 @@ function ScanFromReport({report, iouType, reportID, transactionID, transaction, 
                 }}
                 onPicked={validateFiles}
                 onAttachmentPickerStatusChange={setIsLoaderVisible}
-                submitMultiScan={submitMultiScan}
+                onMultiScanSubmit={submitMultiScan}
                 shouldAcceptMultipleFiles
             />
             {ErrorModal}

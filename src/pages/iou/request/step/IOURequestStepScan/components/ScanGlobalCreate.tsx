@@ -148,7 +148,7 @@ function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backTo
                 }}
                 onPicked={validateFiles}
                 onAttachmentPickerStatusChange={setIsLoaderVisible}
-                submitMultiScan={submitMultiScan}
+                onMultiScanSubmit={submitMultiScan}
                 shouldAcceptMultipleFiles
             />
             {ErrorModal}

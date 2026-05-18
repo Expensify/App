@@ -34,7 +34,7 @@ const BLINK_DURATION_MS = 80;
  * Renders a camera viewfinder, shutter button, flash toggle and gallery picker.
  * Calls `onCapture(file, source)` for each photo taken or file picked from the gallery.
  */
-function CameraCapture({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayout, submitMultiScan}: CameraProps) {
+function CameraCapture({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayout, onMultiScanSubmit}: CameraProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -295,10 +295,10 @@ function CameraCapture({onCapture, onPicked, shouldAcceptMultipleFiles = false, 
                     )}
                 </View>
             </View>
-            {canUseMultiScan && !!submitMultiScan && (
+            {canUseMultiScan && !!onMultiScanSubmit && (
                 <ReceiptPreviews
                     isMultiScanEnabled={isMultiScanEnabled}
-                    submit={submitMultiScan}
+                    submit={onMultiScanSubmit}
                 />
             )}
         </View>

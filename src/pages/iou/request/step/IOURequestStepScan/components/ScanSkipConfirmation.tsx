@@ -289,7 +289,7 @@ function ScanSkipConfirmation({report, iouType, reportID, transactionID, transac
                 }}
                 onPicked={validateFiles}
                 onAttachmentPickerStatusChange={setIsLoaderVisible}
-                submitMultiScan={submitMultiScan}
+                onMultiScanSubmit={submitMultiScan}
                 shouldAcceptMultipleFiles
             />
             {ErrorModal}

@@ -35,7 +35,7 @@ const BLINK_DURATION_MS = 80;
  * Renders a react-native-vision-camera viewfinder with shutter, flash toggle, gallery picker, and focus gesture.
  * Calls `onCapture(file, source)` for each photo taken or file picked from the gallery.
  */
-function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayout, onAttachmentPickerStatusChange, submitMultiScan}: CameraProps) {
+function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayout, onAttachmentPickerStatusChange, onMultiScanSubmit}: CameraProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -243,20 +243,20 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                     toggleMultiScan={toggleMultiScan}
                 />
 
-                {canUseMultiScan && !!submitMultiScan && isInLandscapeMode && (
+                {canUseMultiScan && !!onMultiScanSubmit && isInLandscapeMode && (
                     <ReceiptPreviews
                         isMultiScanEnabled={isMultiScanEnabled}
-                        submit={submitMultiScan}
+                        submit={onMultiScanSubmit}
                         isCapturingPhoto={didCapturePhoto}
                         isInLandscapeMode
                     />
                 )}
             </View>
 
-            {canUseMultiScan && !!submitMultiScan && !isInLandscapeMode && (
+            {canUseMultiScan && !!onMultiScanSubmit && !isInLandscapeMode && (
                 <ReceiptPreviews
                     isMultiScanEnabled={isMultiScanEnabled}
-                    submit={submitMultiScan}
+                    submit={onMultiScanSubmit}
                     isCapturingPhoto={didCapturePhoto}
                 />
             )}

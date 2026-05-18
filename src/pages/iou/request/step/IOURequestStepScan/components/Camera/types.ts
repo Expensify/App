@@ -27,7 +27,7 @@ type CameraProps = {
     onAttachmentPickerStatusChange?: (isOpen: boolean) => void;
 
     /** Called when the user taps the multi-scan submit button on the preview ribbon. Used by native and mobile web. */
-    submitMultiScan?: () => void;
+    onMultiScanSubmit?: () => void;
 };
 
 export default CameraProps;
