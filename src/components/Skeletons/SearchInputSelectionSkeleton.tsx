@@ -18,7 +18,7 @@ function SearchInputSelectionSkeleton({reasonAttributes}: SearchInputSelectionSk
     useSkeletonSpan('SearchInputSelectionSkeleton', reasonAttributes);
 
     return (
-        <View style={[styles.searchRouterTextInputContainer, styles.searchAutocompleteInputResults, styles.br2, styles.justifyContentCenter]}>
+        <View style={[styles.searchRouterTextInputContainer, styles.searchAutocompleteInputResults, styles.searchInputSkeleton]}>
             <SkeletonViewContentLoader
                 height={variables.searchAutocompleteInputSkeletonHeight}
                 backgroundColor={theme.skeletonLHNIn}

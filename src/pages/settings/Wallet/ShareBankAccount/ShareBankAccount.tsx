@@ -35,7 +35,7 @@ type ShareBankAccountProps = PlatformStackScreenProps<SettingsNavigatorParamList
 function ShareBankAccount({route}: ShareBankAccountProps) {
     const bankAccountID = route.params?.bankAccountID;
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['ShareBank', 'Telescope'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['ShareBank', 'Telescope']);
 
     const {isOffline} = useNetwork();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
@@ -70,12 +70,13 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
     };
     useEffect(() => {
         return () => {
+            clearShareBankAccountErrors(Number(bankAccountID));
             if (!shouldShowSuccess) {
                 return;
             }
             clearShareBankAccount();
         };
-    }, [shouldShowSuccess]);
+    }, [shouldShowSuccess, bankAccountID]);
 
     useEffect(() => {
         if (isOffline) {
@@ -197,8 +198,7 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
                             />
                         }
                         ListItem={UserListItem}
-                        shouldUseDefaultRightHandSideCheckmark
-                        onCheckboxPress={toggleOption}
+                        onSelectionButtonPress={toggleOption}
                         onSelectRow={toggleOption}
                         footerContent={
                             <FormAlertWithSubmitButton
@@ -213,7 +213,7 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
                                     <ErrorMessageRow
                                         errors={sharedBankAccountData?.errors}
                                         errorRowStyles={[styles.mv3]}
-                                        onDismiss={clearShareBankAccountErrors}
+                                        onDismiss={() => clearShareBankAccountErrors(Number(bankAccountID))}
                                     />
                                 }
                                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}

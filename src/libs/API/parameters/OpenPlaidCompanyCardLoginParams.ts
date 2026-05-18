@@ -4,6 +4,8 @@ type OpenPlaidCompanyCardLoginParams = {
     country: string;
     domain?: string;
     feed?: string;
+    isPersonal?: boolean;
+    cardID?: string;
 };
 
 export default OpenPlaidCompanyCardLoginParams;

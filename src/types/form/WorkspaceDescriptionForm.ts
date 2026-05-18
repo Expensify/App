@@ -14,5 +14,5 @@ type WorkspaceDescriptionForm = Form<
     }
 >;
 
+// eslint-disable-next-line import/prefer-default-export
 export type {WorkspaceDescriptionForm};
-export default INPUT_IDS;

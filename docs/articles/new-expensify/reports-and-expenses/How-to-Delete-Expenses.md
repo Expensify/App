@@ -1,8 +1,8 @@
 ---
 title: How to Delete Expenses
 description: Learn how to delete expenses in New Expensify, including how to remove expenses from reports, when you need to retract a report, and why some expenses can’t be deleted.
-keywords: [New Expensify, delete expenses, remove expense, delete expense report, company card expense delete, retract report delete expense, cannot delete expense Expensify]
-internalScope: Audience includes all members. Covers deleting individual expenses, deleting expenses from reports, retracting reports to enable deletion, company card deletion rules. Does not cover editing expenses, reimbursement workflows, expense approvals beyond deletion requirements.
+keywords: [New Expensify, delete expenses, remove expense, delete expense report, company card expense delete, retract report delete expense, cannot delete expense Expensify, undelete expense, restore deleted expense, find deleted expenses]
+internalScope: Audience includes all members. Covers deleting individual expenses, deleting expenses from reports, retracting reports to enable deletion, company card deletion rules, finding and un-deleting deleted expenses. Does not cover editing expenses, reimbursement workflows, expense approvals beyond deletion requirements.
 ---
 
 # How to delete expenses 
@@ -23,7 +23,7 @@ Most expenses can be deleted directly. If an expense is on a submitted report or
 
 ## How to delete multiple expenses
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile) select **Reports** > **Expenses**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile) select **Spend** > **Expenses**.
 2. Select the expenses you want to delete.
 3. Choose **Selected**, then **Delete**.
 
@@ -33,13 +33,21 @@ Most expenses can be deleted directly. If an expense is on a submitted report or
 
 ## How to delete an expense from a report 
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile) select **Reports** > **Expenses**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile) select **Spend** > **Expenses**.
 2. Open the report that contains the expense.
 3. Select the expense you want to delete.
 4. Choose **Selected**, then **Delete**.
 
-**Note:** You can only delete expenses from your own Unreported, Draft, and Outstanding reports. If the report is Approved, Done or Paid, it will need to be retracted first before deleting the expense. [Learn how to retract a report](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Edit-Expense-Reports). 
+**Note:** You can only delete expenses from your own Unreported, Draft, and Outstanding reports. If the report is Approved, Done or Paid, it will need to be retracted first before deleting the expense. [Learn how to retract a report](/articles/new-expensify/reports-and-expenses/Edit-Expense-Reports). 
 
+---
+
+## What happens after you delete an expense 
+
+- If the expense was the only one on a report, the report is also deleted.
+- If the report contained multiple expenses, the remaining expenses stay on the report.
+- If you need to recover the deleted expense, it can be undeleted.
+  
 ---
 
 ## Why you can’t delete an expense
@@ -62,7 +70,20 @@ https://github.com/Expensify/Expensify/issues/614406
  - The workspace setting **Allow deleting transactions** was enabled at the time the expense was imported
  - The expense is Unreported or on a Draft or Outstanding report
 
-If an expense can't be deleted, you can [remove the expense from the report](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Managing-Expenses-in-a-Report#how-to-move-or-remove-expenses-from-a-report) and move it to your personal space instead. 
+If an expense can't be deleted, you can [remove the expense from the report](/articles/new-expensify/reports-and-expenses/Managing-Expenses-in-a-Report#how-to-move-or-remove-expenses-from-a-report) and move it to your personal space instead. 
+
+---
+
+## How to find and undelete deleted expenses
+
+Deleted expenses are not permanently removed. You can find and restore them from the **Spend** page.
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile) select **Spend** > **Expenses**.
+2. Filter by **Status** = **Deleted** and click **Apply**.
+3. Select the expenses you want to restore using the checkboxes.
+4. Choose **Selected**, then **Undelete**.
+
+The restored expenses return to your account. 
 
 ---
  
@@ -72,7 +93,7 @@ If an expense can't be deleted, you can [remove the expense from the report](htt
 
 You can only delete expenses in your own account.
 
-If you need access to another member’s expenses, ask them to [add you as a Copilot](https://help.expensify.com/articles/new-expensify/settings/Copilot-Access). This allows you to manage expenses on their behalf.
+If you need access to another member’s expenses, ask them to [add you as a Copilot](/articles/new-expensify/settings/Copilot-Access). This allows you to manage expenses on their behalf.
 
 ## How can a Workspace Admin allow members to delete company card expenses?
 

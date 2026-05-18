@@ -83,7 +83,6 @@ function isTranslationTargetLocale(locale: string): locale is TranslationTargetL
 }
 
 export {
-    BETA_LOCALES,
     EXTENDED_LOCALES,
     FULLY_SUPPORTED_LOCALES,
     LOCALES,

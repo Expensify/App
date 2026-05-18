@@ -1,5 +1,4 @@
 import React, {useCallback} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmationPage from '@components/ConfirmationPage';
 import LottieAnimations from '@components/LottieAnimations';
 import useEnvironment from '@hooks/useEnvironment';
@@ -8,6 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TwoFactorAuthNavigatorParamList} from '@libs/Navigation/types';
+import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
 import {closeReactNativeApp} from '@userActions/HybridApp';
 import {openLink} from '@userActions/Link';
 import {quitAndNavigateBack} from '@userActions/TwoFactorAuthActions';
@@ -16,23 +16,20 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {TryNewDot} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
 type SuccessPageProps = PlatformStackScreenProps<TwoFactorAuthNavigatorParamList, typeof SCREENS.TWO_FACTOR_AUTH.SUCCESS>;
-
-function classicRedirectDismissedSelector(tryNewDot: OnyxEntry<TryNewDot>) {
-    return tryNewDot?.classicRedirect?.dismissed;
-}
 
 function SuccessPage({route}: SuccessPageProps) {
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const styles = useThemeStyles();
 
-    const [isClassicRedirectDismissed] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
-        selector: classicRedirectDismissedSelector,
-    });
+    const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
+    const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
+    const isClassicRedirectBlocked = shouldHideOldAppRedirect(tryNewDot, isLoadingTryNewDot, CONFIG.IS_HYBRID_APP);
+    const isClassicRedirectDismissed = tryNewDot?.classicRedirect?.dismissed;
 
     const goBack = useCallback(() => {
         quitAndNavigateBack(route.params?.backTo ?? ROUTES.SETTINGS_2FA_ROOT.getRoute());
@@ -55,7 +52,7 @@ function SuccessPage({route}: SuccessPageProps) {
                 shouldShowButton
                 buttonText={translate('common.buttonConfirm')}
                 onButtonPress={() => {
-                    if (CONFIG.IS_HYBRID_APP && isClassicRedirectDismissed) {
+                    if (CONFIG.IS_HYBRID_APP && isClassicRedirectDismissed && !isClassicRedirectBlocked) {
                         closeReactNativeApp({shouldSetNVP: false, isTrackingGPS: false});
                         return;
                     }

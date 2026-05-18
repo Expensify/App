@@ -35,7 +35,6 @@ const getContacts = (
     countryCode: number,
     loginList: OnyxEntry<Login>,
     currentUserEmail: string,
-    currentUserAccountID: number,
     personalDetails: OnyxEntry<PersonalDetailsList>,
 ): Array<SearchOption<PersonalDetails>> => {
     return deviceContacts
@@ -59,7 +58,6 @@ const getContacts = (
                 countryCode,
                 loginList,
                 currentUserEmail,
-                currentUserAccountID,
                 personalDetails,
             });
         })

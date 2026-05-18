@@ -41,7 +41,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
 
     const fetchSetupLink = useCallback(() => {
         setHasError(false);
-        // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
+
         getQuickbooksDesktopCodatSetupLink(policyID).then((response) => {
             if (!response?.jsonCode) {
                 return;
@@ -140,7 +140,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
             <HeaderWithBackButton
                 title={translate('workspace.qbd.qbdSetup')}
                 shouldShowBackButton
-                onBackButtonPress={() => Navigation.dismissModal()}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             {hasResultOfFetchingSetupLink ? children : <FullPageOfflineBlockingView addBottomSafeAreaPadding>{children}</FullPageOfflineBlockingView>}
         </ScreenWrapper>

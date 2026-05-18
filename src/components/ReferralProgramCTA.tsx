@@ -29,7 +29,7 @@ function ReferralProgramCTA({referralContentType, style, onDismiss}: ReferralPro
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isDismissed, setAsDismissed} = useDismissedReferralBanners({referralContentType});
-    const icons = useMemoizedLazyExpensifyIcons(['Close'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Close']);
 
     const handleDismissCallToAction = () => {
         setAsDismissed();
@@ -64,6 +64,7 @@ function ReferralProgramCTA({referralContentType, style, onDismiss}: ReferralPro
             {/* Hidden from accessibility — the CTA pressable above already announces this content. */}
             <View
                 aria-hidden
+                pointerEvents="none"
                 style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
             >
                 <RenderHTML html={translate(`referralProgram.${referralContentType}.buttonText`)} />

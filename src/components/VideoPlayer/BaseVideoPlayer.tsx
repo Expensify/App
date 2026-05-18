@@ -19,6 +19,7 @@ import {useVideoPopoverMenuActions} from '@components/VideoPlayerContexts/VideoP
 import {useVolumeActions, useVolumeState} from '@components/VideoPlayerContexts/VolumeContext';
 import VideoPopoverMenu from '@components/VideoPopoverMenu';
 import useNetwork from '@hooks/useNetwork';
+import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {isSafari} from '@libs/Browser';
@@ -57,6 +58,7 @@ function BaseVideoPlayer({
     const {pauseVideo, playVideo, replayVideo, shareVideoPlayerElements, updateCurrentURLAndReportID, setCurrentlyPlayingURL, updatePlayerStatus, requestDonorReRegistration} =
         usePlaybackActionsContext();
     const {isFullScreenRef} = useFullScreenState();
+    const report = useReportOrReportDraft(reportID);
 
     const isOffline = useNetwork().isOffline;
     const [isVideoOffline, setIsVideoOffline] = useState(false);
@@ -83,12 +85,14 @@ function BaseVideoPlayer({
         useVideoPlayer(sourceURL, (player) => {
             player.loop = isLooping;
             player.muted = true;
-            player.timeUpdateEventInterval = 0.1;
+            player.timeUpdateEventInterval = 0;
         }),
     );
     /* eslint-enable no-param-reassign */
 
-    const isPlaying = videoPlayerRef.current.playing;
+    // `useEvent` — direct `.playing` read wouldn't re-render when play state changes.
+    const {isPlaying} = useEvent(videoPlayerRef.current, 'playingChange', {isPlaying: videoPlayerRef.current.playing, oldIsPlaying: false} as PlayingChangeEventPayload);
+
     const {currentTime, bufferedPosition} = useEvent(videoPlayerRef.current, 'timeUpdate', {currentTime: 0, bufferedPosition: 0} as TimeUpdateEventPayload);
     const {status} = useEvent(videoPlayerRef.current, 'statusChange', {status: shouldUseSharedVideoElement ? playerStatus.current : 'loading'} as StatusChangeEventPayload);
 
@@ -170,7 +174,7 @@ function BaseVideoPlayer({
 
     const togglePlayCurrentVideo = useCallback(() => {
         if (!isCurrentlyURLSet) {
-            updateCurrentURLAndReportID(url, reportID);
+            updateCurrentURLAndReportID(url, report, reportID);
             return;
         }
 
@@ -192,7 +196,7 @@ function BaseVideoPlayer({
 
         allowSharedAutoPlayRef.current = true;
         playVideo();
-    }, [isCurrentlyURLSet, isLoading, isEnded, currentTime, duration, playVideo, updateCurrentURLAndReportID, url, reportID, pauseVideo, replayVideo]);
+    }, [isCurrentlyURLSet, isLoading, isEnded, currentTime, duration, playVideo, updateCurrentURLAndReportID, url, report, reportID, pauseVideo, replayVideo]);
 
     const hideControl = useCallback(() => {
         if (isEnded || isSeeking) {
@@ -285,6 +289,8 @@ function BaseVideoPlayer({
 
     useEventListener(videoPlayerRef.current, 'playingChange', (payload: PlayingChangeEventPayload) => {
         const isVideoPlaying = payload.isPlaying;
+        // Toggled in the listener (not a `useEffect`) — the web setter synchronously emits `timeUpdate`, which would re-enter `useEvent` from render.
+        videoPlayerRef.current.timeUpdateEventInterval = isVideoPlaying ? 0.1 : 0;
         if (isVideoPlaying && isEnded) {
             setIsEnded(false);
         }
@@ -359,7 +365,7 @@ function BaseVideoPlayer({
                 currentVideoPlayerRef.current = null;
             }
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+
         [currentVideoPlayerRef, mountedVideoPlayersRef, url],
     );
 
@@ -390,7 +396,7 @@ function BaseVideoPlayer({
 
             setCurrentlyPlayingURL(null);
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+
         [setCurrentlyPlayingURL],
     );
 
@@ -494,8 +500,8 @@ function BaseVideoPlayer({
         if (!shouldPlay) {
             return;
         }
-        updateCurrentURLAndReportID(url, reportID);
-    }, [reportID, shouldPlay, updateCurrentURLAndReportID, url]);
+        updateCurrentURLAndReportID(url, report, reportID);
+    }, [report, reportID, shouldPlay, updateCurrentURLAndReportID, url]);
 
     // ensure that video loads after page refresh on iOS Safari
     useEffect(() => {
@@ -574,7 +580,7 @@ function BaseVideoPlayer({
                                                 if (!(videoPlayerElementParentRef.current && 'addEventListener' in videoPlayerElementParentRef.current)) {
                                                     return;
                                                 }
-                                                // When the video is in fullscreen, we don't want the scroll to be captured by the InvertedFlatList of report screen.
+                                                // When the video is in fullscreen, we don't want the scroll to be captured by the InvertedFlashList of report screen.
                                                 // This will also allow the user to scroll the video playback speed.
                                                 videoPlayerElementParentRef.current.addEventListener('wheel', stopWheelPropagation);
                                             }}

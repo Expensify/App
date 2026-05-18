@@ -24,16 +24,35 @@ const ANNOUNCEMENT_DELAY_MS = 300;
 
 let wrapper: HTMLDivElement | null = null;
 
+function getAnnouncementRoot(): HTMLElement {
+    const activeElement = document.activeElement;
+    const activeDialog = activeElement instanceof HTMLElement ? activeElement.closest<HTMLElement>('[role="dialog"][aria-modal="true"]') : null;
+
+    if (activeDialog) {
+        return activeDialog;
+    }
+
+    const modalDialogs = document.querySelectorAll<HTMLElement>('[role="dialog"][aria-modal="true"]');
+    return modalDialogs.item(modalDialogs.length - 1) ?? document.body;
+}
+
 function getWrapper(): HTMLDivElement {
-    if (wrapper && document.body.contains(wrapper)) {
+    const root = getAnnouncementRoot();
+
+    if (wrapper && root.contains(wrapper)) {
         return wrapper;
+    }
+
+    if (wrapper?.parentElement && wrapper.parentElement !== root) {
+        wrapper.parentElement.removeChild(wrapper);
+        wrapper = null;
     }
 
     wrapper = document.createElement('div');
     wrapper.setAttribute('aria-live', 'assertive');
     wrapper.setAttribute('aria-atomic', 'true');
     Object.assign(wrapper.style, VISUALLY_HIDDEN_STYLE);
-    document.body.appendChild(wrapper);
+    root.appendChild(wrapper);
 
     return wrapper;
 }

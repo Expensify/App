@@ -57,7 +57,7 @@ function BasePicker<TPickerValue>({
     const picker = useRef<RNPickerSelect>(null);
 
     useEffect(() => {
-        if (!!value || !items || items.length !== 1 || !onInputChange) {
+        if (!!value || items?.length !== 1 || !onInputChange) {
             return;
         }
 
@@ -99,12 +99,10 @@ function BasePicker<TPickerValue>({
             return () => icon(size);
         }
 
-        // eslint-disable-next-line react/display-name
         return () => (
             <Icon
                 fill={theme.icon}
                 src={icons.DownArrow}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(size === 'small' ? {width: styles.pickerSmall().icon.width, height: styles.pickerSmall().icon.height} : {})}
             />
         );
@@ -240,6 +238,7 @@ function BasePicker<TPickerValue>({
                         accessibilityRole: CONST.ROLE.COMBOBOX,
                         accessibilityLabel: actualAccessibilityLabel,
                     }}
+                    doneText={translate('common.done')}
                     pickerProps={{
                         ref: picker,
                         tabIndex: pickerTabIndex,

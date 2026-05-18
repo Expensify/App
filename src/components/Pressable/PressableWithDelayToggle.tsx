@@ -70,6 +70,9 @@ type PressableWithDelayToggleProps = PressableProps & {
 
     /** Custom accessibility label that overrides the tooltipText-based label for both states */
     accessibilityLabel?: string;
+
+    /** Custom accessibility label to use in the checked (pressed) state */
+    accessibilityLabelChecked?: string;
 };
 
 function PressableWithDelayToggle({
@@ -92,11 +95,12 @@ function PressableWithDelayToggle({
     iconHeight = variables.iconSizeSmall,
     shouldUseButtonBackground = false,
     accessibilityLabel: accessibilityLabelProp,
+    accessibilityLabelChecked,
 }: PressableWithDelayToggleProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isActive, temporarilyDisableInteractions] = useThrottledButtonState();
-    const lazyIcons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
+    const lazyIcons = useMemoizedLazyExpensifyIcons(['Checkmark']);
     const resolvedIconChecked = iconChecked ?? lazyIcons.Checkmark;
 
     const updatePressState = () => {
@@ -113,10 +117,12 @@ function PressableWithDelayToggle({
     const PressableView = inline ? Text : PressableWithoutFeedback;
     const tooltipTexts = !isActive ? tooltipTextChecked : tooltipText;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Using || intentionally so empty string tooltip/text values fall through to the next fallback
-    const accessibilityLabel = accessibilityLabelProp || (!isActive ? tooltipTextChecked || textChecked : tooltipText || text) || text || '';
+    const checkedAccessibilityLabel = accessibilityLabelChecked || accessibilityLabelProp || tooltipTextChecked || textChecked || text || '';
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Using || intentionally so empty string tooltip/text values fall through to the next fallback
+    const defaultAccessibilityLabel = accessibilityLabelProp || tooltipText || text || '';
+    const accessibilityLabel = !isActive ? checkedAccessibilityLabel : defaultAccessibilityLabel;
     const shouldShowIcon = !!icon || (!isActive && !!resolvedIconChecked);
     const labelText =
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
         text || textChecked ? (
             <Text
                 suppressHighlighting
@@ -147,7 +153,6 @@ function PressableWithDelayToggle({
                     text={tooltipTexts}
                     shouldRender
                 >
-                    {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-descriptors -- Inner pressable is intentionally non-accessible (accessible={false}) since the outer PressableView handles accessibility */}
                     <PressableWithoutFeedback
                         tabIndex={-1}
                         accessible={false}

@@ -13,14 +13,15 @@ import Picker from '@components/Picker';
 import StateSelector from '@components/StateSelector';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import NetworkConnection from '@libs/NetworkConnection';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import {clearErrors, setDraftValues, setErrors, setIsLoading} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
-import {defaultStyles} from '@src/styles';
+import styles from '@src/styles';
+import {defaultTheme} from '@src/styles/theme';
 import type {Form} from '@src/types/form';
-import type {Network} from '@src/types/onyx';
+
+const defaultStyles = styles(defaultTheme);
 
 type FormStory = StoryFn<FormProviderProps & FormProviderOnyxProps>;
 
@@ -41,9 +42,6 @@ type FormProviderOnyxProps = {
 
     /** Contains draft values for each input in the form */
     draftValues: OnyxEntry<Form>;
-
-    /** Information about the network */
-    network: OnyxEntry<Network>;
 };
 
 type StorybookFormErrors = Partial<Record<keyof StorybookFormValues, string>>;
@@ -66,7 +64,6 @@ const story: Meta<typeof FormProvider> = {
 
 function Template(props: FormProviderProps & FormProviderOnyxProps) {
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
-    NetworkConnection.setOfflineStatus(false);
     setIsLoading(props.formID, !!props.formState?.isLoading);
     setDraftValues(props.formID, props.draftValues);
 
@@ -77,7 +74,6 @@ function Template(props: FormProviderProps & FormProviderOnyxProps) {
     }
 
     return (
-        // eslint-disable-next-line react/jsx-props-no-spreading
         <FormProvider {...props}>
             <View>
                 <InputWrapper
@@ -180,7 +176,6 @@ function WithNativeEventHandler(props: FormProviderProps & FormProviderOnyxProps
     const [log, setLog] = useState('');
 
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
-    NetworkConnection.setOfflineStatus(false);
     setIsLoading(props.formID, !!props.formState?.isLoading);
     setDraftValues(props.formID, props.draftValues);
 
@@ -191,7 +186,6 @@ function WithNativeEventHandler(props: FormProviderProps & FormProviderOnyxProps
     }
 
     return (
-        // eslint-disable-next-line react/jsx-props-no-spreading
         <FormProvider {...props}>
             <InputWrapper
                 InputComponent={TextInput}

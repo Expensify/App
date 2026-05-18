@@ -48,6 +48,7 @@ type PersonalDetailsFormValues = {
 };
 
 function buildSetPersonalDetailsAndShipExpensifyCardsParams(values: PersonalDetailsFormValues, countryCode: number): Omit<SetPersonalDetailsAndShipExpensifyCardsParams, 'validateCode'> {
+    const stateValue = (values.addressState ?? values.state).trim();
     return {
         legalFirstName: values.legalFirstName?.trim() ?? '',
         legalLastName: values.legalLastName?.trim() ?? '',
@@ -57,7 +58,8 @@ function buildSetPersonalDetailsAndShipExpensifyCardsParams(values: PersonalDeta
         addressStreet2: values.addressLine2?.trim() ?? '',
         addressZip: values.zipPostCode?.trim().toUpperCase() ?? '',
         addressCountry: values.country,
-        addressState: (values.addressState ?? values.state).trim(),
+        addressState: values.country === CONST.COUNTRY.US ? stateValue : '',
+        addressProvince: values.country !== CONST.COUNTRY.US ? stateValue : '',
         dob: values.dob,
     };
 }
@@ -504,26 +506,6 @@ function deleteAvatar(currentUserPersonalDetails: Pick<CurrentUserPersonalDetail
 }
 
 /**
- * Clear error and pending fields for the current user's avatar
- */
-function clearAvatarErrors(currentUserAccountID: number) {
-    if (!currentUserAccountID) {
-        return;
-    }
-
-    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        [currentUserAccountID]: {
-            errorFields: {
-                avatar: null,
-            },
-            pendingFields: {
-                avatar: null,
-            },
-        },
-    });
-}
-
-/**
  * Clear errors for the current user's personal details
  */
 function clearPersonalDetailsErrors() {
@@ -561,7 +543,6 @@ function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeo
 }
 
 export {
-    clearAvatarErrors,
     deleteAvatar,
     openPublicProfilePage,
     updateAddress,

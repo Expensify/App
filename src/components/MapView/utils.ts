@@ -1,5 +1,10 @@
 import type {LngLat} from 'react-map-gl';
+import is2dArray from '@libs/is2dArray';
 import type {Coordinate} from './MapViewTypes';
+
+function isSingleSegmentRoute(directionCoordinates: Coordinate[] | Coordinate[][]): directionCoordinates is Coordinate[] {
+    return is2dArray(directionCoordinates);
+}
 
 function getBounds(waypoints: Coordinate[], directionCoordinates: undefined | Coordinate[]): {southWest: Coordinate; northEast: Coordinate} {
     const longitudes = waypoints.map((waypoint) => waypoint[0]);
@@ -122,4 +127,5 @@ export default {
     areSameCoordinate,
     findClosestCoordinateOnLineFromCenter,
     getBoundsCenter,
+    isSingleSegmentRoute,
 };

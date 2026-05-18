@@ -141,11 +141,15 @@ describe('validateAttachmentFile', () => {
             expect(error.error).toEqual(CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE);
         });
 
-        it('returns valid result for image over RECEIPT_MAX_SIZE (images skip non-image size check)', async () => {
+        it('returns invalid result for image over RECEIPT_MAX_SIZE', async () => {
             const file = createMockFile('receipt.jpg', CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE + 1);
             const error = await validateAttachmentFile(file, undefined, true);
 
-            expect(error.isValid).toBe(true);
+            if (error.isValid) {
+                throw new Error('validateAttachmentFile should return an invalid result');
+            }
+
+            expect(error.error).toEqual(CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE);
         });
 
         it('returns valid result when non-image is exactly at MAX_SIZE', async () => {

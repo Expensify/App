@@ -1,4 +1,4 @@
-import {getReportActionsForReportIDs} from '@selectors/ReportAction';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -14,14 +14,13 @@ import {getOriginalMessage, isMoneyRequestAction, isTripPreview} from '@libs/Rep
 import {
     canCurrentUserOpenReport,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
-    getOriginalReportID,
     isArchivedReport,
     navigateToLinkedReportAction,
     shouldExcludeAncestorReportAction,
 } from '@libs/ReportUtils';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Report, ReportAction, ReportActionReactions, ReportActions, ReportActionsDrafts, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {PersonalDetailsList, Report, ReportAction, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import RepliesDivider from './RepliesDivider';
 import ReportActionItem from './ReportActionItem';
@@ -38,7 +37,7 @@ type ReportActionItemParentActionProps = {
     index: number;
 
     /** The id of the report */
-    // eslint-disable-next-line react/no-unused-prop-types
+
     reportID: string;
 
     /** The current report is displayed */
@@ -58,12 +57,6 @@ type ReportActionItemParentActionProps = {
 
     /** If the thread divider line will be used */
     shouldUseThreadDividerLine?: boolean;
-
-    /** User wallet tierName */
-    userWalletTierName: string | undefined;
-
-    /** Whether the user is validated */
-    isUserValidated: boolean | undefined;
 
     /** Personal details list */
     personalDetails: OnyxEntry<PersonalDetailsList>;
@@ -88,8 +81,6 @@ function ReportActionItemParentAction({
     shouldDisplayReplyDivider,
     isFirstVisibleReportAction = false,
     shouldUseThreadDividerLine = false,
-    userWalletTierName,
-    isUserValidated,
     personalDetails,
     userBillingFundID,
     isTryNewDotNVPDismissed = false,
@@ -132,63 +123,9 @@ function ReportActionItemParentAction({
         [ancestors],
     );
 
-    const ancestorReportActionsSelector = useCallback(
-        (allReportActions: OnyxCollection<ReportActions>) => {
-            const reportIDs = ancestors.map((ancestor) => ancestor.report.reportID);
-            return getReportActionsForReportIDs(allReportActions, reportIDs);
-        },
-        [ancestors],
-    );
-
-    const [ancestorsReportActions] = useOnyx(
-        ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-        {
-            selector: ancestorReportActionsSelector,
-        },
-        [ancestors],
-    );
-
-    const ancestorDraftSelector = useCallback(
-        (allDrafts: OnyxCollection<ReportActionsDrafts>) => {
-            if (!allDrafts) {
-                return {};
-            }
-            const result: OnyxCollection<ReportActionsDrafts> = {};
-            for (const ancestor of ancestors) {
-                const origID = getOriginalReportID(
-                    ancestor.report.reportID,
-                    ancestor.reportAction,
-                    ancestorsReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestor.report.reportID}`],
-                );
-                const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${origID}`;
-                result[key] = allDrafts[key];
-            }
-            return result;
-        },
-        [ancestors, ancestorsReportActions],
-    );
-
-    const [ancestorDraftMessages] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS, {selector: ancestorDraftSelector}, [ancestors, ancestorsReportActions]);
-
-    const ancestorReactionSelector = useCallback(
-        (allReactions: OnyxCollection<ReportActionReactions>) => {
-            if (!allReactions) {
-                return {};
-            }
-            const result: OnyxCollection<ReportActionReactions> = {};
-            for (const ancestor of ancestors) {
-                const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${ancestor.reportAction.reportActionID}`;
-                result[key] = allReactions[key];
-            }
-            return result;
-        },
-        [ancestors],
-    );
-
-    const [ancestorReactions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS, {selector: ancestorReactionSelector}, [ancestors]);
-
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
     return (
         <View style={[styles.pRelative]}>
@@ -199,23 +136,13 @@ function ReportActionItemParentAction({
                     report?.errorFields?.createChatThread ?? (report?.errorFields?.createChat ? getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage') : null)
                 }
                 errorRowStyles={[styles.ml10, styles.mr2]}
-                onClose={() => navigateToConciergeChatAndDeleteReport(report?.reportID, conciergeReportID, currentUserAccountID, introSelected, undefined, true)}
+                onClose={() => navigateToConciergeChatAndDeleteReport(report?.reportID, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, allBetas, undefined, true)}
             >
                 {ancestors.map((ancestor) => {
                     const {report: ancestorReport, reportAction: ancestorReportAction} = ancestor;
                     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(ancestorReport, isReportArchived);
                     const shouldDisplayThreadDivider = !isTripPreview(ancestorReportAction);
                     const isAncestorReportArchived = isArchivedReport(ancestorsReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestorReport.reportID}`]);
-
-                    const originalReportID = getOriginalReportID(
-                        ancestorReport.reportID,
-                        ancestorReportAction,
-                        ancestorsReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestorReport.reportID}`],
-                    );
-                    const reportDraftMessages = originalReportID ? ancestorDraftMessages?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`] : undefined;
-                    const matchingDraftMessage = reportDraftMessages?.[ancestorReportAction.reportActionID];
-                    const matchingDraftMessageString = matchingDraftMessage?.message;
-                    const actionEmojiReactions = ancestorReactions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${ancestorReportAction.reportActionID}`];
 
                     return (
                         <OfflineWithFeedback
@@ -224,7 +151,9 @@ function ReportActionItemParentAction({
                             pendingAction={ancestorReport?.pendingFields?.addWorkspaceRoom ?? ancestorReport?.pendingFields?.createChat}
                             errors={ancestorReport?.errorFields?.addWorkspaceRoom ?? ancestorReport?.errorFields?.createChat}
                             errorRowStyles={[styles.ml10, styles.mr2]}
-                            onClose={() => navigateToConciergeChatAndDeleteReport(ancestorReport.reportID, conciergeReportID, currentUserAccountID, introSelected)}
+                            onClose={() =>
+                                navigateToConciergeChatAndDeleteReport(ancestorReport.reportID, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, allBetas)
+                            }
                         >
                             {shouldDisplayThreadDivider && (
                                 <ThreadDivider
@@ -243,17 +172,12 @@ function ReportActionItemParentAction({
                                 transactionThreadReport={transactionThreadReport}
                                 action={ancestorReportAction}
                                 displayAsGroup={false}
-                                isMostRecentIOUReportAction={false}
                                 shouldDisplayNewMarker={ancestor.shouldDisplayNewMarker}
                                 index={index}
                                 isFirstVisibleReportAction={isFirstVisibleReportAction}
                                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                                 isThreadReportParentAction
-                                userWalletTierName={userWalletTierName}
-                                isUserValidated={isUserValidated}
                                 personalDetails={personalDetails}
-                                draftMessage={matchingDraftMessageString}
-                                emojiReactions={actionEmojiReactions}
                                 linkedTransactionRouteError={linkedTransactionRouteError}
                                 userBillingFundID={userBillingFundID}
                                 isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}

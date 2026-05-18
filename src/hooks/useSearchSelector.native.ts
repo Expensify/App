@@ -1,4 +1,5 @@
 import {useCallback, useMemo} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 import useContactImport from './useContactImport';
@@ -23,7 +24,6 @@ function useSearchSelector(config: UseSearchSelectorConfig): UseSearchSelectorRe
 
     const initiateContactImportAndSetState = useCallback(() => {
         setContactPermissionState(RESULTS.GRANTED);
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(importAndSaveContacts);
     }, [importAndSaveContacts, setContactPermissionState]);
 

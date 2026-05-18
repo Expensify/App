@@ -17,9 +17,10 @@ import {isCurrentUserValidated} from '@libs/UserUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type {ConnectionName, PolicyConnectionName} from '@src/types/onyx/Policy';
+import useTimeSensitiveAddPaymentCard from './hooks/useTimeSensitiveAddPaymentCard';
 import useTimeSensitiveBilling from './hooks/useTimeSensitiveBilling';
 import useTimeSensitiveCards from './hooks/useTimeSensitiveCards';
-import useTimeSensitiveOffers from './hooks/useTimeSensitiveOffers';
+import useTimeSensitiveLockedBankAccount from './hooks/useTimeSensitiveLockedBankAccount';
 import ActivateCard from './items/ActivateCard';
 import AddPaymentCard from './items/AddPaymentCard';
 import AddShippingAddress from './items/AddShippingAddress';
@@ -27,9 +28,8 @@ import FixAccountingConnection from './items/FixAccountingConnection';
 import FixCompanyCardConnection from './items/FixCompanyCardConnection';
 import FixFailedBilling from './items/FixFailedBilling';
 import FixPersonalCardConnection from './items/FixPersonalCardConnection';
-import Offer25off from './items/Offer25off';
-import Offer50off from './items/Offer50off';
 import ReviewCardFraud from './items/ReviewCardFraud';
+import UnlockBankAccount from './items/UnlockBankAccount';
 import ValidateAccount from './items/ValidateAccount';
 
 type BrokenAccountingConnection = {
@@ -67,7 +67,7 @@ function TimeSensitiveSection() {
     const isAnonymous = useIsAnonymousUser();
 
     // Use custom hooks for offers and cards (Release 3)
-    const {shouldShow50off, shouldShow25off, shouldShowAddPaymentCard, firstDayFreeTrial, discountInfo} = useTimeSensitiveOffers();
+    const {shouldShowAddPaymentCard} = useTimeSensitiveAddPaymentCard();
     const {shouldShowAddShippingAddress, shouldShowActivateCard, shouldShowReviewCardFraud, cardsNeedingShippingAddress, cardsNeedingActivation, cardsWithFraud} = useTimeSensitiveCards();
     const {shouldShowFixFailedBilling} = useTimeSensitiveBilling();
 
@@ -82,6 +82,7 @@ function TimeSensitiveSection() {
     });
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
+    const {lockedBankAccounts} = useTimeSensitiveLockedBankAccount(adminPolicies);
 
     // Get card feed errors for company card connections (Release 4)
     const cardFeedErrors = useCardFeedErrors();
@@ -150,16 +151,16 @@ function TimeSensitiveSection() {
     const hasBrokenAccountingConnections = brokenAccountingConnections.length > 0;
     const isCurrentLoginValidated = isCurrentUserValidated(loginList, sessionEmail ?? login);
     const shouldShowValidateAccount = isUserValidated === false && !isAnonymous && !isCurrentLoginValidated;
+
     // This guard must exactly match the conditions used to render each widget below.
     // If a widget has additional conditions in the render (e.g. && !!discountInfo), those
     // must be reflected here to avoid showing an empty "Time sensitive" section.
     const hasAnyTimeSensitiveContent =
+        lockedBankAccounts.length > 0 ||
         shouldShowValidateAccount ||
         shouldShowFixFailedBilling ||
         shouldShowReviewCardFraud ||
         shouldShowAddPaymentCard ||
-        shouldShow50off ||
-        (shouldShow25off && !!discountInfo) ||
         hasBrokenCompanyCards ||
         hasBrokenPersonalCards ||
         hasBrokenAccountingConnections ||
@@ -177,8 +178,8 @@ function TimeSensitiveSection() {
     // 4. Add payment card (trial ended, no payment card)
     // 5. Broken bank connections (company cards)
     // 6. Broken bank connections (personal cards)
-    // 7. Broken accounting connections
-    // 8. Early adoption discount (50% or 25%)
+    // 7. Locked bank accounts (workspace VBAs and personal)
+    // 8. Broken accounting connections
     // 9. Expensify card shipping
     // 10. Expensify card activation
     return (
@@ -235,7 +236,16 @@ function TimeSensitiveSection() {
                     );
                 })}
 
-                {/* Priority 7: Broken accounting connections */}
+                {/* Priority 7: Locked bank accounts */}
+                {lockedBankAccounts.map((lockedBankAccount) => (
+                    <UnlockBankAccount
+                        key={lockedBankAccount.key}
+                        bankAccountID={lockedBankAccount.bankAccountID}
+                        policyName={lockedBankAccount.policyName}
+                    />
+                ))}
+
+                {/* Priority 8: Broken accounting connections */}
                 {brokenAccountingConnections.map((connection) => (
                     <FixAccountingConnection
                         key={`accounting-${connection.policyID}-${connection.connectionName}`}
@@ -244,10 +254,6 @@ function TimeSensitiveSection() {
                         policyName={connection.policyName}
                     />
                 ))}
-
-                {/* Priority 8: Early adoption discount offers */}
-                {shouldShow50off && <Offer50off firstDayFreeTrial={firstDayFreeTrial} />}
-                {shouldShow25off && !!discountInfo && <Offer25off days={discountInfo.days} />}
 
                 {/* Priority 9: Expensify card shipping */}
                 {shouldShowAddShippingAddress &&

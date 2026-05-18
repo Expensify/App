@@ -1,4 +1,4 @@
-import React, {createContext, useCallback, useContext, useEffect, useMemo} from 'react';
+import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import type {ReactNode} from 'react';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -7,31 +7,25 @@ import useBiometrics from '@components/MultifactorAuthentication/biometrics/useB
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioParams} from '@components/MultifactorAuthentication/config/types';
 import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
 import trackMFAFlowOutcome from '@components/MultifactorAuthentication/observability/trackMFAFlowOutcome';
+import type {CredentialsState} from '@components/MultifactorAuthentication/observability/trackMFAFlowOutcome';
+import trackMFAFlowStart from '@components/MultifactorAuthentication/observability/trackMFAFlowStart';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import {requestValidateCodeAction} from '@libs/actions/User';
+import {getErrorMessage} from '@libs/ErrorUtils';
 import getPlatform from '@libs/getPlatform';
-import type {ChallengeType, MultifactorAuthenticationCallbackInput} from '@libs/MultifactorAuthentication/shared/types';
+import {isHttpSuccess} from '@libs/MultifactorAuthentication/shared/helpers';
+import {createLocalMFAError, createMFAErrorFromApiResponse} from '@libs/MultifactorAuthentication/shared/MFAResult';
+import type {MultifactorAuthenticationCallbackInput} from '@libs/MultifactorAuthentication/shared/types';
 import Navigation from '@navigation/Navigation';
-import {clearLocalMFAPublicKeyList, requestAuthorizationChallenge, requestRegistrationChallenge} from '@userActions/MultifactorAuthentication';
+import {clearLocalMFAPublicKeyList, getDeviceBiometricsOnyxKey, requestAuthorizationChallenge, requestRegistrationChallenge} from '@userActions/MultifactorAuthentication';
 import {processRegistration, processScenarioAction} from '@userActions/MultifactorAuthentication/processing';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {DeviceBiometrics} from '@src/types/onyx';
 import {useMultifactorAuthenticationActions, useMultifactorAuthenticationState} from './State';
 
 let deviceBiometricsState: OnyxEntry<DeviceBiometrics>;
-
-// Use Onyx.connectWithoutView instead of useOnyx hook to access the device biometrics state.
-// This is a non-reactive read that allows us to check the current value (hasAcceptedSoftPrompt)
-// from within the process() callback without triggering calling it too many times during the
-// fresh registration flow
-Onyx.connectWithoutView({
-    key: ONYXKEYS.DEVICE_BIOMETRICS,
-    callback: (data) => {
-        deviceBiometricsState = data;
-    },
-});
 
 type ExecuteScenarioParams<T extends MultifactorAuthenticationScenario> = MultifactorAuthenticationScenarioParams<T>;
 
@@ -49,31 +43,39 @@ type MultifactorAuthenticationContextProviderProps = {
     children: ReactNode;
 };
 
-/**
- * Identifies the challenge type based on its properties.
- * Registration challenges (require prior validateCode verification) have 'user' and 'rp'.
- * Authorization challenges (no prior verification) have 'allowCredentials' and 'rpId'.
- */
-function getChallengeType(challenge: unknown): ChallengeType | undefined {
-    if (typeof challenge === 'object' && challenge !== null) {
-        if ('user' in challenge && 'rp' in challenge) {
-            return CONST.MULTIFACTOR_AUTHENTICATION.CHALLENGE_TYPE.REGISTRATION;
-        }
-        if ('allowCredentials' in challenge && 'rpId' in challenge) {
-            return CONST.MULTIFACTOR_AUTHENTICATION.CHALLENGE_TYPE.AUTHENTICATION;
-        }
-    }
-    return undefined;
-}
-
 function MultifactorAuthenticationContextProvider({children}: MultifactorAuthenticationContextProviderProps) {
     const state = useMultifactorAuthenticationState();
     const {dispatch} = useMultifactorAuthenticationActions();
 
     const biometrics = useBiometrics();
+    const {accountID} = useCurrentUserPersonalDetails();
     const {isOffline} = useNetwork();
     const platform = getPlatform();
     const promptType = CONST.MULTIFACTOR_AUTHENTICATION.PROMPT_TYPE_MAP[biometrics.deviceVerificationType];
+
+    useEffect(() => {
+        // Non-reactive read of deviceBiometrics. Using Onyx.connectWithoutView (set up in a useEffect
+        // inside the provider) instead of useOnyx to avoid triggering process() too many times during
+        // the fresh registration flow.
+        const connection = Onyx.connectWithoutView({
+            key: getDeviceBiometricsOnyxKey(accountID),
+            callback: (data) => {
+                deviceBiometricsState = data;
+            },
+        });
+        return () => Onyx.disconnect(connection);
+    }, [accountID]);
+
+    const startStateRef = useRef<CredentialsState | undefined>(undefined);
+
+    const captureCredentialsState = useCallback(async (): Promise<CredentialsState> => {
+        const hasLocalCredentials = await biometrics.areLocalCredentialsKnownToServer();
+        return {
+            hasServerCredentials: biometrics.serverKnownCredentialIDs.length > 0,
+            hasLocalCredentials,
+            hasEverAcceptedSoftPrompt: !!deviceBiometricsState?.hasAcceptedSoftPrompt,
+        };
+    }, [biometrics]);
 
     /**
      * Handles the completion of a multifactor authentication scenario.
@@ -111,6 +113,8 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 message: scenarioResponse?.message ?? error?.message,
             });
 
+            const endState = await captureCredentialsState();
+
             trackMFAFlowOutcome({
                 isSuccessful,
                 scenario: state.scenarioName,
@@ -120,6 +124,8 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 isRegistrationComplete: state.isRegistrationComplete,
                 isAuthorizationComplete: state.isAuthorizationComplete,
                 softPromptApproved: state.softPromptApproved,
+                startState: startStateRef.current ?? endState,
+                endState,
             });
 
             // If the callback returns SKIP_OUTCOME_SCREEN, the callback handles navigation itself
@@ -136,7 +142,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
             dispatch({type: 'SET_FLOW_COMPLETE', payload: true});
         },
-        [dispatch, state],
+        [captureCredentialsState, dispatch, state],
     );
 
     /**
@@ -172,38 +178,38 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
         // 1. Check if there's an error - stop processing
         if (error) {
-            if (error.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.REGISTRATION_REQUIRED) {
-                addMFABreadcrumb('Re-registration triggered', {reason: error.reason, httpStatusCode: error.httpStatusCode, message: error.message}, 'warning');
+            if (error.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.CLIENT_ERRORS.REGISTRATION_REQUIRED) {
+                addMFABreadcrumb('Re-registration triggered', error, 'warning');
                 clearLocalMFAPublicKeyList();
                 dispatch({type: 'REREGISTER'});
                 return;
             }
 
-            addMFABreadcrumb('Flow error', {reason: error.reason, httpStatusCode: error.httpStatusCode, message: error.message}, 'error');
+            addMFABreadcrumb('Flow error', error, 'error');
             handleCallback(false);
             return;
         }
 
-        // 2a. Check if device supports the authentication method
-        if (!biometrics.doesDeviceSupportAuthenticationMethod()) {
-            const reason = CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.UNSUPPORTED_DEVICE;
-            const message = `Device does not support biometric authentication (deviceVerificationType: ${biometrics.deviceVerificationType})`;
-            addMFABreadcrumb('Device check failed', {reason, deviceVerificationType: biometrics.deviceVerificationType, message}, 'warning');
-            dispatch({type: 'SET_ERROR', payload: {reason, message}});
-            return;
-        }
-
-        // 2b. Check if the scenario allows the current authentication method
+        // 2a. Check if the scenario allows the current authentication method type
         const {allowedAuthenticationMethods = [] as string[]} = scenario;
         if (!allowedAuthenticationMethods.includes(biometrics.deviceVerificationType)) {
-            const reason = CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.UNSUPPORTED_DEVICE;
+            const reason = CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.AUTHENTICATION_TYPE_NOT_SUPPORTED;
             const message = `Authentication method not allowed (deviceVerificationType: ${biometrics.deviceVerificationType}, allowedMethods: ${allowedAuthenticationMethods.join(', ')})`;
             addMFABreadcrumb(
                 'Authentication method not allowed',
                 {reason, deviceVerificationType: biometrics.deviceVerificationType, allowedAuthenticationMethods: allowedAuthenticationMethods.join(', '), message},
                 'warning',
             );
-            dispatch({type: 'SET_ERROR', payload: {reason, message}});
+            dispatch({type: 'SET_ERROR', payload: createLocalMFAError(reason, message)});
+            return;
+        }
+
+        // 2b. Check if the device can actually perform the allowed authentication method
+        if (!(await biometrics.doesDeviceSupportAuthenticationMethod())) {
+            const reason = biometrics.deviceCheckFailureReason;
+            const message = `Device check failed (deviceVerificationType: ${biometrics.deviceVerificationType})`;
+            addMFABreadcrumb('Device check failed', {reason, deviceVerificationType: biometrics.deviceVerificationType, message}, 'warning');
+            dispatch({type: 'SET_ERROR', payload: createLocalMFAError(reason, message)});
             return;
         }
 
@@ -221,31 +227,16 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
             // Request registration challenge after validateCode is set
             if (!registrationChallenge) {
-                const {challenge, reason: challengeReason, httpStatusCode: challengeHttpStatus, message: challengeMessage} = await requestRegistrationChallenge(validateCode);
-                addMFABreadcrumb(
-                    'Registration challenge received',
-                    {hasChallenge: !!challenge, reason: challengeReason, httpStatusCode: challengeHttpStatus, message: challengeMessage},
-                    challenge ? 'info' : 'error',
-                );
+                const {challenge, httpStatusCode, reason, message} = await requestRegistrationChallenge(validateCode);
 
-                if (!challenge) {
-                    dispatch({type: 'SET_ERROR', payload: {reason: challengeReason}});
+                if (!isHttpSuccess(httpStatusCode) || !challenge) {
+                    const challengeError = createMFAErrorFromApiResponse(httpStatusCode, reason, message);
+                    addMFABreadcrumb('Registration challenge failed', challengeError, 'error');
+                    dispatch({type: 'SET_ERROR', payload: challengeError});
                     return;
                 }
 
-                // IMPORTANT: Validate that we received a registration challenge.
-                // This check is safe here because the backend only issues registration challenges AFTER
-                // validateCode verification. The prior validation gate guarantees that if we receive
-                // a challenge of type 'registration', it's genuinely from the registration path. This security guarantee
-                // does NOT apply to authorization challenges (which skip validateCode verification). If the WebAuthN spec
-                // ever changes the structure of these challenges, update getChallengeType() accordingly.
-                const challengeType = getChallengeType(challenge);
-                if (challengeType !== CONST.MULTIFACTOR_AUTHENTICATION.CHALLENGE_TYPE.REGISTRATION) {
-                    addMFABreadcrumb('Invalid registration challenge type', {challengeType: challengeType ?? 'unknown'}, 'error');
-                    dispatch({type: 'SET_ERROR', payload: {reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.INVALID_CHALLENGE_TYPE}});
-                    return;
-                }
-
+                addMFABreadcrumb('Registration challenge received', {success: true});
                 dispatch({type: 'SET_REGISTRATION_CHALLENGE', payload: challenge});
                 return;
             }
@@ -258,51 +249,25 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             }
 
             await biometrics.register(async (result: RegisterResult) => {
-                addMFABreadcrumb(
-                    'Biometric registration completed',
-                    {
-                        success: result.success,
-                        reason: result.reason,
-                        authMethod: result.success ? result.authenticationMethod.code : undefined,
-                    },
-                    result.success ? 'info' : 'error',
-                );
+                addMFABreadcrumb('Biometric registration completed', result.success ? {success: true} : result.error, result.success ? 'info' : 'error');
 
                 if (!result.success) {
-                    dispatch({
-                        type: 'SET_ERROR',
-                        payload: {
-                            reason: result.reason,
-                        },
-                    });
+                    dispatch({type: 'SET_ERROR', payload: result.error});
                     return;
                 }
 
                 const registrationResponse = await processRegistration({
                     keyInfo: result.keyInfo,
-                    authenticationMethod: result.authenticationMethod.marqetaValue,
                 });
 
                 addMFABreadcrumb(
                     'Backend registration completed',
-                    {
-                        success: registrationResponse.success,
-                        reason: registrationResponse.reason,
-                        httpStatusCode: registrationResponse.httpStatusCode,
-                        message: registrationResponse.message,
-                    },
+                    registrationResponse.success ? {success: true} : registrationResponse.error,
                     registrationResponse.success ? 'info' : 'error',
                 );
 
                 if (!registrationResponse.success) {
-                    dispatch({
-                        type: 'SET_ERROR',
-                        payload: {
-                            reason: registrationResponse.reason,
-                            httpStatusCode: registrationResponse.httpStatusCode,
-                            message: registrationResponse.message,
-                        },
-                    });
+                    dispatch({type: 'SET_ERROR', payload: registrationResponse.error});
                     return;
                 }
 
@@ -311,10 +276,11 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             return;
         }
 
-        // Registration isn't required, but they have never seen the soft prompt
-        // this happens on ios if they delete and reinstall the app. Their keys are preserved in the secure store, but
-        // they'll be shown the "do you want to enable FaceID again" system prompt, so we want to show them the soft prompt
-        if (!deviceBiometricsState?.hasAcceptedSoftPrompt) {
+        // Registration isn't required, but they have never seen the soft prompt. This happens on iOS if they
+        // delete and reinstall the app. Their keys are preserved in the secure store, but they'll be shown
+        // the "do you want to enable Face ID" system prompt again, so we want to ensure they see the soft
+        // prompt first.
+        if (!deviceBiometricsState?.hasAcceptedSoftPrompt && !softPromptApproved) {
             addMFABreadcrumb('Soft prompt shown', {context: 'authorization-reinstall'});
             Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute(promptType), {forceReplace: true});
             return;
@@ -328,26 +294,16 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
             // Request authorization challenge if not already fetched
             if (!authorizationChallenge) {
-                const {challenge, reason: challengeReason, httpStatusCode: challengeHttpStatus, message: challengeMessage} = await requestAuthorizationChallenge();
-                addMFABreadcrumb(
-                    'Authorization challenge received',
-                    {hasChallenge: !!challenge, reason: challengeReason, httpStatusCode: challengeHttpStatus, message: challengeMessage},
-                    challenge ? 'info' : 'error',
-                );
+                const {challenge, httpStatusCode, reason, message} = await requestAuthorizationChallenge();
 
-                if (!challenge) {
-                    dispatch({type: 'SET_ERROR', payload: {reason: challengeReason}});
+                if (!isHttpSuccess(httpStatusCode) || !challenge) {
+                    const challengeError = createMFAErrorFromApiResponse(httpStatusCode, reason, message);
+                    addMFABreadcrumb('Authorization challenge failed', challengeError, 'error');
+                    dispatch({type: 'SET_ERROR', payload: challengeError});
                     return;
                 }
 
-                // Validate that we received an authentication challenge
-                const challengeType = getChallengeType(challenge);
-                if (challengeType !== CONST.MULTIFACTOR_AUTHENTICATION.CHALLENGE_TYPE.AUTHENTICATION) {
-                    addMFABreadcrumb('Invalid authorization challenge type', {challengeType: challengeType ?? 'unknown'}, 'error');
-                    dispatch({type: 'SET_ERROR', payload: {reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.INVALID_CHALLENGE_TYPE}});
-                    return;
-                }
-
+                addMFABreadcrumb('Authorization challenge received', {success: true});
                 dispatch({type: 'SET_AUTHORIZATION_CHALLENGE', payload: challenge});
                 return;
             }
@@ -359,11 +315,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 async (result: AuthorizeResult) => {
                     addMFABreadcrumb(
                         'Biometric authorization completed',
-                        {
-                            success: result.success,
-                            reason: result.reason,
-                            authMethod: result.success ? result.authenticationMethod.code : undefined,
-                        },
+                        result.success ? {success: true, authMethod: result.authenticationMethod.code} : result.error,
                         result.success ? 'info' : 'error',
                     );
 
@@ -371,18 +323,18 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                         // Re-registration may be needed even though we checked credentials above, because:
                         // - The local public key was deleted between the check and authorization
                         // - The server no longer accepts the local public key (not in allowCredentials)
-                        if (result.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.KEYSTORE.REGISTRATION_REQUIRED) {
-                            addMFABreadcrumb('Authorization key reset', {reason: result.reason}, 'warning');
+                        if (
+                            result.error.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.HSM.KEY_ACCESS_FAILED ||
+                            result.error.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.HSM.KEY_NOT_FOUND ||
+                            result.error.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.HSM.NO_MATCHING_LOCAL_CREDENTIAL ||
+                            result.error.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.WEBAUTHN.NO_MATCHING_LOCAL_CREDENTIAL
+                        ) {
+                            addMFABreadcrumb('Authorization key reset', result.error, 'warning');
                             await biometrics.deleteLocalKeysForAccount();
                             dispatch({type: 'SET_REGISTRATION_COMPLETE', payload: false});
                             dispatch({type: 'SET_AUTHORIZATION_CHALLENGE', payload: undefined});
                         } else {
-                            dispatch({
-                                type: 'SET_ERROR',
-                                payload: {
-                                    reason: result.reason,
-                                },
-                            });
+                            dispatch({type: 'SET_ERROR', payload: result.error});
                         }
                         return;
                     }
@@ -396,24 +348,14 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
                     addMFABreadcrumb(
                         'Scenario action completed',
-                        {
-                            success: scenarioAPIResponse.success,
-                            reason: scenarioAPIResponse.reason,
-                            httpStatusCode: scenarioAPIResponse.httpStatusCode,
-                            message: scenarioAPIResponse.message,
-                        },
+                        scenarioAPIResponse.success
+                            ? {success: true, reason: scenarioAPIResponse.reason, httpStatusCode: scenarioAPIResponse.httpStatusCode, message: scenarioAPIResponse.message}
+                            : scenarioAPIResponse.error,
                         scenarioAPIResponse.success ? 'info' : 'error',
                     );
 
                     if (!scenarioAPIResponse.success) {
-                        dispatch({
-                            type: 'SET_ERROR',
-                            payload: {
-                                reason: scenarioAPIResponse.reason,
-                                httpStatusCode: scenarioAPIResponse.httpStatusCode,
-                                message: scenarioAPIResponse.message,
-                            },
-                        });
+                        dispatch({type: 'SET_ERROR', payload: scenarioAPIResponse.error});
                         return;
                     }
 
@@ -455,13 +397,10 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         }
 
         process().catch((error: unknown) => {
-            addMFABreadcrumb('Unhandled error', {message: error instanceof Error ? error.message : String(error)}, 'error');
+            addMFABreadcrumb('Unhandled error', {message: getErrorMessage(error)}, 'error');
             dispatch({
                 type: 'SET_ERROR',
-                payload: {
-                    reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.UNHANDLED_ERROR,
-                    message: error instanceof Error ? error.message : String(error),
-                },
+                payload: createLocalMFAError(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED_EXCEPTION, getErrorMessage(error)),
             });
         });
         // We intentionally omit `process` and `state` from dependencies.
@@ -504,13 +443,22 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
      */
     const executeScenario = useCallback(
         async <T extends MultifactorAuthenticationScenario>(scenario: T, params?: ExecuteScenarioParams<T>): Promise<void> => {
-            addMFABreadcrumb('Flow started', {
+            startStateRef.current = await captureCredentialsState();
+
+            const breadcrumbData = {
                 scenario,
                 hasPayload: params !== undefined && Object.keys(params).length > 0,
                 platform,
                 isOffline,
-                hasAcceptedSoftPrompt: !!deviceBiometricsState?.hasAcceptedSoftPrompt,
-                serverHasAnyCredentials: biometrics.serverKnownCredentialIDs.length > 0,
+                hasAcceptedSoftPrompt: startStateRef.current.hasEverAcceptedSoftPrompt,
+                serverHasAnyCredentials: startStateRef.current.hasServerCredentials,
+            };
+
+            addMFABreadcrumb('Flow started', breadcrumbData);
+            trackMFAFlowStart({
+                scenario,
+                isOffline,
+                credentialsState: startStateRef.current,
             });
             dispatch({
                 type: 'INIT',
@@ -520,13 +468,13 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 },
             });
         },
-        [biometrics.serverKnownCredentialIDs, dispatch, isOffline, platform],
+        [captureCredentialsState, dispatch, isOffline, platform],
     );
 
     /**
      * Cancel the current authentication flow.
      * When the scenario provides onCancel, awaits it to get the reason and sets the error accordingly.
-     * Otherwise, sets an error state with GENERIC.CANCELED. In both cases, the error triggers
+     * Otherwise, sets an error state with LOCAL_ERRORS.CANCELED. In both cases, the error triggers
      * process() which calls handleCallback and navigates to the failure outcome.
      */
     const cancel = useCallback(async () => {
@@ -539,18 +487,16 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         }
 
         if (state.scenario.onCancel) {
-            const result = await state.scenario.onCancel(state.payload);
-            addMFABreadcrumb('Flow cancelled with onCancel', {reason: result.reason}, 'warning');
-            dispatch({type: 'SET_ERROR', payload: {reason: result.reason, payload: result.payload}});
+            const error = await state.scenario.onCancel(state.payload);
+            addMFABreadcrumb('Flow cancelled with onCancel', error, 'warning');
+            dispatch({type: 'SET_ERROR', payload: error});
             return;
         }
 
-        addMFABreadcrumb('Flow cancelled', {reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.CANCELED}, 'warning');
+        addMFABreadcrumb('Flow cancelled', {reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.CANCELED}, 'warning');
         dispatch({
             type: 'SET_ERROR',
-            payload: {
-                reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.CANCELED,
-            },
+            payload: createLocalMFAError(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.CANCELED, 'User cancelled the MFA flow'),
         });
     }, [dispatch, state.scenario, state.payload]);
 
@@ -577,5 +523,4 @@ function useMultifactorAuthentication(): MultifactorAuthenticationContextValue {
 
 MultifactorAuthenticationContextProvider.displayName = 'MultifactorAuthenticationContextProvider';
 
-export {useMultifactorAuthentication, MultifactorAuthenticationContext, MultifactorAuthenticationContextProvider};
-export type {MultifactorAuthenticationContextValue, ExecuteScenarioParams};
+export {useMultifactorAuthentication, MultifactorAuthenticationContextProvider};

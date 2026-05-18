@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import type {components as OctokitComponents} from '@octokit/openapi-types/types';
 import dedent from '@libs/StringUtils/dedent';
 import CONST from './CONST';
@@ -172,8 +171,12 @@ async function generateDeployChecklistBodyAndAssignees({
     const noQAPRNumbers = Array.isArray(data) ? data.filter((PR) => /\[No\s?QA]/i.test(PR.title)).map((item) => item.number) : [];
     console.log('Found the following NO QA PRs:', noQAPRNumbers);
 
+    const mobileExpensifyData = PRListMobileExpensify.length > 0 ? await GithubUtils.fetchAllPullRequests(PRListMobileExpensify, CONST.MOBILE_EXPENSIFY_REPO) : [];
+    const noQAMobileExpensifyPRNumbers = Array.isArray(mobileExpensifyData) ? mobileExpensifyData.filter((PR) => /\[No\s?QA]/i.test(PR.title)).map((item) => item.number) : [];
+    console.log('Found the following NO QA Mobile-Expensify PRs:', noQAMobileExpensifyPRNumbers);
+
     const verifiedAppPRs = new Set([...verifiedPRList, ...noQAPRNumbers]);
-    const verifiedMobileExpensifyPRs = new Set(verifiedPRListMobileExpensify);
+    const verifiedMobileExpensifyPRs = new Set([...verifiedPRListMobileExpensify, ...noQAMobileExpensifyPRNumbers]);
     const resolvedInternalQAPRSet = new Set(resolvedInternalQAPRs);
     const resolvedDeployBlockerSet = new Set(resolvedDeployBlockers);
 
@@ -246,8 +249,8 @@ async function generateDeployChecklistBodyAndAssignees({
     sections.push(
         dedent(`
             **Deployer verifications:**
-            - [${check(isSentryChecked)}] I checked [Sentry](https://expensify.sentry.io/releases/new.expensify%40${tag}/?project=app&environment=staging) for **this release version** and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).
-            - [${check(isSentryChecked)}] I checked [Sentry](https://expensify.sentry.io/releases/new.expensify%40${previousTag}/?project=app&environment=production) for **the previous release version** and verified that the release did not introduce any new crashes. Because mobile deploys use a phased rollout, completing this checklist will deploy the previous release version to 100% of users. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).
+            - [${check(isSentryChecked)}] I checked [Sentry](https://expensify.sentry.io/releases/new.expensify%40${tag}/?project=4510228107427840&environment=staging) for **this release version** and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).
+            - [${check(isSentryChecked)}] I checked [Sentry](https://expensify.sentry.io/releases/new.expensify%40${previousTag}/?project=4510228107427840&environment=production) for **the previous release version** and verified that the release did not introduce any new crashes. Because mobile deploys use a phased rollout, completing this checklist will deploy the previous release version to 100% of users. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).
             - [${check(isGHStatusChecked)}] I checked [GitHub Status](https://www.githubstatus.com/) and verified there is no reported incident with Actions.
         `).trimEnd(),
     );

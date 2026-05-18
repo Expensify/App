@@ -40,7 +40,7 @@ function LockAccountPage() {
     return (
         <LockAccountPageBase
             testID="LockAccountPage"
-            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_LOCK_ACCOUNT)}
+            onBackButtonPress={() => Navigation.goBack()}
             confirmModalPrompt={confirmModalPrompt}
             lockAccountPagePrompt={lockAccountPagePrompt}
             handleLockRequestFinish={handleLockRequestFinish}

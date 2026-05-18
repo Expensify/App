@@ -2,6 +2,8 @@ import type {ReactNode} from 'react';
 import React, {useMemo} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {Linking, View} from 'react-native';
+import useDialogContainerFocus from '@hooks/useDialogContainerFocus';
+import useDialogLabelRegistration from '@hooks/useDialogLabelRegistration';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import EnvironmentBadge from './EnvironmentBadge';
@@ -32,10 +34,27 @@ type HeaderProps = {
 
     /** Line number for the title */
     numberOfTitleLines?: number;
+
+    /** Whether this is the screen-level header (registers dialog label and focus). Only HeaderWithBackButton should set this. */
+    isScreenHeader?: boolean;
 };
 
-function Header({title = '', subtitle = '', textStyles = [], style, containerStyles = [], shouldShowEnvironmentBadge = false, subTitleLink = '', numberOfTitleLines = 2}: HeaderProps) {
+function Header({
+    title = '',
+    subtitle = '',
+    textStyles = [],
+    style,
+    containerStyles = [],
+    shouldShowEnvironmentBadge = false,
+    subTitleLink = '',
+    numberOfTitleLines = 2,
+    isScreenHeader = false,
+}: HeaderProps) {
     const styles = useThemeStyles();
+    const {isTransitionReady, claimInitialFocus, containerRef} = useDialogLabelRegistration(isScreenHeader ? title : '');
+
+    useDialogContainerFocus(containerRef, isTransitionReady, claimInitialFocus);
+
     const renderedSubtitle = useMemo(
         () => (
             <>

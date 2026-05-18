@@ -1,20 +1,20 @@
 import type * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
+import type {PropsWithChildren} from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {forceClearInput} from '@libs/ComponentUtils';
+import {KeyboardStateProvider} from '@components/withKeyboardState';
 import type {ReportActionComposeProps} from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
-import ReportActionCompose, {onSubmitAction} from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
+import ReportActionCompose from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
+import {ReportActionEditMessageContextProvider} from '@pages/inbox/report/ReportActionEditMessageContext';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
-
-const mockForceClearInput = jest.mocked(forceClearInput);
 
 jest.mock('@libs/ComponentUtils', () => ({
     forceClearInput: jest.fn(),
@@ -26,6 +26,12 @@ jest.mock('@hooks/useLocalize', () =>
         numberFormat: jest.fn((num: number) => num.toString()),
     })),
 );
+
+jest.mock('@hooks/usePaginatedReportActions', () => jest.fn(() => ({reportActions: [], hasNewerActions: false, hasOlderActions: false})));
+jest.mock('@hooks/useParentReportAction', () => jest.fn(() => null));
+jest.mock('@hooks/useReportTransactionsCollection', () => jest.fn(() => ({})));
+jest.mock('@hooks/useShortMentionsList', () => jest.fn(() => ({availableLoginsList: []})));
+jest.mock('@hooks/useSidePanelState', () => jest.fn(() => ({sessionStartTime: null})));
 
 jest.mock('@components/DropZone/DualDropZone', () => {
     const RN = jest.requireActual<Record<string, React.ComponentType<{testID?: string; children?: React.ReactNode}>>>('react-native');
@@ -50,22 +56,25 @@ TestHelper.setupGlobalFetchMock();
 
 const defaultReport = LHNTestUtils.getFakeReport();
 const defaultProps: ReportActionComposeProps = {
-    onSubmit: jest.fn(),
-    isComposerFullSize: false,
     reportID: defaultReport.reportID,
-    report: defaultReport,
 };
+
+function ReportActionEditMessageContextProviderForReport({children}: PropsWithChildren) {
+    return <ReportActionEditMessageContextProvider reportID={defaultReport.reportID}>{children}</ReportActionEditMessageContextProvider>;
+}
+
+function ReportScreenProviders({children}: PropsWithChildren) {
+    return <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, KeyboardStateProvider, ReportActionEditMessageContextProviderForReport]}>{children}</ComposeProviders>;
+}
 
 const renderReportActionCompose = (props?: Partial<ReportActionComposeProps>) => {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+        <ReportScreenProviders>
             <ReportActionCompose
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...defaultProps}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             />
-        </ComposeProviders>,
+        </ReportScreenProviders>,
     );
 };
 
@@ -81,6 +90,12 @@ describe('ReportActionCompose Integration Tests', () => {
         Onyx.init({
             keys: ONYXKEYS,
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+        });
+    });
+
+    beforeEach(async () => {
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${defaultReport.reportID}`, defaultReport);
         });
     });
 
@@ -241,7 +256,8 @@ describe('ReportActionCompose Integration Tests', () => {
         const parentReportActionID = 'parent_action_1';
         const transactionID = 'txn_receipt_test';
 
-        const setupReceiptTestData = async (threadReportID: string, isSettledReport = false) => {
+        const setupReceiptTestData = async (threadReport: {reportID: string; parentReportID?: string; parentReportActionID?: string}, isSettledReport = false) => {
+            const threadReportID = threadReport.reportID;
             const iouReportAction = {
                 ...LHNTestUtils.getFakeReportAction(),
                 reportActionID: parentReportActionID,
@@ -297,6 +313,8 @@ describe('ReportActionCompose Integration Tests', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`, {
                     [parentReportActionID]: iouReportAction,
                 });
+                // Thread report (so the component can self-subscribe via useOnyx)
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, threadReport);
                 // Transaction
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
             });
@@ -315,13 +333,11 @@ describe('ReportActionCompose Integration Tests', () => {
             };
 
             // Given real Onyx data where the user is admin and the report is open (not settled)
-            const transaction = await setupReceiptTestData(threadReport.reportID);
+            await setupReceiptTestData(threadReport);
 
             // When rendering with the transaction thread report
             const {unmount} = renderReportActionCompose({
-                report: threadReport,
                 reportID: threadReport.reportID,
-                reportTransactions: [transaction as never],
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -343,13 +359,11 @@ describe('ReportActionCompose Integration Tests', () => {
             };
 
             // Given real Onyx data where the expense report is settled/reimbursed
-            const transaction = await setupReceiptTestData(threadReport.reportID, true);
+            await setupReceiptTestData(threadReport, true);
 
             // When rendering with the transaction thread report
             const {unmount} = renderReportActionCompose({
-                report: threadReport,
                 reportID: threadReport.reportID,
-                reportTransactions: [transaction as never],
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -363,50 +377,58 @@ describe('ReportActionCompose Integration Tests', () => {
     });
 
     describe('Message validation', () => {
-        beforeEach(() => {
-            jest.useFakeTimers();
-        });
-
-        afterEach(() => {
-            jest.useRealTimers();
-        });
-
-        it('should send when length is within the limit', async () => {
-            renderReportActionCompose();
+        it('should not show exceeded length error for valid messages', async () => {
+            const {unmount} = renderReportActionCompose();
             const composer = screen.getByTestId('composer');
 
-            // Given a message that is within the length limit
-            const validMessage = 'x'.repeat(CONST.MAX_COMMENT_LENGTH);
-            fireEvent.changeText(composer, validMessage);
+            fireEvent.changeText(composer, 'x'.repeat(CONST.MAX_COMMENT_LENGTH));
 
-            // When the message is submitted
-            act(onSubmitAction);
-
-            // scheduleOnUI mock uses setTimeout(() => ..., 0)
+            // Switch to fake timers to flush the debounced validation without real-time delay
+            jest.useFakeTimers({doNotFake: ['nextTick']});
             act(() => {
-                jest.advanceTimersByTime(1);
+                jest.advanceTimersByTime(CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME + 1);
             });
+            jest.useRealTimers();
 
-            // Then the message should be sent
-            expect(mockForceClearInput).toHaveBeenCalledTimes(1);
+            expect(screen.queryByText('composer.commentExceededMaxLength')).not.toBeOnTheScreen();
+            unmount();
         });
 
-        it('should not send when length exceeds the limit', async () => {
-            renderReportActionCompose();
+        it('should show exceeded length error for too-long messages', async () => {
+            const {unmount} = renderReportActionCompose();
             const composer = screen.getByTestId('composer');
 
-            // Given a message that is over the length limit
-            const invalidMessage = 'x'.repeat(CONST.MAX_COMMENT_LENGTH + 1);
-            fireEvent.changeText(composer, invalidMessage);
+            fireEvent.changeText(composer, 'x'.repeat(CONST.MAX_COMMENT_LENGTH + 1));
 
-            // When the message is submitted
-            act(onSubmitAction);
+            // The debounced validation fires on the trailing edge after COMMENT_LENGTH_DEBOUNCE_TIME
+            await waitFor(
+                () => {
+                    expect(screen.getByText('composer.commentExceededMaxLength')).toBeOnTheScreen();
+                },
+                {timeout: CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME + 500},
+            );
 
-            // Then the message should NOT be sent
-            expect(mockForceClearInput).toHaveBeenCalledTimes(0);
+            unmount();
+        });
 
-            // And the error should be displayed
-            expect(screen.getByText('composer.commentExceededMaxLength')).toBeOnTheScreen();
+        it('should not send when task title length exceeds the limit', async () => {
+            const {unmount} = renderReportActionCompose();
+            const composer = screen.getByTestId('composer');
+
+            // Given a task title that exceeds the title character limit
+            const taskTitle = 'x'.repeat(CONST.TITLE_CHARACTER_LIMIT + 1);
+            fireEvent.changeText(composer, `[] ${taskTitle}`);
+
+            // The debounced validation fires on the trailing edge after COMMENT_LENGTH_DEBOUNCE_TIME
+            await waitFor(
+                () => {
+                    // And the task-title-specific error should be displayed
+                    expect(screen.getByText('composer.taskTitleExceededMaxLength')).toBeOnTheScreen();
+                },
+                {timeout: CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME + 500},
+            );
+
+            unmount();
         });
     });
 });

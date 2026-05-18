@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import DecisionModal from '@components/DecisionModal';
+import WorkspaceCompanyCardsTable from '@components/Tables/WorkspaceCompanyCardsTable';
 import useAssignCard from '@hooks/useAssignCard';
 import useCompanyCards from '@hooks/useCompanyCards';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -18,7 +19,6 @@ import {openPolicyCompanyCardsFeed, openPolicyCompanyCardsPage} from '@userActio
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import WorkspaceCompanyCardsTable from './WorkspaceCompanyCardsTable';
 
 type WorkspaceCompanyCardsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
 
@@ -53,11 +53,6 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     }, [policy?.employeeList]);
 
     const loadPolicyCompanyCardsPage = useCallback(() => {
-        // Skip the API call when workspaceAccountID is 0 -- Onyx discards writes to collection keys with member ID '0'.
-        if (domainOrWorkspaceAccountID === CONST.DEFAULT_NUMBER_ID) {
-            return;
-        }
-
         const emailList = Object.keys(getMemberAccountIDsForWorkspace(employeeListRef.current));
         openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID, emailList, translate);
     }, [domainOrWorkspaceAccountID, policyID, translate]);
@@ -68,13 +63,15 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
 
     const isLoading = !isOffline && (!allCardFeeds || (isFeedAdded && isLoadingOnyxValue(cardListMetadata)));
 
+    const hasFeedsLoaded = !!allCardFeeds && Object.keys(allCardFeeds).length > 0;
+
     useEffect(() => {
-        if (isOffline) {
+        if (isOffline || hasFeedsLoaded) {
             return;
         }
 
         loadPolicyCompanyCardsPage();
-    }, [loadPolicyCompanyCardsPage, isOffline]);
+    }, [loadPolicyCompanyCardsPage, isOffline, hasFeedsLoaded]);
 
     const loadPolicyCompanyCardsFeed = useCallback(() => {
         if (isLoading || !bankName || isFeedPending || isOffline) {

@@ -1,12 +1,15 @@
 ---
-title: Unlimited Virtual Cards  
+title: Unlimited Virtual Cards
 description: Learn about virtual cards and how they help businesses improve efficiency and gain better control over company spending.
 keywords: [Expensify Classic, Expensify Card, virtual card]
+internalScope: Audience is Domain Admins. Covers issuing, editing, and terminating unlimited virtual cards. Does not cover physical Expensify Card setup or smart limit cards.
 ---
 
-Domain Admins can issue an **unlimited number of virtual cards** with either a fixed or monthly limit for specific purchases or recurring subscriptions (e.g., Marketing, Advertising, Travel, AWS, etc.). 
+Domain Admins can issue an unlimited number of virtual cards with either a fixed or monthly limit for specific purchases or recurring subscriptions (e.g., Marketing, Advertising, Travel, AWS, etc.). 
 
 Virtual cards are ideal for businesses that need control over spending as Domain Admins can set individual spending limits for each virtual card.
+
+# Unlimited Virtual Cards
 
 **Use virtual cards if your company needs:**
 - One card per vendor or subscription
@@ -14,19 +17,19 @@ Virtual cards are ideal for businesses that need control over spending as Domain
 - Cards for events or trips
 - Cards with a low limit that renews monthly
 
-Admins can name each card for easy tracking and organization. This makes categorizing expenses in the Expensify platform simple.
+Domain Admins can name each card for easy tracking and organization. This makes categorizing expenses in the Expensify platform simple.
 
 ---
 
-# Set up Virtual Cards
+## How to set up virtual cards
 
-After upgrading to the Expensify Card, domain admins can issue virtual cards to any employee with an email matching your company domain. Once assigned, the virtual card will appear under the card's assigned name.
+After upgrading to the Expensify Card, Domain Admins can issue virtual cards to any member by entering their email address. Once assigned, the virtual card will appear under the card's assigned name.
 
 **To assign a virtual card:**
 1. Go to **Settings** > **Domains** > [**Company Cards**](https://www.expensify.com/domain_companycards).
 2. Click **Issue Virtual Cards**.
 3. Enter a card name (e.g., "Google Ads").
-4. Select a domain member to assign the card to.
+4. Enter the email address of the member you want to assign the card to.
 5. Set a card limit.
 6. Choose **Limit Type** (Fixed or Monthly).
 7. Click **Issue Card**.
@@ -35,9 +38,9 @@ After upgrading to the Expensify Card, domain admins can issue virtual cards to 
 
 ---
 
-# Edit Virtual Cards
+## How to edit virtual cards
 
-Domain admins can edit the details of any virtual card on the [Company Cards](https://www.expensify.com/domain_companycards) page.
+Domain Admins can edit the details of any virtual card on the [Company Cards](https://www.expensify.com/domain_companycards) page.
 
 **To edit a virtual card:**
 1. Click the **Edit** button next to the card.
@@ -46,7 +49,7 @@ Domain admins can edit the details of any virtual card on the [Company Cards](ht
 
 ---
 
-# Terminate a Virtual Card
+## How to terminate a virtual card
 
 Admins can terminate a virtual card by setting the limit to **$0**.
 

@@ -1,10 +1,11 @@
 import {CommonActions, StackRouter} from '@react-navigation/native';
-import type {NavigationState, PartialState, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
+import type {RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
 import {createGuardContext, evaluateGuards} from '@libs/Navigation/guards';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
+import {getTabScreenParam} from '@libs/Navigation/helpers/tabNavigatorUtils';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -14,6 +15,7 @@ import {
     handleOpenDomainSplitAction,
     handleOpenWorkspaceSplitAction,
     handlePushFullscreenAction,
+    handleRemoveFullscreenUnderRHP,
     handleReplaceFullscreenUnderRHP,
     handleReplaceReportsSplitNavigatorAction,
     handleToggleSidePanelWithHistoryAction,
@@ -25,6 +27,7 @@ import type {
     OpenWorkspaceSplitActionType,
     PreloadActionType,
     PushActionType,
+    RemoveFullscreenUnderRHPActionType,
     ReplaceActionType,
     ReplaceFullscreenUnderRHPActionType,
     RootStackNavigatorAction,
@@ -54,6 +57,10 @@ function isDismissModalAction(action: RootStackNavigatorAction): action is Dismi
 
 function isReplaceFullscreenUnderRHPAction(action: RootStackNavigatorAction): action is ReplaceFullscreenUnderRHPActionType {
     return action.type === CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP;
+}
+
+function isRemoveFullscreenUnderRHPAction(action: RootStackNavigatorAction): action is RemoveFullscreenUnderRHPActionType {
+    return action.type === CONST.NAVIGATION.ACTION_TYPE.REMOVE_FULLSCREEN_UNDER_RHP;
 }
 
 function isToggleSidePanelWithHistoryAction(action: RootStackNavigatorAction): action is ToggleSidePanelWithHistoryActionType {
@@ -90,30 +97,14 @@ function handleNavigationGuards(
     if (guardResult.type === 'REDIRECT') {
         const redirectState = getAdaptedStateFromPath(guardResult.route, linkingConfig.config);
 
-        if (!redirectState || !redirectState.routes) {
+        if (!redirectState?.routes) {
             return null;
         }
 
-        const redirectRoute = redirectState.routes.at(-1);
-
-        // If the focused route is already the redirect target (e.g., multiple actions triggered
-        // on fresh app open all fire the same guard), don't add it again.
-        if (redirectRoute && state.routes[state.index]?.name === redirectRoute.name) {
-            return state;
-        }
-
-        const hasExistingFullScreenRoute = state.routes.some((route) => isFullScreenName(route.name));
-
-        // When the current stack already has a fullscreen route (e.g., a deep-linked report),
-        // append only the redirect target on top of the existing routes so the user returns
-        // to them after the redirect screen is dismissed. Otherwise (fresh app with no stack),
-        // use the full redirect state which includes the base route (e.g., Home).
-        const routes = hasExistingFullScreenRoute && redirectRoute ? [...state.routes, redirectRoute] : redirectState.routes;
-
         const resetAction = CommonActions.reset({
-            index: routes.length - 1,
-            routes,
-        } as PartialState<NavigationState>);
+            index: redirectState.index ?? redirectState.routes.length - 1,
+            routes: redirectState.routes,
+        });
 
         return stackRouter.getStateForAction(state, resetAction, configOptions);
     }
@@ -171,14 +162,18 @@ function RootStackRouter(options: RootStackNavigatorRouterOptions) {
                 return handleReplaceFullscreenUnderRHP(state, action, configOptions, stackRouter);
             }
 
-            if (isReplaceAction(action) && action.payload.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
+            if (isRemoveFullscreenUnderRHPAction(action)) {
+                return handleRemoveFullscreenUnderRHP(state, action, configOptions, stackRouter);
+            }
+
+            if (isReplaceAction(action) && (action.payload.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR || getTabScreenParam(action.payload) === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR)) {
                 return handleReplaceReportsSplitNavigatorAction(state, action, configOptions, stackRouter);
             }
 
             // When navigating to a specific workspace from WorkspaceListPage there should be entering animation for its sidebar (only case where we want animation for sidebar)
             // That's why we have a separate handler for opening it called handleOpenWorkspaceSplitAction
             // options for WorkspaceSplitNavigator can be found in AuthScreens.tsx > getWorkspaceSplitNavigatorOptions
-            if (isPushAction(action) && isFullScreenName(action.payload.name) && action.payload.name !== NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
+            if (isPushAction(action) && isFullScreenName(action.payload.name) && action.payload.name !== NAVIGATORS.WORKSPACE_NAVIGATOR) {
                 return handlePushFullscreenAction(state, action, configOptions, stackRouter);
             }
 

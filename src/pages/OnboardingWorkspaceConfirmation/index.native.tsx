@@ -6,7 +6,6 @@ function OnboardingWorkspaceConfirmation({...rest}: OnboardingWorkspaceConfirmat
     return (
         <BaseOnboardingWorkspaceConfirmation
             shouldUseNativeStyles
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         />
     );
