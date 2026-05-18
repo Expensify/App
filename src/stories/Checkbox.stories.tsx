@@ -16,7 +16,6 @@ const story: Meta<typeof Checkbox> = {
 };
 
 function Template(props: CheckboxProps) {
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return <Checkbox {...props} />;
 }
 

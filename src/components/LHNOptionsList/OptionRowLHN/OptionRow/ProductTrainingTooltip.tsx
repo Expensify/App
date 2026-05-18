@@ -21,6 +21,7 @@ type ProductTrainingTooltipProps = {
 };
 
 type ProductTrainingTooltipInnerProps = {
+    /** Row content the tooltip anchors to. Mounted only when the row is eligible to show a tooltip. */
     children: ReactElement;
 };
 

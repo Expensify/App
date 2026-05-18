@@ -84,9 +84,6 @@ type BaseReportActionContextMenuProps = {
     /** The copy selection. */
     selection?: string;
 
-    /** Draft message - if this is set the comment is in 'edit' mode */
-    draftMessage?: string;
-
     /** String representing the context menu type [LINK, REPORT_ACTION] which controls context menu choices  */
     type?: ContextMenuType;
 
@@ -120,7 +117,6 @@ function BaseReportActionContextMenu({
     isVisible = false,
     isThreadReportParentAction = false,
     selection = '',
-    draftMessage = '',
     reportActionID,
     reportID,
     originalReportID,
@@ -355,7 +351,6 @@ function BaseReportActionContextMenu({
             },
             reportAction: {
                 reportActionID: reportAction?.reportActionID,
-                draftMessage,
                 isThreadReportParentAction,
             },
             callbacks: {
@@ -391,7 +386,6 @@ function BaseReportActionContextMenu({
                                 reportID,
                                 originalReportID,
                                 report,
-                                draftMessage,
                                 selection,
                                 close: () => setShouldKeepOpen(false),
                                 transitionActionSheetState,
