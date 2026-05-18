@@ -745,68 +745,6 @@ function ReportActionsList({
         return map;
     }, [renderedVisibleReportActions]);
 
-    // Native mobile does not render updates flatlist the changes even though component did update called.
-    // To notify there something changes we can use extraData prop to flatlist
-    const extraData = useMemo(
-        () => [shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined, isArchivedNonExpenseReport(report, isReportArchived), draftReportAction?.reportActionID, draftMessageHTML],
-        [draftMessageHTML, draftReportAction?.reportActionID, unreadMarkerReportActionID, shouldUseNarrowLayout, report, isReportArchived],
-    );
-    const shouldShowComposerForActiveEditDraft = useShouldShowComposerForActiveEditDraft();
-    const hideComposer = !canUserPerformWriteAction(report, isReportArchived) && !shouldShowComposerForActiveEditDraft;
-    const shouldShowReportRecipientLocalTime = canShowReportRecipientLocalTime(personalDetailsList, report, currentUserAccountID) && !isComposerFullSize;
-    const canShowHeader = isOffline || hasHeaderRendered.current;
-
-    const onLayoutInner = useCallback(
-        (event: LayoutChangeEvent) => {
-            onLayout(event);
-            if (isScrollToBottomEnabled) {
-                reportScrollManager.scrollToBottom();
-                setIsScrollToBottomEnabled(false);
-                completeLiveTailPruneAfterScrollToBottom();
-            }
-        },
-        [isScrollToBottomEnabled, onLayout, reportScrollManager, completeLiveTailPruneAfterScrollToBottom, setIsScrollToBottomEnabled],
-    );
-
-    const retryLoadNewerChatsError = useCallback(() => {
-        loadNewerChats(true);
-    }, [loadNewerChats]);
-
-    const listHeaderComponent = useMemo(() => {
-        // In case of an error we want to display the header no matter what.
-        if (!canShowHeader) {
-            hasHeaderRendered.current = true;
-            return null;
-        }
-
-        return (
-            <ReportActionsListHeader
-                reportID={report.reportID}
-                onRetry={retryLoadNewerChatsError}
-                hasActiveDraft={hasActiveDraft}
-            />
-        );
-    }, [canShowHeader, hasActiveDraft, report.reportID, retryLoadNewerChatsError]);
-
-    const shouldShowSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
-
-    const listFooterComponent = useMemo(() => {
-        if (!shouldShowSkeleton) {
-            return;
-        }
-
-        return <ReportActionsSkeletonView shouldAnimate={false} />;
-    }, [shouldShowSkeleton]);
-
-    const handleStartReached = useCallback(() => {
-        if (!isSearchTopmostFullScreenRoute()) {
-            loadNewerChats(false);
-            return;
-        }
-
-        InteractionManager.runAfterInteractions(() => requestAnimationFrame(() => loadNewerChats(false)));
-    }, [loadNewerChats]);
-
     // Data is ready at the moment FlashList finishes its first render.
     // Wait one frame so the initial autoscroll-to-top can settle, then disable it.
     const handleListLoad = useCallback(() => {
@@ -841,32 +779,6 @@ function ReportActionsList({
         report,
         onLoad: handleListLoad,
     });
-
-    const handleFlashListLoaded = useCallback(() => {
-        if (initialViewportRange) {
-            return;
-        }
-
-        handleListLoad();
-    }, [handleListLoad, initialViewportRange]);
-
-    const onEndReached = useCallback(() => {
-        loadOlderChats(false);
-    }, [loadOlderChats]);
-
-    const prevHasOnceLoadedReportActions = usePrevious(reportLoadingState?.hasOnceLoadedReportActions);
-
-    // Data finished initial loading after the list mounted. onLoad has already fired, so we need
-    // a separate trigger to turn off autoscroll-to-top.
-    useEffect(() => {
-        if (!shouldFocusToTopOnMount || !shouldAutoscrollToBottom) {
-            return;
-        }
-        if (prevHasOnceLoadedReportActions || !reportLoadingState?.hasOnceLoadedReportActions) {
-            return;
-        }
-        requestAnimationFrame(() => setShouldAutoscrollToBottom(false));
-    }, [shouldFocusToTopOnMount, shouldAutoscrollToBottom, prevHasOnceLoadedReportActions, reportLoadingState?.hasOnceLoadedReportActions]);
 
     const renderItem = useCallback(
         ({item: reportAction, index, target}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
@@ -973,6 +885,94 @@ function ReportActionsList({
             userBillingFundID,
         ],
     );
+
+    // Native mobile does not render updates flatlist the changes even though component did update called.
+    // To notify there something changes we can use extraData prop to flatlist
+    const extraData = useMemo(
+        () => [shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined, isArchivedNonExpenseReport(report, isReportArchived), draftReportAction?.reportActionID, draftMessageHTML],
+        [draftMessageHTML, draftReportAction?.reportActionID, unreadMarkerReportActionID, shouldUseNarrowLayout, report, isReportArchived],
+    );
+    const shouldShowComposerForActiveEditDraft = useShouldShowComposerForActiveEditDraft();
+    const hideComposer = !canUserPerformWriteAction(report, isReportArchived) && !shouldShowComposerForActiveEditDraft;
+    const shouldShowReportRecipientLocalTime = canShowReportRecipientLocalTime(personalDetailsList, report, currentUserAccountID) && !isComposerFullSize;
+    const canShowHeader = isOffline || hasHeaderRendered.current;
+
+    const onLayoutInner = useCallback(
+        (event: LayoutChangeEvent) => {
+            onLayout(event);
+            if (isScrollToBottomEnabled) {
+                reportScrollManager.scrollToBottom();
+                setIsScrollToBottomEnabled(false);
+                completeLiveTailPruneAfterScrollToBottom();
+            }
+        },
+        [isScrollToBottomEnabled, onLayout, reportScrollManager, completeLiveTailPruneAfterScrollToBottom, setIsScrollToBottomEnabled],
+    );
+
+    const retryLoadNewerChatsError = useCallback(() => {
+        loadNewerChats(true);
+    }, [loadNewerChats]);
+
+    const listHeaderComponent = useMemo(() => {
+        // In case of an error we want to display the header no matter what.
+        if (!canShowHeader) {
+            hasHeaderRendered.current = true;
+            return null;
+        }
+
+        return (
+            <ReportActionsListHeader
+                reportID={report.reportID}
+                onRetry={retryLoadNewerChatsError}
+                hasActiveDraft={hasActiveDraft}
+            />
+        );
+    }, [canShowHeader, hasActiveDraft, report.reportID, retryLoadNewerChatsError]);
+
+    const shouldShowSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+
+    const listFooterComponent = useMemo(() => {
+        if (!shouldShowSkeleton) {
+            return;
+        }
+
+        return <ReportActionsSkeletonView shouldAnimate={false} />;
+    }, [shouldShowSkeleton]);
+
+    const handleStartReached = useCallback(() => {
+        if (!isSearchTopmostFullScreenRoute()) {
+            loadNewerChats(false);
+            return;
+        }
+
+        InteractionManager.runAfterInteractions(() => requestAnimationFrame(() => loadNewerChats(false)));
+    }, [loadNewerChats]);
+
+    const handleFlashListLoaded = useCallback(() => {
+        if (initialViewportRange) {
+            return;
+        }
+
+        handleListLoad();
+    }, [handleListLoad, initialViewportRange]);
+
+    const onEndReached = useCallback(() => {
+        loadOlderChats(false);
+    }, [loadOlderChats]);
+
+    const prevHasOnceLoadedReportActions = usePrevious(reportLoadingState?.hasOnceLoadedReportActions);
+
+    // Data finished initial loading after the list mounted. onLoad has already fired, so we need
+    // a separate trigger to turn off autoscroll-to-top.
+    useEffect(() => {
+        if (!shouldFocusToTopOnMount || !shouldAutoscrollToBottom) {
+            return;
+        }
+        if (prevHasOnceLoadedReportActions || !reportLoadingState?.hasOnceLoadedReportActions) {
+            return;
+        }
+        requestAnimationFrame(() => setShouldAutoscrollToBottom(false));
+    }, [shouldFocusToTopOnMount, shouldAutoscrollToBottom, prevHasOnceLoadedReportActions, reportLoadingState?.hasOnceLoadedReportActions]);
 
     return (
         <>
