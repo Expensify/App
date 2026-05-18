@@ -414,13 +414,13 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.PROFILE.ADDRESS_STATE]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/StateSelectionPage').default,
     [SCREENS.SETTINGS.PROFILE.AVATAR]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/Avatar/AvatarPage').default,
     [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/ContactMethodsPage').default),
-    [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/ContactMethodDetailsPage').default,
-    [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/NewContactMethodPage').default,
-    [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE]: () =>
-        require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/NewContactMethodConfirmMagicCodePage').default,
-    [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_SET_DEFAULT_CONFIRM]: () =>
-        require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/SetDefaultContactMethodConfirmMagicCodePage').default,
-    [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/VerifyAccountPage').default,
+    [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/ContactMethodDetailsPage').default),
+    [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/NewContactMethodPage').default),
+    [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE]: withAgentAccessDenied(() =>
+        require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/NewContactMethodConfirmMagicCodePage').default),
+    [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_SET_DEFAULT_CONFIRM]: withAgentAccessDenied(() =>
+        require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/SetDefaultContactMethodConfirmMagicCodePage').default),
+    [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_VERIFY_ACCOUNT]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/VerifyAccountPage').default),
     [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Preferences/PriorityModePage').default),
     [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/PolicyAccountingPage').default,
     [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Preferences/LanguagePage').default),
@@ -428,8 +428,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.PREFERENCES.PAYMENT_CURRENCY]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Preferences/PaymentCurrencyPage').default),
     [SCREENS.SETTINGS.DEVICE_MANAGEMENT]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Security/DeviceManagementPage').default),
     [SCREENS.SETTINGS.CLOSE]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Security/CloseAccountPage').default),
-    [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: () => require<ReactComponentModule>('../../../../pages/settings/AppDownloadLinks').default,
-    [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/PersonalAddressPage').default,
+    [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/AppDownloadLinks').default),
+    [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/PersonalAddressPage').default),
     [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Wallet/ExpensifyCardPage/index').default),
     [SCREENS.SETTINGS.WALLET.EXPENSIFY_CARD_SPEND_RULES]: withAgentAccessDenied(
         () => require<ReactComponentModule>('../../../../pages/settings/Wallet/WalletExpensifyCardSpendRulesPage').default,
@@ -546,8 +546,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         () => require<ReactComponentModule>('../../../../pages/settings/Subscription/DisableAutoRenewSurveyPage').default,
     ),
     [SCREENS.SETTINGS.SUBSCRIPTION.CANCEL_SUBSCRIPTION]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Subscription/CancelSubscriptionPage').default),
-    [SCREENS.SETTINGS.SUBSCRIPTION.SUBSCRIPTION_DOWNGRADE_BLOCKED]: () =>
-        require<ReactComponentModule>('../../../../pages/settings/Subscription/SubscriptionPlan/SubscriptionPlanDowngradeBlockedPage').default,
+    [SCREENS.SETTINGS.SUBSCRIPTION.SUBSCRIPTION_DOWNGRADE_BLOCKED]: withAgentAccessDenied(() =>
+        require<ReactComponentModule>('../../../../pages/settings/Subscription/SubscriptionPlan/SubscriptionPlanDowngradeBlockedPage').default),
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE]: () => require<ReactComponentModule>('../../../../pages/workspace/DynamicWorkspaceInvitePage').default,
     [SCREENS.WORKSPACE.MEMBERS_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/members/ImportMembersPage').default,
     [SCREENS.WORKSPACE.MEMBERS_IMPORTED]: () => require<ReactComponentModule>('../../../../pages/workspace/members/ImportedMembersPage').default,
