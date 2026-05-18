@@ -1,5 +1,5 @@
 import type {RefObject} from 'react';
-import type {LayoutChangeEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
+import type {LayoutChangeEvent, StyleProp, View, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
@@ -84,9 +84,6 @@ type OptionRowLHNProps = {
 
     /** Toggle between compact and default view */
     viewMode?: OptionMode;
-
-    /** Additional style props */
-    style?: StyleProp<TextStyle>;
 
     /** The item that should be rendered */
     optionItem: OptionData;

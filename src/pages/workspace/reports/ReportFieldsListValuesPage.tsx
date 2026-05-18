@@ -1,6 +1,5 @@
 import React, {useCallback, useMemo, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -190,9 +189,7 @@ function ReportFieldsListValuesPage({
             });
         }
 
-        InteractionManager.runAfterInteractions(() => {
-            setSelectedValues({});
-        });
+        setSelectedValues({});
     };
 
     const openListValuePage = (valueItem: ValueListItem) => {
@@ -411,6 +408,7 @@ function ReportFieldsListValuesPage({
                         customListHeader={getCustomListHeader()}
                         customListHeaderContent={headerContent}
                         canSelectMultiple={canSelectMultiple}
+                        selectAllAccessibilityLabel={translate('accessibilityHints.selectAllValues')}
                         onSelectionButtonPress={toggleValue}
                         shouldShowListEmptyContent={false}
                         showScrollIndicator={false}
