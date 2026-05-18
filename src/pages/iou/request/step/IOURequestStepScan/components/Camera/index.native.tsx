@@ -35,7 +35,7 @@ const BLINK_DURATION_MS = 80;
  * Renders a react-native-vision-camera viewfinder with shutter, flash toggle, gallery picker, and focus gesture.
  * Calls `onCapture(file, source)` for each photo taken or file picked from the gallery.
  */
-function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayout, onCameraInitialized, onAttachmentPickerStatusChange, submitMultiScan}: CameraProps) {
+function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayout, onAttachmentPickerStatusChange, submitMultiScan}: CameraProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -97,12 +97,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
         HapticFeedback.press();
     };
 
-    const {handleCameraInitialized: handleTelemetryInitialized} = useCameraInitTelemetry({cameraPermissionStatus, device});
-
-    const handleCameraInitialized = () => {
-        handleTelemetryInitialized();
-        onCameraInitialized?.();
-    };
+    const {handleCameraInitialized} = useCameraInitTelemetry({cameraPermissionStatus, device});
 
     const maybeCancelShutterSpan = () => {
         if (isMultiScanEnabled) {
