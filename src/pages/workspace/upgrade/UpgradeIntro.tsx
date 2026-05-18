@@ -164,7 +164,11 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
                 </View>
                 <Button
                     isLoading={loading}
-                    text={isSubmitPolicy && feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.expensifyCard.id ? translate('workspace.upgrade.expensifyCard.upgradeButton') : translate('common.upgrade')}
+                    text={
+                        isSubmitPolicy && feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.expensifyCard.id
+                            ? translate('workspace.upgrade.expensifyCard.upgradeButton')
+                            : translate('common.upgrade')
+                    }
                     testID="upgrade-button"
                     success
                     onPress={onUpgrade}
