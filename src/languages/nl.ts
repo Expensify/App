@@ -6039,6 +6039,9 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             configureGustoSync: 'Gusto-synchronisatie configureren.',
             syncWithGusto: 'Synchroniseren met Gusto',
         },
+        rooms: {
+            findRoom: 'Iets zoeken',
+        },
         card: {
             getStartedIssuing: 'Begin met het uitgeven van je eerste virtuele of fysieke kaart.',
             issueCard: 'Kaart uitgeven',

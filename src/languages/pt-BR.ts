@@ -6040,6 +6040,9 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             configureGustoSync: 'Configurar sincronização com Gusto.',
             syncWithGusto: 'Sincronizar com Gusto',
         },
+        rooms: {
+            findRoom: 'Encontrar algo',
+        },
         card: {
             getStartedIssuing: 'Comece emitindo seu primeiro cartão virtual ou físico.',
             issueCard: 'Emitir cartão',

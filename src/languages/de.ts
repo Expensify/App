@@ -6072,6 +6072,9 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             configureGustoSync: 'Gusto-Synchronisierung konfigurieren.',
             syncWithGusto: 'Mit Gusto synchronisieren',
         },
+        rooms: {
+            findRoom: 'Etwas suchen',
+        },
         card: {
             getStartedIssuing: 'Beginne, indem du deine erste virtuelle oder physische Karte ausstellst.',
             issueCard: 'Karte ausstellen',

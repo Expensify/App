@@ -5909,6 +5909,9 @@ ${amount} para ${merchant} - ${date}`,
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
                 `${memberName} tiene un informe en proceso pendiente de acción. Pídele que complete la acción requerida antes de eliminarlo del espacio de trabajo.`,
         },
+        rooms: {
+            findRoom: 'Buscar algo',
+        },
         accounting: {
             settings: 'configuración',
             title: 'Conexiones',

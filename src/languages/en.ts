@@ -6094,6 +6094,9 @@ const translations = {
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
                 `${memberName} has an outstanding processing report to take action on. Please ask them to complete the required action before removing them from the workspace.`,
         },
+        rooms: {
+            findRoom: 'Find something',
+        },
         card: {
             getStartedIssuing: 'Get started by issuing your first virtual or physical card.',
             issueCard: 'Issue card',

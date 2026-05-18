@@ -8,6 +8,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SearchBar from '@components/SearchBar';
 import Text from '@components/Text';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -17,6 +18,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
@@ -26,6 +28,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {getParticipantsAccountIDsForDisplay, isChatRoom, isHiddenForCurrentUser, isPolicyExpenseChat} from '@libs/ReportUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
@@ -104,6 +107,36 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
         openWorkspaceRoomsPage(policyID);
     });
 
+    const filterRoom = (item: WorkspaceRoomsRow, searchQuery: string) => tokenizedSearch([item], searchQuery, (o) => [o.roomName, o.ownerDisplayName]).length > 0;
+
+    const [inputValue, setInputValue, filteredData] = useSearchResults(rows, filterRoom);
+
+    const shouldShowSearchBar = rows.length > CONST.SEARCH_ITEM_LIMIT;
+    const shouldShowEmptySearchMessage = shouldShowSearchBar && inputValue.length > 0 && filteredData.length === 0;
+
+    const listHeaderComponent =
+        filteredData.length > 0 ? (
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.p4, styles.gap3]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.flex3]}>
+                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter, {width: variables.avatarSizeNormal}]}>
+                        <Icon
+                            src={icons.FallbackAvatar}
+                            width={variables.iconSizeSmall}
+                            height={variables.iconSizeSmall}
+                            fill={theme.icon}
+                        />
+                    </View>
+                    <Text style={styles.textLabelSupporting}>{translate('common.name')}</Text>
+                </View>
+                <View style={styles.flex2}>
+                    <Text style={styles.textLabelSupporting}>{translate('common.createdBy')}</Text>
+                </View>
+                <View style={styles.flex1}>
+                    <Text style={styles.textLabelSupporting}>{translate('common.members')}</Text>
+                </View>
+            </View>
+        ) : null;
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -133,32 +166,20 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                     />
                 </HeaderWithBackButton>
 
+                {shouldShowSearchBar && (
+                    <SearchBar
+                        label={translate('workspace.rooms.findRoom')}
+                        inputValue={inputValue}
+                        onChangeText={setInputValue}
+                        shouldShowEmptyState={shouldShowEmptySearchMessage}
+                    />
+                )}
                 <View style={[styles.flex1, styles.pv3, styles.ph5]}>
                     <FlashList
-                        data={rows}
+                        data={filteredData}
                         keyExtractor={(row) => row.report.reportID}
                         ItemSeparatorComponent={RowSeparator}
-                        ListHeaderComponent={
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.p4, styles.gap3]}>
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.flex3]}>
-                                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter, {width: variables.avatarSizeNormal}]}>
-                                        <Icon
-                                            src={icons.FallbackAvatar}
-                                            width={variables.iconSizeSmall}
-                                            height={variables.iconSizeSmall}
-                                            fill={theme.icon}
-                                        />
-                                    </View>
-                                    <Text style={styles.textLabelSupporting}>{translate('common.name')}</Text>
-                                </View>
-                                <View style={styles.flex2}>
-                                    <Text style={styles.textLabelSupporting}>{translate('common.createdBy')}</Text>
-                                </View>
-                                <View style={styles.flex1}>
-                                    <Text style={styles.textLabelSupporting}>{translate('common.members')}</Text>
-                                </View>
-                            </View>
-                        }
+                        ListHeaderComponent={listHeaderComponent}
                         renderItem={({item}: ListRenderItemInfo<WorkspaceRoomsRow>) => (
                             <WorkspaceRoomsListItem
                                 report={item.report}

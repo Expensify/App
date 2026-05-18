@@ -5890,6 +5890,9 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             configureGustoSync: '配置 Gusto 同步。',
             syncWithGusto: '与 Gusto 同步',
         },
+        rooms: {
+            findRoom: '查找内容',
+        },
         card: {
             getStartedIssuing: '从发放您的第一张虚拟卡或实体卡开始使用。',
             issueCard: '发卡',

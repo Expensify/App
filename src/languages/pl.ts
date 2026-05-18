@@ -6034,6 +6034,9 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             configureGustoSync: 'Skonfiguruj synchronizację z Gusto.',
             syncWithGusto: 'Synchronizuj z Gusto',
         },
+        rooms: {
+            findRoom: 'Znajdź coś',
+        },
         card: {
             getStartedIssuing: 'Zacznij od wydania swojej pierwszej wirtualnej lub fizycznej karty.',
             issueCard: 'Wydaj kartę',

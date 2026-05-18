@@ -6061,6 +6061,9 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             configureGustoSync: 'Configura la sincronizzazione con Gusto.',
             syncWithGusto: 'Sincronizza con Gusto',
         },
+        rooms: {
+            findRoom: 'Trova qualcosa',
+        },
         card: {
             getStartedIssuing: 'Inizia emettendo la tua prima carta virtuale o fisica.',
             issueCard: 'Emetti carta',

@@ -5992,6 +5992,9 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             configureGustoSync: 'Gusto 同期を設定する。',
             syncWithGusto: 'Gusto と同期',
         },
+        rooms: {
+            findRoom: '何かを検索',
+        },
         card: {
             getStartedIssuing: 'まずは最初のバーチャルカードまたは物理カードを発行しましょう。',
             issueCard: 'カードを発行',
