@@ -60,6 +60,8 @@ If your Workspace Admin has created custom export templates, you can select one 
 
 Report-level templates (such as All Data - Report Level Export) only appear when exporting from **Spend > Reports** page with full reports selected. When exporting individual expenses from the Expenses page, only expense-level templates are available.
 
+If all selected expenses are deleted, only the **Basic export** template is available. Other export templates require a report, and deleted expenses are not associated with any report.
+
 ## The data looks wrong in Excel. How can I fix it?
 
 Long IDs may appear in scientific notation. To fix this:

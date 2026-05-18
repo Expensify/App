@@ -1,6 +1,4 @@
 import React from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import {useSearchActionsContext} from '@components/Search/SearchContext';
@@ -10,24 +8,23 @@ import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
-import {setCustomUnitID, setCustomUnitRateID} from '@libs/actions/IOU';
-import {clearSubrates} from '@libs/actions/IOU/PerDiem';
 import {createNewReport} from '@libs/actions/Report';
-import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPerDiemCustomUnit, getPolicyByCustomUnitID} from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {getPersonalDetailsForAccountID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils, isPolicyExpenseChat, isReportOutstanding} from '@libs/ReportUtils';
-import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {getPersonalDetailsForAccountID, getReportOrDraftReport, isPolicyExpenseChat, isReportOutstanding} from '@libs/ReportUtils';
 import {isPerDiemRequest, isTimeRequest as isTimeRequestUtil} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetails, Report, ReportAction, ReportActions} from '@src/types/onyx';
+import type {PersonalDetails, ReportAction, ReportActions} from '@src/types/onyx';
 import IOURequestEditReportCommon from './IOURequestEditReportCommon';
+import useCreateReportRestrictionCheck from './IOURequestStepReport/hooks/useCreateReportRestrictionCheck';
+import usePerDiemPolicyData from './IOURequestStepReport/hooks/usePerDiemPolicyData';
+import useReportSelectionActions from './IOURequestStepReport/hooks/useReportSelectionActions';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
@@ -46,24 +43,18 @@ const getIOUActionsSelector = (actions: OnyxEntry<ReportActions>): ReportAction[
 
 function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const {backTo, action, iouType, transactionID, reportID: reportIDFromRoute, reportActionID} = route.params;
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-    const transactionReport = Object.values(allReports ?? {}).find((report) => report?.reportID === transaction?.reportID);
+    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
     const participantReportID = transaction?.participants?.at(0)?.reportID;
-    const participantReport = Object.values(allReports ?? {}).find((report) => report?.reportID === participantReportID);
+    const [participantReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${participantReportID}`);
     const shouldUseTransactionReport = (!!transactionReport && isReportOutstanding(transactionReport, transactionReport?.policyID)) || isUnreported;
     const outstandingReportID = isPolicyExpenseChat(participantReport) ? participantReport?.iouReportID : participantReportID;
     const selectedReportID = shouldUseTransactionReport ? transactionReport?.reportID : outstandingReportID;
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
-    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const {allPolicies, perDiemOriginalPolicy} = usePerDiemPolicyData(transaction);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
-    const {removeTransaction, setSelectedTransactions} = useSearchActionsContext();
-    const reportOrDraftReport = getReportOrDraftReport(reportIDFromRoute);
+    const {setSelectedTransactions} = useSearchActionsContext();
+    const reportOrDraftReport = useReportOrReportDraft(reportIDFromRoute);
     const [iouActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportOrDraftReport?.parentReportID}`, {selector: getIOUActionsSelector});
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreateReport = action === CONST.IOU.ACTION.CREATE;
@@ -89,14 +80,13 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     // and if we choose this workspace as participant we want to create a new report in the chosen workspace
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(isPerDiemTransaction, isTimeRequestUtil(transaction), targetExpensePolicyID);
 
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
-    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
-    const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
+    // No violations exist for a report that hasn't been created yet — kept as a literal to avoid subscribing to the entire TRANSACTION_VIOLATIONS collection.
+    const hasViolations = false;
+    const [policyForMovingExpenses] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`);
     useRestartOnReceiptFailure(transaction, reportIDFromRoute, iouType, action);
-    const perDiemOriginalPolicy = getPolicyByCustomUnitID(transaction, allPolicies);
     const [transactions] = useOptimisticDraftTransactions(transaction);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const isCreateReportRestricted = useCreateReportRestrictionCheck(session);
     const handleGoBack = () => {
         if (isEditing) {
             Navigation.dismissToSuperWideRHP();
@@ -105,97 +95,23 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         }
     };
 
-    const handleGlobalCreateReport = (item: TransactionGroupListItem) => {
-        if (!transaction) {
-            return;
-        }
-        const reportOrDraftReportFromValue = getReportOrDraftReport(item.value);
-        const participants = [
-            {
-                selected: true,
-                accountID: 0,
-                isPolicyExpenseChat: true,
-                reportID: reportOrDraftReportFromValue?.chatReportID,
-                policyID: reportOrDraftReportFromValue?.policyID,
-            },
-        ];
-
-        const currentPolicyID = perDiemOriginalPolicy?.id;
-        const newPolicyID = reportOrDraftReportFromValue?.policyID;
-        const policyChanged = currentPolicyID && newPolicyID && currentPolicyID !== newPolicyID;
-
-        const newPolicy = newPolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${newPolicyID}`] : undefined;
-        const newPerDiemCustomUnit = getPerDiemCustomUnit(newPolicy);
-        const newCustomUnitID = newPerDiemCustomUnit?.customUnitID;
-
-        for (const transactionItem of transactions) {
-            setTransactionReport(
-                transactionItem.transactionID,
-                {
-                    reportID: item.value,
-                    participants,
-                },
-                true,
-            );
-        }
-
-        // Clear subrates, and update customUnitID if policy changed for per diem transactions
-        if (policyChanged && isPerDiemTransaction) {
-            setCustomUnitID(transaction.transactionID, newCustomUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
-            setCustomUnitRateID(transaction.transactionID, undefined, transaction, newPolicy);
-            clearSubrates(transaction.transactionID);
-
-            const newChatReportID = reportOrDraftReportFromValue?.chatReportID ?? reportIDFromRoute;
-            const destinationRoute = ROUTES.MONEY_REQUEST_STEP_DESTINATION.getRoute(action, iouType, transactionID, newChatReportID);
-            Navigation.goBack(destinationRoute, {compareParams: false});
-            return;
-        }
-
-        const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportOrDraftReportFromValue?.chatReportID);
-        // If the backTo parameter is set, we should navigate back to the confirmation screen that is already on the stack.
-        if (backTo) {
-            Navigation.goBack(iouConfirmationPageRoute, {compareParams: false});
-        } else {
-            Navigation.navigate(iouConfirmationPageRoute);
-        }
-    };
-
-    const handleRegularReportSelection = (item: TransactionGroupListItem, report: OnyxEntry<Report>) => {
-        if (!transaction) {
-            return;
-        }
-
-        handleGoBack();
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            Navigation.setNavigationActionToMicrotaskQueue(() => {
-                setTransactionReport(
-                    transaction.transactionID,
-                    {
-                        reportID: item.value,
-                    },
-                    !isEditing,
-                );
-
-                if (isEditing) {
-                    const policyTagList = item?.policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${item.policyID}`] : {};
-                    changeTransactionsReport({
-                        transactionIDs: [transaction.transactionID],
-                        isASAPSubmitBetaEnabled,
-                        accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                        email: session?.email ?? '',
-                        newReport: report,
-                        policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
-                        reportNextStep: undefined,
-                        policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
-                        allTransactions,
-                        policyTagList,
-                    });
-                    removeTransaction(transaction.transactionID);
-                }
-            });
-        });
-    };
+    const {handleGlobalCreateReport, handleRegularReportSelection, removeFromReport} = useReportSelectionActions({
+        transaction,
+        transactions,
+        allPolicies,
+        perDiemOriginalPolicy,
+        isPerDiemTransaction,
+        isEditing,
+        isASAPSubmitBetaEnabled,
+        session,
+        transactionID,
+        iouType,
+        action,
+        reportIDFromRoute,
+        personalPolicyID,
+        backTo,
+        handleGoBack,
+    });
 
     const selectReport = (item: TransactionGroupListItem) => {
         if (!transaction) {
@@ -215,30 +131,9 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             return;
         }
 
-        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.value}`];
+        const report = getReportOrDraftReport(item.value);
         // Handle regular report selection
         handleRegularReportSelection(item, report);
-    };
-
-    const removeFromReport = () => {
-        if (!transaction) {
-            return;
-        }
-        Navigation.dismissToSuperWideRHP();
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            const policyTagList = personalPolicyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${personalPolicyID}`] : {};
-            changeTransactionsReport({
-                transactionIDs: [transaction.transactionID],
-                isASAPSubmitBetaEnabled,
-                accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                email: session?.email ?? '',
-                policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
-                allTransactions,
-                policyTagList,
-            });
-            removeTransaction(transaction.transactionID);
-        });
     };
 
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, reportOrDraftReport, transaction);
@@ -261,9 +156,9 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     });
 
     const createReport = () => {
-        const restrictionPolicyID = isPerDiemTransaction ? perDiemOriginalPolicy?.id : policyForMovingExpensesID;
-        if (restrictionPolicyID && shouldRestrictUserBillableActions(restrictionPolicyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, session?.accountID)) {
-            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictionPolicyID));
+        const restrictionPolicy = isPerDiemTransaction ? perDiemOriginalPolicy : policyForMovingExpenses;
+        if (restrictionPolicy && isCreateReportRestricted(restrictionPolicy)) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictionPolicy.id));
             return;
         }
         if (isPerDiemTransaction) {

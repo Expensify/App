@@ -39,11 +39,6 @@ type BankName = ValueOf<typeof CONST.COMPANY_CARDS.BANKS>;
 type NonConnectableBankName = ValueOf<typeof CONST.COMPANY_CARDS.NON_CONNECTABLE_BANKS>;
 
 /**
- *
- */
-type CardType = ValueOf<typeof CONST.COMPANY_CARDS.CARD_TYPE>;
-
-/**
  * Card type name
  */
 type CardTypeName = ValueOf<typeof CONST.COMPANY_CARDS.CARD_TYPE_NAMES>;
@@ -273,12 +268,6 @@ type AddNewCardFeedData = {
     /** Name of the card */
     cardTitle: string;
 
-    /** Indicates the day (preset value) when the statement period for this card ends */
-    statementPeriodEnd?: StatementPeriodEnd;
-
-    /** Indicates the day (custom day) when the statement period for this card ends */
-    statementPeriodEndDay?: StatementPeriodEndDay;
-
     /** Selected bank */
     selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | null;
 
@@ -363,13 +352,11 @@ export type {
     CardFeedWithDomainID,
     BankName,
     NonConnectableBankName,
-    CardType,
     CardTypeName,
     CompanyCardFeed,
     CompanyCardFeedWithNumber,
     CompanyCardFeedWithDomainID,
     CardFeedDetails,
-    DirectCardFeedData,
     CardFeedProvider,
     CardFeedData,
     CardFeedsStatus,

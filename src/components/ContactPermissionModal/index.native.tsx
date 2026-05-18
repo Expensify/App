@@ -38,7 +38,6 @@ function ContactPermissionModal({onDeny, onGrant, onFocusTextInput}: ContactPerm
 
     const handleGrantPermission = () => {
         setIsModalVisible(false);
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             requestContactPermission().then((status) => {
                 onFocusTextInput();
@@ -56,7 +55,6 @@ function ContactPermissionModal({onDeny, onGrant, onFocusTextInput}: ContactPerm
         onDeny(RESULTS.DENIED);
         // Sometimes, the input gains focus when the modal closes, but the keyboard doesn't appear.
         // To fix this, we need to call the focus function after the modal has finished closing.
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             onFocusTextInput();
         });

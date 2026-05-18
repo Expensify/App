@@ -20,7 +20,8 @@ import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {computeTimeAmount, formatTimeMerchant} from '@libs/TimeTrackingUtils';
 import variables from '@styles/variables';
-import {setMoneyRequestAmount, setMoneyRequestMerchant, setMoneyRequestParticipantsFromReport, setMoneyRequestTimeCount, setMoneyRequestTimeRate} from '@userActions/IOU';
+import {setMoneyRequestAmount, setMoneyRequestMerchant} from '@userActions/IOU';
+import {setMoneyRequestParticipantsFromReport, setMoneyRequestTimeCount, setMoneyRequestTimeRate} from '@userActions/IOU/MoneyRequest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -169,8 +170,8 @@ function IOURequestStepHours({
                         large={!isExtraSmallScreenHeight}
                         style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt0]}
                         onPress={() => {
-                            if (policyID && shouldRestrictUserBillableActions(policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
-                                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
+                            if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+                                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                                 return;
                             }
                             saveTime();

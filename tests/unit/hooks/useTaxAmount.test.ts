@@ -11,7 +11,6 @@ jest.mock('@libs/CurrencyUtils', () => ({
 }));
 
 jest.mock('@libs/DistanceRequestUtils', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: {
         getTaxableAmount: () => 100,

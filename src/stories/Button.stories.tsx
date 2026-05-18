@@ -1,4 +1,3 @@
-/* eslint-disable react/jsx-props-no-spreading */
 import type {Meta, StoryFn} from '@storybook/react-webpack5';
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';

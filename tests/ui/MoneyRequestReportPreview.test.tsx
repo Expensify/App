@@ -4,6 +4,7 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import type {OnyxCollection, OnyxEntry, OnyxMergeInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
+import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
@@ -59,7 +60,6 @@ jest.mock('@rnmapbox/maps', () => {
 const mockUseReportWithTransactionsAndViolations = jest.fn(() => defaultReportWithTransactionsAndViolations);
 
 jest.mock('@src/hooks/useReportWithTransactionsAndViolations', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention -- __esModule is required by Jest to properly mock ES modules with default exports
     __esModule: true,
     default: (...args: Parameters<typeof mockUseReportWithTransactionsAndViolations>) => mockUseReportWithTransactionsAndViolations(...args),
 }));
@@ -81,7 +81,7 @@ const hasViolations = (
 
 const renderPage = ({isWhisper = false, isHovered = false, contextMenuAnchor = null}: Partial<MoneyRequestReportPreviewProps>) => {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
             <OptionsListContextProvider>
                 <ScreenWrapper testID="test">
                     <PortalProvider>

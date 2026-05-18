@@ -26,7 +26,6 @@ jest.mock('../../src/components/ConfirmedRoute.tsx');
 
 // Needed for: https://stackoverflow.com/questions/76903168/mocking-libraries-in-jest
 jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
-    /* eslint-disable-next-line @typescript-eslint/naming-convention */
     __esModule: true,
     default: {
         ignoreLogs: jest.fn(),
@@ -188,7 +187,7 @@ function signInAndGetApp(reportName = '', participantAccountIDs?: number[]): Pro
         })
         .then(async () => TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A'))
         .then(() => {
-            subscribeToUserEvents(USER_A_ACCOUNT_ID, undefined);
+            subscribeToUserEvents(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined);
             return waitForBatchedUpdates();
         })
         .then(async () => {

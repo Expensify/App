@@ -8,6 +8,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
+import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -19,8 +20,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setMoneyRequestDistance} from '@libs/actions/IOU';
-import {handleMoneyRequestStepDistanceNavigation} from '@libs/actions/IOU/MoneyRequest';
+import {handleMoneyRequestStepDistanceNavigation, setMoneyRequestDistance} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestDistance} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -72,6 +72,7 @@ function IOURequestStepDistanceManual({
     const reportAttributesDerived = useReportAttributes();
 
     const [selectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`);
+    const distanceOriginalPolicy = useDistanceRateOriginalPolicy(transaction?.comment?.customUnit?.customUnitRateID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -84,7 +85,6 @@ function IOURequestStepDistanceManual({
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -115,7 +115,7 @@ function IOURequestStepDistanceManual({
     const mileageRate = DistanceRequestUtils.getRate({
         transaction,
         policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy,
-        useTransactionDistanceUnit: false,
+        useTransactionDistanceUnit: isEditing,
     });
     const unit = mileageRate.unit;
     const rate = mileageRate.rate ?? 0;
@@ -184,6 +184,7 @@ function IOURequestStepDistanceManual({
                     // Not required for manual distance request
                     transactionBackup: undefined,
                     policy,
+                    distanceOriginalPolicy,
                     policyTagList: policyTags,
                     policyCategories,
                     currentUserAccountIDParam,
@@ -222,7 +223,6 @@ function IOURequestStepDistanceManual({
             quickAction,
             policyRecentlyUsedCurrencies,
             introSelected,
-            activePolicyID,
             privateIsArchived: isArchived,
             selfDMReport,
             policyForMovingExpenses,

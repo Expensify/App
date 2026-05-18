@@ -12,7 +12,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
@@ -36,7 +35,7 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
-    const {getCurrencySymbol} = useCurrencyListActions();
+    const {getCurrencySymbol, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const customUnit = getPerDiemCustomUnit(policy);
 
     const selectedRate = customUnit?.rates?.[rateID];

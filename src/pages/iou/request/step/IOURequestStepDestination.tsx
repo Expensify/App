@@ -29,7 +29,8 @@ import {findSelfDMReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
-import {getIOURequestPolicyID, setCustomUnitID, setCustomUnitRateID, setMoneyRequestCategory, setMoneyRequestCurrency, setMoneyRequestParticipantsFromReport} from '@userActions/IOU';
+import {setMoneyRequestCurrency} from '@userActions/IOU';
+import {getIOURequestPolicyID, setCustomUnitID, setCustomUnitRateID, setMoneyRequestCategory, setMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
 import {clearSubrates} from '@userActions/IOU/PerDiem';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -109,7 +110,7 @@ function IOURequestStepDestination({
     };
 
     const updateDestination = (destination: ListItem & {currency: string}) => {
-        if (openedFromStartPage && policy?.id && shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
+        if (openedFromStartPage && policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
             return;
         }
@@ -219,7 +220,6 @@ function IOURequestStepDestination({
                                     success
                                     style={[styles.w100]}
                                     onPress={() => {
-                                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                                         InteractionManager.runAfterInteractions(() => {
                                             Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policy.id, Navigation.getActiveRoute()));
                                         });
