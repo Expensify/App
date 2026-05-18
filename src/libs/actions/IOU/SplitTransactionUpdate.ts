@@ -1374,7 +1374,9 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     // isReverseSplitOperation is false, but the removed child is the last transaction on this report.
     const remainingSplitTransactionIDs = new Set(splitExpenses.map((expense) => expense.transactionID));
     const removedChildTransactionIDs = new Set(
-        originalChildTransactions.filter((tx) => !!tx?.transactionID && !remainingSplitTransactionIDs.has(tx.transactionID)).map((tx) => tx!.transactionID),
+        originalChildTransactions
+            .filter((tx): tx is NonNullable<typeof tx> & {transactionID: string} => !!tx?.transactionID && !remainingSplitTransactionIDs.has(tx.transactionID))
+            .map((tx) => tx.transactionID),
     );
     const willExpenseReportBeEmpty =
         !isLastTransactionInReport &&
