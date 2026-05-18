@@ -175,7 +175,7 @@ jobs:
         id: run_codex
         uses: openai/codex-action@e0fdf01220eb9a88167c4898839d273e3f2609d1 # v1
         with:
-          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          openai-api-key: ${{ secrets.OPENAI_APP_REVIEWER_API_KEY }}
           safety-strategy: drop-sudo
           sandbox: workspace-write
           prompt: |
