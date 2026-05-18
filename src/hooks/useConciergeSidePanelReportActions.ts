@@ -20,7 +20,6 @@ type UseConciergeReportActionsParams = {
     currentUserAccountID: number;
     greetingText: string;
     loadOlderChats: (force?: boolean) => void;
-    reportActionIDFromRoute?: string;
 };
 
 function useConciergeReportActions({
@@ -34,7 +33,6 @@ function useConciergeReportActions({
     currentUserAccountID,
     greetingText,
     loadOlderChats,
-    reportActionIDFromRoute,
 }: UseConciergeReportActionsParams) {
     const [pendingConciergeResponse] = useOnyx(`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${report?.reportID}`);
     const hasPendingConciergeResponse = !!pendingConciergeResponse?.reportAction;
@@ -180,7 +178,7 @@ function useConciergeReportActions({
                 }
                 return result;
             }
-            if (!isConciergeChat || showFullHistory || reportActionIDFromRoute) {
+            if (!isConciergeChat || showFullHistory) {
                 return actions;
             }
             if (!sessionStartTime) {
@@ -211,7 +209,7 @@ function useConciergeReportActions({
             conciergeGreetingAction,
             isConciergeChat,
             showFullHistory,
-            reportActionIDFromRoute,
+
             sessionStartTime,
             hasPendingConciergeResponse,
             isCurrentSessionAction,
@@ -237,8 +235,7 @@ function useConciergeReportActions({
         filteredVisibleActions,
         filteredReportActions,
         showConciergeWelcome,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/prefer-nullish-coalescing
-        showFullHistory: showFullHistory || reportActionIDFromRoute !== undefined,
+        showFullHistory,
         hasPreviousMessages,
         handleShowPreviousMessages,
     };

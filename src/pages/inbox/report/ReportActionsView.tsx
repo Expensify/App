@@ -168,7 +168,6 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
         currentUserAccountID,
         greetingText: translate('common.concierge.greeting'),
         loadOlderChats,
-        reportActionIDFromRoute,
     });
 
     /**
