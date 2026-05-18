@@ -33,8 +33,7 @@ function TagCell({canEdit, onSave, shouldUseNarrowLayout, shouldShowTooltip, tra
         cancelEditing();
     };
 
-    // Decode HTML entities so tags stored with encoding (e.g. `uno &amp; dos`) display as `uno & dos`,
-    // matching the report's group-by-tag dropdown which already decodes the value.
+    // Decode HTML entities so tags stored with encoding are displayed properly (e.g. `uno &amp; dos` display as `uno & dos`)
     const tagForDisplay = getDecodedTagName(getTagForDisplay(transactionItem));
 
     const displayContent = shouldUseNarrowLayout ? (

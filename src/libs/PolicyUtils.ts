@@ -854,8 +854,8 @@ function getTagNamesFromTagsLists(policyTagLists: PolicyTagLists): string[] {
 }
 
 /**
- * Cleans up escaping of colons (used to create multi-level tags, e.g. "Parent: Child") in the tag name we receive from the backend,
- * and HTML-decodes the result so tags stored with encoded entities (e.g. `R&amp;D`) render as `R&D`.
+ * Cleans up escaping of colons used to create multi-level tags (e.g. "Parent: Child"),
+ * and HTML-decodes the result so tags stored with encoded entities display correctly (e.g. `R&amp;D`, renders as `R&D`)
  */
 function getCleanedTagName(tag: string) {
     return Str.htmlDecode(tag?.replaceAll('\\:', CONST.COLON) ?? '');

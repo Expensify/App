@@ -21,8 +21,8 @@ function trimTag(tag: string): string {
 }
 
 /**
- * HTML-decodes a tag name so values stored with different encodings (e.g. `R&amp;D` vs `R&D`)
- * resolve to the same string. Mirrors getDecodedCategoryName in CategoryUtils.
+ * HTML-decodes a tag name so values stored with different encodings are displayed correctly (e.g. `R&amp;D` vs `R&D`)
+ * Mirrors getDecodedCategoryName in CategoryUtils.
  */
 function getDecodedTagName(tagName: string): string {
     return Str.htmlDecode(tagName);
