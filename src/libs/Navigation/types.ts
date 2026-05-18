@@ -11,7 +11,6 @@ import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type {AttachmentModalContainerModalProps} from '@pages/media/AttachmentModalScreen/types';
 import type CONST from '@src/CONST';
 import type {Country, IOUAction, IOUType, OdometerImageType} from '@src/CONST';
-import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
 import type NAVIGATORS from '@src/NAVIGATORS';
 import type {Route as ExpensifyRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -1441,11 +1440,9 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.HR_MERGE_APPROVAL_MODE]: {
         policyID: string;
-        connectionSlug: MergeHRProviderSlug;
     };
     [SCREENS.WORKSPACE.HR_MERGE_FINAL_APPROVER]: {
         policyID: string;
-        connectionSlug: MergeHRProviderSlug;
     };
     [SCREENS.WORKSPACE.RULES_PROHIBITED_DEFAULT]: {
         policyID: string;
