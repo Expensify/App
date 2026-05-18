@@ -140,4 +140,38 @@ describe('isReportMessageAttachment', () => {
         };
         expect(isReportMessageAttachment(message)).toBe(false);
     });
+
+    it('returns false for undefined or empty message', () => {
+        expect(isReportMessageAttachment(undefined)).toBe(false);
+        expect(isReportMessageAttachment({text: '', html: '', type: ''})).toBe(false);
+        expect(isReportMessageAttachment({text: 'x', html: undefined as unknown as string, type: ''})).toBe(false);
+    });
+
+    it('falls through when translationKey is set but is not the attachment key', () => {
+        const message: Message = {
+            text: 'sample.doc https://www.expensify.com/chat-attachments/123/sample.doc',
+            html: '<a href="https://www.expensify.com/chat-attachments/123/sample.doc" data-expensify-source="https://www.expensify.com/chat-attachments/123/sample.doc">sample.doc</a>',
+            type: '',
+            translationKey: 'common.download',
+        };
+        expect(isReportMessageAttachment(message)).toBe(true);
+    });
+
+    it('returns false for image attachment + text', () => {
+        const message: Message = {
+            text: 'check this image\n[Attachment]',
+            html: 'check this image<br /><br /><img src="https://www.expensify.com/chat-attachments/123/img.jpg" data-expensify-source="https://www.expensify.com/chat-attachments/123/img.jpg" />',
+            type: '',
+        };
+        expect(isReportMessageAttachment(message)).toBe(false);
+    });
+
+    it('returns false for video attachment + text', () => {
+        const message: Message = {
+            text: 'watch this\ndemo.mp4 https://www.expensify.com/chat-attachments/123/demo.mp4',
+            html: 'watch this<br /><br /><video src="https://www.expensify.com/chat-attachments/123/demo.mp4" data-expensify-source="https://www.expensify.com/chat-attachments/123/demo.mp4">demo.mp4</video>',
+            type: '',
+        };
+        expect(isReportMessageAttachment(message)).toBe(false);
+    });
 });
