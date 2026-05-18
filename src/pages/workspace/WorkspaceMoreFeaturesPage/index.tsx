@@ -165,7 +165,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const warnReceiptPartnersStillConnected = async () => {
         if (!isUberConnected) {
             return;
-    }
+        }
         await showConfirmModal({
             title: translate('workspace.moreFeatures.receiptPartnersWarningModal.featureEnabledTitle'),
             prompt: translate('workspace.moreFeatures.receiptPartnersWarningModal.disconnectText'),
