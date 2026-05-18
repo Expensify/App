@@ -504,7 +504,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return {
                 jsonQuery,
                 isBasicExport,
-                exportColumnLabels,
+                exportColumnLabels: JSON.stringify(exportColumnLabels),
             };
         },
         [accountID, currentSearchKey, exportSearchData, exportSearchType, queryJSON, translate, visibleColumns],

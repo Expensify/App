@@ -1,4 +1,4 @@
-import type {SearchColumnType, SearchQueryString, SearchStatus} from '@components/Search/types';
+import type {SearchQueryString, SearchStatus} from '@components/Search/types';
 
 type ExportSearchItemsToCSVParams = {
     query: SearchStatus;
@@ -6,7 +6,7 @@ type ExportSearchItemsToCSVParams = {
     reportIDList: string[];
     transactionIDList: string[];
     isBasicExport: boolean;
-    exportColumnLabels: Partial<Record<SearchColumnType, string>>;
+    exportColumnLabels: string;
 };
 
 export default ExportSearchItemsToCSVParams;

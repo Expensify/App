@@ -1124,8 +1124,6 @@ function rejectMoneyRequestsOnSearch(
     return urlToNavigateBack;
 }
 
-type Params = Record<string, ExportSearchItemsToCSVParams>;
-
 function exportSearchItemsToCSV(
     {query, jsonQuery, reportIDList, transactionIDList, isBasicExport, exportColumnLabels}: ExportSearchItemsToCSVParams,
     onDownloadFailed: () => void,
@@ -1163,7 +1161,7 @@ function exportSearchItemsToCSV(
         transactionIDList,
         isBasicExport,
         exportColumnLabels,
-    }) as Params;
+    });
 
     const formData = new FormData();
     for (const [key, value] of Object.entries(finalParameters)) {
@@ -1178,7 +1176,7 @@ function exportSearchItemsToCSV(
 }
 
 function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList, isBasicExport, exportColumnLabels}: ExportSearchItemsToCSVParams) {
-    const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV, {
+    const finalParameters = enhanceParameters(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV, {
         query,
         jsonQuery,
         reportIDList,
