@@ -1,3 +1,4 @@
+import type {FlashListRef} from '@shopify/flash-list';
 import type {RefObject, SyntheticEvent} from 'react';
 import {createContext} from 'react';
 // eslint-disable-next-line no-restricted-imports
@@ -16,6 +17,7 @@ type ReactionListContextType = {
 
 type FlatListRefType<T = unknown> = RefObject<FlatList<T> | null> | null;
 
+type FlashListRefType<T = unknown> = RefObject<FlashListRef<T> | null> | null;
 type ScrollPosition = {offset?: number};
 
 type ActionListContextType = {
@@ -32,4 +34,4 @@ const ReactionListContext = createContext<ReactionListContextType>({
 });
 
 export {ActionListContext, ReactionListContext};
-export type {ReactionListContextType, ActionListContextType, FlatListRefType, ReactionListAnchor, ReactionListEvent, ScrollPosition};
+export type {ReactionListContextType, ActionListContextType, FlatListRefType, FlashListRefType, ReactionListAnchor, ReactionListEvent, ScrollPosition};

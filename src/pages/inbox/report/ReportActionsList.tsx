@@ -1,5 +1,5 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
+import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
@@ -75,6 +75,7 @@ import ShowPreviousMessagesButton from './ShowPreviousMessagesButton';
 import useReportActionsNewActionLiveTail from './useReportActionsNewActionLiveTail';
 import useReportUnreadMessageScrollTracking from './useReportUnreadMessageScrollTracking';
 import useShouldShowComposerForActiveEditDraft from './useShouldShowComposerForActiveEditDraft';
+import useVerticallyCenteredInitialContent from './useVerticallyCenteredInitialContent';
 
 type ReportActionsListProps = {
     /** The report currently being looked at */
@@ -147,15 +148,6 @@ type ReportActionsListProps = {
 // the useRef value gets reset when the reportID changes, so we use a global variable to keep track
 let prevReportID: string | null = null;
 
-const INITIAL_TARGET_REPORT_ACTION_ESTIMATED_HEIGHT = CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT;
-const INITIAL_VIEWPORT_OVERSCAN_ITEMS = 2;
-
-type InitialViewportRange = {
-    first: number;
-    last: number;
-    requiredMountedItems: number;
-};
-
 /**
  * Create a unique key for each action in the FlatList.
  * We use the reportActionID that is a string representation of a random 64-bit int, which should be
@@ -168,18 +160,6 @@ function keyExtractor(item: OnyxTypes.ReportAction): string {
         return CONST.REPORT.ACTIONS.TYPE.CREATED;
     }
     return item.reportActionID;
-}
-
-function isInitialViewportCovered(mountedIndices: Set<number>, range: InitialViewportRange, initialScrollIndex: number) {
-    if (mountedIndices.size < range.requiredMountedItems) {
-        return false;
-    }
-
-    const mountedIndexList = Array.from(mountedIndices);
-    const hasItemBeforeInitialTarget = range.first >= initialScrollIndex || mountedIndexList.some((index) => index < initialScrollIndex);
-    const hasItemAfterInitialTarget = range.last <= initialScrollIndex || mountedIndexList.some((index) => index > initialScrollIndex);
-
-    return hasItemBeforeInitialTarget && hasItemAfterInitialTarget;
 }
 
 type InitialViewportItemMountObserverProps = {
@@ -313,7 +293,6 @@ function ReportActionsList({
     const prevUnreadMarkerReportActionID = useRef<string | null>(null);
     const [unreadMarkerTime, setUnreadMarkerTime] = useState(reportLastReadTime);
     const [unreadMarkerReportActionID, unreadMarkerReportActionIndex] = useMemo(() => {
-        // eslint-disable-next-line react-hooks/refs
         const scanned = getUnreadMarkerReportAction({
             visibleReportActions: sortedVisibleReportActions,
             earliestReceivedOfflineMessageIndex,
@@ -364,246 +343,8 @@ function ReportActionsList({
         return actionID;
     }, [linkedReportActionID, unreadMarkerReportActionID, shouldBeAlignedToTop, sortedVisibleReportActionsObjects]);
 
-    const initialScrollIndex = useMemo(() => {
-        if (!initialScrollKey) {
-            return -1;
-        }
-
-        return sortedVisibleReportActions.findIndex((item) => keyExtractor(item) === initialScrollKey);
-    }, [initialScrollKey, sortedVisibleReportActions]);
-    const hasInitialScrollTarget = initialScrollIndex >= 0;
-    const shouldMeasureLinkedAnchorScrollPosition = !!initialScrollKey && hasInitialScrollTarget;
-    const [listHeight, setListHeight] = useState(0);
-    const [isInitialViewportLoading, setIsInitialViewportLoading] = useState(true);
-    /**
-     * Linked opens scroll near the anchor immediately; inverted FlashList often fires `onEndReached` right away,
-     * fetching older messages after the viewport skeleton drops. Delay revealing the list until we've allowed that
-     * fetch to flip `isLoadingOlderReportActions`, then keep the overlay until it clears so rows don't stream in visibly.
-     */
-    const [linkedOlderRevealGateReady, setLinkedOlderRevealGateReady] = useState(() => !(!!linkedReportActionID && hasOlderActions));
-    const mountedInitialViewportIndicesRef = useRef(new Set<number>());
-    const hasInitialViewportLoadedRef = useRef(!hasInitialScrollTarget);
-    /** Linked deeplink opens need post-layout corrective scroll so the inverted anchor lands correctly; skips unread-only flows (mark unread). */
-    const [hasAppliedMeasuredAnchorScroll, setHasAppliedMeasuredAnchorScroll] = useState(() => !shouldMeasureLinkedAnchorScrollPosition);
-    /** Prevents repeated corrective scrollToIndex calls when onLayout repeats. */
-    const hasCommittedMeasuredAnchorScrollRef = useRef(false);
-    /**
-     * Last scroll/viewport-reset session identifiers. Avoids resetting the initial viewport skeleton + measured-anchor
-     * scroll when only the unread marker action ID changes during mark-as-unread (same FlashList/listID).
-     */
-    const initialViewportResetSessionRef = useRef<
-        | {
-              listID: string;
-              reportID: string;
-              linkedReportActionID: string | undefined;
-              initialScrollKey: string | undefined;
-          }
-        | undefined
-    >(undefined);
-    const initialScrollIndexViewOffset = useMemo(() => {
-        if (!hasInitialScrollTarget) {
-            return undefined;
-        }
-
-        return -Math.max(listHeight / 2, 0);
-    }, [hasInitialScrollTarget, listHeight]);
-
-    const initialViewportRange = useMemo<InitialViewportRange | undefined>(() => {
-        if (!hasInitialScrollTarget || listHeight <= 0) {
-            return undefined;
-        }
-
-        const estimatedVisibleReportActions = Math.max(1, Math.ceil(listHeight / INITIAL_TARGET_REPORT_ACTION_ESTIMATED_HEIGHT));
-        const radius = Math.ceil(estimatedVisibleReportActions / 2) + INITIAL_VIEWPORT_OVERSCAN_ITEMS;
-        const first = Math.max(initialScrollIndex - radius, 0);
-        const last = Math.min(initialScrollIndex + radius, sortedVisibleReportActions.length - 1);
-
-        return {
-            first,
-            last,
-            requiredMountedItems: Math.min(estimatedVisibleReportActions, last - first + 1),
-        };
-    }, [hasInitialScrollTarget, initialScrollIndex, listHeight, sortedVisibleReportActions.length]);
-    const shouldRenderFlashList = !hasInitialScrollTarget || listHeight > 0;
-    const shouldAwaitLinkedOlderRevealWhileGateCold = !!linkedReportActionID && hasOlderActions && (!linkedOlderRevealGateReady || !!reportLoadingState?.isLoadingOlderReportActions);
-    const shouldShowInitialViewportSkeleton =
-        hasInitialScrollTarget && (isInitialViewportLoading || (shouldMeasureLinkedAnchorScrollPosition && !hasAppliedMeasuredAnchorScroll) || shouldAwaitLinkedOlderRevealWhileGateCold);
-
-    const reportScrollManagerRefValue = reportScrollManager.ref?.current as FlashListRef<OnyxTypes.ReportAction> | null;
-
-    /** Correct inverted linked-message positioning using the laid-out row height (not needed for unread-anchor-only scroll). */
-    const handleInitialScrollTargetLayout = useCallback(
-        (layoutHeight: number) => {
-            if (!shouldMeasureLinkedAnchorScrollPosition || layoutHeight <= 0 || listHeight <= 0) {
-                return;
-            }
-
-            if (hasCommittedMeasuredAnchorScrollRef.current) {
-                return;
-            }
-
-            const flashListRef = reportScrollManagerRefValue;
-            if (!flashListRef?.scrollToIndex) {
-                setHasAppliedMeasuredAnchorScroll(true);
-                return;
-            }
-
-            hasCommittedMeasuredAnchorScrollRef.current = true;
-
-            // Why offset shifts by measured height: `initialScrollIndex` + `-listHeight/2` aligns the flipped cell so the opposite vertical edge lands on mid-viewport.
-            const viewOffsetAlignedToTopEdge = -listHeight / 2 + layoutHeight;
-
-            requestAnimationFrame(() => {
-                flashListRef
-                    .scrollToIndex({
-                        index: initialScrollIndex,
-                        animated: false,
-                        viewOffset: viewOffsetAlignedToTopEdge,
-                    })
-                    .catch(() => {
-                        // Rare failure (e.g. index not yet mapped); dropping the skeleton avoids a stuck overlay.
-                    })
-                    .finally(() => {
-                        setHasAppliedMeasuredAnchorScroll(true);
-                    });
-            });
-        },
-        [initialScrollIndex, listHeight, reportScrollManagerRefValue, shouldMeasureLinkedAnchorScrollPosition],
-    );
-
-    useLayoutEffect(() => {
-        const normalizedLinkedReportActionID = linkedReportActionID;
-        const normalizedInitialScrollKey = initialScrollKey;
-        const previousSession = initialViewportResetSessionRef.current;
-
-        const isFirstViewportResetCycle = previousSession === undefined;
-        const listIDBumped = isFirstViewportResetCycle ? true : previousSession.listID !== listID;
-        const reportSwitched = isFirstViewportResetCycle ? true : previousSession.reportID !== report.reportID;
-        const linkedTargetingChanged = isFirstViewportResetCycle ? false : previousSession.linkedReportActionID !== normalizedLinkedReportActionID;
-
-        const hadScrollAnchor = !!previousSession?.initialScrollKey;
-        const hasScrollAnchor = !!normalizedInitialScrollKey;
-
-        const isUnreadMarkerOnlyShuffle =
-            hasScrollAnchor &&
-            hadScrollAnchor &&
-            previousSession !== undefined &&
-            previousSession.initialScrollKey !== normalizedInitialScrollKey &&
-            !normalizedLinkedReportActionID &&
-            !listIDBumped &&
-            !reportSwitched &&
-            !linkedTargetingChanged;
-
-        initialViewportResetSessionRef.current = {
-            listID,
-            reportID: report.reportID,
-            linkedReportActionID: normalizedLinkedReportActionID,
-            initialScrollKey: normalizedInitialScrollKey,
-        };
-
-        if (isUnreadMarkerOnlyShuffle) {
-            return;
-        }
-
-        const shouldDeferLinkedOlderReveal = !!(normalizedLinkedReportActionID && hasOlderActions);
-        setLinkedOlderRevealGateReady(!shouldDeferLinkedOlderReveal);
-
-        mountedInitialViewportIndicesRef.current.clear();
-        hasInitialViewportLoadedRef.current = !hasInitialScrollTarget;
-        hasCommittedMeasuredAnchorScrollRef.current = false;
-        setHasAppliedMeasuredAnchorScroll(!shouldMeasureLinkedAnchorScrollPosition);
-        setIsInitialViewportLoading(hasInitialScrollTarget);
-    }, [hasInitialScrollTarget, hasOlderActions, initialScrollKey, linkedReportActionID, listID, report.reportID, shouldMeasureLinkedAnchorScrollPosition]);
-
-    useEffect(() => {
-        let cancelled = false;
-        let rafId = 0;
-        let fallbackRevealTimeoutId: ReturnType<typeof setTimeout> | undefined;
-
-        const markRevealGateReadyOnNextFrame = (ready: boolean) => {
-            rafId = requestAnimationFrame(() => {
-                if (cancelled) {
-                    return;
-                }
-                setLinkedOlderRevealGateReady(ready);
-            });
-        };
-
-        if (!linkedReportActionID || !hasOlderActions) {
-            markRevealGateReadyOnNextFrame(true);
-        } else if (!hasAppliedMeasuredAnchorScroll || isInitialViewportLoading) {
-            markRevealGateReadyOnNextFrame(false);
-        } else if (reportLoadingState?.isLoadingOlderReportActions) {
-            markRevealGateReadyOnNextFrame(true);
-        } else {
-            rafId = requestAnimationFrame(() => {
-                if (cancelled) {
-                    return;
-                }
-
-                fallbackRevealTimeoutId = setTimeout(() => {
-                    if (cancelled) {
-                        return;
-                    }
-                    setLinkedOlderRevealGateReady(true);
-                }, 800);
-            });
-        }
-
-        return () => {
-            cancelled = true;
-            cancelAnimationFrame(rafId);
-            if (fallbackRevealTimeoutId) {
-                clearTimeout(fallbackRevealTimeoutId);
-            }
-        };
-    }, [hasAppliedMeasuredAnchorScroll, hasOlderActions, isInitialViewportLoading, linkedReportActionID, listID, report.reportID, reportLoadingState?.isLoadingOlderReportActions]);
-
-    useEffect(() => {
-        if (!linkedReportActionID || !hasInitialScrollTarget || hasAppliedMeasuredAnchorScroll) {
-            return undefined;
-        }
-
-        const fallbackTimer = setTimeout(() => {
-            setHasAppliedMeasuredAnchorScroll(true);
-        }, 3000);
-
-        return () => {
-            clearTimeout(fallbackTimer);
-        };
-    }, [hasAppliedMeasuredAnchorScroll, hasInitialScrollTarget, linkedReportActionID, listID, report.reportID]);
-
-    const handleReportActionsListLayout = useCallback(
-        (event: LayoutChangeEvent) => {
-            const nextListHeight = event.nativeEvent.layout.height;
-            if (Math.round(listHeight) === Math.round(nextListHeight)) {
-                return;
-            }
-
-            if (!hasInitialViewportLoadedRef.current) {
-                mountedInitialViewportIndicesRef.current.clear();
-                setIsInitialViewportLoading(hasInitialScrollTarget);
-            }
-            setListHeight(nextListHeight);
-        },
-        [hasInitialScrollTarget, listHeight, setIsInitialViewportLoading],
-    );
-
     const shouldFocusToTopOnMount = shouldBeAlignedToTop && !initialScrollKey;
     const [shouldAutoscrollToBottom, setShouldAutoscrollToBottom] = useState(shouldFocusToTopOnMount);
-
-    const initialScrollIndexParams = useMemo(() => {
-        if (shouldFocusToTopOnMount) {
-            return {viewOffset: windowHeight};
-        }
-
-        if (initialScrollIndexViewOffset === undefined) {
-            return undefined;
-        }
-
-        return {viewOffset: initialScrollIndexViewOffset};
-    }, [initialScrollIndexViewOffset, shouldFocusToTopOnMount, windowHeight]);
-
     const renderedVisibleReportActions = useMemo(() => {
         if (!draftReportAction) {
             return sortedVisibleReportActions;
@@ -775,6 +516,23 @@ function ReportActionsList({
             reportScrollManager.scrollToBottom();
         });
     }, [draftAutoScrollKey, hasNewestReportAction, previousDraftAutoScrollKey, reportScrollManager, scrollOffsetRef, setIsFloatingMessageCounterVisible]);
+
+    useEffect(() => {
+        userActiveSince.current = DateUtils.getDBTime();
+        prevReportID = report.reportID;
+    }, [report.reportID]);
+
+    useScrollToEndOnNewMessageReceived({
+        sizeChangeType: 'changed',
+        scrollOffsetRef,
+        lastActionID: lastAction?.reportActionID,
+        visibleActionsLength: sortedVisibleReportActions.length,
+        hasNewestReportAction,
+        setIsFloatingMessageCounterVisible,
+        scrollToEnd: reportScrollManager.scrollToBottom,
+        // Include reportID so list-length / last-id baselines reset when the same screen instance shows another report.
+        resetKey: `${report.reportID}:${linkedReportActionID}`,
+    });
 
     useEffect(() => {
         userActiveSince.current = DateUtils.getDBTime();
@@ -1077,28 +835,28 @@ function ReportActionsList({
         requestAnimationFrame(() => setShouldAutoscrollToBottom(false));
     }, [isOffline, reportLoadingState?.hasOnceLoadedReportActions, shouldFocusToTopOnMount, setShouldAutoscrollToBottom]);
 
-    const handleInitialViewportItemMounted = useCallback(
-        (index: number) => {
-            if (!initialViewportRange || hasInitialViewportLoadedRef.current) {
-                return;
-            }
-
-            if (index < initialViewportRange.first || index > initialViewportRange.last) {
-                return;
-            }
-
-            mountedInitialViewportIndicesRef.current.add(index);
-
-            if (!isInitialViewportCovered(mountedInitialViewportIndicesRef.current, initialViewportRange, initialScrollIndex)) {
-                return;
-            }
-
-            hasInitialViewportLoadedRef.current = true;
-            setIsInitialViewportLoading(false);
-            handleListLoad();
-        },
-        [handleListLoad, initialScrollIndex, initialViewportRange, setIsInitialViewportLoading],
-    );
+    const {
+        initialViewportRange,
+        isInitialViewportLoading,
+        hasInitialScrollTarget,
+        shouldShowInitialViewportSkeleton,
+        shouldRenderFlashList,
+        initialScrollIndexParams,
+        handleInitialViewportItemMounted,
+        handleInitialScrollTargetLayout,
+        handleReportActionsListLayout,
+    } = useVerticallyCenteredInitialContent({
+        initialScrollKey,
+        sortedVisibleReportActions,
+        keyExtractor,
+        linkedReportActionID,
+        hasOlderActions,
+        reportLoadingState,
+        shouldFocusToTopOnMount,
+        listID,
+        report,
+        onLoad: handleListLoad,
+    });
 
     const handleFlashListLoaded = useCallback(() => {
         if (initialViewportRange) {
