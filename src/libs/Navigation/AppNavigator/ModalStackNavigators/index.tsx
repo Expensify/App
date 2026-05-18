@@ -478,6 +478,11 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.BANK_ACCOUNT_PURPOSE]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/BankAccountPurposePage').default,
     [SCREENS.SETTINGS.RULES.ROOT]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/ExpenseRulesPage').default,
     [SCREENS.SETTINGS.AGENTS.ADD]: () => require<ReactComponentModule>('../../../../pages/settings/Agents/AddAgentPage').default,
+    [SCREENS.SETTINGS.AGENTS.ADD_AVATAR]: () => require<ReactComponentModule>('../../../../pages/settings/Agents/Fields/AddAgentAvatarPage').default,
+    [SCREENS.SETTINGS.AGENTS.EDIT]: () => require<ReactComponentModule>('../../../../pages/settings/Agents/EditAgentPage').default,
+    [SCREENS.SETTINGS.AGENTS.EDIT_NAME]: () => require<ReactComponentModule>('../../../../pages/settings/Agents/Fields/EditNamePage').default,
+    [SCREENS.SETTINGS.AGENTS.EDIT_PROMPT]: () => require<ReactComponentModule>('../../../../pages/settings/Agents/Fields/EditPromptPage').default,
+    [SCREENS.SETTINGS.AGENTS.EDIT_AVATAR]: () => require<ReactComponentModule>('../../../../pages/settings/Agents/Fields/EditAgentAvatarPage').default,
     [SCREENS.SETTINGS.RULES.ADD]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/AddRulePage').default,
     [SCREENS.SETTINGS.RULES.ADD_MERCHANT]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/Fields/AddMerchantPage').default,
     [SCREENS.SETTINGS.RULES.ADD_RENAME_MERCHANT]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/Fields/AddRenameMerchantPage').default,
@@ -630,26 +635,26 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/export/NetSuiteTravelInvoicingJournalPostingPreferenceSelectPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/export/DynamicQuickbooksDesktopCompanyCardExpenseAccountSelectPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_COMPANY_CARD_SELECT]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/export/QuickbooksDesktopCompanyCardExpenseAccountSelectCardPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_COMPANY_CARD_SELECT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/export/DynamicQuickbooksDesktopCompanyCardExpenseAccountSelectCardPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/export/QuickbooksDesktopNonReimbursableDefaultVendorSelectPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/export/DynamicQuickbooksDesktopCompanyCardExpenseAccountPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/export/QuickbooksDesktopExportDateSelectPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_EXPORT_PREFERRED_EXPORTER]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/export/QuickbooksDesktopPreferredExporterConfigurationPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/export/DynamicQuickbooksDesktopExportDateSelectPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_EXPORT_PREFERRED_EXPORTER]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/export/DynamicQuickbooksDesktopPreferredExporterConfigurationPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_OUT_OF_POCKET_EXPENSE_ACCOUNT_SELECT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/export/DynamicQuickbooksDesktopOutOfPocketExpenseAccountSelectPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/export/QuickbooksDesktopOutOfPocketExpenseConfigurationPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/export/DynamicQuickbooksDesktopOutOfPocketExpenseConfigurationPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_OUT_OF_POCKET_EXPENSE_ENTITY_SELECT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/export/DynamicQuickbooksDesktopOutOfPocketExpenseEntitySelectPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_EXPORT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/export/DynamicQuickbooksDesktopExportPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_ADVANCED]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/advanced/QuickbooksDesktopAdvancedPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_ADVANCED]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/advanced/DynamicQuickbooksDesktopAdvancedPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_AUTO_SYNC]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/advanced/QuickbooksDesktopAutoSyncPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_ACCOUNTING_METHOD]: () =>
@@ -934,6 +939,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.LOCK.FAILED_TO_LOCK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Security/LockAccount/FailedToLockAccountPage').default,
     [SCREENS.WORKSPACE.HR_GUSTO_APPROVAL_MODE]: () => require<ReactComponentModule>('../../../../pages/workspace/hr/gusto/GustoApprovalModePage').default,
     [SCREENS.WORKSPACE.HR_GUSTO_FINAL_APPROVER]: () => require<ReactComponentModule>('../../../../pages/workspace/hr/gusto/GustoFinalApproverPage').default,
+    [SCREENS.WORKSPACE.HR_ZENEFITS_APPROVAL_MODE]: () => require<ReactComponentModule>('../../../../pages/workspace/hr/zenefits/ZenefitsApprovalModePage').default,
+    [SCREENS.WORKSPACE.HR_ZENEFITS_FINAL_APPROVER]: () => require<ReactComponentModule>('../../../../pages/workspace/hr/zenefits/ZenefitsFinalApproverPage').default,
     [SCREENS.WORKSPACE.REPORTS_DEFAULT_TITLE]: () => require<ReactComponentModule>('../../../../pages/workspace/reports/ReportsDefaultTitle').default,
     [SCREENS.WORKSPACE.RULES_AUTO_APPROVE_REPORTS_UNDER]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/RulesAutoApproveReportsUnderPage').default,
     [SCREENS.WORKSPACE.RULES_RANDOM_REPORT_AUDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/RulesRandomReportAuditPage').default,

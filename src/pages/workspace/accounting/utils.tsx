@@ -283,10 +283,10 @@ function getAccountingIntegrationData(
                     />
                 ),
                 onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_IMPORT.getRoute(policyID)),
-                onExportPagePress: () =>
-                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID))),
+                onExportPagePress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.path)),
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.ROUTE.QBD)),
-                onAdvancedPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED.getRoute(policyID)),
+                onAdvancedPagePress: () =>
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID))),
                 subscribedImportSettings: [
                     CONST.QUICKBOOKS_DESKTOP_CONFIG.ENABLE_NEW_CATEGORIES,
                     CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CLASSES,

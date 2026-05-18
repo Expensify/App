@@ -114,7 +114,12 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
                         isLoadingReportData: isLoadingReportData !== false,
                         shouldFetchReport,
                     };
-                    return <FullscreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+                    return (
+                        <FullscreenLoadingIndicator
+                            shouldUseGoBackButton
+                            reasonAttributes={reasonAttributes}
+                        />
+                    );
                 }
 
                 if (shouldShowNotFoundPage) {
@@ -128,7 +133,6 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
 
             return (
                 <WrappedComponent
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                     report={report}
                     betas={betas}
