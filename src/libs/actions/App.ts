@@ -12,7 +12,6 @@ import clearWorkboxRecoveryCaches from '@libs/clearWorkboxRecoveryCaches';
 import DateUtils from '@libs/DateUtils';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
-import willRouteNavigateToRHP from '@libs/Navigation/helpers/willRouteNavigateToRHP';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import isTrackOnboardingChoice from '@libs/OnboardingUtils';
 import {isPublicRoom, isValidReport} from '@libs/ReportUtils';
@@ -634,16 +633,9 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
         if (transitionFromOldDot) {
             Navigation.navigate(routeToNavigate);
         } else if (Navigation.isTopmostRouteModalScreen()) {
-            // `revealRouteBeforeDismissingModal` only works for fullscreen targets. Modal targets
-            // (e.g. workspace confirmation success) still need to open after the current RHP closes.
-            if (willRouteNavigateToRHP(routeToNavigate)) {
-                Navigation.dismissModal({
-                    afterTransition: () => Navigation.navigate(routeToNavigate),
-                });
-                return;
-            }
-
-            Navigation.revealRouteBeforeDismissingModal(routeToNavigate);
+            Navigation.dismissModal({
+                afterTransition: () => Navigation.navigate(routeToNavigate),
+            });
         } else {
             Navigation.navigate(routeToNavigate, {forceReplace: true});
         }
