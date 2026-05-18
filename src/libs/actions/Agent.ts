@@ -1,6 +1,5 @@
 import Onyx from 'react-native-onyx';
 import {read, write} from '@libs/API';
-import type {SetNameValuePairParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {resolveAvatarURI} from '@libs/Avatars/PresetAvatarCatalog';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
@@ -14,6 +13,10 @@ import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
 function openAgentsPage() {
     read(READ_COMMANDS.OPEN_AGENTS_PAGE, null);
+}
+
+function getAgentPrompt(agentAccountID: number) {
+    read(READ_COMMANDS.GET_AGENT_PROMPT, {agentAccountID});
 }
 
 function createAgent(firstName: string | undefined, prompt: string, customExpensifyAvatarID?: string, file?: File | CustomRNImageManipulatorResult, optimisticAvatarURI?: string) {
@@ -250,41 +253,6 @@ function updateAgentAvatar(
     write(WRITE_COMMANDS.UPDATE_AGENT_AVATAR, params, {optimisticData, successData, failureData});
 }
 
-function updateAgentPromptAsCopilot(accountID: number, prompt: string, originalPrompt: string) {
-    const onyxKey = `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`;
-
-    const optimisticData: AnyOnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: onyxKey,
-            value: {prompt, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, errors: null},
-        },
-    ];
-
-    const successData: AnyOnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: onyxKey,
-            value: {pendingAction: null, promptErrors: null},
-        },
-    ];
-
-    const failureData: AnyOnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: onyxKey,
-            value: {prompt: originalPrompt, pendingAction: null, promptErrors: getMicroSecondOnyxErrorWithTranslationKey('agentsPage.error.updatePrompt')},
-        },
-    ];
-
-    const parameters: SetNameValuePairParams = {
-        name: 'agentPrompt',
-        value: JSON.stringify({prompt}),
-    };
-
-    write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {optimisticData, successData, failureData});
-}
-
 function deleteAgent(accountID: number) {
     const optimisticData: AnyOnyxUpdate[] = [
         {
@@ -324,6 +292,7 @@ function deleteAgent(accountID: number) {
 
 export {
     openAgentsPage,
+    getAgentPrompt,
     createAgent,
     clearAgentError,
     clearAgentUpdateError,
@@ -334,6 +303,5 @@ export {
     updateAgentName,
     updateAgentPrompt,
     updateAgentAvatar,
-    updateAgentPromptAsCopilot,
     deleteAgent,
 };

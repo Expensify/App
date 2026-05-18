@@ -1359,6 +1359,7 @@ const READ_COMMANDS = {
     GET_TRANSACTIONS_MATCHING_CODING_RULE: 'GetTransactionsMatchingCodingRule',
     GET_ASSIGNED_SUPPORT_DATA: 'GetAssignedSupportData',
     OPEN_AGENTS_PAGE: 'OpenAgentsPage',
+    GET_AGENT_PROMPT: 'GetAgentPrompt',
 } as const;
 
 type ReadCommand = ValueOf<typeof READ_COMMANDS>;
@@ -1462,6 +1463,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.GET_TRANSACTIONS_MATCHING_CODING_RULE]: Parameters.GetTransactionsMatchingCodingRuleParams;
     [READ_COMMANDS.GET_ASSIGNED_SUPPORT_DATA]: null;
     [READ_COMMANDS.OPEN_AGENTS_PAGE]: null;
+    [READ_COMMANDS.GET_AGENT_PROMPT]: Parameters.GetAgentPromptParams;
 };
 
 const SIDE_EFFECT_REQUEST_COMMANDS = {

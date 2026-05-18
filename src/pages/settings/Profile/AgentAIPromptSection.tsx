@@ -10,7 +10,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearAgentPromptUpdateError, openAgentsPage, updateAgentPromptAsCopilot} from '@libs/actions/Agent';
+import {clearAgentPromptUpdateError, getAgentPrompt, updateAgentPrompt} from '@libs/actions/Agent';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -28,8 +28,8 @@ function AgentAIPromptSection({accountID}: AgentAIPromptSectionProps) {
     const inputRef = useRef<BaseTextInputRef>(null);
 
     useEffect(() => {
-        openAgentsPage();
-    }, []);
+        getAgentPrompt(accountID);
+    }, [accountID]);
 
     useEffect(() => {
         if (!isEditing || !agentPrompt?.promptErrors) {
@@ -53,7 +53,7 @@ function AgentAIPromptSection({accountID}: AgentAIPromptSectionProps) {
             inputRef.current?.focus();
             return;
         }
-        updateAgentPromptAsCopilot(accountID, trimmed, agentPrompt?.prompt ?? '');
+        updateAgentPrompt(accountID, trimmed, agentPrompt?.prompt ?? '');
         setIsEditing(false);
     };
 
