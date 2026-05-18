@@ -108,7 +108,6 @@ export type {default as UpdateHomeAddressParams} from './UpdateHomeAddressParams
 export type {default as UpdatePolicyAddressParams} from './UpdatePolicyAddressParams';
 export type {default as UpdateLegalNameParams} from './UpdateLegalNameParams';
 export type {default as UpdatePhoneNumberParams} from './UpdatePhoneNumberParams';
-export type {default as UpdatePrivatePersonalDetailsParams} from './UpdatePrivatePersonalDetailsParams';
 export type {default as UpdateNewsletterSubscriptionParams} from './UpdateNewsletterSubscriptionParams';
 export type {default as UpdatePersonalInformationForBankAccountParams} from './UpdatePersonalInformationForBankAccountParams';
 export type {default as UpdatePreferredEmojiSkinToneParams} from './UpdatePreferredEmojiSkinToneParams';
@@ -181,6 +180,7 @@ export type {default as ConnectPolicyToFinancialForceParams} from './ConnectPoli
 export type {default as UpdateFinancialForceGenericTypeParams} from './UpdateFinancialForceGenericTypeParams';
 export type {default as OpenWorkspaceInvitePageParams} from './OpenWorkspaceInvitePageParams';
 export type {default as OpenWorkspaceMembersPageParams} from './OpenWorkspaceMembersPageParams';
+export type {default as OpenWorkspaceRoomsPageParams} from './OpenWorkspaceRoomsPageParams';
 export type {default as OpenPolicyCategoriesPageParams} from './OpenPolicyCategoriesPageParams';
 export type {default as OpenPolicyTagsPageParams} from './OpenPolicyTagsPageParams';
 export type {default as VerifyAddSecondaryLoginCodeParams} from './VerifyAddSecondaryLoginCodeParams';

@@ -510,14 +510,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_ADDRESS,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS]: {
-                            path: ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE]: {
-                            path: ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE,
-                            exact: true,
-                        },
                         [SCREENS.SETTINGS.PROFILE.DYNAMIC_ADDRESS_COUNTRY]: DYNAMIC_ROUTES.ADDRESS_COUNTRY.path,
                         [SCREENS.SETTINGS.PROFILE.ADDRESS_STATE]: {
                             path: ROUTES.SETTINGS_ADDRESS_STATE.route,
@@ -2347,6 +2339,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 },
                                 [SCREENS.WORKSPACE.MEMBERS]: {
                                     path: ROUTES.WORKSPACE_MEMBERS.route,
+                                },
+                                [SCREENS.WORKSPACE.ROOMS]: {
+                                    path: ROUTES.WORKSPACE_ROOMS.route,
                                 },
                                 [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: {
                                     path: ROUTES.POLICY_ACCOUNTING.route,

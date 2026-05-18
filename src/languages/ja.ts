@@ -3272,7 +3272,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         enterPhoneNumber: '電話番号は何ですか？',
         personalDetails: '個人情報',
         privateDataMessage: 'これらの詳細は出張と支払いに使用されます。公開プロフィールに表示されることは決してありません。',
-        basicDetails: '基本情報',
         legalName: '法的氏名',
         legalFirstName: '法的な名',
         legalLastName: '法的な姓',
@@ -4309,6 +4308,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             travelInvoicingVendor: '出張ベンダー',
             travelInvoicingPayableAccount: '旅費未払金勘定',
             hr: '人事',
+            rooms: 'ルーム',
         },
         createdForClient: {
             title: 'クライアントのワークスペースを作成しました！',
@@ -5501,8 +5501,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                         subtitle: 'おめでとうございます！このワークスペースで旅行の予約と管理を行う準備ができました。',
                         manageTravelLabel: '出張を管理',
                     },
-                    centralInvoicingSection: {
-                        title: '集中請求',
+                    travelInvoicingSection: {
+                        title: '出張請求書作成',
                         subtitle: '購入時に支払うのではなく、すべての出張費を月次請求書に集約しましょう。',
                         learnHow: '詳しく見る',
                         subsections: {
@@ -5518,7 +5518,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                             reduceLimitTitle: '出張支出上限を引き下げますか？',
                             reduceLimitWarning: 'この上限を引き下げると、すでにこの金額を超えて支出しているメンバーは、翌月まで新しい出張予約ができなくなります。',
                             provisioningError:
-                                'ワークスペース内の一部メンバーを集中請求用にプロビジョニングできませんでした。時間をおいてもう一度お試しいただくか、サポートが必要な場合は Concierge までお問い合わせください。',
+                                'ワークスペース内の一部メンバーを旅行請求用にプロビジョニングできませんでした。時間をおいてもう一度お試しいただくか、サポートが必要な場合は Concierge までご連絡ください。',
                         },
                     },
                     disableModal: {
@@ -5535,7 +5535,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     exportToCSV: 'CSV にエクスポート',
                     selectDateRangeError: 'エクスポートする日付範囲を選択してください',
                     invalidDateRangeError: '開始日は終了日より前でなければなりません',
-                    enabled: '集中請求が有効になりました！',
+                    enabled: '出張請求書機能が有効になりました！',
                     enabledDescription: 'このワークスペースのすべての出張費は、今後、月次請求書で一元管理されます。',
                 },
                 personalDetailsDescription: '旅行を予約するために、政府発行の身分証明書に記載されているとおりの正式な氏名を入力してください。',
@@ -7015,6 +7015,17 @@ ${reportName}
                 syncError: 'Gusto に接続できません',
                 disconnectTitle: 'Gusto の接続を解除',
                 disconnectPrompt: 'Gusto との接続を本当に解除しますか？',
+                syncResults: {
+                    title: 'Gusto 同期結果',
+                    successTitle: 'Gusto との連携が正常に同期されました！',
+                    added: '追加済み',
+                    removed: '削除済み',
+                    skipped: 'スキップ済み',
+                    employeeCount: () => ({
+                        one: '1 従業員',
+                        other: (count: number) => `${count} 従業員`,
+                    }),
+                },
             },
             zenefits: {
                 title: 'TriNet',
@@ -7739,7 +7750,7 @@ ${reportName}
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `すべての${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `すべてのCSVインポート済みカード${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
-                centralInvoicing: '集中請求',
+                travelInvoicing: '出張請求書作成',
             },
             reportField: (name: string, value: string) => `${name} は ${value} です`,
             current: '現在',
@@ -7771,9 +7782,9 @@ ${reportName}
             },
             feed: 'フィード',
             withdrawalType: {
-                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: '払い戻し',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: '一括請求',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify カード',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: '精算',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: '出張請求書作成',
             },
             is: 'は',
             action: {
@@ -8188,7 +8199,7 @@ ${reportName}
         personalCard: '個人のカード',
         companyCard: '会社カード',
         expensifyCard: 'Expensify カード',
-        centralInvoicing: '集中請求',
+        travelInvoicing: '出張請求書作成',
         travelCard: 'トラベルカード',
     },
     distance: {

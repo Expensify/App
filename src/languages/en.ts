@@ -3381,7 +3381,6 @@ const translations = {
         enterPhoneNumber: "What's your phone number?",
         personalDetails: 'Personal details',
         privateDataMessage: 'These details are used for travel and payments. They are never shown on your public profile.',
-        basicDetails: 'Basic details',
         legalName: 'Legal name',
         legalFirstName: 'Legal first name',
         legalLastName: 'Legal last name',
@@ -4318,6 +4317,7 @@ const translations = {
             perDiem: 'Per diem',
             travel: 'Travel',
             members: 'Members',
+            rooms: 'Rooms',
             accounting: 'Accounting',
             hr: 'HR',
             receiptPartners: 'Receipt partners',
@@ -5593,8 +5593,8 @@ const translations = {
                         subtitle: "Congrats! You're all set to book and manage travel on this workspace.",
                         manageTravelLabel: 'Manage travel',
                     },
-                    centralInvoicingSection: {
-                        title: 'Central invoicing',
+                    travelInvoicingSection: {
+                        title: 'Travel invoicing',
                         subtitle: 'Centralize all travel spend in a monthly invoice instead of paying at time of purchase.',
                         learnHow: 'Learn how.',
                         subsections: {
@@ -5610,7 +5610,7 @@ const translations = {
                             reduceLimitTitle: 'Reduce travel spend limit?',
                             reduceLimitWarning: 'If you reduce the limit, members who have already spent more than this amount will be unable to make new travel bookings until next month.',
                             provisioningError:
-                                "We weren't able to provision some of the members of your workspace for central invoicing. Please try again later or reach out to Concierge for assistance.",
+                                "We weren't able to provision some of the members of your workspace for travel invoicing. Please try again later or reach out to Concierge for assistance.",
                         },
                     },
                     disableModal: {
@@ -5631,7 +5631,7 @@ const translations = {
                     exportToCSV: 'Export to CSV',
                     selectDateRangeError: 'Please select a date range to export',
                     invalidDateRangeError: 'The start date must be before the end date',
-                    enabled: 'Central Invoicing enabled!',
+                    enabled: 'Travel Invoicing enabled!',
                     enabledDescription: 'All travel spend on this workspace will now be centralized in a monthly invoice.',
                 },
                 personalDetailsDescription: 'In order to book travel, please enter your legal name as it appears on your government-issued ID.',
@@ -6468,6 +6468,17 @@ const translations = {
                         label: 'Custom approval',
                         description: 'I’ll manually setup approval workflows in Expensify.',
                     },
+                },
+                syncResults: {
+                    title: 'Gusto sync results',
+                    successTitle: 'Successfully synced your Gusto connection!',
+                    added: 'Added',
+                    removed: 'Removed',
+                    skipped: 'Skipped',
+                    employeeCount: () => ({
+                        one: '1 employee',
+                        other: (count: number) => `${count} employees`,
+                    }),
                 },
             },
             zenefits: {
@@ -7882,7 +7893,7 @@ const translations = {
             },
             card: {
                 expensify: 'Expensify',
-                centralInvoicing: 'Central invoicing',
+                travelInvoicing: 'Travel invoicing',
                 individualCards: 'Individual cards',
                 closedCards: 'Closed cards',
                 cardFeeds: 'Card feeds',
@@ -7922,7 +7933,7 @@ const translations = {
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Reimbursement',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Central invoicing',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Travel invoicing',
             },
             is: 'Is',
             action: {
@@ -8316,7 +8327,7 @@ const translations = {
         personalCard: 'Personal card',
         companyCard: 'Company card',
         expensifyCard: 'Expensify Card',
-        centralInvoicing: 'Central invoicing',
+        travelInvoicing: 'Travel invoicing',
         travelCard: 'Travel Card',
     },
     distance: {
