@@ -35,8 +35,8 @@ import {
     isGustoConnected,
     isHRIntegrationConnected,
     isTimeTrackingEnabled,
-    shouldShowUpgradeSubmitPolicy,
     isZenefitsConnected,
+    shouldShowUpgradeSubmitPolicy,
 } from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';

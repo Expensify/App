@@ -42,6 +42,11 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 return;
             }
 
+            if (canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled)) {
+                Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias, ROUTES.POLICY_ACCOUNTING.getRoute(policyID)));
+                return;
+            }
+
             const accountingIntegrationData = getAccountingIntegrationData(
                 newActiveIntegration.name,
                 policyID,
@@ -54,10 +59,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 undefined,
                 accountingIcons,
             );
-            if (canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled)) {
-                Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias, ROUTES.POLICY_ACCOUNTING.getRoute(policyID)));
-                return;
-            }
+
             const workspaceUpgradeNavigationDetails = accountingIntegrationData?.workspaceUpgradeNavigationDetails;
             if (workspaceUpgradeNavigationDetails && !isControlPolicy(policy)) {
                 Navigation.navigate(
