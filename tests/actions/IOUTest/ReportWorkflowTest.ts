@@ -3664,13 +3664,13 @@ describe('actions/IOU/ReportWorkflow', () => {
             const chatReportID = '1401';
             const policyID = '1402';
 
-            // REIMBURSEMENT_NO policy with no approval mode — submitted reports go straight to pay
             const fakePolicy: Policy = {
                 ...createRandomPolicy(Number(policyID)),
                 id: policyID,
                 type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
                 role: CONST.POLICY.ROLE.ADMIN,
-                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
             };
 
             const fakeChatReport: Report = {
@@ -3679,9 +3679,8 @@ describe('actions/IOU/ReportWorkflow', () => {
                 policyID,
             };
 
-            // Non-reimbursable-only report: total=0, nonReimbursableTotal=-5000
-            // canBePaidNow returns false (REIMBURSEMENT_NO early-exits when onlyShowPayElsewhere=false)
-            // canBePaidElsewhere returns true (SUBMITTED status + non-reimbursable spend)
+            // Non-reimbursable-only report: total and nonReimbursableTotal are equal.
+            // canBePaidElsewhere returns true (admin payer + isOnlyNonReimbursablePayElsewhere).
             // But since all transactions are non-reimbursable, PAY badge should be skipped.
             // Use a different managerID so canApproveIOU also returns false (current user is not the manager).
             const fakeIouReport: Report = {
@@ -3689,10 +3688,10 @@ describe('actions/IOU/ReportWorkflow', () => {
                 reportID: iouReportID,
                 type: CONST.REPORT.TYPE.EXPENSE,
                 policyID,
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
                 managerID: 999999,
-                total: 0,
+                total: -5000,
                 nonReimbursableTotal: -5000,
                 isWaitingOnBankAccount: false,
             };
