@@ -195,13 +195,13 @@ function HelpPage() {
                         subtitleMuted
                         isCentralPane
                         illustrationContainerStyle={styles.cardSectionIllustrationContainer}
-                        illustrationBackgroundColor={isApprovedAccountant ? colors.green700 : colors.ice800}
-                        illustration={isApprovedAccountant ? themeIllustrations.ExpensifyApprovedLogo : illustrations.TopiaryDollarSign}
+                        illustrationBackgroundColor={colors.ice800}
+                        illustration={isApprovedAccountant ? themeIllustrations.ExpensifyApprovedBadge : illustrations.TopiaryDollarSign}
                         illustrationStyle={styles.helpStaticIllustration}
                     >
                         {isApprovedAccountant ? (
                             <>
-                                <View style={[styles.flex1, styles.mt5, styles.gap5]}>
+                                <View style={[styles.flex1, styles.mt8, styles.gap5]}>
                                     {!!partnerManagerItem && (
                                         <View>
                                             <Text style={[styles.textLabelSupportingNormal]}>{translate('initialSettingsPage.helpPage.partnerManager')}</Text>

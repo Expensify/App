@@ -3,6 +3,7 @@ import GenericCSVCompanyCardLarge from '@assets/images/companyCards/large/generi
 import GenericCompanyCardLarge from '@assets/images/companyCards/large/generic-dark-large.svg';
 import FileImportTable from '@assets/images/companyCards/table-dark.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
+import ExpensifyApprovedBadge from '@assets/images/exfy_approved_badge.svg';
 import EmptyStateBackgroundImage from '@assets/images/themeDependent/empty-state_background-fade-dark.svg';
 import ExampleCheckEN from '@assets/images/themeDependent/example-check-image-dark-en.png';
 import ExampleCheckES from '@assets/images/themeDependent/example-check-image-dark-es.png';
@@ -15,6 +16,7 @@ const illustrations = {
     ExampleCheckES,
     WorkspaceProfile,
     ExpensifyApprovedLogo,
+    ExpensifyApprovedBadge,
     GenericCompanyCard,
     GenericCompanyCardLarge,
     GenericCSVCompanyCardLarge,
