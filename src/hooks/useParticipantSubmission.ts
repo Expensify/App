@@ -5,6 +5,7 @@ import {READ_COMMANDS} from '@libs/API/types';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import HttpUtils from '@libs/HttpUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {skipNextFocusRestore} from '@libs/NavigationFocusReturn';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {findSelfDMReportID, generateReportID, isInvoiceRoomWithID} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -364,6 +365,8 @@ function useParticipantSubmission({
             : iouConfirmationPageRoute;
 
         KeyboardUtils.dismissKeyboardAndExecute(() => {
+            // Skip the focus restore so the confirm page doesn't auto-focus the back button.
+            skipNextFocusRestore();
             // If the backTo parameter is set, we should navigate back to the confirmation screen that is already on the stack.
             // We wrap navigation in setNavigationActionToMicrotaskQueue so that data loading in Onyx and navigation do not occur simultaneously, which resets the amount to 0.
             // More information can be found here: https://github.com/Expensify/App/issues/73728

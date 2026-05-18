@@ -5,7 +5,6 @@ import FOCUSABLE_SELECTOR from '@libs/focusableSelector';
 import hasFocusableAttributes from '@libs/focusGuards';
 import getHadTabNavigation from '@libs/hadTabNavigation';
 import {Priorities, tryClaim} from '@libs/ScreenFocusArbiter';
-import CONST from '@src/CONST';
 import type UseDialogContainerFocus from './types';
 
 function focusFirstInteractiveElement(container: HTMLElement | null): boolean {
@@ -13,7 +12,7 @@ function focusFirstInteractiveElement(container: HTMLElement | null): boolean {
         return false;
     }
     const targets = container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
-    const target = Array.from(targets).find((el) => hasFocusableAttributes(el) && el.id !== CONST.BACK_BUTTON_NATIVE_ID);
+    const target = Array.from(targets).find(hasFocusableAttributes);
     if (!target) {
         return false;
     }
