@@ -6323,7 +6323,11 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 chooseBankAccount: 'Expensify カードの支払いを照合する銀行口座を選択してください。',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `継続消込が正しく機能するように、この口座が、末尾が ${lastFourPAN} の<a href="${settlementAccountUrl}">Expensify カード精算口座</a>と一致していることを確認してください。`,
+                chooseTravelInvoicingBankAccount: '出張請求の支払いの消込に使用する銀行口座を選択してください。',
+                travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
+                    `Continuous Reconciliation が正しく機能するように、この口座が、旅行の請求書決済用口座（末尾が ${lastFourPAN} の口座）と一致していることを確認してください。`,
             },
+            syncTravelInvoicingSettlements: '出張請求の精算を同期',
         },
         export: {
             notReadyHeading: 'エクスポートの準備ができていません',
@@ -7045,6 +7049,10 @@ ${reportName}
                         other: (count: number) => `${count} 従業員`,
                     }),
                 },
+            },
+            merge: {
+                approvalMode: '承認モード',
+                finalApprover: '最終承認者',
             },
             zenefits: {
                 title: 'TriNet',

@@ -6426,7 +6426,11 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 chooseBankAccount: 'Choisissez le compte bancaire avec lequel les paiements de votre Carte Expensify seront rapprochés.',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `Assurez-vous que ce compte correspond à votre <a href="${settlementAccountUrl}">compte de règlement Carte Expensify</a> (se terminant par ${lastFourPAN}) afin que la réconciliation continue fonctionne correctement.`,
+                chooseTravelInvoicingBankAccount: 'Choisissez le compte bancaire sur lequel les paiements de facturation de voyage seront rapprochés.',
+                travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
+                    `Assurez-vous que ce compte correspond à votre compte de règlement de facturation de voyage (se terminant par ${lastFourPAN}) afin que le rapprochement continu fonctionne correctement.`,
             },
+            syncTravelInvoicingSettlements: 'Synchroniser les règlements de facturation de voyage',
         },
         export: {
             notReadyHeading: 'Pas prêt à être exporté',
@@ -7160,6 +7164,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                         other: (count: number) => `${count} employés`,
                     }),
                 },
+            },
+            merge: {
+                approvalMode: 'Mode d’approbation',
+                finalApprover: 'Approbateur final',
             },
             zenefits: {
                 title: 'TriNet',

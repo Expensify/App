@@ -133,8 +133,9 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
             danger: true,
         });
         if (action === ModalActions.CONFIRM) {
-            deactivateCardAction(defaultFundID, card);
-            Navigation.goBack();
+            Navigation.goBack(undefined, {
+                afterTransition: () => deactivateCardAction(defaultFundID, card),
+            });
         }
     };
 

@@ -418,6 +418,9 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
 
     const mappedOptions = originalSelectedTransactionsOptions.map((option) => {
         if (option.value === CONST.REPORT.SECONDARY_ACTIONS.DELETE) {
+            if (option.shouldSkipDeleteModal) {
+                return option;
+            }
             return {...option, onSelected: showDeleteModal};
         }
         if (option.value === CONST.REPORT.SECONDARY_ACTIONS.REJECT) {
