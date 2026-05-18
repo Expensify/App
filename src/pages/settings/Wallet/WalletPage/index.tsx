@@ -6,7 +6,6 @@ import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} fr
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import KYCWall from '@components/KYCWall';
@@ -670,8 +669,11 @@ function WalletPage() {
                 shouldShowOfflineIndicatorInWideScreen
             >
                 {headerWithBackButton}
-                <View style={styles.flex1}>
-                    <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />
+                <View style={[styles.flex1, styles.fullScreenLoading]}>
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        reasonAttributes={reasonAttributes}
+                    />
                 </View>
             </ScreenWrapper>
         );

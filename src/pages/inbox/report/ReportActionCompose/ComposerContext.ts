@@ -2,9 +2,14 @@ import type {RefObject} from 'react';
 import {createContext, useContext} from 'react';
 import type {BlurEvent, TextInputSelectionChangeEvent, View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
+import type {TextSelection} from '@components/Composer/types';
 import type {Mention} from '@components/MentionSuggestions';
+import type {ReportActionEditMessageState} from '@pages/inbox/report/ReportActionEditMessageContext';
+import CONST from '@src/CONST';
+import type {ReportAction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
-import type {ComposerRef} from './ComposerWithSuggestions/ComposerWithSuggestions';
+import type {ComposerWithSuggestionsRef} from './ComposerWithSuggestions';
+import type useDebouncedCommentMaxLengthValidation from './useDebouncedCommentMaxLengthValidation';
 
 type SuggestionsRef = {
     resetSuggestions: () => void;
@@ -26,12 +31,27 @@ type ComposerState = {
     isFullComposerAvailable: boolean;
 };
 
+type ComposerEditState = {
+    editingState: ReportActionEditMessageState;
+    isEditingInComposer: boolean;
+    editingReportID: string | null;
+    editingReportActionID: string | null;
+    editingReportAction: ReportAction | null;
+    editingMessage: string | null;
+    draftComment: string | undefined;
+    effectiveDraft: string | null | undefined;
+    currentEditMessageSelection: TextSelection | null;
+    didResetComposerHeightWhileEditing: boolean;
+};
+
 // Warm — changes based on content + policy
 type ComposerSendState = {
     isSendDisabled: boolean;
+    debouncedCommentMaxLengthValidation: ReturnType<typeof useDebouncedCommentMaxLengthValidation>['debouncedCommentMaxLengthValidation'] | null;
+    isExceedingMaxLength: boolean;
     exceededMaxLength: number | null;
-    hasExceededMaxTaskTitleLength: boolean;
     isBlockedFromConcierge: boolean;
+    isTaskTitle: boolean;
 };
 
 // Frozen — stable references, never changes after mount
@@ -39,8 +59,7 @@ type ComposerActions = {
     setText: (v: string) => void;
     setMenuVisibility: (v: boolean) => void;
     setIsFullComposerAvailable: (v: boolean) => void;
-    setComposerRef: (ref: ComposerRef | null) => void;
-    focus: () => void;
+    setComposerRef: (ref: ComposerWithSuggestionsRef | null) => void;
     onBlur: (event: BlurEvent) => void;
     onFocus: () => void;
     onAddActionPressed: () => void;
@@ -49,16 +68,16 @@ type ComposerActions = {
     clearComposer: () => void;
 };
 
-// Infrequent — changes only when send logic changes
-type ComposerSendActions = {
-    handleSendMessage: () => void;
-    onValueChange: (value: string) => void;
+type ComposerEditActions = {
+    publishDraft: (draftMessage: string) => void;
+    deleteDraft: () => void;
+    setDidResetComposerHeightWhileEditing: (v: boolean) => void;
 };
 
 // Frozen — stable refs, set once
 type ComposerMeta = {
     containerRef: RefObject<View | null>;
-    composerRef: RefObject<ComposerRef | null>;
+    composerRef: RefObject<ComposerWithSuggestionsRef | null>;
     suggestionsRef: RefObject<SuggestionsRef | null>;
     actionButtonRef: RefObject<View | HTMLDivElement | null>;
     isNextModalWillOpenRef: RefObject<boolean>;
@@ -78,10 +97,27 @@ const ComposerStateContext = createContext<ComposerState>(defaultState);
 
 const defaultSendState: ComposerSendState = {
     isSendDisabled: true,
+    debouncedCommentMaxLengthValidation: null,
+    isExceedingMaxLength: false,
     exceededMaxLength: null,
-    hasExceededMaxTaskTitleLength: false,
     isBlockedFromConcierge: false,
+    isTaskTitle: false,
 };
+
+const defaultEditState: ComposerEditState = {
+    editingState: CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.OFF,
+    isEditingInComposer: false,
+    editingReportID: null,
+    editingReportActionID: null,
+    editingReportAction: null,
+    editingMessage: null,
+    draftComment: undefined,
+    effectiveDraft: undefined,
+    currentEditMessageSelection: null,
+    didResetComposerHeightWhileEditing: false,
+};
+const ComposerEditStateContext = createContext<ComposerEditState>(defaultEditState);
+
 const ComposerSendStateContext = createContext<ComposerSendState>(defaultSendState);
 
 const defaultActions: ComposerActions = {
@@ -89,7 +125,6 @@ const defaultActions: ComposerActions = {
     setMenuVisibility: noop,
     setIsFullComposerAvailable: noop,
     setComposerRef: noop,
-    focus: noop,
     onBlur: noop,
     onFocus: noop,
     onAddActionPressed: noop,
@@ -99,11 +134,12 @@ const defaultActions: ComposerActions = {
 };
 const ComposerActionsContext = createContext<ComposerActions>(defaultActions);
 
-const defaultSendActions: ComposerSendActions = {
-    handleSendMessage: noop,
-    onValueChange: noop,
+const defaultEditActions: ComposerEditActions = {
+    publishDraft: noop,
+    deleteDraft: noop,
+    setDidResetComposerHeightWhileEditing: noop,
 };
-const ComposerSendActionsContext = createContext<ComposerSendActions>(defaultSendActions);
+const ComposerEditActionsContext = createContext<ComposerEditActions>(defaultEditActions);
 
 const ComposerMetaContext = createContext<ComposerMeta | null>(null);
 
@@ -115,6 +151,10 @@ function useComposerState() {
     return useContext(ComposerStateContext);
 }
 
+function useComposerEditState() {
+    return useContext(ComposerEditStateContext);
+}
+
 function useComposerSendState() {
     return useContext(ComposerSendStateContext);
 }
@@ -123,8 +163,8 @@ function useComposerActions() {
     return useContext(ComposerActionsContext);
 }
 
-function useComposerSendActions() {
-    return useContext(ComposerSendActionsContext);
+function useComposerEditActions() {
+    return useContext(ComposerEditActionsContext);
 }
 
 function useComposerMeta() {
@@ -138,15 +178,17 @@ function useComposerMeta() {
 export {
     ComposerTextContext,
     ComposerStateContext,
+    ComposerEditStateContext,
     ComposerSendStateContext,
     ComposerActionsContext,
-    ComposerSendActionsContext,
+    ComposerEditActionsContext,
     ComposerMetaContext,
     useComposerText,
     useComposerState,
+    useComposerEditState,
     useComposerSendState,
     useComposerActions,
-    useComposerSendActions,
+    useComposerEditActions,
     useComposerMeta,
 };
-export type {SuggestionsRef};
+export type {SuggestionsRef, ComposerEditState, ComposerActions};
