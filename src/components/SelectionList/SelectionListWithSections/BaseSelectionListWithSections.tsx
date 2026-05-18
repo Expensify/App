@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
 import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
-import React, {useImperativeHandle, useRef} from 'react';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {TextInputKeyPressEvent} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -27,7 +27,9 @@ import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import Log from '@libs/Log';
+import {isFocusRestoreInProgress} from '@libs/NavigationFocusReturn';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import type {FlattenedItem, ListItem, SelectionListWithSectionsProps} from './types';
@@ -71,12 +73,16 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     shouldDebounceScrolling = false,
     shouldUpdateFocusedIndex = false,
     shouldScrollToFocusedIndex = true,
+    shouldHighlightInitiallyFocusedItem = false,
+    shouldClearInputOnSelect = true,
     shouldSingleExecuteRowSelect = false,
     shouldPreventDefaultFocusOnSelectRow = false,
+    shouldPreventAutoScrollOnSelect = false,
     isRowMultilineSupported = false,
     titleNumberOfLines,
-    shouldUseDefaultRightHandSideComponent,
-    shouldDisableHoverStyle = false,
+    shouldHighlightSelectedItem,
+    shouldDisableHoverStyle,
+    selectionButtonPosition,
     setShouldDisableHoverStyle = () => {},
 }: SelectionListWithSectionsProps<TItem>) {
     const styles = useThemeStyles();
@@ -87,6 +93,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const innerTextInputRef = useRef<BaseTextInputRef | null>(null);
     const isTextInputFocusedRef = useRef<boolean>(false);
     const hasKeyBeenPressed = useRef(false);
+    const [isKeyboardNavigating, setIsKeyboardNavigating] = useState(false);
     const suppressNextFocusScrollRef = useRef(false);
     const activeElementRole = useActiveElementRole();
     const {isKeyboardShown} = useKeyboardState();
@@ -101,9 +108,24 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             return;
         }
         hasKeyBeenPressed.current = true;
+        setIsKeyboardNavigating(true);
     };
 
-    const scrollToIndex = (index: number) => {
+    // Arrow keys are handled via setHasKeyBeenPressed in useArrowKeyFocusManager.
+    // Tab also needs to trigger the flag so rows highlight when the user tabs into the list.
+    useEffect(() => {
+        const handleTabKeyDown = (event: KeyboardEvent) => {
+            if (event.key !== CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
+                return;
+            }
+            setHasKeyBeenPressed();
+        };
+
+        addKeyDownPressListener(handleTabKeyDown);
+        return () => removeKeyDownPressListener(handleTabKeyDown);
+    }, []);
+
+    const scrollToIndex = (index: number, animated = true) => {
         if (index < 0 || index >= flattenedData.length || !listRef.current) {
             return;
         }
@@ -112,7 +134,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             return;
         }
         try {
-            listRef.current.scrollToIndex({index});
+            listRef.current.scrollToIndex({index, animated});
         } catch (error) {
             // FlashList may throw if layout for this index doesn't exist yet
             // This can happen when data changes rapidly (e.g., during search filtering)
@@ -141,8 +163,28 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         },
         setHasKeyBeenPressed,
         isFocused: isScreenFocused,
-        onArrowUpDownCallback: () => setShouldDisableHoverStyle(true),
+        onArrowUpDownCallback: () => {
+            setShouldDisableHoverStyle(true);
+            listRef.current?.announceProgrammaticScroll();
+        },
     });
+
+    // Move the cursor, and skip the scroll the move would otherwise trigger when the index actually changes.
+    const setFocusedIndexWithoutScrollOnChange = (index: number) => {
+        if (index !== focusedIndex) {
+            suppressNextFocusScrollRef.current = true;
+        }
+        setFocusedIndex(index);
+    };
+
+    // Keep the cursor on the restored row so keyboard nav continues from there, but don't scroll to it on the way back.
+    const setFocusedIndexFromRowFocus = (index: number) => {
+        if (isFocusRestoreInProgress()) {
+            setFocusedIndexWithoutScrollOnChange(index);
+        } else {
+            setFocusedIndex(index);
+        }
+    };
 
     const getFocusedItem = (): TItem | undefined => {
         if (focusedIndex < 0 || focusedIndex >= flattenedData.length) {
@@ -160,16 +202,16 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             return;
         }
         if (canSelectMultiple) {
-            if (sections.length > 1 && !isItemSelected(item)) {
+            if (!shouldPreventAutoScrollOnSelect && sections.length > 1 && !isItemSelected(item)) {
                 scrollToIndex(0);
             }
 
-            if (shouldShowTextInput) {
+            if (shouldShowTextInput && shouldClearInputOnSelect) {
                 textInputOptions?.onChangeText?.('');
             }
         }
         if (shouldUpdateFocusedIndex && typeof indexToFocus === 'number') {
-            setFocusedIndex(indexToFocus);
+            setFocusedIndexWithoutScrollOnChange(indexToFocus);
         }
         onSelectRow(item);
 
@@ -252,10 +294,11 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     );
 
     const textInputKeyPress = (event: TextInputKeyPressEvent) => {
-        const key = event.nativeEvent.key;
-        if (key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
-            focusedItemRef?.focus();
+        if (event.nativeEvent.key !== CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
+            return;
         }
+        setHasKeyBeenPressed();
+        focusedItemRef?.focus();
     };
 
     useSelectedItemFocusSync({
@@ -267,6 +310,10 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         setFocusedIndex,
     });
 
+    const suppressNextFocusScroll = () => {
+        suppressNextFocusScrollRef.current = true;
+    };
+
     useSearchFocusSync({
         searchValue: textInputOptions?.value,
         data: flattenedData,
@@ -276,7 +323,9 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         shouldUpdateFocusedIndex,
         scrollToIndex,
         setFocusedIndex,
+        focusedIndex,
         firstFocusableIndex,
+        suppressNextFocusScroll,
     });
 
     const textInputComponent = () => {
@@ -333,7 +382,8 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             }
             case CONST.SECTION_LIST_ITEM_TYPE.ROW: {
                 const isItemFocused = index === focusedIndex;
-                const isDisabled = !!item.isDisabled;
+                const isItemVisuallyFocused = isItemFocused && (shouldHighlightInitiallyFocusedItem || isKeyboardNavigating);
+                const isDisabled = !!item.isDisabled && !item.isSelected;
 
                 return (
                     <ListItemRenderer
@@ -344,23 +394,23 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         index={index}
                         normalizedIndex={index}
                         isFocused={isItemFocused}
+                        isFocusVisible={isItemVisuallyFocused}
                         isDisabled={isDisabled}
                         canSelectMultiple={canSelectMultiple}
                         shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
                         onDismissError={onDismissError}
-                        shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                         rightHandSideComponent={rightHandSideComponent}
-                        setFocusedIndex={setFocusedIndex}
+                        setFocusedIndex={setFocusedIndexFromRowFocus}
                         singleExecution={singleExecution}
-                        shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
-                        shouldHighlightSelectedItem
+                        shouldSyncFocus={!isTextInputFocusedRef.current && isKeyboardNavigating}
                         shouldIgnoreFocus={shouldIgnoreFocus}
                         wrapperStyle={style?.listItemWrapperStyle}
                         titleStyles={style?.listItemTitleStyles}
                         isMultilineSupported={isRowMultilineSupported}
                         titleNumberOfLines={titleNumberOfLines}
-                        shouldUseDefaultRightHandSideComponent={shouldUseDefaultRightHandSideComponent}
+                        shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                         shouldDisableHoverStyle={shouldDisableHoverStyle}
+                        selectionButtonPosition={selectionButtonPosition}
                         shouldPreventEnterKeySubmit={!disableKeyboardShortcuts}
                     />
                 );

@@ -1,36 +1,23 @@
 import React from 'react';
-import BlockingView from '@components/BlockingViews/BlockingView';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
-import type {ListItem} from '@components/SelectionList/types';
-import SelectionScreen from '@components/SelectionScreen';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
+import type {SelectorType} from '@components/SelectionScreen';
 import {clearQBOErrorField} from '@libs/actions/Policy/Policy';
 import {updateConnectionConfig} from '@libs/actions/PolicyConnections';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
+import TravelInvoicingVendorSelectPage from '@pages/workspace/accounting/common/TravelInvoicingVendorSelectPage';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-type CardListItem = ListItem & {
-    value: string;
-};
-
 function QuickbooksExportTravelVendorSelectPage({policy}: WithPolicyConnectionsProps) {
-    const {translate} = useLocalize();
-    const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
-
     const {vendors} = policy?.connections?.quickbooksOnline?.data ?? {};
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
 
     const policyID = policy?.id ?? String(CONST.DEFAULT_NUMBER_ID);
-    const data: CardListItem[] =
+    const backPath = ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TRAVEL_INVOICING_CONFIGURATION.getRoute(policyID);
+    const data: Array<SelectorType<string>> =
         vendors?.map((vendor) => ({
             value: vendor.id,
             text: vendor.name,
@@ -38,44 +25,25 @@ function QuickbooksExportTravelVendorSelectPage({policy}: WithPolicyConnectionsP
             isSelected: vendor.id === qboConfig?.travelInvoicingVendorID,
         })) ?? [];
 
-    const selectVendor = (row: CardListItem) => {
+    const selectVendor = (row: SelectorType<string>) => {
         if (row.value !== qboConfig?.travelInvoicingVendorID) {
             updateConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, {travelInvoicingVendorID: row.value}, {travelInvoicingVendorID: qboConfig?.travelInvoicingVendorID});
         }
-        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TRAVEL_INVOICING_CONFIGURATION.getRoute(policyID));
+        Navigation.goBack(backPath);
     };
 
-    const getListEmptyContent = () => (
-        <BlockingView
-            icon={illustrations.Telescope}
-            iconWidth={variables.emptyListIconWidth}
-            iconHeight={variables.emptyListIconHeight}
-            title={translate('workspace.qbo.noAccountsFound')}
-            subtitle={translate('workspace.qbo.noAccountsFoundDescription')}
-            containerStyle={styles.pb10}
-        />
-    );
-
-    const listEmptyContent = getListEmptyContent();
-
     return (
-        <SelectionScreen
+        <TravelInvoicingVendorSelectPage
             policyID={policyID}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="QuickbooksExportTravelVendorSelectPage"
-            title="workspace.common.travelInvoicingVendor"
             data={data}
-            listItem={RadioListItem}
-            onSelectRow={selectVendor}
-            shouldSingleExecuteRowSelect
-            initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
-            listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TRAVEL_INVOICING_CONFIGURATION.getRoute(policyID))}
+            emptyStateTitle="workspace.qbo.noAccountsFound"
+            emptyStateSubtitle="workspace.qbo.noAccountsFoundDescription"
+            onSelect={selectVendor}
+            onBack={() => Navigation.goBack(backPath)}
             pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_VENDOR], qboConfig?.pendingFields)}
             errors={getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_VENDOR)}
-            errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_VENDOR)}
         />
     );

@@ -152,7 +152,7 @@ Onyx.connectWithoutView({
             }
         }
 
-        if (!isInitialized && persistedRequests.length > 0) {
+        if (!isInitialized && (persistedRequests.length > 0 || !!ongoingRequest)) {
             Log.info('[PersistedRequests] Triggering initialization callback', false);
             triggerInitializationCallback();
         }
@@ -172,6 +172,11 @@ Onyx.connectWithoutView({
             diskValue: val?.command ?? 'null',
             changed: previousOngoingRequest !== ongoingRequest,
         });
+
+        if (isInitialized && ongoingRequest && previousOngoingRequest !== ongoingRequest) {
+            Log.info('[PersistedRequests] Triggering initialization callback from ongoing request', false);
+            triggerInitializationCallback();
+        }
     },
 });
 
@@ -320,13 +325,30 @@ function update<TKey extends OnyxKey>(oldRequestIndex: number, newRequest: Reque
     return trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests));
 }
 
+function shouldPersistOngoingRequest(request: AnyRequest | null): boolean {
+    if (!request?.data) {
+        return true;
+    }
+
+    return !Object.values(request.data).some((value) => {
+        const isFile = typeof File !== 'undefined' && value instanceof File;
+        const isBlob = typeof Blob !== 'undefined' && value instanceof Blob;
+        return isFile || isBlob;
+    });
+}
+
 function updateOngoingRequest<TKey extends OnyxKey>(newRequest: Request<TKey>) {
     Log.info('[PersistedRequests] Updating the ongoing request', false, {ongoingRequest, newRequest});
     ongoingRequest = newRequest as AnyRequest;
 
-    if (newRequest.persistWhenOngoing) {
-        Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, newRequest as AnyRequest);
+    if (shouldPersistOngoingRequest(ongoingRequest)) {
+        trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, newRequest as AnyRequest));
+        return;
     }
+
+    trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, null)).finally(() => {
+        ongoingRequest = newRequest as AnyRequest;
+    });
 }
 
 function processNextRequest(): AnyRequest | null {
@@ -373,13 +395,23 @@ function processNextRequest(): AnyRequest | null {
     // (e.g. File objects in data.file or data.receipt). IndexedDB cannot clone
     // native File objects (DataCloneError). These requests cannot survive a crash
     // anyway since File references are lost on restart.
-    const hasNonSerializableData = ongoingRequest?.data && Object.values(ongoingRequest.data).some((v) => v instanceof File || v instanceof Blob);
-    trackOnyxWrite(
-        Onyx.multiSet({
-            [ONYXKEYS.PERSISTED_REQUESTS]: persistedRequests,
-            ...(ongoingRequest && !hasNonSerializableData ? {[ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: ongoingRequest} : {}),
-        }),
-    );
+    if (shouldPersistOngoingRequest(ongoingRequest)) {
+        trackOnyxWrite(
+            Onyx.multiSet({
+                [ONYXKEYS.PERSISTED_REQUESTS]: persistedRequests,
+                [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: ongoingRequest,
+            }),
+        );
+    } else {
+        trackOnyxWrite(
+            Onyx.multiSet({
+                [ONYXKEYS.PERSISTED_REQUESTS]: persistedRequests,
+                [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: null,
+            }),
+        ).finally(() => {
+            ongoingRequest = nextRequest;
+        });
+    }
 
     // Return the local reference, not `ongoingRequest`. The Onyx.multiSet above
     // triggers a synchronous callback (Onyx 3.0.46+) that overwrites `ongoingRequest`

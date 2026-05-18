@@ -16,7 +16,6 @@ const story: Meta<typeof InlineSystemMessage> = {
 };
 
 function Template(props: InlineSystemMessageProps) {
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return <InlineSystemMessage {...props} />;
 }
 

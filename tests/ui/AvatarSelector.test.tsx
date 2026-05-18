@@ -11,7 +11,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@hooks/useLetterAvatars', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: (name?: string) => {
         if (!name) {
@@ -53,7 +52,6 @@ describe('AvatarSelector', () => {
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
                 <AvatarSelector
                     onSelect={onSelectMock}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                 />
             </ComposeProviders>,
