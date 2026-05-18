@@ -1,6 +1,6 @@
 import React, {useEffect} from 'react';
-import {View} from 'react-native';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import {StyleSheet, View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -101,7 +101,14 @@ function WorkspaceOwnerChangeWrapperPage({route, policy, isLoadingPolicy}: Works
                     }}
                 />
                 <View style={[styles.containerWithSpaceBetween, error !== CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD ? styles.ph5 : styles.ph0, styles.pb0]}>
-                    {isLoading && <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />}
+                    {isLoading && (
+                        <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
+                            <ActivityIndicator
+                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                reasonAttributes={reasonAttributes}
+                            />
+                        </View>
+                    )}
                     {shouldShowPaymentCardForm && <WorkspaceOwnerPaymentCardForm policy={policy} />}
                     {!isLoading && !shouldShowPaymentCardForm && (
                         <WorkspaceOwnerChangeCheck

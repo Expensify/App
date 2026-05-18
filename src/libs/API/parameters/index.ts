@@ -108,7 +108,6 @@ export type {default as UpdateHomeAddressParams} from './UpdateHomeAddressParams
 export type {default as UpdatePolicyAddressParams} from './UpdatePolicyAddressParams';
 export type {default as UpdateLegalNameParams} from './UpdateLegalNameParams';
 export type {default as UpdatePhoneNumberParams} from './UpdatePhoneNumberParams';
-export type {default as UpdatePrivatePersonalDetailsParams} from './UpdatePrivatePersonalDetailsParams';
 export type {default as UpdateNewsletterSubscriptionParams} from './UpdateNewsletterSubscriptionParams';
 export type {default as UpdatePersonalInformationForBankAccountParams} from './UpdatePersonalInformationForBankAccountParams';
 export type {default as UpdatePreferredEmojiSkinToneParams} from './UpdatePreferredEmojiSkinToneParams';
@@ -177,6 +176,8 @@ export type {default as DeleteMembersFromWorkspaceParams} from './DeleteMembersF
 export type {default as OpenWorkspaceParams} from './OpenWorkspaceParams';
 export type {default as OpenWorkspaceViewParams} from './OpenWorkspaceViewParams';
 export type {default as ConnectPolicyToSageIntacctParams} from './ConnectPolicyToSageIntacctParams';
+export type {default as ConnectPolicyToFinancialForceParams} from './ConnectPolicyToFinancialForceParams';
+export type {default as UpdateFinancialForceGenericTypeParams} from './UpdateFinancialForceGenericTypeParams';
 export type {default as OpenWorkspaceInvitePageParams} from './OpenWorkspaceInvitePageParams';
 export type {default as OpenWorkspaceMembersPageParams} from './OpenWorkspaceMembersPageParams';
 export type {default as OpenPolicyCategoriesPageParams} from './OpenPolicyCategoriesPageParams';
@@ -535,4 +536,5 @@ export type {default as CreateAgentParams} from './CreateAgentParams';
 export type {default as CreateDomainSecurityGroupParams} from './CreateDomainSecurityGroupParams';
 export type {default as UpdateAgentNameParams} from './UpdateAgentNameParams';
 export type {default as UpdateAgentPromptParams} from './UpdateAgentPromptParams';
+export type {default as UpdateAgentAvatarParams} from './UpdateAgentAvatarParams';
 export type {default as DeleteAgentParams} from './DeleteAgentParams';
