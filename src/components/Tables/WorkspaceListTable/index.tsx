@@ -64,7 +64,7 @@ type WorkspaceListTableProps = {
     workspaces: WorkspaceRowData[];
 };
 
-export default function WorkspaceDomainListTable({domains, workspaces}: WorkspaceListTableProps) {
+export default function WorkspaceListTable({domains, workspaces}: WorkspaceListTableProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
