@@ -45,8 +45,6 @@ function setTriggerEntry(routeKey: string, entry: TriggerEntry): void {
 
 let prevState: NavigationState | undefined;
 let pendingRestore: {cancel: () => void} | null = null;
-let skipNextRestore = false;
-let isRestoringFocus = false;
 let focusinHandler: ((e: FocusEvent) => void) | null = null;
 let mouseActivationHandler: ((e: MouseEvent) => void) | null = null;
 let stateUnsubscribe: (() => void) | null = null;
@@ -138,16 +136,6 @@ function notifyPushParamsForward(routeKey: string, prevParams: unknown): void {
 
 function notifyPushParamsBackward(routeKey: string, targetParams: unknown): void {
     scheduleRestore(compoundParamsKey(routeKey, targetParams));
-}
-
-/** Skips the focus restore for the next back navigation. Call it before a form-submit goBack so the re-focused row doesn't eat the next Enter (which should hit the page's submit). Back and Esc don't call it, so they still restore focus. */
-function skipNextFocusRestore(): void {
-    skipNextRestore = true;
-}
-
-/** True only while restoreTriggerForRoute is in its .focus() call. Lists use it to tell the restore apart from a real keyboard Tab, which also has no sourceCapabilities. */
-function isFocusRestoreInProgress(): boolean {
-    return isRestoringFocus;
 }
 
 // 'retry' = in DOM but cannot accept focus now; 'gone' = detached, drop the entry.
@@ -272,12 +260,7 @@ function restoreTriggerForRoute(routeKey: string): boolean {
     const focusOptions: FocusOptions = {preventScroll: true, focusVisible: getHadTabNavigation()};
     for (const candidate of candidates) {
         const before = document.activeElement;
-        isRestoringFocus = true;
-        try {
-            candidate.focus(focusOptions);
-        } finally {
-            isRestoringFocus = false;
-        }
+        candidate.focus(focusOptions);
         const after = document.activeElement;
         if (after === candidate) {
             triggerMap.delete(routeKey);
@@ -373,7 +356,6 @@ function handleStateChange(newState: NavigationState | undefined): void {
     }
 
     if (action.type === 'forward') {
-        skipNextRestore = false;
         cancelPendingRestore();
         captureTriggerForRoute(action.captureKey);
         // Loose refs would pin detached unmounted nodes; triggerMap holds the captured copy.
@@ -381,14 +363,8 @@ function handleStateChange(newState: NavigationState | undefined): void {
         lastMouseTrigger = null;
         lastMouseTriggerAt = 0;
     } else if (action.type === 'backward') {
-        if (skipNextRestore) {
-            skipNextRestore = false;
-            cancelPendingRestore();
-        } else {
-            scheduleRestore(action.restoreKey);
-        }
+        scheduleRestore(action.restoreKey);
     } else if (action.type === 'lateral') {
-        skipNextRestore = false;
         // Stale restore would steal focus back on sibling nav.
         cancelPendingRestore();
     }
@@ -471,7 +447,6 @@ function teardownNavigationFocusReturn(): void {
     lastInteractiveElement = null;
     lastMouseTrigger = null;
     lastMouseTriggerAt = 0;
-    skipNextRestore = false;
     if (typeof document !== 'undefined') {
         if (focusinHandler) {
             document.removeEventListener('focusin', focusinHandler, true);
@@ -499,7 +474,6 @@ function resetForTests(): void {
     lastMouseTrigger = null;
     lastMouseTriggerAt = 0;
     lastRestoreTarget = null;
-    skipNextRestore = false;
 }
 
 function setLastInteractiveElementForTests(element: HTMLElement | null): void {
@@ -522,8 +496,6 @@ export {
     notifyPushParamsForward,
     notifyPushParamsBackward,
     cancelPendingFocusRestore,
-    skipNextFocusRestore,
-    isFocusRestoreInProgress,
     compoundParamsKey,
     shouldSkipAutoFocusDueToExistingFocus,
     resetForTests,

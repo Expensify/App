@@ -21,8 +21,6 @@ const {
     notifyPushParamsForward,
     notifyPushParamsBackward,
     cancelPendingFocusRestore,
-    skipNextFocusRestore,
-    isFocusRestoreInProgress,
     compoundParamsKey,
     shouldSkipAutoFocusDueToExistingFocus,
     setupNavigationFocusReturn,
@@ -39,8 +37,6 @@ const {
     notifyPushParamsForward: (routeKey: string, prevParams: unknown) => void;
     notifyPushParamsBackward: (routeKey: string, targetParams: unknown) => void;
     cancelPendingFocusRestore: () => void;
-    skipNextFocusRestore: () => void;
-    isFocusRestoreInProgress: () => boolean;
     compoundParamsKey: (routeKey: string, params: unknown) => string;
     shouldSkipAutoFocusDueToExistingFocus: () => boolean;
     setupNavigationFocusReturn: () => void;
@@ -1192,57 +1188,6 @@ describe('restoreTriggerForRoute', () => {
     });
 });
 
-describe('isFocusRestoreInProgress', () => {
-    beforeEach(() => {
-        simulateTab();
-    });
-
-    it('is false normally, true synchronously inside the restore .focus(), and false again after', () => {
-        const trigger = appendButton();
-        trigger.focus();
-        setLastInteractiveElementForTests(trigger);
-        captureTriggerForRoute('route-a');
-        trigger.blur();
-
-        expect(isFocusRestoreInProgress()).toBe(false);
-
-        // Lists read this in the row's onFocus, which fires synchronously during .focus().
-        let valueDuringFocus: boolean | undefined;
-        trigger.addEventListener('focus', () => {
-            valueDuringFocus = isFocusRestoreInProgress();
-        });
-
-        expect(restoreTriggerForRoute('route-a')).toBe(true);
-
-        expect(valueDuringFocus).toBe(true);
-        expect(isFocusRestoreInProgress()).toBe(false);
-    });
-
-    it('stays false for a focus not driven by restoreTriggerForRoute (e.g. genuine keyboard Tab)', () => {
-        const el = appendButton();
-        let valueDuringFocus: boolean | undefined;
-        el.addEventListener('focus', () => {
-            valueDuringFocus = isFocusRestoreInProgress();
-        });
-        el.focus();
-        expect(valueDuringFocus).toBe(false);
-    });
-
-    it('resets to false even when .focus() throws', () => {
-        const trigger = appendButton();
-        trigger.focus();
-        setLastInteractiveElementForTests(trigger);
-        captureTriggerForRoute('route-a');
-        trigger.blur();
-        jest.spyOn(trigger, 'focus').mockImplementation(() => {
-            throw new Error('boom');
-        });
-
-        expect(() => restoreTriggerForRoute('route-a')).toThrow('boom');
-        expect(isFocusRestoreInProgress()).toBe(false);
-    });
-});
-
 describe('shouldSkipAutoFocusDueToExistingFocus', () => {
     function performRestore(): HTMLButtonElement {
         const trigger = appendButton();
@@ -1469,50 +1414,6 @@ describe('handleStateChange integration', () => {
             handleStateChange(onA);
 
             const spy = jest.spyOn(trigger, 'focus');
-            jest.runAllTimers();
-            expect(spy).toHaveBeenCalled();
-        });
-    });
-
-    it('skipNextFocusRestore suppresses the restore for the next backward nav only (form-submit goBack), then resumes', () => {
-        withFakeTimers(() => {
-            simulateTab();
-            handleStateChange(onA);
-
-            const trigger = appendButton();
-            fireFocusIn(trigger);
-            handleStateChange(onAB);
-            trigger.blur();
-
-            skipNextFocusRestore();
-            const spy = jest.spyOn(trigger, 'focus');
-            handleStateChange(onA);
-            jest.runAllTimers();
-            expect(spy).not.toHaveBeenCalled();
-
-            // The flag is one-shot: a subsequent Back-button dismissal restores normally.
-            handleStateChange(onAB);
-            trigger.blur();
-            handleStateChange(onA);
-            jest.runAllTimers();
-            expect(spy).toHaveBeenCalled();
-        });
-    });
-
-    it('skipNextFocusRestore flag is cleared by an intervening forward nav so it cannot leak into a later backward', () => {
-        withFakeTimers(() => {
-            simulateTab();
-            handleStateChange(onA);
-
-            const trigger = appendButton();
-            fireFocusIn(trigger);
-
-            skipNextFocusRestore();
-            handleStateChange(onAB);
-
-            trigger.blur();
-            const spy = jest.spyOn(trigger, 'focus');
-            handleStateChange(onA);
             jest.runAllTimers();
             expect(spy).toHaveBeenCalled();
         });
