@@ -73,7 +73,6 @@ const WRITE_COMMANDS = {
     UPDATE_DATE_OF_BIRTH: 'UpdateDateOfBirth',
     UPDATE_PHONE_NUMBER: 'UpdatePhoneNumber',
     UPDATE_HOME_ADDRESS: 'UpdateHomeAddress',
-    UPDATE_PRIVATE_PERSONAL_DETAILS: 'UpdatePrivatePersonalDetails',
     UPDATE_POLICY_ADDRESS: 'SetPolicyAddress',
     UPDATE_AUTOMATIC_TIMEZONE: 'UpdateAutomaticTimezone',
     UPDATE_SELECTED_TIMEZONE: 'UpdateSelectedTimezone',
@@ -329,6 +328,7 @@ const WRITE_COMMANDS = {
     UPDATE_QUICKBOOKS_ONLINE_SYNC_PEOPLE: 'UpdateQuickbooksOnlineSyncPeople',
     UPDATE_QUICKBOOKS_ONLINE_REIMBURSEMENT_ACCOUNT_ID: 'UpdateQuickbooksOnlineReimbursementAccountID',
     UPDATE_QUICKBOOKS_ONLINE_EXPORT: 'UpdateQuickbooksOnlineExport',
+    UPDATE_QUICKBOOKS_ONLINE_TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'UpdateQuickbooksOnlineTravelInvoicingPayableAccount',
     UPDATE_QUICKBOOKS_DESKTOP_EXPORT_DATE: 'UpdateQuickbooksDesktopExportDate',
     UPDATE_MANY_POLICY_CONNECTION_CONFIGS: 'UpdateManyPolicyConnectionConfigurations',
     UPDATE_QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'UpdateQuickbooksDesktopNonReimbursableExpensesExportDestination',
@@ -440,6 +440,8 @@ const WRITE_COMMANDS = {
     UPDATE_NETSUITE_ACCOUNTING_METHOD: 'UpdateNetSuiteAccountingMethod',
     UPDATE_NETSUITE_JOURNALS_TO: 'UpdateNetSuiteExportJournalsTo',
     UPDATE_NETSUITE_APPROVAL_ACCOUNT: 'UpdateNetSuiteApprovalAccount',
+    UPDATE_NETSUITE_TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'UpdateNetSuiteTravelInvoicingPayableAccount',
+    UPDATE_NETSUITE_TRAVEL_INVOICING_JOURNAL_POSTING_PREFERENCE: 'UpdateNetSuiteTravelInvoicingJournalPostingPreference',
     UPDATE_NETSUITE_CUSTOM_FORM_ID_OPTIONS_REIMBURSABLE: 'UpdateNetSuiteCustomFormIDOptionsReimbursable',
     UPDATE_NETSUITE_CUSTOM_FORM_ID_OPTIONS_NON_REIMBURSABLE: 'UpdateNetSuiteCustomFormIDOptionsNonReimbursable',
     UPDATE_NETSUITE_TOKENS: 'UpdateNetSuiteTokens',
@@ -484,6 +486,7 @@ const WRITE_COMMANDS = {
     UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_CREDIT_CARD_CHARGE_EXPORT_DEFAULT_VENDOR: 'UpdateSageIntacctNonreimbursableExpensesCreditCardChargeExportDefaultVendor',
     UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_EXPORT_ACCOUNT: 'UpdateSageIntacctNonreimbursableExpensesExportAccount',
     UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_EXPORT_VENDOR: 'UpdateSageIntacctNonreimbursableExpensesExportVendor',
+    UPDATE_SAGE_INTACCT_TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'UpdateSageIntacctTravelInvoicingPayableAccount',
     SET_PROMO_CODE: 'User_SetPromoCode',
     REQUEST_TAX_EXEMPTION: 'RequestTaxExemption',
     EXPORT_SEARCH_ITEMS_TO_CSV: 'ExportSearchToCSV',
@@ -511,6 +514,8 @@ const WRITE_COMMANDS = {
     CONFIGURE_TRAVEL_INVOICING_FOR_POLICY: 'ConfigureTravelInvoicingForPolicy',
     DEACTIVATE_TRAVEL_INVOICING: 'DeactivateTravelInvoicing',
     SET_TRAVEL_INVOICING_SETTLEMENT_ACCOUNT: 'SetTravelInvoicingSettlementAccount',
+    SET_TRAVEL_INVOICING_RECONCILIATION_BANK_ACCOUNT: 'SetTravelInvoicingReconciliationBankAccount',
+    TOGGLE_TRAVEL_INVOICING_CONTINUOUS_RECONCILIATION: 'ToggleTravelInvoicingContinuousReconciliation',
     UPDATE_TRAVEL_INVOICE_SETTLEMENT_FREQUENCY: 'UpdateTravelInvoiceSettlementFrequency',
     UPDATE_TRAVEL_INVOICING_MONTHLY_LIMIT: 'UpdateTravelInvoicingMonthlyLimit',
     PAY_TRAVEL_INVOICING_SPEND: 'PayTravelInvoicingSpend',
@@ -527,6 +532,7 @@ const WRITE_COMMANDS = {
     UPDATE_XERO_EXPORT_BILL_DATE: 'UpdateXeroExportBillDate',
     UPDATE_XERO_EXPORT_EXPORTER: 'UpdateXeroExportExporter',
     UPDATE_XERO_EXPORT_NON_REIMBURSABLE_ACCOUNT: 'UpdateXeroExportNonReimbursableAccount',
+    UPDATE_XERO_TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'UpdateXeroTravelInvoicingPayableAccount',
     UPDATE_XERO_SYNC_INVOICE_COLLECTIONS_ACCOUNT_ID: 'UpdateXeroSyncInvoiceCollectionsAccountID',
     UPDATE_XERO_SYNC_SYNC_REIMBURSED_REPORTS: 'UpdateXeroSyncSyncReimbursedReports',
     UPDATE_XERO_SYNC_REIMBURSEMENT_ACCOUNT_ID: 'UpdateXeroSyncReimbursementAccountID',
@@ -609,6 +615,7 @@ const WRITE_COMMANDS = {
     CREATE_DOMAIN_SECURITY_GROUP: 'CreateDomainSecurityGroup',
     UPDATE_AGENT_NAME: 'UpdateAgentName',
     UPDATE_AGENT_PROMPT: 'UpdateAgentPrompt',
+    UPDATE_AGENT_AVATAR: 'UpdateAgentAvatar',
     DELETE_AGENT: 'DeleteAgent',
 } as const;
 
@@ -661,7 +668,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_PHONE_NUMBER]: Parameters.UpdatePhoneNumberParams;
     [WRITE_COMMANDS.UPDATE_POLICY_ADDRESS]: Parameters.UpdatePolicyAddressParams;
     [WRITE_COMMANDS.UPDATE_HOME_ADDRESS]: Parameters.UpdateHomeAddressParams;
-    [WRITE_COMMANDS.UPDATE_PRIVATE_PERSONAL_DETAILS]: Parameters.UpdatePrivatePersonalDetailsParams;
     [WRITE_COMMANDS.UPDATE_AUTOMATIC_TIMEZONE]: Parameters.UpdateAutomaticTimezoneParams;
     [WRITE_COMMANDS.UPDATE_SELECTED_TIMEZONE]: Parameters.UpdateSelectedTimezoneParams;
     [WRITE_COMMANDS.UPDATE_USER_AVATAR]: Parameters.UpdateUserAvatarParams;
@@ -951,6 +957,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_SYNC_PEOPLE]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_REIMBURSEMENT_ACCOUNT_ID]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_EXPORT]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
+    [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_TRAVEL_INVOICING_PAYABLE_ACCOUNT]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_RECEIVABLE_ACCOUNT]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_EXPORT_DATE]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_EXPENSES_ACCOUNT]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
@@ -1047,6 +1054,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_CREDIT_CARD_CHARGE_EXPORT_DEFAULT_VENDOR]: Parameters.UpdateSageIntacctGenericTypeParams<'vendorID', string>;
     [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_EXPORT_ACCOUNT]: Parameters.UpdateSageIntacctGenericTypeParams<'creditCardAccountID', string>;
     [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_EXPORT_VENDOR]: Parameters.UpdateSageIntacctGenericTypeParams<'vendorID', string>;
+    [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_TRAVEL_INVOICING_PAYABLE_ACCOUNT]: Parameters.UpdateSageIntacctGenericTypeParams<'creditCardAccountID', string>;
     [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_AUTO_SYNC]: Parameters.UpdateSageIntacctGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_ACCOUNTING_METHOD]: Parameters.UpdateSageIntacctAccountingMethodParams;
     [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_IMPORT_EMPLOYEES]: Parameters.UpdateSageIntacctGenericTypeParams<'enabled', boolean>;
@@ -1121,6 +1129,11 @@ type WriteCommandParameters = {
 
     [WRITE_COMMANDS.UPDATE_NETSUITE_JOURNALS_TO]: Parameters.UpdateNetSuiteGenericTypeParams<'value', ValueOf<typeof CONST.NETSUITE_JOURNALS_APPROVAL_LEVEL>>;
     [WRITE_COMMANDS.UPDATE_NETSUITE_APPROVAL_ACCOUNT]: Parameters.UpdateNetSuiteGenericTypeParams<'value', string>;
+    [WRITE_COMMANDS.UPDATE_NETSUITE_TRAVEL_INVOICING_PAYABLE_ACCOUNT]: Parameters.UpdateNetSuiteGenericTypeParams<'bankAccountID', string>;
+    [WRITE_COMMANDS.UPDATE_NETSUITE_TRAVEL_INVOICING_JOURNAL_POSTING_PREFERENCE]: Parameters.UpdateNetSuiteGenericTypeParams<
+        'value',
+        ValueOf<typeof CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE>
+    >;
     [WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_FORM_ID_OPTIONS_REIMBURSABLE]: Parameters.UpdateNetSuiteCustomFormIDParams;
     [WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_FORM_ID_OPTIONS_NON_REIMBURSABLE]: Parameters.UpdateNetSuiteCustomFormIDParams;
     [WRITE_COMMANDS.UPDATE_NETSUITE_TOKENS]: Parameters.ConnectPolicyToNetSuiteParams;
@@ -1158,6 +1171,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.CONFIGURE_TRAVEL_INVOICING_FOR_POLICY]: Parameters.ConfigureTravelInvoicingForPolicyParams;
     [WRITE_COMMANDS.DEACTIVATE_TRAVEL_INVOICING]: Parameters.DeactivateTravelInvoicingParams;
     [WRITE_COMMANDS.SET_TRAVEL_INVOICING_SETTLEMENT_ACCOUNT]: Parameters.SetTravelInvoicingSettlementAccountParams;
+    [WRITE_COMMANDS.SET_TRAVEL_INVOICING_RECONCILIATION_BANK_ACCOUNT]: Parameters.SetTravelInvoicingReconciliationBankAccountParams;
+    [WRITE_COMMANDS.TOGGLE_TRAVEL_INVOICING_CONTINUOUS_RECONCILIATION]: Parameters.ToggleTravelInvoicingContinuousReconciliationParams;
     [WRITE_COMMANDS.UPDATE_TRAVEL_INVOICE_SETTLEMENT_FREQUENCY]: Parameters.UpdateTravelInvoicingSettlementFrequencyParams;
     [WRITE_COMMANDS.UPDATE_TRAVEL_INVOICING_MONTHLY_LIMIT]: Parameters.UpdateTravelInvoicingMonthlyLimitParams;
     [WRITE_COMMANDS.PAY_TRAVEL_INVOICING_SPEND]: Parameters.PayTravelInvoicingSpendParams;
@@ -1177,6 +1192,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_XERO_EXPORT_BILL_DATE]: Parameters.UpdateXeroGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_XERO_EXPORT_EXPORTER]: Parameters.UpdateXeroGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_XERO_EXPORT_NON_REIMBURSABLE_ACCOUNT]: Parameters.UpdateXeroGenericTypeParams;
+    [WRITE_COMMANDS.UPDATE_XERO_TRAVEL_INVOICING_PAYABLE_ACCOUNT]: Parameters.UpdateXeroGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_XERO_SYNC_INVOICE_COLLECTIONS_ACCOUNT_ID]: Parameters.UpdateXeroGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_XERO_SYNC_SYNC_REIMBURSED_REPORTS]: Parameters.UpdateXeroGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_XERO_SYNC_REIMBURSEMENT_ACCOUNT_ID]: Parameters.UpdateXeroGenericTypeParams;
@@ -1238,6 +1254,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.CREATE_AGENT]: Parameters.CreateAgentParams;
     [WRITE_COMMANDS.UPDATE_AGENT_NAME]: Parameters.UpdateAgentNameParams;
     [WRITE_COMMANDS.UPDATE_AGENT_PROMPT]: Parameters.UpdateAgentPromptParams;
+    [WRITE_COMMANDS.UPDATE_AGENT_AVATAR]: Parameters.UpdateAgentAvatarParams;
     [WRITE_COMMANDS.DELETE_AGENT]: Parameters.DeleteAgentParams;
 };
 
@@ -1291,6 +1308,7 @@ const READ_COMMANDS = {
     GET_POLICY_CATEGORIES: 'GetPolicyCategories',
     OPEN_WORKSPACE: 'OpenWorkspace',
     OPEN_WORKSPACE_MEMBERS_PAGE: 'OpenWorkspaceMembersPage',
+    OPEN_WORKSPACE_ROOMS_PAGE: 'OpenWorkspaceRoomsPage',
     OPEN_POLICY_MEMBER_PROFILE_PAGE: 'OpenPolicyMemberProfilePage',
     OPEN_POLICY_CATEGORIES_PAGE: 'OpenPolicyCategoriesPage',
     OPEN_POLICY_TAGS_PAGE: 'OpenPolicyTagsPage',
@@ -1391,6 +1409,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.GET_POLICY_CATEGORIES]: Parameters.GetPolicyCategoriesParams;
     [READ_COMMANDS.OPEN_WORKSPACE]: Parameters.OpenWorkspaceParams;
     [READ_COMMANDS.OPEN_WORKSPACE_MEMBERS_PAGE]: Parameters.OpenWorkspaceMembersPageParams;
+    [READ_COMMANDS.OPEN_WORKSPACE_ROOMS_PAGE]: Parameters.OpenWorkspaceRoomsPageParams;
     [READ_COMMANDS.OPEN_POLICY_MEMBER_PROFILE_PAGE]: Parameters.OpenPolicyMemberProfilePageParams;
     [READ_COMMANDS.OPEN_POLICY_CATEGORIES_PAGE]: Parameters.OpenPolicyCategoriesPageParams;
     [READ_COMMANDS.OPEN_POLICY_TAGS_PAGE]: Parameters.OpenPolicyTagsPageParams;
