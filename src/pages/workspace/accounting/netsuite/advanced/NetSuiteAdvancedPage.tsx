@@ -7,7 +7,6 @@ import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
     updateNetSuiteAutoCreateEntities,
@@ -17,8 +16,6 @@ import {
     updateNetSuiteSyncReimbursedReports,
 } from '@libs/actions/connections/NetSuiteCommands';
 import {clearNetSuiteErrorField} from '@libs/actions/Policy/Policy';
-import {toggleTravelInvoicingContinuousReconciliation} from '@libs/actions/TravelInvoicing';
-import {getCardSettings, getConnectionBankAccountsForReconciliation} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -29,7 +26,7 @@ import {
     getFilteredReimbursableAccountOptions,
     settingsPendingAction,
 } from '@libs/PolicyUtils';
-import {getIsTravelInvoicingEnabled} from '@libs/TravelInvoicingUtils';
+import TravelInvoicingContinuousReconciliationSection from '@pages/workspace/accounting/common/TravelInvoicingContinuousReconciliationSection';
 import type {ExtendedMenuItemWithSubscribedSettings, MenuItemToRender} from '@pages/workspace/accounting/netsuite/types';
 import {
     shouldHideCustomFormIDOptions,
@@ -38,36 +35,23 @@ import {
     shouldHideReimbursedReportsSection,
     shouldHideReportsExportTo,
 } from '@pages/workspace/accounting/netsuite/utils';
-import RECONCILIATION_ACCOUNT_SETTINGS_TYPE from '@pages/workspace/accounting/reconciliation/constants';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
-    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const config = policy?.connections?.netsuite?.options?.config;
     const autoSyncConfig = policy?.connections?.netsuite?.config;
     const autoSync = !!autoSyncConfig?.autoSync?.enabled;
     const accountingMethod = policy?.connections?.netsuite?.options?.config?.accountingMethod;
     const {payableList} = policy?.connections?.netsuite?.options?.data ?? {};
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
-    const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
-    const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(travelSettings);
-    const [travelInvoicingContinuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.TRAVEL_INVOICING_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`);
-    const [travelInvoicingContinuousReconciliationPendingAction] = useOnyx(`${ONYXKEYS.COLLECTION.TRAVEL_INVOICING_USE_CONTINUOUS_RECONCILIATION_PENDING_ACTION}${workspaceAccountID}`);
-    const [travelInvoicingContinuousReconciliationConnection] = useOnyx(`${ONYXKEYS.COLLECTION.TRAVEL_INVOICING_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`);
-    const [travelInvoicingReconciliationBankAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.TRAVEL_INVOICING_RECONCILIATION_BANK_ACCOUNT_ID}${workspaceAccountID}`);
-    const travelInvoicingReconciliationBankAccount = getConnectionBankAccountsForReconciliation(policy?.connections, CONST.POLICY.CONNECTIONS.NAME.NETSUITE).find(
-        (account) => account.id === travelInvoicingReconciliationBankAccountID,
-    );
 
     const shouldShowCustomFormIDOptions = useSharedValue(!shouldHideCustomFormIDOptions(config));
     const shouldAnimateAccordionSection = useSharedValue(false);
@@ -90,14 +74,6 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
         }
         return getFilteredApprovalAccountOptions(payableList).find(({id}) => id === config?.approvalAccount);
     }, [config?.approvalAccount, payableList, translate]);
-
-    const navigateToTravelInvoicingReconciliationAccountSettings = () => {
-        Navigation.navigate(
-            createDynamicRoute(
-                `${DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.path}?connection=${CONST.POLICY.CONNECTIONS.ROUTE.NETSUITE}&reconciliationAccountSettingsType=${RECONCILIATION_ACCOUNT_SETTINGS_TYPE.TRAVEL_INVOICING}`,
-            ),
-        );
-    };
 
     const renderDefaultMenuItem = (item: MenuItemToRender) => {
         return (
@@ -170,33 +146,6 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             type: 'divider',
             key: 'divider2',
             shouldHide: shouldHideReimbursedReportsSection(config),
-        },
-        {
-            type: 'toggle',
-            title: translate('workspace.accounting.syncTravelInvoicingSettlements'),
-            isActive: !!travelInvoicingContinuousReconciliation,
-            switchAccessibilityLabel: translate('workspace.accounting.syncTravelInvoicingSettlements'),
-            disabled: !autoSync,
-            onToggle: (isEnabled) => {
-                toggleTravelInvoicingContinuousReconciliation(workspaceAccountID, isEnabled, CONST.POLICY.CONNECTIONS.NAME.NETSUITE, travelInvoicingContinuousReconciliationConnection);
-                if (isEnabled) {
-                    navigateToTravelInvoicingReconciliationAccountSettings();
-                }
-            },
-            pendingAction: travelInvoicingContinuousReconciliationPendingAction,
-            shouldHide: !isTravelInvoicingEnabled,
-        },
-        {
-            type: 'menuitem',
-            description: translate('workspace.accounting.reconciliationAccount'),
-            onPress: navigateToTravelInvoicingReconciliationAccountSettings,
-            title: travelInvoicingReconciliationBankAccount?.name,
-            shouldHide: !isTravelInvoicingEnabled || !travelInvoicingContinuousReconciliation,
-        },
-        {
-            type: 'divider',
-            key: 'dividerTravelInvoicing',
-            shouldHide: !isTravelInvoicingEnabled,
         },
         {
             type: 'toggle',
@@ -316,6 +265,58 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
         },
     ];
 
+    const renderMenuItem = (item: ExtendedMenuItemWithSubscribedSettings) => {
+        if (item?.shouldHide) {
+            return null;
+        }
+
+        switch (item.type) {
+            case 'divider':
+                return (
+                    <View
+                        key={item.key}
+                        style={styles.dividerLine}
+                    />
+                );
+            case 'toggle':
+                // eslint-disable-next-line no-case-declarations
+                const {type, shouldHide, ...rest} = item;
+                return (
+                    <ToggleSettingOptionRow
+                        key={rest.title}
+                        {...rest}
+                        wrapperStyle={[styles.mv3, styles.ph5]}
+                    />
+                );
+            case 'accordion':
+                return (
+                    <Accordion
+                        isExpanded={item.shouldExpand}
+                        isToggleTriggered={item.shouldAnimateSection}
+                    >
+                        {item.children.map((child) => {
+                            return renderDefaultMenuItem(child);
+                        })}
+                    </Accordion>
+                );
+            default:
+                return renderDefaultMenuItem(item);
+        }
+    };
+
+    const getMenuItemKey = (item: ExtendedMenuItemWithSubscribedSettings) => {
+        switch (item.type) {
+            case 'divider':
+                return item.key;
+            case 'accordion':
+                return 'customFormIDOptions';
+            case 'toggle':
+                return item.title;
+            case 'menuitem':
+                return item.description;
+        }
+    };
+
     return (
         <ConnectionLayout
             displayName="NetSuiteAdvancedPage"
@@ -328,42 +329,22 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
         >
-            {menuItems
-                .filter((item) => !item?.shouldHide)
-                .map((item) => {
-                    switch (item.type) {
-                        case 'divider':
-                            return (
-                                <View
-                                    key={item.key}
-                                    style={styles.dividerLine}
-                                />
-                            );
-                        case 'toggle':
-                            // eslint-disable-next-line no-case-declarations
-                            const {type, shouldHide, ...rest} = item;
-                            return (
-                                <ToggleSettingOptionRow
-                                    key={rest.title}
-                                    {...rest}
-                                    wrapperStyle={[styles.mv3, styles.ph5]}
-                                />
-                            );
-                        case 'accordion':
-                            return (
-                                <Accordion
-                                    isExpanded={item.shouldExpand}
-                                    isToggleTriggered={item.shouldAnimateSection}
-                                >
-                                    {item.children.map((child) => {
-                                        return renderDefaultMenuItem(child);
-                                    })}
-                                </Accordion>
-                            );
-                        default:
-                            return renderDefaultMenuItem(item);
-                    }
-                })}
+            {menuItems.map((item) => {
+                return (
+                    <React.Fragment key={getMenuItemKey(item)}>
+                        {renderMenuItem(item)}
+                        {item.type === 'divider' && item.key === 'divider2' && (
+                            <TravelInvoicingContinuousReconciliationSection
+                                policy={policy}
+                                connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
+                                isAutoSyncEnabled={autoSync}
+                                shouldShowDivider
+                                toggleWrapperStyle={[styles.mv3, styles.ph5]}
+                            />
+                        )}
+                    </React.Fragment>
+                );
+            })}
         </ConnectionLayout>
     );
 }
