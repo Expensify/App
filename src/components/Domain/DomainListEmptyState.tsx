@@ -15,9 +15,9 @@ function DomainListEmptyState() {
     return (
         <GenericEmptyStateComponent
             headerMedia={illustrations.EarthWithControls}
-            headerContentStyles={styles.emptyWorkspaceListStaticIllustrationStyle}
-            title={translate('workspace.emptyWorkspace.title')}
-            subtitle={translate('workspace.emptyWorkspace.subtitle')}
+            headerContentStyles={styles.emptyDomainListStaticIllustrationStyle}
+            title={translate('workspace.emptyDomain.title')}
+            subtitle={translate('workspace.emptyDomain.subtitle')}
             titleStyles={styles.pt2}
             headerStyles={styles.emptyStateCardIllustrationContainer}
             containerStyles={styles.mb10}

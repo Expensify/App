@@ -2050,6 +2050,11 @@ const staticStyles = (theme: ThemeColors) =>
             height: 166,
         },
 
+        emptyDomainListStaticIllustrationStyle: {
+            width: 274,
+            height: 164,
+        },
+
         appContent: {
             backgroundColor: theme.appBG,
             overflow: 'hidden',

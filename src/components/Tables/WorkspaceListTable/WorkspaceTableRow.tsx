@@ -162,8 +162,8 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
                                     src={icons.ArrowRight}
                                     fill={theme.icon}
                                     additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
-                                    width={variables.iconSizeNormal}
-                                    height={variables.iconSizeNormal}
+                                    width={variables.iconSizeSmall}
+                                    height={variables.iconSizeSmall}
                                 />
                             </View>
                         )}

@@ -73,9 +73,7 @@ export default function DomainListTable({domains}: DomainListTableProps) {
             title={translate('common.domains')}
             ListEmptyComponent={DomainListEmptyState}
         >
-            {/* JACK_TODO: findDomain */}
-            {/* <Table.SearchBar label={translate('workspace.common.findWorkspace')} /> */}
-
+            {domains.length > CONST.SEARCH_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.common.findDomain')} />}
             <Table.Header />
             <Table.Body />
         </Table>
