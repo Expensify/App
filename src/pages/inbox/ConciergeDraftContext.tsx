@@ -51,7 +51,7 @@ function ConciergeDraftProvider({reportID, children}: React.PropsWithChildren<{r
     const isAdmin = chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
     // See AgentZeroStatusContext for the rationale: agentAccountIDFlags covers agents the
     // user owns (and only after Agents has loaded); the email pattern covers cold-start cases.
-    const isCustomAgentChat = participantAccountIDs?.some((accountID) => !!(agentAccountIDFlags?.[accountID] || agentLoginAccountIDFlags?.[accountID]));
+    const isCustomAgentChat = participantAccountIDs?.some((accountID) => !!(agentAccountIDFlags?.[accountID] ?? agentLoginAccountIDFlags?.[accountID]));
     const isAgentZeroChat = isConciergeChat || isAdmin || isCustomAgentChat;
 
     if (!reportID || !isAgentZeroChat) {

@@ -68,7 +68,7 @@ function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{
     const isAdmin = chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
     // First participant whose accountID either has a SHARED_NVP_AGENT_PROMPT entry or whose login
     // matches the canonical agent email pattern. Both gates and identifies the persona in one pass.
-    const agentParticipantAccountID = participantAccountIDs?.find((accountID) => !!(agentAccountIDFlags?.[accountID] || agentLoginAccountIDFlags?.[accountID]));
+    const agentParticipantAccountID = participantAccountIDs?.find((accountID) => !!(agentAccountIDFlags?.[accountID] ?? agentLoginAccountIDFlags?.[accountID]));
     const isCustomAgentChat = agentParticipantAccountID !== undefined;
     const isAgentZeroChat = isConciergeChat || isAdmin || isCustomAgentChat;
 

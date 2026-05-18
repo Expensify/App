@@ -19,14 +19,21 @@ jest.mock('@components/ReportActionAvatars', () => {
     };
 });
 
-// Mock the AgentZero context to make isProcessing=true so the component renders
-jest.mock('@pages/inbox/AgentZeroStatusContext', () => ({
-    useAgentZeroStatus: () => ({
-        isProcessing: true,
-        reasoningHistory: [],
-        statusLabel: 'Thinking...',
-    }),
-}));
+// Mock the AgentZero context to make isProcessing=true so the component renders.
+// Admin and announce rooms surface Concierge as the persona, so the mock returns
+// Concierge's accountID here.
+jest.mock('@pages/inbox/AgentZeroStatusContext', () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, global-require
+    const CONST = require('@src/CONST').default;
+    return {
+        useAgentZeroStatus: () => ({
+            isProcessing: true,
+            reasoningHistory: [],
+            statusLabel: 'Thinking...',
+            personaAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+        }),
+    };
+});
 
 // Mock useShouldSuppressConciergeIndicators to return false (don't suppress)
 jest.mock('@hooks/useShouldSuppressConciergeIndicators', () => jest.fn(() => false));
