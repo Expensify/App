@@ -82,7 +82,7 @@ function Image({
      * trying to figure out if the current session is expired or fresh from a necessary reauthentication
      */
     const previousSessionAge = useRef<number | undefined>(undefined);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
     const validSessionAge: number | undefined = useMemo(() => {
         // Authentication is required only for certain types of images (attachments and receipts),
         // so we only calculate the session age for those
@@ -160,7 +160,6 @@ function Image({
 
     return (
         <BaseImage
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...forwardedProps}
             onLoad={handleLoad}
             style={[style, aspectRatioStyle, shouldOpacityBeZero && {opacity: 0}]}

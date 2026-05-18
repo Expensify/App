@@ -182,7 +182,9 @@ describe('MultifactorAuthentication processing', () => {
             });
 
             expect(result.success).toBe(true);
-            expect(result.body).toEqual({pin: 1234});
+            if (result.success) {
+                expect(result.body).toEqual({pin: 1234});
+            }
         });
     });
 });

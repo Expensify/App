@@ -1,15 +1,20 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {convertBulkTrackedExpensesToIOU, deleteTrackExpense, getDeleteTrackExpenseInformation, getTrackExpenseInformation, trackExpense} from '@libs/actions/IOU/TrackExpense';
+import {
+    convertBulkTrackedExpensesToIOU,
+    deleteTrackExpense,
+    getDeleteTrackExpenseInformation,
+    getTrackExpenseInformation,
+    hasManualDistanceOverride,
+    trackExpense,
+} from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {addComment, openReport} from '@libs/actions/Report';
 import {subscribeToUserEvents} from '@libs/actions/User';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
-// eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, isActionableTrackExpense, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
@@ -62,7 +67,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 jest.mock('@react-navigation/native');
 
 jest.mock('@src/libs/actions/Report', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const originalModule = jest.requireActual('@src/libs/actions/Report');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
@@ -212,7 +216,6 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -274,6 +277,7 @@ describe('actions/IOU/TrackExpense', () => {
                 transaction,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserEmail: RORY_EMAIL,
+                currentUserLocalCurrency: '',
             });
             await waitForBatchedUpdates();
 
@@ -318,7 +322,6 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -407,7 +410,6 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -463,7 +465,6 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -547,7 +548,6 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -603,7 +603,6 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -690,7 +689,6 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -744,7 +742,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
+
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -828,7 +826,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
+
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -882,7 +880,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
+
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -938,7 +936,6 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints: [],
                 betas: [CONST.BETAS.ALL],
@@ -1117,6 +1114,7 @@ describe('actions/IOU/TrackExpense', () => {
                 transaction: createdTransaction,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserEmail: RORY_EMAIL,
+                currentUserLocalCurrency: '',
             });
             await waitForBatchedUpdates();
 
@@ -1160,7 +1158,6 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints: [],
                 draftTransactionIDs: [],
@@ -1252,7 +1249,6 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints: [],
                 betas: [CONST.BETAS.ALL],
@@ -1584,7 +1580,6 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: true,
@@ -1630,7 +1625,6 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
@@ -1678,7 +1672,6 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: true,
@@ -1717,7 +1710,6 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
@@ -1764,7 +1756,7 @@ describe('actions/IOU/TrackExpense', () => {
 
             // Given a test user is signed in with Onyx setup and some initial data
             await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, undefined);
+            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, undefined);
             await waitForBatchedUpdates();
             await setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 
@@ -1797,7 +1789,6 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -1881,7 +1872,10 @@ describe('actions/IOU/TrackExpense', () => {
             // Given initial environment is set up
             await waitForBatchedUpdates();
 
-            expect(thread.participants).toEqual({[CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN}});
+            expect(thread.participants).toEqual({
+                [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN},
+                [CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.MEMBER},
+            });
 
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
@@ -1929,6 +1923,7 @@ describe('actions/IOU/TrackExpense', () => {
                 text: 'Testing a comment',
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1969,6 +1964,7 @@ describe('actions/IOU/TrackExpense', () => {
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 createIOUAction!,
                 false,
+                RORY_ACCOUNT_ID,
                 undefined,
                 undefined,
             );
@@ -1987,7 +1983,10 @@ describe('actions/IOU/TrackExpense', () => {
             // Given initial environment is set up
             await waitForBatchedUpdates();
 
-            expect(thread.participants).toEqual({[CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN}});
+            expect(thread.participants).toEqual({
+                [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN},
+                [CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.MEMBER},
+            });
 
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
@@ -2032,6 +2031,7 @@ describe('actions/IOU/TrackExpense', () => {
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 createIOUAction!,
                 false,
+                RORY_ACCOUNT_ID,
                 undefined,
                 true,
             );
@@ -2061,7 +2061,7 @@ describe('actions/IOU/TrackExpense', () => {
             PusherHelper.setup();
 
             await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, undefined);
+            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, undefined);
             await waitForBatchedUpdates();
             await setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 
@@ -2093,7 +2093,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
                 currentUserEmailParam: TEST_USER_LOGIN,
                 introSelected: undefined,
-                activePolicyID: undefined,
+
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -2175,7 +2175,6 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserEmail: TEST_USER_LOGIN,
             });
 
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             expect(result).toBe(ROUTES.REPORT_WITH_ID.getRoute(selfDMReport.reportID));
             expect(writeSpy).toHaveBeenCalledWith(
                 WRITE_COMMANDS.DELETE_MONEY_REQUEST,
@@ -2437,6 +2436,101 @@ describe('actions/IOU/TrackExpense', () => {
                     betas: [CONST.BETAS.ALL],
                 });
             }).not.toThrow();
+        });
+    });
+
+    describe('hasManualDistanceOverride', () => {
+        const KM_5_IN_METERS = 5000;
+
+        function buildDistanceTransaction(overrides: Partial<Transaction> = {}): Transaction {
+            return {
+                transactionID: 'distance_txn',
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                merchant: 'Test',
+                created: DateUtils.getDBTime(),
+                reportID: 'r1',
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        quantity: 5,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                        routeDistanceMeters: KM_5_IN_METERS,
+                    },
+                },
+                ...overrides,
+            } as Transaction;
+        }
+
+        function withCustomUnit(overrides: Record<string, unknown>): Partial<Transaction> {
+            return {
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        quantity: 5,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                        routeDistanceMeters: KM_5_IN_METERS,
+                        ...overrides,
+                    },
+                },
+            } as Partial<Transaction>;
+        }
+
+        it('returns false when quantity matches the route distance (GPS-tracked expense)', () => {
+            // 5 km display vs 5000 m route → 0 diff in display units.
+            expect(hasManualDistanceOverride(buildDistanceTransaction())).toBe(false);
+        });
+
+        it('returns false when quantity is at the 2dp rounding boundary (unedited GPS expense)', () => {
+            // `customUnit.quantity` is stored at 2dp via `roundToTwoDecimalPlaces`. A 5005 m route
+            // is 5.005 km in display units, well within the 0.01 km tolerance.
+            const transaction = buildDistanceTransaction(withCustomUnit({routeDistanceMeters: 5005}));
+            expect(hasManualDistanceOverride(transaction)).toBe(false);
+        });
+
+        it('returns true when quantity diverges from the route distance (manual override on map)', () => {
+            // 5 km display vs 10000 m (10 km) route → diff of 5 km, well above tolerance.
+            const transaction = buildDistanceTransaction(withCustomUnit({routeDistanceMeters: 10000}));
+            expect(hasManualDistanceOverride(transaction)).toBe(true);
+        });
+
+        it('returns false when transaction has no route distance (pure manual expense)', () => {
+            const transaction = buildDistanceTransaction(withCustomUnit({routeDistanceMeters: 0}));
+            expect(hasManualDistanceOverride(transaction)).toBe(false);
+        });
+
+        it('returns false when transaction has no customUnit.quantity', () => {
+            const transaction = buildDistanceTransaction({
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                        routeDistanceMeters: KM_5_IN_METERS,
+                    },
+                },
+            });
+            expect(hasManualDistanceOverride(transaction)).toBe(false);
+        });
+
+        it('returns false when transaction has no distanceUnit', () => {
+            const transaction = buildDistanceTransaction({
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        quantity: 5,
+                        routeDistanceMeters: KM_5_IN_METERS,
+                    },
+                },
+            });
+            expect(hasManualDistanceOverride(transaction)).toBe(false);
+        });
+
+        it('returns false when transaction is undefined', () => {
+            expect(hasManualDistanceOverride(undefined)).toBe(false);
         });
     });
 });

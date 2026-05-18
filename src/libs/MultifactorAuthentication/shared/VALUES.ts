@@ -1,7 +1,6 @@
 /**
  * Constants for multifactor authentication biometrics flow and API responses.
  */
-import type {ValueOf} from 'type-fest';
 import {PROMPT_NAMES, SCENARIO_NAMES} from '@components/MultifactorAuthentication/config/scenarios/names';
 
 /**
@@ -9,18 +8,8 @@ import {PROMPT_NAMES, SCENARIO_NAMES} from '@components/MultifactorAuthenticatio
  * Used as keys in API_RESPONSE_MAP for matching against actual backend responses.
  */
 const BACKEND_MESSAGE = {
-    INVALID_CHALLENGE_TYPE: 'Invalid challenge type',
     REGISTRATION_REQUIRED: 'Registration required',
-    TOO_MANY_ATTEMPTS: 'Too many attempts',
     INVALID_VALIDATE_CODE: 'Invalid validate code',
-    MISSING_CHALLENGE_TYPE: 'Missing challengeType',
-    INVALID_KEY: 'Invalid key',
-    SIGNATURE_VERIFICATION_FAILED: 'Signature verification failed',
-    NO_PENDING_REGISTRATION_CHALLENGE: 'No pending registration challenge',
-    INVALID_SIGNED_CHALLENGE: 'Invalid signed challenge',
-    AUTHENTICATION_REQUIRED: 'Authentication required',
-    UNAUTHORIZED: 'Unauthorized',
-    TRANSACTION_NOT_FOUND: 'Transaction not found',
     TRANSACTION_EXPIRED: 'Transaction review period expired',
     TRANSACTION_ALREADY_APPROVED: 'Transaction already approved',
     TRANSACTION_ALREADY_DENIED: 'Transaction already denied',
@@ -28,75 +17,67 @@ const BACKEND_MESSAGE = {
 } as const;
 
 const REASON = {
-    /** Internal reason identifiers for multifactor authentication responses. */
-    BACKEND: {
-        INVALID_CHALLENGE_TYPE: 'Invalid challenge type',
-        CHALLENGE_GENERATED: 'Challenge generated successfully',
-        BIOMETRICS_REGISTERED: 'Biometrics registration successful',
-        AUTHORIZATION_SUCCESSFUL: 'User authorized successfully',
-        REGISTRATION_REQUIRED: 'Registration required',
-        TOO_MANY_ATTEMPTS: 'Too many attempts',
-        MISSING_CHALLENGE_TYPE: 'Missing challengeType',
-        INVALID_SIGNED_CHALLENGE: 'Invalid signed challenge',
-        AUTHENTICATION_REQUIRED: 'Authentication required',
-        UNAUTHORIZED: 'Unauthorized',
-        INVALID_KEY: 'Invalid key',
-        INVALID_VALIDATE_CODE: 'Invalid validate code',
-        SIGNATURE_VERIFICATION_FAILED: 'Signature verification failed',
-        NO_PENDING_REGISTRATION_CHALLENGE: 'No pending registration challenge',
-        REVOKE_SUCCESSFUL: 'Revoked successfully',
-        TRANSACTION_NOT_FOUND: 'Transaction not found',
-        TRANSACTION_EXPIRED: 'Transaction review period has expired',
-        ALREADY_APPROVED_APPROVE_ATTEMPTED: 'Already approved, approve attempted',
-        ALREADY_APPROVED_DENY_ATTEMPTED: 'Already approved, deny attempted',
-        ALREADY_DENIED_DENY_ATTEMPTED: 'Already denied, deny attempted',
-        ALREADY_DENIED_APPROVE_ATTEMPTED: 'Already denied, approve attempted',
-        ALREADY_REVIEWED: 'Transaction already reviewed',
-        TRANSACTION_APPROVED: 'Transaction approved successfully',
-        TRANSACTION_DENIED: 'Transaction denied successfully',
-        PIN_REVEALED: 'PIN revealed successfully',
-        PIN_CHANGED: 'PIN changed successfully',
-        SET_PIN: 'PIN set successfully',
+    SERVER_ERRORS: {
+        /** Unrecognized 5xx response from the backend. */
+        UNRECOGNIZED: 'Server: Unrecognized server error',
     },
-    CHALLENGE: {
-        CHALLENGE_MISSING: 'Challenge is missing',
-        CHALLENGE_SIGNED: 'Challenge signed successfully',
+    FLOW_OUTCOMES: {
+        TRANSACTION_DENIED: 'Outcome: Transaction denied successfully',
     },
-    GENERIC: {
-        SIGNATURE_MISSING: 'Signature is missing',
+    /** HTTP 4xx errors from the backend (not front-end errors despite the "Client" prefix). */
+    CLIENT_ERRORS: {
+        REGISTRATION_REQUIRED: 'Client: Registration required',
+        INVALID_VALIDATE_CODE: 'Client: Invalid validate code',
+        TRANSACTION_EXPIRED: 'Client: Transaction review period has expired',
+        ALREADY_APPROVED_APPROVE_ATTEMPTED: 'Client: Already approved, approve attempted',
+        ALREADY_APPROVED_DENY_ATTEMPTED: 'Client: Already approved, deny attempted',
+        ALREADY_DENIED_DENY_ATTEMPTED: 'Client: Already denied, deny attempted',
+        ALREADY_DENIED_APPROVE_ATTEMPTED: 'Client: Already denied, approve attempted',
+        ALREADY_REVIEWED: 'Client: Transaction already reviewed',
+        /** Unrecognized 4xx response from the backend with no specific handler. */
+        UNRECOGNIZED: 'Client: Unrecognized client error',
+    },
+    LOCAL_ERRORS: {
+        SIGNATURE_MISSING: 'Local: Signed challenge is missing from authentication result',
         /** The device type is correct for this scenario but no authentication methods are enrolled (e.g. no fingerprint/face/passcode set up in device settings). */
-        NO_AUTHENTICATION_METHODS_ENROLLED: 'No authentication methods enrolled',
+        NO_AUTHENTICATION_METHODS_ENROLLED: 'Local: No authentication methods enrolled',
         /** The scenario does not allow this device's authentication type (e.g. biometrics-only scenario on web, or passkeys-only scenario on mobile). */
-        AUTHENTICATION_TYPE_NOT_SUPPORTED: 'Authentication type not supported',
-        BAD_REQUEST: 'Bad request',
-        LOCAL_REGISTRATION_COMPLETE: 'Local registration complete',
-        UNHANDLED_ERROR: 'An unhandled error occurred',
-        REQUESTED_TRANSACTION_UNAVAILABLE: 'Requested transaction is unavailable',
-        UNKNOWN_RESPONSE: 'Unknown response',
-        CANCELED: 'Flow canceled by user',
-    },
-    WEBAUTHN: {
-        NOT_ALLOWED: 'NotAllowedError',
-        INVALID_STATE: 'InvalidStateError',
-        SECURITY_ERROR: 'SecurityError',
-        ABORT: 'AbortError',
-        NOT_SUPPORTED: 'NotSupportedError',
-        CONSTRAINT_ERROR: 'ConstraintError',
-        REGISTRATION_REQUIRED: 'No matching passkey credentials found locally',
-        UNEXPECTED_RESPONSE: 'WebAuthn credential response type is unexpected',
-        GENERIC: 'An unknown WebAuthn error occurred',
-    },
-    HSM: {
-        CANCELED: 'Biometric authentication canceled by user',
-        NOT_AVAILABLE: 'Biometric authentication not available',
-        LOCKOUT: 'Biometric authentication locked out',
-        LOCKOUT_PERMANENT: 'Biometric authentication permanently locked out',
-        KEY_NOT_FOUND: 'Key not found',
-        SIGNATURE_FAILED: 'Signature creation failed',
-        KEY_CREATION_FAILED: 'Key creation failed',
-        KEY_ACCESS_FAILED: 'Failed to access cryptographic key',
-        AUTHENTICATION_FAILED: 'Biometric authentication failed',
-        GENERIC: 'An HSM error occurred',
+        AUTHENTICATION_TYPE_NOT_SUPPORTED: 'Local: Authentication type not supported',
+        UNHANDLED_EXCEPTION: 'Local: An unhandled error occurred',
+        UNRECOGNIZED: 'Local: Unrecognized local error',
+        CANCELED: 'Local: Flow canceled by user',
+        /** No HTTP status code present — typically a network failure, JSON parse error, or unhandled exception in an action function. */
+        UNHANDLED_API_RESPONSE: 'Local: Missing HTTP status in API response',
+        WEBAUTHN: {
+            NOT_ALLOWED: 'Local WebAuthn: Operation not allowed',
+            INVALID_STATE: 'Local WebAuthn: Invalid state',
+            SECURITY_ERROR: 'Local WebAuthn: Security error',
+            ABORT: 'Local WebAuthn: Operation aborted',
+            NOT_SUPPORTED: 'Local WebAuthn: Not supported',
+            CONSTRAINT_ERROR: 'Local WebAuthn: Constraint error',
+            TIMEOUT: 'Local WebAuthn: Operation timed out',
+            DATA_ERROR: 'Local WebAuthn: Malformed input data',
+            UNKNOWN: 'Local WebAuthn: Platform or authenticator failure',
+            NO_MATCHING_LOCAL_CREDENTIAL: 'Local WebAuthn: No local passkey credential matches the challenge allowCredentials list',
+            UNEXPECTED_RESPONSE: 'Local WebAuthn: Credential response type is unexpected',
+            /** Unrecognized WebAuthn error with no specific handler. */
+            UNRECOGNIZED: 'Local WebAuthn: Unrecognized error',
+        },
+        HSM: {
+            CANCELED: 'Local HSM: Biometric authentication canceled by user',
+            NOT_AVAILABLE: 'Local HSM: Biometric authentication not available',
+            LOCKOUT: 'Local HSM: Biometric authentication locked out',
+            LOCKOUT_PERMANENT: 'Local HSM: Biometric authentication permanently locked out',
+            KEY_NOT_FOUND: 'Local HSM: Cryptographic key not found',
+            NO_MATCHING_LOCAL_CREDENTIAL: 'Local HSM: Local HSM credential is not present in the challenge allowCredentials list',
+            SIGNATURE_FAILED: 'Local HSM: Signature creation failed',
+            KEY_CREATION_FAILED: 'Local HSM: Key creation failed',
+            KEY_ACCESS_FAILED: 'Local HSM: Failed to access cryptographic key',
+            AUTHENTICATION_FAILED: 'Local HSM: Biometric authentication failed',
+            /** Unrecognized HSM error with no specific handler. */
+            UNRECOGNIZED: 'Local HSM: Unrecognized error',
+            UNRECOGNIZED_AUTH_TYPE: 'Local HSM: Unrecognized auth type in sign result',
+        },
     },
 } as const;
 
@@ -106,144 +87,128 @@ const HTTP_STATUS = {
     SERVER_ERROR: 'SERVER_ERROR',
 } as const;
 
-const MULTIFACTOR_AUTHENTICATION_COMMAND_BASE_CLIENT_ERRORS = {
-    [BACKEND_MESSAGE.INVALID_SIGNED_CHALLENGE]: REASON.BACKEND.INVALID_SIGNED_CHALLENGE,
-    [BACKEND_MESSAGE.REGISTRATION_REQUIRED]: REASON.BACKEND.REGISTRATION_REQUIRED,
-    [BACKEND_MESSAGE.AUTHENTICATION_REQUIRED]: REASON.BACKEND.AUTHENTICATION_REQUIRED,
-    [BACKEND_MESSAGE.UNAUTHORIZED]: REASON.BACKEND.UNAUTHORIZED,
-    [BACKEND_MESSAGE.TOO_MANY_ATTEMPTS]: REASON.BACKEND.TOO_MANY_ATTEMPTS,
-} as const;
-
 /**
  * Maps API endpoints to HTTP status categories and corresponding reason messages.
  * Keys in error sub-maps are backend message strings (BACKEND_MESSAGE) used for matching.
  * Values are the internal REASON constants returned to the caller.
+ *
+ * Only errors with explicit custom handling are listed. All other 4xx/5xx responses
+ * fall through to REASON.CLIENT_ERRORS.UNRECOGNIZED or REASON.SERVER_ERRORS.UNRECOGNIZED.
  */
 const API_RESPONSE_MAP = {
     REQUEST_AUTHENTICATION_CHALLENGE: {
-        [HTTP_STATUS.SUCCESS]: REASON.BACKEND.CHALLENGE_GENERATED,
         [HTTP_STATUS.CLIENT_ERROR]: {
-            [BACKEND_MESSAGE.INVALID_CHALLENGE_TYPE]: REASON.BACKEND.INVALID_CHALLENGE_TYPE,
-            [BACKEND_MESSAGE.REGISTRATION_REQUIRED]: REASON.BACKEND.REGISTRATION_REQUIRED,
-            [BACKEND_MESSAGE.TOO_MANY_ATTEMPTS]: REASON.BACKEND.TOO_MANY_ATTEMPTS,
-            [BACKEND_MESSAGE.INVALID_VALIDATE_CODE]: REASON.BACKEND.INVALID_VALIDATE_CODE,
-            [BACKEND_MESSAGE.MISSING_CHALLENGE_TYPE]: REASON.BACKEND.MISSING_CHALLENGE_TYPE,
+            [BACKEND_MESSAGE.REGISTRATION_REQUIRED]: REASON.CLIENT_ERRORS.REGISTRATION_REQUIRED,
+            [BACKEND_MESSAGE.INVALID_VALIDATE_CODE]: REASON.CLIENT_ERRORS.INVALID_VALIDATE_CODE,
         },
     },
     REGISTER_AUTHENTICATION_KEY: {
-        [HTTP_STATUS.SUCCESS]: REASON.BACKEND.BIOMETRICS_REGISTERED,
         [HTTP_STATUS.CLIENT_ERROR]: {
-            [BACKEND_MESSAGE.INVALID_KEY]: REASON.BACKEND.INVALID_KEY,
-            [BACKEND_MESSAGE.INVALID_VALIDATE_CODE]: REASON.BACKEND.INVALID_VALIDATE_CODE,
-            [BACKEND_MESSAGE.SIGNATURE_VERIFICATION_FAILED]: REASON.BACKEND.SIGNATURE_VERIFICATION_FAILED,
-            [BACKEND_MESSAGE.TOO_MANY_ATTEMPTS]: REASON.BACKEND.TOO_MANY_ATTEMPTS,
-            [BACKEND_MESSAGE.NO_PENDING_REGISTRATION_CHALLENGE]: REASON.BACKEND.NO_PENDING_REGISTRATION_CHALLENGE,
+            [BACKEND_MESSAGE.INVALID_VALIDATE_CODE]: REASON.CLIENT_ERRORS.INVALID_VALIDATE_CODE,
+            [BACKEND_MESSAGE.REGISTRATION_REQUIRED]: REASON.CLIENT_ERRORS.REGISTRATION_REQUIRED,
         },
     },
     TROUBLESHOOT_MULTIFACTOR_AUTHENTICATION: {
-        [HTTP_STATUS.SUCCESS]: REASON.BACKEND.AUTHORIZATION_SUCCESSFUL,
         [HTTP_STATUS.CLIENT_ERROR]: {
-            ...MULTIFACTOR_AUTHENTICATION_COMMAND_BASE_CLIENT_ERRORS,
+            [BACKEND_MESSAGE.REGISTRATION_REQUIRED]: REASON.CLIENT_ERRORS.REGISTRATION_REQUIRED,
         },
     },
-
     REVOKE_MULTIFACTOR_AUTHENTICATION_SETUP: {
-        [HTTP_STATUS.SUCCESS]: REASON.BACKEND.REVOKE_SUCCESSFUL,
         [HTTP_STATUS.CLIENT_ERROR]: {
-            ...MULTIFACTOR_AUTHENTICATION_COMMAND_BASE_CLIENT_ERRORS,
+            [BACKEND_MESSAGE.REGISTRATION_REQUIRED]: REASON.CLIENT_ERRORS.REGISTRATION_REQUIRED,
         },
     },
 
     /** Transaction review (3DS) - approve/deny endpoints */
     APPROVE_TRANSACTION: {
-        [HTTP_STATUS.SUCCESS]: REASON.BACKEND.TRANSACTION_APPROVED,
         [HTTP_STATUS.CLIENT_ERROR]: {
-            ...MULTIFACTOR_AUTHENTICATION_COMMAND_BASE_CLIENT_ERRORS,
-            [BACKEND_MESSAGE.TRANSACTION_EXPIRED]: REASON.BACKEND.TRANSACTION_EXPIRED,
-            [BACKEND_MESSAGE.TRANSACTION_ALREADY_APPROVED]: REASON.BACKEND.ALREADY_APPROVED_APPROVE_ATTEMPTED,
-            [BACKEND_MESSAGE.TRANSACTION_ALREADY_DENIED]: REASON.BACKEND.ALREADY_DENIED_APPROVE_ATTEMPTED,
-            [BACKEND_MESSAGE.TRANSACTION_ALREADY_REVIEWED]: REASON.BACKEND.ALREADY_REVIEWED,
-            [BACKEND_MESSAGE.TRANSACTION_NOT_FOUND]: REASON.BACKEND.TRANSACTION_NOT_FOUND,
+            [BACKEND_MESSAGE.REGISTRATION_REQUIRED]: REASON.CLIENT_ERRORS.REGISTRATION_REQUIRED,
+            [BACKEND_MESSAGE.TRANSACTION_EXPIRED]: REASON.CLIENT_ERRORS.TRANSACTION_EXPIRED,
+            [BACKEND_MESSAGE.TRANSACTION_ALREADY_APPROVED]: REASON.CLIENT_ERRORS.ALREADY_APPROVED_APPROVE_ATTEMPTED,
+            [BACKEND_MESSAGE.TRANSACTION_ALREADY_DENIED]: REASON.CLIENT_ERRORS.ALREADY_DENIED_APPROVE_ATTEMPTED,
+            [BACKEND_MESSAGE.TRANSACTION_ALREADY_REVIEWED]: REASON.CLIENT_ERRORS.ALREADY_REVIEWED,
         },
     },
 
+    /**
+     * DENY_TRANSACTION maps HTTP 200 to FLOW_OUTCOMES.TRANSACTION_DENIED because the deny API
+     * call succeeding (200) is not an MFA authorization success — it's a completed flow outcome
+     * that routes to DeniedTransactionSuccessScreen.
+     */
     DENY_TRANSACTION: {
-        [HTTP_STATUS.SUCCESS]: REASON.BACKEND.TRANSACTION_DENIED,
+        [HTTP_STATUS.SUCCESS]: REASON.FLOW_OUTCOMES.TRANSACTION_DENIED,
         [HTTP_STATUS.CLIENT_ERROR]: {
-            ...MULTIFACTOR_AUTHENTICATION_COMMAND_BASE_CLIENT_ERRORS,
-            [BACKEND_MESSAGE.TRANSACTION_EXPIRED]: REASON.BACKEND.TRANSACTION_EXPIRED,
-            [BACKEND_MESSAGE.TRANSACTION_ALREADY_APPROVED]: REASON.BACKEND.ALREADY_APPROVED_DENY_ATTEMPTED,
-            [BACKEND_MESSAGE.TRANSACTION_ALREADY_DENIED]: REASON.BACKEND.ALREADY_DENIED_DENY_ATTEMPTED,
-            [BACKEND_MESSAGE.TRANSACTION_ALREADY_REVIEWED]: REASON.BACKEND.ALREADY_REVIEWED,
-            [BACKEND_MESSAGE.TRANSACTION_NOT_FOUND]: REASON.BACKEND.TRANSACTION_NOT_FOUND,
+            [BACKEND_MESSAGE.REGISTRATION_REQUIRED]: REASON.CLIENT_ERRORS.REGISTRATION_REQUIRED,
+            [BACKEND_MESSAGE.TRANSACTION_EXPIRED]: REASON.CLIENT_ERRORS.TRANSACTION_EXPIRED,
+            [BACKEND_MESSAGE.TRANSACTION_ALREADY_APPROVED]: REASON.CLIENT_ERRORS.ALREADY_APPROVED_DENY_ATTEMPTED,
+            [BACKEND_MESSAGE.TRANSACTION_ALREADY_DENIED]: REASON.CLIENT_ERRORS.ALREADY_DENIED_DENY_ATTEMPTED,
+            [BACKEND_MESSAGE.TRANSACTION_ALREADY_REVIEWED]: REASON.CLIENT_ERRORS.ALREADY_REVIEWED,
         },
     },
 
-    SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS_WITH_PIN: {
-        [HTTP_STATUS.SUCCESS]: REASON.BACKEND.SET_PIN,
-    },
+    /** No custom error handling — all responses rely on category fallback reasons. */
+    SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS_WITH_PIN: {},
 
-    REVEAL_CARD_PIN: {
-        [HTTP_STATUS.SUCCESS]: REASON.BACKEND.PIN_REVEALED,
-    },
+    /** No custom error handling — all responses rely on category fallback reasons. */
+    REVEAL_CARD_PIN: {},
 
-    CHANGE_CARD_PIN: {
-        [HTTP_STATUS.SUCCESS]: REASON.BACKEND.PIN_CHANGED,
-    },
+    /** No custom error handling — all responses rely on category fallback reasons. */
+    CHANGE_CARD_PIN: {},
 } as const;
 
-type ReasonValue = ValueOf<{
-    [K in keyof typeof REASON]: ValueOf<(typeof REASON)[K]>;
-}>;
+type DeepLeafValues<T> = T extends Record<string, unknown> ? DeepLeafValues<T[keyof T]> : T;
+type ReasonValue = DeepLeafValues<typeof REASON>;
 
 /** Known errors the user is likely to encounter (cancellations, expired transactions, unsupported devices, etc.). Logged at 'info' level. */
 const ROUTINE_FAILURES = new Set<ReasonValue>([
-    REASON.GENERIC.CANCELED,
-    REASON.GENERIC.NO_AUTHENTICATION_METHODS_ENROLLED,
-    REASON.GENERIC.AUTHENTICATION_TYPE_NOT_SUPPORTED,
-    REASON.BACKEND.TRANSACTION_EXPIRED,
-    REASON.BACKEND.TRANSACTION_DENIED,
-    REASON.BACKEND.TOO_MANY_ATTEMPTS,
-    REASON.BACKEND.INVALID_VALIDATE_CODE,
-    REASON.BACKEND.ALREADY_APPROVED_APPROVE_ATTEMPTED,
-    REASON.BACKEND.ALREADY_APPROVED_DENY_ATTEMPTED,
-    REASON.BACKEND.ALREADY_DENIED_APPROVE_ATTEMPTED,
-    REASON.BACKEND.ALREADY_DENIED_DENY_ATTEMPTED,
-    REASON.BACKEND.ALREADY_REVIEWED,
-    REASON.WEBAUTHN.NOT_ALLOWED,
-    REASON.WEBAUTHN.ABORT,
-    REASON.WEBAUTHN.NOT_SUPPORTED,
-    REASON.HSM.CANCELED,
-    REASON.HSM.NOT_AVAILABLE,
-    REASON.HSM.LOCKOUT,
-    REASON.HSM.AUTHENTICATION_FAILED,
+    REASON.LOCAL_ERRORS.CANCELED,
+    REASON.LOCAL_ERRORS.NO_AUTHENTICATION_METHODS_ENROLLED,
+    REASON.LOCAL_ERRORS.AUTHENTICATION_TYPE_NOT_SUPPORTED,
+    REASON.CLIENT_ERRORS.TRANSACTION_EXPIRED,
+    REASON.CLIENT_ERRORS.INVALID_VALIDATE_CODE,
+    REASON.CLIENT_ERRORS.ALREADY_APPROVED_APPROVE_ATTEMPTED,
+    REASON.CLIENT_ERRORS.ALREADY_APPROVED_DENY_ATTEMPTED,
+    REASON.CLIENT_ERRORS.ALREADY_DENIED_APPROVE_ATTEMPTED,
+    REASON.CLIENT_ERRORS.ALREADY_DENIED_DENY_ATTEMPTED,
+    REASON.CLIENT_ERRORS.ALREADY_REVIEWED,
+    REASON.LOCAL_ERRORS.WEBAUTHN.NOT_ALLOWED,
+    REASON.LOCAL_ERRORS.WEBAUTHN.ABORT,
+    REASON.LOCAL_ERRORS.WEBAUTHN.NOT_SUPPORTED,
+    REASON.LOCAL_ERRORS.WEBAUTHN.TIMEOUT,
+    REASON.LOCAL_ERRORS.HSM.CANCELED,
+    REASON.LOCAL_ERRORS.HSM.NOT_AVAILABLE,
+    REASON.LOCAL_ERRORS.HSM.LOCKOUT,
+    REASON.LOCAL_ERRORS.HSM.AUTHENTICATION_FAILED,
 ]);
 
-/** Known errors that should rarely happen and may indicate a bug or unexpected state. Logged at 'error' level. Any reason not in either set is treated as UNCLASSIFIED (e.g. 5xx, missing reason). */
+/** Non-error flow outcomes that are not MFA successes but represent valid, expected terminal states (e.g. user-initiated deny). Logged at 'info' level. */
+const ALTERNATIVE_OUTCOMES = new Set<ReasonValue>([REASON.FLOW_OUTCOMES.TRANSACTION_DENIED]);
+
+/** Known errors that should rarely happen and may indicate a bug or unexpected state. Logged at 'error' level. Any reason not in either set is treated as UNCLASSIFIED (e.g. missing reason). */
 const ANOMALOUS_FAILURES = new Set<ReasonValue>([
-    REASON.BACKEND.REGISTRATION_REQUIRED,
-    REASON.BACKEND.INVALID_CHALLENGE_TYPE,
-    REASON.BACKEND.INVALID_SIGNED_CHALLENGE,
-    REASON.BACKEND.SIGNATURE_VERIFICATION_FAILED,
-    REASON.BACKEND.NO_PENDING_REGISTRATION_CHALLENGE,
-    REASON.BACKEND.TRANSACTION_NOT_FOUND,
-    REASON.BACKEND.INVALID_KEY,
-    REASON.BACKEND.AUTHENTICATION_REQUIRED,
-    REASON.BACKEND.UNAUTHORIZED,
-    REASON.GENERIC.BAD_REQUEST,
-    REASON.GENERIC.UNKNOWN_RESPONSE,
-    REASON.WEBAUTHN.INVALID_STATE,
-    REASON.WEBAUTHN.SECURITY_ERROR,
-    REASON.WEBAUTHN.CONSTRAINT_ERROR,
-    REASON.WEBAUTHN.REGISTRATION_REQUIRED,
-    REASON.WEBAUTHN.UNEXPECTED_RESPONSE,
-    REASON.WEBAUTHN.GENERIC,
-    REASON.HSM.LOCKOUT_PERMANENT,
-    REASON.HSM.SIGNATURE_FAILED,
-    REASON.HSM.KEY_NOT_FOUND,
-    REASON.HSM.KEY_CREATION_FAILED,
-    REASON.HSM.KEY_ACCESS_FAILED,
-    REASON.HSM.GENERIC,
+    REASON.CLIENT_ERRORS.REGISTRATION_REQUIRED,
+    REASON.CLIENT_ERRORS.UNRECOGNIZED,
+    REASON.SERVER_ERRORS.UNRECOGNIZED,
+    REASON.LOCAL_ERRORS.UNHANDLED_API_RESPONSE,
+    REASON.LOCAL_ERRORS.UNHANDLED_EXCEPTION,
+    REASON.LOCAL_ERRORS.UNRECOGNIZED,
+    REASON.LOCAL_ERRORS.SIGNATURE_MISSING,
+    REASON.LOCAL_ERRORS.WEBAUTHN.INVALID_STATE,
+    REASON.LOCAL_ERRORS.WEBAUTHN.SECURITY_ERROR,
+    REASON.LOCAL_ERRORS.WEBAUTHN.CONSTRAINT_ERROR,
+    REASON.LOCAL_ERRORS.WEBAUTHN.UNEXPECTED_RESPONSE,
+    REASON.LOCAL_ERRORS.WEBAUTHN.UNRECOGNIZED,
+    REASON.LOCAL_ERRORS.WEBAUTHN.DATA_ERROR,
+    REASON.LOCAL_ERRORS.WEBAUTHN.UNKNOWN,
+    REASON.LOCAL_ERRORS.WEBAUTHN.NO_MATCHING_LOCAL_CREDENTIAL,
+    REASON.LOCAL_ERRORS.HSM.LOCKOUT_PERMANENT,
+    REASON.LOCAL_ERRORS.HSM.SIGNATURE_FAILED,
+    REASON.LOCAL_ERRORS.HSM.KEY_NOT_FOUND,
+    REASON.LOCAL_ERRORS.HSM.KEY_CREATION_FAILED,
+    REASON.LOCAL_ERRORS.HSM.KEY_ACCESS_FAILED,
+    REASON.LOCAL_ERRORS.HSM.UNRECOGNIZED,
+    REASON.LOCAL_ERRORS.HSM.UNRECOGNIZED_AUTH_TYPE,
+    REASON.LOCAL_ERRORS.HSM.NO_MATCHING_LOCAL_CREDENTIAL,
 ]);
 
 const SHARED_VALUES = {
@@ -290,6 +255,7 @@ const SHARED_VALUES = {
     REASON,
     HTTP_STATUS,
     ROUTINE_FAILURES,
+    ALTERNATIVE_OUTCOMES,
     ANOMALOUS_FAILURES,
 
     /**
@@ -329,4 +295,5 @@ const SHARED_VALUES = {
     },
 } as const;
 
+export type {ReasonValue};
 export default SHARED_VALUES;

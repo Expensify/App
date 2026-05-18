@@ -13,11 +13,15 @@ import type {
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
+import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import {toLocaleDigit} from '@libs/LocaleDigitUtils';
+import {translateLocal} from '@libs/Localize';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
-import {rand64} from '@libs/NumberUtils';
-import {hasDependentTags, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import {getDistanceRateCustomUnitRate, hasDependentTags, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {
     getAllReportActions,
     getIOUActionForReportID,
@@ -39,16 +43,31 @@ import {
     getReportTransactions,
     getTransactionDetails,
     hasViolations as hasViolationsReportUtils,
+    isExpenseReport,
     shouldEnableNegative,
 } from '@libs/ReportUtils';
-import {hasPendingRTERViolation, isDeletedTransaction, isManagedCardTransaction, isOnHold, shouldClearConvertedAmount, waypointHasValidAddress} from '@libs/TransactionUtils';
+import {
+    getDistanceInMeters,
+    hasPendingRTERViolation,
+    isDeletedTransaction,
+    isDistanceRequest,
+    isFetchingWaypointsFromServer,
+    isManagedCardTransaction,
+    isManualDistanceRequest,
+    isOdometerDistanceRequest,
+    isOnHold,
+    shouldClearConvertedAmount,
+    waypointHasValidAddress,
+} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     PersonalDetails,
     Policy,
     PolicyCategories,
+    PolicyTagLists,
     RecentWaypoint,
     Report,
     ReportAction,
@@ -63,7 +82,6 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import type TransactionState from '@src/types/utils/TransactionStateType';
-import {getPolicyTags} from './IOU/index';
 
 let allReports: OnyxCollection<Report> = {};
 Onyx.connect({
@@ -94,16 +112,6 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
     callback: (val) => (allTransactionViolations = val ?? []),
 });
-
-/**
- * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
- * TODO: remove `getPolicyTagsData` from this file (https://github.com/Expensify/App/issues/72720)
- * All usages of this function should be replaced with useOnyx hook in React components.
- */
-function getPolicyTagsData(policyID: string | undefined) {
-    const allPolicyTags = getPolicyTags();
-    return allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
-}
 
 // Helper to safely check for a string 'name' property
 function isViolationWithName(violation: unknown): violation is {name: string} {
@@ -221,7 +229,6 @@ function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: strin
     // to remove nested keys while also preserving other object keys
     // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
     let newTransaction: Transaction = {
-        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
         ...currentTransaction,
         comment: {
             ...currentTransaction?.comment,
@@ -534,7 +541,6 @@ function dismissDuplicateTransactionViolation({
             ({violations}) => violations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION).length,
         );
         // buildOptimisticNextStep is used in parallel
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const optimisticNextStepDeprecated = buildNextStepNew({
             report: expenseReport,
             predictedNextStatus: expenseReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
@@ -842,6 +848,7 @@ type ChangeTransactionsReportProps = {
     reportNextStep?: OnyxEntry<ReportNextStepDeprecated>;
     policyCategories?: OnyxEntry<PolicyCategories>;
     allTransactions: OnyxCollection<Transaction>;
+    policyTagList: OnyxEntry<PolicyTagLists>;
 };
 
 function changeTransactionsReport({
@@ -854,6 +861,7 @@ function changeTransactionsReport({
     reportNextStep,
     policyCategories,
     allTransactions,
+    policyTagList,
 }: ChangeTransactionsReportProps) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -863,6 +871,9 @@ function changeTransactionsReport({
     const updatedReportTransactionCounts: Record<string, number> = {};
     const updatedReportNonReimbursableTotals: Record<string, number> = {};
     const updatedReportUnheldNonReimbursableTotals: Record<string, number> = {};
+    const staleReportIDs = new Set<string>();
+    const optimisticPendingFieldsByReport: Record<string, Partial<NonNullable<Report['pendingFields']>>> = {};
+    const targetReportCurrenciesByReport: Record<string, Set<string>> = {};
 
     // Store current violations for each transaction to restore on failure
     const currentTransactionViolations: Record<string, TransactionViolation[]> = {};
@@ -908,7 +919,7 @@ function changeTransactionsReport({
     if (!existingSelfDMReportID && reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         const currentTime = DateUtils.getDBTime();
         selfDMReport = buildOptimisticSelfDMReport(currentTime);
-        selfDMCreatedReportAction = buildOptimisticCreatedReportAction(email ?? '', currentTime);
+        selfDMCreatedReportAction = buildOptimisticCreatedReportAction({emailCreatingAction: email ?? '', created: currentTime});
 
         // Add optimistic updates for self DM report
         optimisticData.push(
@@ -990,13 +1001,50 @@ function changeTransactionsReport({
     let transactionsMoved = false;
     let shouldFixViolations = false;
 
-    // TODO: Replace getPolicyTagsData with useOnyx hook (https://github.com/Expensify/App/issues/72720)
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policyTagList = getPolicyTagsData(policy?.id);
     const policyHasDependentTags = hasDependentTags(policy, policyTagList);
 
     // Determine the destination currency for convertedAmount clearing logic
     const destinationCurrency = newReport?.currency ?? policy?.outputCurrency;
+    const mergeOptimisticPendingFields = (reportIDToUpdate: string | undefined, pendingFields: Partial<NonNullable<Report['pendingFields']>>) => {
+        if (!reportIDToUpdate) {
+            return;
+        }
+
+        optimisticPendingFieldsByReport[reportIDToUpdate] = {
+            ...optimisticPendingFieldsByReport[reportIDToUpdate],
+            ...pendingFields,
+        };
+    };
+    const clearAccumulatedReportTotals = (reportIDToUpdate: string) => {
+        delete updatedReportTotals[reportIDToUpdate];
+        delete updatedReportNonReimbursableTotals[reportIDToUpdate];
+        delete updatedReportUnheldNonReimbursableTotals[reportIDToUpdate];
+    };
+    const markReportTotalAsStale = (reportIDToUpdate: string | undefined) => {
+        if (!reportIDToUpdate) {
+            return;
+        }
+
+        staleReportIDs.add(reportIDToUpdate);
+        clearAccumulatedReportTotals(reportIDToUpdate);
+        mergeOptimisticPendingFields(reportIDToUpdate, {
+            total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+        });
+    };
+    const getTargetReportCurrencies = (targetReportID: string) => {
+        if (!targetReportCurrenciesByReport[targetReportID]) {
+            targetReportCurrenciesByReport[targetReportID] = new Set(
+                getReportTransactions(targetReportID)
+                    .filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+                    .map((transaction) => transaction.currency),
+            );
+        }
+
+        return targetReportCurrenciesByReport[targetReportID];
+    };
+
+    // Track distance rate updates so we can send them to the backend
+    const transactionIDToUpdatedCustomUnitRateID: Record<string, string> = {};
 
     for (const transaction of transactions) {
         const isDeletedExpense = isDeletedTransaction(transaction);
@@ -1060,6 +1108,7 @@ function changeTransactionsReport({
                 originalCurrency: shouldCopyOriginalCurrency ? transaction.originalCurrency : null,
                 ...(shouldClearAmount && {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
                 ...(shouldClearAmount && {convertedAmount: null}),
+                ...(shouldClearAmount && {convertedTaxAmount: null}),
                 ...(oldIOUAction ? {linkedTrackedExpenseReportAction: newIOUAction} : {}),
             },
         });
@@ -1083,6 +1132,7 @@ function changeTransactionsReport({
                 originalCurrency: transaction.originalCurrency,
                 ...(shouldClearAmount && {pendingAction: transaction.pendingAction ?? null}),
                 ...(shouldClearAmount && {convertedAmount: transaction.convertedAmount}),
+                ...(shouldClearAmount && {convertedTaxAmount: transaction.convertedTaxAmount}),
             },
         });
 
@@ -1118,14 +1168,115 @@ function changeTransactionsReport({
             });
         }
 
+        // Auto-select a valid default distance rate when moving to a workspace where the current rate is invalid,
+        // and recalculate derived fields (amount, merchant, currency) to match the new rate.
+        let transactionForViolations = transaction;
+        if (isPaidGroupPolicy(policy) && policy?.id && isDistanceRequest(transaction)) {
+            const currentRateID = transaction.comment?.customUnit?.customUnitRateID;
+            const currentRate = currentRateID ? getDistanceRateCustomUnitRate(policy, currentRateID) : undefined;
+            if (!currentRateID || !currentRate || currentRate.enabled === false) {
+                const defaultRate = DistanceRequestUtils.getDefaultMileageRate(policy);
+                if (defaultRate?.customUnitRateID) {
+                    transactionIDToUpdatedCustomUnitRateID[transaction.transactionID] = defaultRate.customUnitRateID;
+                    // Build an updated transaction with the new rate so we can derive fields from it
+                    const updatedTransaction: typeof transaction = {
+                        ...transaction,
+                        comment: {
+                            ...transaction.comment,
+                            customUnit: {
+                                ...transaction.comment?.customUnit,
+                                customUnitRateID: defaultRate.customUnitRateID,
+                                defaultP2PRate: undefined,
+                            },
+                        },
+                    };
+
+                    // Update distanceUnit if the new rate has a different unit, and convert distance if needed
+                    const existingDistanceUnit = transaction.comment?.customUnit?.distanceUnit;
+                    const newDistanceUnit = DistanceRequestUtils.getUpdatedDistanceUnit({transaction: updatedTransaction, policy});
+                    if (updatedTransaction.comment?.customUnit) {
+                        updatedTransaction.comment.customUnit.distanceUnit = newDistanceUnit;
+                    }
+                    if (existingDistanceUnit && newDistanceUnit !== existingDistanceUnit && !isOdometerDistanceRequest(transaction)) {
+                        const conversionFactor =
+                            existingDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS : CONST.CUSTOM_UNITS.KILOMETERS_TO_MILES;
+                        const distance = roundToTwoDecimalPlaces((transaction.comment?.customUnit?.quantity ?? 0) * conversionFactor);
+                        if (updatedTransaction.comment?.customUnit) {
+                            updatedTransaction.comment.customUnit.quantity = distance;
+                        }
+                    }
+
+                    // Recalculate amount, merchant, and currency from the new rate
+                    const optimisticValue: Partial<typeof transaction> = {
+                        comment: updatedTransaction.comment,
+                    };
+
+                    if (!isFetchingWaypointsFromServer(transaction)) {
+                        const updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false});
+                        const {unit, rate} = updatedMileageRate;
+                        const distanceInMeters = getDistanceInMeters(updatedTransaction, unit);
+                        const calculatedAmount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
+                        const shouldNegateAmount = isExpenseReport(newReport);
+                        const updatedAmount = shouldNegateAmount ? -calculatedAmount : calculatedAmount;
+                        const updatedCurrency = updatedMileageRate.currency ?? CONST.CURRENCY.USD;
+                        const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(
+                            true,
+                            distanceInMeters,
+                            unit,
+                            rate,
+                            updatedCurrency,
+                            // eslint-disable-next-line @typescript-eslint/no-deprecated
+                            translateLocal,
+                            (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
+                            getCurrencySymbol,
+                            isManualDistanceRequest(transaction),
+                        );
+
+                        optimisticValue.amount = updatedAmount;
+                        optimisticValue.modifiedAmount = updatedAmount;
+                        optimisticValue.modifiedMerchant = updatedMerchant;
+                        optimisticValue.modifiedCurrency = updatedCurrency;
+                    }
+
+                    optimisticData.push({
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                        value: optimisticValue,
+                    });
+                    failureData.push({
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                        value: {
+                            comment: {
+                                customUnit: {
+                                    customUnitRateID: currentRateID ?? null,
+                                    defaultP2PRate: transaction.comment?.customUnit?.defaultP2PRate,
+                                    distanceUnit: existingDistanceUnit,
+                                    quantity: transaction.comment?.customUnit?.quantity,
+                                },
+                            },
+                            amount: transaction.amount,
+                            modifiedAmount: transaction.modifiedAmount,
+                            modifiedMerchant: transaction.modifiedMerchant,
+                            modifiedCurrency: transaction.modifiedCurrency,
+                        },
+                    });
+                    transactionForViolations = {
+                        ...updatedTransaction,
+                        ...optimisticValue,
+                    };
+                }
+            }
+        }
+
         let transactionReimbursable = transaction.reimbursable;
         // 2. Calculate transaction violations if moving transaction to a workspace
         if (isPaidGroupPolicy(policy) && policy?.id) {
             const violationData = ViolationsUtils.getViolationsOnyxData(
-                transaction,
+                transactionForViolations,
                 currentTransactionViolations[transaction.transactionID] ?? [],
                 policy,
-                policyTagList,
+                policyTagList ?? {},
                 policyCategories ?? {},
                 policyHasDependentTags,
                 false,
@@ -1170,45 +1321,57 @@ function changeTransactionsReport({
         const allowNegative = shouldEnableNegative(newReport);
 
         // 3. Keep track of the new report totals
+        // Source report uses original transaction details (expense is being removed at its original amount)
+        // Target report uses transactionForViolations (expense arrives with the updated rate/amount after auto-selecting workspace rate)
         const targetReportID = isUnreported ? selfDMReportID : reportID;
-        const {amount: transactionAmount = 0, currency: transactionCurrency} = getTransactionDetails(transaction, undefined, undefined, allowNegative) ?? {};
+        const {amount: sourceTransactionAmount = 0, currency: sourceTransactionCurrency} = getTransactionDetails(transaction, undefined, undefined, allowNegative) ?? {};
+        const {amount: targetTransactionAmount = 0, currency: targetTransactionCurrency} = getTransactionDetails(transactionForViolations, undefined, undefined, allowNegative) ?? {};
+        const resolvedTargetTransactionCurrency = targetTransactionCurrency ?? transaction.currency;
         const oldReportTotal = oldReport?.total ?? 0;
-        const updatedReportTotal = transactionAmount < 0 ? oldReportTotal - transactionAmount : oldReportTotal + transactionAmount;
+        const updatedReportTotal = sourceTransactionAmount < 0 ? oldReportTotal - sourceTransactionAmount : oldReportTotal + sourceTransactionAmount;
 
         if (oldReport) {
             const oldReportTransactionCount = updatedReportTransactionCounts[oldReportID] ?? oldReport.transactionCount ?? 0;
             updatedReportTransactionCounts[oldReportID] = Math.max(0, oldReportTransactionCount - 1);
-        }
 
-        if (oldReport && oldReport.currency === transactionCurrency) {
-            updatedReportTotals[oldReportID] = updatedReportTotals[oldReportID] ? updatedReportTotals[oldReportID] : updatedReportTotal;
-            updatedReportNonReimbursableTotals[oldReportID] =
-                (updatedReportNonReimbursableTotals[oldReportID] ? updatedReportNonReimbursableTotals[oldReportID] : (oldReport?.nonReimbursableTotal ?? 0)) +
-                (transaction?.reimbursable ? 0 : transactionAmount);
-            updatedReportUnheldNonReimbursableTotals[oldReportID] =
-                (updatedReportUnheldNonReimbursableTotals[oldReportID] ? updatedReportUnheldNonReimbursableTotals[oldReportID] : (oldReport?.unheldNonReimbursableTotal ?? 0)) +
-                (transaction?.reimbursable && !isOnHold(transaction) ? 0 : transactionAmount);
+            if (staleReportIDs.has(oldReportID) || oldReport.pendingFields?.total) {
+                markReportTotalAsStale(oldReportID);
+            } else if (oldReport.currency === sourceTransactionCurrency) {
+                updatedReportTotals[oldReportID] = updatedReportTotals[oldReportID] ? updatedReportTotals[oldReportID] : updatedReportTotal;
+                updatedReportNonReimbursableTotals[oldReportID] =
+                    (updatedReportNonReimbursableTotals[oldReportID] ? updatedReportNonReimbursableTotals[oldReportID] : (oldReport?.nonReimbursableTotal ?? 0)) +
+                    (transaction?.reimbursable ? 0 : sourceTransactionAmount);
+                updatedReportUnheldNonReimbursableTotals[oldReportID] =
+                    (updatedReportUnheldNonReimbursableTotals[oldReportID] ? updatedReportUnheldNonReimbursableTotals[oldReportID] : (oldReport?.unheldNonReimbursableTotal ?? 0)) +
+                    (transaction?.reimbursable && !isOnHold(transaction) ? 0 : sourceTransactionAmount);
+            } else {
+                markReportTotalAsStale(oldReportID);
+            }
         }
 
         if (targetReportID) {
             const targetReportKey = `${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`;
             const targetReport =
                 allReports?.[targetReportKey] ?? (targetReportID === newReport?.reportID ? newReport : undefined) ?? (targetReportID === selfDMReport?.reportID ? selfDMReport : undefined);
+            const targetReportCurrencies = getTargetReportCurrencies(targetReportID);
             const targetReportTransactionCount = updatedReportTransactionCounts[targetReportID] ?? targetReport?.transactionCount ?? 0;
             updatedReportTransactionCounts[targetReportID] = targetReportTransactionCount + 1;
 
-            if (transactionCurrency === targetReport?.currency) {
+            if (staleReportIDs.has(targetReportID) || targetReport?.pendingFields?.total || new Set([...targetReportCurrencies, resolvedTargetTransactionCurrency]).size > 1) {
+                markReportTotalAsStale(targetReportID);
+            } else if (targetTransactionCurrency === targetReport?.currency) {
                 const currentTotal = updatedReportTotals[targetReportID] ?? targetReport?.total ?? 0;
-                updatedReportTotals[targetReportID] = currentTotal - transactionAmount;
+                updatedReportTotals[targetReportID] = currentTotal - targetTransactionAmount;
 
                 const currentNonReimbursableTotal = updatedReportNonReimbursableTotals[targetReportID] ?? targetReport?.nonReimbursableTotal ?? 0;
-                updatedReportNonReimbursableTotals[targetReportID] = currentNonReimbursableTotal - (transactionReimbursable ? 0 : transactionAmount);
+                updatedReportNonReimbursableTotals[targetReportID] = currentNonReimbursableTotal - (transactionReimbursable ? 0 : targetTransactionAmount);
 
                 const currentUnheldNonReimbursableTotal = updatedReportUnheldNonReimbursableTotals[targetReportID] ?? targetReport?.unheldNonReimbursableTotal ?? 0;
-                updatedReportUnheldNonReimbursableTotals[targetReportID] = currentUnheldNonReimbursableTotal - (transactionReimbursable && !isOnHold(transaction) ? 0 : transactionAmount);
-            } else if (transaction.convertedAmount && oldReport?.currency === targetReport?.currency) {
+                updatedReportUnheldNonReimbursableTotals[targetReportID] =
+                    currentUnheldNonReimbursableTotal - (transactionReimbursable && !isOnHold(transaction) ? 0 : targetTransactionAmount);
+            } else if (transactionForViolations.convertedAmount && oldReport?.currency === targetReport?.currency) {
                 // Use convertedAmount when transaction currency differs but workspace currency is the same
-                const {convertedAmount} = transaction;
+                const {convertedAmount} = transactionForViolations;
                 const currentTotal = updatedReportTotals[targetReportID] ?? targetReport?.total ?? 0;
                 updatedReportTotals[targetReportID] = currentTotal + convertedAmount;
 
@@ -1217,7 +1380,11 @@ function changeTransactionsReport({
 
                 const currentUnheldNonReimbursableTotal = updatedReportUnheldNonReimbursableTotals[targetReportID] ?? targetReport?.unheldNonReimbursableTotal ?? 0;
                 updatedReportUnheldNonReimbursableTotals[targetReportID] = currentUnheldNonReimbursableTotal + (transactionReimbursable && !isOnHold(transaction) ? 0 : convertedAmount);
+            } else {
+                markReportTotalAsStale(targetReportID);
             }
+
+            targetReportCurrencies.add(resolvedTargetTransactionCurrency);
         }
 
         // 4. Optimistically update the IOU action reportID
@@ -1315,8 +1482,8 @@ function changeTransactionsReport({
         let transactionThreadReportID = newIOUAction.childReportID;
         let transactionThreadCreatedReportActionID;
         if (!transactionThreadReportID) {
-            const optimisticTransactionThread = buildTransactionThread(newIOUAction, reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? undefined : newReport);
-            const optimisticCreatedActionForTransactionThread = buildOptimisticCreatedReportAction(email ?? '');
+            const optimisticTransactionThread = buildTransactionThread(newIOUAction, reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? undefined : newReport, accountID);
+            const optimisticCreatedActionForTransactionThread = buildOptimisticCreatedReportAction({emailCreatingAction: email ?? ''});
             transactionThreadReportID = optimisticTransactionThread.reportID;
             transactionThreadCreatedReportActionID = optimisticCreatedActionForTransactionThread.reportActionID;
             newIOUAction.childReportID = transactionThreadReportID;
@@ -1516,7 +1683,7 @@ function changeTransactionsReport({
             transaction,
             currentTransactionViolations[transaction.transactionID] ?? [],
             policy,
-            policyTagList,
+            policyTagList ?? {},
             policyCategories ?? {},
             policyHasDependentTags,
             false,
@@ -1539,6 +1706,12 @@ function changeTransactionsReport({
     const affectedReportIDs = new Set<string>();
 
     for (const reportIDToUpdate of Object.keys(updatedReportTotals)) {
+        affectedReportIDs.add(reportIDToUpdate);
+    }
+    for (const reportIDToUpdate of Object.keys(optimisticPendingFieldsByReport)) {
+        affectedReportIDs.add(reportIDToUpdate);
+    }
+    for (const reportIDToUpdate of staleReportIDs) {
         affectedReportIDs.add(reportIDToUpdate);
     }
 
@@ -1573,7 +1746,6 @@ function changeTransactionsReport({
         const shouldUseUnreportedNextStepKey = reportID === CONST.REPORT.UNREPORTED_REPORT_ID && isDestinationReport;
         const nextStepOnyxReportID = shouldUseUnreportedNextStepKey ? reportID : affectedReportID;
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const optimisticNextStepForCollection = buildNextStepNew({
             report: updatedReport,
             policy,
@@ -1600,23 +1772,36 @@ function changeTransactionsReport({
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${nextStepOnyxReportID}`,
             value: optimisticNextStepForCollection,
         });
+        const optimisticPendingFields = {
+            ...(affectedReport.pendingFields ?? {}),
+            ...(optimisticPendingFieldsByReport[affectedReportID] ?? {}),
+            nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+        };
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${affectedReportID}`,
             value: {
                 nextStep: optimisticNextStepForReport,
-                pendingFields: {
-                    nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                },
+                pendingFields: optimisticPendingFields,
             },
         });
+        const successPendingFields: Partial<NonNullable<Report['pendingFields']>> = {
+            nextStep: null,
+        };
+        const failurePendingFields: Partial<NonNullable<Report['pendingFields']>> = {
+            nextStep: affectedReport.pendingFields?.nextStep ?? null,
+        };
+
+        if (optimisticPendingFieldsByReport[affectedReportID]?.total) {
+            successPendingFields.total = null;
+            failurePendingFields.total = affectedReport.pendingFields?.total ?? null;
+        }
+
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${affectedReportID}`,
             value: {
-                pendingFields: {
-                    nextStep: null,
-                },
+                pendingFields: successPendingFields,
             },
         });
         failureData.push({
@@ -1629,9 +1814,7 @@ function changeTransactionsReport({
             key: `${ONYXKEYS.COLLECTION.REPORT}${affectedReportID}`,
             value: {
                 nextStep: affectedReport.nextStep ?? null,
-                pendingFields: {
-                    nextStep: null,
-                },
+                pendingFields: failurePendingFields,
             },
         });
     }
@@ -1640,6 +1823,9 @@ function changeTransactionsReport({
         transactionList: transactionIDs.join(','),
         reportID,
         transactionIDToReportActionAndThreadData: JSON.stringify(transactionIDToReportActionAndThreadData),
+        ...(Object.keys(transactionIDToUpdatedCustomUnitRateID).length > 0 && {
+            transactionIDToUpdatedCustomUnitRateID: JSON.stringify(transactionIDToUpdatedCustomUnitRateID),
+        }),
     };
 
     API.write(WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT, parameters, {

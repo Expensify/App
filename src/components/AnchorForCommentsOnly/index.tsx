@@ -7,7 +7,6 @@ import type {AnchorForCommentsOnlyProps} from './types';
 function AnchorForCommentsOnly(props: AnchorForCommentsOnlyProps) {
     return (
         <BaseAnchorForCommentsOnly
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
             onPressOut={() => ControlSelection.unblock()}

@@ -37,6 +37,7 @@ function DatePickerModal({
     shouldCloseWhenBrowserNavigationChanged = false,
     shouldPositionFromTop = false,
     forwardedFSClass,
+    shouldEnableMonthYearBackdropInNarrowPane = false,
 }: DatePickerProps) {
     const [selectedDate, setSelectedDate] = useState(value ?? defaultValue ?? undefined);
     const anchorRef = useRef<View>(null);
@@ -85,6 +86,7 @@ function DatePickerModal({
                 maxDate={maxDate}
                 value={selectedDate}
                 onSelected={handleDateSelection}
+                shouldEnableMonthYearBackdropInNarrowPane={shouldEnableMonthYearBackdropInNarrowPane}
             />
         </PopoverWithMeasuredContent>
     );

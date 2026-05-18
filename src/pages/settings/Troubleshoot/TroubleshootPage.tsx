@@ -215,7 +215,6 @@ function TroubleshootPage() {
                         illustrationBackgroundColor={colors.blue700}
                         titleStyles={styles.accountSettingsSectionTitle}
                         renderSubtitle={() => <SectionSubtitleHTML html={translate('initialSettingsPage.troubleshoot.description')} />}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...troubleshootIllustration}
                     >
                         <View style={[styles.flex1, styles.mt5]}>

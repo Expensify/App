@@ -4,6 +4,7 @@
 import type {EmptyObject, ValueOf} from 'type-fest';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type {CancelConfirmModalProps} from '@components/MultifactorAuthentication/components/Modals/createCancelConfirmModal';
+import type {MFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import type {
     AllMultifactorAuthenticationBaseParameters,
     MultifactorAuthenticationActionParams,
@@ -66,7 +67,7 @@ type MultifactorAuthenticationOutcomeScreens = {
  */
 type MultifactorAuthenticationScenarioResponse = {
     httpStatusCode: number | undefined;
-    reason: MultifactorAuthenticationReason;
+    reason: MultifactorAuthenticationReason | undefined;
     message: string | undefined;
 
     /** Optional response body containing scenario-specific data (e.g., {pin: number} for PIN reveal) */
@@ -110,12 +111,10 @@ type MultifactorAuthenticationScenarioBase<T extends Record<string, unknown> = E
 
     /**
      * Called when the user cancels the MFA flow. When provided, cancel() awaits this function
-     * and uses the returned reason (and optional payload) to navigate to the appropriate failure screen.
-     * When absent, cancel() falls back to the default behavior (SET_ERROR with GENERIC.CANCELED).
+     * and uses the returned MFAError to navigate to the appropriate failure screen.
+     * When absent, cancel() falls back to the default behavior (SET_ERROR with LOCAL_ERRORS.CANCELED).
      */
-    onCancel?: (
-        payload: MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario> | undefined,
-    ) => Promise<{reason: MultifactorAuthenticationReason; payload?: MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario>}>;
+    onCancel?: (payload: MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario> | undefined) => Promise<MFAError>;
 };
 
 /**
@@ -163,8 +162,6 @@ type MultifactorAuthenticationScenarioParams<T extends MultifactorAuthentication
 /**
  * All required authentication factors with scenario-specific parameters.
  */
-type MultifactorAuthenticationProcessScenarioParameters<T extends MultifactorAuthenticationScenario> = AllMultifactorAuthenticationBaseParameters &
-    MultifactorAuthenticationScenarioAdditionalParams<T>;
 
 type MultifactorAuthenticationPromptType = keyof typeof MULTIFACTOR_AUTHENTICATION_PROMPT_UI;
 
@@ -210,7 +207,6 @@ type MultifactorAuthenticationAPIParams<T extends MultifactorAuthenticationScena
 
 export type {
     MultifactorAuthenticationPrompt,
-    MultifactorAuthenticationModal,
     MultifactorAuthenticationScenarioResponse,
     MultifactorAuthenticationScenarioAdditionalParams,
     MultifactorAuthenticationScenarioParameters,
@@ -218,12 +214,9 @@ export type {
     MultifactorAuthenticationScenarioParams,
     MultifactorAuthenticationPromptType,
     MultifactorAuthenticationScenarioConfig,
-    MultifactorAuthenticationOutcomeScreens,
     MultifactorAuthenticationScenarioConfigRecord,
-    MultifactorAuthenticationProcessScenarioParameters,
     MultifactorAuthenticationDefaultUIConfig,
     MultifactorAuthenticationCancelConfirm,
     MultifactorAuthenticationScenarioCustomConfig,
     MultifactorAuthenticationAPIParams,
-    FailureScreenOverrides,
 };

@@ -11,13 +11,6 @@ import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 import type {TextInputWithSymbolProps} from './TextInputWithSymbol/types';
 
-type MoneyRequestAmountInputRef = {
-    changeSelection: (newSelection: Selection) => void;
-    changeAmount: (newAmount: string) => void;
-    getAmount: () => string;
-    getSelection: () => Selection;
-};
-
 type MoneyRequestAmountInputProps = {
     /** IOU amount saved in Onyx */
     amount?: number;
@@ -99,6 +92,9 @@ type MoneyRequestAmountInputProps = {
     /** Whether to allow direct negative input (for split amounts where value is already negative) */
     allowNegativeInput?: boolean;
 
+    /** Style for the negative symbol */
+    negativeSymbolStyle?: StyleProp<TextStyle>;
+
     /** The testID of the input. Used to locate this view in end-to-end tests. */
     testID?: string;
 
@@ -143,11 +139,6 @@ type MoneyRequestAmountInputProps = {
     keyboardType?: KeyboardTypeOptions;
 } & Pick<TextInputWithSymbolProps, 'autoGrowExtraSpace' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix' | 'onFocus' | 'onBlur' | 'symbolTextStyle'>;
 
-type Selection = {
-    start: number;
-    end: number;
-};
-
 /**
  * Specialized money amount input with currency and money amount formatting.
  */
@@ -181,6 +172,7 @@ function MoneyRequestAmountInput({
     isNegative = false,
     allowFlippingAmount = false,
     allowNegativeInput = false,
+    negativeSymbolStyle,
     toggleNegative,
     clearNegative,
     ref,
@@ -274,6 +266,7 @@ function MoneyRequestAmountInput({
             touchableInputWrapperStyle={props.touchableInputWrapperStyle}
             contentWidth={contentWidth}
             isNegative={isNegative}
+            negativeSymbolStyle={negativeSymbolStyle}
             testID={testID}
             errorText={props.errorText}
             footer={props.footer}
@@ -292,4 +285,4 @@ function MoneyRequestAmountInput({
 }
 
 export default MoneyRequestAmountInput;
-export type {MoneyRequestAmountInputProps, MoneyRequestAmountInputRef};
+export type {MoneyRequestAmountInputProps};

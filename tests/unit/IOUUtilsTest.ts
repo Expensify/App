@@ -751,7 +751,7 @@ describe('canApproveIOU', () => {
 
         // When checking if approve action is available
         // Then it should return true because DEW approval is not in progress
-        expect(canApproveIOU(report, policy, reportMetadata, [transaction])).toBe(true);
+        expect(canApproveIOU(report, policy, reportMetadata, currentUserAccountID, [transaction])).toBe(true);
     });
 
     it('should return false for DEW policy report with pending approval', async () => {
@@ -786,7 +786,7 @@ describe('canApproveIOU', () => {
 
         // When checking if approve action is available while DEW approval is pending
         // Then it should return false because DEW is already processing an approval
-        expect(canApproveIOU(report, policy, reportMetadata, [transaction])).toBe(false);
+        expect(canApproveIOU(report, policy, reportMetadata, currentUserAccountID, [transaction])).toBe(false);
     });
 
     it('should return false for non-expense report', async () => {
@@ -805,7 +805,7 @@ describe('canApproveIOU', () => {
         const reportMetadata: ReportMetadata = {};
 
         // Then canApproveIOU should return false
-        expect(canApproveIOU(report, policy, reportMetadata)).toBe(false);
+        expect(canApproveIOU(report, policy, reportMetadata, currentUserAccountID)).toBe(false);
     });
 });
 

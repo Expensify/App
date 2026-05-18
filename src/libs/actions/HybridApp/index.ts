@@ -59,7 +59,13 @@ Onyx.connectWithoutView({
             return;
         }
 
+        const isInitialSessionLoad = currentSessionAccountID === undefined;
         currentSessionAccountID = nextSessionAccountID;
+
+        if (isInitialSessionLoad) {
+            return;
+        }
+
         currentTryNewDot = undefined;
         hasReceivedTryNewDotUpdate = false;
         isLoadingTryNewDot = nextSessionAccountID !== undefined || isLoadingApp !== false;
@@ -131,14 +137,6 @@ function setUseNewDotSignInPage(useNewDotSignInPage: boolean) {
     return Onyx.merge(ONYXKEYS.HYBRID_APP, {useNewDotSignInPage});
 }
 
-function setClosingReactNativeApp(closingReactNativeApp: boolean) {
-    // This value is only relevant for HybridApp, so we can skip it in other environments.
-    if (!CONFIG.IS_HYBRID_APP) {
-        return;
-    }
-    Onyx.merge(ONYXKEYS.HYBRID_APP, {closingReactNativeApp});
-}
-
 /*
  * Starts HybridApp sign-in flow from the beginning.
  */
@@ -154,4 +152,4 @@ function resetSignInFlow() {
     });
 }
 
-export {getHybridAppSettings, setReadyToShowAuthScreens, resetSignInFlow, setUseNewDotSignInPage, setClosingReactNativeApp, closeReactNativeApp};
+export {getHybridAppSettings, setReadyToShowAuthScreens, resetSignInFlow, setUseNewDotSignInPage, closeReactNativeApp};

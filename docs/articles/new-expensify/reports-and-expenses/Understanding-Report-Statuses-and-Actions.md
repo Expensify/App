@@ -33,11 +33,13 @@ The grey **More** button is always visible in the report header. Tap it to acces
 
 - Hold / Unhold
 - Unapprove
+- **Received payment**
 - Duplicate report
 - Download as CSV
-- **Print**
+- Print
 - Change Workspace
-- View Details
+- Change approver
+- View details
 - Delete
 - Reject
 

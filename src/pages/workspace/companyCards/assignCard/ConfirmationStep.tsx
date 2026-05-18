@@ -78,7 +78,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
             return;
         }
 
-        if(backTo) {
+        if (backTo) {
             Navigation.dismissModal();
             Navigation.navigate(backTo, {
                 afterTransition: () => clearAssignCardStepAndData(),

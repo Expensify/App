@@ -1,5 +1,5 @@
 import React, {useMemo, useState} from 'react';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -142,7 +142,7 @@ function TagPicker({
     return (
         <SelectionListWithSections
             sections={sections}
-            ListItem={RadioListItem}
+            ListItem={SingleSelectListItem}
             style={{
                 sectionTitleStyles: styles.mt5,
                 listItemTitleStyles,
@@ -156,5 +156,3 @@ function TagPicker({
 }
 
 export default TagPicker;
-
-export type {SelectedTagOption};
