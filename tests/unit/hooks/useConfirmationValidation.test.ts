@@ -1,4 +1,5 @@
 import {renderHook} from '@testing-library/react-native';
+import type {UseConfirmationValidationParams} from '@components/MoneyRequestConfirmationList/hooks/useConfirmationValidation';
 import useConfirmationValidation from '@components/MoneyRequestConfirmationList/hooks/useConfirmationValidation';
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -11,9 +12,7 @@ jest.mock('@hooks/useCurrencyList', () => ({
     }),
 }));
 
-type Params = Parameters<typeof useConfirmationValidation>[0];
-
-const baseParams: Params = {
+const baseParams = {
     transaction: {transactionID: 'txn1', comment: {}, amount: 100} as unknown as OnyxTypes.Transaction,
     transactionReport: undefined,
     transactionID: 'txn1',
@@ -31,6 +30,7 @@ const baseParams: Params = {
     currentUserPersonalDetails: {accountID: 1} as CurrentUserPersonalDetails,
     isEditingSplitBill: false,
     isMerchantRequired: false,
+    isMerchantFieldValid: true,
     isMerchantEmpty: false,
     shouldDisplayFieldError: false,
     shouldShowTax: false,
@@ -38,9 +38,9 @@ const baseParams: Params = {
     isDistanceRequestWithPendingRoute: false,
     isPerDiemRequest: false,
     isTimeRequest: false,
-    isNewManualExpenseFlowEnabled: false,
     routeError: undefined,
-};
+    isNewManualExpenseFlowEnabled: false,
+} satisfies UseConfirmationValidationParams;
 
 describe('useConfirmationValidation', () => {
     it('returns null when routeError is set', () => {
@@ -65,7 +65,7 @@ describe('useConfirmationValidation', () => {
     });
 
     it('returns invalidMerchant when merchant is required but empty', () => {
-        const {result} = renderHook(() => useConfirmationValidation({...baseParams, isMerchantRequired: true, isMerchantEmpty: true}));
+        const {result} = renderHook(() => useConfirmationValidation({...baseParams, isMerchantRequired: true, isMerchantEmpty: true, isMerchantFieldValid: false}));
         expect(result.current.validate()).toEqual({errorKey: 'iou.error.invalidMerchant'});
     });
 

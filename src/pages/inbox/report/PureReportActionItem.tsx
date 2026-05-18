@@ -456,10 +456,12 @@ function PureReportActionItem({
 
     const disabledActions = useMemo(() => (!canWriteInReport(report) ? RestrictedReadOnlyContextMenuActions : []), [report]);
 
-    const hasErrors = !isEmptyValueObject(action.errors);
+    const hasActionErrors = !isEmptyValueObject(action.errors);
+    // Receipt upload errors should still allow the context menu so the user can access "Delete expense"
+    const hasOnlyReceiptErrors = hasActionErrors && Object.values(action.errors ?? {}).every((error) => error === null || isReceiptError(error));
     const isContextMenuDisabled = useMemo(() => {
-        return draftMessage !== undefined || hasErrors || !shouldDisplayContextMenuValue;
-    }, [draftMessage, hasErrors, shouldDisplayContextMenuValue]);
+        return draftMessage !== undefined || (hasActionErrors && !hasOnlyReceiptErrors) || !shouldDisplayContextMenuValue;
+    }, [draftMessage, hasActionErrors, hasOnlyReceiptErrors, shouldDisplayContextMenuValue]);
 
     /**
      * Show the ReportActionContextMenu modal popover.
@@ -713,7 +715,6 @@ function PureReportActionItem({
             children = (
                 <MovedTransactionAction
                     action={action as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION>}
-                    emptyHTML={emptyHTML}
                     originalReport={originalReport}
                 />
             );
@@ -890,7 +891,7 @@ function PureReportActionItem({
                         <ReportActionItemEmojiReactions
                             reportAction={action}
                             reportID={reportID}
-                            shouldBlockReactions={hasErrors}
+                            shouldBlockReactions={hasActionErrors}
                             setIsEmojiPickerActive={setIsEmojiPickerActive}
                         />
                     </View>
@@ -1055,7 +1056,7 @@ function PureReportActionItem({
                     {(hovered) => (
                         <View style={highlightedBackgroundColorIfNeeded}>
                             {shouldDisplayNewMarker && (!shouldUseThreadDividerLine || !isFirstVisibleReportAction) && <UnreadActionIndicator reportActionID={action.reportActionID} />}
-                            {shouldDisplayContextMenuValue && (hovered || !!isEmojiPickerActive || isContextMenuActive) && draftMessage === undefined && !hasErrors && (
+                            {shouldDisplayContextMenuValue && (hovered || !!isEmojiPickerActive || isContextMenuActive) && draftMessage === undefined && !hasActionErrors && (
                                 <MiniReportActionContextMenu
                                     reportID={reportID}
                                     reportActionID={action.reportActionID}

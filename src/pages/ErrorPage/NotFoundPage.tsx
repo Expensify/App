@@ -48,7 +48,6 @@ function NotFoundPage({onBackButtonPress = () => Navigation.goBack(), isReportRe
                     }
                     onBackButtonPress();
                 }}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...fullPageNotFoundViewProps}
                 onLinkPress={isOnGenericErrorScreen ? () => Navigation.goBack(ROUTES.HOME) : fullPageNotFoundViewProps.onLinkPress}
             />

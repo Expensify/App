@@ -39,8 +39,6 @@ function canSubmit(
     const isExpense = isExpenseReport(report);
     const isSubmitter = isCurrentUserSubmitter(report);
     const isOpen = isOpenReport(report);
-    const isManager = report.managerID === currentUserAccountID;
-    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
     const isAnyReceiptBeingScanned = transactions?.some((transaction) => isScanning(transaction));
 
@@ -58,7 +56,7 @@ function canSubmit(
         return false;
     }
 
-    return isExpense && (isSubmitter || isManager || isAdmin) && isOpen && !isAnyReceiptBeingScanned && !!transactions && transactions.length > 0;
+    return isExpense && isSubmitter && isOpen && !isAnyReceiptBeingScanned && !!transactions && transactions.length > 0;
 }
 
 function canApprove(report: Report, currentUserAccountID: number, reportMetadata: OnyxEntry<ReportMetadata>, policy?: Policy, transactions?: Transaction[]) {

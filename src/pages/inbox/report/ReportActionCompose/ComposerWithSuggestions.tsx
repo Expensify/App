@@ -63,7 +63,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 // eslint-disable-next-line no-restricted-imports
 import findNodeHandle from '@src/utils/findNodeHandle';
-import {useComposerEditState, useComposerState} from './ComposerContext';
+import {useComposerActions, useComposerEditState, useComposerText} from './ComposerContext';
 import getCursorPosition from './getCursorPosition';
 import getScrollPosition from './getScrollPosition';
 import getUpdatedSyncSelection from './getUpdatedSyncSelection';
@@ -259,14 +259,16 @@ function ComposerWithSuggestions({
 
     const composerRef = useRef<ComposerRef | null>(null);
 
-    const {draftComment = ''} = useComposerState();
     const {editingState, editingReportActionID, editingReportAction, effectiveDraft, currentEditMessageSelection} = useComposerEditState();
     const {setEditingMessage, setCurrentEditMessageSelection} = useReportActionActiveEditActions();
 
-    const isEditing = editingState !== 'off';
-    const [value, setValue] = useState(() => {
-        const initialValue = effectiveDraft ?? draftComment;
-
+    const isEditing = editingState !== CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.OFF;
+    const text = useComposerText();
+    const {setText} = useComposerActions();
+    // Snapshot of provider text at mount — used for one-time selection cursor + emoji baseline + autofocus decision.
+    // Reading the live `value` for these would cause re-renders and effect re-fires on every keystroke.
+    const [initialText] = useState(() => {
+        const initialValue = effectiveDraft ?? text;
         if (initialValue) {
             emojisPresentBefore.current = extractEmojis(initialValue);
         }
@@ -295,18 +297,18 @@ function ComposerWithSuggestions({
     );
 
     useDraftMessageVideoAttributeCache({
-        draftMessage: value,
+        draftMessage: text,
         isEditing,
         editingReportAction,
-        updateDraftMessage: setValue,
+        updateDraftMessage: setText,
         isEditInProgressRef: isDraftSavePending,
     });
 
-    const [selection, setSelection] = useState<TextSelection>(() => currentEditMessageSelection ?? {start: value.length, end: value.length});
+    const [selection, setSelection] = useState<TextSelection>(() => currentEditMessageSelection ?? {start: initialText.length, end: initialText.length});
 
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
-    const commentRef = useRef(value);
+    const commentRef = useRef(initialText);
 
     const {superWideRHPRouteKeys} = useWideRHPState();
     // When SearchReport is stacked above another RHP, delay autofocus until after the transition completes to avoid animation jank
@@ -326,20 +328,21 @@ function ComposerWithSuggestions({
         focusComposerWithDelay(composerRef.current, delay)(shouldDelay, forcedSelectionRange, forceKeyboardIfAlreadyFocused).catch(() => {});
     }, []);
 
-    const handleEditFocus = useCallback(() => {
-        focus(true, undefined, true);
-    }, [focus]);
+    const handleEditFocus = useCallback(() => focus(true, undefined, true), [focus]);
 
-    const handleEditValueChange = useCallback((nextValue: string) => {
-        commentRef.current = nextValue;
-        emojisPresentBefore.current = extractEmojis(nextValue);
+    const handleEditValueChange = useCallback(
+        (nextValue: string) => {
+            onValueChange(nextValue);
+            commentRef.current = nextValue;
+            emojisPresentBefore.current = extractEmojis(nextValue);
 
-        setValue(nextValue);
-    }, []);
+            setText(nextValue);
+        },
+        [onValueChange, setText],
+    );
 
     useEditComposerToggle({
         selection,
-        draftComment,
         composerRef,
         onFocus: handleEditFocus,
         onValueChange: handleEditValueChange,
@@ -350,17 +353,17 @@ function ComposerWithSuggestions({
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
     const [editFocused] = useOnyx(ONYXKEYS.INPUT_FOCUSED);
 
-    const lastTextRef = useRef(value);
+    const lastTextRef = useRef(initialText);
     useEffect(() => {
-        lastTextRef.current = value;
-    }, [value]);
+        lastTextRef.current = text;
+    }, [text]);
 
     const maxComposerLines = shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
-    const shouldAutoFocus = (shouldFocusInputOnScreenFocus || !!draftComment) && areAllModalsHidden() && isFocused;
+    const shouldAutoFocus = (shouldFocusInputOnScreenFocus || !!text) && areAllModalsHidden() && isFocused;
     const delayedAutoFocusRouteKeyRef = useRef<string | null>(null);
 
-    const valueRef = useRef(value);
-    valueRef.current = value;
+    const valueRef = useRef(initialText);
+    valueRef.current = text;
 
     const [composerHeightAfterClear, setComposerHeightAfterClear] = useState<number | null>(null);
     const emptyComposerHeightRef = useRef<number | null>(null);
@@ -505,7 +508,8 @@ function ComposerWithSuggestions({
 
             const textVSOffset = getTextVSCursorOffset(emojiConvertedText, cursorPosition);
 
-            setValue(newCommentConverted);
+            setText(newCommentConverted);
+            onValueChange(newCommentConverted);
             if (commentValue !== newComment) {
                 const adjustedCursorPosition = cursorPosition !== undefined && cursorPosition !== null ? cursorPosition + textVSOffset : undefined;
                 const position = Math.max((selection.end ?? 0) + (newComment.length - commentRef.current.length), adjustedCursorPosition ?? 0);
@@ -525,7 +529,7 @@ function ComposerWithSuggestions({
             }
 
             commentRef.current = newCommentConverted;
-            if (editingState === 'editing' && shouldUseNarrowLayout) {
+            if (editingState === CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING && shouldUseNarrowLayout) {
                 setEditingMessage(newCommentConverted);
                 if (shouldDebounceSaveComment) {
                     debouncedSaveReportActionDraft(newCommentConverted);
@@ -547,22 +551,24 @@ function ComposerWithSuggestions({
             }
         },
         [
-            currentUserAccountID,
-            editingReportActionID,
-            editingState,
-            findNewlyAddedChars,
-            preferredLocale,
-            preferredSkinTone,
             raiseIsScrollLikelyLayoutTriggered,
-            reportID,
-            selection.end,
             selection.start,
-            setCurrentEditMessageSelection,
-            setEditingMessage,
+            selection.end,
+            findNewlyAddedChars,
+            preferredSkinTone,
+            preferredLocale,
+            setText,
+            onValueChange,
+            editingState,
             shouldUseNarrowLayout,
             suggestionsRef,
+            setCurrentEditMessageSelection,
+            setEditingMessage,
+            reportID,
+            editingReportActionID,
             debouncedSaveReportActionDraft,
             debouncedSaveComment,
+            currentUserAccountID,
         ],
     );
 
@@ -570,10 +576,10 @@ function ComposerWithSuggestions({
      * Callback to add whatever text is chosen into the main input (used f.e as callback for the emoji picker)
      */
     const replaceSelectionWithText = useCallback(
-        (text: string) => {
+        (newText: string) => {
             // selection replacement should be debounced to avoid conflicts with text typing
             // (f.e. when emoji is being picked and 1 second still did not pass after user finished typing)
-            updateComment(insertText(commentRef.current, selection, text), true);
+            updateComment(insertText(commentRef.current, selection, newText), true);
         },
         [selection, updateComment],
     );
@@ -928,15 +934,11 @@ function ComposerWithSuggestions({
             ) as ComposerWithSuggestionsRef,
     );
 
-    useEffect(() => {
-        onValueChange(value);
-    }, [onValueChange, value]);
-
     const onClear = useCallback(
-        (text: string) => {
+        (textOnClear: string) => {
             mobileInputScrollPosition.current = 0;
             // Note: use the value when the clear happened, not the current value which might have changed already
-            onClearProp(text);
+            onClearProp(textOnClear);
             updateComment('', true);
         },
         [onClearProp, updateComment],
@@ -1072,7 +1074,7 @@ function ComposerWithSuggestions({
                     onSelectionChange={onSelectionChange}
                     isComposerFullSize={isComposerFullSize}
                     onContentSizeChange={handleContentSizeChange}
-                    value={value}
+                    value={text}
                     testID={CONST.COMPOSER.NATIVE_ID}
                     shouldCalculateCaretPosition
                     onLayout={onLayout}
@@ -1091,7 +1093,7 @@ function ComposerWithSuggestions({
                 isGroupPolicyReport={isGroupPolicyReport}
                 policyID={policyID}
                 // Input
-                value={value}
+                value={text}
                 selection={selection}
                 setSelection={onSuggestionSelected}
                 resetKeyboardInput={resetKeyboardInput}
@@ -1100,7 +1102,7 @@ function ComposerWithSuggestions({
             {isValidReportIDFromPath(reportID) && (
                 <SilentCommentUpdater
                     reportID={reportID}
-                    value={value}
+                    value={text}
                     updateComment={updateComment}
                     commentRef={commentRef}
                     isCommentPendingSaved={isCommentSavePending}
@@ -1117,4 +1119,4 @@ function ComposerWithSuggestions({
 
 export default memo(ComposerWithSuggestions);
 
-export type {ComposerWithSuggestionsProps, ComposerWithSuggestionsRef};
+export type {ComposerWithSuggestionsRef};
