@@ -931,5 +931,3 @@ function ReportActionsList({
 }
 
 export default memo(ReportActionsList);
-
-export type {ReportActionsListProps};
