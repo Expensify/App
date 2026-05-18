@@ -477,7 +477,7 @@ function getCardFeedBankDisplayName(bank: string, feedCountry: string | undefine
         return companyCardBankName;
     }
     if (feedCountry === CONST.TRAVEL.PROGRAM_TRAVEL_US) {
-        return translate('search.filters.card.centralInvoicing');
+        return translate('search.filters.card.travelInvoicing');
     }
     return translate('search.filters.card.expensify');
 }
@@ -500,7 +500,7 @@ function getExpensifyCardFeedsForDisplay(allCards: CardList | undefined, transla
         // Travel Invoicing lives on its own feed but shares the `Expensify Card` bank. Use the
         // translated label so the Feed dropdown shows "Travel Invoicing" for travel cards and
         // "Expensify Card" for everything else.
-        const name = translate && feedCountry === CONST.TRAVEL.PROGRAM_TRAVEL_US ? translate('search.filters.card.centralInvoicing') : CONST.EXPENSIFY_CARD.BANK;
+        const name = translate && feedCountry === CONST.TRAVEL.PROGRAM_TRAVEL_US ? translate('search.filters.card.travelInvoicing') : CONST.EXPENSIFY_CARD.BANK;
 
         result[id] = {
             id,
