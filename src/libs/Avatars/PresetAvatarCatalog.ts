@@ -2,14 +2,16 @@
 import type {SvgProps} from 'react-native-svg';
 import * as SeasonF1 from '@components/Icon/CustomAvatars/SeasonF1';
 import * as DefaultAvatars from '@components/Icon/DefaultAvatars';
+import {BotAvatarBlue, BotAvatarGreen, BotAvatarIce, BotAvatarPink, BotAvatarTangerine, BotAvatarYellow} from '@components/Icon/DefaultBotAvatars';
 import * as LetterDefaultAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import getFirstAlphaNumericCharacter from '@libs/getFirstAlphaNumericCharacter';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
-import type {AvatarEntry, DefaultAvatarIDs, LetterAvatarColorStyle, LetterAvatarIDs, PresetAvatarID, SeasonF1AvatarIDs} from './PresetAvatarCatalog.types';
+import type {AvatarEntry, BotAvatarIDs, DefaultAvatarIDs, LetterAvatarColorStyle, LetterAvatarIDs, PresetAvatarID, SeasonF1AvatarIDs} from './PresetAvatarCatalog.types';
 
 const CDN_DEFAULT_AVATARS = `${CONST.CLOUDFRONT_URL}/images/avatars`;
 const CDN_SEASON_F1 = `${CONST.CLOUDFRONT_URL}/images/avatars/custom-avatars/season-f1`;
+const CDN_BOT_AVATARS = `${CONST.CLOUDFRONT_URL}/images/avatars/bots`;
 
 const DEFAULT_AVATAR_PREFIX = `default-avatar`;
 
@@ -86,6 +88,15 @@ const SEASON_F1: Record<SeasonF1AvatarIDs, AvatarEntry> = {
     'tire-green400': {local: SeasonF1.TireGreen400, url: `${CDN_SEASON_F1}/tire-green400.png`},
     'trophy-yellow600': {local: SeasonF1.TrophyYellow600, url: `${CDN_SEASON_F1}/trophy-yellow600.png`},
     'wrenches-pink600': {local: SeasonF1.WrenchesPink600, url: `${CDN_SEASON_F1}/wrenches-pink600.png`},
+};
+
+const BOT_AVATARS: Record<BotAvatarIDs, AvatarEntry> = {
+    'bot-avatar--blue': {local: BotAvatarBlue, url: `${CDN_BOT_AVATARS}/bot-avatar--blue.png`},
+    'bot-avatar--green': {local: BotAvatarGreen, url: `${CDN_BOT_AVATARS}/bot-avatar--green.png`},
+    'bot-avatar--ice': {local: BotAvatarIce, url: `${CDN_BOT_AVATARS}/bot-avatar--ice.png`},
+    'bot-avatar--pink': {local: BotAvatarPink, url: `${CDN_BOT_AVATARS}/bot-avatar--pink.png`},
+    'bot-avatar--tangerine': {local: BotAvatarTangerine, url: `${CDN_BOT_AVATARS}/bot-avatar--tangerine.png`},
+    'bot-avatar--yellow': {local: BotAvatarYellow, url: `${CDN_BOT_AVATARS}/bot-avatar--yellow.png`},
 };
 
 const LETTER_DEFAULTS: Record<LetterAvatarIDs, Omit<AvatarEntry, 'url'>> = {
@@ -181,12 +192,13 @@ const DISPLAY_ORDER = [
 const PRESET_AVATAR_CATALOG: Record<PresetAvatarID, AvatarEntry> = {
     ...DEFAULTS,
     ...SEASON_F1,
+    ...BOT_AVATARS,
 };
 
 const buildOrderedAvatars = (): Array<{id: PresetAvatarID} & AvatarEntry> => {
     const allIDS = Object.keys(PRESET_AVATAR_CATALOG) as PresetAvatarID[];
     const explicit = DISPLAY_ORDER.filter((id) => id in PRESET_AVATAR_CATALOG);
-    const explicitSet = new Set(explicit);
+    const explicitSet = new Set<PresetAvatarID>(explicit);
     const leftovers = allIDS.filter((id) => !explicitSet.has(id)).sort();
     const finalIDOrder = [...explicit, ...leftovers];
     return finalIDOrder.map((id) => ({
@@ -228,6 +240,10 @@ function isPresetAvatarID(value: unknown): value is PresetAvatarID {
     return typeof value === 'string' && value in PRESET_AVATAR_CATALOG;
 }
 
+function resolveAvatarURI(id: string): string {
+    return isPresetAvatarID(id) ? (getAvatarURL(id) ?? id) : id;
+}
+
 export {
     PRESET_AVATAR_CATALOG,
     PRESET_AVATAR_CATALOG_ORDERED,
@@ -238,4 +254,5 @@ export {
     getAvatarURL,
     getLetterAvatar,
     isPresetAvatarID,
+    resolveAvatarURI,
 };
