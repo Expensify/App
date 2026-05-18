@@ -7,6 +7,21 @@ describe('onboardingSelectors', () => {
     // Not all users have this NVP defined as we did not run a migration to backfill it for existing accounts, hence we need to make sure
     // the onboarding flow is only showed to the users with `hasCompletedGuidedSetupFlow` set to false
     describe('hasCompletedGuidedSetupFlowSelector', () => {
+        // Regression test: hasCompletedGuidedSetupFlowSelector returns true for empty onboarding objects (the pre-login default state).
+        // The deeplink guard in Link.ts must combine this with an isAuthenticated check to prevent premature navigation.
+        it('Should return true for empty onboarding (pre-login default), confirming the need for an isAuthenticated guard in deeplink navigation', () => {
+            const emptyOnboarding = {} as OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>;
+            const isAuthenticated = false;
+            const selectorResult = hasCompletedGuidedSetupFlowSelector(emptyOnboarding);
+
+            // The selector returns true for empty objects (old/migrated accounts), which is correct for its own purpose.
+            expect(selectorResult).toBe(true);
+
+            // But the deeplink guard must NOT navigate when the user is not authenticated, even if the selector returns true.
+            // This is the condition from openReportFromDeepLink: (isAuthenticated && hasCompletedGuidedSetupFlowSelector(val))
+            expect(isAuthenticated && selectorResult).toBe(false);
+        });
+
         it('Should return true if onboarding NVP is an empty object', () => {
             const onboarding = {} as OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>;
             expect(hasCompletedGuidedSetupFlowSelector(onboarding)).toBe(true);

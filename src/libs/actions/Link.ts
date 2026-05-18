@@ -364,6 +364,9 @@ function openReportFromDeepLink(
                             }
                         };
 
+                        // We must check isAuthenticated before hasCompletedGuidedSetupFlowSelector because the selector
+                        // returns true for empty onboarding objects (the pre-login default state), which would cause
+                        // premature deeplink navigation before authentication completes.
                         if ((isAuthenticated && hasCompletedGuidedSetupFlowSelector(val)) || isAnonymousUser()) {
                             handleDeeplinkNavigation();
                         }
