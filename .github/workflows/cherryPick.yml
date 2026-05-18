@@ -356,6 +356,9 @@ jobs:
 
           Note that you **must** test this PR, and both the author and reviewer checklist should be completed, just as if you were merging the PR to main.
 
+          > [!IMPORTANT]
+          > This PR should ideally be merged by a member of the [mobile-deployers](https://github.com/orgs/Expensify/teams/mobile-deployers) team. If it is merged by someone who is not a deployer, the staging deploy triggered by the merge will fail and will need to be manually re-triggered (not just retried) via the [deploy workflow](https://github.com/${{ github.repository }}/actions/workflows/deploy.yml).
+
           _Pro-tip:_ If this PR appears to have conflicts against the _${{ inputs.TARGET }}_ base, it means that the version on ${{ inputs.TARGET }} has been updated. The easiest thing to do if you see this is to close the PR and re-run the CP.
 
           $AUTHOR_CHECKLIST

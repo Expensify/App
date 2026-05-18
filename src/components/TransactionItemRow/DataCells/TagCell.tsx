@@ -1,20 +1,43 @@
 import React from 'react';
 import TextWithIconCell from '@components/Search/SearchList/ListItem/TextWithIconCell';
+import TagPickerModal from '@components/TagPicker/TagPickerModal';
 import TextWithTooltip from '@components/TextWithTooltip';
+import type {EditableProps} from '@components/TransactionItemRow/EditableCell';
+import {EditableCell, usePopoverEditState} from '@components/TransactionItemRow/EditableCell';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {hasDependentTags} from '@libs/PolicyUtils';
 import {getDecodedTagName} from '@libs/TagUtils';
 import {getTagForDisplay} from '@libs/TransactionUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
-function TagCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem}: TransactionDataCellProps) {
+type TagCellProps = TransactionDataCellProps &
+    EditableProps<string> & {
+        policyID?: string;
+    };
+
+function TagCell({canEdit, onSave, shouldUseNarrowLayout, shouldShowTooltip, transactionItem, policyID}: TagCellProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Tag']);
     const styles = useThemeStyles();
+    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing} = usePopoverEditState({canEdit});
+
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+
+    const policyHasDependentTags = hasDependentTags(policy, policyTags);
+
+    const handleTagSelected = (tag: string) => {
+        onSave?.(tag);
+        cancelEditing();
+    };
+
     // Decode HTML entities so tags stored with encoding (e.g. `uno &amp; dos`) display as `uno & dos`,
     // matching the report's group-by-tag dropdown which already decodes the value.
     const tagForDisplay = getDecodedTagName(getTagForDisplay(transactionItem));
 
-    return shouldUseNarrowLayout ? (
+    const displayContent = shouldUseNarrowLayout ? (
         <TextWithIconCell
             icon={icons.Tag}
             showTooltip={shouldShowTooltip}
@@ -28,6 +51,30 @@ function TagCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem}: Tr
             numberOfLines={1}
             style={[styles.lineHeightLarge, styles.justifyContentCenter]}
         />
+    );
+
+    return (
+        <EditableCell
+            canEdit={canEdit}
+            isEditing={isEditing}
+            onStartEditing={startEditing}
+            anchorRef={anchorRef}
+            popoverContent={
+                <TagPickerModal
+                    policyID={policyID}
+                    selectedTag={transactionItem?.tag ?? ''}
+                    transactionTag={transactionItem?.tag}
+                    hasDependentTags={policyHasDependentTags}
+                    isVisible={isPopoverVisible}
+                    onClose={cancelEditing}
+                    anchorPosition={popoverPosition}
+                    shouldMeasureAnchorPositionFromTop={!isInverted}
+                    onSelected={handleTagSelected}
+                />
+            }
+        >
+            {displayContent}
+        </EditableCell>
     );
 }
 

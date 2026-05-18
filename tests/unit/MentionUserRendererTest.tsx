@@ -20,6 +20,8 @@ import {translateLocal} from '../utils/TestHelper';
 // Mock Navigation to avoid actual navigation calls
 jest.mock('@libs/Navigation/Navigation', () => ({
     getReportRHPActiveRoute: jest.fn(),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
     navigate: jest.fn(),
 }));
 
@@ -43,7 +45,6 @@ jest.mock('@components/withCurrentUserPersonalDetails', () => {
         function WrappedComponent(props: Omit<TProps, keyof WithCurrentUserPersonalDetailsProps>) {
             return (
                 <Component
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...(props as TProps)}
                     currentUserPersonalDetails={{
                         accountID: 1,
@@ -113,7 +114,6 @@ function withProvider(children: ReactNode, overrides: ContextMenuStateOverrides 
                 value={{
                     anchor: null,
                     report: overrides.report,
-                    isReportArchived: false,
                     action: overrides.action,
                     isDisabled: overrides.isDisabled ?? true,
                     shouldDisplayContextMenu: overrides.shouldDisplayContextMenu ?? false,

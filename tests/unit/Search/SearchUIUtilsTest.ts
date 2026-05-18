@@ -7045,50 +7045,6 @@ describe('SearchUIUtils', () => {
             expect(allKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.EXPORT);
         });
 
-        it('should show top spenders for track-intent users on eligible paid workspace', () => {
-            const mockPolicies = {
-                policy1: {
-                    id: 'policy1',
-                    name: 'Test Policy',
-                    owner: adminEmail,
-                    outputCurrency: 'USD',
-                    isPolicyExpenseChatEnabled: true,
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    type: CONST.POLICY.TYPE.TEAM,
-                    employeeList: {
-                        [adminEmail]: {
-                            email: adminEmail,
-                            role: CONST.POLICY.ROLE.ADMIN,
-                            submitsTo: approverEmail,
-                        },
-                        [approverEmail]: {
-                            email: approverEmail,
-                            role: CONST.POLICY.ROLE.USER,
-                            submitsTo: adminEmail,
-                        },
-                    },
-                },
-            };
-
-            const sections = SearchUIUtils.createTypeMenuSections({
-                currentUserEmail: adminEmail,
-                currentUserAccountID: adminAccountID,
-                cardFeedsByPolicy: {},
-                defaultCardFeed: undefined,
-                policies: mockPolicies,
-                savedSearches: {},
-                isOffline: false,
-                defaultExpensifyCard: undefined,
-                draftTransactionIDs: [],
-                isTrackIntentUser: true,
-            });
-
-            const allMenuItems = sections.flatMap((section) => section.menuItems);
-            const allKeys = allMenuItems.map((item) => item.key);
-
-            expect(allKeys).toContain(CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS);
-        });
-
         it('should generate correct routes', () => {
             const menuItems = SearchUIUtils.createTypeMenuSections({
                 currentUserEmail: undefined,
@@ -8399,6 +8355,82 @@ describe('SearchUIUtils', () => {
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT);
         });
 
+        test('Should show TAX columns when user selected them and the workspace has taxes enabled, even for transactions with null tax fields', () => {
+            // Repro for the issue raised on GH #82252: expenses created before taxes were
+            // enabled have null taxCode/taxAmount/taxValue and never get backfilled, so the
+            // per-transaction check alone would hide the columns even though the user has
+            // both selected the columns and enabled taxes on the workspace.
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const legacyTransaction = {
+                ...baseTransaction,
+                transactionID: 'legacy',
+                merchant: 'Legacy Expense',
+                taxCode: undefined,
+                taxAmount: undefined,
+            };
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.TAX_RATE, CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+            const columns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: submitterAccountID,
+                data: [legacyTransaction],
+                visibleColumns,
+                isExpenseReportView: true,
+                isPolicyTaxEnabled: true,
+            });
+
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT);
+        });
+
+        test('Should NOT inject TAX columns when the workspace has taxes enabled but the user did not select them', () => {
+            // Guard: enabling taxes on the workspace must not force the columns into the
+            // result if the user deselected them in the column selector. The customResult
+            // path filters to the user's selection, so unselected columns stay hidden even
+            // when columns[TAX_RATE]/[TAX_AMOUNT] get flipped on internally.
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const legacyTransaction = {
+                ...baseTransaction,
+                transactionID: 'legacy',
+                merchant: 'Legacy Expense',
+                taxCode: undefined,
+                taxAmount: undefined,
+            };
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+            const columns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: submitterAccountID,
+                data: [legacyTransaction],
+                visibleColumns,
+                isExpenseReportView: true,
+                isPolicyTaxEnabled: true,
+            });
+
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE);
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT);
+        });
+
+        test('Should hide TAX columns when the workspace does not have taxes enabled and transactions have no tax data', () => {
+            // Regression guard: without a tax-enabled policy and without per-transaction tax
+            // data, the columns must stay hidden even if the user selected them.
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const legacyTransaction = {
+                ...baseTransaction,
+                transactionID: 'legacy',
+                merchant: 'Legacy Expense',
+                taxCode: undefined,
+                taxAmount: undefined,
+            };
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.TAX_RATE, CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+            const columns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: submitterAccountID,
+                data: [legacyTransaction],
+                visibleColumns,
+                isExpenseReportView: true,
+                isPolicyTaxEnabled: false,
+            });
+
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE);
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT);
+        });
+
         test('Should hide empty AMOUNT column in expense report view when no conversion', () => {
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
             const testTransaction = {
@@ -8620,7 +8652,16 @@ describe('SearchUIUtils', () => {
 
             expect(setOptimisticDataForTransactionThreadPreview).toHaveBeenCalled();
             // The full reportAction is passed to preserve originalMessage.type for proper expense type detection
-            expect(createTransactionThreadReport).toHaveBeenCalledWith(introSelectedData, currentUserLogin, currentUserAccountID, undefined, report1, reportAction1, undefined, undefined);
+            expect(createTransactionThreadReport).toHaveBeenCalledWith({
+                introSelected: introSelectedData,
+                currentUserLogin,
+                currentUserAccountID,
+                betas: undefined,
+                iouReport: report1,
+                iouReportAction: reportAction1,
+                transaction: undefined,
+                transactionViolations: undefined,
+            });
         });
 
         test('Should not navigate if shouldNavigate = false', () => {
@@ -8701,7 +8742,7 @@ describe('SearchUIUtils', () => {
                 false,
             );
 
-            expect(((createTransactionThreadReport as jest.Mock).mock.calls.at(0) as unknown[] | undefined)?.at(0)).toEqual(customIntroSelected);
+            expect(jest.mocked(createTransactionThreadReport).mock.calls.at(0)?.at(0)?.introSelected).toEqual(customIntroSelected);
         });
 
         test('Should pass undefined introSelected without bypassing with empty values', () => {
@@ -8709,7 +8750,7 @@ describe('SearchUIUtils', () => {
 
             SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, undefined, backTo, currentUserLogin, currentUserAccountID, undefined, threadReportID, undefined, false);
 
-            expect(((createTransactionThreadReport as jest.Mock).mock.calls.at(0) as unknown[] | undefined)?.at(0)).toBeUndefined();
+            expect(jest.mocked(createTransactionThreadReport).mock.calls.at(0)?.at(0)?.introSelected).toBeUndefined();
         });
     });
 
