@@ -50,7 +50,7 @@ function MerchantField({
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
-    const merchantState = useTransactionSelector(transactionID, merchantStateSelector);
+    const merchantState = useTransactionSelector(transactionID, merchantStateSelector, isEditingSplitBill);
 
     const merchantValue = merchantState?.merchant ?? '';
     const displayMerchantValue = isInvalidMerchantValue(merchantValue) ? '' : merchantValue;

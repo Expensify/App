@@ -86,7 +86,7 @@ function AmountField({
     const amountInputRef = useRef<BaseTextInputRef | null>(null);
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
 
-    const transactionSlice = useTransactionSelector(transactionID, amountSliceSelector);
+    const transactionSlice = useTransactionSelector(transactionID, amountSliceSelector, isEditingSplitBill);
 
     const transactionForHandlers = transactionSlice as OnyxEntry<OnyxTypes.Transaction>;
     const amountIsMissing = transactionSlice?.isAmountMissing ?? false;

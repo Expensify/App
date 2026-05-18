@@ -14,13 +14,14 @@ type ToggleFieldsProps = {
     onToggleReimbursable?: (isOn: boolean) => void;
     onToggleBillable?: (isOn: boolean) => void;
     transactionID: string | undefined;
+    isEditingSplitBill: boolean;
 };
 
-function ToggleFields({isReadOnly, shouldShowReimbursable, shouldShowBillable, onToggleReimbursable, onToggleBillable, transactionID}: ToggleFieldsProps) {
+function ToggleFields({isReadOnly, shouldShowReimbursable, shouldShowBillable, onToggleReimbursable, onToggleBillable, transactionID, isEditingSplitBill}: ToggleFieldsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const toggleState = useTransactionSelector(transactionID, toggleStateSelector);
+    const toggleState = useTransactionSelector(transactionID, toggleStateSelector, isEditingSplitBill);
 
     const iouIsBillable = toggleState?.billable ?? false;
     const iouIsReimbursable = toggleState?.reimbursable ?? true;

@@ -55,7 +55,7 @@ function DescriptionField({
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
-    const descriptionState = useTransactionSelector(transactionID, descriptionStateSelector);
+    const descriptionState = useTransactionSelector(transactionID, descriptionStateSelector, isEditingSplitBill);
 
     // `getDescription` returns raw `transaction.comment.comment`, which can be HTML for saved transactions.
     // We normalize to markdown so both the read-only and editable inputs receive a consistent format.

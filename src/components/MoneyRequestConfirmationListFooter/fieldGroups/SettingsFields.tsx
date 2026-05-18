@@ -56,6 +56,9 @@ type SettingsFieldsProps = {
 
     /** Per-field visibility decisions resolved by `computeFieldVisibility` */
     fieldVisibility: Pick<FieldVisibility, 'toggles' | 'report'>;
+
+    /** Whether we're editing an existing split expense */
+    isEditingSplitBill: boolean;
 };
 
 /**
@@ -80,6 +83,7 @@ function SettingsFields({
     onToggleBillable,
     isCompactMode,
     fieldVisibility,
+    isEditingSplitBill,
 }: SettingsFieldsProps) {
     if (isCompactMode) {
         return null;
@@ -94,6 +98,7 @@ function SettingsFields({
                     onToggleReimbursable={onToggleReimbursable}
                     onToggleBillable={onToggleBillable}
                     transactionID={transactionID}
+                    isEditingSplitBill={isEditingSplitBill}
                 />
             )}
             {fieldVisibility.report && (

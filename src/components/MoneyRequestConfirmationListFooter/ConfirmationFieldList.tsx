@@ -376,6 +376,7 @@ function ConfirmationFieldList({
                 onToggleBillable={onToggleBillable}
                 isCompactMode={isCompactMode}
                 fieldVisibility={fieldVisibility}
+                isEditingSplitBill={isEditingSplitBill}
             />
 
             {isCompactMode && shouldShowMoreButton && (
