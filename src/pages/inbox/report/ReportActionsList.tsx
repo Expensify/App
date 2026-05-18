@@ -372,7 +372,7 @@ function ReportActionsList({
         return sortedVisibleReportActions.findIndex((item) => keyExtractor(item) === initialScrollKey);
     }, [initialScrollKey, sortedVisibleReportActions]);
     const hasInitialScrollTarget = initialScrollIndex >= 0;
-    const shouldMeasureLinkedAnchorScrollPosition = !!linkedReportActionID && hasInitialScrollTarget;
+    const shouldMeasureLinkedAnchorScrollPosition = !!initialScrollKey && hasInitialScrollTarget;
     const [listHeight, setListHeight] = useState(0);
     const [isInitialViewportLoading, setIsInitialViewportLoading] = useState(true);
     /**
