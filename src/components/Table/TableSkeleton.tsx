@@ -6,6 +6,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
+import variables from '@styles/variables';
 
 type TableSkeletonProps = {
     /** The number of skeleton rows to render */
@@ -28,6 +29,7 @@ export default function TableSkeleton({renderSkeletonItem, reasonAttributes, row
     const isSmallView = isMediumScreenWidth || shouldUseNarrowLayout;
 
     const tableSkeletonRowStyles = [
+        styles.flex1,
         styles.flexRow,
         styles.overflowHidden,
         styles.alignItemsCenter,
@@ -43,9 +45,10 @@ export default function TableSkeleton({renderSkeletonItem, reasonAttributes, row
             style={[tableSkeletonRowStyles, index !== rowCount - 1 && styles.borderBottom]}
         >
             <SkeletonViewContentLoader
-                height={32}
+                width="100%"
                 backgroundColor={theme.skeletonLHNIn}
                 foregroundColor={theme.skeletonLHNOut}
+                height={variables.tableSkeletonHeight}
             >
                 {renderSkeletonItem()}
             </SkeletonViewContentLoader>

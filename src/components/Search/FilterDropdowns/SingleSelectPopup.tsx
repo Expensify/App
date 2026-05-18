@@ -101,5 +101,4 @@ function SingleSelectPopup<T extends string>({
     );
 }
 
-export type {SingleSelectPopupProps};
 export default SingleSelectPopup;

@@ -79,6 +79,7 @@ import ShowPreviousMessagesButton from './ShowPreviousMessagesButton';
 import StaticReportActionsPreview from './StaticReportActionsPreview';
 import useReportActionsNewActionLiveTail from './useReportActionsNewActionLiveTail';
 import useReportUnreadMessageScrollTracking from './useReportUnreadMessageScrollTracking';
+import useShouldShowComposerForActiveEditDraft from './useShouldShowComposerForActiveEditDraft';
 
 type ReportActionsListProps = {
     /** The report currently being looked at */
@@ -841,7 +842,8 @@ function ReportActionsList({
         () => [shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined, isArchivedNonExpenseReport(report, isReportArchived), draftReportAction?.reportActionID, draftMessageHTML],
         [draftMessageHTML, draftReportAction?.reportActionID, unreadMarkerReportActionID, shouldUseNarrowLayout, report, isReportArchived],
     );
-    const hideComposer = !canUserPerformWriteAction(report, isReportArchived);
+    const shouldShowComposerForActiveEditDraft = useShouldShowComposerForActiveEditDraft();
+    const hideComposer = !canUserPerformWriteAction(report, isReportArchived) && !shouldShowComposerForActiveEditDraft;
     const shouldShowReportRecipientLocalTime = canShowReportRecipientLocalTime(personalDetailsList, report, currentUserAccountID) && !isComposerFullSize;
     const canShowHeader = isOffline || hasHeaderRendered.current;
 
@@ -988,5 +990,3 @@ function ReportActionsList({
 }
 
 export default memo(ReportActionsList);
-
-export type {ReportActionsListProps};

@@ -86,9 +86,7 @@ const renderReportActionItemMessageEdit = (props?: Partial<ReportActionItemMessa
     return render(
         <ReportScreenProviders>
             <ReportActionItemMessageEdit
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...defaultProps}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             />
         </ReportScreenProviders>,

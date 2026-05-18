@@ -10,6 +10,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {useTableContext} from './TableContext';
 
@@ -64,7 +65,6 @@ export default function TableRow({
         styles.mh5,
         styles.flexRow,
         styles.highlightBG,
-        styles.overflowHidden,
         styles.alignItemsCenter,
         isInteractive && styles.userSelectNone,
         shouldUseNarrowTableLayout ? styles.ph4 : styles.ph3,
@@ -95,7 +95,7 @@ export default function TableRow({
     return (
         <OfflineWithFeedback
             // We need to spread the props due to how the OfflineWithFeedback component handles child components
-            // eslint-disable-next-line react/jsx-props-no-spreading
+
             {...offlineWithFeedback}
         >
             <PressableWithFeedback
@@ -108,16 +108,16 @@ export default function TableRow({
                 hoverStyle={isInteractive && styles.hoveredComponentBG}
                 role={isInteractive ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
                 onPress={onPress}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             >
                 {(state) =>
                     !!isLoading && LoadingComponent ? (
-                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
                             <SkeletonViewContentLoader
-                                height={32}
+                                width="100%"
                                 backgroundColor={theme.skeletonLHNIn}
                                 foregroundColor={theme.skeletonLHNOut}
+                                height={variables.tableSkeletonHeight}
                             >
                                 <LoadingComponent />
                             </SkeletonViewContentLoader>

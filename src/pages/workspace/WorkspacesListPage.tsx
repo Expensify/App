@@ -1,8 +1,7 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import React, {useEffect, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {FlatList, InteractionManager, View} from 'react-native';
+import {FlatList, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -53,6 +52,7 @@ import {hasDomainErrors} from '@libs/DomainUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {
@@ -649,12 +649,15 @@ function WorkspacesListPage() {
             return;
         }
         const duplicateWorkspaceIndex = filteredWorkspaces.findIndex((workspace) => workspace.policyID === duplicatedWSPolicyID);
-        if (duplicateWorkspaceIndex >= 0) {
-            flatlistRef.current?.scrollToIndex({index: duplicateWorkspaceIndex, animated: false});
-            InteractionManager.runAfterInteractions(() => {
-                clearDuplicateWorkspace();
-            });
+        if (duplicateWorkspaceIndex < 0) {
+            return;
         }
+        flatlistRef.current?.scrollToIndex({index: duplicateWorkspaceIndex, animated: false});
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => clearDuplicateWorkspace(),
+        });
+
+        return () => handle.cancel();
     }, [duplicateWorkspace?.policyID, isFocused, filteredWorkspaces]);
 
     // JACK_TODO: Move to table
