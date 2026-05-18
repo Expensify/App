@@ -246,6 +246,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             isWorkspaceAdmin={isAdmin}
                             frozenByAccountID={card?.nameValuePairs?.frozen?.byAccountID}
                             frozenDate={card?.nameValuePairs?.frozen?.date}
+                            style={styles.mt8}
                             onUnfreezePress={handleUnfreezePress}
                             cardPreview={
                                 <View
@@ -284,7 +285,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             />
                         </FrozenCardHeader>
                     ) : (
-                        <View style={[styles.walletCard, styles.mb3]}>{workspaceCardImage}</View>
+                        <View style={[styles.walletCard, styles.mb3, styles.mt8]}>{workspaceCardImage}</View>
                     )}
                     {(!isCardFrozen(card) || !canManageCardFreeze) && (
                         <CardDetailsActionButtons>

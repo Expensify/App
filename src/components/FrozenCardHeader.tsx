@@ -1,4 +1,5 @@
 import React from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -14,13 +15,13 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import Button from './Button';
-import Icon from './Icon';
 import Text from './Text';
 import TextLink from './TextLink';
 
 type FrozenCardHeaderProps = {
     cardPreview: React.ReactNode;
     children?: React.ReactNode;
+    style?: StyleProp<ViewStyle>;
     onUnfreezePress: () => void;
     onAskToUnfreezePress: () => void;
     canUnfreezeCard: boolean;
@@ -29,7 +30,7 @@ type FrozenCardHeaderProps = {
     frozenDate?: string;
 };
 
-function FrozenCardHeader({cardPreview, children, onUnfreezePress, onAskToUnfreezePress, canUnfreezeCard, isWorkspaceAdmin, frozenByAccountID, frozenDate}: FrozenCardHeaderProps) {
+function FrozenCardHeader({cardPreview, children, style, onUnfreezePress, onAskToUnfreezePress, canUnfreezeCard, isWorkspaceAdmin, frozenByAccountID, frozenDate}: FrozenCardHeaderProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -89,15 +90,10 @@ function FrozenCardHeader({cardPreview, children, onUnfreezePress, onAskToUnfree
     }
 
     return (
-        <View style={[styles.ph5, styles.pb5]}>
+        <View style={[styles.ph5, styles.pb5, style]}>
             {cardPreview}
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.mt2]}>
-                <Icon
-                    src={icons.FreezeCard}
-                    fill={theme.icon}
-                    small
-                />
-                <Text style={[styles.textLabel, styles.colorMuted, styles.ml2]}>{statusText}</Text>
+                <Text style={[styles.textLabel, styles.colorMuted]}>{statusText}</Text>
             </View>
             <View style={[styles.flexRow, styles.flexWrap, styles.alignItemsCenter, styles.justifyContentCenter, styles.gap2, styles.mt6, styles.alignSelfStretch]}>
                 <View style={equalButtonWrapperStyles}>

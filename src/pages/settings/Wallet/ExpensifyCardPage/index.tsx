@@ -212,6 +212,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const shouldShowEditSpendRules = !isProduction && isWorkspaceAdmin;
     const shouldShowActionRows =
         shouldShowReportVirtualCardFraudRows || shouldShowReportTravelCardFraudRows || shouldShowReportLostCardButton || shouldShowSpendRulesSummary || shouldShowEditSpendRules;
+    const shouldShowPhysicalCardFooterButton = currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED || currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED;
 
     const scarfOverlayStyle = useMemo<ViewStyle>(
         () => ({
@@ -279,12 +280,13 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                 title={pageTitle}
                 onBackButtonPress={() => Navigation.closeRHPFlow()}
             />
-            <ScrollView>
+            <ScrollView contentContainerStyle={shouldShowPhysicalCardFooterButton ? styles.pb6 : undefined}>
                 {canManageCardFreeze && isCardFrozen(currentCard) ? (
                     <FrozenCardHeader
                         isWorkspaceAdmin={isWorkspaceAdmin}
                         frozenByAccountID={currentCard?.nameValuePairs?.frozen?.byAccountID}
                         frozenDate={currentCard?.nameValuePairs?.frozen?.date}
+                        style={styles.mt8}
                         canUnfreezeCard={canUnfreezeCard}
                         onAskToUnfreezePress={handleAskToUnfreezePress}
                         onUnfreezePress={handleUnfreezePress}
@@ -306,7 +308,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                         />
                     </FrozenCardHeader>
                 ) : (
-                    <View style={[styles.flex1, styles.mb3, styles.mt9]}>
+                    <View style={[styles.flex1, styles.mb3, styles.mt8]}>
                         <CardPreview />
                     </View>
                 )}
@@ -454,10 +456,10 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                             interactive={false}
                                             titleStyle={styles.walletCardNumber}
                                             shouldShowRightComponent
+                                            shouldBeAccessible={isSignedInAsDelegate ? undefined : false}
                                             rightComponent={
                                                 !isSignedInAsDelegate ? (
                                                     <Button
-                                                        small
                                                         text={translate('cardPage.cardDetails.reveal')}
                                                         onPress={() => {
                                                             if (isAccountLocked) {
