@@ -87,7 +87,6 @@ const TAB_SCREEN_OPTIONS_BASE = {
 function TabNavigator() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
-    const styles = useThemeStyles();
     const navigation = useNavigation();
     const parentNavigation = navigation.getParent();
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
