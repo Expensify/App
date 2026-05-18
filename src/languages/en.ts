@@ -4896,7 +4896,7 @@ const translations = {
                 installBundleConfirm: "I've installed the bundle",
                 setupContacts: 'Set up user and contacts',
                 setupContactsBullet1:
-                    "Create both a User and a Contact for yourself if these don't already exist in Certinia making sure ine email matenes your primary emall in Expensify.\n\n",
+                    "Create both a User and a Contact for yourself if these don't already exist in Certinia making sure the email matches your primary email in Expensify.\n\n",
                 setupContactsBullet2:
                     "Create contacts for each employee who will be submitting expense reports and for each report approver. Make sure each contact's email address corresponds with the email address on the employee's Expensify account.\n\n",
                 setupContactsBullet3: 'Set permission controls for your user for each contact/resource.\n\n',
