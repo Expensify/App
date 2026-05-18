@@ -1,28 +1,17 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import {Str} from 'expensify-common';
-import React, {useEffect, useRef, useState} from 'react';
-import {FlatList, View} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ConfirmModal from '@components/ConfirmModal';
-import type {DomainItem} from '@components/Domain/DomainMenuItem';
-import DomainMenuItem from '@components/Domain/DomainMenuItem';
-import DomainsEmptyStateComponent from '@components/DomainsEmptyStateComponent';
-import type {MenuItemProps} from '@components/MenuItem';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import TopBarWithLoadingBar from '@components/Navigation/TopBarWithLoadingBar';
-import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SearchBar from '@components/SearchBar';
-import type {ListItem} from '@components/SelectionList/types';
-import WorkspaceListTable, {DomainRowData, WorkspaceRowData} from '@components/Tables/WorkspaceListTable';
-import Text from '@components/Text';
+import WorkspaceListTable, {WorkspaceRowData} from '@components/Tables/WorkspaceListTable';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -37,22 +26,18 @@ import usePoliciesWithCardFeedErrors from '@hooks/usePoliciesWithCardFeedErrors'
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSearchResults from '@hooks/useSearchResults';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOfWorkspace';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {close} from '@libs/actions/Modal';
 import {clearWorkspaceOwnerChangeFlow, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
-import {calculateBillNewDot, clearDeleteWorkspaceError, clearDuplicateWorkspace, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace} from '@libs/actions/Policy/Policy';
+import {calculateBillNewDot, clearDeleteWorkspaceError, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace} from '@libs/actions/Policy/Policy';
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 import {filterInactiveCards} from '@libs/CardUtils';
-import {hasDomainErrors} from '@libs/DomainUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {
@@ -71,13 +56,11 @@ import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {isSubscriptionTypeOfInvoicing, shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import type {AvatarSource} from '@libs/UserAvatarUtils';
 import {setNameValuePair} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {isAdminSelector} from '@src/selectors/Domain';
 import {accountIDToLoginSelector} from '@src/selectors/PersonalDetails';
 import {ownerPoliciesSelector} from '@src/selectors/Policy';
 import {reimbursementAccountErrorSelector} from '@src/selectors/ReimbursementAccount';
@@ -85,24 +68,7 @@ import type {Policy as PolicyType} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {PolicyDetailsForNonMembers} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import WorkspacesEmptyStateComponent from './WorkspacesEmptyStateComponent';
 import WorkspacesListPageHeaderButton from './WorkspacesListPageHeaderButton';
-import WorkspacesListRow from './WorkspacesListRow';
-
-type WorkspaceItem = {listItemType: 'workspace'} & ListItem &
-    Required<Pick<MenuItemProps, 'title' | 'disabled'>> &
-    Pick<MenuItemProps, 'brickRoadIndicator' | 'iconFill' | 'fallbackIcon'> &
-    Pick<OfflineWithFeedbackProps, 'errors' | 'pendingAction'> &
-    Pick<PolicyType, 'role' | 'type' | 'ownerAccountID' | 'employeeList'> & {
-        icon: AvatarSource;
-        action: () => void;
-        dismissError: () => void;
-        iconType?: ValueOf<typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_ICON>;
-        policyID?: string;
-        isJoinRequestPending?: boolean;
-    };
-
-type WorkspaceOrDomainListItem = WorkspaceItem | DomainItem | {listItemType: 'domains-header' | 'workspaces-empty-state' | 'domains-empty-state'};
 
 type GetWorkspaceMenuItem = {item: WorkspaceRowData; index: number};
 
@@ -136,14 +102,13 @@ function isUserReimburserForPolicy(policies: Record<string, PolicyType | undefin
 
 function WorkspacesListPage() {
     const icons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Star', 'Trashcan', 'Transfer', 'FallbackWorkspaceAvatar']);
-    const theme = useTheme();
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Star', 'Trashcan', 'Transfer', 'Plus', 'FallbackWorkspaceAvatar']);
     const {translate, localeCompare} = useLocalize();
     useDocumentTitle(translate('common.workspaces'));
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
-    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const privateSubscription = usePrivateSubscription();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [allConnectionSyncProgresses] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS);
@@ -156,13 +121,10 @@ function WorkspacesListPage() {
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const route = useRoute<PlatformStackRouteProp<WorkspaceNavigatorParamList, typeof SCREENS.WORKSPACES_LIST>>();
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
-    const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE);
     const {isRestrictedToPreferredPolicy, preferredPolicyID, isRestrictedPolicyCreation} = usePreferredPolicy();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [reimbursementAccountError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: reimbursementAccountErrorSelector});
 
-    const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
-    const [allDomainErrors] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_ERRORS);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const tabBarContent = <TabBarBottomContent selectedTab={NAVIGATION_TABS.WORKSPACES} />;
 
@@ -179,12 +141,9 @@ function WorkspacesListPage() {
         setIsDeleteModalOpen(true);
     };
     const {reportsToArchive, transactionViolations} = useTransactionViolationOfWorkspace(policyIDToDelete);
-    const {setIsDeletingPaidWorkspace, isLoadingBill}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} =
-        usePayAndDowngrade(continueDeleteWorkspace);
+    const {setIsDeletingPaidWorkspace}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} = usePayAndDowngrade(continueDeleteWorkspace);
 
     const [loadingSpinnerIconIndex, setLoadingSpinnerIconIndex] = useState<number | null>(null);
-
-    const isLessThanMediumScreen = isMediumScreenWidth || shouldUseNarrowLayout;
 
     const policyToDelete = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToDelete}`];
 
@@ -196,7 +155,6 @@ function WorkspacesListPage() {
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {
         selector: filterInactiveCards,
     });
-    const flatlistRef = useRef<FlatList | null>(null);
     const [lastAccessedWorkspacePolicyID] = useOnyx(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID);
 
     const hasCardFeedOrExpensifyCard =
@@ -317,10 +275,6 @@ function WorkspacesListPage() {
 
     const shouldCalculateBillNewDot: boolean = shouldCalculateBillNewDotFn(currentUserPersonalDetails.accountID, account?.canDowngrade, policies);
 
-    const resetLoadingSpinnerIconIndex = () => {
-        setLoadingSpinnerIconIndex(null);
-    };
-
     useEffect(() => {
         // Handle showing error modal when offline and error occurs
         if (isOffline && policyToDeleteLatestErrorMessage) {
@@ -338,6 +292,7 @@ function WorkspacesListPage() {
 
         setIsDeleteWorkspaceErrorModalOpen(true);
     }, [isOffline, policyToDeleteLatestErrorMessage, isPendingDelete, prevIsPendingDelete, isFocused, policyIDToDelete]);
+
     const startChangeOwnershipFlow = (policyID: string | undefined) => {
         if (!policyID) {
             return;
@@ -359,10 +314,9 @@ function WorkspacesListPage() {
      * Gets the menu item for each workspace
      */
     const getThreeDotMenuItems = ({item, index}: GetWorkspaceMenuItem) => {
-        const isAdmin = isPolicyAdmin(item as unknown as PolicyType, session?.email);
-        const isOwner = item.ownerAccountID === session?.accountID;
         const isDefault = activePolicyID === item.policyID;
-        const shouldAnimateInHighlight = duplicateWorkspace?.policyID === item.policyID;
+        const isOwner = item.ownerAccountID === session?.accountID;
+        const isAdmin = isPolicyAdmin(item as unknown as PolicyType, session?.email);
 
         const threeDotsMenuItems: PopoverMenuItem[] = [
             {
@@ -487,34 +441,7 @@ function WorkspacesListPage() {
     /**
      * Add free policies (workspaces) to the list of menu items and returns the list of menu items
      */
-    // JACK_TODO: REplace with the workspacerows
-    const workspaces: WorkspaceItem[] = [];
-
-    const domainRows: DomainRowData[] = [];
     const workspaceRows: WorkspaceRowData[] = [];
-
-    if (!isEmptyObject(allDomains)) {
-        for (const [index, domain] of Object.values(allDomains).entries()) {
-            if (!domain?.accountID || !domain.email) {
-                continue;
-            }
-
-            const isDomainAdmin = isAdminSelector(currentUserPersonalDetails?.accountID)(domain);
-            const domainErrors = allDomainErrors?.[`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domain.accountID}`];
-
-            domainRows.push({
-                rowType: 'domain',
-                isAdmin: isDomainAdmin,
-                isValidated: domain.validated,
-                domainAccountID: domain.accountID,
-                title: Str.extractEmailDomain(domain.email),
-                errors: domainErrors?.errors,
-                pendingAction: domain.pendingAction,
-                brickRoadIndicator: hasDomainErrors(domainErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                action: () => navigateToDomain({domainAccountID: domain.accountID, isAdmin: isDomainAdmin}),
-            });
-        }
-    }
 
     if (!isEmptyObject(policies)) {
         const reimbursementAccountBrickRoadIndicator = !isEmptyObject(reimbursementAccount?.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
@@ -616,100 +543,7 @@ function WorkspacesListPage() {
         }
     }
 
-    const filterWorkspace = (workspace: WorkspaceItem, inputValue: string) => workspace.title.toLowerCase().includes(inputValue);
-    const sortWorkspace = (workspaceItems: WorkspaceItem[]) => workspaceItems.sort((a, b) => localeCompare(a.title, b.title));
-    const [inputValue, setInputValue, filteredWorkspaces] = useSearchResults(workspaces, filterWorkspace, sortWorkspace);
-
-    const domains = allDomains
-        ? Object.values(allDomains).reduce<DomainItem[]>((domainItems, domain) => {
-              if (!domain?.accountID || !domain.email) {
-                  return domainItems;
-              }
-              const isDomainAdmin = isAdminSelector(currentUserPersonalDetails?.accountID)(domain);
-              const domainErrors = allDomainErrors?.[`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domain.accountID}`];
-              domainItems.push({
-                  listItemType: 'domain',
-                  accountID: domain.accountID,
-                  title: Str.extractEmailDomain(domain.email),
-                  action: () => navigateToDomain({domainAccountID: domain.accountID, isAdmin: isDomainAdmin}),
-                  isAdmin: isDomainAdmin,
-                  isValidated: domain.validated,
-                  pendingAction: domain.pendingAction,
-                  errors: domainErrors?.errors,
-                  brickRoadIndicator: hasDomainErrors(domainErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-              });
-
-              return domainItems;
-          }, [])
-        : [];
-
-    useEffect(() => {
-        const duplicatedWSPolicyID = duplicateWorkspace?.policyID;
-        if (!duplicatedWSPolicyID || !filteredWorkspaces.length || !isFocused) {
-            return;
-        }
-        const duplicateWorkspaceIndex = filteredWorkspaces.findIndex((workspace) => workspace.policyID === duplicatedWSPolicyID);
-        if (duplicateWorkspaceIndex < 0) {
-            return;
-        }
-        flatlistRef.current?.scrollToIndex({index: duplicateWorkspaceIndex, animated: false});
-        const handle = TransitionTracker.runAfterTransitions({
-            callback: () => clearDuplicateWorkspace(),
-        });
-
-        return () => handle.cancel();
-    }, [duplicateWorkspace?.policyID, isFocused, filteredWorkspaces]);
-
-    // JACK_TODO: Move to table
-    const listHeaderComponent = (
-        <>
-            {/* {isLessThanMediumScreen && <View style={styles.mt3} />}
-            {workspaces.length > CONST.SEARCH_ITEM_LIMIT && (
-                <SearchBar
-                    label={translate('workspace.common.findWorkspace')}
-                    inputValue={inputValue}
-                    onChangeText={setInputValue}
-                    shouldShowEmptyState={filteredWorkspaces.length === 0 && inputValue.length > 0}
-                />
-            )}
-            {!isLessThanMediumScreen && filteredWorkspaces.length > 0 && (
-                <View style={[styles.flexRow, styles.gap5, styles.pt2, styles.pb3, styles.pr5, styles.pl10, styles.appBG]}>
-                    <View style={[styles.flexRow, styles.flex2]}>
-                        <Text
-                            numberOfLines={1}
-                            style={[styles.flexGrow1, styles.textLabelSupporting]}
-                        >
-                            {translate('workspace.common.workspaceName')}
-                        </Text>
-                    </View>
-                    <View style={[styles.flexRow, styles.flex1, styles.workspaceOwnerSectionTitle, styles.workspaceOwnerSectionMinWidth]}>
-                        <Text
-                            numberOfLines={1}
-                            style={[styles.flexGrow1, styles.textLabelSupporting]}
-                        >
-                            {translate('workspace.common.workspaceOwner')}
-                        </Text>
-                    </View>
-                    <View style={[styles.flexRow, styles.flex1, styles.workspaceTypeSectionTitle]}>
-                        <Text
-                            numberOfLines={1}
-                            style={[styles.flexGrow1, styles.textLabelSupporting]}
-                        >
-                            {translate('workspace.common.workspaceType')}
-                        </Text>
-                    </View>
-                    <View style={[styles.workspaceRightColumn, styles.mr7]} />
-                </View>
-            )} */}
-        </>
-    );
-
-    const headerButton = (
-        <WorkspacesListPageHeaderButton
-            shouldShowNewWorkspaceButton={!isRestrictedPolicyCreation && (!!domains.length || !!workspaces.length)}
-            shouldShowNewDomainButton={!!domains.length}
-        />
-    );
+    const headerButton = <WorkspacesListPageHeaderButton shouldShowNewWorkspaceButton={!isRestrictedPolicyCreation && !!workspaceRows.length} />;
 
     const onBackButtonPress = () => {
         Navigation.goBack(route.params?.backTo);
@@ -717,45 +551,6 @@ function WorkspacesListPage() {
     };
 
     useAndroidBackButtonHandler(onBackButtonPress);
-
-    const shouldShowDomainsSection = !inputValue.trim().length;
-    const data: WorkspaceOrDomainListItem[] = [
-        !workspaces.length ? [{listItemType: 'workspaces-empty-state' as const}] : [],
-        filteredWorkspaces,
-        shouldShowDomainsSection ? [{listItemType: 'domains-header' as const}, ...domains] : [],
-        shouldShowDomainsSection && !domains.length ? [{listItemType: 'domains-empty-state' as const}] : [],
-    ].flat();
-
-    // const renderItem = ({item, index}: {item: WorkspaceOrDomainListItem; index: number}) => {
-    //     switch (item.listItemType) {
-    //         case 'workspace': {
-    //             return getThreeDotMenuItems({item, index});
-    //         }
-    //         case 'domain': {
-    //             return (
-    //                 <DomainMenuItem
-    //                     item={item}
-    //                     index={index}
-    //                 />
-    //             );
-    //         }
-    //         case 'domains-header': {
-    //             return (
-    //                 <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter, styles.ph5, styles.pv3, styles.mt0, styles.mb0]}>
-    //                     <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('common.domains')}</Text>
-    //                 </View>
-    //             );
-    //         }
-    //         case 'workspaces-empty-state': {
-    //             return <WorkspacesEmptyStateComponent />;
-    //         }
-    //         case 'domains-empty-state': {
-    //             return <DomainsEmptyStateComponent />;
-    //         }
-    //         default:
-    //             return null;
-    //     }
-    // };
 
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
@@ -790,10 +585,7 @@ function WorkspacesListPage() {
                         />
                     </View>
                 ) : (
-                    <WorkspaceListTable
-                        domains={domainRows}
-                        workspaces={workspaceRows}
-                    />
+                    <WorkspaceListTable workspaces={workspaceRows} />
                 )}
             </View>
             <ConfirmModal

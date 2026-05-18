@@ -3,13 +3,12 @@ import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
+import DomainListPageHeaderButton from '@components/Domain/DomainListPageHeaderButton';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import TopBarWithLoadingBar from '@components/Navigation/TopBarWithLoadingBar';
 import ScreenWrapper from '@components/ScreenWrapper';
-import DomainListTable from '@components/Tables/DomainListTable';
-import  {DomainRowData} from '@components/Tables/WorkspaceListTable';
-import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
+import DomainListTable, {DomainRowData} from '@components/Tables/DomainListTable';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useLocalize from '@hooks/useLocalize';
@@ -37,24 +36,16 @@ function WorkspacesListPage() {
 
     useDocumentTitle(translate('common.domains'));
 
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
-    const route = useRoute<PlatformStackRouteProp<WorkspaceNavigatorParamList, typeof SCREENS.WORKSPACES_LIST>>();
-
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const [allDomainErrors] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_ERRORS);
+    const route = useRoute<PlatformStackRouteProp<WorkspaceNavigatorParamList, typeof SCREENS.WORKSPACES_LIST>>();
+
     const tabBarContent = <TabBarBottomContent selectedTab={NAVIGATION_TABS.WORKSPACES} />;
 
-    const navigateToDomain = ({domainAccountID, isAdmin}: {domainAccountID: number; isAdmin: boolean}) => {
-        if (!isAdmin) {
-            return Navigation.navigate(ROUTES.WORKSPACES_DOMAIN_ACCESS_RESTRICTED.getRoute(domainAccountID));
-        }
-
-        Navigation.navigate(ROUTES.DOMAIN_INITIAL.getRoute(domainAccountID));
-    };
-
     const domainRows: DomainRowData[] = [];
+    const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
+    const headerButton = <DomainListPageHeaderButton shouldShowNewDomainButton={!!domainRows.length} />;
 
     if (!isEmptyObject(allDomains)) {
         for (const domain of Object.values(allDomains)) {
@@ -79,21 +70,19 @@ function WorkspacesListPage() {
         }
     }
 
-    // JACK_TODO: Move to table
-    // const headerButton = (
-    //     <WorkspacesListPageHeaderButton
-    //         shouldShowNewWorkspaceButton={!isRestrictedPolicyCreation && (!!domains.length || !!workspaces.length)}
-    //         shouldShowNewDomainButton={!!domains.length}
-    //     />
-    // );
+    const navigateToDomain = ({domainAccountID, isAdmin}: {domainAccountID: number; isAdmin: boolean}) => {
+        if (!isAdmin) {
+            return Navigation.navigate(ROUTES.WORKSPACES_DOMAIN_ACCESS_RESTRICTED.getRoute(domainAccountID));
+        }
 
-    const onBackButtonPress = () => {
-        Navigation.goBack(route.params?.backTo);
-        return true;
+        Navigation.navigate(ROUTES.DOMAIN_INITIAL.getRoute(domainAccountID));
     };
 
-    useAndroidBackButtonHandler(onBackButtonPress);
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
+    const activityIndicatorReasonAttributes = {
+        context: 'DomainsListPage',
+        isOffline,
+    } satisfies SkeletonSpanReasonAttributes;
 
     return (
         <ScreenWrapper
@@ -107,22 +96,18 @@ function WorkspacesListPage() {
         >
             <View style={styles.flex1}>
                 <TopBarWithLoadingBar
-                    breadcrumbLabel={translate('common.domains')}
                     shouldDisplayHelpButton
+                    breadcrumbLabel={translate('common.domains')}
                 >
-                    {/* {!shouldDisplayButtonsInSeparateLine && <View style={styles.pr2}>{headerButton}</View>} */}
+                    {!shouldDisplayButtonsInSeparateLine && <View style={styles.pr2}>{headerButton}</View>}
                 </TopBarWithLoadingBar>
-                {/* {shouldDisplayButtonsInSeparateLine && <View style={[styles.ph5, styles.pt2]}>{headerButton}</View>} */}
+                {shouldDisplayButtonsInSeparateLine && <View style={[styles.ph5, styles.pt2]}>{headerButton}</View>}
+
                 {shouldShowLoadingIndicator && (
                     <View style={[styles.flex1, styles.fullScreenLoading]}>
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            reasonAttributes={
-                                {
-                                    context: 'WorkspacesListPage',
-                                    isOffline,
-                                } satisfies SkeletonSpanReasonAttributes
-                            }
+                            reasonAttributes={activityIndicatorReasonAttributes}
                         />
                     </View>
                 )}
