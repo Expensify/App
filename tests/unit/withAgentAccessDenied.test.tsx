@@ -1,9 +1,9 @@
 import {act, render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
-import {Text} from 'react-native';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import Text from '@components/Text';
 import withAgentAccessDenied from '@libs/Navigation/AppNavigator/withAgentAccessDenied';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as TestHelper from '../utils/TestHelper';
