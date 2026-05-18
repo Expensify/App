@@ -1824,34 +1824,30 @@ function isMergeHRConnected(policy?: OnyxEntry<Policy>): boolean {
     return !!policy?.connections?.merge_hris;
 }
 
-/** Returns display info for every HR provider currently connected to the policy (Gusto, Zenefits, and Merge HR). */
-function getConnectedHRProviders(policy?: OnyxEntry<Policy>): HRProviderInfo[] {
-    const providers: HRProviderInfo[] = [];
+/** Returns display info for the HR provider currently connected to the policy (Gusto, Zenefits, or Merge HR), or null if none are connected. */
+function getConnectedHRProvider(policy?: OnyxEntry<Policy>): HRProviderInfo | null {
     if (isGustoConnected(policy)) {
-        providers.push({
+        return {
             connectionName: CONST.POLICY.CONNECTIONS.NAME.GUSTO,
             displayName: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.gusto,
-            iconUrl: '',
-        });
+        };
     }
     if (isZenefitsConnected(policy)) {
-        providers.push({
+        return {
             connectionName: CONST.POLICY.CONNECTIONS.NAME.ZENEFITS,
             displayName: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.zenefits,
-            iconUrl: '',
-        });
+        };
     }
-    const mergeHRConnection = policy?.connections?.merge_hris;
-    if (mergeHRConnection) {
-        const slug = mergeHRConnection.config?.integration;
+    if (isMergeHRConnected(policy)) {
+        const slug = policy?.connections?.merge_hris?.config?.integration;
         const providerInfo = slug ? MERGE_HR_PROVIDERS[slug] : undefined;
-        providers.push({
+        return {
             connectionName: CONST.POLICY.CONNECTIONS.NAME.MERGE_HR,
             displayName: providerInfo?.displayName ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.merge_hris,
-            iconUrl: providerInfo?.iconUrl ?? '',
-        });
+            iconUrl: providerInfo?.iconUrl ?? undefined,
+        };
     }
-    return providers;
+    return null;
 }
 
 /** Returns true if the policy has any HR integration connected (Gusto, Zenefits, or Merge HR). */
@@ -1861,25 +1857,26 @@ function isAnyHRConnected(policy?: OnyxEntry<Policy>): boolean {
 
 /** Returns true if any connected HR integration uses a read-only approval mode (basic or manager), which blocks manual workflow editing. */
 function isAnyHRReadOnlyWorkflowMode(policy?: OnyxEntry<Policy>): boolean {
-    const gustoReadOnlyModes = new Set<ValueOf<typeof CONST.GUSTO.APPROVAL_MODE>>([CONST.GUSTO.APPROVAL_MODE.BASIC, CONST.GUSTO.APPROVAL_MODE.MANAGER]);
     const gustoMode = policy?.connections?.gusto?.config?.approvalMode;
-    if (gustoMode && gustoReadOnlyModes.has(gustoMode)) {
+    if (gustoMode === CONST.GUSTO.APPROVAL_MODE.BASIC || gustoMode === CONST.GUSTO.APPROVAL_MODE.MANAGER) {
         return true;
     }
     const zenefitsMode = policy?.connections?.zenefits?.config?.approvalMode;
-    if (zenefitsMode && gustoReadOnlyModes.has(zenefitsMode)) {
+    if (zenefitsMode === CONST.ZENEFITS.APPROVAL_MODE.BASIC || zenefitsMode === CONST.ZENEFITS.APPROVAL_MODE.MANAGER) {
         return true;
     }
-    const mergeHRReadOnlyModes = new Set<ValueOf<typeof CONST.MERGE_HR.APPROVAL_MODE>>([CONST.MERGE_HR.APPROVAL_MODE.BASIC, CONST.MERGE_HR.APPROVAL_MODE.MANAGER]);
     const mergeMode = policy?.connections?.merge_hris?.config?.approvalMode;
-    if (mergeMode && mergeHRReadOnlyModes.has(mergeMode)) {
+    if (mergeMode === CONST.MERGE_HR.APPROVAL_MODE.BASIC || mergeMode === CONST.MERGE_HR.APPROVAL_MODE.MANAGER) {
         return true;
     }
     return false;
 }
 
 /** Returns the approval mode configured for a specific HR connection, or null if not found. */
-function getHRApprovalMode(policy?: OnyxEntry<Policy>, connectionName?: HRConnectionName): ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | ValueOf<typeof CONST.MERGE_HR.APPROVAL_MODE> | null {
+function getHRApprovalMode(
+    policy?: OnyxEntry<Policy>,
+    connectionName?: HRConnectionName,
+): ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | ValueOf<typeof CONST.ZENEFITS.APPROVAL_MODE> | ValueOf<typeof CONST.MERGE_HR.APPROVAL_MODE> | null {
     if (!connectionName || !policy?.connections) {
         return null;
     }
@@ -2444,7 +2441,7 @@ export {
     isGustoConnected,
     isZenefitsConnected,
     isMergeHRConnected,
-    getConnectedHRProviders,
+    getConnectedHRProvider,
     isAnyHRConnected,
     isAnyHRReadOnlyWorkflowMode,
     getHRApprovalMode,

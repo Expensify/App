@@ -27,7 +27,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {
     canPolicyAccessFeature,
-    getConnectedHRProviders,
+    getConnectedHRProvider,
     getDistanceRateCustomUnit,
     getPerDiemCustomUnit,
     hasAccountingConnections,
@@ -184,8 +184,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         } else if (isGustoConnected(policy)) {
             integration = translate('workspace.hr.gusto.title');
         } else if (isMergeHRConnected(policy)) {
-            const providers = getConnectedHRProviders(policy);
-            integration = providers.at(0)?.displayName ?? '';
+            integration = getConnectedHRProvider(policy)?.displayName ?? '';
         }
         await showConfirmModal({
             title: translate('workspace.distanceRates.oopsNotSoFast'),

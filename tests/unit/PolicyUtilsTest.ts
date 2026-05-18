@@ -11,7 +11,7 @@ import {
     getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
     getAllTaxRates,
     getAllTaxRatesNamesAndValues,
-    getConnectedHRProviders,
+    getConnectedHRProvider,
     getConnectedIntegrationNamesForPolicies,
     getCustomUnitsForDuplication,
     getDefaultTimeTrackingRate,
@@ -2653,26 +2653,25 @@ describe('PolicyUtils', () => {
             });
         });
 
-        describe('getConnectedHRProviders', () => {
-            it('returns empty array for no connections', () => {
+        describe('getConnectedHRProvider', () => {
+            it('returns null for no connections', () => {
                 const policy = createRandomPolicy(0);
                 delete policy.connections;
-                expect(getConnectedHRProviders(policy)).toEqual([]);
+                expect(getConnectedHRProvider(policy)).toBeNull();
             });
 
-            it('returns Gusto only', () => {
+            it('returns Gusto when only Gusto is connected', () => {
                 const policy = {
                     ...createRandomPolicy(0),
                     connections: {
                         [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: {config: {approvalMode: null, finalApprover: null}},
                     },
                 } as Policy;
-                const providers = getConnectedHRProviders(policy);
-                expect(providers).toHaveLength(1);
-                expect(providers.at(0)?.connectionName).toBe('gusto');
+                const provider = getConnectedHRProvider(policy);
+                expect(provider?.connectionName).toBe('gusto');
             });
 
-            it('returns Gusto and Zenefits', () => {
+            it('prefers Gusto when both Gusto and Zenefits are connected', () => {
                 const policy = {
                     ...createRandomPolicy(0),
                     connections: {
@@ -2680,21 +2679,20 @@ describe('PolicyUtils', () => {
                         [CONST.POLICY.CONNECTIONS.NAME.ZENEFITS]: {config: {approvalMode: null, finalApprover: null, isConfigured: true}},
                     },
                 } as Policy;
-                const providers = getConnectedHRProviders(policy);
-                expect(providers).toHaveLength(2);
+                const provider = getConnectedHRProvider(policy);
+                expect(provider?.connectionName).toBe('gusto');
             });
 
-            it('includes Merge HR provider with correct displayName from integration slug', () => {
+            it('returns Merge HR with displayName from integration slug', () => {
                 const policy = {
                     ...createRandomPolicy(0),
                     connections: {
                         [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {config: {approvalMode: null, finalApprover: null, integration: 'workday'}},
                     },
                 } as Policy;
-                const providers = getConnectedHRProviders(policy);
-                expect(providers).toHaveLength(1);
-                expect(providers.at(0)?.displayName).toBe('Workday');
-                expect(providers.at(0)?.connectionName).toBe('merge_hris');
+                const provider = getConnectedHRProvider(policy);
+                expect(provider?.connectionName).toBe('merge_hris');
+                expect(provider?.displayName).toBe('Workday');
             });
         });
 

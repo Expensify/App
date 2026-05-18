@@ -51,7 +51,7 @@ import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {
     canEditWorkspaceSettings,
-    getConnectedHRProviders,
+    getConnectedHRProvider,
     getCorrectedAutoReportingFrequency,
     hasDynamicExternalWorkflow,
     isAnyHRConnected,
@@ -200,7 +200,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(route.params.policyID));
     }, [route.params.policyID]);
 
-    const connectedHRProvider = getConnectedHRProviders(policy).at(0);
+    const connectedHRProvider = getConnectedHRProvider(policy);
     const hrProviderName = connectedHRProvider?.displayName ?? '';
 
     const promptConfigureApprovalsInHR = useCallback(async () => {
