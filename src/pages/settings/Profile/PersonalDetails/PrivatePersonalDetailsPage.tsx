@@ -271,7 +271,6 @@ function PrivatePersonalDetailsPage() {
                             minDate={subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE)}
                             maxDate={subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT)}
                             autoComplete="birthdate-full"
-                            autoFocus={fieldToFocus === INPUT_IDS.DATE_OF_BIRTH}
                         />
                     </View>
                     <View style={styles.mb4}>

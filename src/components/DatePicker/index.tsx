@@ -8,7 +8,6 @@ import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {setDraftValues} from '@userActions/FormActions';
@@ -41,10 +40,6 @@ function DatePicker({
     const styles = useThemeStyles();
     const {windowHeight, windowWidth} = useWindowDimensions();
     const {translate} = useLocalize();
-
-    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHL and narrow layout
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
 
     const [isModalVisible, setIsModalVisible] = useState(false);
     const announcementMessage = label ? `${label}, ${translate('common.calendarOpened')}` : translate('common.calendarOpened');
@@ -122,13 +117,13 @@ function DatePicker({
     const combinedTextInputRef = useCallback(
         (ref: BaseTextInputRef | null) => {
             textInputRef.current = ref;
-            if (autoFocus && !isSmallScreenWidth) {
+            if (autoFocus) {
                 (autoFocusCallbackRefRef.current as unknown as (ref: BaseTextInputRef | null) => void)(ref);
             }
         },
         // autoFocusCallbackRefRef is a stable ref — its identity never changes, so it's not a dep
 
-        [autoFocus, isSmallScreenWidth],
+        [autoFocus],
     );
 
     const getValidDateForCalendar = useMemo(() => {
