@@ -14,7 +14,6 @@ import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {disableWorkspaceBillableExpenses, setPolicyBillableMode} from '@libs/actions/Policy/Policy';
 import {clearPolicyTagListErrors, setPolicyRequiresTag} from '@libs/actions/Policy/Tag';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {hasEnabledOptions as hasEnabledOptionsUtil} from '@libs/OptionsListUtils';
@@ -22,7 +21,7 @@ import {getTagLists as getTagListsUtil, isMultiLevelTags as isMultiLevelTagsUtil
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 
@@ -84,7 +83,7 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
                         onPress={() => {
                             Navigation.navigate(
                                 isQuickSettingsFlow
-                                    ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAGS_EDIT.getRoute(policyTagLists.at(0)?.orderWeight ?? 0))
+                                    ? ROUTES.SETTINGS_TAGS_EDIT.getRoute(policyID, policyTagLists.at(0)?.orderWeight ?? 0, backTo)
                                     : ROUTES.WORKSPACE_EDIT_TAGS.getRoute(policyID, policyTagLists.at(0)?.orderWeight ?? 0),
                             );
                         }}

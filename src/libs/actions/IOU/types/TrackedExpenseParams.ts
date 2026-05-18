@@ -65,6 +65,7 @@ type TrackedExpenseParams = {
     createdWorkspaceParams?: CreateWorkspaceParams;
     accountantParams?: TrackExpenseAccountantParams;
     currentUserAccountID: number;
+    currentUserEmail?: string;
 };
 
 export type {TrackedExpenseParams, TrackedExpensePolicyParams, TrackedExpenseTransactionParams, TrackedExpenseReportInformation, BuildOnyxDataForTrackExpenseKeys};

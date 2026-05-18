@@ -8,6 +8,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
     navigate: jest.fn(),
 }));
 
@@ -38,7 +40,6 @@ jest.mock('@components/VideoPlayerPreview', () => {
 const mockShowContextMenuStateValue = {
     anchor: null,
     report: undefined,
-    isReportArchived: false,
     action: undefined,
     transactionThreadReport: undefined,
     isDisabled: true,
