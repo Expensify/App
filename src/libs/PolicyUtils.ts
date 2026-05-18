@@ -174,8 +174,8 @@ const ROLE_PERMISSION_BUNDLES: Record<string, Partial<Record<PolicyFeature, Poli
     },
 };
 
-function hasPolicyPermission(policy: OnyxInputOrEntry<Policy>, login: string | undefined, feature: PolicyFeature, requiredAccess: PolicyFeatureAccess): boolean {
-    const role = login && policy?.employeeList?.[login]?.role ? getPolicyRole(policy, login, false) : getPolicyRole(policy, login);
+function hasPolicyPermission(policy: OnyxInputOrEntry<Policy>, login: string, feature: PolicyFeature, requiredAccess: PolicyFeatureAccess): boolean {
+    const role = getPolicyRole(policy, login, false);
     const access = role ? ROLE_PERMISSION_BUNDLES[role]?.[feature] : undefined;
 
     if (requiredAccess === CONST.POLICY.POLICY_FEATURE_ACCESS.READ) {
@@ -185,25 +185,12 @@ function hasPolicyPermission(policy: OnyxInputOrEntry<Policy>, login: string | u
     return access === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE;
 }
 
-function canMemberRead(policy: OnyxInputOrEntry<Policy>, login: string | undefined, feature: PolicyFeature): boolean {
+function canMemberRead(policy: OnyxInputOrEntry<Policy>, login: string, feature: PolicyFeature): boolean {
     return hasPolicyPermission(policy, login, feature, CONST.POLICY.POLICY_FEATURE_ACCESS.READ);
 }
 
-function canMemberWrite(policy: OnyxInputOrEntry<Policy>, login: string | undefined, feature: PolicyFeature): boolean {
+function canMemberWrite(policy: OnyxInputOrEntry<Policy>, login: string, feature: PolicyFeature): boolean {
     return hasPolicyPermission(policy, login, feature, CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE);
-}
-
-function getPolicyFeaturePermission(
-    policy: OnyxInputOrEntry<Policy>,
-    login: string | undefined,
-    feature: PolicyFeature | undefined,
-    requiredAccess: PolicyFeatureAccess = CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
-): boolean | undefined {
-    if (!feature) {
-        return;
-    }
-
-    return requiredAccess === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE ? canMemberWrite(policy, login, feature) : canMemberRead(policy, login, feature);
 }
 
 /**
@@ -2323,7 +2310,6 @@ export {
     canEditWorkspaceSettings,
     canMemberRead,
     canMemberWrite,
-    getPolicyFeaturePermission,
     isGroupPolicy,
     isPendingDeletePolicy,
     isPolicyAdmin,

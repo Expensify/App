@@ -19,7 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {openWorkspaceView} from '@libs/actions/BankAccounts';
 import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFromWorkspaceSettingPages';
 import Navigation from '@libs/Navigation/Navigation';
-import {canEditWorkspaceSettings, getPolicyFeaturePermission, isPendingDeletePolicy, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
+import {canEditWorkspaceSettings, canMemberRead, canMemberWrite, isPendingDeletePolicy, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
 import type {PolicyFeature, PolicyFeatureAccess} from '@libs/PolicyUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
@@ -172,7 +172,13 @@ function WorkspacePageWithSections({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     const shouldShowPolicy = useMemo(() => shouldShowPolicyUtil(policy, false, currentUserLogin), [policy, currentUserLogin]);
-    const hasRequiredPolicyPermission = getPolicyFeaturePermission(policy, currentUserLogin, requiredPolicyFeature, requiredPolicyFeatureAccess);
+    let hasRequiredPolicyPermission: boolean | undefined;
+    if (requiredPolicyFeature) {
+        hasRequiredPolicyPermission = currentUserLogin ? canMemberRead(policy, currentUserLogin, requiredPolicyFeature) : false;
+        if (requiredPolicyFeatureAccess === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE && currentUserLogin) {
+            hasRequiredPolicyPermission = canMemberWrite(policy, currentUserLogin, requiredPolicyFeature);
+        }
+    }
     const isPendingDelete = isPendingDeletePolicy(policy);
     const prevIsPendingDelete = isPendingDeletePolicy(prevPolicy);
 

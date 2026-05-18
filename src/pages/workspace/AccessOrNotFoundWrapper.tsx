@@ -16,8 +16,9 @@ import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFrom
 import Navigation from '@libs/Navigation/Navigation';
 import {
     canEditWorkspaceSettings,
+    canMemberRead,
+    canMemberWrite,
     canSendInvoice,
-    getPolicyFeaturePermission,
     isControlPolicy,
     isGroupPolicy,
     isPolicyAccessible,
@@ -196,7 +197,13 @@ function AccessOrNotFoundWrapper({
         }
         return acc && accessFunction(policy, login, report, allPolicies ?? null, betas, iouType, isReportArchived);
     }, true);
-    const hasRequiredPolicyPermission = getPolicyFeaturePermission(policy, login, requiredPolicyFeature, requiredPolicyFeatureAccess) ?? true;
+    let hasRequiredPolicyPermission = true;
+    if (requiredPolicyFeature) {
+        hasRequiredPolicyPermission = canMemberRead(policy, login, requiredPolicyFeature);
+        if (requiredPolicyFeatureAccess === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE) {
+            hasRequiredPolicyPermission = canMemberWrite(policy, login, requiredPolicyFeature);
+        }
+    }
 
     const isPolicyNotAccessible = !isPolicyAccessible(policy, login);
     const shouldShowNotFoundPage = isFocused && ((!isMoneyRequest && !isFromGlobalCreate && isPolicyNotAccessible) || !isPageAccessible || !hasRequiredPolicyPermission || shouldBeBlocked);
