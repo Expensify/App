@@ -2,9 +2,11 @@ import type {LinkingOptions} from '@react-navigation/native';
 import {findFocusedRoute} from '@react-navigation/native';
 import {Linking} from 'react-native';
 import continuePlaidOAuth from '@libs/continuePlaidOAuth';
+import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
+import {getRouteFromLink} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -33,10 +35,11 @@ const subscribe: LinkingOptions<RootNavigatorParamList>['subscribe'] = (listener
             return;
         }
         // Don't forward URLs to React Navigation when AuthScreens isn't mounted yet (i.e., user is
-        // on PublicScreens). The navigator tree can't handle authenticated routes at that point, which
-        // causes an unhandled NAVIGATE action error. DeepLinkHandler handles these URLs separately via
+        // on PublicScreens) unless the URL targets a public screen route (e.g., magic code validation).
+        // The navigator tree can't handle authenticated routes at that point, which causes an unhandled
+        // NAVIGATE action error. DeepLinkHandler handles authenticated URLs separately via
         // openReportFromDeepLink after sign-in completes.
-        if (!Navigation.navContainsProtectedRoutes(navigationRef.current?.getRootState())) {
+        if (!Navigation.navContainsProtectedRoutes(navigationRef.current?.getRootState()) && !isPublicScreenRoute(getRouteFromLink(url))) {
             return;
         }
         listener(url);
