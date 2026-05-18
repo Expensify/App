@@ -465,6 +465,136 @@ describe('actions/PolicyMember', () => {
             expect(adminRoomSuccess?.participants?.[auditorAccountID]).toBeTruthy();
         });
 
+        it('overrides the invited role to Editor on Submit workspaces when SUBMIT_2026 beta is enabled, regardless of what the caller passes', async () => {
+            // Given a Submit (submit2026) workspace
+            const policyID = '1';
+            const newUserEmail = 'editor@example.com';
+            const policy = {
+                ...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.SUBMIT),
+                approver: 'approver@example.com',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+            mockFetch?.pause?.();
+            // When the caller passes ROLE.USER for a Submit workspace and the beta flag is enabled
+            Member.addMembersToWorkspace(
+                {[newUserEmail]: 1234},
+                'Welcome',
+                policy,
+                [],
+                CONST.POLICY.ROLE.USER,
+                TestHelper.formatPhoneNumber,
+                currentUserAccountID,
+                undefined,
+                undefined,
+                true,
+            );
+
+            await waitForBatchedUpdates();
+
+            // Then the optimistic employee entry is created with the Editor role
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    waitForCollectionCallback: false,
+                    callback: (policyResult) => {
+                        Onyx.disconnect(connection);
+                        const newEmployee = policyResult?.employeeList?.[newUserEmail];
+                        expect(newEmployee?.role).toBe(CONST.POLICY.ROLE.EDITOR);
+                        resolve();
+                    },
+                });
+            });
+            await mockFetch?.resume?.();
+        });
+
+        it('does NOT override the role on Submit workspaces when SUBMIT_2026 beta is disabled', async () => {
+            // Given a Submit (submit2026) workspace but the beta is off
+            const policyID = '1';
+            const newUserEmail = 'user@example.com';
+            const policy = {
+                ...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.SUBMIT),
+                approver: 'approver@example.com',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+            mockFetch?.pause?.();
+            // When the caller passes ROLE.USER without enabling the beta flag (defaults to false)
+            Member.addMembersToWorkspace({[newUserEmail]: 1234}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, currentUserAccountID);
+
+            await waitForBatchedUpdates();
+
+            // Then the role stays as the caller-provided value (no Editor override)
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    waitForCollectionCallback: false,
+                    callback: (policyResult) => {
+                        Onyx.disconnect(connection);
+                        const newEmployee = policyResult?.employeeList?.[newUserEmail];
+                        expect(newEmployee?.role).toBe(CONST.POLICY.ROLE.USER);
+                        resolve();
+                    },
+                });
+            });
+            await mockFetch?.resume?.();
+        });
+
+        it('adds new editors on Submit workspaces to the #admins room when SUBMIT_2026 beta is enabled', async () => {
+            // Given a Submit workspace with an #admins room
+            const policyID = '1';
+            const adminRoomID = '1';
+            const ownerAccountID = 1;
+            const editorAccountID = 4321;
+            const editorEmail = 'editor@example.com';
+            const policy = {
+                ...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.SUBMIT),
+                approver: 'approver@example.com',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${adminRoomID}`, {
+                ...createRandomReport(Number(adminRoomID), CONST.REPORT.CHAT_TYPE.POLICY_ADMINS),
+                policyID,
+                participants: {
+                    [ownerAccountID]: {notificationPreference: 'always'},
+                },
+            });
+
+            // When inviting a new member on a Submit workspace with the beta enabled (role is forced to Editor)
+            mockFetch?.pause?.();
+            Member.addMembersToWorkspace(
+                {[editorEmail]: editorAccountID},
+                'Welcome',
+                policy,
+                [],
+                CONST.POLICY.ROLE.USER,
+                TestHelper.formatPhoneNumber,
+                currentUserAccountID,
+                undefined,
+                undefined,
+                true,
+            );
+
+            await waitForBatchedUpdates();
+
+            // Then the new editor is added to the #admins room optimistically
+            const adminRoom = await new Promise<OnyxEntry<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${adminRoomID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        resolve(report);
+                    },
+                });
+            });
+            expect(adminRoom?.participants?.[editorAccountID]).toBeTruthy();
+
+            await mockFetch?.resume?.();
+        });
+
         it('should unarchive existing workspace expense chat and expense report when adding back a member', async () => {
             // Given an archived workspace expense chat and expense report
             const policyID = '1';

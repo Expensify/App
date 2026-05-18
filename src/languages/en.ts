@@ -212,6 +212,7 @@ const translations = {
         }),
         remove: 'Remove',
         admin: 'Admin',
+        editor: 'Editor',
         owner: 'Owner',
         dateFormat: 'YYYY-MM-DD',
         send: 'Send',
@@ -4391,6 +4392,7 @@ const translations = {
             memberAlternateText: 'Submit and approve reports.',
             adminAlternateText: 'Manage reports and workspace settings.',
             auditorAlternateText: 'View and comment on reports.',
+            editorAlternateText: 'Configure workspace settings without seeing other members’ expenses.',
             reimbursementChoice: {
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES]: 'Direct',
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO]: 'None',
@@ -4402,6 +4404,8 @@ const translations = {
                         return 'Admin';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditor';
+                    case CONST.POLICY.ROLE.EDITOR:
+                        return 'Editor';
                     case CONST.POLICY.ROLE.USER:
                         return 'Member';
                     default:

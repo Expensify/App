@@ -186,6 +186,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
             currentUserPersonalDetails.accountID,
             undefined,
             filteredReportActions,
+            isBetaEnabled(CONST.BETAS.SUBMIT_2026),
         );
         completeOnboarding(true);
     };

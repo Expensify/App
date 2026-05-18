@@ -22,7 +22,7 @@ import Parser from '@libs/Parser';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
-import {getDefaultApprover, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getDefaultApprover, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as FormActions from '@userActions/FormActions';
@@ -823,6 +823,7 @@ function buildAddMembersToWorkspaceOnyxData(
     policyExpenseChatNotificationPreference?: NotificationPreference,
     // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66578
     reportActionsList?: OnyxCollection<ReportActions>,
+    canUseSubmit2026 = false,
 ) {
     const policyID = policy.id;
     const logins = Object.keys(invitedEmailsToAccountIDs).map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
@@ -830,15 +831,21 @@ function buildAddMembersToWorkspaceOnyxData(
 
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
 
+    // Submit workspaces enforce the editor role for all invited members, regardless of the role the
+    // caller passed. This matches the backend's behavior in Policy::shareWithEmployees so the optimistic
+    // updates don't briefly show the wrong role. Gated on the beta so behavior is a no-op for users without it.
+    const shouldForceEditorRole = canUseSubmit2026 && isSubmitPolicy(policy);
+    const effectiveRole = shouldForceEditorRole ? CONST.POLICY.ROLE.EDITOR : role;
+
     const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLogins(logins, accountIDs);
     const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs, formatPhoneNumber);
 
     const announceRoomMembers = buildRoomMembersOnyxData(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID, accountIDs);
-    const adminRoomMembers = buildRoomMembersOnyxData(
-        CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
-        policyID,
-        role === CONST.POLICY.ROLE.ADMIN || role === CONST.POLICY.ROLE.AUDITOR ? accountIDs : [],
-    );
+    // Admins and auditors are always in the #admins room. Editors (Submit workspaces only) join it too so they get
+    // visibility into configuration changes — gated on the beta to keep the room membership unchanged for non-beta users.
+    const shouldAddToAdminsRoom =
+        effectiveRole === CONST.POLICY.ROLE.ADMIN || effectiveRole === CONST.POLICY.ROLE.AUDITOR || (shouldForceEditorRole && effectiveRole === CONST.POLICY.ROLE.EDITOR);
+    const adminRoomMembers = buildRoomMembersOnyxData(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID, shouldAddToAdminsRoom ? accountIDs : []);
     const optimisticAnnounceChat = ReportUtils.buildOptimisticAnnounceChat(policyID, [...policyMemberAccountIDs, ...accountIDs], currentUserAccountID);
     const announceRoomChat = optimisticAnnounceChat.announceChatData;
 
@@ -852,7 +859,7 @@ function buildAddMembersToWorkspaceOnyxData(
         optimisticMembersState[email] = {
             email,
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            role,
+            role: effectiveRole,
             submitsTo: approverEmail ?? getDefaultApprover(policy),
         };
         successMembersState[email] = {pendingAction: null};
@@ -958,25 +965,32 @@ function addMembersToWorkspace(
     approverEmail?: string,
     // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66578
     reportActionsList?: OnyxCollection<ReportActions>,
+    canUseSubmit2026 = false,
 ) {
     if (!policy?.id) {
         Log.warn('addMembersToWorkspace: Policy ID is undefined');
         return;
     }
+    // Submit workspaces only allow the editor role on invite. Override here so the API request and
+    // every callsite that funnels through this function get the same role as the optimistic data.
+    // The backend enforces this too (Policy::shareWithEmployees), but normalizing it on the client
+    // avoids a flash of the wrong role in the UI. Gated on the beta so the override is a no-op for users without it.
+    const effectiveRole = canUseSubmit2026 && isSubmitPolicy(policy) ? CONST.POLICY.ROLE.EDITOR : role;
     const {optimisticData, successData, failureData, optimisticAnnounceChat, membersChats, logins} = buildAddMembersToWorkspaceOnyxData(
         invitedEmailsToAccountIDs,
         policy,
         policyMemberAccountIDs,
-        role,
+        effectiveRole,
         formatPhoneNumber,
         currentUserAccountID,
         approverEmail,
         undefined,
         reportActionsList,
+        canUseSubmit2026,
     );
 
     const params: AddMembersToWorkspaceParams = {
-        employees: JSON.stringify(logins.map((login) => ({email: login, role, ...(approverEmail ? {submitsTo: approverEmail} : {})}))),
+        employees: JSON.stringify(logins.map((login) => ({email: login, role: effectiveRole, ...(approverEmail ? {submitsTo: approverEmail} : {})}))),
         ...(optimisticAnnounceChat.announceChatReportID ? {announceChatReportID: optimisticAnnounceChat.announceChatReportID} : {}),
         ...(optimisticAnnounceChat.announceChatReportActionID ? {announceCreatedReportActionID: optimisticAnnounceChat.announceChatReportActionID} : {}),
         welcomeNote: Parser.replace(welcomeNote, {
