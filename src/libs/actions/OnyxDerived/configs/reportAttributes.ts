@@ -93,7 +93,7 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.NETWORK,
     ],
     compute: (
-        [reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, session, policies, policyTags, conciergeReportID],
+        [reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, session, policies, policyTags, , conciergeReportID],
         {currentValue, sourceValues},
     ) => {
         // Read the in-memory offline state directly (NETWORK is a dependency so recompute still fires when it changes).
