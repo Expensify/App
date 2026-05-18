@@ -1,7 +1,7 @@
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import type * as ReactNavigation from '@react-navigation/native';
-import {act, render, screen, waitFor} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -14,6 +14,7 @@ import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
+import * as AgentActions from '@libs/actions/Agent';
 import ProfilePage from '@pages/settings/Profile/ProfilePage';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,6 +36,7 @@ jest.mock('@libs/actions/Agent', () => ({
     openAgentsPage: jest.fn(),
     clearAgentPromptUpdateError: jest.fn(),
     updateAgentPrompt: jest.fn(),
+    updateAgentPromptAsCopilot: jest.fn(),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -187,6 +189,7 @@ describe('ProfilePage - agent account', () => {
     });
 
     afterEach(async () => {
+        jest.clearAllMocks();
         await Onyx.clear();
         await waitForBatchedUpdatesWithAct();
     });
@@ -265,6 +268,110 @@ describe('ProfilePage - agent account', () => {
 
         expect(screen.queryByTestId('ai-prompt-box')).toBeNull();
         expect(screen.queryByTestId('edit-prompt-button')).toBeNull();
+    });
+
+    it('switches to edit mode when edit button pressed', async () => {
+        const accountID = 123;
+        await setupUser('agent_123@expensify.ai');
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+                prompt: 'Reject gambling expenses.',
+                pendingAction: null,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByTestId('edit-prompt-button'));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId('ai-prompt-input')).toBeDefined();
+        expect(screen.getByTestId('save-prompt-button')).toBeDefined();
+        expect(screen.getByTestId('cancel-prompt-button')).toBeDefined();
+        expect(screen.queryByTestId('ai-prompt-box')).toBeNull();
+    });
+
+    it('returns to view mode when cancel button pressed', async () => {
+        const accountID = 123;
+        await setupUser('agent_123@expensify.ai');
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+                prompt: 'Reject gambling expenses.',
+                pendingAction: null,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByTestId('edit-prompt-button'));
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByTestId('cancel-prompt-button'));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId('ai-prompt-box')).toBeDefined();
+        expect(screen.queryByTestId('ai-prompt-input')).toBeNull();
+    });
+
+    it('calls updateAgentPromptAsCopilot and returns to view mode when saving non-empty prompt', async () => {
+        const accountID = 123;
+        const mockUpdateAgentPromptAsCopilot = jest.mocked(AgentActions.updateAgentPromptAsCopilot);
+        await setupUser('agent_123@expensify.ai');
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+                prompt: 'Reject gambling expenses.',
+                pendingAction: null,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByTestId('edit-prompt-button'));
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.changeText(screen.getByTestId('ai-prompt-input'), 'Updated prompt text');
+        fireEvent.press(screen.getByTestId('save-prompt-button'));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockUpdateAgentPromptAsCopilot).toHaveBeenCalledWith(accountID, 'Updated prompt text', 'Reject gambling expenses.');
+        expect(screen.getByTestId('ai-prompt-box')).toBeDefined();
+        expect(screen.queryByTestId('ai-prompt-input')).toBeNull();
+    });
+
+    it('stays in edit mode and does not call updateAgentPromptAsCopilot when saving blank prompt', async () => {
+        const accountID = 123;
+        const mockUpdateAgentPromptAsCopilot = jest.mocked(AgentActions.updateAgentPromptAsCopilot);
+        await setupUser('agent_123@expensify.ai');
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+                prompt: 'Reject gambling expenses.',
+                pendingAction: null,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByTestId('edit-prompt-button'));
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.changeText(screen.getByTestId('ai-prompt-input'), '   ');
+        fireEvent.press(screen.getByTestId('save-prompt-button'));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockUpdateAgentPromptAsCopilot).not.toHaveBeenCalled();
+        expect(screen.getByTestId('ai-prompt-input')).toBeDefined();
     });
 });
 
