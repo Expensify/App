@@ -153,7 +153,6 @@ function PressableWithDelayToggle({
                     text={tooltipTexts}
                     shouldRender
                 >
-                    {}
                     <PressableWithoutFeedback
                         tabIndex={-1}
                         accessible={false}
