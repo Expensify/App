@@ -186,5 +186,3 @@ export {
     getTravelInvoicingCard,
     isTravelCVVEligible,
 };
-
-export type {TravelSettlementAccountInfo};
