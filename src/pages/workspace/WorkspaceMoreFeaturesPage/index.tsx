@@ -34,7 +34,10 @@ import {
     hasAccountingFeatureConnection,
     isAnyHRConnected,
     isControlPolicy,
+    isGustoConnected,
+    isMergeHRConnected,
     isTimeTrackingEnabled,
+    isZenefitsConnected,
 } from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -162,7 +165,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const warnReceiptPartnersStillConnected = async () => {
         if (!isUberConnected) {
             return;
-        }
+    }
         await showConfirmModal({
             title: translate('workspace.moreFeatures.receiptPartnersWarningModal.featureEnabledTitle'),
             prompt: translate('workspace.moreFeatures.receiptPartnersWarningModal.disconnectText'),
@@ -175,12 +178,14 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         if (!isAnyHRConnected(policy)) {
             return;
         }
-        const hrProvider = getConnectedHRProviders(policy).at(0);
-        let integration = hrProvider?.displayName ?? '';
-        if (hrProvider?.connectionName === CONST.POLICY.CONNECTIONS.NAME.GUSTO) {
-            integration = translate('workspace.hr.gusto.title');
-        } else if (hrProvider?.connectionName === CONST.POLICY.CONNECTIONS.NAME.ZENEFITS) {
+        let integration = '';
+        if (isZenefitsConnected(policy)) {
             integration = translate('workspace.hr.zenefits.title');
+        } else if (isGustoConnected(policy)) {
+            integration = translate('workspace.hr.gusto.title');
+        } else if (isMergeHRConnected(policy)) {
+            const providers = getConnectedHRProviders(policy);
+            integration = providers.at(0)?.displayName ?? '';
         }
         await showConfirmModal({
             title: translate('workspace.distanceRates.oopsNotSoFast'),

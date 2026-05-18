@@ -730,7 +730,6 @@ describe('WorkflowUtils', () => {
             const approverEmails = approvalWorkflows.flatMap((w) => w.approvers.map((a) => a.email));
             expect(approverEmails).not.toContain('guide@expensify.com');
         });
-
     });
 
     describe('mergeWorkflowMembersWithAvailableMembers', () => {
