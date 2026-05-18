@@ -14,17 +14,17 @@ type MergeHRProviderEntry = {
 const MERGE_HR_PROVIDERS = {
     workday: {
         displayName: 'Workday',
-        iconUrl: 'https://static.expensify.com/merge-hr/workday.png',
+        iconUrl: '',
         connectionName: 'merge_hr_workday',
     },
     bamboohr: {
         displayName: 'BambooHR',
-        iconUrl: 'https://static.expensify.com/merge-hr/bamboohr.png',
+        iconUrl: '',
         connectionName: 'merge_hr_bamboohr',
     },
     hibob: {
         displayName: 'HiBob',
-        iconUrl: 'https://static.expensify.com/merge-hr/hibob.png',
+        iconUrl: '',
         connectionName: 'merge_hr_hibob',
     },
 } as const satisfies Record<string, MergeHRProviderEntry>;
