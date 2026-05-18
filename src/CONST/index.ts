@@ -741,6 +741,9 @@ const CONST = {
             BUSINESS: 'BUSINESS',
             PERSONAL: 'PERSONAL',
         },
+        KYB_STATUS: {
+            PASS: 'pass',
+        },
         KYB_REQUESTOR_IDENTITY_ERROR: {
             ADDRESS: [
                 'resultcode.address.does.not.match',

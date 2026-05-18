@@ -227,7 +227,7 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
     /** Statuses of additional checks hinting at missing documents user still needs to upload */
     verifications?: {
         /** points towards one of external providers */
-        externalApiResponse?: {
+        externalApiResponses?: {
             /** provider name */
             companyTaxID?: {
                 /** status of check */

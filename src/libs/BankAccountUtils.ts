@@ -98,12 +98,53 @@ function hasPersonalBankAccountMissingInfo(bankAccountList: OnyxEntry<OnyxTypes.
     return Object.values(bankAccountList ?? {}).some((bankAccount) => isPersonalBankAccountMissingInfo(bankAccount?.accountData));
 }
 
+/** Compares error keys and searches for overlap. Based on the result we decide whether to gather extra file
+ * @param status - status of the check
+ * @param qualifiers - errors returned after the check
+ * @returns boolean - whether to gather additional address verification file
+ */
+function isUserAddressVerificationRequired(
+    status: string | undefined,
+    qualifiers:
+        | Array<{
+              key: string;
+              message: string;
+          }>
+        | undefined,
+): boolean {
+    return (
+        status !== CONST.BANK_ACCOUNT.KYB_STATUS.PASS &&
+        !!CONST.BANK_ACCOUNT.KYB_REQUESTOR_IDENTITY_ERROR.ADDRESS.find((error) => qualifiers?.map((qualifier) => qualifier.key).includes(error))
+    );
+}
+
+/** Compares error keys and searches for overlap. Based on the result we decide whether to gather extra file
+ * @param status - status of the check
+ * @param qualifiers - errors returned after the check
+ * @returns boolean - whether to gather additional DOB verification file
+ */
+function isUserDOBVerificationRequired(
+    status: string | undefined,
+    qualifiers:
+        | Array<{
+              key: string;
+              message: string;
+          }>
+        | undefined,
+): boolean {
+    return (
+        status !== CONST.BANK_ACCOUNT.KYB_STATUS.PASS && !!CONST.BANK_ACCOUNT.KYB_REQUESTOR_IDENTITY_ERROR.DOB.find((error) => qualifiers?.map((qualifier) => qualifier.key).includes(error))
+    );
+}
+
 export {
     getDefaultCompanyWebsite,
     getLastFourDigits,
     hasPartiallySetupBankAccount,
     hasPersonalBankAccountMissingInfo,
     isBankAccountPartiallySetup,
+    isUserAddressVerificationRequired,
+    isUserDOBVerificationRequired,
     doesPolicyHavePartiallySetupBankAccount,
     isPersonalBankAccountMissingInfo,
     getCompletedStepsForBankAccount,

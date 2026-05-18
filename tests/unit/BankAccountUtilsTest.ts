@@ -6,6 +6,8 @@ import {
     hasPersonalBankAccountMissingInfo,
     isBankAccountPartiallySetup,
     isPersonalBankAccountMissingInfo,
+    isUserAddressVerificationRequired,
+    isUserDOBVerificationRequired,
     PERSONAL_INFO_STEP,
 } from '@libs/BankAccountUtils';
 import CONST from '@src/CONST';
@@ -481,6 +483,78 @@ describe('BankAccountUtils', () => {
                 [bankAccountKey]: {accountData: {additionalData: {legalFirstName: 'John'}}, bankCurrency: 'USD', bankCountry: 'US'},
             } as unknown as BankAccountList;
             expect(getCompletedStepsForBankAccount(bankAccountList, bankAccountID)).toEqual([]);
+        });
+    });
+
+    describe('isUserAddressVerificationRequired', () => {
+        const qualifier = (key: string) => ({key, message: 'irrelevant'});
+        const PASS = CONST.BANK_ACCOUNT.KYB_STATUS.PASS;
+        const ADDRESS_KEYS = CONST.BANK_ACCOUNT.KYB_REQUESTOR_IDENTITY_ERROR.ADDRESS;
+        const DOB_KEYS = CONST.BANK_ACCOUNT.KYB_REQUESTOR_IDENTITY_ERROR.DOB;
+        const SOME_ADDRESS_KEY = ADDRESS_KEYS.at(0) ?? '';
+
+        it('returns false when status is PASS, even with a matching address qualifier', () => {
+            expect(isUserAddressVerificationRequired(PASS, [qualifier(SOME_ADDRESS_KEY)])).toBe(false);
+        });
+
+        it.each(ADDRESS_KEYS)('returns true for non-pass status when qualifiers contain address key "%s"', (key) => {
+            expect(isUserAddressVerificationRequired('fail', [qualifier(key)])).toBe(true);
+        });
+
+        it('returns false when status is non-pass but qualifiers only contain an unrelated key', () => {
+            expect(isUserAddressVerificationRequired('fail', [qualifier('resultcode.some.unrelated.code')])).toBe(false);
+        });
+
+        it('returns false when status is non-pass and qualifiers is undefined', () => {
+            expect(isUserAddressVerificationRequired('fail', undefined)).toBe(false);
+        });
+
+        it('returns false when status is non-pass and qualifiers is empty', () => {
+            expect(isUserAddressVerificationRequired('fail', [])).toBe(false);
+        });
+
+        it('returns true when status is undefined and qualifiers contain a matching address key', () => {
+            expect(isUserAddressVerificationRequired(undefined, [qualifier(SOME_ADDRESS_KEY)])).toBe(true);
+        });
+
+        it.each(DOB_KEYS)('returns false when qualifiers contain only DOB key "%s" (cross-category)', (key) => {
+            expect(isUserAddressVerificationRequired('fail', [qualifier(key)])).toBe(false);
+        });
+    });
+
+    describe('isUserDOBVerificationRequired', () => {
+        const qualifier = (key: string) => ({key, message: 'irrelevant'});
+        const PASS = CONST.BANK_ACCOUNT.KYB_STATUS.PASS;
+        const ADDRESS_KEYS = CONST.BANK_ACCOUNT.KYB_REQUESTOR_IDENTITY_ERROR.ADDRESS;
+        const DOB_KEYS = CONST.BANK_ACCOUNT.KYB_REQUESTOR_IDENTITY_ERROR.DOB;
+        const SOME_DOB_KEY = DOB_KEYS.at(0) ?? '';
+
+        it('returns false when status is PASS, even with a matching DOB qualifier', () => {
+            expect(isUserDOBVerificationRequired(PASS, [qualifier(SOME_DOB_KEY)])).toBe(false);
+        });
+
+        it.each(DOB_KEYS)('returns true for non-pass status when qualifiers contain DOB key "%s"', (key) => {
+            expect(isUserDOBVerificationRequired('fail', [qualifier(key)])).toBe(true);
+        });
+
+        it('returns false when status is non-pass but qualifiers only contain an unrelated key', () => {
+            expect(isUserDOBVerificationRequired('fail', [qualifier('resultcode.some.unrelated.code')])).toBe(false);
+        });
+
+        it('returns false when status is non-pass and qualifiers is undefined', () => {
+            expect(isUserDOBVerificationRequired('fail', undefined)).toBe(false);
+        });
+
+        it('returns false when status is non-pass and qualifiers is empty', () => {
+            expect(isUserDOBVerificationRequired('fail', [])).toBe(false);
+        });
+
+        it('returns true when status is undefined and qualifiers contain a matching DOB key', () => {
+            expect(isUserDOBVerificationRequired(undefined, [qualifier(SOME_DOB_KEY)])).toBe(true);
+        });
+
+        it.each(ADDRESS_KEYS)('returns false when qualifiers contain only address key "%s" (cross-category)', (key) => {
+            expect(isUserDOBVerificationRequired('fail', [qualifier(key)])).toBe(false);
         });
     });
 });

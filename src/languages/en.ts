@@ -4122,7 +4122,7 @@ const translations = {
         userAddressVerificationDescription: dedent(`
             Please upload one of the following files:
             • Voter Registration Card
-            • Drivers License
+            • Driver's License
             • Bank Statement
             • Utility Bill`),
         userDOBVerification: 'Date of birth verification',

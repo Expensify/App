@@ -13,8 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountSubmitCallback from '@hooks/useReimbursementAccountSubmitCallback';
 import useThemeStyles from '@hooks/useThemeStyles';
-import isUserAddressVerificationRequired from '@pages/ReimbursementAccount/USD/utils/isUserAddressVerificationRequired';
-import isUserDOBVerificationRequired from '@pages/ReimbursementAccount/USD/utils/isUserDOBVerificationRequired';
+import {isUserAddressVerificationRequired, isUserDOBVerificationRequired} from '@libs/BankAccountUtils';
 import {uploadUserKYBDocs} from '@userActions/BankAccounts';
 import {clearErrorFields, setDraftValues, setErrorFields} from '@userActions/FormActions';
 import {navigateToConciergeChat} from '@userActions/Report';
@@ -41,7 +40,7 @@ function KYBDocuments({onBackButtonPress, onSubmit}: KYBDocumentsProps) {
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const reimbursementAccountData = reimbursementAccount?.achData?.verifications?.externalApiResponse;
+    const reimbursementAccountVerificationData = reimbursementAccount?.achData?.verifications?.externalApiResponses;
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const isLoading = reimbursementAccount?.isLoading;
 
@@ -71,43 +70,52 @@ function KYBDocuments({onBackButtonPress, onSubmit}: KYBDocumentsProps) {
             inputID: 'companyTaxID',
             title: 'documentsStep.taxIDVerification',
             description: 'documentsStep.taxIDVerificationDescription',
-            required: reimbursementAccountData?.companyTaxID?.status !== undefined && reimbursementAccountData?.companyTaxID?.status !== 'pass',
+            required:
+                reimbursementAccountVerificationData?.companyTaxID?.status !== undefined && reimbursementAccountVerificationData?.companyTaxID?.status !== CONST.BANK_ACCOUNT.KYB_STATUS.PASS,
         },
         {
             inputID: 'nameChangeDocument',
             title: 'documentsStep.nameChangeDocument',
             description: 'documentsStep.nameChangeDocumentDescription',
-            required: reimbursementAccountData?.lexisNexisInstantIDResult?.status !== undefined && reimbursementAccountData?.lexisNexisInstantIDResult?.status !== 'pass',
+            required:
+                reimbursementAccountVerificationData?.lexisNexisInstantIDResult?.status !== undefined &&
+                reimbursementAccountVerificationData?.lexisNexisInstantIDResult?.status !== CONST.BANK_ACCOUNT.KYB_STATUS.PASS,
         },
         {
             inputID: 'companyAddressVerification',
             title: 'documentsStep.companyAddressVerification',
             description: 'documentsStep.companyAddressVerificationDescription',
-            required: reimbursementAccountData?.lexisNexisInstantIDResult?.status !== undefined && reimbursementAccountData?.lexisNexisInstantIDResult?.status !== 'pass',
+            required:
+                reimbursementAccountVerificationData?.lexisNexisInstantIDResult?.status !== undefined &&
+                reimbursementAccountVerificationData?.lexisNexisInstantIDResult?.status !== CONST.BANK_ACCOUNT.KYB_STATUS.PASS,
         },
         {
             inputID: 'userAddressVerification',
             title: 'documentsStep.userAddressVerification',
             description: 'documentsStep.userAddressVerificationDescription',
             required: isUserAddressVerificationRequired(
-                reimbursementAccountData?.requestorIdentityID?.status,
-                reimbursementAccountData?.requestorIdentityID?.apiResult?.qualifiers?.qualifier,
+                reimbursementAccountVerificationData?.requestorIdentityID?.status,
+                reimbursementAccountVerificationData?.requestorIdentityID?.apiResult?.qualifiers?.qualifier,
             ),
         },
         {
             inputID: 'userDOBVerification',
             title: 'documentsStep.userDOBVerification',
             description: 'documentsStep.userDOBVerificationDescription',
-            required: isUserDOBVerificationRequired(reimbursementAccountData?.requestorIdentityID?.status, reimbursementAccountData?.requestorIdentityID?.apiResult?.qualifiers?.qualifier),
+            required: isUserDOBVerificationRequired(
+                reimbursementAccountVerificationData?.requestorIdentityID?.status,
+                reimbursementAccountVerificationData?.requestorIdentityID?.apiResult?.qualifiers?.qualifier,
+            ),
         },
     ] as const;
+    const requiredDocuments = DOCUMENTS_CONFIG.filter((document) => document.required);
 
     const [uploadedFiles, setUploadedFiles] = useState<Record<string, FileObject[]>>(defaultValues);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> = {};
 
-        for (const document of DOCUMENTS_CONFIG.filter((documentItem) => documentItem.required)) {
+        for (const document of requiredDocuments) {
             const files = values[document.inputID] as FileObject[] | undefined;
             if (!files || files.length === 0) {
                 errors[document.inputID] = translate('common.error.fieldRequired');
@@ -154,7 +162,6 @@ function KYBDocuments({onBackButtonPress, onSubmit}: KYBDocumentsProps) {
         markSubmitting();
     }, [uploadedFiles, bankAccountID, markSubmitting]);
 
-    const requiredDocuments = DOCUMENTS_CONFIG.filter((document) => document.required);
     const footer = (
         <Button
             large
