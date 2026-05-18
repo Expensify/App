@@ -2,7 +2,9 @@ import React from 'react';
 import {View} from 'react-native';
 import FocusTrapForScreen from '@components/FocusTrap/FocusTrapForScreen';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {WorkspacesSplitNavigatorParamList} from '@libs/Navigation/types';
+import {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {WorkspaceNavigatorParamList, WorkspacesSplitNavigatorParamList} from '@libs/Navigation/types';
+import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import ReactComponentModule from '@src/types/utils/ReactComponentModule';
 import createSplitNavigator from '../createSplitNavigator';
@@ -14,9 +16,9 @@ const loadWorkspacesInitialPage = () => require<ReactComponentModule>('../../../
 const loadWorkspacesListPage = () => require<ReactComponentModule>('../../../../pages/workspace/WorkspacesListPage').default;
 const loadDomainsListPage = () => require<ReactComponentModule>('../../../../pages/domain/DomainsListPage').default;
 
-type WorkspacesSplitNavigatorProps = {};
+type WorkspacesSplitNavigatorProps = PlatformStackScreenProps<WorkspaceNavigatorParamList, typeof NAVIGATORS.WORKSPACES_SPLIT_NAVIGATOR>;
 
-export default function WorkspacesSplitNavigator({}: WorkspacesSplitNavigatorProps) {
+export default function WorkspacesSplitNavigator({route}: WorkspacesSplitNavigatorProps) {
     const styles = useThemeStyles();
     const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
 
@@ -24,6 +26,7 @@ export default function WorkspacesSplitNavigator({}: WorkspacesSplitNavigatorPro
         <FocusTrapForScreen>
             <View style={styles.flex1}>
                 <Split.Navigator
+                    parentRoute={route}
                     persistentScreens={[SCREENS.WORKSPACES_INITIAL]}
                     sidebarScreen={SCREENS.WORKSPACES_INITIAL}
                     defaultCentralScreen={SCREENS.WORKSPACES_LIST}

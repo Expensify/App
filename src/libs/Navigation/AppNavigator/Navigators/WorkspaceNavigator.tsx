@@ -7,7 +7,7 @@ import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptio
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TabNavigatorParamList, WorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import createWorkspaceNavigator from '@navigation/AppNavigator/createWorkspaceNavigator';
-import DomainsListPage from '@pages/domain/DomainListPage';
+import DomainsListPage from '@pages/domain/DomainsListPage';
 import WorkspacesListPage from '@pages/workspace/WorkspacesListPage';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
