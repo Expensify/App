@@ -4341,6 +4341,7 @@ ${amount} per ${merchant} - ${date}`,
             travelInvoicingVendor: 'Fornitore di viaggi',
             travelInvoicingPayableAccount: 'Conto debiti per viaggi',
             hr: 'Risorse umane',
+            rooms: 'Stanze',
         },
         createdForClient: {
             title: 'Hai creato uno spazio di lavoro per il tuo cliente!',
@@ -6374,7 +6375,11 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 chooseBankAccount: 'Scegli il conto bancario con cui verranno riconciliati i pagamenti della tua Carta Expensify.',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `Assicurati che questo conto corrisponda al tuo <a href="${settlementAccountUrl}">conto di regolamento della Carta Expensify</a> (con finale ${lastFourPAN}) affinché la Riconciliazione continua funzioni correttamente.`,
+                chooseTravelInvoicingBankAccount: 'Scegli il conto bancario su cui verranno riconciliati i pagamenti della fatturazione di viaggio.',
+                travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
+                    `Assicurati che questo conto corrisponda al tuo conto di regolamento per la fatturazione dei viaggi (che termina con ${lastFourPAN}) in modo che la Riconciliazione continua funzioni correttamente.`,
             },
+            syncTravelInvoicingSettlements: 'Sincronizza le liquidazioni delle fatture di viaggio',
         },
         export: {
             notReadyHeading: 'Non pronto per l’esportazione',
@@ -7104,6 +7109,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                         other: (count: number) => `${count} dipendenti`,
                     }),
                 },
+            },
+            merge: {
+                approvalMode: 'Modalità approvazione',
+                finalApprover: 'Approvazione finale',
             },
             zenefits: {
                 title: 'TriNet',
