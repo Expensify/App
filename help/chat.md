@@ -48,8 +48,8 @@ Expensify Chat includes special chat rooms for specific purposes:
 #### Admin and Announce
 Special rooms in a workspace:
 
-* **#admins** - Only accessible to Workspace Admins to manage settings and collaborate with other admins. This room includes your Expensify Setup Specialist and, if applicable, your Account Manager. You can also:
-  - Chat with your dedicated Expensify Setup Specialist.
+* **#admins** - Only accessible to Workspace Admins to manage settings and collaborate with other admins. This room includes your Expensify Account Executive and, if applicable, your Account Manager. You can also:
+  - Chat with your dedicated Expensify Account Executive.
   - Chat with your Account Manager (if you have a subscription with 10 or more members).
   - Review changes made to your Workspace settings.
 
@@ -241,7 +241,7 @@ With a group chat, you can add additional people to the chat at any time. Howeve
 Currently, members have to remove themselves from a chat.
 
 ### Why is someone I don't recognize in my #admins room?
-Your #admins room includes your dedicated Expensify Setup Specialist who assists with onboarding and answers your questions. If you have a subscription with 10 or more members, your dedicated Account Manager is also part of the #admins room for ongoing support.
+Your #admins room includes your dedicated Expensify Account Executive who assists with onboarding and answers your questions. If you have a subscription with 10 or more members, your dedicated Account Manager is also part of the #admins room for ongoing support.
 
 ### Additional Permissions
 Some chat rooms may have permissions that restrict who can send messages. If you do not have the required permission level, you will not be able to send messages in those rooms.

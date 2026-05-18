@@ -11,7 +11,7 @@ type CalendlyCall = {
     /** Status of the call */
     status: ValueOf<typeof CONST.SCHEDULE_CALL_STATUS>;
 
-    /** The setup specialist the user confirmed the call with */
+    /** The account executive the user confirmed the call with */
     host: number;
 
     /** The selected date and time in YYYY-MM-DD HH:MM:SS format for the call */

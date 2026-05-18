@@ -111,7 +111,7 @@ Use Account for personal settings and billing.
 
 ## How to find your assigned support contacts on the Help page
 
-Paid Workspace Admins may have dedicated support contacts assigned to their account, such as an Account Manager, Partner Manager, or Setup Specialist. These contacts appear directly on the **Help** page so you can quickly start a conversation with them.
+Paid Workspace Admins may have dedicated support contacts assigned to their account, such as an Account Manager, Partner Manager, or Account Executive. These contacts appear directly on the **Help** page so you can quickly start a conversation with them.
 
 1. Click the navigation tabs (on the left on web, on the bottom on mobile).
 2. Select **Settings**.
