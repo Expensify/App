@@ -4355,6 +4355,7 @@ ${amount} für ${merchant} – ${date}`,
             travelInvoicingVendor: 'Reiseanbieter',
             travelInvoicingPayableAccount: 'Reiseverbindlichkeitskonto',
             hr: 'Personalwesen',
+            rooms: 'Räume',
         },
         createdForClient: {
             title: 'Du hast einen Workspace für deinen Kunden erstellt!',
