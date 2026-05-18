@@ -5591,8 +5591,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                         subtitle: 'Félicitations ! Vous êtes prêt à réserver et gérer des voyages sur cet espace de travail.',
                         manageTravelLabel: 'Gérer les déplacements',
                     },
-                    centralInvoicingSection: {
-                        title: 'Facturation centralisée',
+                    travelInvoicingSection: {
+                        title: 'Facturation de voyages',
                         subtitle: 'Centralisez toutes les dépenses de voyage dans une facture mensuelle au lieu de payer au moment de l’achat.',
                         learnHow: 'Découvrez comment.',
                         subsections: {
@@ -5610,7 +5610,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                             reduceLimitWarning:
                                 'Si vous réduisez la limite, les membres ayant déjà dépensé plus que ce montant ne pourront pas effectuer de nouvelles réservations de voyage avant le mois prochain.',
                             provisioningError:
-                                'Nous n’avons pas pu configurer certains membres de votre espace de travail pour la facturation centralisée. Veuillez réessayer plus tard ou contacter Concierge pour obtenir de l’aide.',
+                                'Nous n’avons pas pu provisionner certains membres de votre espace de travail pour la facturation de voyage. Veuillez réessayer plus tard ou contacter Concierge pour obtenir de l’aide.',
                         },
                     },
                     disableModal: {
@@ -5631,7 +5631,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     exportToCSV: 'Exporter en CSV',
                     selectDateRangeError: 'Veuillez sélectionner une plage de dates à exporter',
                     invalidDateRangeError: 'La date de début doit être antérieure à la date de fin',
-                    enabled: 'Facturation centralisée activée !',
+                    enabled: 'Facturation des déplacements activée !',
                     enabledDescription: 'Toutes les dépenses de voyage sur cet espace de travail seront désormais centralisées dans une facture mensuelle.',
                 },
                 personalDetailsDescription: 'Pour pouvoir réserver un voyage, veuillez saisir votre nom légal tel qu’il apparaît sur votre pièce d’identité délivrée par le gouvernement.',
@@ -7874,7 +7874,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `Tous les ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `Toutes les cartes CSV importées${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
-                centralInvoicing: 'Facturation centralisée',
+                travelInvoicing: 'Facturation de voyages',
             },
             reportField: (name: string, value: string) => `${name} est ${value}`,
             current: 'Actuel',
@@ -7908,7 +7908,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Carte Expensify',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Remboursement',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Facturation centralisée',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Facturation de voyages',
             },
             is: 'Est',
             action: {
@@ -8331,7 +8331,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         personalCard: 'Carte personnelle',
         companyCard: 'Carte d’entreprise',
         expensifyCard: 'Carte Expensify',
-        centralInvoicing: 'Facturation centralisée',
+        travelInvoicing: 'Facturation de voyages',
         travelCard: 'Carte de voyage',
     },
     distance: {
