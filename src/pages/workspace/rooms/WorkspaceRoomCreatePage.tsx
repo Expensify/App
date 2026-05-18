@@ -1,3 +1,4 @@
+import {policyRoomNamesSelector} from '@selectors/Report';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -21,7 +22,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {buildOptimisticChatReport, getCommentLength, getParsedComment} from '@libs/ReportUtils';
-import {isExistingRoomName, isReservedRoomName, isValidRoomNameWithoutLimits} from '@libs/ValidationUtils';
+import {isReservedRoomName, isValidRoomNameWithoutLimits} from '@libs/ValidationUtils';
 import variables from '@styles/variables';
 import {addPolicyReport, clearNewRoomFormError} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -38,7 +39,7 @@ function WorkspaceRoomCreatePage({route}: WorkspaceRoomCreatePageProps) {
     const {translate} = useLocalize();
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [existingRoomNames] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyRoomNamesSelector(policyID)});
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [visibility, setVisibility] = useState<ValueOf<typeof CONST.REPORT.VISIBILITY>>(CONST.REPORT.VISIBILITY.RESTRICTED);
     const [writeCapability, setWriteCapability] = useState<ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>>(CONST.REPORT.WRITE_CAPABILITIES.ALL);
@@ -60,7 +61,7 @@ function WorkspaceRoomCreatePage({route}: WorkspaceRoomCreatePageProps) {
             addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameInvalidError'));
         } else if (isReservedRoomName(values.roomName)) {
             addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameReservedError', values.roomName));
-        } else if (isExistingRoomName(values.roomName, reports, policyID)) {
+        } else if (existingRoomNames?.includes(values.roomName)) {
             addErrorMessage(errors, 'roomName', translate('newRoomPage.roomAlreadyExistsError'));
         } else if (values.roomName.length > CONST.TITLE_CHARACTER_LIMIT) {
             addErrorMessage(errors, 'roomName', translate('common.error.characterLimitExceedCounter', values.roomName.length, CONST.TITLE_CHARACTER_LIMIT));
