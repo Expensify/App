@@ -9,7 +9,6 @@ import type {
     CardList,
     LastPaymentMethod,
     PersonalDetails,
-    PersonalDetailsList,
     Policy,
     Report,
     ReportAction,
@@ -50,12 +49,6 @@ type SearchListActionProps = {
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     /** The report data */
     report?: Report;
-
-    /** Personal details list */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-
-    /** User billing fund ID */
-    userBillingFundID: number | undefined;
 };
 
 type ExpenseReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
@@ -290,9 +283,6 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 
     /** All the data of the report collection */
     allReports?: OnyxCollection<Report>;
-
-    /** Personal details list */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
 type TaskListItemType = ListItem &
@@ -420,8 +410,8 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
         /** Whether the item's action is loading */
         isLoading?: boolean;
         columns?: SearchColumnType[];
-        violations?: Record<string, TransactionViolations | undefined> | undefined;
-        policyForMovingExpenses?: Policy;
+        /** Precomputed shouldShowAttendees(SUBMIT, policyForMovingExpenses) */
+        isAttendeesEnabledForMovingPolicy?: boolean;
         /** Non-personal and workspace cards for company card display */
         nonPersonalAndWorkspaceCards?: CardList;
         /** Callback to undelete a transaction */
@@ -435,8 +425,6 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
         accountID?: number;
         columns?: SearchColumnType[];
         newTransactionID?: string;
-        violations?: Record<string, TransactionViolations | undefined> | undefined;
-        policyForMovingExpenses?: Policy;
         /** Non-personal and workspace cards for company card display */
         nonPersonalAndWorkspaceCards?: CardList;
         /** Callback to undelete a transaction */
@@ -445,19 +433,10 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
 
 type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     TransactionGroupListItemProps<TItem>,
-    | 'showTooltip'
-    | 'canSelectMultiple'
-    | 'onSelectionButtonPress'
-    | 'columns'
-    | 'groupBy'
-    | 'accountID'
-    | 'isOffline'
-    | 'violations'
-    | 'onSelectRow'
-    | 'nonPersonalAndWorkspaceCards'
-    | 'onUndelete'
-    | 'policyForMovingExpenses'
+    'showTooltip' | 'canSelectMultiple' | 'onSelectionButtonPress' | 'columns' | 'groupBy' | 'accountID' | 'isOffline' | 'onSelectRow' | 'nonPersonalAndWorkspaceCards' | 'onUndelete'
 > & {
+    isAttendeesEnabledForMovingPolicy?: boolean;
+    violations?: Record<string, TransactionViolations | undefined> | undefined;
     transactions: TransactionListItemType[];
     transactionsVisibleLimit: number;
     setTransactionsVisibleLimit: React.Dispatch<React.SetStateAction<number>>;

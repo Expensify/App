@@ -66,11 +66,12 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
-    const {cardFeedErrors} = useCardFeedErrors();
+    const {cardFeedErrors, shouldShowRbrForFeedNameWithDomainID} = useCardFeedErrors();
     const feedErrors = cardFeedErrors[feedName];
     const hasFeedErrors = feedErrors?.hasFeedErrors;
     const isFeedConnectionBroken = feedErrors?.isFeedConnectionBroken;
-    const shouldShowRBR = feedErrors?.shouldShowRBR;
+    const hasOtherFeedWithRBR = Object.keys(companyFeeds ?? {}).some((feed) => feed !== feedName && shouldShowRbrForFeedNameWithDomainID[feed]);
+    const shouldShowFeedSelectorRBR = hasOtherFeedWithRBR || !!feedErrors?.hasWorkspaceErrors;
 
     const openBankConnection = () => {
         if (!feedName) {
@@ -144,7 +145,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
                         CardFeedIcon={CardFeedIcon}
                         feedName={formattedFeedName}
                         supportingText={supportingText}
-                        shouldShowRBR={shouldShowRBR}
+                        shouldShowRBR={shouldShowFeedSelectorRBR}
                     />
                 )}
 

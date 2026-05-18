@@ -97,7 +97,6 @@ function AmountWithoutCurrencyInput({
             // On android autoCapitalize="words" is necessary when keyboardType="decimal-pad" or inputMode="decimal" to prevent input lag.
             // See https://github.com/Expensify/App/issues/51868 for more information
             autoCapitalize="words"
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         />
     );

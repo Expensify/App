@@ -11,7 +11,10 @@ import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 
 type ErrorBadgeProps = {
+    /** Brick road indicator for the row. The badge only renders when this equals ERROR (RBR). */
     brickRoadIndicator: OptionData['brickRoadIndicator'];
+
+    /** Action badge key used to derive the badge label (translated locally, debug builds only). */
     actionBadge: OptionData['actionBadge'];
 };
 

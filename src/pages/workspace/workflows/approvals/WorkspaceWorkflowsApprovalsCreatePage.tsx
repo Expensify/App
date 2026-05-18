@@ -1,9 +1,10 @@
 import React, {useCallback, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView} from 'react-native';
+import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
@@ -93,7 +94,14 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
                             />
                         </>
                     )}
-                    {!approvalWorkflow && <FullScreenLoadingIndicator reasonAttributes={{context: 'WorkspaceWorkflowsApprovalsCreatePage'}} />}
+                    {!approvalWorkflow && (
+                        <View style={[styles.flex1, styles.fullScreenLoading]}>
+                            <ActivityIndicator
+                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                reasonAttributes={{context: 'WorkspaceWorkflowsApprovalsCreatePage'}}
+                            />
+                        </View>
+                    )}
                 </FullPageNotFoundView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
