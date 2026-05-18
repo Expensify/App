@@ -12,7 +12,7 @@ import getPlatform from '@libs/getPlatform';
 import Visibility from '@libs/Visibility';
 import {getLocationPermission, requestLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
 import CONST from '@src/CONST';
-import type {LocationPermissionModalProps} from './types';
+import type LocationPermissionModalProps from './types';
 
 function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDeny, onGrant, onInitialGetLocationCompleted}: LocationPermissionModalProps) {
     const [hasError, setHasError] = useState(false);

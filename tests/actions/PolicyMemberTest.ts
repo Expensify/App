@@ -520,6 +520,66 @@ describe('actions/PolicyMember', () => {
             });
             expect(isWorkspaceChatArchived && isExpenseReportArchived).toBe(false);
         });
+
+        it('should unarchive existing expense report via the explicit reportActionsList param (not the deprecated onyx fallback)', async () => {
+            // Given an archived workspace expense chat + expense report AND no REPORT_ACTIONS seeded in Onyx
+            const policyID = '1';
+            const workspaceReportID = '1';
+            const expenseReportID = '2';
+            const userAccountID = 1236;
+            const userEmail = 'user@example.com';
+            const policy = createRandomPolicy(Number(policyID));
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceReportID}`, {
+                ...createRandomReport(Number(workspaceReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                policyID,
+                ownerAccountID: userAccountID,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${workspaceReportID}`, {
+                private_isArchived: DateUtils.getDBTime(),
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReportID}`, {
+                private_isArchived: DateUtils.getDBTime(),
+            });
+
+            // Build the REPORT_PREVIEW action outside Onyx and pass it explicitly
+            const expenseAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                childReportID: expenseReportID,
+            };
+            const reportActionsList = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceReportID}`]: {
+                    [expenseAction.reportActionID]: expenseAction,
+                },
+            };
+
+            // When adding the user with the explicit reportActionsList argument
+            Member.addMembersToWorkspace(
+                {[userEmail]: userAccountID},
+                'Welcome',
+                policy,
+                [],
+                CONST.POLICY.ROLE.USER,
+                TestHelper.formatPhoneNumber,
+                currentUserAccountID,
+                undefined,
+                reportActionsList,
+            );
+
+            await waitForBatchedUpdates();
+
+            const isExpenseReportArchived = await new Promise<boolean>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReportID}`,
+                    callback: (nvp) => {
+                        Onyx.disconnect(connection);
+                        resolve(!!nvp?.private_isArchived);
+                    },
+                });
+            });
+            expect(isExpenseReportArchived).toBe(false);
+        });
     });
 
     describe('removeMembers', () => {

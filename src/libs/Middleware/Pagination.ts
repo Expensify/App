@@ -127,24 +127,6 @@ const Pagination: Middleware = (requestResponse, request) => {
         const pagesCollections = pages.get(pageCollectionKey) ?? {};
         const existingPages: Pages = pagesCollections[pageKey] ?? [];
 
-        // Some tooling resolves `@libs/PaginationUtils` as untyped, so we add explicit local types
-        // to avoid unsafe-call/assignment linting while keeping runtime behavior identical.
-        const mergePagesByIDOverlapTyped: <TResource>(sortedItems: TResource[], pages: Pages, getItemID: (item: TResource) => string) => Pages = mergePagesByIDOverlap as unknown as <
-            TResource,
-        >(
-            sortedItems: TResource[],
-            pages: Pages,
-            getItemID: (item: TResource) => string,
-        ) => Pages;
-        const mergeAndSortContinuousPagesTyped: <TResource>(sortedItems: TResource[], pages: Pages, getItemID: (item: TResource) => string) => Pages =
-            mergeAndSortContinuousPages as unknown as <TResource>(sortedItems: TResource[], pages: Pages, getItemID: (item: TResource) => string) => Pages;
-
-        // When loading the first page of data, make sure to remove the start maker if the backend returns
-        // that there is new data.
-        const firstPage = existingPages.at(0);
-        if (type === 'initial' && !cursorID && firstPage?.at(0) === CONST.PAGINATION_START_ID && response.hasNewerActions === true) {
-            firstPage.shift();
-        }
         const isMiddleInitialSlice = type === 'initial' && !cursorID && response.hasNewerActions === true && response.hasOlderActions === true;
 
         // Only strip PAGINATION_START_ID from cached pages when the server explicitly confirms newer actions exist.
@@ -153,8 +135,8 @@ const Pagination: Middleware = (requestResponse, request) => {
         const sanitizedExistingPages = shouldStripStartMarker ? existingPages.map((page) => page.filter((id) => id !== CONST.PAGINATION_START_ID)) : existingPages;
 
         const mergedPages: Pages = isMiddleInitialSlice
-            ? mergePagesByIDOverlapTyped(sortedAllItems, [...sanitizedExistingPages, newPage], getItemID)
-            : mergeAndSortContinuousPagesTyped(sortedAllItems, [...sanitizedExistingPages, newPage], getItemID);
+            ? mergePagesByIDOverlap(sortedAllItems, [...sanitizedExistingPages, newPage], getItemID)
+            : mergeAndSortContinuousPages(sortedAllItems, [...sanitizedExistingPages, newPage], getItemID);
 
         (response.onyxData as AnyOnyxUpdate[]).push({
             key: pageKey,
@@ -177,7 +159,7 @@ const Pagination: Middleware = (requestResponse, request) => {
             }
             if (Object.keys(value).length > 0) {
                 (response.onyxData as AnyOnyxUpdate[]).push({
-                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${resourceID}`,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${resourceID}`,
                     onyxMethod: Onyx.METHOD.MERGE,
                     value,
                 });

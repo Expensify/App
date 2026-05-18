@@ -78,7 +78,7 @@ function PlaidConnectionStep({feed, onExit}: {feed?: CompanyCardFeedWithDomainID
     const [addNewPersonalCard] = useOnyx(ONYXKEYS.ADD_NEW_PERSONAL_CARD);
     const isUSCountry = addNewPersonalCard?.data?.selectedCountry === CONST.COUNTRY.US;
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
-    const [plaidLinkToken] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN);
+    const [plaidLinkToken] = useOnyx(ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN);
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
     const plaidErrors = plaidData?.errors;
     const subscribedKeyboardShortcuts = useRef<Array<() => void>>([]);

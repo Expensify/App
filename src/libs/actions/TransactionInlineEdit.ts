@@ -7,18 +7,32 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import {isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
+import {isValidMerchant, isValidMoneyRequestAmount} from '@libs/MoneyRequestUtils';
+import {getIsOffline} from '@libs/NetworkState';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
 import {getTagLists, isMultiLevelTags} from '@libs/PolicyUtils';
-import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {canEditFieldOfMoneyRequest, canEditMoneyRequest, canUserPerformWriteAction, isArchivedReport, isReportInGroupPolicy} from '@libs/ReportUtils';
+import {getIOUActionForTransactionID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {
+    canEditFieldOfMoneyRequest,
+    canEditMoneyRequest,
+    canUserPerformWriteAction,
+    findSelfDMReportID,
+    isArchivedReport,
+    isInvoiceReport,
+    isIOUReport,
+    isReportInGroupPolicy,
+    shouldEnableNegative,
+} from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
-import {calculateTaxAmount, getCurrency, getOriginalTransactionWithSplitInfo, getTaxValue, isExpenseUnreported} from '@libs/TransactionUtils';
+import {calculateTaxAmount, getCurrency, getOriginalTransactionWithSplitInfo, getTaxValue, isDistanceRequest, isExpenseUnreported, isScanning} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Beta,
+    IntroSelected,
     Policy,
     PolicyCategories,
     PolicyTagLists,
@@ -26,6 +40,7 @@ import type {
     RecentlyUsedTags,
     Report,
     ReportAction,
+    ReportActions,
     ReportNameValuePairs,
     ReportNextStepDeprecated,
     Transaction,
@@ -39,6 +54,7 @@ import {
     updateMoneyRequestMerchant,
     updateMoneyRequestTag,
 } from './IOU/UpdateMoneyRequest';
+import {createTransactionThreadReport} from './Report';
 
 type TransactionEditPermissions = {
     canEditDate: boolean;
@@ -67,6 +83,24 @@ Onyx.connectWithoutView({
     },
 });
 
+let allReports: NonNullable<OnyxCollection<Report>> = {};
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allReports = value ?? {};
+    },
+});
+
+let allReportActions: NonNullable<OnyxCollection<ReportActions>> = {};
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allReportActions = value ?? {};
+    },
+});
+
 let currentUserAccountID: number = CONST.DEFAULT_NUMBER_ID;
 let currentUserEmail = '';
 Onyx.connectWithoutView({
@@ -82,6 +116,14 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.BETAS,
     callback: (value) => {
         allBetas = value ?? undefined;
+    },
+});
+
+let introSelected: OnyxEntry<IntroSelected>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.NVP_INTRO_SELECTED,
+    callback: (value) => {
+        introSelected = value;
     },
 });
 
@@ -117,11 +159,15 @@ type TransactionEditPermissionsParams = {
 
     /** When true, all editing is disabled regardless of permissions. */
     disabled?: boolean;
+
+    /** When true, unreported expenses require workspace selection before category can be edited. */
+    shouldSelectPolicyForUnreported?: boolean;
 };
 
 type GetIouParamsInput = {
     transactionID: string;
     parentReport: OnyxEntry<Report>;
+    parentReportAction: OnyxEntry<ReportAction>;
     transactionThreadReport: OnyxEntry<Report>;
     policy: OnyxEntry<Policy>;
     policyCategories: OnyxEntry<PolicyCategories>;
@@ -145,6 +191,7 @@ type TransactionInlineEditParams = GetIouParamsInput & {
 function getIouParamsForTransaction({
     transactionID,
     parentReport,
+    parentReportAction,
     transactionThreadReport,
     policy,
     policyCategories,
@@ -154,12 +201,56 @@ function getIouParamsForTransaction({
     parentReportNextStep,
 }: GetIouParamsInput) {
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+    const isUnreportedExpense = !transaction?.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+
+    let resolvedParentReport = parentReport;
+    if (!resolvedParentReport?.reportID && transaction?.reportID && transaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
+        resolvedParentReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+    }
+
+    let resolvedParentReportAction = parentReportAction;
+    if (!resolvedParentReportAction && resolvedParentReport?.reportID) {
+        const reportActions = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${resolvedParentReport.reportID}`] ?? {};
+        resolvedParentReportAction = getIOUActionForTransactionID(Object.values(reportActions), transactionID);
+    }
+
+    if (isUnreportedExpense) {
+        const selfDMReportID = findSelfDMReportID(allReports);
+        if (selfDMReportID) {
+            resolvedParentReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`] ?? resolvedParentReport;
+
+            if (!resolvedParentReportAction) {
+                const selfDMReportActions = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`] ?? {};
+                resolvedParentReportAction = getIOUActionForTransactionID(Object.values(selfDMReportActions), transactionID);
+            }
+        }
+    }
+
+    let resolvedTransactionThreadReport = transactionThreadReport;
+    const transactionThreadReportID = resolvedTransactionThreadReport?.reportID ?? transaction?.transactionThreadReportID ?? resolvedParentReportAction?.childReportID;
+
+    if (!resolvedTransactionThreadReport && transactionThreadReportID) {
+        resolvedTransactionThreadReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
+    }
+
+    if (!resolvedTransactionThreadReport && resolvedParentReportAction && transaction) {
+        resolvedTransactionThreadReport = createTransactionThreadReport({
+            introSelected,
+            currentUserLogin: currentUserEmail,
+            currentUserAccountID,
+            betas: allBetas,
+            iouReport: resolvedParentReport,
+            iouReportAction: resolvedParentReportAction,
+            transaction,
+            transactionViolations: transactionViolations ?? undefined,
+        });
+    }
 
     return {
-        // Shared base fields — spread directly into any updateMoneyRequest* call
         transactionID,
-        transactionThreadReport,
-        parentReport,
+        transactionThreadReport: resolvedTransactionThreadReport,
+        parentReport: resolvedParentReport,
         policy,
         policyCategories,
         parentReportNextStep,
@@ -184,21 +275,23 @@ function editTransactionDateInline(params: TransactionInlineEditParams, newDate:
         value: newDate,
         transactions: allTransactions,
         transactionViolations: allTransactionViolations,
+        isOffline: getIsOffline(),
         hash: params.hash,
     });
 }
 
 /** Updates the merchant of an expense from the Search results table or the Expense Report page. */
 function editTransactionMerchantInline(params: TransactionInlineEditParams, newMerchant: string) {
-    // Merchant must be a non-empty string. An empty merchant is not a valid
-    // state and the IOU action would save it as a blank row label.
-    if (!newMerchant.trim()) {
+    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`];
+
+    if (!isValidMerchant(newMerchant, transaction, params.parentReport)) {
         return;
     }
+
     const iouParams = getIouParamsForTransaction(params);
     updateMoneyRequestMerchant({
         ...iouParams,
-        value: newMerchant,
+        value: newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
         hash: params.hash,
     });
 }
@@ -225,10 +318,15 @@ function editTransactionCategoryInline(params: TransactionInlineEditParams, newC
 
 /** Updates the amount and currency of an expense from the Search results table or the Expense Report page. */
 function editTransactionAmountInline(params: TransactionInlineEditParams, newAmount: number) {
-    if (newAmount < 0) {
+    const iouParams = getIouParamsForTransaction(params);
+    const iouType = isInvoiceReport(params.parentReport) ? CONST.IOU.TYPE.INVOICE : CONST.IOU.TYPE.SUBMIT;
+    const allowNegative = shouldEnableNegative(params.parentReport, iouParams.policy, iouType);
+    const isP2P = isIOUReport(params.parentReport);
+
+    if (!isValidMoneyRequestAmount(newAmount, iouType, allowNegative, isP2P)) {
         return;
     }
-    const iouParams = getIouParamsForTransaction(params);
+
     // Keep the existing currency — only the amount is changing from the search table
     const currency = iouParams.transaction?.modifiedCurrency ?? iouParams.transaction?.currency ?? CONST.CURRENCY.USD;
     // Recalculate tax from the existing tax code and the new amount
@@ -243,7 +341,7 @@ function editTransactionAmountInline(params: TransactionInlineEditParams, newAmo
         taxAmount,
         taxCode,
         taxValue: taxPercentage,
-        allowNegative: false,
+        allowNegative,
         transactions: allTransactions,
         transactionViolations: allTransactionViolations,
         policyRecentlyUsedCurrencies: [],
@@ -282,18 +380,16 @@ function getTransactionEditPermissions({
     chatReportNVP,
     originalTransaction,
     disabled,
+    shouldSelectPolicyForUnreported,
 }: TransactionEditPermissionsParams): TransactionEditPermissions {
-    if (disabled) {
-        return NO_EDIT;
-    }
-
-    if (!transaction) {
+    if (disabled || !transaction) {
         return NO_EDIT;
     }
 
     const isUnreported = isExpenseUnreported(transaction);
     const isChatReportArchived = isArchivedReport(chatReportNVP);
     const isTransactionThreadArchived = isArchivedReport(transactionThreadNVP);
+    const isTransactionScanning = isScanning(transaction);
 
     // Matches MoneyRequestView's isEditable.
     // For unreported expenses the user always owns these. When the transaction
@@ -313,10 +409,6 @@ function getTransactionEditPermissions({
         return NO_EDIT;
     }
 
-    const policyTagLists = getTagLists(policyTags);
-    const isPolicyExpenseChat = isReportInGroupPolicy(parentReport, policy);
-    const categoryForDisplay = transaction?.category ?? '';
-
     // For restricted fields, delegate to canEditFieldOfMoneyRequest.
     // Unreported expenses bypass this (all restricted fields editable by owner).
     const canEditRestricted = (field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>) => {
@@ -327,6 +419,46 @@ function getTransactionEditPermissions({
             if (isExpenseSplit) {
                 return false;
             }
+
+            // Amount field shows "Scanning..." during SmartScan
+            if (isTransactionScanning) {
+                return false;
+            }
+        }
+
+        if (field === CONST.EDIT_REQUEST_FIELD.MERCHANT) {
+            // Distance expenses cannot have their merchant edited
+            if (isDistanceRequest(transaction)) {
+                return false;
+            }
+
+            // Merchant field shows "Scanning..." during SmartScan
+            if (isTransactionScanning) {
+                return false;
+            }
+        }
+
+        if (field === CONST.EDIT_REQUEST_FIELD.CATEGORY) {
+            if (!policy?.areCategoriesEnabled && isCategoryMissing(transaction?.category)) {
+                return false;
+            }
+            // Matches MoneyRequestView's shouldShowCategory logic
+            // For policy expenses, check if there's a category or enabled options
+            if (isReportInGroupPolicy(parentReport, policy)) {
+                return !!(transaction?.category ?? '') || hasEnabledOptions(policyCategories ?? {});
+            }
+            // For unreported expenses, disable inline category editing while workspace selection is required.
+            if (isUnreported) {
+                return !shouldSelectPolicyForUnreported && hasEnabledOptions(policyCategories ?? {});
+            }
+        }
+
+        if (field === CONST.EDIT_REQUEST_FIELD.TAG) {
+            // Single-level tags only (multi-level needs a picker UI not available inline)
+            if (isMultiLevelTags(policyTags)) {
+                return false;
+            }
+            return !!transaction?.tag || hasEnabledTags(getTagLists(policyTags));
         }
 
         return (
@@ -347,12 +479,9 @@ function getTransactionEditPermissions({
         canEditMerchant: canEditRestricted(CONST.EDIT_REQUEST_FIELD.MERCHANT),
         // Non-restricted; always editable when canEdit is true
         canEditDescription: true,
-        // Matches MoneyRequestView's shouldShowCategory logic
-        canEditCategory:
-            (isPolicyExpenseChat && (!!categoryForDisplay || hasEnabledOptions(policyCategories ?? {}))) || (isUnreported && (!policy || hasEnabledOptions(policyCategories ?? {}))),
+        canEditCategory: canEditRestricted(CONST.EDIT_REQUEST_FIELD.CATEGORY),
         canEditAmount: canEditRestricted(CONST.EDIT_REQUEST_FIELD.AMOUNT),
-        // single-level tags only (multi-level needs a picker UI not available inline).
-        canEditTag: !isMultiLevelTags(policyTags) && (!!transaction?.tag || hasEnabledTags(policyTagLists)),
+        canEditTag: canEditRestricted(CONST.EDIT_REQUEST_FIELD.TAG),
     };
 }
 
@@ -366,4 +495,4 @@ export {
     getTransactionEditPermissions,
 };
 
-export type {TransactionInlineEditParams, TransactionEditPermissions};
+export type {TransactionEditPermissions, TransactionInlineEditParams, TransactionEditPermissionsParams};

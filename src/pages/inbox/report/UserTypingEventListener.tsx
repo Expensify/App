@@ -1,5 +1,6 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {useEffect, useRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
@@ -31,7 +32,6 @@ function UserTypingEventListener({report}: UserTypingEventListenerProps) {
 
             // unsubscribe from report typing events when the component unmounts
             didSubscribeToReportTypingEvents.current = false;
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 unsubscribeFromReportChannel(reportID);
             });
@@ -45,7 +45,6 @@ function UserTypingEventListener({report}: UserTypingEventListenerProps) {
         if (route?.params?.reportID !== reportID) {
             return;
         }
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         let interactionTask: ReturnType<typeof InteractionManager.runAfterInteractions> | null = null;
         if (isFocused) {
             // Ensures subscription event succeeds when the report/workspace room is created optimistically.
@@ -55,7 +54,6 @@ function UserTypingEventListener({report}: UserTypingEventListenerProps) {
             const didCreateReportSuccessfully = !report.pendingFields || (!report.pendingFields.addWorkspaceRoom && !report.pendingFields.createChat);
 
             if (!didSubscribeToReportTypingEvents.current && didCreateReportSuccessfully) {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 interactionTask = InteractionManager.runAfterInteractions(() => {
                     subscribeToReportTypingEvents(reportID, currentUserAccountID);
                     didSubscribeToReportTypingEvents.current = true;
@@ -66,7 +64,6 @@ function UserTypingEventListener({report}: UserTypingEventListenerProps) {
 
             if (topmostReportId !== reportID && didSubscribeToReportTypingEvents.current) {
                 didSubscribeToReportTypingEvents.current = false;
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     unsubscribeFromReportChannel(reportID);
                 });

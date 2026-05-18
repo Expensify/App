@@ -1,7 +1,7 @@
 import {useCallback} from 'react';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import useConfirmModal from '@hooks/useConfirmModal';
-import useLocalize from '@hooks/useLocalize';
+import useConfirmModal from './useConfirmModal';
+import useLocalize from './useLocalize';
 
 /**
  * Hook that returns a callback to confirm pending RTER violations before proceeding with an action.

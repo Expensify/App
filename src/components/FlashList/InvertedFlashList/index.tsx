@@ -18,6 +18,9 @@ type InvertedFlashListProps<T> = FlashListProps<T> & {
 
     /** Ref to the underlying list instance. */
     ref: FlatListRefType;
+
+    /** Whether the list should handle `maintainVisibleContentPosition` */
+    shouldMaintainVisibleContentPosition?: boolean;
 };
 
 function InvertedFlashList<T>({
@@ -26,13 +29,16 @@ function InvertedFlashList<T>({
     initialScrollKey,
     onStartReached: onStartReachedProp,
     initialScrollIndexParams: initialScrollIndexParamsProp,
+    maintainVisibleContentPosition: maintainVisibleContentPositionProp,
+    shouldMaintainVisibleContentPosition,
     ...restProps
 }: InvertedFlashListProps<T>) {
-    const {onStartReached, maintainVisibleContentPosition} = useFlashListScrollKey<T>({
+    const {onStartReached, maintainVisibleContentPosition: maintainVisibleContentPositionForScrollKey} = useFlashListScrollKey<T>({
         data,
         keyExtractor,
         initialScrollKey,
         onStartReached: onStartReachedProp,
+        shouldMaintainVisibleContentPosition,
     });
 
     const {windowHeight} = useWindowDimensions();
@@ -43,9 +49,15 @@ function InvertedFlashList<T>({
     const defaultInitialScrollIndexParams: FlashListProps<T>['initialScrollIndexParams'] = viewOffset === undefined ? undefined : {viewOffset};
     const initialScrollIndexParams = initialScrollIndexParamsProp === undefined ? defaultInitialScrollIndexParams : initialScrollIndexParamsProp;
 
+    const maintainVisibleContentPosition = maintainVisibleContentPositionProp
+        ? {
+              ...maintainVisibleContentPositionForScrollKey,
+              ...maintainVisibleContentPositionProp,
+          }
+        : maintainVisibleContentPositionForScrollKey;
+
     return (
         <FlashList<T>
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...restProps}
             maintainVisibleContentPosition={maintainVisibleContentPosition}
             inverted

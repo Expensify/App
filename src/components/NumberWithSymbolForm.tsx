@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {KeyboardTypeOptions, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
+import type {KeyboardTypeOptions, NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -89,6 +89,9 @@ type NumberWithSymbolFormProps = {
 
     /** Whether to allow direct negative input (for split amounts where value is already negative) */
     allowNegativeInput?: boolean;
+
+    /** Style for the negative symbol */
+    negativeSymbolStyle?: StyleProp<TextStyle>;
 
     /** Whether to use dynamic font size for the amount input */
     shouldUseDynamicFontSize?: boolean;
@@ -182,6 +185,7 @@ function NumberWithSymbolForm({
     isNegative = false,
     allowFlippingAmount = false,
     allowNegativeInput = false,
+    negativeSymbolStyle,
     toggleNegative,
     clearNegative,
     ref,
@@ -448,7 +452,7 @@ function NumberWithSymbolForm({
                         icon={icons.PlusMinus}
                         onPress={handleFlipPress}
                         onMouseDown={(e) => e.preventDefault()}
-                        isContentCentered
+                        iconWrapperStyles={styles.justifyContentCenter}
                         accessibilityLabel={translate('iou.flip')}
                         isDisabled={disabled}
                     />
@@ -459,7 +463,7 @@ function NumberWithSymbolForm({
                         small
                         iconRight={icons.DownArrow}
                         onPress={onTrailingDropdownPress}
-                        isContentCentered
+                        iconWrapperStyles={styles.justifyContentCenter}
                         text={currencyOrUnitButtonText}
                         accessibilityLabel={currencyButtonAccessibilityLabel ?? `${translate('common.selectCurrency')}, ${currencyOrUnitButtonText}`}
                         isDisabled={disabled}
@@ -577,6 +581,7 @@ function NumberWithSymbolForm({
             prefixContainerStyle={props.prefixContainerStyle}
             touchableInputWrapperStyle={props.touchableInputWrapperStyle}
             isNegative={isNegative}
+            negativeSymbolStyle={negativeSymbolStyle}
             toggleNegative={toggleNegative}
             onFocus={props.onFocus}
             accessibilityLabel={props.accessibilityLabel}
@@ -602,7 +607,7 @@ function NumberWithSymbolForm({
                                     iconRight={icons.DownArrow}
                                     onPress={onSymbolButtonPress}
                                     style={styles.minWidth18}
-                                    isContentCentered
+                                    iconWrapperStyles={styles.justifyContentCenter}
                                     text={currency}
                                     accessibilityLabel={`${translate('common.selectCurrency')}, ${currency}`}
                                 />
@@ -614,7 +619,7 @@ function NumberWithSymbolForm({
                                     iconRight={icons.PlusMinus}
                                     onPress={toggleNegative}
                                     style={styles.minWidth18}
-                                    isContentCentered
+                                    iconWrapperStyles={styles.justifyContentCenter}
                                     text={translate('iou.flip')}
                                     accessibilityLabel={translate('iou.flip')}
                                 />
@@ -682,7 +687,7 @@ function NumberWithSymbolForm({
                                 iconRight={icons.DownArrow}
                                 onPress={onSymbolButtonPress}
                                 style={styles.minWidth18}
-                                isContentCentered
+                                iconWrapperStyles={styles.justifyContentCenter}
                                 text={currency}
                                 accessibilityLabel={`${translate('common.selectCurrency')}, ${currency}`}
                             />
@@ -708,7 +713,7 @@ function NumberWithSymbolForm({
                         iconRight={icons.DownArrow}
                         onPress={onSymbolButtonPress}
                         style={styles.minWidth18}
-                        isContentCentered
+                        iconWrapperStyles={styles.justifyContentCenter}
                         text={currency}
                         accessibilityLabel={`${translate('common.selectCurrency')}, ${currency}`}
                     />
@@ -720,7 +725,7 @@ function NumberWithSymbolForm({
                         iconRight={icons.PlusMinus}
                         onPress={toggleNegative}
                         style={styles.minWidth18}
-                        isContentCentered
+                        iconWrapperStyles={styles.justifyContentCenter}
                         text={translate('iou.flip')}
                         accessibilityLabel={translate('iou.flip')}
                     />

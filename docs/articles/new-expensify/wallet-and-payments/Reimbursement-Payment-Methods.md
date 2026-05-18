@@ -40,7 +40,6 @@ The steps to send reimbursement are the same for ACH reimbursement, global reimb
   - United Kingdom (GBP)
   - European Union (EUR)
   - Australia (AUD)
-  - Singapore (SGD)
 
   Global reimbursement can be used to reimburse members in 190+ countries, depending on supported banking rails. [Learn how to set up Global Reimbursement on a Workspace](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Enable-Global-Reimbursement). 
 
@@ -53,7 +52,7 @@ The steps to send reimbursement are the same for ACH reimbursement, global reimb
 
 To pay one report:
 
-1. From the navigation tabs (on the left on web, and at the bottom on mobile) choose **Reports**.
+1. From the navigation tabs (on the left on web, and at the bottom on mobile) choose **Spend > Reports**.
 2. Under **To-do**, select **Pay**.
 3. On the report you wish to reimburse, select **Pay**.
 4. Choose a payment method:
@@ -71,7 +70,7 @@ Workspace Admins can also pay multiple reports at the same time.
 
 To pay reports in bulk:
 
-1. From the navigation tabs (on the left on web, and at the bottom on mobile) choose **Reports**.
+1. From the navigation tabs (on the left on web, and at the bottom on mobile) choose **Spend > Reports**.
 2. Under **To-do**, select **Pay**.
 3. Select the checkbox next to each Approved report you want to pay.
 4. Select **Selected**.

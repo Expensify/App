@@ -6,5 +6,4 @@ type ReportScreenNavigationProps =
     | PlatformStackScreenProps<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
     | PlatformStackScreenProps<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>;
 
-// eslint-disable-next-line import/prefer-default-export
-export type {ReportScreenNavigationProps};
+export default ReportScreenNavigationProps;

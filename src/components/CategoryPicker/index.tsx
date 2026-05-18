@@ -1,5 +1,5 @@
 import React from 'react';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {ListItem} from '@components/SelectionList/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -85,7 +85,7 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
         <SelectionListWithSections
             sections={sections}
             onSelectRow={onSubmit}
-            ListItem={RadioListItem}
+            ListItem={SingleSelectListItem}
             shouldShowTextInput={categoriesCount >= CONST.STANDARD_LIST_ITEM_LIMIT}
             textInputOptions={textInputOptions}
             initiallyFocusedItemKey={selectedOptionKey}
@@ -93,7 +93,6 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
             style={{listItemTitleStyles: styles.w100}}
             isRowMultilineSupported
             titleNumberOfLines={3}
-            shouldUseDefaultRightHandSideComponent
         />
     );
 }

@@ -8,14 +8,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import CategoryPicker from '.';
 
-const DEFAULT_ANCHOR_ALIGNMENT = {
-    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-};
-
 const popoverDimensions = {
     width: CONST.POPOVER_DROPDOWN_WIDTH,
     height: CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
+};
+
+const DEFAULT_ANCHOR_ALIGNMENT = {
+    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
 type CategoryPickerModalProps = {
@@ -64,7 +64,7 @@ function CategoryPickerModal({
             anchorPosition={anchorPosition}
             popoverDimensions={popoverDimensions}
             anchorAlignment={anchorAlignment}
-            innerContainerStyle={StyleUtils.getWidthStyle(CONST.POPOVER_DROPDOWN_WIDTH)}
+            innerContainerStyle={StyleUtils.getWidthStyle(popoverDimensions.width)}
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
             shouldSwitchPositionIfOverflow
             shouldEnableNewFocusManagement
@@ -72,7 +72,7 @@ function CategoryPickerModal({
             shouldSkipRemeasurement
             shouldDisplayBelowModals
         >
-            <View style={[StyleUtils.getHeight(CONST.POPOVER_DROPDOWN_MAX_HEIGHT), styles.flexColumn, styles.pt4]}>
+            <View style={[StyleUtils.getHeight(popoverDimensions.height), styles.flexColumn, styles.pt4]}>
                 <CategoryPicker
                     selectedCategory={selectedCategory}
                     policyID={policyID}
