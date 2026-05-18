@@ -44,17 +44,22 @@ jobs:
             const commenterAssoc = context.payload.comment.author_association ?? 'NONE';
             const hasWriteAccess = ['OWNER', 'MEMBER', 'COLLABORATOR'].includes(commenterAssoc);
 
-            const cplusResponse = await fetch(
-              `https://api.github.com/orgs/Expensify/teams/contributor-plus/memberships/${commenter}`,
-              {
-                headers: {
-                  Authorization: `Bearer ${process.env.OS_BOTIFY_TOKEN}`,
-                  Accept: 'application/vnd.github+json',
-                  'X-GitHub-Api-Version': '2022-11-28',
-                },
-              },
-            );
-            const isCPlus = cplusResponse.ok;
+            // Contributor+ membership check requires read:org, which the default GITHUB_TOKEN lacks.
+            const {getOctokit} = require('@actions/github');
+            const cplusOctokit = getOctokit(process.env.OS_BOTIFY_TOKEN);
+            let isCPlus = false;
+            try {
+              await cplusOctokit.rest.teams.getMembershipForUserInOrg({
+                org: 'Expensify',
+                team_slug: 'contributor-plus',
+                username: commenter,
+              });
+              isCPlus = true;
+            } catch (error) {
+              if (error.status !== 404) {
+                throw error;
+              }
+            }
 
             const directAuth = hasWriteAccess || isCPlus;
             const needsGate = !directAuth && commenter === pr.user.login;
