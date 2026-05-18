@@ -2,18 +2,22 @@ import Onyx from 'react-native-onyx';
 import * as Export from '@userActions/Export';
 import ONYXKEYS from '@src/ONYXKEYS';
 import getOnyxValue from '../utils/getOnyxValue';
+import type {MockFetch} from '../utils/TestHelper';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/Navigation/Navigation');
 
 describe('Export actions', () => {
+    let mockFetch: MockFetch;
+
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
 
     beforeEach(() => {
-        global.fetch = TestHelper.getGlobalFetchMock();
+        mockFetch = TestHelper.getGlobalFetchMock() as MockFetch;
+        global.fetch = mockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -35,25 +39,43 @@ describe('Export actions', () => {
         await Onyx.set(onyxKey, existingData);
         await waitForBatchedUpdates();
 
+        mockFetch.fail?.();
         Export.sendExportFileFromConcierge(exportID, existingData);
         await waitForBatchedUpdates();
 
         const value = await getOnyxValue(onyxKey);
-        expect(value).toEqual(expect.objectContaining({shouldSendFromConcierge: true}));
+        expect(value).toEqual(expect.objectContaining({shouldSendFromConcierge: false, state: 'ready'}));
     });
 
     test('clearExportDownload sets the Onyx key to null', async () => {
         const exportID = 'test-export-789';
         const onyxKey = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}` as const;
 
-        await Onyx.set(onyxKey, {state: 'ready'});
+        const existingData = {state: 'ready' as const};
+        await Onyx.set(onyxKey, existingData);
         await waitForBatchedUpdates();
 
-        Export.clearExportDownload(exportID);
+        Export.clearExportDownload(exportID, existingData);
         await waitForBatchedUpdates();
 
         const value = await getOnyxValue(onyxKey);
         expect(value).toBeUndefined();
+    });
+
+    test('clearExportDownload failureData restores the previous value on failure', async () => {
+        const exportID = 'test-export-restore';
+        const onyxKey = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}` as const;
+        const existingData = {state: 'ready' as const, reportCount: 5};
+
+        await Onyx.set(onyxKey, existingData);
+        await waitForBatchedUpdates();
+
+        mockFetch.fail?.();
+        Export.clearExportDownload(exportID, existingData);
+        await waitForBatchedUpdates();
+
+        const value = await getOnyxValue(onyxKey);
+        expect(value).toEqual(expect.objectContaining({state: 'ready', reportCount: 5}));
     });
 
     test('clearStaleExportDownloads calls clearExportDownload for each non-null entry', async () => {

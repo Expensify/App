@@ -28,7 +28,7 @@ function sendExportFileFromConcierge(exportID: string, exportDownload: OnyxEntry
     write(WRITE_COMMANDS.SEND_EXPORT_FILE_FROM_CONCIERGE, {exportID}, {optimisticData, failureData});
 }
 
-function clearExportDownload(exportID: string) {
+function clearExportDownload(exportID: string, exportDownload: OnyxEntry<ExportDownload>) {
     const onyxKey = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}` as const;
 
     const optimisticData: AnyOnyxUpdate[] = [
@@ -39,7 +39,15 @@ function clearExportDownload(exportID: string) {
         },
     ];
 
-    write(WRITE_COMMANDS.CLEAR_EXPORT_DOWNLOAD, {exportID}, {optimisticData});
+    const failureData: AnyOnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: onyxKey,
+            value: exportDownload ?? null,
+        },
+    ];
+
+    write(WRITE_COMMANDS.CLEAR_EXPORT_DOWNLOAD, {exportID}, {optimisticData, failureData});
 }
 
 function clearStaleExportDownloads() {
@@ -58,7 +66,7 @@ function clearStaleExportDownloads() {
                     continue;
                 }
                 const exportID = key.replace(ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD, '');
-                clearExportDownload(exportID);
+                clearExportDownload(exportID, exportDownloads[key]);
             }
         },
     });
