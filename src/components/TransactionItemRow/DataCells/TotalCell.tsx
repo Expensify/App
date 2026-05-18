@@ -14,9 +14,17 @@ import {parseFloatAnyLocale, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getTransactionDetails, isInvoiceReport, shouldEnableNegative} from '@libs/ReportUtils';
 import {getCurrency as getTransactionCurrency, isDeletedTransaction, isExpenseUnreported, isScanning} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
+import type {Policy, Report} from '@src/types/onyx';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
-type TotalCellProps = TransactionDataCellProps & EditableProps<number>;
+type TotalCellProps = TransactionDataCellProps &
+    EditableProps<number> & {
+        /** Report passed explicitly (used in IOU report view where transactionItem.report may be undefined) */
+        report?: Report;
+
+        /** Policy passed explicitly (used in IOU report view where transactionItem.policy may be undefined) */
+        policy?: Policy;
+    };
 type TransactionItem = TransactionDataCellProps['transactionItem'];
 
 function getTransactionItemIouType(transactionItem: TransactionItem) {
@@ -28,7 +36,7 @@ function getTransactionItemIouType(transactionItem: TransactionItem) {
     return isSplitTransaction ? CONST.IOU.TYPE.SPLIT : CONST.IOU.TYPE.SUBMIT;
 }
 
-function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave}: TotalCellProps) {
+function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, report, policy}: TotalCellProps) {
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
@@ -41,10 +49,12 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave}: TotalC
         amountToDisplay = translate('iou.receiptStatusTitle');
     }
 
-    const iouType = getTransactionItemIouType(transactionItem);
+    const effectiveReport = report ?? transactionItem.report;
+    const effectivePolicy = policy ?? transactionItem.policy;
+    const iouType = getTransactionItemIouType({...transactionItem, report: effectiveReport});
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isUnreportedExpense = isExpenseUnreported(transactionItem);
-    const allowNegative = isUnreportedExpense || shouldEnableNegative(transactionItem.report, transactionItem.policy, iouType, transactionItem.participants);
+    const allowNegative = isUnreportedExpense || shouldEnableNegative(effectiveReport, effectivePolicy, iouType, transactionItem.participants);
 
     const absoluteAmount = Math.abs(amount ?? 0);
     const isOriginalAmountNegative = (amount ?? 0) < 0;
