@@ -34,6 +34,7 @@ import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import {getGpsPoints, stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
+import {useIsAgentAccount} from '@libs/SessionUtils';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import type {AnchorPosition} from '@styles/index';
 import colors from '@styles/theme/colors';
@@ -60,6 +61,8 @@ function CopilotPage() {
     useDocumentTitle(translate('delegate.copilot'));
     const personalDetailsByLogin = usePersonalDetailsByLogin();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {selector: accountDelegationSelector});
+    const isAgentAccount = useIsAgentAccount();
+    const actingDelegateEmail = account?.delegatedAccess?.delegate?.toLowerCase();
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [stashedCredentials = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS);
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -247,6 +250,7 @@ function CopilotPage() {
             const personalDetail = personalDetailsByLogin[email.toLowerCase()];
             const addDelegateErrors = errorFields?.addDelegate?.[email];
             const error = getLatestError(addDelegateErrors);
+            const isOwnerRow = isAgentAccount && !!actingDelegateEmail && email.toLowerCase() === actingDelegateEmail;
 
             const onPress = (e: GestureResponderEvent | KeyboardEvent) => {
                 if (isEmptyObject(pendingAction)) {
@@ -275,13 +279,14 @@ function CopilotPage() {
                 icon: personalDetail?.avatar ?? (personalDetail ? getDefaultAvatarURL({accountID: personalDetail.accountID, accountEmail: email}) : undefined),
                 iconType: CONST.ICON_TYPE_AVATAR,
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
-                iconRight: icons.ThreeDots,
-                shouldShowRightIcon: true,
+                iconRight: isOwnerRow ? undefined : icons.ThreeDots,
+                shouldShowRightIcon: !isOwnerRow,
                 pendingAction,
                 shouldForceOpacity: !!pendingAction,
                 onPendingActionDismiss: () => clearDelegateErrorsByField({email, fieldName: 'addDelegate', delegatedAccess: account?.delegatedAccess}),
                 error,
-                onPress,
+                onPress: isOwnerRow ? undefined : onPress,
+                interactive: !isOwnerRow,
                 success: selectedEmail === email,
                 sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.DELEGATE_ITEM,
             };
@@ -298,6 +303,8 @@ function CopilotPage() {
         localeCompare,
         showPopoverMenu,
         renderTitleWithRole,
+        isAgentAccount,
+        actingDelegateEmail,
     ]);
 
     const delegatorMenuItems: MenuItemProps[] = useMemo(() => {
