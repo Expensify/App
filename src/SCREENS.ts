@@ -542,7 +542,9 @@ const SCREENS = {
         CONFIRM: 'Policy_Copy_Settings_Confirm',
     },
 
+    WORKSPACES_INITIAL: 'Workspaces_Initial',
     WORKSPACES_LIST: 'Workspaces_List',
+    WORKSPACES_DOMAINS: 'Workspaces_Domains',
 
     WORKSPACE: {
         ACCOUNTING: {

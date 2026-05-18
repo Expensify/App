@@ -2941,11 +2941,14 @@ type TestDriveDemoNavigatorParamList = {
     [SCREENS.TEST_DRIVE_DEMO.ROOT]: undefined;
 };
 
+type WorkspacesSplitNavigatorParamList = {
+    [SCREENS.WORKSPACES_INITIAL]: undefined;
+    [SCREENS.WORKSPACES_LIST]: {backTo?: Routes};
+    [SCREENS.WORKSPACES_DOMAINS]: undefined;
+};
+
 type WorkspaceNavigatorParamList = {
-    [SCREENS.WORKSPACES_LIST]: {
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
-    };
+    [NAVIGATORS.WORKSPACES_SPLIT_NAVIGATOR]: NavigatorScreenParams<WorkspacesSplitNavigatorParamList>;
     [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: NavigatorScreenParams<WorkspaceSplitNavigatorParamList>;
     [NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR]: NavigatorScreenParams<DomainSplitNavigatorParamList>;
 };
