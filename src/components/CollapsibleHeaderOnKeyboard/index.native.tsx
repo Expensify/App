@@ -3,6 +3,7 @@ import React, {useEffect, useRef} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {useReanimatedKeyboardAnimation} from 'react-native-keyboard-controller';
 import Reanimated, {Easing, useAnimatedReaction, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import useDebounce from '@hooks/useDebounce';
 import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
@@ -10,6 +11,7 @@ import type {CollapsibleHeaderOnKeyboardProps} from './types';
 
 const COLLAPSE_DURATION = 100;
 const RESTORE_DURATION = 300;
+const HEADER_CONTENT_LAYOUT_STABILIZATION_TIME_ON_ORIENTATION_CHANGE = 300;
 // Assumed vertical space for the focused input field — used to reserve space above the keyboard.
 const VERTICAL_SPACE_FOR_FOCUSED_INPUT = 120;
 const KEYBOARD_OPENING_PROGRESS_THRESHOLDS = [0.5, 0.7, 0.8, 0.85, 0.9, 0.95, 0.99];
@@ -60,12 +62,33 @@ function CollapsibleHeaderOnKeyboard({children, collapsibleHeaderOffset = 0}: Co
         isInLandscapeModeSV.set(isInLandscapeMode);
     }, [isInLandscapeMode, isInLandscapeModeSV]);
 
+    const debouncedUpdateNaturalHeightRef = useDebounce((height: number) => {
+        if (isInLandscapeMode) {
+            return;
+        }
+        naturalHeightRef.current = height;
+    }, HEADER_CONTENT_LAYOUT_STABILIZATION_TIME_ON_ORIENTATION_CHANGE);
+
     const onLayout = (e: LayoutChangeEvent) => {
         const height = e.nativeEvent.layout.height;
 
         if (height <= 0) {
             return;
         }
+
+        // Header re-measured in portrait mode and the content is taller than the previous measurement,
+        // set the natural height to the new height and animate the height to the new height.
+        // This can happen when header has different height on portrait and landscape mode.
+        if (!isInLandscapeMode && height > naturalHeightRef.current && naturalHeightRef.current !== -1) {
+            naturalHeight.set(height);
+            animatedHeight.set(withTiming(height, {duration: RESTORE_DURATION}));
+
+            // we need to debounce the update of the natural height ref to make sure we don't block height updates
+            // on landscape -> portrait mode change where header layout might not be stable at first.
+            debouncedUpdateNaturalHeightRef(height);
+            return;
+        }
+
         // First measurement, or content changed while header is fully open
         // (to skip onLayout calls triggered by our own height animation collapsing the view to 0)
         if (naturalHeightRef.current === -1 || animatedHeight.get() >= naturalHeightRef.current) {
@@ -77,11 +100,12 @@ function CollapsibleHeaderOnKeyboard({children, collapsibleHeaderOffset = 0}: Co
 
     // Restores the header when the screen goes from landscape to portrait mode.
     useEffect(() => {
-        const naturalHeightValue = naturalHeightRef.current;
+        const naturalHeightValue = naturalHeight.get();
         if (!isInLandscapeMode && isFocused && naturalHeightValue !== -1) {
             animatedHeight.set(withTiming(naturalHeightValue, {duration: RESTORE_DURATION}));
         }
-    }, [isInLandscapeMode, isFocused, animatedHeight]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isInLandscapeMode]);
 
     // Restores the header when the screen loses focus
     useEffect(() => {
@@ -89,7 +113,7 @@ function CollapsibleHeaderOnKeyboard({children, collapsibleHeaderOffset = 0}: Co
             return;
         }
 
-        const naturalHeightValue = naturalHeightRef.current;
+        const naturalHeightValue = naturalHeight.get();
         if (naturalHeightValue === -1) {
             return;
         }
@@ -159,7 +183,7 @@ function CollapsibleHeaderOnKeyboard({children, collapsibleHeaderOffset = 0}: Co
         // When fully open, leave height undefined so the view sizes itself naturally.
         // This avoids fighting the layout engine during orientation changes.
         if (animatedHeight.get() >= naturalHeight.get()) {
-            return {overflow: 'hidden'};
+            return {overflow: 'hidden', height: 'auto'};
         }
         return {height: animatedHeight.get(), overflow: 'hidden'};
     });
