@@ -39,7 +39,7 @@ To create a Domain Group:
 
 ## What each Domain Group permission setting controls
 
-When creating or editing a Domain Group, you can configure the following settings:
+## What Domain Group permission settings control
 
 **Default group**
 
