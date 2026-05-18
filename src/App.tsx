@@ -67,6 +67,8 @@ function App() {
     useDefaultDragAndDrop();
     OnyxUpdateManager();
 
+    console.log('dummy change');
+
     return (
         <StrictModeWrapper>
             <SplashScreenStateContextProvider>
