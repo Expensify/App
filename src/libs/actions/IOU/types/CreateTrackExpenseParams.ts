@@ -35,6 +35,7 @@ type CreateTrackExpenseParams = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean;
     defaultWorkspaceName?: string;
+    previousOdometerDraft?: OnyxEntry<OnyxTypes.OdometerDraft>;
 };
 
 export type {CreateTrackExpenseParams, TrackExpenseAccountantParams};

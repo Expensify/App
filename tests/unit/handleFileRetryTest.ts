@@ -1,6 +1,7 @@
 import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
 import handleFileRetry from '@libs/ReceiptUploadRetryHandler/handleFileRetry';
-import type {ReplaceReceipt, RequestMoneyInformation, StartSplitBilActionParams} from '@userActions/IOU';
+import type {ReplaceReceipt, StartSplitBilActionParams} from '@userActions/IOU';
+import type {RequestMoneyInformation} from '@userActions/IOU/MoneyRequestBuilder';
 import {replaceReceipt} from '@userActions/IOU/Receipt';
 import {startSplitBill} from '@userActions/IOU/Split';
 import {requestMoney, trackExpense} from '@userActions/IOU/TrackExpense';
