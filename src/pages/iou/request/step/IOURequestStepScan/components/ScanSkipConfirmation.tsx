@@ -228,6 +228,19 @@ function ScanSkipConfirmation({report, iouType, reportID, transactionID, transac
         createTransaction(baseParams);
     };
 
+    const submitWithGpsCheck = (files: ReceiptFile[]) => {
+        const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT;
+        if (gpsRequired) {
+            if (shouldStartLocationPermissionFlow) {
+                setStartLocationPermissionFlow(true);
+                return;
+            }
+            submitDirectly(files, true);
+            return;
+        }
+        submitDirectly(files, false);
+    };
+
     const processReceipts = (files: FileObject[]) => {
         const newReceiptFiles = buildReceiptFiles({
             files,
@@ -251,17 +264,7 @@ function ScanSkipConfirmation({report, iouType, reportID, transactionID, transac
             return;
         }
 
-        const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && files.length;
-        if (gpsRequired) {
-            if (shouldStartLocationPermissionFlow) {
-                setStartLocationPermissionFlow(true);
-                return;
-            }
-            submitDirectly(newReceiptFiles, true);
-            return;
-        }
-
-        submitDirectly(newReceiptFiles, false);
+        submitWithGpsCheck(newReceiptFiles);
     };
 
     const submitMultiScan = () => {
@@ -270,16 +273,7 @@ function ScanSkipConfirmation({report, iouType, reportID, transactionID, transac
         if (validReceiptFiles.length === 0) {
             return;
         }
-        const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT;
-        if (gpsRequired) {
-            if (shouldStartLocationPermissionFlow) {
-                setStartLocationPermissionFlow(true);
-                return;
-            }
-            submitDirectly(validReceiptFiles, true);
-            return;
-        }
-        submitDirectly(validReceiptFiles, false);
+        submitWithGpsCheck(validReceiptFiles);
     };
 
     const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation((files: FileObject[]) => {
