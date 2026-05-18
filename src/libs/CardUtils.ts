@@ -1001,13 +1001,18 @@ function getFilteredCardList(
             }));
     }
 
-    // For commercial feeds: key is the encrypted card number, value is the masked PAN display name.
+    // For commercial feeds: key is the masked PAN (display name), value is the encrypted card number (unique identifier).
     // Filter by encrypted card number (unique per physical card) to correctly handle
-    // multiple cards that share the same masked PAN.
+    // multiple cards that share the same masked PAN. Fall back to cardName filtering
+    // when encryptedCardNumber is not available on assigned cards.
     return Object.entries(customFeedCardsToAssign ?? {})
-        .filter(([encryptedCardNumber]) => !assignedEncryptedCardNumbers.has(encryptedCardNumber) && !allWorkspaceAssignedEncryptedCardNumbers.has(encryptedCardNumber))
-        .map(([encryptedCardNumber, maskedPAN]) => ({
-            cardName: maskedPAN,
+        .filter(([cardName, encryptedCardNumber]) => {
+            const isAssignedByEncrypted = assignedEncryptedCardNumbers.has(encryptedCardNumber) || allWorkspaceAssignedEncryptedCardNumbers.has(encryptedCardNumber);
+            const isAssignedByName = assignedCardNames.has(cardName) || allWorkspaceAssignedCardNames.has(cardName);
+            return !isAssignedByEncrypted && !isAssignedByName;
+        })
+        .map(([cardName, encryptedCardNumber]) => ({
+            cardName,
             cardID: encryptedCardNumber,
         }));
 }
