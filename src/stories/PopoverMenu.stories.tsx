@@ -34,7 +34,6 @@ function Template(props: PopoverMenuProps) {
             />
             <SafeAreaProvider>
                 <PopoverMenu
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                     isVisible={isVisible}
                     onClose={toggleVisibility}

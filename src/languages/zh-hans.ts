@@ -1190,9 +1190,12 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteReceipt: '删除收据',
         findExpense: '查找报销',
         deletedTransaction: (amount: string, merchant: string) => `已删除一笔报销（${merchant} 的 ${amount}）`,
-        movedFromReport: (reportName: string) => `已移动一笔报销${reportName ? `来自${reportName}` : ''}`,
-        movedTransactionTo: (reportUrl: string, reportName?: string) => `已移动此报销${reportName ? `到 <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        movedTransactionFrom: (reportUrl: string, reportName?: string) => `已移动此报销${reportName ? `来自 <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedFromReport: (reportName: string) => `已从${reportName}中移出一笔费用`,
+        movedFromReportNoName: '移动了一笔报销',
+        movedTransactionTo: (reportUrl: string, reportName: string) => `已将此报销移动到 <a href="${reportUrl}">${reportName}</a>`,
+        movedTransactionToAnotherReport: '已将此报销移动到另一份报表',
+        movedTransactionFrom: (reportUrl: string, reportName: string) => `已将此报销从 <a href="${reportUrl}">${reportName}</a> 中移出`,
+        movedTransactionFromAnotherReport: '已将此报销从另一份报表中移出',
         unreportedTransaction: (reportUrl: string) => `已将此报销移动到你的<a href="${reportUrl}">个人空间</a>`,
         movedAction: (shouldHideMovedReportUrl: boolean, movedReportUrl: string, newParentReportUrl: string, toPolicyName: string) => {
             if (shouldHideMovedReportUrl) {
@@ -1396,6 +1399,8 @@ const translations: TranslationDeepObject<typeof en> = {
             receiptDeleteFailureError: '删除此收据时发生意外错误。请稍后再试。',
             receiptFailureMessage: '<rbr>上传您的收据时出错。请<a href="download">保存收据</a>并在稍后<a href="retry">重试</a>。</rbr>',
             receiptFailureMessageShort: '上传您的收据时出错。',
+            receiptUploadFailedMessage: '收据上传失败。保存收据，或删除该支出并失去它。',
+            saveReceipt: '保存收据',
             genericDeleteFailureMessage: '删除此报销时发生意外错误。请稍后重试。',
             genericEditFailureMessage: '编辑此报销时发生意外错误。请稍后再试。',
             genericSmartscanFailureMessage: '交易缺少字段',
@@ -2402,6 +2407,7 @@ const translations: TranslationDeepObject<typeof en> = {
             revealDetails: '显示详细信息',
             revealCvv: '显示 CVV',
             copyCardNumber: '复制卡号',
+            copyCvv: '复制 CVV',
             updateAddress: '更新地址',
         },
         cardAddedToWallet: ({platform}: {platform: 'Google' | 'Apple'}) => `已添加到 ${platform} 钱包`,
@@ -2657,6 +2663,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         emptyAgents: {title: '尚未创建代理', subtitle: '别再手动处理这些事情了。交给智能代理去执行，为自己节省大量时间。'},
         error: {
             genericAdd: '添加此智能体时出现了问题',
+            genericUpdate: '更新此代理时出现问题',
+            updateName: '更新此代理名称时出现问题',
+            updatePrompt: '更新此代理的说明时出现问题',
+            updateAvatar: '更新此代理的头像时出现问题',
         },
     },
     addAgentPage: {
@@ -2664,11 +2674,22 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         agentName: '代理名称',
         instructions: '编写自定义说明',
         createAgent: '创建代理',
-        switchAvatar: '切换头像',
+        editAvatar: '切换头像',
         defaultAgentName: (displayName: string) => `${displayName} 的代理人`,
         defaultPrompt:
             '拒绝与赌博、电影或其他明显非商务原因相关的报销。\n\n提醒用户务必附上一张能清楚显示小费金额的收据图片。\n\n如果报销报告与同一用户之前的报告非常相似，则批准该报告。\n\n拒绝包含超过 500 美元差旅费用的报销报告。',
     },
+    editAgentPage: {
+        title: '编辑代理',
+        agentName: '代理人姓名',
+        instructions: '编写自定义说明',
+        deleteAgent: '删除代理',
+        deleteAgentTitle: '删除代理？',
+        deleteAgentMessage: '确定要删除此代理吗？此操作无法撤销。',
+    },
+    editAgentAvatarPage: {title: '编辑头像'},
+    editAgentNamePage: {title: '代理人姓名'},
+    editAgentPromptPage: {title: '编写自定义说明', error: {emptyPrompt: '请输入给您代理的指示。'}},
     expenseRulesPage: {
         title: '报销规则',
         findRule: '查找规则',
@@ -4218,6 +4239,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             travelInvoicingVendor: '差旅供应商',
             travelInvoicingPayableAccount: '差旅应付账户',
             hr: '人力资源',
+            rooms: '房间',
         },
         createdForClient: {
             title: '您已为客户创建了工作区！',
@@ -4436,6 +4458,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             notConfigured: '未配置',
             bankAccountDescription: '选择从哪里寄送支票。',
             creditCardAccount: '信用卡账户',
+            travelInvoicingDescription: '差旅费用将作为信用卡费用导出到下面指定的 QuickBooks Online 账户。',
             companyCardsLocationEnabledDescription: 'QuickBooks Online 不支持在供应商账单导出中使用地点。由于您在工作区中启用了地点功能，该导出选项不可用。',
             outOfPocketTaxEnabledDescription: 'QuickBooks Online 不支持在日记账分录导出中包含税费。由于你已在工作区中启用税费功能，因此无法使用此导出选项。',
             outOfPocketTaxEnabledError: '启用税费时无法使用日记账分录。请选择其他导出选项。',
@@ -5046,6 +5069,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             free: '免费',
             control: '控制',
             collect: '收款',
+            submit: '提交',
         },
         companyCards: {
             addCards: '添加卡片',
@@ -5390,8 +5414,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         subtitle: '恭喜！您已经可以在此工作区预订和管理差旅了。',
                         manageTravelLabel: '管理差旅',
                     },
-                    centralInvoicingSection: {
-                        title: '集中开票',
+                    travelInvoicingSection: {
+                        title: '差旅开票',
                         subtitle: '将所有差旅支出集中到每月发票中，而不是在购买时即时支付。',
                         learnHow: '了解方法。',
                         subsections: {
@@ -5406,7 +5430,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                             monthlySpendLimitDescription: '每位成员每月可用于出差的最高金额。',
                             reduceLimitTitle: '降低出差支出限额？',
                             reduceLimitWarning: '如果您降低限额，已超出该金额的成员将无法进行新的出差预订，直至下个月。',
-                            provisioningError: '我们无法为您工作区中的部分成员开通集中开票功能。请稍后重试或联系 Concierge 获得协助。',
+                            provisioningError: '我们无法为您的工作区中的部分成员开通差旅开票功能。请稍后重试或联系 Concierge 获取帮助。',
                         },
                     },
                     disableModal: {title: '关闭差旅开票？', body: '即将到来的酒店和汽车租赁预订可能需要使用不同的付款方式重新预订，以避免被取消。', confirm: '关闭'},
@@ -5416,7 +5440,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     exportToCSV: '导出为 CSV',
                     selectDateRangeError: '请选择要导出的日期范围',
                     invalidDateRangeError: '开始日期必须早于结束日期',
-                    enabled: '中央开票已启用！',
+                    enabled: '差旅开票已启用！',
                     enabledDescription: '此工作区的所有差旅支出现在将集中在一张月度发票中。',
                 },
                 personalDetailsDescription: '为预订行程，请输入您在政府签发的身份证件上显示的法定姓名。',
@@ -5575,7 +5599,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 subtitle: '为时间跟踪设置可计费的小时费率。',
                 defaultHourlyRate: '默认时薪',
             },
-            hrWarningModal: {disconnectText: '若要禁用人力资源功能，请先将 Gusto 与此工作区断开连接。'},
+            hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `若要禁用人力资源功能，请先将此工作区与 ${integration} 断开连接。`},
         },
         reports: {
             reportsCustomTitleExamples: '示例：',
@@ -6832,11 +6856,17 @@ ${reportName}
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
                     case 'gustoSyncTitle':
-                        return 'Synchronizing Gusto Employees';
+                        return '同步 Gusto 员工';
                     case 'gustoSyncLoadData':
-                        return 'Loading data from Gusto';
+                        return '正在从 Gusto 加载数据';
                     case 'gustoSyncProvisioning':
-                        return 'Provisioning employees in policy';
+                        return '在政策中为员工开通账号';
+                    case 'zenefitsSyncTitle':
+                        return '正在同步 TriNet 员工';
+                    case 'zenefitsSyncLoadData':
+                        return '正在从 TriNet 加载数据';
+                    case 'zenefitsSyncProvisioning':
+                        return '在政策中为员工开通账号';
                     case 'jobDone':
                         return '正在加载导入的数据';
                     default: {
@@ -6867,6 +6897,41 @@ ${reportName}
                 syncError: '无法连接到 Gusto',
                 disconnectTitle: '断开 Gusto',
                 disconnectPrompt: '确定要断开与 Gusto 的连接吗？',
+                syncResults: {
+                    title: 'Gusto 同步结果',
+                    successTitle: '已成功同步你的 Gusto 连接！',
+                    added: '已添加',
+                    removed: '已移除',
+                    skipped: '已跳过',
+                    employeeCount: () => ({
+                        one: '1 员工',
+                        other: (count: number) => `${count} 员工`,
+                    }),
+                },
+            },
+            zenefits: {
+                title: 'TriNet',
+                connect: '连接',
+                syncNow: '立即同步',
+                disconnect: '断开连接',
+                lastSync: (relativeDate: string) => `上次同步时间：${relativeDate}`,
+                syncError: '无法连接到 TriNet',
+                disconnectTitle: '断开 TriNet 连接',
+                disconnectPrompt: '确定要断开 TriNet 吗？',
+                connectionDescription: '连接 TriNet，将员工审批与你的工作区保持同步。',
+                approvalMode: '审批模式',
+                finalApprover: '最终审批人',
+                notSet: '未设置',
+                approvalModeDescription: '成员和管理者已设置为与 TriNet 同步。',
+                approvalModeWarningTitle: '更改审批模式？',
+                approvalModeWarningPrompt: (helpSiteURL: string) =>
+                    `您确定要更改此工作区的审批模式吗？在我们的<a href="${helpSiteURL}">帮助网站</a>中了解更多关于不同 TriNet 启用的工作流模式的信息。`,
+                approvalModeWarningConfirm: '更改审批模式',
+                approvalModes: {
+                    basic: {label: '基础审批', description: '所有用户都提交给同一个人进行处理和审批。'},
+                    manager: {label: '经理审批', description: '员工会将报销报告提交给在 TriNet 中配置的直属经理。'},
+                    custom: {label: '自定义审批', description: '我会在 Expensify 中手动设置审批流程。'},
+                },
             },
         },
     },
@@ -7505,7 +7570,7 @@ ${reportName}
         bulkActions: {
             editMultiple: '批量编辑',
             editMultipleTitle: '编辑多个费用',
-            editMultipleDescription: '更改将应用于所有选定的费用，并将覆盖之前设置的任何值。',
+            editMultipleDescription: '更改将应用于所有选中的报销，并覆盖任何先前设置的值。',
             approve: '批准',
             pay: '支付',
             delete: '删除',
@@ -7555,7 +7620,7 @@ ${reportName}
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `所有 ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `所有导入的 CSV 卡片${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
-                centralInvoicing: '集中开票',
+                travelInvoicing: '差旅开票',
             },
             reportField: (name: string, value: string) => `${name} 为 ${value}`,
             current: '当前',
@@ -7589,7 +7654,7 @@ ${reportName}
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify 卡',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: '报销',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: '集中开票',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: '差旅开票',
             },
             is: '是',
             action: {
@@ -7831,7 +7896,7 @@ ${reportName}
         oooEventSummaryFullDay: (summary: string, dayCount: number, date: string) => `${summary}，共计 ${dayCount} ${dayCount === 1 ? '天' : '天'}，截至 ${date}`,
         oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${summary}，时间范围：${timePeriod}，日期：${date}`,
         startTimer: '开始计时',
-        stopTimer: '停止计时器',
+        stopTimer: (duration: string) => `停止计时器 (${duration})`,
         scheduleOOO: '安排外出办公',
         scheduleOOOTitle: '安排外出办公',
         date: '日期',
@@ -7998,7 +8063,7 @@ ${reportName}
         personalCard: '个人银行卡',
         companyCard: '公司卡',
         expensifyCard: 'Expensify 卡',
-        centralInvoicing: '集中开票',
+        travelInvoicing: '差旅开票',
         travelCard: '旅行卡',
     },
     distance: {
@@ -8604,12 +8669,14 @@ ${reportName}
     },
     delegate: {
         switchAccount: '切换账户：',
+        switch: '切换',
+        copilot: 'Copilot',
         copilotDelegatedAccess: 'Copilot：委托访问',
         copilotDelegatedAccessDescription: '允许其他成员访问你的账户。',
         learnMoreAboutDelegatedAccess: '了解更多关于委托访问的信息',
         addCopilot: '添加副驾',
         membersCanAccessYourAccount: '这些成员可以访问你的账户：',
-        youCanAccessTheseAccounts: '您可以通过账户切换器访问这些账户：',
+        youCanAccessTheseAccounts: '您可以访问这些账户：',
         role: ({role}: OptionalParam<DelegateRoleParams> = {}) => {
             switch (role) {
                 case CONST.DELEGATE_ROLE.ALL:
@@ -8998,7 +9065,7 @@ ${reportName}
             noWorkspacesMessage: '此域上没有工作区。启用此限制需要一个工作区。',
             restrictDefaultLoginSelection: '限制默认登录选择',
             restrictDefaultLoginSelectionDescription: '防止成员将登录邮箱更改为公司域名以外的地址，以规避政策限制。',
-            expensifyCardPreferredWorkspaceDisabledMessage: '要使用此设置，必须启用首选工作区，并且域必须已设置 Expensify Card。',
+            expensifyCardPreferredWorkspaceDisabledMessage: '要启用此设置，请先启用一个首选工作区，并在您的域上完成 Expensify Cards 的设置。',
             findGroup: '查找群组',
         },
     },

@@ -71,9 +71,7 @@ const renderReportActionCompose = (props?: Partial<ReportActionComposeProps>) =>
     return render(
         <ReportScreenProviders>
             <ReportActionCompose
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...defaultProps}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             />
         </ReportScreenProviders>,
