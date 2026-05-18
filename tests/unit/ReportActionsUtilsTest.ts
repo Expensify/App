@@ -1,6 +1,6 @@
 import type {KeyValueMapping} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import {getLatestUserChronosTimerCommand, isChronosStartOrStopMessage, isChronosTimerRunningFromVisibleActions, isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
+import {getTimeOfChronosTimerRunningFromVisibleActions, isChronosStartOrStopMessage, isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
@@ -18,6 +18,7 @@ import {
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
     getCardIssuedMessage,
+    getCombinedReportActions,
     getCompanyAddressUpdateMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
     getCurrencyDefaultTaxUpdateMessage,
@@ -1723,6 +1724,106 @@ describe('ReportActionsUtils', () => {
 
             expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
         });
+
+        it('should not crash and should return false when originalMessage is a plain string (legacy/OldDot expense-update shape)', () => {
+            const legacyNotificationString = 'The August 31, 2021 expense has been updated with official data from an imported card';
+            const reportAction = {
+                created: '2021-08-31 10:00:00.000',
+                reportActionID: '8401445780099176',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: legacyNotificationString,
+                message: [
+                    {
+                        html: legacyNotificationString,
+                        type: 'COMMENT',
+                        text: legacyNotificationString,
+                    },
+                ],
+            } as unknown as ReportAction;
+
+            expect(() => ReportActionsUtils.isDeletedAction(reportAction)).not.toThrow();
+            expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
+        });
+
+        it('should not crash and should return false when message is a non-array string and originalMessage is missing', () => {
+            const legacyNotificationString = 'The August 31, 2021 expense has been updated with official data from an imported card';
+            const reportAction = {
+                created: '2021-08-31 10:00:00.000',
+                reportActionID: '8401445780099177',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: legacyNotificationString,
+            } as unknown as ReportAction;
+
+            expect(() => ReportActionsUtils.isDeletedAction(reportAction)).not.toThrow();
+            expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
+        });
+    });
+
+    describe('getFirstVisibleReportActionID', () => {
+        it('does not crash when sortedReportActions contains a legacy action whose originalMessage is a string', () => {
+            const legacyNotificationString = 'The August 31, 2021 expense has been updated with official data from an imported card';
+            const createdAction = {
+                created: '2021-08-31 09:00:00.000',
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                message: [{html: '__FAKE__', type: 'COMMENT', text: '__FAKE__'}],
+            } as unknown as ReportAction;
+
+            const legacyExpenseUpdateAction = {
+                created: '2021-08-31 10:00:00.000',
+                reportActionID: '2',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: legacyNotificationString,
+                message: [{html: legacyNotificationString, type: 'COMMENT', text: legacyNotificationString}],
+            } as unknown as ReportAction;
+
+            const visibleAction = {
+                created: '2021-08-31 11:00:00.000',
+                reportActionID: '3',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {html: 'Hello', whisperedTo: []},
+                message: [{html: 'Hello', type: 'COMMENT', text: 'Hello'}],
+            } as unknown as ReportAction;
+
+            // Mirror the production sort used by getSortedReportActionsForDisplay (descending, CREATED last)
+            // so this test exercises the same ordering invariant the helper relies on.
+            const sorted = ReportActionsUtils.getSortedReportActions([createdAction, legacyExpenseUpdateAction, visibleAction], true);
+
+            expect(() => ReportActionsUtils.getFirstVisibleReportActionID(sorted)).not.toThrow();
+            expect(ReportActionsUtils.getFirstVisibleReportActionID(sorted)).toBe(legacyExpenseUpdateAction.reportActionID);
+        });
+    });
+
+    describe('getOriginalMessage', () => {
+        it('returns undefined when the underlying originalMessage is a plain string (legacy shape)', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                reportActionID: 'legacy-1',
+                originalMessage: 'plain string from legacy backend',
+            } as unknown as ReportAction;
+
+            expect(getOriginalMessage(reportAction)).toBeUndefined();
+        });
+
+        it('returns undefined when message is a non-array string and originalMessage is missing', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                reportActionID: 'legacy-2',
+                message: 'plain string from legacy backend',
+            } as unknown as ReportAction;
+
+            expect(getOriginalMessage(reportAction)).toBeUndefined();
+        });
+
+        it('returns the object when originalMessage is object-shaped', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                reportActionID: 'shaped-1',
+                originalMessage: {html: 'hi', whisperedTo: []},
+            } as unknown as ReportAction;
+
+            expect(getOriginalMessage(reportAction)).toEqual({html: 'hi', whisperedTo: []});
+        });
     });
 
     describe('getRenamedAction', () => {
@@ -1850,18 +1951,23 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe(false);
         });
 
-        it('should return true for moved transaction if the report destination is available', async () => {
-            // Given a moved transaction action but the report destination is available
-            const report: Report = createRandomReport(2, undefined);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+        it('should return true for moved transaction if the report destination is available', () => {
+            // Given a moved transaction action with a valid message
             const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
                 reportActionID: '1',
                 created: '2025-09-29',
                 originalMessage: {
-                    toReportID: report.reportID,
+                    toReportID: '2',
                     fromReportID: '1',
                 },
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'moved',
+                        text: 'moved',
+                    },
+                ],
             };
 
             // Then the action should be visible
@@ -4678,10 +4784,10 @@ describe('ReportActionsUtils', () => {
         });
     });
 
-    describe('getLatestUserChronosTimerCommand', () => {
+    describe('getTimeOfChronosTimerRunningFromVisibleActions', () => {
         const currentUserAccountID = 100;
 
-        function makeUserTimerComment(text: string, actorAccountID: number, overrides: Partial<ReportAction> = {}): ReportAction {
+        function makeUserTimerComment(text: string, actorAccountID: number = currentUserAccountID, overrides: Partial<ReportAction> = {}): ReportAction {
             return getFakeReportAction(actorAccountID, {
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                 actorAccountID,
@@ -4691,30 +4797,31 @@ describe('ReportActionsUtils', () => {
         }
 
         it('returns null when there are no matching comments', () => {
-            expect(getLatestUserChronosTimerCommand([], currentUserAccountID)).toBe(null);
-            expect(getLatestUserChronosTimerCommand([makeUserTimerComment('hello', currentUserAccountID)], currentUserAccountID)).toBe(null);
+            expect(getTimeOfChronosTimerRunningFromVisibleActions([], currentUserAccountID)).toBeNull();
+            expect(getTimeOfChronosTimerRunningFromVisibleActions([makeUserTimerComment('hello')], currentUserAccountID)).toBeNull();
         });
 
-        it('returns the newest matching command when sorted newest-first', () => {
+        it('returns the created timestamp of the newest start command when sorted newest-first', () => {
+            const startCreated = '2024-01-03 10:00:00.000';
             const sortedNewestFirst = [
-                makeUserTimerComment('start', currentUserAccountID, {reportActionID: '3', created: '2024-01-03 10:00:00.000'}),
+                makeUserTimerComment('start', currentUserAccountID, {reportActionID: '3', created: startCreated}),
                 makeUserTimerComment('stop', currentUserAccountID, {reportActionID: '2', created: '2024-01-02 10:00:00.000'}),
                 makeUserTimerComment('start', currentUserAccountID, {reportActionID: '1', created: '2024-01-01 10:00:00.000'}),
             ];
-            expect(getLatestUserChronosTimerCommand(sortedNewestFirst, currentUserAccountID)).toBe(CONST.CHRONOS.TIMER_COMMAND.START);
+            expect(getTimeOfChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBe(startCreated);
         });
 
-        it('returns stop when the newest timer command is stop', () => {
+        it('returns null when the newest timer command is stop', () => {
             const sortedNewestFirst = [
                 makeUserTimerComment('stopped', currentUserAccountID, {reportActionID: '2', created: '2024-01-02 10:00:00.000'}),
                 makeUserTimerComment('start', currentUserAccountID, {reportActionID: '1', created: '2024-01-01 10:00:00.000'}),
             ];
-            expect(getLatestUserChronosTimerCommand(sortedNewestFirst, currentUserAccountID)).toBe(CONST.CHRONOS.TIMER_COMMAND.STOP);
+            expect(getTimeOfChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBeNull();
         });
 
         it('ignores comments from other users', () => {
             const sortedNewestFirst = [makeUserTimerComment('start', 999, {reportActionID: '2'}), makeUserTimerComment('hello', currentUserAccountID, {reportActionID: '1'})];
-            expect(getLatestUserChronosTimerCommand(sortedNewestFirst, currentUserAccountID)).toBe(null);
+            expect(getTimeOfChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBeNull();
         });
 
         it('ignores non-ADD_COMMENT actions', () => {
@@ -4725,34 +4832,7 @@ describe('ReportActionsUtils', () => {
                     message: [{html: 'start', isDeletedParentAction: false, isEdited: false, text: 'start', type: 'TEXT', whisperedTo: []}],
                 }),
             ];
-            expect(getLatestUserChronosTimerCommand(sortedNewestFirst, currentUserAccountID)).toBe(null);
-        });
-    });
-
-    describe('isChronosTimerRunningFromVisibleActions', () => {
-        const currentUserAccountID = 200;
-
-        function makeUserTimerComment(text: string, overrides: Partial<ReportAction> = {}): ReportAction {
-            return getFakeReportAction(currentUserAccountID, {
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                actorAccountID: currentUserAccountID,
-                message: [{html: text, isDeletedParentAction: false, isEdited: false, text, type: 'TEXT', whisperedTo: []}],
-                ...overrides,
-            });
-        }
-
-        it('returns true when the latest user timer command is start', () => {
-            const sortedNewestFirst = [makeUserTimerComment('start', {reportActionID: '2'}), makeUserTimerComment('stop', {reportActionID: '1'})];
-            expect(isChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBe(true);
-        });
-
-        it('returns false when the latest user timer command is stop', () => {
-            const sortedNewestFirst = [makeUserTimerComment('stop', {reportActionID: '2'}), makeUserTimerComment('start', {reportActionID: '1'})];
-            expect(isChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBe(false);
-        });
-
-        it('returns false when there is no timer command', () => {
-            expect(isChronosTimerRunningFromVisibleActions([makeUserTimerComment('stats')], currentUserAccountID)).toBe(false);
+            expect(getTimeOfChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBeNull();
         });
     });
 
@@ -5052,6 +5132,118 @@ describe('ReportActionsUtils', () => {
         it('returns undefined when the agent firstName is only whitespace so the generic fallback can be used', () => {
             const action = makeConciergeAction({humanAgentAccountID: HUMAN_AGENT_ACCOUNT_ID});
             expect(getHumanAgentFirstName(action, makePersonalDetails('   '))).toBeUndefined();
+        });
+    });
+
+    describe('getCombinedReportActions', () => {
+        const makeAction = (id: string, actionName: string, created: string, overrides: Partial<ReportAction> = {}): ReportAction =>
+            ({
+                reportActionID: id,
+                actionName,
+                created,
+                message: [{type: 'TEXT', html: '', text: '', isEdited: false, isDeletedParentAction: false}],
+                ...overrides,
+            }) as unknown as ReportAction;
+
+        const makeIOUAction = (id: string, created: string, type: string, hasIOUDetails = false): ReportAction =>
+            makeAction(id, CONST.REPORT.ACTIONS.TYPE.IOU, created, {
+                originalMessage: {
+                    type,
+                    ...(hasIOUDetails ? {IOUDetails: {amount: 100, currency: 'USD'}} : {}),
+                },
+            } as Partial<ReportAction>);
+
+        it('returns original reportActions when transactionThreadReportID is null', () => {
+            const actions = [makeAction('1', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '2024-01-01 10:00:00')];
+            const result = getCombinedReportActions(actions, null, []);
+            expect(result).toEqual(actions);
+        });
+
+        it('returns original reportActions for sent money reports', () => {
+            const sentMoneyAction = makeIOUAction('1', '2024-01-01 10:00:00', CONST.IOU.REPORT_ACTION_TYPE.PAY, true);
+            const actions = [sentMoneyAction];
+            const result = getCombinedReportActions(actions, 'txnThread1', [makeAction('2', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '2024-01-01 11:00:00')]);
+            expect(result).toEqual(actions);
+        });
+
+        it('combines and sorts actions from parent and transaction thread', () => {
+            const parentCreated = makeAction('1', CONST.REPORT.ACTIONS.TYPE.CREATED, '2024-01-01 08:00:00');
+            const parentComment = makeAction('2', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '2024-01-01 10:00:00');
+            const txnComment = makeAction('3', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '2024-01-01 09:00:00');
+            const txnCreated = makeAction('4', CONST.REPORT.ACTIONS.TYPE.CREATED, '2024-01-01 09:30:00');
+
+            const result = getCombinedReportActions([parentCreated, parentComment], 'txnThread1', [txnCreated, txnComment]);
+
+            // parentCreated should be kept since it's older; txnCreated should be filtered out
+            // Result should be sorted descending by created, with CREATED last
+            const resultIDs = result.map((a) => a.reportActionID);
+            expect(resultIDs).toContain('1');
+            expect(resultIDs).toContain('2');
+            expect(resultIDs).toContain('3');
+        });
+
+        it('keeps transaction thread CREATED when it is older than parent CREATED', () => {
+            const parentCreated = makeAction('1', CONST.REPORT.ACTIONS.TYPE.CREATED, '2024-01-01 10:00:00');
+            const txnCreated = makeAction('2', CONST.REPORT.ACTIONS.TYPE.CREATED, '2024-01-01 08:00:00');
+
+            const result = getCombinedReportActions([parentCreated], 'txnThread1', [txnCreated]);
+            const actionNames = result.map((a) => a.actionName);
+            // Only one CREATED should be present
+            expect(actionNames.filter((name) => name === CONST.REPORT.ACTIONS.TYPE.CREATED).length).toBe(1);
+        });
+
+        it('filters out IOU CREATE actions in non-selfDM context', () => {
+            const parentCreated = makeAction('1', CONST.REPORT.ACTIONS.TYPE.CREATED, '2024-01-01 08:00:00');
+            const iouCreateAction = makeIOUAction('2', '2024-01-01 09:00:00', CONST.IOU.REPORT_ACTION_TYPE.CREATE);
+            const txnComment = makeAction('3', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '2024-01-01 10:00:00');
+
+            const result = getCombinedReportActions([parentCreated, iouCreateAction], 'txnThread1', [txnComment]);
+            const resultIDs = result.map((a) => a.reportActionID);
+            expect(resultIDs).not.toContain('2');
+        });
+
+        it('filters out IOU TRACK actions in non-selfDM context', () => {
+            const parentCreated = makeAction('1', CONST.REPORT.ACTIONS.TYPE.CREATED, '2024-01-01 08:00:00');
+            const iouTrackAction = makeIOUAction('2', '2024-01-01 09:00:00', CONST.IOU.REPORT_ACTION_TYPE.TRACK);
+            const txnComment = makeAction('3', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '2024-01-01 10:00:00');
+
+            const result = getCombinedReportActions([parentCreated, iouTrackAction], 'txnThread1', [txnComment]);
+            const resultIDs = result.map((a) => a.reportActionID);
+            expect(resultIDs).not.toContain('2');
+        });
+
+        it('keeps IOU TRACK actions in selfDM context', () => {
+            const parentCreated = makeAction('1', CONST.REPORT.ACTIONS.TYPE.CREATED, '2024-01-01 08:00:00');
+            const iouTrackAction = makeIOUAction('2', '2024-01-01 09:00:00', CONST.IOU.REPORT_ACTION_TYPE.TRACK);
+            const txnComment = makeAction('3', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '2024-01-01 10:00:00');
+
+            const result = getCombinedReportActions([parentCreated, iouTrackAction], 'txnThread1', [txnComment], true);
+            const resultIDs = result.map((a) => a.reportActionID);
+            expect(resultIDs).toContain('2');
+        });
+
+        it('filters out IOU CREATE actions even in selfDM context', () => {
+            const parentCreated = makeAction('1', CONST.REPORT.ACTIONS.TYPE.CREATED, '2024-01-01 08:00:00');
+            const iouCreateAction = makeIOUAction('2', '2024-01-01 09:00:00', CONST.IOU.REPORT_ACTION_TYPE.CREATE);
+            const txnComment = makeAction('3', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '2024-01-01 10:00:00');
+
+            const result = getCombinedReportActions([parentCreated, iouCreateAction], 'txnThread1', [txnComment], true);
+            const resultIDs = result.map((a) => a.reportActionID);
+            expect(resultIDs).not.toContain('2');
+        });
+
+        it('passes report parameter correctly to determine selfDM behavior', () => {
+            const parentCreated = makeAction('1', CONST.REPORT.ACTIONS.TYPE.CREATED, '2024-01-01 08:00:00');
+            const iouTrackAction = makeIOUAction('2', '2024-01-01 09:00:00', CONST.IOU.REPORT_ACTION_TYPE.TRACK);
+            const txnComment = makeAction('3', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '2024-01-01 10:00:00');
+
+            // Without report - TRACK should be filtered
+            const resultWithoutReport = getCombinedReportActions([parentCreated, iouTrackAction], 'txnThread1', [txnComment], false);
+            expect(resultWithoutReport.map((a) => a.reportActionID)).not.toContain('2');
+
+            // With selfDM report - TRACK should be kept
+            const resultWithReport = getCombinedReportActions([parentCreated, iouTrackAction], 'txnThread1', [txnComment], true);
+            expect(resultWithReport.map((a) => a.reportActionID)).toContain('2');
         });
     });
 

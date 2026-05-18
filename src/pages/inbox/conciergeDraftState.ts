@@ -263,5 +263,5 @@ function applyConciergeDraftEvent(currentDraft: ConciergeDraft | null, event: Co
     };
 }
 
-export {applyConciergeDraftEvent, buildConciergeDraftReportAction, getCachedDraft, setCachedDraft, stripIncompleteMarkdown};
+export {applyConciergeDraftEvent, getCachedDraft, setCachedDraft, stripIncompleteMarkdown};
 export type {ConciergeDraft};

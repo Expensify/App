@@ -24,13 +24,16 @@ type ApprovalWorkflowSectionProps = {
     approvalWorkflow: ApprovalWorkflow;
 
     /** A function that is called when the section is pressed */
-    onPress: () => void;
+    onPress?: () => void;
 
     /** Currency used for formatting approval limits */
     currency?: string;
+
+    /** Whether the workflow should be shown as read-only */
+    isDisabled?: boolean;
 };
 
-function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CURRENCY.USD}: ApprovalWorkflowSectionProps) {
+function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CURRENCY.USD, isDisabled = false}: ApprovalWorkflowSectionProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Lightbulb', 'Users', 'UserCheck']);
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -51,12 +54,14 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
         displayName: m.displayName,
         email: m.email,
     }));
+    const pressAction = isDisabled ? undefined : onPress;
+
     return (
         <PressableWithoutFeedback
-            accessibilityRole="button"
+            accessibilityRole={isDisabled ? undefined : 'button'}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.APPROVAL_WORKFLOW_SECTION}
             style={[styles.border, shouldUseNarrowLayout ? styles.p3 : styles.p4, styles.flexRow, styles.justifyContentBetween, styles.mt6, styles.mbn3]}
-            onPress={onPress}
+            onPress={pressAction}
             accessibilityLabel={translate('workflowsPage.accessibilityLabel', {
                 members,
                 approvers: approvalWorkflow?.approvers.map((approver) => Str.removeSMSDomain(approver?.displayName ?? '')).join(', '),
@@ -92,7 +97,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
                     iconHeight={20}
                     iconWidth={20}
                     iconFill={theme.icon}
-                    onPress={onPress}
+                    onPress={pressAction}
                     shouldRemoveBackground
                     titleComponent={
                         !approvalWorkflow.isDefault ? (
@@ -120,7 +125,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
                             iconWidth={20}
                             numberOfLinesDescription={1}
                             iconFill={theme.icon}
-                            onPress={onPress}
+                            onPress={pressAction}
                             shouldRemoveBackground
                             titleComponent={
                                 <View style={[styles.ml3, styles.pr3]}>
@@ -139,11 +144,13 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
                     </View>
                 ))}
             </View>
-            <Icon
-                src={icons.ArrowRight}
-                fill={theme.icon}
-                additionalStyles={[styles.alignSelfCenter]}
-            />
+            {!isDisabled && (
+                <Icon
+                    src={icons.ArrowRight}
+                    fill={theme.icon}
+                    additionalStyles={[styles.alignSelfCenter]}
+                />
+            )}
         </PressableWithoutFeedback>
     );
 }
