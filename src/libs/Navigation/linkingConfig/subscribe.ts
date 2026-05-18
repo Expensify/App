@@ -1,6 +1,7 @@
 import type {LinkingOptions} from '@react-navigation/native';
 import {findFocusedRoute} from '@react-navigation/native';
 import {Linking} from 'react-native';
+import {hasAuthToken} from '@libs/actions/Session';
 import continuePlaidOAuth from '@libs/continuePlaidOAuth';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -40,6 +41,11 @@ const subscribe: LinkingOptions<RootNavigatorParamList>['subscribe'] = (listener
         // NAVIGATE action error. DeepLinkHandler handles authenticated URLs separately via
         // openReportFromDeepLink after sign-in completes.
         if (!Navigation.navContainsProtectedRoutes(navigationRef.current?.getRootState()) && !isPublicScreenRoute(getRouteFromLink(url))) {
+            // If the user is already authenticated, AuthScreens is about to mount (lazy-load).
+            // Queue the URL so it's forwarded once the navigator is ready instead of dropping it.
+            if (hasAuthToken()) {
+                Navigation.waitForProtectedRoutes().then(() => listener(url));
+            }
             return;
         }
         listener(url);
