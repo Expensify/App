@@ -461,6 +461,7 @@ function NumberWithSymbolForm({
                     <Button
                         small
                         icon={icons.CoinsButton}
+                        iconAccessibilityLabel={translate('common.currency')}
                         onPress={onTrailingDropdownPress}
                         iconWrapperStyles={styles.justifyContentCenter}
                         text={currencyOrUnitButtonText}
@@ -603,6 +604,7 @@ function NumberWithSymbolForm({
                                 <Button
                                     small
                                     icon={icons.CoinsButton}
+                                    iconAccessibilityLabel={translate('common.currency')}
                                     onPress={onSymbolButtonPress}
                                     style={styles.minWidth18}
                                     iconWrapperStyles={styles.justifyContentCenter}
@@ -682,6 +684,7 @@ function NumberWithSymbolForm({
                             <Button
                                 small
                                 icon={icons.CoinsButton}
+                                iconAccessibilityLabel={translate('common.currency')}
                                 onPress={onSymbolButtonPress}
                                 style={styles.minWidth18}
                                 iconWrapperStyles={styles.justifyContentCenter}
@@ -707,6 +710,7 @@ function NumberWithSymbolForm({
                     <Button
                         small
                         icon={icons.CoinsButton}
+                        iconAccessibilityLabel={translate('common.currency')}
                         onPress={onSymbolButtonPress}
                         style={styles.minWidth18}
                         iconWrapperStyles={styles.justifyContentCenter}
