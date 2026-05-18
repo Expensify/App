@@ -138,7 +138,6 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
                             return (
                                 <ToggleSettingOptionRow
                                     key={key}
-                                    // eslint-disable-next-line react/jsx-props-no-spreading
                                     {...rest}
                                     wrapperStyle={[styles.mv3, styles.ph5]}
                                 />

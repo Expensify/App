@@ -129,4 +129,3 @@ function useReportPreviewSenderID({iouReport, action, chatReport}: {action: Onyx
 
 export default useReportPreviewSenderID;
 export {getReportPreviewSenderID};
-export type {GetReportPreviewSenderIDParams};

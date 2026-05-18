@@ -652,7 +652,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                         <MenuItem
                                             brickRoadIndicator={menuItem.brickRoadIndicator}
                                             key={menuItem.title}
-                                            // eslint-disable-next-line react/jsx-props-no-spreading
                                             {...menuItem}
                                         />
                                     </OfflineWithFeedback>
@@ -733,10 +732,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 function PolicyAccountingPageWrapper(props: PolicyAccountingPageProps) {
     return (
         <AccountingContextProvider policy={props.policy}>
-            <PolicyAccountingPage
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
-            />
+            <PolicyAccountingPage {...props} />
         </AccountingContextProvider>
     );
 }
