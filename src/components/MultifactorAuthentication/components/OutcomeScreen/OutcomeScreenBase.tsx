@@ -25,6 +25,13 @@ type OutcomeScreenBaseProps = {
     subtitle?: string;
     customSubtitle?: React.ReactElement;
     padding?: ViewStyle;
+    /**
+     * Override the back/confirm button handler. Defaults to closing the
+     * surrounding RHP. Hosts that need a different dismiss path (e.g. the
+     * AuthorizeTransactionPage rendering the deny outcome inline) should
+     * supply their own callback so the press doesn't get swallowed.
+     */
+    onClose?: () => void;
 };
 
 function HTMLSubtitle({htmlString = '', style}: {htmlString?: string; style?: ViewStyle}) {
@@ -45,14 +52,16 @@ function HTMLSubtitle({htmlString = '', style}: {htmlString?: string; style?: Vi
     );
 }
 
-function OutcomeScreenBase({headerTitle, illustration, iconWidth, iconHeight, title, subtitle, customSubtitle, padding}: OutcomeScreenBaseProps) {
+function OutcomeScreenBase({headerTitle, illustration, iconWidth, iconHeight, title, subtitle, customSubtitle, padding, onClose: onCloseOverride}: OutcomeScreenBaseProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {asset: icon} = useMemoizedLazyAsset(() => loadIllustration(illustration));
 
-    const onClose = () => {
-        Navigation.closeRHPFlow();
-    };
+    const onClose =
+        onCloseOverride ??
+        (() => {
+            Navigation.closeRHPFlow();
+        });
 
     const CustomSubtitle = customSubtitle ?? (
         <HTMLSubtitle
