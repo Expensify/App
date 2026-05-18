@@ -49,7 +49,6 @@ import {
     canShowReportRecipientLocalTime,
     canUserPerformWriteAction,
     chatIncludesChronosWithID,
-    getOriginalReportID,
     getReportLastVisibleActionCreated,
     isArchivedNonExpenseReport,
     isCanceledTaskReport,
@@ -80,6 +79,7 @@ import ShowPreviousMessagesButton from './ShowPreviousMessagesButton';
 import StaticReportActionsPreview from './StaticReportActionsPreview';
 import useReportActionsNewActionLiveTail from './useReportActionsNewActionLiveTail';
 import useReportUnreadMessageScrollTracking from './useReportUnreadMessageScrollTracking';
+import useShouldShowComposerForActiveEditDraft from './useShouldShowComposerForActiveEditDraft';
 
 type ReportActionsListProps = {
     /** The report currently being looked at */
@@ -208,7 +208,6 @@ function ReportActionsList({
 
     const isAnonymousUser = useIsAnonymousUser();
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const [reportActionsFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`);
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
@@ -771,8 +770,6 @@ function ReportActionsList({
 
     const renderItem = useCallback(
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
-            const originalReportID = getOriginalReportID(report.reportID, reportAction, reportActionsFromOnyx);
-
             // Use the action's actual index in sortedVisibleReportActions rather than the FlashList-provided index,
             // because useFlashListScrollKey may slice the data for deep-link scroll positioning, making the
             // FlashList index offset from the full array and causing wrong displayAsGroup computation.
@@ -798,7 +795,6 @@ function ReportActionsList({
                         isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                         shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                         personalDetails={personalDetailsList}
-                        originalReportID={originalReportID}
                         isReportArchived={isReportArchived}
                         userBillingFundID={userBillingFundID}
                         isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
@@ -816,28 +812,27 @@ function ReportActionsList({
             );
         },
         [
+            actionIndexMap,
+            firstVisibleReportActionID,
+            hasPreviousMessages,
+            isOffline,
+            isReportArchived,
+            isTryNewDotNVPDismissed,
+            linkedReportActionID,
+            onShowPreviousMessages,
             parentReportAction,
             parentReportActionForTransactionThread,
-            report,
-            isOffline,
-            transactionThreadReport,
-            linkedReportActionID,
-            actionIndexMap,
-            renderedVisibleReportActions,
-            shouldHideThreadDividerLine,
-            unreadMarkerReportActionID,
-            firstVisibleReportActionID,
-            shouldUseThreadDividerLine,
             personalDetailsList,
-            userBillingFundID,
-            isTryNewDotNVPDismissed,
-            isReportArchived,
+            renderedVisibleReportActions,
+            report,
             reportNameValuePairs?.origin,
             reportNameValuePairs?.originalID,
-            reportActionsFromOnyx,
+            shouldHideThreadDividerLine,
+            shouldUseThreadDividerLine,
             showHiddenHistory,
-            hasPreviousMessages,
-            onShowPreviousMessages,
+            transactionThreadReport,
+            unreadMarkerReportActionID,
+            userBillingFundID,
         ],
     );
 
@@ -847,7 +842,8 @@ function ReportActionsList({
         () => [shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined, isArchivedNonExpenseReport(report, isReportArchived), draftReportAction?.reportActionID, draftMessageHTML],
         [draftMessageHTML, draftReportAction?.reportActionID, unreadMarkerReportActionID, shouldUseNarrowLayout, report, isReportArchived],
     );
-    const hideComposer = !canUserPerformWriteAction(report, isReportArchived);
+    const shouldShowComposerForActiveEditDraft = useShouldShowComposerForActiveEditDraft();
+    const hideComposer = !canUserPerformWriteAction(report, isReportArchived) && !shouldShowComposerForActiveEditDraft;
     const shouldShowReportRecipientLocalTime = canShowReportRecipientLocalTime(personalDetailsList, report, currentUserAccountID) && !isComposerFullSize;
     const canShowHeader = isOffline || hasHeaderRendered.current;
 

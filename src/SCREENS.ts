@@ -117,6 +117,7 @@ const SCREENS = {
         ROOT: 'Settings_Root',
         SHARE_CODE: 'Settings_Share_Code',
         SECURITY: 'Settings_Security',
+        COPILOT: 'Settings_Copilot',
         ABOUT: 'Settings_About',
         SAVE_THE_WORLD: 'Settings_TeachersUnite',
         APP_DOWNLOAD_LINKS: 'Settings_App_Download_Links',
@@ -162,8 +163,6 @@ const SCREENS = {
             DATE_OF_BIRTH: 'Settings_DateOfBirth',
             PHONE_NUMBER: 'Settings_PhoneNumber',
             ADDRESS: 'Settings_Address',
-            PRIVATE_PERSONAL_DETAILS: 'Settings_PrivatePersonalDetails',
-            PRIVATE_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE: 'Settings_PrivatePersonalDetails_ConfirmMagicCode',
             AVATAR: 'Settings_Avatar',
             DYNAMIC_ADDRESS_COUNTRY: 'Dynamic_Address_Country',
             ADDRESS_STATE: 'Settings_Address_State',
@@ -180,9 +179,11 @@ const SCREENS = {
         AGENTS: {
             ROOT: 'Settings_Agents',
             ADD: 'Settings_Agents_Add',
+            ADD_AVATAR: 'Settings_Agents_Add_Avatar',
             EDIT: 'Settings_Agents_Edit',
             EDIT_NAME: 'Settings_Agents_Edit_Name',
             EDIT_PROMPT: 'Settings_Agents_Edit_Prompt',
+            EDIT_AVATAR: 'Settings_Agents_Edit_Avatar',
         },
 
         RULES: {
@@ -752,6 +753,7 @@ const SCREENS = {
         INVOICES_COMPANY_NAME: 'Workspace_Invoices_Company_Name',
         INVOICES_COMPANY_WEBSITE: 'Workspace_Invoices_Company_Website',
         MEMBERS: 'Workspace_Members',
+        ROOMS: 'Workspace_Rooms',
         MEMBERS_IMPORT: 'Members_Import',
         MEMBERS_IMPORTED: 'Members_Imported',
         MEMBERS_IMPORTED_CONFIRMATION: 'Members_Imported_Confirmation',

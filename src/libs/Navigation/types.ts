@@ -81,10 +81,6 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.TIMEZONE_SELECT]: undefined;
     [SCREENS.SETTINGS.PROFILE.LEGAL_NAME]: undefined;
     [SCREENS.SETTINGS.PROFILE.DATE_OF_BIRTH]: undefined;
-    [SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS]: {
-        fieldToFocus?: string;
-    };
-    [SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE]: undefined;
     [SCREENS.SETTINGS.PROFILE.ADDRESS]: {
         country?: Country | '';
     };
@@ -248,6 +244,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.BANK_ACCOUNT_PURPOSE]: undefined;
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.AGENTS.ADD]: undefined;
+    [SCREENS.SETTINGS.AGENTS.ADD_AVATAR]: undefined;
     [SCREENS.SETTINGS.AGENTS.EDIT]: {
         accountID: number;
     };
@@ -255,6 +252,9 @@ type SettingsNavigatorParamList = {
         accountID: number;
     };
     [SCREENS.SETTINGS.AGENTS.EDIT_PROMPT]: {
+        accountID: number;
+    };
+    [SCREENS.SETTINGS.AGENTS.EDIT_AVATAR]: {
         accountID: number;
     };
     [SCREENS.SETTINGS.RULES.ADD]: undefined;
@@ -2658,6 +2658,7 @@ type SettingsSplitNavigatorParamList = {
     [SCREENS.SETTINGS.ROOT]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.ROOT]: undefined;
     [SCREENS.SETTINGS.SECURITY]: undefined;
+    [SCREENS.SETTINGS.COPILOT]: undefined;
     [SCREENS.SETTINGS.PROFILE.ROOT]?: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
@@ -2773,6 +2774,9 @@ type WorkspaceSplitNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.MEMBERS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ROOMS]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.CATEGORIES]: {
