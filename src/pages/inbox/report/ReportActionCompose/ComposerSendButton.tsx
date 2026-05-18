@@ -13,7 +13,7 @@ import useComposerSubmit from './useComposerSubmit';
 function ComposerSendButton({reportID}: {reportID: string}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Send']);
+    const icons = useMemoizedLazyExpensifyIcons(['Send', 'Checkmark']);
 
     const {isEditingInComposer} = useComposerEditState();
     const {isSendDisabled} = useComposerSendState();
@@ -29,7 +29,8 @@ function ComposerSendButton({reportID}: {reportID: string}) {
         })
         .runOnJS(true);
 
-    const accessibilityLabel = translate(isEditingInComposer ? 'common.saveChanges' : 'common.send');
+    const label = translate(isEditingInComposer ? 'common.saveChanges' : 'common.send');
+    const icon = isEditingInComposer ? icons.Checkmark : icons.Send;
 
     return (
         <View
@@ -47,15 +48,14 @@ function ComposerSendButton({reportID}: {reportID: string}) {
                     // In order to make buttons accessible, we have to wrap children in a View with accessible and accessibilityRole="button" props based on the docs: https://docs.swmansion.com/react-native-gesture-handler/docs/components/buttons/
                     accessible
                     role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={accessibilityLabel}
+                    accessibilityLabel={label}
                     collapsable={false}
                 >
                     <SubmitDraftButton
                         isDisabled={isSendDisabled}
-                        icon={icons.Send}
-                        label={translate('common.send')}
+                        icon={icon}
+                        label={label}
                         sentryLabel={CONST.SENTRY_LABEL.REPORT.SEND_BUTTON}
-                        onPress={submitDraftAndClearComposer}
                         // Since the parent View has accessible, we need to set accessible to false here to avoid duplicate accessibility elements.
                         // On Android when TalkBack is enabled, only the parent element should be accessible, otherwise the button will not work.
                         accessible={false}

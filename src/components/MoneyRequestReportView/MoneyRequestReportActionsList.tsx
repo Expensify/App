@@ -209,7 +209,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         reportID,
         reportActions,
         allReportActionIDs: reportActionIDs,
-        transactionThreadReport,
+        transactionThreadReportID,
         hasOlderActions,
         hasNewerActions,
         newestFetchedReportActionID: reportPaginationState?.newestFetchedReportActionID,

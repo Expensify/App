@@ -73,7 +73,6 @@ function PressableWithFeedback({
         >
             <GenericPressable
                 ref={ref}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
                 disabled={rest.disabled}
                 onHoverIn={(event) => {

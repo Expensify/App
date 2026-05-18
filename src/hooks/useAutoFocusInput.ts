@@ -2,7 +2,7 @@ import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import type {RefObject} from 'react';
 import type {TextInput} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
+// eslint-disable-next-line no-restricted-imports -- idiomatic defer primitive past navigation transitions.
 import {InteractionManager} from 'react-native';
 import Accessibility from '@libs/Accessibility';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
@@ -10,6 +10,8 @@ import {moveSelectionToEnd, scrollToBottom} from '@libs/InputUtils';
 import isWindowReadyToFocus from '@libs/isWindowReadyToFocus';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
+import {shouldSkipAutoFocusDueToExistingFocus} from '@libs/NavigationFocusReturn';
+import {Priorities, resetCycle, tryClaim} from '@libs/ScreenFocusArbiter';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {useSplashScreenState} from '@src/SplashScreenStateContext';
@@ -68,7 +70,25 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
             if (inputRef.current && isMultiline) {
                 moveSelectionToEnd(inputRef.current);
             }
-            isWindowReadyToFocus().then(() => inputRef.current?.focus());
+            isWindowReadyToFocus().then(() => {
+                // Null-ref claim would block fallbacks on the destination screen.
+                const input = inputRef.current;
+                if (!input) {
+                    return;
+                }
+                if (shouldSkipAutoFocusDueToExistingFocus()) {
+                    return;
+                }
+                if (!tryClaim(Priorities.AUTO)) {
+                    return;
+                }
+                // Silent no-op (RN-Web TextInput hidden/disabled) leaves AUTO claimed; release so INITIAL/RETURN aren't blocked for 2s.
+                const beforeActive = typeof document !== 'undefined' ? document.activeElement : null;
+                input.focus();
+                if (beforeActive !== null && document.activeElement === beforeActive) {
+                    resetCycle();
+                }
+            });
             setIsScreenTransitionEnded(false);
         });
 

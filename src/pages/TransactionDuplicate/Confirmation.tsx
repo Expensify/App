@@ -118,7 +118,6 @@ function Confirmation() {
             transactionThreadReport: report,
             action: reportAction,
             report,
-            isReportArchived: false,
             anchor: null,
             isDisabled: false,
         }),
