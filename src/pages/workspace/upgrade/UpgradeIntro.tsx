@@ -17,7 +17,7 @@ import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import CONST from '@src/CONST';
+import CONST, {SUBMIT_FEATURE_IDS} from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import GenericFeaturesView from './GenericFeaturesView';
@@ -46,10 +46,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
     const preferredCurrency = usePreferredCurrency();
     const hasTeam2025Pricing = useHasTeam2025Pricing();
 
-    const isSubmitFeature =
-        isSubmitPolicy &&
-        feature?.id &&
-        ['companyCardSubmit', 'travelSubmit', 'approvalSubmit', 'roles', 'payments', 'accounting', 'expensifyCard', 'invoicing'].includes(feature.id as string);
+    const isSubmitFeature = isSubmitPolicy && !!feature?.id && SUBMIT_FEATURE_IDS.has(feature.id);
 
     const formattedPrice = useMemo(() => {
         const upgradeCurrency = Object.hasOwn(CONST.SUBSCRIPTION_PRICES, preferredCurrency) ? preferredCurrency : CONST.PAYMENT_CARD_CURRENCY.USD;
