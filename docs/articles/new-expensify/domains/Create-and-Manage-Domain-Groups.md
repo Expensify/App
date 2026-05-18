@@ -19,8 +19,11 @@ Only **Domain Admins** can create and manage Domain Groups.
 
 ## Where to find Domain Groups
 
-1. Go to Workspaces using the navigation tabs (on the left on web, on the bottom on mobile). 
-2. Click **Workspaces > Domains**.
+1. Click the navigation tabs (on the left on web, on the bottom on mobile). 
+2. Click **Workspaces**.
+3. Click **Domains**.
+4. Choose your domain.
+5. Click **Groups**.
 3. Choose your domain.
 4. Click **Groups**.
 
@@ -30,14 +33,14 @@ Only **Domain Admins** can create and manage Domain Groups.
 
 To create a Domain Group: 
 
-1. Navigate to **Groups** inside your domain.
+1. From your domain page, click **Groups**.
 2. Click **Create group**.
 3. Configure the group settings.
 4. Click **Save**.
 
 ---
 
-## Domain Group permission settings explained
+## What each Domain Group permission setting controls
 
 When creating or editing a Domain Group, you can configure the following settings:
 
@@ -79,7 +82,7 @@ Enable **Restrict expense workspace creation/removal** to block unauthorized wor
 
 Enable **Restrict primary contact method selection** to ensure members use their company email address instead of a personal email. This improves domain security and access control.
 
-## How to automatically assign a default workspace
+## How to automatically route expenses to a Preferred workspace
 
 Set a **Preferred workspace** to automatically route expenses and reports for that group. If using the Expensify Card, enable **Expensify Card preferred workspace** to route card transactions as well.
 
