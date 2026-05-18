@@ -136,7 +136,7 @@ function getAllTransactionsForDuplicate({
     selectedTransactions,
     allTransactions,
     searchData,
-}: Pick<ShouldShowBulkDuplicateParams, 'selectedTransactionsKeys' | 'selectedTransactions' | 'allTransactions' | 'searchData'>): OnyxCollection<Transaction> {
+}: Pick<ShouldShowBulkDuplicateParams, 'selectedTransactionsKeys' | 'selectedTransactions' | 'allTransactions' | 'searchData'>): NonNullable<OnyxCollection<Transaction>> {
     const allTransactionsForDuplicate = {...(allTransactions ?? {})};
 
     for (const id of selectedTransactionsKeys) {
