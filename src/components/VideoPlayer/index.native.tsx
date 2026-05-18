@@ -11,7 +11,6 @@ function VideoPlayer({videoControlsStyle, shouldUseControlsBottomMargin = true, 
 
     return (
         <BaseVideoPlayer
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             isVideoHovered
             shouldUseSharedVideoElement={false}

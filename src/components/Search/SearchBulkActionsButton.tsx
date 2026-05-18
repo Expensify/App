@@ -10,6 +10,8 @@ import HoldSubmitterEducationalModal from '@components/HoldSubmitterEducationalM
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
+import ReportPDFDownloadModal from '@components/ReportPDFDownloadModal';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -52,6 +54,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
 
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {
         headerButtonsOptions,
         selectedPolicyIDs,
@@ -66,6 +69,10 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         emptyReportsCount,
         handleOfflineModalClose,
         handleDownloadErrorModalClose,
+        isPdfModalVisible,
+        setIsPdfModalVisible,
+        pdfReportID,
+        handlePdfModalHide,
         dismissModalAndUpdateUseHold,
         dismissRejectModalBasedOnAction,
         isDuplicateOptionVisible,
@@ -168,6 +175,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                         setPendingPaymentAdditionalData: (data) => {
                                             pendingPaymentAdditionalDataRef.current = data;
                                         },
+                                        currentUserAccountID: currentUserPersonalDetails.accountID,
                                     })
                                 }
                                 success
@@ -208,6 +216,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                         setPendingPaymentAdditionalData: (data) => {
                                             pendingPaymentAdditionalDataRef.current = data;
                                         },
+                                        currentUserAccountID: currentUserPersonalDetails.accountID,
                                     })
                                 }
                                 isSplitButton={false}
@@ -251,6 +260,14 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                 isVisible={isDownloadErrorModalVisible}
                 onClose={handleDownloadErrorModalClose}
             />
+            {!!pdfReportID && (
+                <ReportPDFDownloadModal
+                    reportID={pdfReportID}
+                    isVisible={isPdfModalVisible}
+                    onClose={() => setIsPdfModalVisible(false)}
+                    onModalHide={handlePdfModalHide}
+                />
+            )}
             {!!rejectModalAction && (
                 <HoldOrRejectEducationalModal
                     onClose={dismissRejectModalBasedOnAction}
