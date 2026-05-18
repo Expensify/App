@@ -32,7 +32,10 @@ import {
     hasAccountingConnections,
     hasAccountingFeatureConnection,
     isControlPolicy,
+    isGustoConnected,
+    isHRIntegrationConnected,
     isTimeTrackingEnabled,
+    isZenefitsConnected,
 } from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -169,13 +172,19 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         });
     };
 
-    const warnDisconnectGustoFirst = async () => {
-        if (!policy?.connections?.gusto) {
+    const warnDisconnectHRFirst = async () => {
+        if (!isHRIntegrationConnected(policy)) {
             return;
+        }
+        let integration = '';
+        if (isZenefitsConnected(policy)) {
+            integration = translate('workspace.hr.zenefits.title');
+        } else if (isGustoConnected(policy)) {
+            integration = translate('workspace.hr.gusto.title');
         }
         await showConfirmModal({
             title: translate('workspace.distanceRates.oopsNotSoFast'),
-            prompt: translate('workspace.moreFeatures.hrWarningModal.disconnectText'),
+            prompt: translate('workspace.moreFeatures.hrWarningModal.disconnectText', {integration}),
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
         });
@@ -309,17 +318,17 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID));
                             }}
                         />
-                        {isBetaEnabled(CONST.BETAS.GUSTO) && (
+                        {(isBetaEnabled(CONST.BETAS.GUSTO) || isBetaEnabled(CONST.BETAS.ZENEFITS)) && (
                             <MoreFeatureToggle
                                 icon={illustrations.Members}
                                 title={translate('workspace.hr.title')}
                                 subtitle={translate('workspace.hr.subtitle')}
                                 isActive={
-                                    ((policy?.isHREnabled === true || !!policy?.connections?.gusto) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED)) ?? false
+                                    ((policy?.isHREnabled === true || isHRIntegrationConnected(policy)) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED)) ?? false
                                 }
                                 pendingAction={policy?.pendingFields?.isHREnabled}
-                                disabled={!!policy?.connections?.gusto}
-                                disabledAction={warnDisconnectGustoFirst}
+                                disabled={isHRIntegrationConnected(policy)}
+                                disabledAction={warnDisconnectHRFirst}
                                 onToggle={(isEnabled) => {
                                     if (!policyID) {
                                         return;
