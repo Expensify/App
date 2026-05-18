@@ -1016,8 +1016,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         freeTrialSection: {
             title: ({days}: {days: number}) => `Proefperiode: nog ${days} ${days === 1 ? 'dag' : 'dagen'}!`,
-            offer50Body: 'Krijg 50% korting op je eerste jaar!',
-            offer25Body: 'Krijg 25% korting op je eerste jaar!',
+            offer50Body: 'Krijg 50% korting op je eerste jaar',
+            offer25Body: 'Krijg 25% korting op je eerste jaar',
             addCardBody: 'Wacht niet! Voeg nu je betaalkaart toe.',
             ctaClaim: 'Declareren',
             ctaAdd: 'Kaart toevoegen',

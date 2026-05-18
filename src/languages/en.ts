@@ -1006,8 +1006,8 @@ const translations = {
         },
         freeTrialSection: {
             title: ({days}: {days: number}) => `Free trial: ${days} ${days === 1 ? 'day' : 'days'} left!`,
-            offer50Body: 'Get 50% off your first year!',
-            offer25Body: 'Get 25% off your first year!',
+            offer50Body: 'Get 50% off your first year',
+            offer25Body: 'Get 25% off your first year',
             addCardBody: "Don't wait! Add your payment card now.",
             ctaClaim: 'Claim',
             ctaAdd: 'Add card',
