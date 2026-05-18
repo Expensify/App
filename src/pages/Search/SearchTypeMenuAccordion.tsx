@@ -92,7 +92,7 @@ function SearchTypeMenuAccordion({title, isExpanded, badgeText, children, onSect
         <View>
             <PressableWithoutFeedback
                 onPress={onSectionHeaderPress}
-                style={[styles.flexRow, styles.p2, styles.gap2, styles.alignItemsCenter, styles.br2]}
+                style={[styles.flexRow, styles.searchTypeMenuAccordionHeader, styles.gap2, styles.alignItemsCenter, styles.br2]}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={title}
                 sentryLabel={CONST.SENTRY_LABEL.ACCORDION_SECTION.TOGGLE}

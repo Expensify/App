@@ -54,7 +54,7 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
             {({hovered, pressed}) => (
                 <>
                     {icon != null && (
-                        <View style={[styles.popoverMenuIcon, styles.wAuto]}>
+                        <View style={styles.popoverMenuIcon}>
                             <Icon
                                 src={icon}
                                 width={variables.iconSizeNormal}
