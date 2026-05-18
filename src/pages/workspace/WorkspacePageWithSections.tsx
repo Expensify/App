@@ -182,7 +182,14 @@ function WorkspacePageWithSections({
         : undefined;
     const isPendingDelete = isPendingDeletePolicy(policy);
     const prevIsPendingDelete = isPendingDeletePolicy(prevPolicy);
+
     const shouldShow = useMemo(() => {
+        // Don't trigger the not-found view while the screen is in the background — prevents unexpected
+        // navigation when the workspace is deleted from another device while this screen is unfocused.
+        if (!isFocused) {
+            return false;
+        }
+
         // If the policy object doesn't exist or contains only error data, we shouldn't display it.
         if (((isEmptyObject(policy) || (Object.keys(policy).length === 1 && !isEmptyObject(policy.errors))) && isEmptyObject(policyDraft)) || shouldShowNotFoundPage) {
             return true;
@@ -193,7 +200,7 @@ function WorkspacePageWithSections({
 
         return (!isEmptyObject(policy) && !canShowPage) || (!shouldShowPolicy && !(isPendingDelete && !prevIsPendingDelete));
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [hasRequiredPolicyPermission, policy, shouldShowNonAdmin, shouldShowPolicy]);
+    }, [currentUserLogin, hasRequiredPolicyPermission, isFocused, policy, shouldShowNonAdmin, shouldShowPolicy]);
 
     const handleOnBackButtonPress = () => {
         if (shouldShow) {

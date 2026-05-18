@@ -930,7 +930,10 @@
         "Kolkata",
         "lintrk",
         "Fbclid",
-        "Gclid"
+        "Gclid",
+        "autocorrection",
+        "BambooHr",
+        "HiBob"
     ],
     "ignorePaths": [
         ".gitignore",

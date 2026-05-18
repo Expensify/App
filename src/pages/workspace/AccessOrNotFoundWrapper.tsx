@@ -206,7 +206,7 @@ function AccessOrNotFoundWrapper({
         : true;
 
     const isPolicyNotAccessible = !isPolicyAccessible(policy, login);
-    const shouldShowNotFoundPage = (!isMoneyRequest && !isFromGlobalCreate && isPolicyNotAccessible) || !isPageAccessible || !hasRequiredPolicyPermission || shouldBeBlocked;
+    const shouldShowNotFoundPage = isFocused && ((!isMoneyRequest && !isFromGlobalCreate && isPolicyNotAccessible) || !isPageAccessible || !hasRequiredPolicyPermission || shouldBeBlocked);
     // We only update the feature state if it isn't pending.
     // This is because the feature state changes several times during the creation of a workspace, while we are waiting for a response from the backend.
     // Without this, we can be unexpectedly navigated to the More Features page.
@@ -238,7 +238,6 @@ function AccessOrNotFoundWrapper({
         };
         return <FullscreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
-
     if (shouldShowNotFoundPage) {
         return (
             <PageNotFoundFallback
