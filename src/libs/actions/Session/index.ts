@@ -1432,12 +1432,12 @@ function signInWithValidateCodeAndNavigate(accountID: number, validateCode: stri
     }
 }
 
-const ANONYMOUS_ACCESSIBLE_DYNAMIC_SUFFIXES: DynamicRouteSuffix[] = [DYNAMIC_ROUTES.REPORT_DETAILS.path, DYNAMIC_ROUTES.REPORT_DETAILS_SHARE_CODE.path];
+const ANONYMOUS_ACCESSIBLE_DYNAMIC_SUFFIXES = new Set<DynamicRouteSuffix>([DYNAMIC_ROUTES.REPORT_DETAILS.path, DYNAMIC_ROUTES.REPORT_DETAILS_SHARE_CODE.path]);
 
 /**
  * check if the route can be accessed by anonymous user
  *
- * @param {string} route
+ * @param route
  */
 const canAnonymousUserAccessRoute = (route: string) => {
     const reportID = getReportIDFromLink(route);
@@ -1456,7 +1456,7 @@ const canAnonymousUserAccessRoute = (route: string) => {
     }
 
     const suffixMatch = findMatchingDynamicSuffix(normalizedRoute);
-    if (suffixMatch && ANONYMOUS_ACCESSIBLE_DYNAMIC_SUFFIXES.includes(suffixMatch.pattern as DynamicRouteSuffix)) {
+    if (suffixMatch && ANONYMOUS_ACCESSIBLE_DYNAMIC_SUFFIXES.has(suffixMatch.pattern as DynamicRouteSuffix)) {
         return CONST.REGEX.REPORT_ID_FROM_PATH.test(`/${normalizedRoute}`);
     }
 
