@@ -39,15 +39,22 @@ function ValidateLoginPage({
     const isUserClickedSignIn = !login && isSignedIn && (autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.SIGNING_IN || autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN);
     const shouldStartSignInWithValidateCode = !isUserClickedSignIn && !isSignedIn && (!!login || !!exitTo) && isValidValidateCode(validateCode);
     const isNavigatingToExitTo = isSignedIn && !!exitTo;
+    // Fresh-session magic-link sign-in. Not gated on `isSignedIn` because `autoAuthState` lands
+    // before `authToken` (separate Onyx broadcasts); that gap would otherwise flash a blank page.
+    // Keeps the loader up across SIGNING_IN → JUST_SIGNED_IN until the redirect unmounts the page.
+    const isCompletingDirectSignIn =
+        !exitTo && !login && (autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.SIGNING_IN || autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN);
     const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
 
     useEffect(() => {
         setHasInitialized(true);
 
         if (isUserClickedSignIn) {
-            // The user clicked the option to sign in the current tab
-            Navigation.isNavigationReady().then(() => {
-                Navigation.goBack();
+            // Fresh/different session (no original tab): goBack() left a blank page (#89545), so
+            // go Home. Wait for protected routes since HOME mounts async; forceReplace so Home
+            // doesn't stack on the consumed `/v/...` route.
+            Navigation.waitForProtectedRoutes().then(() => {
+                Navigation.navigate(ROUTES.HOME, {forceReplace: true});
             });
             return;
         }
@@ -67,36 +74,18 @@ function ValidateLoginPage({
     }, []);
 
     useEffect(() => {
-        // Schedule the exitTo handoff once per page load. Keeping this out of the auth-state-
-        // driven effect below prevents multiple goBack()+navigate() pairs from being queued as
-        // `isSignedIn`/`autoAuthState` move through SIGNING_IN → JUST_SIGNED_IN during sign-in.
-        if (!exitTo) {
+        if (!!login || !cachedAccountID || !is2FARequired) {
+            if (exitTo) {
+                handleExitToNavigation(exitTo);
+            }
             return;
         }
-        handleExitToNavigation(exitTo);
-    }, [exitTo]);
 
-    useEffect(() => {
-        if (exitTo || login) {
-            return;
-        }
+        // The user clicked the option to sign in the current tab
         Navigation.isNavigationReady().then(() => {
-            // The page just completed signInWithValidateCode but `login` is empty (e.g. magic
-            // link opened in a fresh session like incognito) so there's no original tab to head
-            // back to. Route to app home instead of leaving a blank page. Gated on
-            // JUST_SIGNED_IN so a pre-existing signed-in session opening /v/... just to view the
-            // code isn't redirected away. forceReplace avoids leaving `/v/:accountID/:validateCode`
-            // in the browser history — pressing Back would otherwise land on the consumed magic
-            // link and redirect right back here.
-            if (isSignedIn && autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN) {
-                Navigation.navigate(ROUTES.HOME, {forceReplace: true});
-                return;
-            }
-            if (cachedAccountID && is2FARequired) {
-                Navigation.goBack();
-            }
+            Navigation.goBack();
         });
-    }, [login, cachedAccountID, is2FARequired, exitTo, isSignedIn, autoAuthStateWithDefault]);
+    }, [login, cachedAccountID, is2FARequired, exitTo]);
 
     return (
         <>
@@ -112,8 +101,9 @@ function ValidateLoginPage({
                     code={validateCode}
                 />
             )}
-            {(!effectiveAutoAuthState ? shouldStartSignInWithValidateCode : autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.SIGNING_IN) && (
+            {((!effectiveAutoAuthState ? shouldStartSignInWithValidateCode : autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.SIGNING_IN) || isCompletingDirectSignIn) && (
                 <FullScreenLoadingIndicator
+                    testID="validate-login-loading"
                     reasonAttributes={{
                         context: 'ValidateLoginPage',
                         isSigningIn: autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.SIGNING_IN,

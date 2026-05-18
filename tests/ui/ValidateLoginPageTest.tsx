@@ -98,7 +98,7 @@ describe('ValidateLoginPage', () => {
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.HOME, {forceReplace: true});
     });
 
-    it('Should not navigate to home when signed in session opens /v/ to view the code (autoAuthState !== JUST_SIGNED_IN)', async () => {
+    it('Should not navigate to home when a signed-in session opens /v/ to view the code (autoAuthState !== JUST_SIGNED_IN)', async () => {
         await act(async () => {
             await Onyx.set(ONYXKEYS.SESSION, {
                 authToken: 'abcd',
@@ -111,5 +111,35 @@ describe('ValidateLoginPage', () => {
 
         expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.HOME, {forceReplace: true});
         expect(screen.getByTestId('validate-code')).toBeOnTheScreen();
+    });
+
+    it('Should keep the loading indicator (not blank) when JUST_SIGNED_IN but authToken has not landed yet', async () => {
+        // autoAuthState arrives before authToken (separate Onyx broadcasts), so there is a tick
+        // where autoAuthState === JUST_SIGNED_IN but isSignedIn is false. Without the fix every
+        // guard fails and the page is blank; the loader must stay up.
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.CREDENTIALS, {
+                accountID: 1,
+                validateCode: '123456',
+            });
+        });
+
+        // Mount first (autoAuthState NOT_STARTED → shows the magic-code screen).
+        renderPage({accountID: '1', validateCode: '123456'});
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByTestId('validate-code')).toBeOnTheScreen();
+
+        // First cross-tab broadcast: autoAuthState flips, authToken not delivered yet.
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {
+                autoAuthState: CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId('validate-login-loading')).toBeOnTheScreen();
+        expect(screen.queryByTestId('validate-code')).toBeNull();
+        // Not signed in yet, so we must not redirect prematurely.
+        expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.HOME, {forceReplace: true});
     });
 });
