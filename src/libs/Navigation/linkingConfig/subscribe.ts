@@ -43,8 +43,15 @@ const subscribe: LinkingOptions<RootNavigatorParamList>['subscribe'] = (listener
         if (!Navigation.navContainsProtectedRoutes(navigationRef.current?.getRootState()) && !isPublicScreenRoute(getRouteFromLink(url))) {
             // If the user is already authenticated, AuthScreens is about to mount (lazy-load).
             // Queue the URL so it's forwarded once the navigator is ready instead of dropping it.
+            // Use a timeout so a stale/expired token doesn't permanently lose the URL.
             if (hasAuthToken()) {
-                Navigation.waitForProtectedRoutes().then(() => listener(url));
+                const timeout = new Promise<void>((_, reject) => {
+                    setTimeout(() => reject(new Error('Timed out waiting for protected routes')), 5000);
+                });
+                Promise.race([Navigation.waitForProtectedRoutes(), timeout]).then(
+                    () => listener(url),
+                    () => {},
+                );
             }
             return;
         }
