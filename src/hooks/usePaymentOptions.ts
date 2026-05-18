@@ -115,13 +115,14 @@ function usePaymentOptions({
     const isInvoiceReport = (!isEmptyObject(iouReport) && isInvoiceReportUtil(iouReport)) || false;
     const shouldShowPayWithExpensifyOption = !shouldHidePaymentOptions;
     const shouldShowPayElsewhereOption = !shouldHidePaymentOptions && !isInvoiceReport;
+    const hasPersonalBankAccount = Object.values(bankAccountList).some((account) => account?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);
     const paymentButtonOptions = useMemo(() => {
         const buttonOptions = [];
         const isExpenseReport = isExpenseReportUtil(iouReport);
         const paymentMethods = {
             [CONST.IOU.PAYMENT_TYPE.EXPENSIFY]: {
-                text: hasActivatedWallet ? translate('iou.settleWallet', '') : translate('iou.settlePersonal', ''),
-                icon: icons.User,
+                text: hasActivatedWallet || hasPersonalBankAccount ? translate('iou.settleWallet', '') : translate('iou.settlePersonal', ''),
+                icon: hasActivatedWallet || hasPersonalBankAccount ? icons.Wallet : icons.User,
                 value: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
             },
             [CONST.IOU.PAYMENT_TYPE.VBBA]: {
@@ -265,6 +266,8 @@ function usePaymentOptions({
         onPress,
         onlyShowPayElsewhere,
         icons,
+        hasActivatedWallet,
+        hasPersonalBankAccount,
     ]);
 
     return paymentButtonOptions;

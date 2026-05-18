@@ -92,4 +92,4 @@ function useEnvironmentActions() {
 
 export default EnvironmentProvider;
 export {EnvironmentActionsContext, useEnvironmentState, useEnvironmentActions};
-export type {EnvironmentStateContextType, EnvironmentActionsContextType};
+export type {EnvironmentStateContextType};
