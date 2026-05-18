@@ -217,6 +217,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reset: 'Restablecer',
         done: 'Listo',
         more: 'Más',
+        other: 'Otro',
         debitCard: 'Tarjeta de débito',
         bankAccount: 'Cuenta bancaria',
         personalBankAccount: 'Cuenta bancaria personal',
@@ -6233,6 +6234,21 @@ ${amount} para ${merchant} - ${date}`,
             title: 'HR',
             subtitle: 'Conecta herramientas de HR y mantén sincronizadas las aprobaciones de empleados.',
             settingsTitle: 'Configuración de Gusto',
+            connect: 'Conectar',
+            syncNow: 'Sincronizar ahora',
+            disconnect: 'Desconectar',
+            disconnectTitle: (providerName: string) => `Desconectar ${providerName}`,
+            disconnectPrompt: (providerName: string) => `¿Seguro que quieres desconectar ${providerName}?`,
+            lastSync: (relativeDate: string) => `Última sincronización ${relativeDate}`,
+            syncError: (providerName: string) => `No se puede conectar con ${providerName}`,
+            approvalMode: 'Modo de aprobación',
+            finalApprover: 'Aprobador final',
+            notSet: 'No configurado',
+            approvalModes: {
+                basic: {label: 'Aprobación básica'},
+                manager: {label: 'Aprobación del gerente'},
+                custom: {label: 'Aprobación personalizada'},
+            },
             syncStageName: ({stage}) => {
                 switch (stage) {
                     case 'gustoSyncTitle':
@@ -6246,6 +6262,12 @@ ${amount} para ${merchant} - ${date}`,
                     case 'zenefitsSyncLoadData':
                         return 'Cargando datos desde TriNet';
                     case 'zenefitsSyncProvisioning':
+                        return 'Aprovisionar empleados en la política';
+                    case 'mergeHRSyncTitle':
+                        return 'Sincronización de empleados de HR';
+                    case 'mergeHRSyncLoadData':
+                        return 'Cargando datos del proveedor de HR';
+                    case 'mergeHRSyncProvisioning':
                         return 'Aprovisionar empleados en la política';
                     case 'jobDone':
                         return 'Esperando a que se carguen los datos importados';

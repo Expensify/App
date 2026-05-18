@@ -261,6 +261,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reset: 'Réinitialiser',
         done: 'Terminé',
         more: 'Plus',
+        other: 'Autre',
         debitCard: 'Carte de débit',
         bankAccount: 'Compte bancaire',
         personalBankAccount: 'Compte bancaire personnel',
@@ -7090,6 +7091,21 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             title: 'RH',
             subtitle: 'Connectez vos outils RH et gardez les approbations des employés synchronisées.',
             settingsTitle: 'Paramètres Gusto',
+            connect: 'Connecter',
+            syncNow: 'Synchroniser maintenant',
+            disconnect: 'Déconnecter',
+            disconnectTitle: (providerName: string) => `Déconnecter ${providerName}`,
+            disconnectPrompt: (providerName: string) => `Êtes-vous sûr de vouloir déconnecter ${providerName} ?`,
+            lastSync: (relativeDate: string) => `Dernière synchronisation ${relativeDate}`,
+            syncError: (providerName: string) => `Impossible de se connecter à ${providerName}`,
+            approvalMode: "Mode d'approbation",
+            finalApprover: 'Approbateur final',
+            notSet: 'Non défini',
+            approvalModes: {
+                basic: {label: 'Approbation basique'},
+                manager: {label: 'Approbation du manager'},
+                custom: {label: 'Approbation personnalisée'},
+            },
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
                     case 'gustoSyncTitle':

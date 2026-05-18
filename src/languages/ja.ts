@@ -261,6 +261,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reset: 'リセット',
         done: '完了',
         more: 'その他',
+        other: 'その他',
         debitCard: 'デビットカード',
         bankAccount: '銀行口座',
         personalBankAccount: '個人銀行口座',
@@ -6976,6 +6977,21 @@ ${reportName}
             title: '人事',
             subtitle: '人事ツールを連携して、従業員の承認を常に同期させます。',
             settingsTitle: 'Gusto 設定',
+            connect: '接続',
+            syncNow: '今すぐ同期',
+            disconnect: '切断',
+            disconnectTitle: (providerName: string) => `${providerName}を切断`,
+            disconnectPrompt: (providerName: string) => `${providerName}を切断してもよろしいですか？`,
+            lastSync: (relativeDate: string) => `最終同期: ${relativeDate}`,
+            syncError: (providerName: string) => `${providerName}に接続できません`,
+            approvalMode: '承認モード',
+            finalApprover: '最終承認者',
+            notSet: '未設定',
+            approvalModes: {
+                basic: {label: '基本承認'},
+                manager: {label: 'マネージャー承認'},
+                custom: {label: 'カスタム承認'},
+            },
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
                     case 'gustoSyncTitle':

@@ -261,6 +261,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reset: '重置',
         done: '完成',
         more: '更多',
+        other: '其他',
         debitCard: '借记卡',
         bankAccount: '银行账户',
         personalBankAccount: '个人银行账户',
@@ -6856,6 +6857,21 @@ ${reportName}
             title: '人力资源',
             subtitle: '连接人力资源工具，保持员工审批同步。',
             settingsTitle: 'Gusto 设置',
+            connect: '连接',
+            syncNow: '立即同步',
+            disconnect: '断开连接',
+            disconnectTitle: (providerName: string) => `断开 ${providerName}`,
+            disconnectPrompt: (providerName: string) => `确定要断开 ${providerName} 吗？`,
+            lastSync: (relativeDate: string) => `上次同步 ${relativeDate}`,
+            syncError: (providerName: string) => `无法连接到 ${providerName}`,
+            approvalMode: '审批模式',
+            finalApprover: '最终审批人',
+            notSet: '未设置',
+            approvalModes: {
+                basic: {label: '基本审批'},
+                manager: {label: '经理审批'},
+                custom: {label: '自定义审批'},
+            },
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
                     case 'gustoSyncTitle':

@@ -2456,4 +2456,4 @@ export {
     isPolicyEditor,
 };
 
-export type {MemberEmailsToAccountIDs, HRProviderInfo};
+export type {MemberEmailsToAccountIDs, HRProviderInfo, HRConnectionName};

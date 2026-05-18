@@ -322,7 +322,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID));
                             }}
                         />
-                        {(isBetaEnabled(CONST.BETAS.GUSTO) || isBetaEnabled(CONST.BETAS.ZENEFITS)) && (
+                        {(isBetaEnabled(CONST.BETAS.GUSTO) || isBetaEnabled(CONST.BETAS.ZENEFITS) || isBetaEnabled(CONST.BETAS.MERGE_HR)) && (
                             <MoreFeatureToggle
                                 icon={illustrations.Members}
                                 title={translate('workspace.hr.title')}

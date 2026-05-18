@@ -270,6 +270,7 @@ const translations = {
         // @context Status or button indicating that an action or process has been completed. Should reflect completion.
         done: 'Done',
         more: 'More',
+        other: 'Other',
         debitCard: 'Debit card',
         bankAccount: 'Bank account',
         personalBankAccount: 'Personal bank account',
@@ -6421,6 +6422,21 @@ const translations = {
             title: 'HR',
             subtitle: 'Connect HR tools and keep employee approvals in sync.',
             settingsTitle: 'Gusto settings',
+            connect: 'Connect',
+            syncNow: 'Sync now',
+            disconnect: 'Disconnect',
+            disconnectTitle: (providerName: string) => `Disconnect ${providerName}`,
+            disconnectPrompt: (providerName: string) => `Are you sure you want to disconnect ${providerName}?`,
+            lastSync: (relativeDate: string) => `Last synced ${relativeDate}`,
+            syncError: (providerName: string) => `Can't connect to ${providerName}`,
+            approvalMode: 'Approval mode',
+            finalApprover: 'Final approver',
+            notSet: 'Not set',
+            approvalModes: {
+                basic: {label: 'Basic approval'},
+                manager: {label: 'Manager approval'},
+                custom: {label: 'Custom approval'},
+            },
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
                     case 'gustoSyncTitle':
@@ -6434,6 +6450,12 @@ const translations = {
                     case 'zenefitsSyncLoadData':
                         return 'Loading data from TriNet';
                     case 'zenefitsSyncProvisioning':
+                        return 'Provisioning employees in policy';
+                    case 'mergeHRSyncTitle':
+                        return 'Synchronizing HR Employees';
+                    case 'mergeHRSyncLoadData':
+                        return 'Loading data from HR provider';
+                    case 'mergeHRSyncProvisioning':
                         return 'Provisioning employees in policy';
                     case 'jobDone':
                         return 'Waiting for imported data to load';

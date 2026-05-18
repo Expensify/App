@@ -261,6 +261,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reset: 'Zurücksetzen',
         done: 'Fertig',
         more: 'Mehr',
+        other: 'Andere',
         debitCard: 'Debitkarte',
         bankAccount: 'Bankkonto',
         personalBankAccount: 'Persönliches Bankkonto',
@@ -7068,6 +7069,21 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             title: 'Personalwesen',
             subtitle: 'HR-Tools verbinden und Mitarbeitergenehmigungen synchron halten.',
             settingsTitle: 'Gusto-Einstellungen',
+            connect: 'Verbinden',
+            syncNow: 'Jetzt synchronisieren',
+            disconnect: 'Trennen',
+            disconnectTitle: (providerName: string) => `${providerName} trennen`,
+            disconnectPrompt: (providerName: string) => `Möchten Sie ${providerName} wirklich trennen?`,
+            lastSync: (relativeDate: string) => `Zuletzt synchronisiert ${relativeDate}`,
+            syncError: (providerName: string) => `Verbindung zu ${providerName} nicht möglich`,
+            approvalMode: 'Genehmigungsmodus',
+            finalApprover: 'Endgültiger Genehmiger',
+            notSet: 'Nicht festgelegt',
+            approvalModes: {
+                basic: {label: 'Einfache Genehmigung'},
+                manager: {label: 'Manager-Genehmigung'},
+                custom: {label: 'Benutzerdefinierte Genehmigung'},
+            },
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
                     case 'gustoSyncTitle':

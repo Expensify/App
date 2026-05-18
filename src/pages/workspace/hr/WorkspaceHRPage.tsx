@@ -1,21 +1,13 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
-import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/Button';
-import ConfirmModal from '@components/ConfirmModal';
-import ConnectToGustoFlow from '@components/ConnectToGustoFlow';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import ThreeDotsMenu from '@components/ThreeDotsMenu';
-import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
+import TextInput from '@components/TextInput';
 import useGustoSyncResultsModal from '@hooks/useGustoSyncResultsModal';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -26,151 +18,81 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
-import {isConnectionInProgress, removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {openPolicyHRPage} from '@libs/actions/PolicyConnections';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getIntegrationLastSuccessfulDate, isGustoConnected} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import HRProviderCard from './HRProviderCard';
+import type {ConnectFlowType} from './utils';
+import {getHRCards} from './utils';
 
 type WorkspaceHRPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.HR>;
-type GustoApprovalMode = ValueOf<typeof CONST.GUSTO.APPROVAL_MODE>;
 
 function WorkspaceHRPage({
     route: {
         params: {policyID},
     },
 }: WorkspaceHRPageProps) {
-    const {translate, datetimeToRelative, getLocalDateFromDatetime} = useLocalize();
+    const {translate, getLocalDateFromDatetime, localeCompare} = useLocalize();
     const isFocused = useIsFocused();
     const {isBetaEnabled} = usePermissions();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const policy = usePolicy(policyID);
-    const [activeGustoFlowKey, setActiveGustoFlowKey] = useState<number>();
-    const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
-    const icons = useMemoizedLazyExpensifyIcons(['GustoSquare', 'Sync', 'Trashcan']);
+    const icons = useMemoizedLazyExpensifyIcons(['GustoSquare', 'ZenefitsSquare', 'DownArrow', 'UpArrow']);
     const illustrations = useMemoizedLazyIllustrations(['NewUser']);
-    const gustoConnection = policy?.connections?.gusto;
-    const gustoConfig = gustoConnection?.config;
-    const isConnected = isGustoConnected(policy);
-    const isGustoSyncInProgress = connectionSyncProgress?.connectionName === CONST.POLICY.CONNECTIONS.NAME.GUSTO && isConnectionInProgress(connectionSyncProgress, policy);
-    const stageInProgress = connectionSyncProgress?.stageInProgress;
-    const successfulDate = getIntegrationLastSuccessfulDate(
-        getLocalDateFromDatetime,
-        gustoConnection,
-        connectionSyncProgress?.connectionName === CONST.POLICY.CONNECTIONS.NAME.GUSTO ? connectionSyncProgress : undefined,
-    );
-    const hasGustoSyncError = !isGustoSyncInProgress && gustoConnection?.lastSync?.isSuccessful === false && !!gustoConnection?.lastSync?.errorDate;
-    const lastSyncErrorMessage = hasGustoSyncError ? (gustoConnection?.lastSync?.errorMessage ?? translate('workspace.hr.gusto.syncError')) : undefined;
-    const connectionDescription = useMemo(() => {
-        if (isGustoSyncInProgress && stageInProgress) {
-            return translate('workspace.hr.syncStageName', {stage: stageInProgress});
-        }
 
-        if (successfulDate && !lastSyncErrorMessage) {
-            return translate('workspace.hr.gusto.lastSync', datetimeToRelative(successfulDate));
-        }
-
-        return undefined;
-    }, [datetimeToRelative, isGustoSyncInProgress, lastSyncErrorMessage, stageInProgress, successfulDate, translate]);
+    const [isOtherExpanded, setIsOtherExpanded] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
 
     useWorkspaceDocumentTitle(undefined, 'workspace.common.hr');
 
-    const fetchPolicyHRPage = useCallback(() => {
+    useNetwork({onReconnect: () => openPolicyHRPage(policyID)});
+
+    useEffect(() => {
         openPolicyHRPage(policyID);
     }, [policyID]);
 
-    const {isOffline} = useNetwork({onReconnect: fetchPolicyHRPage});
-
-    useEffect(() => {
-        fetchPolicyHRPage();
-    }, [fetchPolicyHRPage]);
-
     useGustoSyncResultsModal(policyID, connectionSyncProgress, isFocused);
 
-    const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
-        () => [
-            {
-                icon: icons.Sync,
-                text: translate('workspace.hr.gusto.syncNow'),
-                onSelected: () => syncConnection(policy, CONST.POLICY.CONNECTIONS.NAME.GUSTO),
-                disabled: isOffline,
-            },
-            {
-                icon: icons.Trashcan,
-                text: translate('workspace.hr.gusto.disconnect'),
-                onSelected: () => setIsDisconnectModalOpen(true),
-                shouldCallAfterModalHide: true,
-            },
-        ],
-        [icons.Sync, icons.Trashcan, isOffline, policy, translate],
-    );
-    const getGustoApprovalModeLabel = (approvalMode?: GustoApprovalMode | null) => {
-        if (!approvalMode) {
-            return translate('workspace.hr.gusto.notSet');
-        }
+    const cards = getHRCards({
+        policy,
+        connectionSyncProgress,
+        getLocalDateFromDatetime,
+        isBetaEnabled,
+        translate,
+        policyID,
+        gustoIcon: icons.GustoSquare,
+        zenefitsIcon: icons.ZenefitsSquare,
+    });
 
-        switch (approvalMode) {
-            case CONST.GUSTO.APPROVAL_MODE.BASIC:
-                return translate('workspace.hr.gusto.approvalModes.basic.label');
-            case CONST.GUSTO.APPROVAL_MODE.MANAGER:
-                return translate('workspace.hr.gusto.approvalModes.manager.label');
-            case CONST.GUSTO.APPROVAL_MODE.CUSTOM:
-                return translate('workspace.hr.gusto.approvalModes.custom.label');
-            default:
-                return translate('workspace.hr.gusto.notSet');
-        }
-    };
-    const getGustoFinalApproverDisplayName = (finalApprover?: string | null) => {
-        if (!finalApprover) {
-            return translate('workspace.hr.gusto.notSet');
-        }
+    const connectedCards = cards.filter((c) => c.isConnected).sort((a, b) => localeCompare(a.displayName, b.displayName));
+    const disconnectedCards = cards.filter((c) => !c.isConnected).sort((a, b) => localeCompare(a.displayName, b.displayName));
 
-        return getDisplayNameOrDefault(getPersonalDetailByEmail(finalApprover), finalApprover, false);
+    const visibleDisconnectedCards = searchQuery ? disconnectedCards.filter((c) => c.displayName.toLowerCase().includes(searchQuery.toLowerCase())) : disconnectedCards;
+
+    const shouldBeBlocked = !isBetaEnabled(CONST.BETAS.GUSTO) && !isBetaEnabled(CONST.BETAS.ZENEFITS) && !isBetaEnabled(CONST.BETAS.MERGE_HR);
+
+    // TODO: Replace with actual connect flow invocations per provider
+    const handleConnect = (connectFlowType: ConnectFlowType) => {
+        if (connectFlowType === 'none') {
+            return;
+        }
+        // eslint-disable-next-line no-console
+        console.log(`[WorkspaceHRPage] connect flow triggered: ${connectFlowType}`);
     };
-    let gustoRowRightComponent;
-    if (!isConnected) {
-        gustoRowRightComponent = (
-            <Button
-                small
-                text={translate('workspace.hr.gusto.connect')}
-                onPress={() => setActiveGustoFlowKey(Math.random())}
-            />
-        );
-    } else if (isGustoSyncInProgress) {
-        gustoRowRightComponent = (
-            <ActivityIndicator
-                style={[styles.popoverMenuIcon]}
-                reasonAttributes={{context: 'WorkspaceHRPage.gustoSync'}}
-            />
-        );
-    } else {
-        gustoRowRightComponent = (
-            <ThreeDotsMenu
-                shouldSelfPosition
-                menuItems={overflowMenu}
-                anchorAlignment={{
-                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                }}
-            />
-        );
-    }
 
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED}
-            shouldBeBlocked={!isBetaEnabled(CONST.BETAS.GUSTO)}
+            shouldBeBlocked={shouldBeBlocked}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -179,12 +101,6 @@ function WorkspaceHRPage({
                 shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
             >
-                {!!activeGustoFlowKey && (
-                    <ConnectToGustoFlow
-                        key={activeGustoFlowKey}
-                        policyID={policyID}
-                    />
-                )}
                 <HeaderWithBackButton
                     icon={illustrations.NewUser}
                     title={translate('workspace.common.hr')}
@@ -199,61 +115,63 @@ function WorkspaceHRPage({
                             isCentralPane
                             renderTitle={() => <Text style={[styles.textStrong]}>{translate('workspace.accounting.title')}</Text>}
                         >
-                            <MenuItem
-                                title={translate('workspace.hr.gusto.title')}
-                                icon={icons.GustoSquare}
-                                iconType={CONST.ICON_TYPE_AVATAR}
-                                wrapperStyle={[styles.ph0, styles.pv2, styles.mt4, !!lastSyncErrorMessage && styles.pb0]}
-                                interactive={false}
-                                description={connectionDescription}
-                                errorText={lastSyncErrorMessage}
-                                errorTextStyle={[styles.mt5]}
-                                shouldShowRedDotIndicator
-                                shouldShowRightComponent
-                                rightComponent={gustoRowRightComponent}
-                            />
-                            {isConnected && (
+                            {connectedCards.map((card, index) => (
+                                <HRProviderCard
+                                    key={card.key}
+                                    card={card}
+                                    policy={policy}
+                                    isFirst={index === 0}
+                                    onConnect={() => handleConnect(card.connectFlowType)}
+                                />
+                            ))}
+
+                            {connectedCards.length === 0 &&
+                                disconnectedCards.map((card, index) => (
+                                    <HRProviderCard
+                                        key={card.key}
+                                        card={card}
+                                        policy={policy}
+                                        isFirst={index === 0}
+                                        onConnect={() => handleConnect(card.connectFlowType)}
+                                    />
+                                ))}
+
+                            {connectedCards.length > 0 && disconnectedCards.length > 0 && (
                                 <>
-                                    <OfflineWithFeedback pendingAction={gustoConfig?.pendingFields?.approvalMode}>
-                                        <MenuItemWithTopDescription
-                                            description={translate('workspace.hr.gusto.approvalMode')}
-                                            title={getGustoApprovalModeLabel(gustoConfig?.approvalMode)}
-                                            style={[styles.sectionMenuItemTopDescription, styles.mt2]}
-                                            shouldShowRightIcon
-                                            brickRoadIndicator={gustoConfig?.errorFields?.approvalMode ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_HR_GUSTO_APPROVAL_MODE.getRoute(policyID))}
-                                        />
-                                    </OfflineWithFeedback>
-                                    <OfflineWithFeedback pendingAction={gustoConfig?.pendingFields?.finalApprover}>
-                                        <MenuItemWithTopDescription
-                                            description={translate('workspace.hr.gusto.finalApprover')}
-                                            title={getGustoFinalApproverDisplayName(gustoConfig?.finalApprover)}
-                                            style={styles.sectionMenuItemTopDescription}
-                                            shouldShowRightIcon
-                                            brickRoadIndicator={gustoConfig?.errorFields?.finalApprover ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_HR_GUSTO_FINAL_APPROVER.getRoute(policyID))}
-                                        />
-                                    </OfflineWithFeedback>
+                                    <MenuItem
+                                        title={translate('common.other')}
+                                        shouldShowRightIcon
+                                        icon={isOtherExpanded ? icons.UpArrow : icons.DownArrow}
+                                        onPress={() => setIsOtherExpanded((prev) => !prev)}
+                                        wrapperStyle={[styles.ph0, styles.pv2, styles.mt4]}
+                                        role={CONST.ROLE.BUTTON}
+                                    />
+                                    {isOtherExpanded && (
+                                        <>
+                                            {disconnectedCards.length > 12 && (
+                                                <TextInput
+                                                    value={searchQuery}
+                                                    onChangeText={setSearchQuery}
+                                                    placeholder={translate('common.search')}
+                                                    accessibilityLabel={translate('common.search')}
+                                                    containerStyles={[styles.mb3]}
+                                                />
+                                            )}
+                                            {visibleDisconnectedCards.map((card) => (
+                                                <HRProviderCard
+                                                    key={card.key}
+                                                    card={card}
+                                                    policy={policy}
+                                                    onConnect={() => handleConnect(card.connectFlowType)}
+                                                />
+                                            ))}
+                                        </>
+                                    )}
                                 </>
                             )}
                         </Section>
                     </View>
                 </ScrollView>
-                <ConfirmModal
-                    title={translate('workspace.hr.gusto.disconnectTitle')}
-                    isVisible={isDisconnectModalOpen}
-                    onConfirm={() => {
-                        if (policy) {
-                            removePolicyConnection(policy, CONST.POLICY.CONNECTIONS.NAME.GUSTO);
-                        }
-                        setIsDisconnectModalOpen(false);
-                    }}
-                    onCancel={() => setIsDisconnectModalOpen(false)}
-                    prompt={translate('workspace.hr.gusto.disconnectPrompt')}
-                    confirmText={translate('workspace.hr.gusto.disconnect')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
