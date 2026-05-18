@@ -78,7 +78,7 @@ function FileUpload({onDrop, shouldAcceptMultipleFiles = false, onLayout, isRepl
                         <View
                             style={[styles.uploadFileViewTextContainer, styles.userSelectNone]}
                             // PanResponder handlers must be spread onto the View for gesture recognition
-                            // eslint-disable-next-line react/jsx-props-no-spreading
+
                             {...panResponder.panHandlers}
                         >
                             <Text style={[styles.textFileUpload, styles.mb2]}>{translate(shouldAcceptMultipleFiles ? 'receipt.uploadMultiple' : 'receipt.upload')}</Text>

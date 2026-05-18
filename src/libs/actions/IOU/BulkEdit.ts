@@ -138,7 +138,15 @@ function updateMultipleMoneyRequests({
         // bulk-edit comments are visible immediately while still offline.
         let didCreateThreadInThisIteration = false;
         if (!transactionThreadReportID && iouReport?.reportID) {
-            const optimisticTransactionThread = createTransactionThreadReport(introSelected, currentUserLogin, currentUserAccountID, betas, iouReport, reportAction, transaction);
+            const optimisticTransactionThread = createTransactionThreadReport({
+                introSelected,
+                currentUserLogin,
+                currentUserAccountID,
+                betas,
+                iouReport,
+                iouReportAction: reportAction,
+                transaction,
+            });
             if (optimisticTransactionThread?.reportID) {
                 transactionThreadReportID = optimisticTransactionThread.reportID;
                 transactionThread = optimisticTransactionThread;
@@ -601,4 +609,3 @@ function updateBulkEditDraftTransaction(transactionChanges: NullishDeep<OnyxType
 }
 
 export {updateMultipleMoneyRequests, initBulkEditDraftTransaction, clearBulkEditDraftTransaction, updateBulkEditDraftTransaction};
-export type {UpdateMultipleMoneyRequestsParams};

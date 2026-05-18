@@ -28,7 +28,6 @@ function useShowContextMenuActions(): ShowContextMenuActionsContextType {
  * @param reportID - Active Report ID
  * @param action - ReportAction for ContextMenu
  * @param checkIfContextMenuActive Callback to update context menu active state
- * @param isArchivedRoom - Is the report an archived room
  * @param originalReportID - ID of the original report from which the given reportAction is first created
  */
 function showContextMenuForReport(
@@ -37,7 +36,6 @@ function showContextMenuForReport(
     reportID: string | undefined,
     action: OnyxEntry<ReportAction>,
     checkIfContextMenuActive: () => void,
-    isArchivedRoom = false,
     originalReportID?: string,
 ) {
     if (!canUseTouchScreen()) {
@@ -52,7 +50,6 @@ function showContextMenuForReport(
         report: {
             reportID,
             originalReportID: originalReportID ?? reportID,
-            isArchivedRoom,
         },
         reportAction: {
             reportActionID: action?.reportActionID,
