@@ -37,7 +37,7 @@ If you want to get reimbursed or paid directly in Expensify, add a personal bank
 
 ---
 
-## Assigned Cards
+## Cards
 
 Company cards are assigned at the workspace level, but are visible to the individual cardholder in their **Wallet**. The cards sync automatically, so you can skip manually entering credit card expenses.
 
