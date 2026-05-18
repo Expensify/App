@@ -9385,7 +9385,10 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
     trialPaymentReminder: {
         title: "Anticipez l'échéance",
         subtitle: "N'attendez pas la dernière minute, ajoutez votre méthode de paiement dès aujourd'hui pour garantir un accès continu à vos dépenses sur Expensify.",
-        trialEndsInDays: ({days}: {days: number}) => `La période d'essai se termine dans ${days} ${days === 1 ? 'jour' : 'jours'}`,
+        trialEndsInDays: () => ({
+            one: "La période d'essai se termine dans 1 jour",
+            other: (pluralCount: number) => `La période d'essai se termine dans ${pluralCount} jours`,
+        }),
         trialEndsCountdown: ({hours, minutes, seconds}: {hours: string; minutes: string; seconds: string}) => `La période d'essai se termine dans ${hours}h : ${minutes}m : ${seconds}s`,
         closeButton: 'Fermer',
         addPaymentCardButton: 'Ajouter une carte de paiement',

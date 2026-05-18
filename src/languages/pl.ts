@@ -9302,12 +9302,10 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
     trialPaymentReminder: {
         title: 'Wyprzedź termin',
         subtitle: 'Nie czekaj do ostatniej chwili – dodaj swoją metodę płatności już dziś, aby zapewnić ciągły dostęp do swoich wydatków w Expensify.',
-        trialEndsInDays: ({days}: {days: number}) => {
-            if (days === 1) {
-                return 'Okres próbny kończy się za 1 dzień';
-            }
-            return `Okres próbny kończy się za ${days} dni`;
-        },
+        trialEndsInDays: () => ({
+            one: 'Okres próbny kończy się za 1 dzień',
+            other: (pluralCount: number) => `Okres próbny kończy się za ${pluralCount} dni`,
+        }),
         trialEndsCountdown: ({hours, minutes, seconds}: {hours: string; minutes: string; seconds: string}) => `Okres próbny kończy się za ${hours}godz. : ${minutes}min : ${seconds}s`,
         closeButton: 'Zamknij',
         addPaymentCardButton: 'Dodaj kartę płatniczą',

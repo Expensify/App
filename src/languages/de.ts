@@ -9360,7 +9360,10 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
     trialPaymentReminder: {
         title: 'Bleib der Frist voraus',
         subtitle: 'Warte nicht bis zur letzten Minute – füge noch heute deine Zahlungsmethode hinzu, um den kontinuierlichen Zugang zu deinen Ausgaben auf Expensify sicherzustellen.',
-        trialEndsInDays: ({days}: {days: number}) => `Testphase endet in ${days} ${days === 1 ? 'Tag' : 'Tagen'}`,
+        trialEndsInDays: () => ({
+            one: 'Testphase endet in 1 Tag',
+            other: (pluralCount: number) => `Testphase endet in ${pluralCount} Tagen`,
+        }),
         trialEndsCountdown: ({hours, minutes, seconds}: {hours: string; minutes: string; seconds: string}) => `Testphase endet in ${hours}h : ${minutes}m : ${seconds}s`,
         closeButton: 'Schließen',
         addPaymentCardButton: 'Zahlungskarte hinzufügen',

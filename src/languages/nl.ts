@@ -9319,7 +9319,10 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
     trialPaymentReminder: {
         title: 'Blijf de deadline voor',
         subtitle: 'Wacht niet tot het laatste moment, voeg vandaag nog je betaalmethode toe om doorlopende toegang tot je uitgaven op Expensify te garanderen.',
-        trialEndsInDays: ({days}: {days: number}) => `Proefperiode eindigt over ${days} ${days === 1 ? 'dag' : 'dagen'}`,
+        trialEndsInDays: () => ({
+            one: 'Proefperiode eindigt over 1 dag',
+            other: (pluralCount: number) => `Proefperiode eindigt over ${pluralCount} dagen`,
+        }),
         trialEndsCountdown: ({hours, minutes, seconds}: {hours: string; minutes: string; seconds: string}) => `Proefperiode eindigt over ${hours}u : ${minutes}m : ${seconds}s`,
         closeButton: 'Sluiten',
         addPaymentCardButton: 'Betaalkaart toevoegen',

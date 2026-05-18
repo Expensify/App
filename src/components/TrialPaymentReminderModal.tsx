@@ -58,7 +58,7 @@ function TrialPaymentReminderModal({isVisible, variant, daysRemaining, countdown
             </View>
             <View style={[styles.m5]}>
                 {variant === CONST.TRIAL_REMINDER_VARIANT.NEAR_END && daysRemaining !== undefined && (
-                    <Text style={[styles.textSuccess, styles.textStrong, styles.mb2]}>{translate('trialPaymentReminder.trialEndsInDays', {days: daysRemaining})}</Text>
+                    <Text style={[styles.textSuccess, styles.textStrong, styles.mb2]}>{translate('trialPaymentReminder.trialEndsInDays', {count: daysRemaining})}</Text>
                 )}
                 {variant === CONST.TRIAL_REMINDER_VARIANT.COUNTDOWN && !!countdownTime && (
                     <Text style={[styles.textSuccess, styles.textStrong, styles.mb2]}>

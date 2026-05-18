@@ -54,12 +54,9 @@ const TRIAL_REMINDER_VARIATIONS = [
 
 /**
  * Returns the remaining time (ms) of the 5-minute startup grace window relative to the trial's start time.
- * Returns 0 when the trial is missing/invalid or the grace window has already elapsed.
+ * Returns 0 when the trial start is unparseable or the grace window has already elapsed.
  */
-function getTrialStartupGraceRemainingMs(firstDayFreeTrial: string | undefined): number {
-    if (!firstDayFreeTrial) {
-        return 0;
-    }
+function getTrialStartupGraceRemainingMs(firstDayFreeTrial: string): number {
     const trialStartMs = new Date(`${firstDayFreeTrial}Z`).getTime();
     if (!Number.isFinite(trialStartMs)) {
         return 0;
@@ -161,13 +158,20 @@ function useTrialPaymentReminder() {
             // (trial was just created); this can only be detected by reacting to the Onyx change,
             // hence setState inside the effect.
             setReadinessState(READINESS_STATE.TRIAL_STARTUP_GRACE);
+            return;
+        }
+
+        // Trial disappeared mid-session (logout, account switch, or trial revoked) — drop back to PRE_TRIAL
+        // so a subsequent login with a new trial re-runs the grace window against the new firstDayFreeTrial.
+        if (readinessState !== READINESS_STATE.PRE_TRIAL && !firstDayFreeTrial) {
+            setReadinessState(READINESS_STATE.PRE_TRIAL);
         }
     }, [readinessState, firstDayFreeTrial, firstDayFreeTrialResult]);
 
     // Run the grace timer after a trial is created. Use the trial's actual start time so a late mount
     // only waits out the remainder of the 5-minute window, not a fresh 5 minutes from mount.
     useEffect(() => {
-        if (readinessState !== READINESS_STATE.TRIAL_STARTUP_GRACE) {
+        if (readinessState !== READINESS_STATE.TRIAL_STARTUP_GRACE || !firstDayFreeTrial) {
             return;
         }
         const timer = setTimeout(() => setReadinessState(READINESS_STATE.READY), getTrialStartupGraceRemainingMs(firstDayFreeTrial));
