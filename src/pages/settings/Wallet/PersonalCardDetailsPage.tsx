@@ -7,6 +7,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
@@ -18,7 +19,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isUsingStagingApi} from '@libs/ApiUtils';
-import {getCardFeedIcon, isCardConnectionBroken, isPersonalCard} from '@libs/CardUtils';
+import {getCardFeedIcon, getPlaidInstitutionIconUrl, isCardConnectionBroken, isPersonalCard} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -142,6 +143,8 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
         return <NotFoundPage />;
     }
 
+    const plaidUrl = getPlaidInstitutionIconUrl(cardBank as CompanyCardFeed);
+
     return (
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
@@ -153,13 +156,20 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
             />
             <ScrollView addBottomSafeAreaPadding>
                 <View style={[styles.walletCard, styles.mb3]}>
-                    <ImageSVG
-                        contentFit="contain"
-                        src={getCardIconSource()}
-                        pointerEvents="none"
-                        height={variables.cardPreviewHeight}
-                        width={variables.cardPreviewWidth}
-                    />
+                    {plaidUrl ? (
+                        <PlaidCardFeedIcon
+                            plaidUrl={plaidUrl}
+                            isLarge
+                        />
+                    ) : (
+                        <ImageSVG
+                            contentFit="contain"
+                            src={getCardIconSource()}
+                            pointerEvents="none"
+                            height={variables.cardPreviewHeight}
+                            width={variables.cardPreviewWidth}
+                        />
+                    )}
                 </View>
                 {isCardBroken && (
                     <OfflineWithFeedback
