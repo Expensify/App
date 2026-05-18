@@ -60,6 +60,7 @@ function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backTo
     useScanFileReadabilityCheck(transactions, draftTransactionIDs ?? [], disableMultiScan);
 
     const navigateGlobalCreate = (transactionIDs: string[]) => {
+        startScanProcessSpan(isMultiScanEnabled);
         if (shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd)) {
             const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
             const targetReport = shouldAutoReport ? getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id) : selfDMReport;
@@ -117,8 +118,6 @@ function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backTo
             return;
         }
 
-        startScanProcessSpan(isMultiScanEnabled);
-
         navigateGlobalCreate(receiptFiles.map((rf: ReceiptFile) => rf.transactionID));
     };
 
@@ -127,7 +126,6 @@ function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backTo
         if (ids.length === 0) {
             return;
         }
-        startScanProcessSpan(true);
         navigateGlobalCreate(ids);
     };
 
