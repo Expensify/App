@@ -18,7 +18,7 @@ function DuplicateTransactionsList({transactions, selectedTransactionID, onSelec
     const theme = useTheme();
 
     return (
-        <View style={[styles.mt5, styles.expenseWidgetRadius, styles.overflowHidden, {backgroundColor: theme.cardBG}]}>
+        <View style={[styles.expenseWidgetRadius, styles.overflowHidden, {backgroundColor: theme.cardBG}]}>
             {transactions.map((transaction, index) => (
                 <DuplicateTransactionItem
                     key={transaction?.transactionID ?? transaction?.created ?? 'duplicate-transaction'}
