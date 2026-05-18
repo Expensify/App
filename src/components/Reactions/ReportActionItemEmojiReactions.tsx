@@ -28,8 +28,8 @@ type ReportActionItemEmojiReactionsProps = {
     /** The ID of the chat report this action belongs to */
     reportID: string | undefined;
 
-    /** Whether the action has a draft message — controls reaction-row alignment when the row is in edit mode */
-    hasDraft: boolean;
+    /** True when this message is edited inline on a wide layout; right-aligns the reaction row under the composer. */
+    isEditingInline: boolean;
 
     /** We disable reacting with emojis on report actions that have errors */
     shouldBlockReactions?: boolean;
@@ -64,7 +64,7 @@ type FormattedReaction = {
     pendingAction?: PendingAction;
 };
 
-function ReportActionItemEmojiReactions({reportAction, reportID, hasDraft, shouldBlockReactions = false, setIsEmojiPickerActive}: ReportActionItemEmojiReactionsProps) {
+function ReportActionItemEmojiReactions({reportAction, reportID, isEditingInline, shouldBlockReactions = false, setIsEmojiPickerActive}: ReportActionItemEmojiReactionsProps) {
     const styles = useThemeStyles();
     const {preferredLocale} = useLocalize();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -124,7 +124,7 @@ function ReportActionItemEmojiReactions({reportAction, reportID, hasDraft, shoul
         return null;
     }
 
-    const wrapperStyle = hasDraft ? styles.chatItemReactionsDraftRight : {};
+    const wrapperStyle = isEditingInline ? styles.chatItemReactionsDraftRight : {};
 
     return (
         <View style={wrapperStyle}>

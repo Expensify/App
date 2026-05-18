@@ -240,6 +240,7 @@ function PureReportActionItem({
 
     const isDeletedParentAction = isDeletedParentActionUtils(action);
     const hasDraft = draftMessage !== undefined;
+    const isEditingInline = !shouldUseNarrowLayout && hasDraft
 
     // IOUDetails only exists when we are sending money
     const isSendingMoney = isMoneyRequestAction(action) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && getOriginalMessage(action)?.IOUDetails;
@@ -386,9 +387,10 @@ function PureReportActionItem({
 
     const disabledActions = !canWriteInReport(report) ? RestrictedReadOnlyContextMenuActions : [];
 
-    const hasErrors = !isEmptyValueObject(action.errors);
+    const hasActionErrors = !isEmptyValueObject(action.errors);
     // Receipt upload errors should still allow the context menu so the user can access "Delete expense"
-    const hasOnlyReceiptErrors = hasErrors && Object.values(action.errors ?? {}).every((error) => error === null || isReceiptError(error));
+    const hasOnlyReceiptErrors = hasActionErrors && Object.values(action.errors ?? {}).every((error) => error === null || isReceiptError(error));
+    const isContextMenuDisabled = hasDraft || (hasActionErrors && !hasOnlyReceiptErrors) || !shouldDisplayContextMenuValue;
 
     /**
      * Show the ReportActionContextMenu modal popover.
@@ -396,10 +398,10 @@ function PureReportActionItem({
      * @param [event] - A press event.
      */
     const showPopover = (event: GestureResponderEvent | MouseEvent) => {
-        // Block menu on the message being Edited or if the report action item has errors (except receipt upload errors, to allow Delete)
-        if (hasDraft || (hasErrors && !hasOnlyReceiptErrors) || !shouldDisplayContextMenuValue) {
-            return;
-        }
+            // Block menu on the message being Edited or if the report action item has errors
+            if (isContextMenuDisabled) {
+                return;
+            }
 
         handleShowContextMenu(() => {
             setIsContextMenuActive(true);
@@ -530,7 +532,7 @@ function PureReportActionItem({
                         onPressIn={() => shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
                         onPressOut={() => ControlSelection.unblock()}
                         onSecondaryInteraction={showPopover}
-                        preventDefaultContextMenu={!hasDraft && (!hasErrors || hasOnlyReceiptErrors)}
+                        preventDefaultContextMenu={isContextMenuDisabled}
                         withoutFocusOnSecondaryInteraction
                         accessibilityLabel={accessibilityLabel}
                         accessibilityHint={translate('accessibilityHints.chatMessage')}
@@ -553,7 +555,7 @@ function PureReportActionItem({
                                     {shouldDisplayNewMarker && (!shouldUseThreadDividerLine || !isFirstVisibleReportAction) && (
                                         <UnreadActionIndicator reportActionID={action.reportActionID} />
                                     )}
-                                    {shouldDisplayContextMenuValue && (hovered || !!isEmojiPickerActive || isContextMenuActive) && !hasDraft && !hasErrors && (
+                                    {shouldDisplayContextMenuValue && (hovered || !!isEmojiPickerActive || isContextMenuActive) && !hasDraft && !hasActionErrors && (
                                         <MiniReportActionContextMenu
                                             reportID={reportID}
                                             reportActionID={action.reportActionID}
@@ -598,7 +600,7 @@ function PureReportActionItem({
                                                         report={report}
                                                         iouReport={iouReport}
                                                         displayAsGroup={displayAsGroup}
-                                                        hasDraft={hasDraft}
+                                                        isEditingInline={isEditingInline}
                                                         isWhisper={isWhisper}
                                                         isOnSearch={isOnSearch}
                                                         hovered={!!hovered || !!isReportActionLinked || isContextMenuActive || !!isEmojiPickerActive}
@@ -638,9 +640,9 @@ function PureReportActionItem({
                                                             <ReportActionItemEmojiReactions
                                                                 reportAction={action}
                                                                 reportID={reportID}
-                                                                shouldBlockReactions={hasErrors}
+                                                                shouldBlockReactions={hasActionErrors}
                                                                 setIsEmojiPickerActive={setIsEmojiPickerActive}
-                                                                hasDraft={hasDraft}
+                                                                isEditingInline={isEditingInline}
                                                             />
                                                         )}
                                                         {shouldDisplayThreadReplies && (
@@ -650,7 +652,7 @@ function PureReportActionItem({
                                                                 isHovered={!!hovered || !!isReportActionLinked || isContextMenuActive || !!isEmojiPickerActive}
                                                                 onSecondaryInteraction={showPopover}
                                                                 isActive={isReportActionActive && !isContextMenuActive}
-                                                                hasDraft={hasDraft}
+                                                                isEditingInline={isEditingInline}
                                                             />
                                                         )}
                                                     </ReportActionItemFrame>
