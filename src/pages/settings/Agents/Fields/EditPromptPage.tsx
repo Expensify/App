@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {Platform, View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -42,6 +42,10 @@ function EditPromptPage({route}: EditPromptPageProps) {
     };
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, (e) => {
+        if (Platform.OS !== 'web') {
+            return;
+        }
+
         const textarea = e?.target as HTMLTextAreaElement;
 
         if (!textarea) {
