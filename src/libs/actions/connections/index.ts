@@ -120,6 +120,12 @@ function getSyncConnectionParameters(connectionName: PolicyConnectionName) {
         case CONST.POLICY.CONNECTIONS.NAME.GUSTO: {
             return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_GUSTO, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.GUSTO_SYNC_TITLE};
         }
+        case CONST.POLICY.CONNECTIONS.NAME.ZENEFITS: {
+            return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_ZENEFITS, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.ZENEFITS_SYNC_TITLE};
+        }
+        case CONST.POLICY.CONNECTIONS.NAME.CERTINIA: {
+            return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_FINANCIAL_FORCE, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.FINANCIAL_FORCE_SYNC_CONNECTION};
+        }
         default:
             return undefined;
     }
@@ -270,6 +276,11 @@ function isConnectionUnverified(policy: OnyxEntry<Policy>, connectionName: Polic
     // i.e. this is a property that is explicitly set to false, not just missing
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
         return !(policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]?.verified ?? true);
+    }
+
+    // Certinia is considered verified once the Salesforce instance is linked (same signal we persist client-side post-OAuth)
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.CERTINIA) {
+        return !policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]?.config?.credentials?.enterpriseUrl;
     }
 
     // If the connection has no lastSync property, we'll consider it unverified
