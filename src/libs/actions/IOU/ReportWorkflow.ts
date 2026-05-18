@@ -278,11 +278,7 @@ function getBadgeFromIOUReport(
     }
     const canBePaidElsewhere = canIOUBePaid(iouReport, chatReport, policy, undefined, currentUserLogin, currentUserAccountID, undefined, true, undefined, invoiceReceiverPolicy);
     if (canBePaidElsewhere) {
-        // Non-reimbursable-only reports: paying is optional, do not pin in LHN
-        const isNonReimbursableOnly = hasOnlyNonReimbursableTransactions(iouReport?.reportID);
-        if (!isNonReimbursableOnly) {
-            return CONST.REPORT.ACTION_BADGE.PAY;
-        }
+        return hasOnlyNonReimbursableTransactions(iouReport?.reportID) ? undefined : CONST.REPORT.ACTION_BADGE.PAY;
     }
     if (canApproveIOU(iouReport, policy, reportMetadata, currentUserAccountID)) {
         return CONST.REPORT.ACTION_BADGE.APPROVE;
