@@ -1518,7 +1518,7 @@ type FinancialForceConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
 /** Gusto connection data */
 type GustoConnectionData = Record<string, never>;
 
-/** Shared approval config for HR integrations (Gusto, Merge HR) */
+/** Shared config for HR integrations (Gusto, Merge HR) */
 type HRConnectionConfigBase = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** Approval mode */
