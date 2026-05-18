@@ -1518,6 +1518,9 @@ type FinancialForceConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
 /** Gusto connection data */
 type GustoConnectionData = Record<string, never>;
 
+/** Merge HR connection data */
+type MergeHRConnectionData = Record<string, never>;
+
 /** Shared config for HR integrations (Gusto, Merge HR) */
 type HRConnectionConfigBase = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
@@ -1701,13 +1704,13 @@ type Connections = {
     [CONST.POLICY.CONNECTIONS.NAME.ZENEFITS]: Connection<ZenefitsConnectionData, ZenefitsConnectionConfig>;
 
     /** Merge HR – Workday integration connection */
-    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR_WORKDAY]: Connection<Record<string, never>, MergeHRConnectionConfig>;
+    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR_WORKDAY]: Connection<MergeHRConnectionData, MergeHRConnectionConfig>;
 
     /** Merge HR – BambooHR integration connection */
-    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR_BAMBOOHR]: Connection<Record<string, never>, MergeHRConnectionConfig>;
+    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR_BAMBOOHR]: Connection<MergeHRConnectionData, MergeHRConnectionConfig>;
 
     /** Merge HR – HiBob integration connection */
-    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR_HIBOB]: Connection<Record<string, never>, MergeHRConnectionConfig>;
+    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR_HIBOB]: Connection<MergeHRConnectionData, MergeHRConnectionConfig>;
 };
 
 /** All integration connections, including unsupported ones */
