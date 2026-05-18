@@ -1,4 +1,3 @@
-import {useRoute} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
@@ -18,13 +17,10 @@ import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButton
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hasDomainErrors} from '@libs/DomainUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
 import {isAdminSelector} from '@src/selectors/Domain';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -39,13 +35,11 @@ function WorkspacesListPage() {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const [allDomainErrors] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_ERRORS);
-    const route = useRoute<PlatformStackRouteProp<WorkspaceNavigatorParamList, typeof SCREENS.WORKSPACES_LIST>>();
 
     const tabBarContent = <TabBarBottomContent selectedTab={NAVIGATION_TABS.WORKSPACES} />;
 
     const domainRows: DomainRowData[] = [];
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
-    const headerButton = <DomainListPageHeaderButton shouldShowNewDomainButton={!!domainRows.length} />;
 
     if (!isEmptyObject(allDomains)) {
         for (const domain of Object.values(allDomains)) {
@@ -79,10 +73,13 @@ function WorkspacesListPage() {
     };
 
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
+
     const activityIndicatorReasonAttributes = {
         context: 'DomainsListPage',
         isOffline,
     } satisfies SkeletonSpanReasonAttributes;
+
+    const headerButton = <DomainListPageHeaderButton shouldShowNewDomainButton={!!domainRows.length} />;
 
     return (
         <ScreenWrapper

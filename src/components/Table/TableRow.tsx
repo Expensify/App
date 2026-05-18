@@ -60,6 +60,7 @@ export default function TableRow({
     const rowCount = processedData.length;
     const isLastRow = rowIndex === rowCount - 1;
     const isInteractive = interactive && !isLoading;
+    const gridTemplateColumns = columns.map((column) => (column.width ? `${column.width}px` : '1fr')).join(' ');
 
     const tableRowPressableStyles = [
         styles.mh5,
@@ -81,7 +82,7 @@ export default function TableRow({
         styles.gap3,
         styles.dFlex,
         // Use Grid on web when available (will override flex if supported)
-        !shouldUseNarrowTableLayout && [styles.dGrid, {gridTemplateColumns: `repeat(${columnCount}, 1fr)`}],
+        !shouldUseNarrowTableLayout && [styles.dGrid, {gridTemplateColumns}],
     ];
 
     const renderChildren = (state: PressableStateCallbackType) => {
@@ -93,11 +94,7 @@ export default function TableRow({
     };
 
     return (
-        <OfflineWithFeedback
-            // We need to spread the props due to how the OfflineWithFeedback component handles child components
-
-            {...offlineWithFeedback}
-        >
+        <OfflineWithFeedback {...offlineWithFeedback}>
             <PressableWithFeedback
                 accessible={accessible}
                 accessibilityLabel="row"

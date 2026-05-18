@@ -5,6 +5,7 @@ import Table, {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import DomainListTableRow from './DomainListTableRow';
@@ -36,7 +37,7 @@ export default function DomainListTable({domains}: DomainListTableProps) {
 
     const domainTableColumns: Array<TableColumn<DomainTableColumnKey>> = [
         {key: 'domains', label: translate('common.domains')},
-        {key: 'actions', label: '', styling: {containerStyles: [styles.justifyContentEnd, styles.pr3]}},
+        {key: 'actions', width: variables.domainTableActionColumnWidth, label: '', styling: {containerStyles: [styles.justifyContentEnd, styles.pr3]}},
     ];
 
     const compareTableItems: CompareItemsCallback<DomainRowData> = (item1, item2, activeSorting) => {

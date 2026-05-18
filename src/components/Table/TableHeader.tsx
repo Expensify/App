@@ -62,6 +62,8 @@ function TableHeader<T, ColumnKey extends string = string>({style, shouldHideHea
         return null;
     }
 
+    const gridTemplateColumns = columns.map((column) => (column.width ? `${column.width}px` : '1fr')).join(' ');
+
     return (
         <View
             style={[
@@ -78,7 +80,7 @@ function TableHeader<T, ColumnKey extends string = string>({style, shouldHideHea
                 styles.gap3,
                 // Use Grid on web when available (will override flex if supported)
                 styles.dGrid,
-                !shouldUseNarrowTableLayout && {gridTemplateColumns: `repeat(${columns.length}, 1fr)`},
+                !shouldUseNarrowTableLayout && {gridTemplateColumns},
                 style,
             ]}
             {...props}

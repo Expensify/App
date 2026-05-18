@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {AvatarSource} from '@libs/UserUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import WorkspaceRow from './WorkspaceTableRow';
@@ -51,7 +52,7 @@ export default function WorkspaceListTable({workspaces}: WorkspaceListTableProps
         {key: 'workspaces', label: translate('common.workspaces')},
         {key: 'owner', label: translate('common.owner')},
         {key: 'type', label: translate('workspace.common.workspaceType')},
-        {key: 'actions', label: '', styling: {containerStyles: [styles.justifyContentEnd, styles.pr3]}},
+        {key: 'actions', width: variables.workspaceTableActionColumnWidth, label: '', styling: {containerStyles: [styles.justifyContentEnd, styles.pr3]}},
     ];
 
     const compareTableItems: CompareItemsCallback<WorkspaceRowData, WorkspaceTableColumnKey> = (item1, item2, activeSorting) => {

@@ -31,6 +31,9 @@ type TableColumn<ColumnKey extends string = string> = {
     /** Display label shown in the table header. */
     label: string;
 
+    /** The width of the column */
+    width?: number;
+
     /** Optional styling configuration for the column. */
     styling?: TableColumnStyling;
 };
