@@ -6434,6 +6434,7 @@ function deleteAppReport({
             reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
             originalMessage: {
                 ...reportAction.originalMessage,
+                IOUReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                 type: CONST.IOU.TYPE.TRACK,
             },
             reportActionID: newReportActionID,
