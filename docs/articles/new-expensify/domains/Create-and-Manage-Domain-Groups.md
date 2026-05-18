@@ -21,9 +21,6 @@ Only **Domain Admins** can create and manage Domain Groups.
 
 1. Click the navigation tabs (on the left on web, on the bottom on mobile). 
 2. Click **Workspaces**.
-3. Click **Domains**.
-4. Choose your domain.
-5. Click **Groups**.
 3. Choose your domain.
 4. Click **Groups**.
 
