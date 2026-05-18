@@ -7,12 +7,12 @@ import {canEditReportAction} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import {useComposerReportData} from './ComposerContext';
+import useComposerReportData from './useComposerReportData';
 
-function useLastEditableAction(): OnyxEntry<OnyxTypes.ReportAction> {
+function useLastEditableAction(reportID: string): OnyxEntry<OnyxTypes.ReportAction> {
     const route = useRoute();
 
-    const {report, filteredReportActions, effectiveTransactionThreadReportID} = useComposerReportData();
+    const {report, filteredReportActions, effectiveTransactionThreadReportID} = useComposerReportData(reportID);
 
     const parentReportAction = useParentReportAction(report);
     const [transactionThreadReportActionsOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${effectiveTransactionThreadReportID}`);

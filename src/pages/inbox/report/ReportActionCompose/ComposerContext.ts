@@ -1,13 +1,12 @@
 import type {RefObject} from 'react';
 import {createContext, useContext} from 'react';
 import type {BlurEvent, TextInputSelectionChangeEvent, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import type {TextSelection} from '@components/Composer/types';
 import type {Mention} from '@components/MentionSuggestions';
 import type {ReportActionEditMessageState} from '@pages/inbox/report/ReportActionEditMessageContext';
 import CONST from '@src/CONST';
-import type {Report, ReportAction} from '@src/types/onyx';
+import type {ReportAction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type {ComposerWithSuggestionsRef} from './ComposerWithSuggestions';
 import type useDebouncedCommentMaxLengthValidation from './useDebouncedCommentMaxLengthValidation';
@@ -85,20 +84,7 @@ type ComposerMeta = {
     attachmentFileRef: RefObject<FileObject | FileObject[] | null>;
 };
 
-type ComposerReportData = {
-    report: OnyxEntry<Report>;
-    filteredReportActions: ReportAction[];
-    effectiveTransactionThreadReportID: string | undefined;
-};
-
 const noop = () => {};
-
-const defaultReportData: ComposerReportData = {
-    report: undefined,
-    filteredReportActions: [],
-    effectiveTransactionThreadReportID: undefined,
-};
-const ComposerReportDataContext = createContext<ComposerReportData>(defaultReportData);
 
 const ComposerTextContext = createContext<ComposerText>('');
 
@@ -189,10 +175,6 @@ function useComposerMeta() {
     return ctx;
 }
 
-function useComposerReportData() {
-    return useContext(ComposerReportDataContext);
-}
-
 export {
     ComposerTextContext,
     ComposerStateContext,
@@ -201,7 +183,6 @@ export {
     ComposerActionsContext,
     ComposerEditActionsContext,
     ComposerMetaContext,
-    ComposerReportDataContext,
     useComposerText,
     useComposerState,
     useComposerEditState,
@@ -209,6 +190,5 @@ export {
     useComposerActions,
     useComposerEditActions,
     useComposerMeta,
-    useComposerReportData,
 };
 export type {SuggestionsRef, ComposerEditState, ComposerActions};

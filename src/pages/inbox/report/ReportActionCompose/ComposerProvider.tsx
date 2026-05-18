@@ -1,15 +1,10 @@
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import type {View} from 'react-native';
 import {scheduleOnUI} from 'react-native-worklets';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
-import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
-import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
-import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
-import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, isSentMoneyReportAction} from '@libs/ReportActionsUtils';
 import {chatIncludesConcierge} from '@libs/ReportUtils';
 import {useReportActionActiveEdit} from '@pages/inbox/report/ReportActionEditMessageContext';
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
@@ -21,7 +16,6 @@ import {
     ComposerEditActionsContext,
     ComposerEditStateContext,
     ComposerMetaContext,
-    ComposerReportDataContext,
     ComposerSendStateContext,
     ComposerStateContext,
     ComposerTextContext,
@@ -47,20 +41,6 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
     const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
-
-    const {isOffline} = useNetwork();
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
-    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(report?.reportID);
-    const filteredReportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
-    const allReportTransactions = useReportTransactionsCollection(reportID);
-    const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, filteredReportActions, isOffline, true);
-    const visibleTransactions = isOffline ? reportTransactions : reportTransactions?.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-    const reportTransactionIDs = visibleTransactions?.map((t) => t.transactionID);
-    const isSentMoneyReport = filteredReportActions.some((action) => isSentMoneyReportAction(action));
-    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, filteredReportActions, isOffline, reportTransactionIDs);
-    const effectiveTransactionThreadReportID = isSentMoneyReport ? undefined : transactionThreadReportID;
-
-    const composerReportData = useMemo(() => ({report, filteredReportActions, effectiveTransactionThreadReportID}), [report, filteredReportActions, effectiveTransactionThreadReportID]);
 
     const shouldFocusComposerOnScreenFocus = shouldFocusInputOnScreenFocus || !!draftComment;
     const initialFocused = shouldFocusComposerOnScreenFocus && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
@@ -184,21 +164,19 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
     };
 
     return (
-        <ComposerReportDataContext.Provider value={composerReportData}>
-            <ComposerTextContext.Provider value={text}>
-                <ComposerStateContext.Provider value={composerState}>
-                    <ComposerSendStateContext.Provider value={composerSendState}>
-                        <ComposerEditStateContext.Provider value={composerEditState}>
-                            <ComposerActionsContext.Provider value={composerActions}>
-                                <ComposerEditActionsContext.Provider value={composerEditActions}>
-                                    <ComposerMetaContext.Provider value={composerMeta}>{children}</ComposerMetaContext.Provider>
-                                </ComposerEditActionsContext.Provider>
-                            </ComposerActionsContext.Provider>
-                        </ComposerEditStateContext.Provider>
-                    </ComposerSendStateContext.Provider>
-                </ComposerStateContext.Provider>
-            </ComposerTextContext.Provider>
-        </ComposerReportDataContext.Provider>
+        <ComposerTextContext.Provider value={text}>
+            <ComposerStateContext.Provider value={composerState}>
+                <ComposerSendStateContext.Provider value={composerSendState}>
+                    <ComposerEditStateContext.Provider value={composerEditState}>
+                        <ComposerActionsContext.Provider value={composerActions}>
+                            <ComposerEditActionsContext.Provider value={composerEditActions}>
+                                <ComposerMetaContext.Provider value={composerMeta}>{children}</ComposerMetaContext.Provider>
+                            </ComposerEditActionsContext.Provider>
+                        </ComposerActionsContext.Provider>
+                    </ComposerEditStateContext.Provider>
+                </ComposerSendStateContext.Provider>
+            </ComposerStateContext.Provider>
+        </ComposerTextContext.Provider>
     );
 }
 

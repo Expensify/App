@@ -20,7 +20,8 @@ import {setIsComposerFullSize} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import {useComposerActions, useComposerEditActions, useComposerEditState, useComposerMeta, useComposerReportData, useComposerSendState, useComposerText} from './ComposerContext';
+import {useComposerActions, useComposerEditActions, useComposerEditState, useComposerMeta, useComposerSendState, useComposerText} from './ComposerContext';
+import useComposerReportData from './useComposerReportData';
 import useSidePanelContext from './useSidePanelContext';
 
 function useComposerSubmit(reportID: string) {
@@ -41,7 +42,7 @@ function useComposerSubmit(reportID: string) {
     const {publishDraft, setDidResetComposerHeightWhileEditing} = useComposerEditActions();
     const {scrollOffsetRef} = useContext(ActionListContext);
 
-    const {report, effectiveTransactionThreadReportID} = useComposerReportData();
+    const {report, effectiveTransactionThreadReportID} = useComposerReportData(reportID);
     const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${effectiveTransactionThreadReportID ?? reportID}`);
 
     const reportAncestors = useAncestors(report);
