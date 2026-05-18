@@ -976,9 +976,15 @@ function isControlPolicy(policy: OnyxEntry<Policy>): boolean {
 /**
  * For Submit workspaces, certain features require upgrading the plan before enabling.
  * When conditions match, navigates to the workspace upgrade flow and returns true (caller should not enable the feature).
- * @returns true if upgrade navigation was shown; false otherwise
+ * @returns true if upgrade navigation was performed; false otherwise
  */
-function shouldShowUpgradeSubmitPolicy(policy: OnyxEntry<Policy>, policyID: string | undefined, isEnabling: boolean, upgradeFeatureAlias: string, isSubmit2026BetaEnabled: boolean): boolean {
+function tryNavigateToSubmitWorkspaceUpgrade(
+    policy: OnyxEntry<Policy>,
+    policyID: string | undefined,
+    isEnabling: boolean,
+    upgradeFeatureAlias: string,
+    isSubmit2026BetaEnabled: boolean,
+): boolean {
     if (!policyID || !isEnabling || !canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled)) {
         return false;
     }
@@ -2382,7 +2388,7 @@ export {
     isPolicyTaxEnabled,
     sortPoliciesByName,
     isPolicyApprover,
-    shouldShowUpgradeSubmitPolicy,
+    tryNavigateToSubmitWorkspaceUpgrade,
     canAccessSubmitWorkspaceFeatures,
     getRulesDocumentSourceURL,
     getHRConnectionNames,

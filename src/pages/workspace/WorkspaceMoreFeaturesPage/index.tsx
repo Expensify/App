@@ -36,7 +36,7 @@ import {
     isHRIntegrationConnected,
     isTimeTrackingEnabled,
     isZenefitsConnected,
-    shouldShowUpgradeSubmitPolicy,
+    tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -276,7 +276,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 if (!policyID) {
                                     return;
                                 }
-                                if (shouldShowUpgradeSubmitPolicy(policy, policyID, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias, isSubmit2026BetaEnabled)) {
+                                if (tryNavigateToSubmitWorkspaceUpgrade(policy, policyID, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias, isSubmit2026BetaEnabled)) {
                                     return;
                                 }
                                 enablePolicyConnections(policyID, isEnabled);
@@ -502,7 +502,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 if (!policyID) {
                                     return;
                                 }
-                                if (shouldShowUpgradeSubmitPolicy(policy, policyID, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.travelSubmit.alias, isSubmit2026BetaEnabled)) {
+                                if (tryNavigateToSubmitWorkspaceUpgrade(policy, policyID, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.travelSubmit.alias, isSubmit2026BetaEnabled)) {
                                     return;
                                 }
                                 enablePolicyTravel(policyID, isEnabled);
@@ -526,7 +526,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 if (!policyID) {
                                     return;
                                 }
-                                if (shouldShowUpgradeSubmitPolicy(policy, policyID, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.expensifyCard.alias, isSubmit2026BetaEnabled)) {
+                                if (tryNavigateToSubmitWorkspaceUpgrade(policy, policyID, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.expensifyCard.alias, isSubmit2026BetaEnabled)) {
                                     return;
                                 }
                                 enableExpensifyCard(policyID, isEnabled);
@@ -550,7 +550,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 if (!policyID) {
                                     return;
                                 }
-                                if (shouldShowUpgradeSubmitPolicy(policy, policyID, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCardSubmit.alias, isSubmit2026BetaEnabled)) {
+                                if (tryNavigateToSubmitWorkspaceUpgrade(policy, policyID, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCardSubmit.alias, isSubmit2026BetaEnabled)) {
                                     return;
                                 }
                                 enableCompanyCards(policyID, isEnabled, true);
@@ -619,7 +619,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 if (!policyID) {
                                     return;
                                 }
-                                if (shouldShowUpgradeSubmitPolicy(policy, policyID, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoicing.alias, isSubmit2026BetaEnabled)) {
+                                if (tryNavigateToSubmitWorkspaceUpgrade(policy, policyID, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoicing.alias, isSubmit2026BetaEnabled)) {
                                     return;
                                 }
                                 enablePolicyInvoicing(policyID, isEnabled);
