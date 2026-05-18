@@ -658,9 +658,13 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     // This is intentional: we only check on the initial render after the RHP dismisses.
     // Once the deferred write flushes and createTransaction runs, Onyx updates make
     // transactions non-empty, which drives the transition away from the skeleton.
+    // isEmpty(reportActions) prevents the skeleton from showing for already-initialised reports
+    // (those with a CREATED action): the CREATED action is always present but filtered from
+    // visibleReportActions, so without this guard isReportEmpty would be true even for reports
+    // that already have server-side content.
     // Scoping to `report.reportID` ensures an unrelated submit flow's pending dismiss doesn't keep
     // *this* report stuck on the skeleton.
-    const isAwaitingDeferredTransaction = isReportEmpty && hasDeferredWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, report?.reportID);
+    const isAwaitingDeferredTransaction = isReportEmpty && isEmpty(reportActions) && hasDeferredWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, report?.reportID);
     const showEmptyState = isReportEmpty && !isAwaitingDeferredTransaction;
 
     if (!report) {
@@ -684,7 +688,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                     onClick={scrollToBottomAndMarkReportAsRead}
                 />
                 {/* Exactly one of these three branches is active at a time:
-                    1. isAwaitingDeferredTransaction — skeleton while dismiss-first creates the transaction
+                    1. isAwaitingDeferredTransaction — skeleton while dismiss-first creates the first transaction on a report with no reportActions yet
                     2. showEmptyState — genuinely empty report
                     3. !isReportEmpty — report has data, render the FlatList */}
                 {isAwaitingDeferredTransaction && <ReportActionsListLoadingSkeleton reasonAttributes={skeletonReasonAttributes} />}
