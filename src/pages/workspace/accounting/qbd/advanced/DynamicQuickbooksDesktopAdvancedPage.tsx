@@ -73,6 +73,13 @@ function DynamicQuickbooksDesktopAdvancedPage({policy}: WithPolicyConnectionsPro
                     })()}
                 />
             </OfflineWithFeedback>
+            <TravelInvoicingContinuousReconciliationSection
+                policy={policy}
+                connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
+                isAutoSyncEnabled={!!qbdConfig?.autoSync?.enabled}
+                toggleWrapperStyle={styles.mv3}
+                menuItemWrapperStyle={[styles.sectionMenuItemTopDescription]}
+            />
 
             {qbdToggleSettingItems.map((item) => (
                 <ToggleSettingOptionRow
@@ -89,13 +96,6 @@ function DynamicQuickbooksDesktopAdvancedPage({policy}: WithPolicyConnectionsPro
                     onCloseError={() => clearQBDErrorField(policyID, item.subscribedSetting)}
                 />
             ))}
-            <TravelInvoicingContinuousReconciliationSection
-                policy={policy}
-                connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
-                isAutoSyncEnabled={!!qbdConfig?.autoSync?.enabled}
-                toggleWrapperStyle={styles.mv3}
-                menuItemWrapperStyle={[styles.sectionMenuItemTopDescription]}
-            />
         </ConnectionLayout>
     );
 }

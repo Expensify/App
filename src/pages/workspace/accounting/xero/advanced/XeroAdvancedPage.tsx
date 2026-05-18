@@ -82,6 +82,13 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     })()}
                 />
             </OfflineWithFeedback>
+            <TravelInvoicingContinuousReconciliationSection
+                policy={policy}
+                connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
+                isAutoSyncEnabled={!!xeroConfig?.autoSync?.enabled}
+                toggleWrapperStyle={styles.mv3}
+                menuItemWrapperStyle={[styles.sectionMenuItemTopDescription]}
+            />
             <ToggleSettingOptionRow
                 key={translate('workspace.accounting.reimbursedReports')}
                 title={translate('workspace.accounting.reimbursedReports')}
@@ -126,13 +133,6 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     </OfflineWithFeedback>
                 </>
             </Accordion>
-            <TravelInvoicingContinuousReconciliationSection
-                policy={policy}
-                connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
-                isAutoSyncEnabled={!!xeroConfig?.autoSync?.enabled}
-                toggleWrapperStyle={styles.mv3}
-                menuItemWrapperStyle={[styles.sectionMenuItemTopDescription]}
-            />
         </ConnectionLayout>
     );
 }

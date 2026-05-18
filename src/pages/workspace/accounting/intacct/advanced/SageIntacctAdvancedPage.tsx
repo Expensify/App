@@ -119,6 +119,12 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                     })()}
                 />
             </OfflineWithFeedback>
+            <TravelInvoicingContinuousReconciliationSection
+                policy={policy}
+                connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
+                isAutoSyncEnabled={!!config?.autoSync?.enabled}
+                toggleWrapperStyle={[styles.ph5, styles.pv3]}
+            />
 
             {toggleSections.map((section) => (
                 <ToggleSettingOptionRow
@@ -153,12 +159,6 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                     />
                 </OfflineWithFeedback>
             </Accordion>
-            <TravelInvoicingContinuousReconciliationSection
-                policy={policy}
-                connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
-                isAutoSyncEnabled={!!config?.autoSync?.enabled}
-                toggleWrapperStyle={[styles.ph5, styles.pv3]}
-            />
         </ConnectionLayout>
     );
 }

@@ -186,6 +186,13 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     })()}
                 />
             </OfflineWithFeedback>
+            <TravelInvoicingContinuousReconciliationSection
+                policy={policy}
+                connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
+                isAutoSyncEnabled={!!qboConfig?.autoSync?.enabled}
+                toggleWrapperStyle={styles.mv3}
+                menuItemWrapperStyle={[styles.sectionMenuItemTopDescription]}
+            />
             {qboToggleSettingItems.map((item) => (
                 <ToggleSettingOptionRow
                     key={item.title}
@@ -207,13 +214,6 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             >
                 {syncReimbursedSubMenuItems()}
             </Accordion>
-            <TravelInvoicingContinuousReconciliationSection
-                policy={policy}
-                connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
-                isAutoSyncEnabled={!!qboConfig?.autoSync?.enabled}
-                toggleWrapperStyle={styles.mv3}
-                menuItemWrapperStyle={[styles.sectionMenuItemTopDescription]}
-            />
         </ConnectionLayout>
     );
 }
