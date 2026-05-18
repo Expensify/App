@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {add as dateAdd} from 'date-fns';
 import {sub as dateSubtract} from 'date-fns/sub';
-import {Platform} from 'react-native';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
 import type {ValueOf} from 'type-fest';
@@ -10,6 +9,15 @@ import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
 import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/VALUES';
 import addTrailingForwardSlash from '@libs/UrlUtils';
+import {
+    ANIMATED_TRANSITION as ANIMATION_TIMING_ANIMATED_TRANSITION,
+    DEFAULT_IN as ANIMATION_TIMING_DEFAULT_IN,
+    DEFAULT_OUT as ANIMATION_TIMING_DEFAULT_OUT,
+    DEFAULT_RIGHT_DOCKED_IOS_IN as ANIMATION_TIMING_DEFAULT_RIGHT_DOCKED_IOS_IN,
+    DEFAULT_RIGHT_DOCKED_IOS_OUT as ANIMATION_TIMING_DEFAULT_RIGHT_DOCKED_IOS_OUT,
+    FAB_IN as ANIMATION_TIMING_FAB_IN,
+    FAB_OUT as ANIMATION_TIMING_FAB_OUT,
+} from '@styles/utils/animationTiming';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -225,7 +233,7 @@ const CONST = {
     ANIMATED_HIGHLIGHT_WORKSPACE_FEATURE_ITEM_END_DURATION: 3000,
     ANIMATED_HIGHLIGHT_END_DELAY: 800,
     ANIMATED_HIGHLIGHT_END_DURATION: 2000,
-    ANIMATED_TRANSITION: Platform.OS === 'web' ? 1 : 300,
+    ANIMATED_TRANSITION: ANIMATION_TIMING_ANIMATED_TRANSITION,
     KEYBOARD_RESTORATION_FLAG_RESET_DELAY: 100,
     SIDE_PANEL_ANIMATED_TRANSITION: 300,
     ANIMATED_TRANSITION_FROM_VALUE: 100,
@@ -1928,12 +1936,12 @@ const CONST = {
             PRESERVE: 'preserve',
         },
         ANIMATION_TIMING: {
-            DEFAULT_IN: Platform.OS === 'web' ? 1 : 300,
-            DEFAULT_OUT: Platform.OS === 'web' ? 1 : 200,
-            DEFAULT_RIGHT_DOCKED_IOS_IN: Platform.OS === 'web' ? 1 : 500,
-            DEFAULT_RIGHT_DOCKED_IOS_OUT: Platform.OS === 'web' ? 1 : 400,
-            FAB_IN: Platform.OS === 'web' ? 1 : 350,
-            FAB_OUT: Platform.OS === 'web' ? 1 : 200,
+            DEFAULT_IN: ANIMATION_TIMING_DEFAULT_IN,
+            DEFAULT_OUT: ANIMATION_TIMING_DEFAULT_OUT,
+            DEFAULT_RIGHT_DOCKED_IOS_IN: ANIMATION_TIMING_DEFAULT_RIGHT_DOCKED_IOS_IN,
+            DEFAULT_RIGHT_DOCKED_IOS_OUT: ANIMATION_TIMING_DEFAULT_RIGHT_DOCKED_IOS_OUT,
+            FAB_IN: ANIMATION_TIMING_FAB_IN,
+            FAB_OUT: ANIMATION_TIMING_FAB_OUT,
             RHP_DURATION_IN_WEB: 150,
             RHP_DURATION_OUT_WEB: 100,
         },
