@@ -113,7 +113,7 @@ const story: Meta<typeof TransactionPreviewContent> = {
         areThereDuplicates: false,
         sessionAccountID: 11111111,
         walletTermsErrors: undefined,
-        routeName: SCREENS.TRANSACTION_DUPLICATE.REVIEW,
+        routeName: SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REVIEW,
         shouldHideOnDelete: false,
         transactionPreviewWidth: 303,
     },

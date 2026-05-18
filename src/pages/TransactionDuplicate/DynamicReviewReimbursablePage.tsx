@@ -7,8 +7,8 @@ import useOnyx from '@hooks/useOnyx';
 import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
 import useTransactionsByID from '@hooks/useTransactionsByID';
 import {setReviewDuplicatesKey} from '@libs/actions/Transaction';
-import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getTransactionDuplicateThreadReportID} from '@libs/Navigation/helpers/transactionDuplicateNavigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import {compareDuplicateTransactionFields, getTransactionID} from '@libs/TransactionUtils';
@@ -18,10 +18,11 @@ import type SCREENS from '@src/SCREENS';
 import type {FieldItemType} from './ReviewFields';
 import ReviewFields from './ReviewFields';
 
-function ReviewCategory() {
-    const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.CATEGORY>>();
+function DynamicReviewReimbursablePage() {
+    const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REIMBURSABLE>>();
+    const threadReportID = getTransactionDuplicateThreadReportID(route.params);
     const {translate} = useLocalize();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`);
     const transactionID = getTransactionID(report);
     const [reviewDuplicates] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
@@ -38,48 +39,39 @@ function ReviewCategory() {
 
     const compareResult = compareDuplicateTransactionFields(policyTags ?? {}, transaction, allDuplicates, reviewDuplicatesReport, undefined, policy, policyCategories);
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
-    const {currentScreenIndex, goBack, navigateToNextScreen} = useReviewDuplicatesNavigation(
-        Object.keys(compareResult.change ?? {}),
-        'category',
-        route.params.threadReportID,
-        route.params.backTo,
-    );
+    const {currentScreenIndex, goBack, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'reimbursable', threadReportID);
     const options = useMemo(
         () =>
-            compareResult.change.category?.map((category) =>
-                !category
-                    ? {text: translate('violations.none'), value: ''}
-                    : {
-                          text: getDecodedCategoryName(category),
-                          value: category,
-                      },
-            ),
-        [compareResult.change.category, translate],
+            compareResult.change.reimbursable?.map((reimbursable) => ({
+                text: reimbursable ? translate('common.yes') : translate('common.no'),
+                value: reimbursable ?? false,
+            })),
+        [compareResult.change.reimbursable, translate],
     );
 
-    const setCategory = (data: FieldItemType<'category'>) => {
+    const setReimbursable = (data: FieldItemType<'reimbursable'>) => {
         if (data.value !== undefined) {
-            setReviewDuplicatesKey({category: data.value});
+            setReviewDuplicatesKey({reimbursable: data.value});
         }
         navigateToNextScreen();
     };
 
     return (
-        <ScreenWrapper testID="ReviewCategory">
+        <ScreenWrapper testID="ReviewReimbursable">
             <HeaderWithBackButton
                 title={translate('iou.reviewDuplicates')}
                 onBackButtonPress={goBack}
             />
-            <ReviewFields<'category'>
+            <ReviewFields<'reimbursable'>
                 stepNames={stepNames}
-                label={translate('violations.categoryToKeep')}
+                label={translate('violations.isTransactionReimbursable')}
                 options={options}
                 index={currentScreenIndex}
-                onSelectRow={setCategory}
-                selectedValue={reviewDuplicates?.category}
+                onSelectRow={setReimbursable}
+                selectedValue={reviewDuplicates?.reimbursable}
             />
         </ScreenWrapper>
     );
 }
 
-export default ReviewCategory;
+export default DynamicReviewReimbursablePage;

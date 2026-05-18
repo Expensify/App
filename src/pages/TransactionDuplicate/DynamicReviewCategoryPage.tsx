@@ -7,10 +7,11 @@ import useOnyx from '@hooks/useOnyx';
 import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
 import useTransactionsByID from '@hooks/useTransactionsByID';
 import {setReviewDuplicatesKey} from '@libs/actions/Transaction';
+import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getTransactionDuplicateThreadReportID} from '@libs/Navigation/helpers/transactionDuplicateNavigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
-import {getCleanedTagName} from '@libs/PolicyUtils';
 import {compareDuplicateTransactionFields, getTransactionID} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -18,10 +19,11 @@ import type SCREENS from '@src/SCREENS';
 import type {FieldItemType} from './ReviewFields';
 import ReviewFields from './ReviewFields';
 
-function ReviewTag() {
-    const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.TAG>>();
+function DynamicReviewCategoryPage() {
+    const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_CATEGORY>>();
+    const threadReportID = getTransactionDuplicateThreadReportID(route.params);
     const {translate} = useLocalize();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`);
     const transactionID = getTransactionID(report);
     const [reviewDuplicates] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
@@ -38,47 +40,43 @@ function ReviewTag() {
 
     const compareResult = compareDuplicateTransactionFields(policyTags ?? {}, transaction, allDuplicates, reviewDuplicatesReport, undefined, policy, policyCategories);
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
-    const {currentScreenIndex, goBack, navigateToNextScreen} = useReviewDuplicatesNavigation(
-        Object.keys(compareResult.change ?? {}),
-        'tag',
-        route.params.threadReportID,
-        route.params.backTo,
-    );
+    const {currentScreenIndex, goBack, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'category', threadReportID);
     const options = useMemo(
         () =>
-            compareResult.change.tag?.map((tag) =>
-                !tag
+            compareResult.change.category?.map((category) =>
+                !category
                     ? {text: translate('violations.none'), value: ''}
                     : {
-                          text: getCleanedTagName(tag),
-                          value: tag,
+                          text: getDecodedCategoryName(category),
+                          value: category,
                       },
             ),
-        [compareResult.change.tag, translate],
+        [compareResult.change.category, translate],
     );
-    const setTag = (data: FieldItemType<'tag'>) => {
+
+    const setCategory = (data: FieldItemType<'category'>) => {
         if (data.value !== undefined) {
-            setReviewDuplicatesKey({tag: data.value});
+            setReviewDuplicatesKey({category: data.value});
         }
         navigateToNextScreen();
     };
 
     return (
-        <ScreenWrapper testID="ReviewTag">
+        <ScreenWrapper testID="ReviewCategory">
             <HeaderWithBackButton
                 title={translate('iou.reviewDuplicates')}
                 onBackButtonPress={goBack}
             />
-            <ReviewFields<'tag'>
+            <ReviewFields<'category'>
                 stepNames={stepNames}
-                label={translate('violations.tagToKeep')}
+                label={translate('violations.categoryToKeep')}
                 options={options}
                 index={currentScreenIndex}
-                onSelectRow={setTag}
-                selectedValue={reviewDuplicates?.tag}
+                onSelectRow={setCategory}
+                selectedValue={reviewDuplicates?.category}
             />
         </ScreenWrapper>
     );
 }
 
-export default ReviewTag;
+export default DynamicReviewCategoryPage;
