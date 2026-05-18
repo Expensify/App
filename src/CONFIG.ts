@@ -89,7 +89,7 @@ export default {
         DEVPORTAL_URL_PATHNAME: '_devportal/',
         CONCIERGE_URL: `${expensifyURL}concierge/`,
         RECEIPTS_URL: `${expensifyURL}receipts/`,
-        SAML_URL: `${expensifyURL}authentication/saml`,
+        SAML_URL: `${expensifyURLRoot}authentication/saml`,
     },
     IS_IN_PRODUCTION: Platform.OS === 'web' ? process.env.NODE_ENV === 'production' : !__DEV__,
     IS_IN_STAGING: ENVIRONMENT === CONST.ENVIRONMENT.STAGING,
