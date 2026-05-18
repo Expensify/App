@@ -11,16 +11,25 @@ const SUBMIT_HANDLER = {
 type SubmitHandler = (typeof SUBMIT_HANDLER)[keyof typeof SUBMIT_HANDLER];
 
 type SubmitNavigationSnapshot = {
+    /** Whether search list already has the optimistic item pre-inserted. */
     isPreInserted: boolean;
+    /** Whether the destination report already has the optimistic item pre-inserted. */
     isReportPreInserted: boolean;
+    /** Whether the expense was initiated from the global FAB (no pre-existing report context). */
     isFromGlobalCreate: boolean;
+    /** Whether the current navigation state allows dismissing to Search. */
     canDismissFromSearch: boolean;
     /** Whether the flow navigates to a specific destination report (e.g. SPLIT, TRACK). */
     navigatesToDestinationReport: boolean;
+    /** The report ID that will display the submitted expense. */
     destinationReportID: string | undefined;
+    /** Whether the report is rendered in the Right Hand Panel. */
     isReportInRHP: boolean;
+    /** Whether a report split navigator is topmost in the navigation stack. */
     isReportTopmostSplit: boolean;
+    /** Whether Search is the topmost full-screen route. */
     isSearchTopmostFullScreen: boolean;
+    /** Whether the destination report is already loaded in Onyx. */
     isDestinationReportLoaded: boolean;
 };
 

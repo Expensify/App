@@ -33,7 +33,7 @@ const {submitWithDismissFirst} = submitModule;
 const TELEMETRY_CONTEXT = {
     scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.REQUEST_MONEY_MANUAL,
     iouType: CONST.IOU.TYPE.SUBMIT,
-    requestType: 'manual' as const,
+    requestType: CONST.IOU.REQUEST_TYPE.MANUAL,
     isFromGlobalCreate: true,
     hasReceipt: false,
 };

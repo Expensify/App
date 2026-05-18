@@ -437,7 +437,7 @@ function handleMoneyRequestStepScanParticipants({
                     telemetryContext: {
                         scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.SPLIT_RECEIPT,
                         iouType: CONST.IOU.TYPE.SPLIT,
-                        requestType: 'scan',
+                        requestType: CONST.IOU.REQUEST_TYPE.SCAN,
                         isFromGlobalCreate: !report?.reportID,
                         hasReceipt: true,
                     },
@@ -511,7 +511,7 @@ function handleMoneyRequestStepScanParticipants({
                 telemetryContext: {
                     scenario: iouType === CONST.IOU.TYPE.TRACK ? CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.TRACK_EXPENSE : CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.REQUEST_MONEY_SCAN,
                     iouType,
-                    requestType: 'scan',
+                    requestType: CONST.IOU.REQUEST_TYPE.SCAN,
                     isFromGlobalCreate: !report?.reportID,
                     hasReceipt: true,
                 },
@@ -780,7 +780,7 @@ function handleMoneyRequestStepDistanceNavigation({
                 telemetryContext: {
                     scenario: isCreatingTrackExpense ? CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.TRACK_EXPENSE : CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.DISTANCE,
                     iouType,
-                    requestType: 'distance',
+                    requestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
                     isFromGlobalCreate: !report?.reportID,
                     hasReceipt: false,
                 },

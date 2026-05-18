@@ -125,7 +125,9 @@ type UseExpenseSubmissionParams = {
 };
 
 type SendMoneyReportIDs = {
+    /** Optimistic report ID generated before the server round-trip. */
     optimisticChatReportID: string | undefined;
+    /** Resolved chat report ID (may match an existing report). */
     chatReportID: string | undefined;
 };
 

@@ -526,7 +526,7 @@ function executeSendMoney(
             {
                 scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.SEND_MONEY,
                 iouType: CONST.IOU.TYPE.PAY,
-                requestType: 'pay',
+                requestType: CONST.IOU.TYPE.PAY,
                 isFromGlobalCreate: isEmptyObject(report) || !report?.reportID,
                 hasReceipt: !!receipt,
             },

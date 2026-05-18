@@ -281,7 +281,7 @@ function IOURequestStepAmount({
                         telemetryContext: {
                             scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.SEND_MONEY,
                             iouType: CONST.IOU.TYPE.PAY,
-                            requestType: 'pay',
+                            requestType: CONST.IOU.TYPE.PAY,
                             isFromGlobalCreate: isEmptyObject(report) || !report?.reportID,
                             hasReceipt: false,
                         },
@@ -333,7 +333,7 @@ function IOURequestStepAmount({
                         telemetryContext: {
                             scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.REQUEST_MONEY_MANUAL,
                             iouType,
-                            requestType: 'manual',
+                            requestType: CONST.IOU.REQUEST_TYPE.MANUAL,
                             isFromGlobalCreate: isEmptyObject(report) || !report?.reportID,
                             hasReceipt: false,
                         },
@@ -378,7 +378,7 @@ function IOURequestStepAmount({
                         telemetryContext: {
                             scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.TRACK_EXPENSE,
                             iouType: CONST.IOU.TYPE.TRACK,
-                            requestType: 'manual',
+                            requestType: CONST.IOU.REQUEST_TYPE.MANUAL,
                             isFromGlobalCreate: isEmptyObject(report) || !report?.reportID,
                             hasReceipt: false,
                         },

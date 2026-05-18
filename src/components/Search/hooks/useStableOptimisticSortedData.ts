@@ -37,22 +37,34 @@ const OPTIMISTIC_ROLLBACK_GRACE_MS = 3_000;
  * so ownership is explicit and the cross-hook contract stays narrow.
  */
 type TrackingMutableState = {
+    /** Whether a deferred write was pending when the search screen mounted. */
     hasPendingWriteOnMount: boolean;
+    /** Onyx key of the optimistic transaction being tracked (e.g. `transaction_<id>`). */
     optimisticWatchKey: OnyxKey | undefined;
+    /** Cached optimistic list item used to re-inject during stale-snapshot gaps. */
     cachedOptimisticItem: TransactionListItemType | null;
+    /** Index at which the cached item was last seen in sortedData. */
     cachedOptimisticItemIndex: number;
+    /** Whether the optimistic lifecycle has been terminated (cleared). */
     isCleanedUp: boolean;
+    /** Whether we already swapped from a split-parent key to the child key. */
     hasSwappedFromParent: boolean;
+    /** Timeout handle for the rollback grace period before final cleanup. */
     rollbackTimeout: ReturnType<typeof setTimeout> | undefined;
 };
 
 type OptimisticTrackingState = {
     /** Single ref holding all mutable bookkeeping for the optimistic lifecycle. */
     mutableRef: React.RefObject<TrackingMutableState>;
+    /** Current resolved Onyx key being watched for the optimistic item. */
     optimisticWatchKey: OnyxKey | undefined;
+    /** Whether optimistic tracking has been fully cleared (lifecycle ended). */
     isOptimisticTrackingCleared: boolean;
+    /** Terminates optimistic tracking and resets all related state. */
     clearOptimisticTracking: () => void;
+    /** Controls visibility of the skeleton placeholder row in the search list. */
     setShowPendingExpensePlaceholder: React.Dispatch<React.SetStateAction<boolean>>;
+    /** Setter for the reactive optimistic watch key state. */
     setOptimisticWatchKey: React.Dispatch<React.SetStateAction<OnyxKey | undefined>>;
 };
 

@@ -14,9 +14,13 @@ import type {OptimisticTrackingState, TrackingMutableState} from './useStableOpt
 import {OPTIMISTIC_TRACKING_TIMEOUT_MS, resolveWatchKey} from './useStableOptimisticSortedData';
 
 type UseOptimisticSearchTrackingParams = {
+    /** Current search results snapshot from Onyx. */
     searchResults: SearchResults | undefined;
+    /** Parsed query controlling the active search (type, filters, etc.). */
     queryJSON: SearchQueryJSON;
+    /** Full transactions collection used to resolve optimistic watch keys. */
     transactions: OnyxCollection<Transaction> | undefined;
+    /** Report actions collection used to augment search data with optimistic IOU actions. */
     reportActions: OnyxCollection<ReportActions> | undefined;
 };
 
