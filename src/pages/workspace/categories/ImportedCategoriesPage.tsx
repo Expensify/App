@@ -120,13 +120,13 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
         return errors;
     }, [spreadsheet?.columns, spreadsheet?.data, requiredColumns, translate, columnRoles, containsHeader]);
 
-    const closeImportPageAndModal = useCallback(() => {
+    const closeImportPageAndModal = () => {
         setIsClosing(true);
         setIsImportingCategories(false);
         Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
-    }, [backTo, isQuickSettingsFlow, policyID, setIsClosing]);
+    };
 
-    const importCategories = useCallback(async () => {
+    const importCategories = async () => {
         setIsValidationEnabled(true);
         const errors = validate();
         if (Object.keys(errors).length > 0) {
@@ -173,7 +173,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
             }
             closeImportPageAndModal();
         }
-    }, [validate, spreadsheet, containsHeader, policyID, policyCategories, showImportSpreadsheetConfirmModal, closeImportPageAndModal]);
+    };
 
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {

@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
@@ -101,11 +101,11 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
 
     const validationErrors = validate();
 
-    const closeImportPageAndModal = useCallback(() => {
+    const closeImportPageAndModal = () => {
         setIsClosing(true);
         setIsImportingTransactions(false);
         Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
-    }, [policyID, setIsClosing]);
+    };
 
     const importTransactions = async () => {
         const errors = validate();

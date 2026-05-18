@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -29,12 +29,12 @@ function ImportedMultiLevelTagsPage({route}: ImportedMultiLevelTagsPageProps) {
 
     const {setIsClosing} = useCloseImportPage();
     const showImportSpreadsheetConfirmModal = useImportSpreadsheetConfirmModal();
-    const closeImportPageAndModal = useCallback(() => {
+    const closeImportPageAndModal = () => {
         setIsClosing(true);
         setIsImportingTags(false);
         Navigation.goBack(ROUTES.WORKSPACE_TAGS.getRoute(policyID));
-    }, [policyID, setIsClosing]);
-    const importTags = useCallback(async () => {
+    };
+    const importTags = async () => {
         setIsImportingTags(true);
         const importFinalModal = await importMultiLevelTags(policyID, spreadsheet);
         const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal);
@@ -43,7 +43,7 @@ function ImportedMultiLevelTagsPage({route}: ImportedMultiLevelTagsPageProps) {
             return;
         }
         closeImportPageAndModal();
-    }, [spreadsheet, policyID, showImportSpreadsheetConfirmModal, closeImportPageAndModal]);
+    };
 
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return;

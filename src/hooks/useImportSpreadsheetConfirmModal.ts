@@ -1,4 +1,3 @@
-import {useCallback} from 'react';
 import type {TranslationParameters} from '@src/languages/types';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import useConfirmModal from './useConfirmModal';
@@ -18,31 +17,28 @@ function useImportSpreadsheetConfirmModal() {
     const {showConfirmModal} = useConfirmModal();
     const isFocusedRef = useIsFocusedRef();
 
-    return useCallback(
-        async (importFinalModal: ImportFinalModal, {onModalHide, shouldHandleNavigationBack = true}: ShowImportSpreadsheetConfirmModalOptions = {}) => {
-            if (!isFocusedRef.current) {
-                return false;
-            }
+    return async (importFinalModal: ImportFinalModal, {onModalHide, shouldHandleNavigationBack = true}: ShowImportSpreadsheetConfirmModalOptions = {}) => {
+        if (!isFocusedRef.current) {
+            return false;
+        }
 
-            const titleText = translate(importFinalModal.titleKey);
-            const promptText = translate(importFinalModal.promptKey, importFinalModal.promptKeyParams as TranslationParameters<typeof importFinalModal.promptKey>[0]);
-            const pendingText = importFinalModal.pendingMessageKey ? translate(importFinalModal.pendingMessageKey) : '';
-            const fullPromptText = pendingText ? `${promptText} ${pendingText}` : promptText;
+        const titleText = translate(importFinalModal.titleKey);
+        const promptText = translate(importFinalModal.promptKey, importFinalModal.promptKeyParams as TranslationParameters<typeof importFinalModal.promptKey>[0]);
+        const pendingText = importFinalModal.pendingMessageKey ? translate(importFinalModal.pendingMessageKey) : '';
+        const fullPromptText = pendingText ? `${promptText} ${pendingText}` : promptText;
 
-            await showConfirmModal({
-                id: 'import-spreadsheet-confirm-modal',
-                title: titleText,
-                prompt: fullPromptText,
-                confirmText: translate('common.buttonConfirm'),
-                shouldShowCancelButton: false,
-                shouldHandleNavigationBack,
-                onModalHide,
-            });
+        await showConfirmModal({
+            id: 'import-spreadsheet-confirm-modal',
+            title: titleText,
+            prompt: fullPromptText,
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+            shouldHandleNavigationBack,
+            onModalHide,
+        });
 
-            return true;
-        },
-        [isFocusedRef, showConfirmModal, translate],
-    );
+        return true;
+    };
 }
 
 export default useImportSpreadsheetConfirmModal;

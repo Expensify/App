@@ -65,9 +65,6 @@ function ImportSpreadsheetColumns({
     const {isOffline} = useNetwork();
     const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const {containsHeader = true} = spreadsheet ?? {};
-    const handleImport = () => {
-        importFunction();
-    };
 
     return (
         <>
@@ -120,7 +117,7 @@ function ImportSpreadsheetColumns({
                 >
                     <Button
                         text={translate('common.import')}
-                        onPress={handleImport}
+                        onPress={importFunction}
                         isLoading={isButtonLoading}
                         isDisabled={isOffline}
                         pressOnEnter

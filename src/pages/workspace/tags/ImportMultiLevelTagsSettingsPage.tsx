@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
@@ -55,13 +55,13 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
         setImportedSpreadsheetIsGLAdjacent(false);
     }, []);
 
-    const closeImportPageAndModal = useCallback(() => {
+    const closeImportPageAndModal = () => {
         setIsClosing(true);
         setIsImportingTags(false);
         Navigation.goBack(ROUTES.WORKSPACE_TAGS.getRoute(policyID));
-    }, [policyID, setIsClosing]);
+    };
 
-    const importTags = useCallback(async () => {
+    const importTags = async () => {
         setIsImportingTags(true);
         const importFinalModal = await importMultiLevelTags(policyID, spreadsheet);
         const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal);
@@ -70,7 +70,7 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
             return;
         }
         closeImportPageAndModal();
-    }, [spreadsheet, policyID, showImportSpreadsheetConfirmModal, closeImportPageAndModal]);
+    };
 
     if (hasAccountingConnections) {
         return <NotFoundPage />;
@@ -156,13 +156,9 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                     >
                         <Button
                             text={spreadsheet?.isImportingIndependentMultiLevelTags ? translate('common.next') : translate('common.import')}
-                            onPress={() => {
-                                if (spreadsheet?.isImportingIndependentMultiLevelTags) {
-                                    Navigation.navigate(ROUTES.WORKSPACE_TAGS_IMPORTED_MULTI_LEVEL.getRoute(policyID));
-                                } else {
-                                    importTags();
-                                }
-                            }}
+                            onPress={
+                                spreadsheet?.isImportingIndependentMultiLevelTags ? () => Navigation.navigate(ROUTES.WORKSPACE_TAGS_IMPORTED_MULTI_LEVEL.getRoute(policyID)) : importTags
+                            }
                             isLoading={isImportingTags}
                             success
                             large

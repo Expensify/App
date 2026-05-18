@@ -72,16 +72,16 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         return errors;
     }, [requiredColumns, spreadsheet?.columns, translate]);
 
-    const closeImportPageAndModal = useCallback(() => {
+    const closeImportPageAndModal = () => {
         setIsClosing(true);
         setIsImporting(false);
-    }, [setIsClosing]);
+    };
 
-    const navigateBackToMembers = useCallback(() => {
+    const navigateBackToMembers = () => {
         InteractionManager.runAfterInteractions(() => Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)));
-    }, [policyID]);
+    };
 
-    const importMembers = useCallback(async () => {
+    const importMembers = async () => {
         setIsValidationEnabled(true);
 
         const errors = validate();
@@ -220,18 +220,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             }
             closeImportPageAndModal();
         }
-    }, [
-        validate,
-        spreadsheet?.columns,
-        spreadsheet?.data,
-        policy,
-        containsHeader,
-        route.params.policyID,
-        policyID,
-        showImportSpreadsheetConfirmModal,
-        navigateBackToMembers,
-        closeImportPageAndModal,
-    ]);
+    };
 
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return;

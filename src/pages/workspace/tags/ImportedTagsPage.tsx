@@ -86,13 +86,13 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
         return errors;
     }, [requiredColumns, spreadsheet?.columns, translate, containsHeader, spreadsheet?.data]);
 
-    const closeImportPageAndModal = useCallback(() => {
+    const closeImportPageAndModal = () => {
         setIsClosing(true);
         setIsImportingTags(false);
         Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_TAGS.getRoute(policyID));
-    }, [backTo, isQuickSettingsFlow, policyID, setIsClosing]);
+    };
 
-    const importTags = useCallback(async () => {
+    const importTags = async () => {
         setIsValidationEnabled(true);
         const errors = validate();
         if (Object.keys(errors).length > 0) {
@@ -128,7 +128,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
             }
             closeImportPageAndModal();
         }
-    }, [validate, spreadsheet, containsHeader, policyTagLists, policyID, showImportSpreadsheetConfirmModal, closeImportPageAndModal]);
+    };
 
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return;

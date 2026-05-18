@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
@@ -105,11 +105,11 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
         return errors;
     };
 
-    const closeImportPageAndModal = useCallback(() => {
+    const closeImportPageAndModal = () => {
         setIsClosing(true);
         setIsImportingPerDiemRates(false);
         Navigation.goBack(ROUTES.WORKSPACE_PER_DIEM.getRoute(policyID));
-    }, [policyID, setIsClosing]);
+    };
 
     const importRates = async () => {
         setIsValidationEnabled(true);

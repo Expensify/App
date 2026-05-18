@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
 import type {ValueOf} from 'type-fest';
@@ -89,14 +89,14 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
         openExternalLink(CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL);
     };
 
-    const closeImportPageAndModal = useCallback(() => {
+    const closeImportPageAndModal = () => {
         setIsClosing(true);
         setIsImporting(false);
         closeImportPage();
         Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
-    }, [policyID, setIsClosing]);
+    };
 
-    const importMembers = useCallback(async () => {
+    const importMembers = async () => {
         if (!newMembers) {
             return;
         }
@@ -109,7 +109,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
             return;
         }
         closeImportPageAndModal();
-    }, [importedSpreadsheetMemberData, newMembers, policy, role, showImportSpreadsheetConfirmModal, closeImportPageAndModal]);
+    };
 
     const onRoleChange = (item: ListItemType) => {
         setRole(item.value);
@@ -197,9 +197,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
             <FixedFooter style={[styles.flex1, styles.justifyContentEnd]}>
                 <Button
                     text={translate('common.import')}
-                    onPress={() => {
-                        importMembers();
-                    }}
+                    onPress={importMembers}
                     isLoading={isImporting}
                     isDisabled={isOffline}
                     pressOnEnter

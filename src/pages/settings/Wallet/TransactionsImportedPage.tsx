@@ -95,13 +95,13 @@ function TransactionsImportedPage({route}: TransactionsImportedPageProps) {
         return errors;
     }, [spreadsheet?.columns, requiredColumns, translate, columnRoles]);
 
-    const closeImportPageAndModal = useCallback(() => {
+    const closeImportPageAndModal = () => {
         setIsClosing(true);
         setIsImporting(false);
         Navigation.dismissModal();
-    }, [setIsClosing]);
+    };
 
-    const importTransactions = useCallback(async () => {
+    const importTransactions = async () => {
         setIsValidationEnabled(true);
         const errors = validate();
         if (Object.keys(errors).length > 0) {
@@ -123,7 +123,7 @@ function TransactionsImportedPage({route}: TransactionsImportedPageProps) {
             return;
         }
         closeImportPageAndModal();
-    }, [validate, spreadsheet, existingCardID, savedColumnLayouts, showImportSpreadsheetConfirmModal, closeImportPageAndModal]);
+    };
 
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return null;
