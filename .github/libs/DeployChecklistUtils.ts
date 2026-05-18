@@ -1,5 +1,4 @@
 import type {components as OctokitComponents} from '@octokit/openapi-types/types';
-import {RequestError} from '@octokit/request-error';
 import dedent from '@libs/StringUtils/dedent';
 import CONST from './CONST';
 import GithubUtils from './GithubUtils';
@@ -14,6 +13,21 @@ const LIST_RETRY_DELAYS_MS = [2000, 5000] as const;
  * detection responses as `403` and those should be retried with backoff.
  */
 const NON_RETRYABLE_LIST_STATUSES = new Set([401, 404, 422]);
+
+/**
+ * Duck-type check for "this error is a permanent failure from `listForRepo`".
+ * We avoid `instanceof RequestError` because the bundled action ends up with
+ * multiple copies of that class (one from `@octokit/request-error` directly,
+ * one nested via `@actions/github` -> `@octokit/core`) and `instanceof`
+ * compares identity, so it can miss real errors thrown by octokit.
+ */
+function isPermanentListError(error: unknown): boolean {
+    if (typeof error !== 'object' || error === null || !('status' in error)) {
+        return false;
+    }
+    const status = (error as {status?: unknown}).status;
+    return typeof status === 'number' && NON_RETRYABLE_LIST_STATUSES.has(status);
+}
 
 /**
  * Thrown by `getDeployChecklist` when GitHub successfully confirms there is no open
@@ -131,8 +145,8 @@ async function listForRepoWithRetry(params: Parameters<typeof GithubUtils.octoki
             return data;
         } catch (error) {
             lastError = error;
-            if (error instanceof RequestError && NON_RETRYABLE_LIST_STATUSES.has(error.status)) {
-                console.warn(`listForRepo failed with permanent status ${error.status}; not retrying`, error);
+            if (isPermanentListError(error)) {
+                console.warn(`listForRepo failed with permanent status ${(error as {status?: number}).status}; not retrying`, error);
                 throw error;
             }
             const delay = LIST_RETRY_DELAYS_MS.at(attempt - 1);
