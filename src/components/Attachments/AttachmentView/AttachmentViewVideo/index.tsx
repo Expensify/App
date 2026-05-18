@@ -37,6 +37,7 @@ function AttachmentViewVideo({source, isHovered = false, shouldUseSharedVideoEle
             reportID={reportID}
             onTap={onTap}
             onSourceLoaded={onLoad}
+            onReadyToPlay={onLoad}
             onError={onError}
         />
     );

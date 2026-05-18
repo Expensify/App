@@ -198,11 +198,9 @@ function AttachmentModalBaseContent({
         const fileName = fileToDisplay?.name;
         const attachmentSource = source as AttachmentSource;
         const isImageSource = typeof source === 'number' || (typeof source === 'string' && Str.isImage(source)) || (!!fileName && Str.isImage(fileName));
-        const isPreviewableAttachment =
-            typeof source !== 'function' &&
-            !maybeIcon &&
-            (isImageSource || (typeof source === 'string' && (Str.isVideo(source) || Str.isPDF(source))) || (!!fileName && (Str.isVideo(fileName) || Str.isPDF(fileName))));
-        const isAttachmentReadyToDownload = isPreviewableAttachment ? getAttachmentLoadedState?.(attachmentSource) === true : isAttachmentLoaded?.(attachmentSource);
+        const isVideoSource = typeof source === 'string' && Str.isVideo(source);
+        const shouldWaitForPreviewLoad = typeof source !== 'function' && !maybeIcon && (isImageSource || isVideoSource || (!!fileName && Str.isVideo(fileName)));
+        const isAttachmentReadyToDownload = shouldWaitForPreviewLoad ? getAttachmentLoadedState?.(attachmentSource) === true : isAttachmentLoaded?.(attachmentSource);
 
         return !!onDownloadAttachment && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isOffline && !isLocalSource && isAttachmentReadyToDownload;
     }, [

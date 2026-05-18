@@ -28,7 +28,7 @@ function calculateZoomScale(containerSize: Dimensions, imageSize: Dimensions) {
 
 type ZoomDelta = {offsetX: number; offsetY: number};
 
-function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageViewProps) {
+function ImageView({isAuthTokenRequired = false, url, fileName, onError, onLoad}: ImageViewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
@@ -67,6 +67,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
 
     const imageLoad = ({nativeEvent: size}: ImageOnLoadEvent) => {
         setImageSize(size);
+        onLoad?.();
     };
 
     const imageLoadingEnd = () => {
@@ -201,6 +202,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
                 uri={url}
                 isAuthTokenRequired={isAuthTokenRequired}
                 onError={onError}
+                onLoad={onLoad}
             />
         );
     }

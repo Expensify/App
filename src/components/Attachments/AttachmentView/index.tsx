@@ -356,6 +356,10 @@ function AttachmentView({
                         loadComplete={loadComplete}
                         isImage={isImage}
                         onPress={onPress}
+                        onLoad={() => {
+                            setAttachmentLoaded(source, true);
+                            onAttachmentError?.(source, false);
+                        }}
                         onError={() => {
                             if (isOffline) {
                                 return;

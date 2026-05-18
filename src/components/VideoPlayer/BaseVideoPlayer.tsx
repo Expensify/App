@@ -34,6 +34,7 @@ import VideoPlayerControls from './VideoPlayerControls';
 function BaseVideoPlayer({
     url,
     onSourceLoaded,
+    onReadyToPlay,
     onError,
     isLooping = false,
     style,
@@ -307,6 +308,7 @@ function BaseVideoPlayer({
         if (payload.status !== 'readyToPlay') {
             return;
         }
+        onReadyToPlay?.();
         isReadyForDisplayRef.current = true;
         setHasErrorIconVisible(false);
         if (isFirstLoad) {

@@ -47,6 +47,9 @@ type LightboxProps = Pick<Attachment, 'attachmentID'> & {
     /** Handles errors while displaying the image */
     onError?: () => void;
 
+    /** Handles successful image load */
+    onLoad?: () => void;
+
     /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;
 
@@ -57,7 +60,7 @@ type LightboxProps = Pick<Attachment, 'attachmentID'> & {
 /**
  * On the native layer, we use a image library to handle zoom functionality
  */
-function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChanged: onScaleChangedProp, onError, style, zoomRange = DEFAULT_ZOOM_RANGE}: LightboxProps) {
+function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChanged: onScaleChangedProp, onError, onLoad, style, zoomRange = DEFAULT_ZOOM_RANGE}: LightboxProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
 
@@ -242,6 +245,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                                     onLoad={(e) => {
                                         updateContentSize(e);
                                         setLightboxImageLoaded(true);
+                                        onLoad?.();
                                     }}
                                     waitForSession={() => {
                                         // only active lightbox should call this function
@@ -272,6 +276,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                                 onLoad={(e) => {
                                     updateContentSize(e);
                                     setFallbackImageLoaded(true);
+                                    onLoad?.();
                                 }}
                             />
                         </View>
