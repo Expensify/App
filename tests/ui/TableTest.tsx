@@ -51,6 +51,8 @@ jest.mock('@hooks/useThemeStyles', () =>
         pb5: {},
         textNormal: {},
         colorMuted: {},
+        getSelectionListPopoverHeight: jest.fn(() => ({})),
+        ml3: {marginLeft: 12},
     })),
 );
 
@@ -78,6 +80,15 @@ jest.mock('@components/Icon', () => {
     }
     return MockIcon;
 });
+
+// Mock the responsive hook so that we are rendering in web mode
+jest.mock('@hooks/useResponsiveLayout', () => ({
+    __esModule: true,
+    default: () => ({
+        shouldUseNarrowLayout: false,
+        isMediumScreenWidth: false,
+    }),
+}));
 
 // Mock TextInput component
 jest.mock('@components/TextInput', () => {

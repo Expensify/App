@@ -56,7 +56,15 @@
 - E/App issue: https://github.com/Expensify/App/issues/33725
 - PR introducing patch: TBD
 
-### [@shopify+flash-list+2.3.0+008+sort-for-natural-DOM-order.patch](@shopify+flash-list+2.3.0+008+sort-for-natural-DOM-order.patch)
+### [@shopify+flash-list+2.3.0+008+increase-timeout.patch](@shopify+flash-list+2.3.0+008+increase-timeout.patch)
+
+- Reason: Fixes an initial-render scroll jump on iOS for inverted lists using `initialScrollIndex`. The existing 100 ms `pauseOffsetCorrection` window in `applyInitialScrollIndex` wasn't long enough — MVCP resumed before the corrective `scrollToOffset` had settled, exposing the jump. Bumped to 500 ms.
+- Files changed: `dist/recyclerview/hooks/useRecyclerViewController.js` only.
+- Upstream PR/issue: TBD
+- E/App issue: https://github.com/Expensify/App/issues/89768
+- PR introducing patch: https://github.com/Expensify/App/pull/90218
+
+### [@shopify+flash-list+2.3.0+009+sort-for-natural-DOM-order.patch](@shopify+flash-list+2.3.0+009+sort-for-natural-DOM-order.patch)
 
 - Reason: Fixes scrambled DOM order in virtualized list items on web. FlashList uses `position: absolute` to position items, so visual order is determined by CSS `top`/`left` values rather than DOM order. Due to recycling (reusing ViewHolder components for different data items), the DOM order reflects Map insertion order rather than data index order. This causes three web-specific issues:
 
