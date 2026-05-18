@@ -47,7 +47,6 @@ function SplitList({data, initiallyFocusedOptionKey, onSelectRow, listFooterCont
             ((props: SplitListItemProps) => (
                 <SplitListItem
                     onInputFocus={(item: ListItem) => handleInputFocus(item as SplitListItemType)}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                 />
             )) as typeof SplitListItem,

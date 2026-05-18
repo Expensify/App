@@ -13,7 +13,7 @@ import buildReceiptFiles from '@pages/iou/request/step/IOURequestStepScan/utils/
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
 import startScanProcessSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startScanProcessSpan';
 import useScanFileReadabilityCheck from '@pages/iou/request/step/IOURequestStepScan/utils/useScanFileReadabilityCheck';
-import {setMultipleMoneyRequestParticipantsFromReport} from '@userActions/IOU';
+import {setMultipleMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';

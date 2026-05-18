@@ -19,7 +19,7 @@ import buildReceiptFiles from '@pages/iou/request/step/IOURequestStepScan/utils/
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
 import startScanProcessSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startScanProcessSpan';
 import useScanFileReadabilityCheck from '@pages/iou/request/step/IOURequestStepScan/utils/useScanFileReadabilityCheck';
-import {setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport} from '@userActions/IOU';
+import {setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
 import {setTransactionReport} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';

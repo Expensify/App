@@ -38,7 +38,7 @@ function ComposerInput({reportID}: ComposerInputProps) {
     const {translate, preferredLocale} = useLocalize();
     const {isMenuVisible} = useComposerState();
     const {isBlockedFromConcierge, debouncedCommentMaxLengthValidation} = useComposerSendState();
-    const {setIsFullComposerAvailable, onBlur, onFocus, setComposerRef, setText} = useComposerActions();
+    const {setIsFullComposerAvailable, onBlur, onFocus, setComposerRef} = useComposerActions();
     const {containerRef, suggestionsRef, isNextModalWillOpenRef} = useComposerMeta();
 
     const {submitDraftAndClearComposer, validateAndSubmitDraft} = useComposerSubmit(reportID);
@@ -49,7 +49,6 @@ function ComposerInput({reportID}: ComposerInputProps) {
     const userBlockedFromConcierge = isBlockedFromConciergeUserAction(blockedFromConcierge);
 
     const onValueChange = (v: string) => {
-        setText(v);
         if (v.length === 0 && isComposerFullSize) {
             setIsComposerFullSize(reportID, false);
         }
