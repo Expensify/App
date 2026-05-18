@@ -8889,10 +8889,27 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-            const result = canAddTransaction(report, isReportArchived.current);
+            const result = canDeleteTransaction(report, isReportArchived.current);
 
             // Then the result is false
             expect(result).toBe(false);
+        });
+
+        it('should return true for a non-archived invoice report', async () => {
+            // Given a non-archived open invoice report
+            const report: Report = {
+                ...createInvoiceReport(20002),
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+            // When it's checked if the transactions can be deleted
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+            const result = canDeleteTransaction(report, isReportArchived.current);
+
+            // Then the result is true
+            expect(result).toBe(true);
         });
 
         describe('with workflow disabled', () => {
@@ -8903,15 +8920,15 @@ describe('ReportUtils', () => {
                 approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
             };
-
+    
             beforeAll(() => {
                 return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${workflowDisabledPolicy.id}`, workflowDisabledPolicy);
             });
-
+    
             afterAll(() => {
                 return Onyx.clear();
             });
-
+    
             it('should return true for reopened report when workflow is disabled', async () => {
                 const openReport: Report = {
                     ...createExpenseReport(20002),
@@ -8919,12 +8936,12 @@ describe('ReportUtils', () => {
                     stateNum: CONST.REPORT.STATE_NUM.OPEN,
                     statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 };
-
+    
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${openReport.reportID}`, openReport);
-
+    
                 expect(canDeleteTransaction(openReport, false)).toBe(true);
             });
-
+    
             it('should return false for closed report when workflow is disabled', async () => {
                 const closedReport: Report = {
                     ...createExpenseReport(20002),
@@ -8932,9 +8949,9 @@ describe('ReportUtils', () => {
                     stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                     statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                 };
-
+    
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${closedReport.reportID}`, closedReport);
-
+    
                 expect(canDeleteTransaction(closedReport, false)).toBe(false);
             });
         });
