@@ -1,19 +1,22 @@
 name: Codex review
 
 on:
+  pull_request:
+    types: [ready_for_review]
   issue_comment:
     types: [created]
 
 permissions: {}
 
 concurrency:
-  group: codex-review-${{ github.event.issue.number }}
+  group: codex-review-${{ github.event.pull_request.number || github.event.issue.number }}
   cancel-in-progress: true
 
 jobs:
   validate:
     if: |
-      github.event.issue.pull_request
+      github.event_name == 'issue_comment'
+      && github.event.issue.pull_request
       && contains(github.event.comment.body, '@Codex review')
       && !contains(fromJSON('["OSBotify","imgbot[bot]","melvin-bot[bot]","codecov[bot]","github-actions[bot]","chatgpt-codex-connector"]'), github.actor)
     runs-on: blacksmith-2vcpu-ubuntu-2404
@@ -78,20 +81,43 @@ jobs:
     if: |
       !cancelled()
       && (
-        needs.validate.outputs.is_authorized == 'true'
-        || needs.contributor_gate.outputs.IS_AUTHORIZED == 'true'
+        (
+          github.event_name == 'pull_request'
+          && !contains(github.event.pull_request.title, 'Revert')
+          && secrets.OPENAI_APP_REVIEWER_API_KEY != ''
+        )
+        || (
+          github.event_name == 'issue_comment'
+          && (
+            needs.validate.outputs.is_authorized == 'true'
+            || needs.contributor_gate.outputs.IS_AUTHORIZED == 'true'
+          )
+        )
       )
     runs-on: blacksmith-2vcpu-ubuntu-2404
     permissions:
       pull-requests: read
     outputs:
+      pr_number: ${{ steps.resolve.outputs.pr_number }}
       final_message: ${{ steps.codex.outputs.final-message }}
     steps:
+      - name: Resolve PR number
+        id: resolve
+        env:
+          PR_NUMBER_FROM_PR: ${{ github.event.pull_request.number }}
+          PR_NUMBER_FROM_COMMENT: ${{ needs.validate.outputs.pr_number }}
+        run: |
+          if [ -n "$PR_NUMBER_FROM_PR" ]; then
+            echo "pr_number=$PR_NUMBER_FROM_PR" >> "$GITHUB_OUTPUT"
+          else
+            echo "pr_number=$PR_NUMBER_FROM_COMMENT" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Build Codex prompt from PR diff
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          PR_NUMBER: ${{ needs.validate.outputs.pr_number }}
+          PR_NUMBER: ${{ steps.resolve.outputs.pr_number }}
         run: |
           set -euo pipefail
           PR_TITLE="$(gh pr view "$PR_NUMBER" --repo "$GH_REPO" --json title --jq .title)"
@@ -128,7 +154,7 @@ jobs:
           prompt-file: prompt.txt
 
   post_feedback:
-    needs: [validate, codex_review]
+    needs: [codex_review]
     if: needs.codex_review.outputs.final_message != ''
     runs-on: blacksmith-2vcpu-ubuntu-2404
     permissions:
@@ -137,7 +163,7 @@ jobs:
       - name: Post Codex feedback
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v7
         env:
-          PR_NUMBER: ${{ needs.validate.outputs.pr_number }}
+          PR_NUMBER: ${{ needs.codex_review.outputs.pr_number }}
           CODEX_FINAL_MESSAGE: ${{ needs.codex_review.outputs.final_message }}
           WORKFLOW_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
