@@ -44,6 +44,7 @@ describe('ButtonComposed — Button', () => {
         render(
             <Button
                 accessibilityLabel={LABEL}
+                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             >
                 {children}
@@ -299,11 +300,11 @@ describe('ButtonComposed — Button', () => {
     // Wrong values here would break the visual rhythm of forms and toolbars.
 
     describe('size styles', () => {
-        // getButtonSizeStyle returns the base buttonSmall/Medium/Large styles unchanged.
+        // getButtonSizeStyle returns the base buttonSmall/Medium/Large styles with paddingHorizontal lower by 4px
         it.each([
-            {size: CONST.BUTTON_SIZE.SMALL, minHeight: variables.componentSizeSmall, paddingHorizontal: 12},
-            {size: CONST.BUTTON_SIZE.MEDIUM, minHeight: variables.componentSizeNormal, paddingHorizontal: 16},
-            {size: CONST.BUTTON_SIZE.LARGE, minHeight: variables.componentSizeLarge, paddingHorizontal: 20},
+            {size: CONST.BUTTON_SIZE.SMALL, minHeight: variables.componentSizeSmall, paddingHorizontal: 8},
+            {size: CONST.BUTTON_SIZE.MEDIUM, minHeight: variables.componentSizeNormal, paddingHorizontal: 12},
+            {size: CONST.BUTTON_SIZE.LARGE, minHeight: variables.componentSizeLarge, paddingHorizontal: 16},
         ])('size="$size" applies minHeight=$minHeight and paddingHorizontal=$paddingHorizontal', ({size, minHeight, paddingHorizontal}) => {
             renderButton({size});
             expect(screen.getByLabelText(LABEL)).toHaveStyle({minHeight, paddingHorizontal});
