@@ -76,7 +76,7 @@ function swapBackgroundTabForRHPTarget(currentState: NavigationState | undefined
 
     const matchingFullScreenRouteInTabRootState = tabState?.routes?.find((r) => r.name === matchingFullScreenRoute.name);
     if (matchingFullScreenRouteInTabRootState && matchingFullScreenRouteInTabRootState.state === undefined) {
-        // First-time visit: initialise the matching tab so its sidebar/split route is added.
+        // First-time visit: initialize the matching tab so its sidebar/split route is added.
         const additionalAction: StackNavigationAction = {
             type: CONST.NAVIGATION.ACTION_TYPE.NAVIGATE,
             payload: {
