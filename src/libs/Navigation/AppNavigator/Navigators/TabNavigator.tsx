@@ -7,8 +7,6 @@ import {findFocusedRoute, useNavigation, useNavigationState} from '@react-naviga
 import React, {lazy, Suspense, useEffect} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
-import DebugTabView from '@components/Navigation/DebugTabView';
-import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,7 +14,6 @@ import type {TabNavigatorParamList} from '@libs/Navigation/types';
 import {getSpan} from '@libs/telemetry/activeSpans';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import TabNavigatorBar from './TabNavigatorBar';
 
@@ -95,8 +92,6 @@ function TabNavigator() {
     const navigation = useNavigation();
     const parentNavigation = navigation.getParent();
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
-    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
-
     useEffect(() => {
         if (!shouldUseNarrowLayout || !parentNavigation) {
             return;
@@ -139,7 +134,6 @@ function TabNavigator() {
                     component={WorkspaceNavigatorScreen}
                 />
             </Tab.Navigator>
-            {!!isDebugModeEnabled && <DebugTabView />}
         </View>
     );
 }

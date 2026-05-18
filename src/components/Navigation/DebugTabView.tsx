@@ -11,7 +11,6 @@ import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
-import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -111,7 +110,6 @@ function DebugTabView() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {paddingBottom: safeAreaPaddingBottom} = useSafeAreaPaddings(true);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const reportAttributes = useReportAttributes();
     const {status, indicatorColor, policyIDWithErrors} = useIndicatorStatus();
@@ -198,22 +196,17 @@ function DebugTabView() {
         return null;
     }
 
-    const getPositionStyle = () => {
-        if (shouldUseNarrowLayout) {
-            // Offset above the FAB, which protrudes above the tab bar by componentSizeLarge + 16.
-            return {bottom: variables.bottomTabHeight + safeAreaPaddingBottom + variables.componentSizeLarge + 16, left: 0, right: 0};
-        }
-        if (tabRootInfo.isOnFullWidthTabRoot) {
-            return {bottom: 0, left: variables.navigationTabBarSize, right: 0};
-        }
-        return {bottom: 0, left: variables.navigationTabBarSize, width: variables.sideBarWithLHBWidth - variables.cropBorderWidth};
-    };
-    const positionStyle = getPositionStyle();
+    let positionStyle: {bottom: number; left: number; right?: number; width?: number} | undefined;
+    if (!shouldUseNarrowLayout) {
+        positionStyle = tabRootInfo.isOnFullWidthTabRoot
+            ? {bottom: 0, left: variables.navigationTabBarSize, right: 0}
+            : {bottom: 0, left: variables.navigationTabBarSize, width: variables.sideBarWithLHBWidth - variables.cropBorderWidth};
+    }
 
     return (
         <View
-            style={[styles.pAbsolute, positionStyle]}
-            pointerEvents="box-none"
+            style={positionStyle !== undefined ? [styles.pAbsolute, positionStyle] : undefined}
+            pointerEvents={positionStyle !== undefined ? 'box-none' : undefined}
         >
             <View
                 testID="DebugTabView"
