@@ -240,7 +240,7 @@ function ComposerWithSuggestions({
     // Fullstory
     forwardedFSClass,
 }: ComposerWithSuggestionsProps) {
-    const lastReportAction = useLastEditableAction(reportID);
+    const lastReportAction = useLastEditableAction();
     const route = useRoute();
     const {isKeyboardShown} = useKeyboardState();
     const theme = useTheme();
