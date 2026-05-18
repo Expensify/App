@@ -881,7 +881,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const taskPreviewMessage = getTaskCreatedMessage(translate, reportAction, childReport, true);
                     Clipboard.setString(taskPreviewMessage);
                 } else if (isMemberChangeAction(reportAction)) {
-                    const logMessage = getMemberChangeMessageFragment(translate, reportAction, getReportName).html ?? '';
+                    const logMessage = getMemberChangeMessageFragment(translate, reportAction, getReportName, reportAttributes).html ?? '';
                     setClipboardMessage(logMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME) {
                     Clipboard.setString(Str.htmlDecode(getWorkspaceNameUpdatedMessage(translate, reportAction)));

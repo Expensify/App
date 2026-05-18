@@ -24,6 +24,7 @@ import type {
     PersonalDetailsList,
     Policy,
     PrivatePersonalDetails,
+    ReportAttributesDerivedValue,
     ReportMetadata,
     ReportNameValuePairs,
     VisibleReportActionsDerivedValue,
@@ -1964,6 +1965,7 @@ function getMemberChangeMessageElements(
     translate: LocalizedTranslate,
     reportAction: OnyxEntry<ReportAction>,
     getReportNameCallback: typeof getReportName,
+    reportAttributes?: ReportAttributesDerivedValue['reports'],
 ): readonly MemberChangeMessageElement[] {
     const isInviteAction = isInviteMemberAction(reportAction);
     const isLeaveAction = isLeavePolicyAction(reportAction);
@@ -1999,7 +2001,7 @@ function getMemberChangeMessageElements(
     });
 
     const buildRoomElements = (): readonly MemberChangeMessageElement[] => {
-        const roomName = getReportNameCallback(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalMessage?.reportID}`]) || originalMessage?.roomName;
+        const roomName = getReportNameCallback(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalMessage?.reportID}`], reportAttributes) || originalMessage?.roomName;
         if (roomName && originalMessage) {
             const preposition = isInviteAction ? ` ${translate('workspace.invite.to')} ` : ` ${translate('workspace.invite.from')} `;
 
@@ -2304,8 +2306,13 @@ function getDynamicExternalWorkflowApproveFailedActionMessage(translate: Localiz
     return failedApproveReason;
 }
 
-function getMemberChangeMessageFragment(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>, getReportNameCallback: typeof getReportName): Message {
-    const messageElements: readonly MemberChangeMessageElement[] = getMemberChangeMessageElements(translate, reportAction, getReportNameCallback);
+function getMemberChangeMessageFragment(
+    translate: LocalizedTranslate,
+    reportAction: OnyxEntry<ReportAction>,
+    getReportNameCallback: typeof getReportName,
+    reportAttributes?: ReportAttributesDerivedValue['reports'],
+): Message {
+    const messageElements: readonly MemberChangeMessageElement[] = getMemberChangeMessageElements(translate, reportAction, getReportNameCallback, reportAttributes);
     const html = messageElements
         .map((messageElement) => {
             switch (messageElement.kind) {

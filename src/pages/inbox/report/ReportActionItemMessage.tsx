@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {
@@ -42,6 +43,7 @@ type ReportActionItemMessageProps = {
 function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHidden = false}: ReportActionItemMessageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const reportAttributes = useReportAttributes();
 
     if (isMoneyRequestAction(action)) {
         return (
@@ -56,7 +58,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
     }
 
     if (isMemberChangeAction(action)) {
-        const fragment = getMemberChangeMessageFragment(translate, action, getReportName);
+        const fragment = getMemberChangeMessageFragment(translate, action, getReportName, reportAttributes);
 
         return (
             <View style={[styles.chatItemMessage, style]}>
