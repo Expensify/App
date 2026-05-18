@@ -1,10 +1,11 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
+import useLocalize from '@hooks/useLocalize';
 import {MouseProvider} from '@hooks/useMouseContext';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
@@ -63,6 +64,9 @@ import SelectionListWithSections from './SelectionList/SelectionListWithSections
 type MoneyRequestConfirmationListProps = {
     /** Callback to inform parent modal of success */
     onConfirm?: (selectedParticipants: Participant[]) => void;
+
+    /** When set, used in the new manual expense flow to open the parent-owned participant picker instead of navigating away */
+    onOpenParticipantPicker?: () => void;
 
     /** Callback to parent modal to pay someone */
     onSendMoney?: (paymentMethod: PaymentMethodType | undefined) => void;
@@ -164,6 +168,7 @@ function MoneyRequestConfirmationList({
     transaction,
     onSendMoney,
     onConfirm,
+    onOpenParticipantPicker,
     iouType = CONST.IOU.TYPE.SUBMIT,
     isOdometerDistanceRequest = false,
     isLoadingReceipt = false,
@@ -204,6 +209,7 @@ function MoneyRequestConfirmationList({
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const isInLandscapeMode = useIsInLandscapeMode();
+    const {translate} = useLocalize();
 
     const {isTestReceipt, shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useReceiptTraining({
         transaction,
@@ -257,7 +263,6 @@ function MoneyRequestConfirmationList({
             iouCurrencyCode,
         });
 
-    // A flag for showing the categories field
     const shouldShowCategories = isTrackExpense
         ? !policy || shouldSelectPolicy || !!iouCategory || hasEnabledOptions(Object.values(policyCategories ?? {}))
         : (isPolicyExpenseChat || isTypeInvoice) && (!!iouCategory || hasEnabledOptions(Object.values(policyCategories ?? {})));
@@ -293,6 +298,9 @@ function MoneyRequestConfirmationList({
         prevSubRates,
     });
 
+    const isManualRequest = transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
+    const shouldForceTopEmptySections = isNewManualExpenseFlowEnabled && (iouType === CONST.IOU.TYPE.CREATE || isManualRequest || isScanRequest);
+
     const isFocused = useIsFocused();
 
     const [didConfirm, setDidConfirm] = useState(isConfirmed);
@@ -307,7 +315,7 @@ function MoneyRequestConfirmationList({
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const shouldShowReadOnlySplits = isPolicyExpenseChat || isReadOnly || isScanRequest;
 
-    const {formError, setFormError, clearFormErrors, shouldDisplayFieldError, isMerchantEmpty, isMerchantRequired, errorMessage} = useFormErrorManagement({
+    const {formError, setFormError, clearFormErrors, shouldDisplayFieldError, isMerchantEmpty, isMerchantFieldValid, isMerchantRequired, errorMessage} = useFormErrorManagement({
         transaction,
         transactionReport,
         iouMerchant,
@@ -360,6 +368,24 @@ function MoneyRequestConfirmationList({
     const selectedParticipants = selectedParticipantsProp.filter((participant) => participant.selected);
     const payeePersonalDetails = payeePersonalDetailsProp ?? currentUserPersonalDetails;
 
+    const participantRowErrors = useMemo(() => {
+        if (formError !== 'iou.error.noParticipantSelected' && formError !== 'violations.missingAttendees') {
+            return undefined;
+        }
+        return {participants: translate(formError)};
+    }, [formError, translate]);
+
+    useEffect(() => {
+        if (selectedParticipants.length === 0) {
+            return;
+        }
+        clearFormErrors(['iou.error.noParticipantSelected']);
+    }, [selectedParticipants.length, clearFormErrors]);
+
+    const dismissParticipantRowError = useCallback(() => {
+        clearFormErrors(['iou.error.noParticipantSelected', 'violations.missingAttendees']);
+    }, [clearFormErrors]);
+
     const {splitParticipants, getSplitSectionHeader} = useSplitParticipants({
         isTypeSplit,
         shouldShowReadOnlySplits,
@@ -375,6 +401,8 @@ function MoneyRequestConfirmationList({
     const sections = useConfirmationSections({
         isTypeSplit,
         shouldHideToSection,
+        shouldForceTopEmptySections,
+        participantRowErrors,
         canEditParticipant,
         payeePersonalDetails,
         splitParticipants,
@@ -390,8 +418,13 @@ function MoneyRequestConfirmationList({
             return;
         }
 
+        if (isNewManualExpenseFlowEnabled) {
+            onOpenParticipantPicker?.();
+            return;
+        }
+
         const newIOUType = iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK ? CONST.IOU.TYPE.CREATE : iouType;
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(newIOUType, transactionID, transaction.reportID, Navigation.getActiveRoute(), action));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(newIOUType, transactionID, transaction?.reportID, Navigation.getActiveRoute(), action));
     };
 
     const {validate} = useConfirmationValidation({
@@ -412,6 +445,7 @@ function MoneyRequestConfirmationList({
         currentUserPersonalDetails,
         isEditingSplitBill,
         isMerchantRequired,
+        isMerchantFieldValid,
         isMerchantEmpty,
         shouldDisplayFieldError,
         shouldShowTax,
@@ -419,8 +453,8 @@ function MoneyRequestConfirmationList({
         isDistanceRequestWithPendingRoute,
         isPerDiemRequest,
         isTimeRequest,
-        isNewManualExpenseFlowEnabled,
         routeError,
+        isNewManualExpenseFlowEnabled,
     });
 
     const confirm = buildConfirmAction({
@@ -443,14 +477,17 @@ function MoneyRequestConfirmationList({
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     useFocusEffect(
         useCallback(() => {
+            // Blurring the active element after transition fights AmountField focus in the new manual flow (RHP reopen).
+            if (isNewManualExpenseFlowEnabled) {
+                return undefined;
+            }
             focusTimeoutRef.current = setTimeout(() => {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     blurActiveElement();
                 });
             }, CONST.ANIMATED_TRANSITION);
             return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
-        }, []),
+        }, [isNewManualExpenseFlowEnabled]),
     );
 
     const isCompactMode = !showMoreFields && isScanRequest && !isInLandscapeMode;
@@ -490,6 +527,8 @@ function MoneyRequestConfirmationList({
                 formattedAmount={formattedAmount}
                 formattedAmountPerAttendee={formattedAmountPerAttendee}
                 formError={formError}
+                clearFormErrors={clearFormErrors}
+                setFormError={setFormError}
                 hasRoute={hasRoute}
                 iouType={iouType}
                 isCategoryRequired={isCategoryRequired}
@@ -533,6 +572,7 @@ function MoneyRequestConfirmationList({
                 isDescriptionRequired={isDescriptionRequired}
                 showMoreFields={showMoreFields}
                 setShowMoreFields={setShowMoreFields}
+                onSubmitForm={confirm}
             />
         </View>
     );
@@ -604,6 +644,7 @@ function MoneyRequestConfirmationList({
                     sections={sections}
                     ListItem={BareUserListItem}
                     onSelectRow={navigateToParticipantPage}
+                    onDismissError={dismissParticipantRowError}
                     shouldSingleExecuteRowSelect
                     shouldPreventDefaultFocusOnSelectRow
                     shouldShowListEmptyContent={false}

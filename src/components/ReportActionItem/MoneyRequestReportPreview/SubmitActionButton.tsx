@@ -10,7 +10,7 @@ import usePermissions from '@hooks/usePermissions';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import Navigation from '@libs/Navigation/Navigation';
 import {isSubmitPolicy} from '@libs/PolicyUtils';
-import {canSubmitAndIsAwaitingForCurrentUser, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils} from '@libs/TransactionUtils';
 import {submitReport} from '@userActions/IOU/ReportWorkflow';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
@@ -21,13 +21,12 @@ import type {Transaction} from '@src/types/onyx';
 
 type SubmitActionButtonProps = {
     iouReportID: string | undefined;
-    chatReportID: string | undefined;
     isSubmittingAnimationRunning: boolean;
     stopAnimation: () => void;
     startSubmittingAnimation: () => void;
 };
 
-function SubmitActionButton({iouReportID, chatReportID, isSubmittingAnimationRunning, stopAnimation, startSubmittingAnimation}: SubmitActionButtonProps) {
+function SubmitActionButton({iouReportID, isSubmittingAnimationRunning, stopAnimation, startSubmittingAnimation}: SubmitActionButtonProps) {
     const {translate} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserDetails.accountID;
@@ -35,7 +34,6 @@ function SubmitActionButton({iouReportID, chatReportID, isSubmittingAnimationRun
     const {isBetaEnabled} = usePermissions();
 
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReportID}`);
@@ -60,20 +58,9 @@ function SubmitActionButton({iouReportID, chatReportID, isSubmittingAnimationRun
 
     const confirmPendingRTERAndProceed = useConfirmPendingRTERAndProceed(hasAnyPendingRTERViolation, handleMarkPendingRTERTransactionsAsCash);
 
-    const isWaitingForSubmissionFromCurrentUser = canSubmitAndIsAwaitingForCurrentUser(
-        iouReport,
-        chatReport,
-        policy,
-        transactions,
-        transactionViolations,
-        currentUserEmail,
-        currentUserAccountID,
-        reportActions,
-    );
-
     return (
         <AnimatedSubmitButton
-            success={isWaitingForSubmissionFromCurrentUser}
+            success
             text={translate('common.submit')}
             onPress={() => {
                 confirmPendingRTERAndProceed(() => {

@@ -1,7 +1,8 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import AttachmentPicker from '@components/AttachmentPicker';
 import Avatar from '@components/Avatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Button from '@components/Button';
@@ -13,8 +14,14 @@ import {useLockedAccountActions, useLockedAccountState} from '@components/Locked
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import PDFThumbnail from '@components/PDFThumbnail';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Section from '@components/Section';
+import Text from '@components/Text';
+import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import useCardFeeds from '@hooks/useCardFeeds';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultFundID from '@hooks/useDefaultFundID';
@@ -24,11 +31,11 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOutstandingBalanceGuard from '@hooks/useOutstandingBalanceGuard';
 import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
-import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldBlockCurrencyChange from '@hooks/useShouldBlockCurrencyChange';
+import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOfWorkspace';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
@@ -39,11 +46,13 @@ import {
     clearAvatarErrors,
     clearDeleteWorkspaceError,
     clearPolicyErrorField,
+    deletePolicyRulesDocument,
     deleteWorkspace,
     deleteWorkspaceAvatar,
     leaveWorkspace,
     openPolicyProfilePage,
     setIsComingFromGlobalReimbursementsFlow,
+    updatePolicyRulesDocument,
     updateWorkspaceAvatar,
 } from '@libs/actions/Policy/Policy';
 import {filterInactiveCards, getCardSettings} from '@libs/CardUtils';
@@ -55,6 +64,7 @@ import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {
     canEditWorkspaceSettings,
     getConnectionExporters,
+    getRulesDocumentSourceURL,
     getUserFriendlyWorkspaceType,
     goBackFromInvalidPolicy,
     isPendingDeletePolicy,
@@ -69,6 +79,7 @@ import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import StringUtils from '@libs/StringUtils';
 import {isSubscriptionTypeOfInvoicing, shouldCalculateBillNewDot} from '@libs/SubscriptionUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -76,6 +87,7 @@ import type SCREENS from '@src/SCREENS';
 import {accountIDToLoginSelector} from '@src/selectors/PersonalDetails';
 import {ownerPoliciesSelector} from '@src/selectors/Policy';
 import {reimbursementAccountErrorSelector} from '@src/selectors/ReimbursementAccount';
+import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithPolicyProps} from './withPolicy';
 import withPolicy from './withPolicy';
@@ -83,16 +95,21 @@ import WorkspacePageWithSections from './WorkspacePageWithSections';
 
 type WorkspaceOverviewPageProps = WithPolicyProps & PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.PROFILE>;
 
+const rulesDocumentThumbnailStyle = {maxWidth: variables.rulesDocumentThumbnailMaxWidth, height: variables.rulesDocumentThumbnailHeight};
+const rulesDocumentMenuPositionStyle = {top: variables.spacing2, right: variables.spacing2};
+
 function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: WorkspaceOverviewPageProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencySymbol} = useCurrencyListActions();
     const illustrationIcons = useMemoizedLazyIllustrations(['Building']);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exit', 'FallbackWorkspaceAvatar', 'ImageCropSquareMask', 'QrCode', 'Transfer', 'Trashcan', 'UserPlus']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exit', 'FallbackWorkspaceAvatar', 'ImageCropSquareMask', 'QrCode', 'Transfer', 'Trashcan', 'Upload', 'UserPlus']);
 
     const backTo = route.params.backTo;
+    const routePolicyID = route.params.policyID;
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
@@ -104,6 +121,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const policy = policyDraft?.id ? policyDraft : policyProp;
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.profile');
     const policyID = policy?.id;
+    const policyDraftID = policyDraft?.id;
     const defaultFundID = useDefaultFundID(policyID);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const settings = getCardSettings(cardSettings);
@@ -185,9 +203,60 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
-    const {isBetaEnabled} = usePermissions();
     const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
+    const [pendingRulesDocumentFile, setPendingRulesDocumentFile] = useState<FileObject | undefined>();
+    const {showConfirmModal} = useConfirmModal();
     const [session] = useOnyx(ONYXKEYS.SESSION);
+
+    const rulesDocumentSourceURL = useMemo(
+        () => getRulesDocumentSourceURL(policy?.rulesDocumentURL, policyID, session?.encryptedAuthToken ?? ''),
+        [policy?.rulesDocumentURL, policyID, session?.encryptedAuthToken],
+    );
+
+    const hasRulesDocument = !!policy?.rulesDocumentURL;
+    const hasCustomRulesText = !StringUtils.isEmptyString(policy?.customRules ?? '');
+
+    const handleRulesDocumentPicked = useCallback(
+        (files: FileObject[]) => {
+            const file = files.at(0);
+            if (!policyID || !file) {
+                return;
+            }
+            setPendingRulesDocumentFile(file);
+        },
+        [policyID],
+    );
+
+    const rulesDocumentURL = policy?.rulesDocumentURL;
+
+    const getRulesDocumentMenuItems = useCallback(
+        (openPicker: (options: {onPicked: (files: FileObject[]) => void}) => void): PopoverMenuItem[] => [
+            {
+                text: translate('common.replace'),
+                icon: expensifyIcons.Upload,
+                shouldCallAfterModalHide: true,
+                onSelected: () => {
+                    openPicker({
+                        onPicked: handleRulesDocumentPicked,
+                    });
+                },
+            },
+            {
+                text: translate('common.remove'),
+                icon: expensifyIcons.Trashcan,
+                onSelected: () => {
+                    if (!policyID || !rulesDocumentURL) {
+                        return;
+                    }
+                    deletePolicyRulesDocument(policyID, rulesDocumentURL);
+                },
+            },
+        ],
+        [translate, expensifyIcons, handleRulesDocumentPicked, policyID, rulesDocumentURL],
+    );
+    const shouldShowExpensePolicySection = isPolicyAdmin || hasRulesDocument || hasCustomRulesText;
+    const shouldShowRulesDocumentSubSection = isPolicyAdmin || hasRulesDocument;
+
     const personalDetails = usePersonalDetails();
     const [accountIDToLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: accountIDToLoginSelector(reportsToArchive)});
     const [isCannotLeaveWorkspaceModalOpen, setIsCannotLeaveWorkspaceModalOpen] = useState(false);
@@ -205,14 +274,14 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const [isDeleteWorkspaceErrorModalOpen, setIsDeleteWorkspaceErrorModalOpen] = useState(false);
     const policyLastErrorMessage = getLatestErrorMessage(policy);
 
-    const mentionReportContextValue = {policyID: policy?.id, currentReportID: undefined, exactlyMatch: true};
+    const mentionReportContextValue = useMemo(() => ({policyID, currentReportID: undefined, exactlyMatch: true}), [policyID]);
 
-    const fetchPolicyData = () => {
-        if (policyDraft?.id || !isFocused) {
+    const fetchPolicyData = useCallback(() => {
+        if (policyDraftID || !isFocused) {
             return;
         }
-        openPolicyProfilePage(route.params.policyID);
-    };
+        openPolicyProfilePage(routePolicyID);
+    }, [policyDraftID, isFocused, routePolicyID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchPolicyData});
 
@@ -514,8 +583,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                     icon={expensifyIcons.UserPlus}
                     onPress={handleInvitePress}
                     medium
-                    innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
-                    style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+                    innerStyles={[shouldDisplayButtonsInSeparateLine && styles.alignItemsCenter]}
+                    style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
                 />
             )}
             {dropdownMenu}
@@ -567,6 +636,36 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                 success={false}
             />
             {outstandingBalanceModal}
+            {!!pendingRulesDocumentFile && (
+                <PDFThumbnail
+                    style={styles.invisiblePDF}
+                    previewSourceURL={pendingRulesDocumentFile.uri ?? ''}
+                    onLoadSuccess={() => {
+                        if (policyID) {
+                            updatePolicyRulesDocument(policyID, pendingRulesDocumentFile as File, policy?.rulesDocumentURL);
+                        }
+                        setPendingRulesDocumentFile(undefined);
+                    }}
+                    onPassword={() => {
+                        setPendingRulesDocumentFile(undefined);
+                        showConfirmModal({
+                            title: translate('attachmentPicker.attachmentError'),
+                            prompt: translate('attachmentPicker.protectedPDFNotSupported'),
+                            confirmText: translate('common.close'),
+                            shouldShowCancelButton: false,
+                        });
+                    }}
+                    onLoadError={() => {
+                        setPendingRulesDocumentFile(undefined);
+                        showConfirmModal({
+                            title: translate('attachmentPicker.attachmentError'),
+                            prompt: translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'),
+                            confirmText: translate('common.close'),
+                            shouldShowCancelButton: false,
+                        });
+                    }}
+                />
+            )}
         </>
     );
     return (
@@ -582,11 +681,11 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             shouldShowNotFoundPage={policy === undefined}
             onBackButtonPress={handleBackButtonPress}
             addBottomSafeAreaPadding
-            headerContent={!shouldUseNarrowLayout && headerButtons}
+            headerContent={!shouldDisplayButtonsInSeparateLine && headerButtons}
             modals={modals}
         >
             <View style={[styles.flex1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5, styles.pb5]}>{headerButtons}</View>}
+                {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5, styles.pb5]}>{headerButtons}</View>}
                 <Section
                     isCentralPane
                     title=""
@@ -758,28 +857,109 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         </OfflineWithFeedback>
                     )}
                 </Section>
-                {isBetaEnabled(CONST.BETAS.CUSTOM_RULES) ? (
+                {shouldShowExpensePolicySection ? (
                     <Section
                         isCentralPane
-                        title={translate('workspace.editor.policy')}
+                        title={translate('workspace.rules.customRules.title')}
                         titleStyles={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb0]}
                         subtitle={translate('workspace.rules.customRules.cardSubtitle')}
-                        subtitleStyles={[styles.mb6]}
+                        subtitleStyles={[shouldShowRulesDocumentSubSection ? styles.mb6 : styles.mb2]}
                         subtitleTextStyles={[styles.textNormal, styles.colorMuted, styles.mr5]}
                         containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
                     >
-                        <OfflineWithFeedback pendingAction={policy?.pendingFields?.customRules}>
-                            <MenuItemWithTopDescription
-                                title={policy?.customRules ?? ''}
-                                description={translate('workspace.editor.policy')}
-                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.CUSTOM_RULES}
-                                shouldShowRightIcon={!readOnly}
-                                interactive={!readOnly}
-                                wrapperStyle={styles.sectionMenuItemTopDescription}
-                                onPress={() => Navigation.navigate(ROUTES.RULES_CUSTOM.getRoute(route.params.policyID))}
-                                shouldRenderAsHTML
-                            />
-                        </OfflineWithFeedback>
+                        {shouldShowRulesDocumentSubSection && (
+                            <OfflineWithFeedback
+                                pendingAction={policy?.pendingFields?.rulesDocumentURL}
+                                errors={getLatestErrorField(policy ?? {}, 'rulesDocumentURL')}
+                                onClose={() => {
+                                    if (!policyID) {
+                                        return;
+                                    }
+                                    clearPolicyErrorField(policyID, 'rulesDocumentURL');
+                                }}
+                            >
+                                <Text style={[styles.mutedTextLabel, styles.mb2]}>{translate('workspace.rules.customRules.policyDocument')}</Text>
+                                <AttachmentPicker
+                                    acceptedFileTypes={['pdf']}
+                                    shouldSkipAttachmentTypeModal
+                                >
+                                    {({openPicker}) => {
+                                        if (policy?.rulesDocumentURL) {
+                                            return (
+                                                <View style={[styles.w100, rulesDocumentThumbnailStyle]}>
+                                                    <PressableWithoutFeedback
+                                                        onPress={() => {
+                                                            if (!policyID) {
+                                                                return;
+                                                            }
+                                                            Navigation.navigate(ROUTES.WORKSPACE_DOCUMENT.getRoute(policyID));
+                                                        }}
+                                                        role={CONST.ROLE.BUTTON}
+                                                        accessibilityLabel={translate('workspace.rules.customRules.policyDocument')}
+                                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.RULES_DOCUMENT}
+                                                        style={[
+                                                            styles.border,
+                                                            styles.borderRadiusComponentLarge,
+                                                            styles.overflowHidden,
+                                                            styles.flex1,
+                                                            styles.alignItemsCenter,
+                                                            styles.justifyContentCenter,
+                                                        ]}
+                                                    >
+                                                        <PDFThumbnail
+                                                            previewSourceURL={rulesDocumentSourceURL}
+                                                            style={[styles.flex1, styles.w100]}
+                                                        />
+                                                    </PressableWithoutFeedback>
+                                                    {isPolicyAdmin && (
+                                                        <View style={[styles.pAbsolute, rulesDocumentMenuPositionStyle]}>
+                                                            <ThreeDotsMenu
+                                                                menuItems={getRulesDocumentMenuItems(openPicker)}
+                                                                shouldSelfPosition
+                                                                iconStyles={[styles.receiptActionButton]}
+                                                            />
+                                                        </View>
+                                                    )}
+                                                </View>
+                                            );
+                                        }
+
+                                        if (!isPolicyAdmin) {
+                                            return null;
+                                        }
+
+                                        return (
+                                            <View style={[styles.flexRow]}>
+                                                <Button
+                                                    medium
+                                                    text={translate('common.chooseFile')}
+                                                    onPress={() => {
+                                                        openPicker({
+                                                            onPicked: handleRulesDocumentPicked,
+                                                        });
+                                                    }}
+                                                />
+                                            </View>
+                                        );
+                                    }}
+                                </AttachmentPicker>
+                            </OfflineWithFeedback>
+                        )}
+
+                        {(isPolicyAdmin || hasCustomRulesText) && (
+                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.customRules}>
+                                <MenuItemWithTopDescription
+                                    title={policy?.customRules ?? ''}
+                                    description={translate('workspace.rules.customRules.policyText')}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.CUSTOM_RULES}
+                                    shouldShowRightIcon={!readOnly}
+                                    interactive={!readOnly}
+                                    wrapperStyle={[styles.sectionMenuItemTopDescription, shouldShowRulesDocumentSubSection && styles.mt4]}
+                                    onPress={() => Navigation.navigate(ROUTES.RULES_CUSTOM.getRoute(route.params.policyID))}
+                                    shouldRenderAsHTML
+                                />
+                            </OfflineWithFeedback>
+                        )}
                     </Section>
                 ) : null}
             </View>

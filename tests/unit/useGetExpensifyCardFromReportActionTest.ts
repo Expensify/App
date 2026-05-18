@@ -164,6 +164,16 @@ describe('useGetExpensifyCardFromReportAction', () => {
 
                 expect(result.current).toBeUndefined();
             });
+
+            it('falls back to allUserCards when allExpensifyCards is empty', async () => {
+                mockUseWorkspaceCardList.mockReturnValue({});
+                mockUseCardList.mockReturnValue({[mockCard.cardID]: mockCard});
+
+                const {result} = renderHook(() => useGetExpensifyCardFromReportAction({reportAction: createMockReportAction(), policyID: 'policy123'}));
+                await waitForBatchedUpdatesWithAct();
+
+                expect(result.current).toEqual(mockCard);
+            });
         });
     });
 
