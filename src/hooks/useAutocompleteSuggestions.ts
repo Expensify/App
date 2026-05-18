@@ -49,7 +49,6 @@ type UseAutocompleteSuggestionsParams = {
     loginList: OnyxEntry<Record<string, unknown>>;
     policies: NonNullable<OnyxCollection<Policy>>;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
-    sortedActions: Record<string, ReportAction[]> | undefined;
     currentUserAccountID: number;
     currentUserEmail: string;
     personalDetails: OnyxEntry<PersonalDetailsList>;
