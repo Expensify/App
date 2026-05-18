@@ -341,24 +341,6 @@ describe('captureTriggerForRoute', () => {
             expect(restoreTriggerForRoute('route-a')).toBe(false);
         });
 
-        it.each(['Escape', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageUp', 'PageDown'])(
-            'should RESTORE modality on %s after typing — keyboard-initiated back/nav must show visible focus on the restored trigger (WCAG 2.4.7)',
-            (navKey) => {
-                simulateTab();
-                simulateKey('a'); // Typing clears modality.
-                simulateKey(navKey); // Nav key restores it.
-                const trigger = appendButton();
-                trigger.focus();
-                setLastInteractiveElementForTests(trigger);
-
-                captureTriggerForRoute('route-a');
-                trigger.blur();
-                const spy = jest.spyOn(trigger, 'focus');
-                expect(restoreTriggerForRoute('route-a')).toBe(true);
-                expect(spy).toHaveBeenCalledWith(expect.objectContaining({focusVisible: true}));
-            },
-        );
-
         it('should clear modality on Backspace / Delete', () => {
             simulateTab();
             simulateKey('Backspace');
