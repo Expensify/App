@@ -53,12 +53,6 @@ To check your card’s remaining limit:
 
 Then, click on your card. Your **remaining limit** is displayed under the image of your Expensify Card. 
 
-## Expensify Card PIN blocked (GBP/EUR cards only)
-
-If you entered your PIN incorrectly too many times at a point of sale, your physical card may be locked. You'll see an error message and an **Unlock card** button on your card details page.
-
-To unlock your card, tap **Unlock card** and verify your identity via biometrics or passkey. Cardholders in offline PIN countries (UK, France, Ireland, Finland, Iceland, Israel) will also need to change their PIN at an ATM after unlocking. For full details, see [Manage Your Expensify Card PIN](https://help.expensify.com/articles/new-expensify/expensify-card/Manage-Your-Expensify-Card-PIN).
-
 ## Workspace limit has run out
 
 Every workspace has a shared spend limit that affects all cards. If the workspace runs out of available funds or the bank account becomes [locked](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Unlock-a-Business-Bank-Account), all cards may stop working.
