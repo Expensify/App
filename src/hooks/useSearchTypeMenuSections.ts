@@ -168,9 +168,12 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
         return -1;
     }, [typeMenuSections, savedSearches, hash, similarSearchHash, sortBy, sortOrder, type]);
 
+    const activeKey = activeItemIndex < 0 ? undefined : typeMenuSections.flatMap((section) => section.menuItems).at(activeItemIndex)?.key;
+
     return {
         typeMenuSections,
         activeItemIndex,
+        activeKey,
     };
 };
 

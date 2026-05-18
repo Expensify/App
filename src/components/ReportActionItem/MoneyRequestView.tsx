@@ -22,6 +22,7 @@ import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
 import useEnvironment from '@hooks/useEnvironment';
 import useHasMultipleSplitChildren from '@hooks/useHasMultipleSplitChildren';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -209,6 +210,10 @@ function MoneyRequestView({
     });
     const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
     const perDiemOriginalPolicy = getPolicyByCustomUnitID(transaction, policiesWithPerDiem);
+
+    const distanceOriginalPolicy = useDistanceRateOriginalPolicy(
+        isDistanceRequestTransactionUtils(transaction) && isExpenseUnreported ? transaction?.comment?.customUnit?.customUnitRateID : undefined,
+    );
 
     let policy;
     let policyID;
@@ -453,7 +458,7 @@ function MoneyRequestView({
     let amountDescription = `${translate('iou.amount')}`;
     let dateDescription = `${translate('common.date')}`;
 
-    const {unit, rate, name: rateName} = DistanceRequestUtils.getRate({transaction: updatedTransaction ?? transaction, policy});
+    const {unit, rate, name: rateName} = DistanceRequestUtils.getRate({transaction: updatedTransaction ?? transaction, policy: distanceOriginalPolicy ?? policy});
     const distance = getDistanceInMeters(transactionBackup ?? updatedTransaction ?? transaction, unit);
     const currency = transactionCurrency ?? CONST.CURRENCY.USD;
     const hasRequiredCompanyCardViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.COMPANY_CARD_REQUIRED);
@@ -688,6 +693,7 @@ function MoneyRequestView({
                 <MenuItemWithTopDescription
                     description={translate('common.distance')}
                     title={distanceToDisplay}
+                    numberOfLinesTitle={2}
                     interactive={canEditDistance}
                     shouldShowRightIcon={canEditDistance}
                     titleStyle={styles.flex1}
@@ -736,6 +742,7 @@ function MoneyRequestView({
                 <MenuItemWithTopDescription
                     description={translate('common.rate')}
                     title={rateToDisplay}
+                    numberOfLinesTitle={2}
                     interactive={canEditDistanceRate}
                     shouldShowRightIcon={canEditDistanceRate}
                     titleStyle={styles.flex1}
@@ -924,6 +931,7 @@ function MoneyRequestView({
                         titleIcon={icons.Checkmark}
                         description={amountDescription}
                         titleStyle={styles.textHeadlineH2}
+                        numberOfLinesTitle={2}
                         interactive={canEditAmount}
                         shouldShowRightIcon={canEditAmount}
                         onPress={() => {
@@ -1017,6 +1025,7 @@ function MoneyRequestView({
                     <MenuItemWithTopDescription
                         description={dateDescription}
                         title={actualTransactionDate}
+                        numberOfLinesTitle={2}
                         interactive={canEditDate}
                         shouldShowRightIcon={canEditDate}
                         titleStyle={styles.flex1}
@@ -1101,6 +1110,7 @@ function MoneyRequestView({
                         <MenuItemWithTopDescription
                             description={translate('iou.card')}
                             title={cardCopyValue}
+                            numberOfLinesTitle={2}
                             titleStyle={styles.flex1}
                             interactive={false}
                             copyValue={cardCopyValue}
@@ -1113,6 +1123,7 @@ function MoneyRequestView({
                         <MenuItemWithTopDescription
                             title={taxRateValue}
                             description={taxRatesDescription ?? translate('common.tax')}
+                            numberOfLinesTitle={2}
                             interactive={canEditTaxFields}
                             shouldShowRightIcon={canEditTaxFields}
                             titleStyle={styles.flex1}
@@ -1144,6 +1155,7 @@ function MoneyRequestView({
                         <MenuItemWithTopDescription
                             title={taxAmountTitle}
                             description={translate('iou.taxAmount')}
+                            numberOfLinesTitle={2}
                             interactive={canEditTaxFields}
                             shouldShowRightIcon={canEditTaxFields}
                             titleStyle={styles.flex1}

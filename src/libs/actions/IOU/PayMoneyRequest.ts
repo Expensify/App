@@ -94,6 +94,7 @@ type PayMoneyRequestFunctionParams = {
     amountOwed: OnyxEntry<number>;
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
     methodID?: number;
+    conciergeReportID: string | undefined;
     onPaid?: () => void;
 };
 
@@ -118,6 +119,7 @@ function getPayMoneyRequestParams({
     isSelfTourViewed,
     defaultWorkspaceName,
     currentUserLocalCurrency,
+    conciergeReportID,
 }: {
     initialChatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -139,6 +141,8 @@ function getPayMoneyRequestParams({
     isSelfTourViewed: boolean | undefined;
     defaultWorkspaceName?: string;
     currentUserLocalCurrency: string | undefined;
+    // TODO: This will be required eventually. Ref: https://github.com/Expensify/App/issues/66411
+    conciergeReportID?: string;
 }): PayMoneyRequestData {
     const allTransactionViolations = getAllTransactionViolations();
 
@@ -445,7 +449,7 @@ function getPayMoneyRequestParams({
     let optimisticHoldActionID;
     let optimisticHoldReportExpenseActionIDs;
     if (!full) {
-        const holdReportOnyxData = getReportFromHoldRequestsOnyxData({chatReport, iouReport, recipient, policy: reportPolicy, betas});
+        const holdReportOnyxData = getReportFromHoldRequestsOnyxData({chatReport, iouReport, recipient, policy: reportPolicy, betas, conciergeReportID});
 
         onyxData.optimisticData?.push(...holdReportOnyxData.optimisticData);
         onyxData.successData?.push(...holdReportOnyxData.successData);
@@ -497,10 +501,16 @@ function cancelPayment(
     const stateNum: ValueOf<typeof CONST.REPORT.STATE_NUM> = CONST.REPORT.STATE_NUM.APPROVED;
     const statusNum: ValueOf<typeof CONST.REPORT.STATUS_NUM> = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.APPROVED;
 
+    // For OPTIONAL approval mode with a connected bank account, the report status is CLOSED but the next step
+    // should show "waiting to pay", so we use SUBMITTED as the predictedNextStatus which routes through the
+    // correct next step path. Without a bank account, keep CLOSED which shows "no further action required".
+    const hasConnectedBankAccount = !!policy?.achAccount?.accountNumber;
+    const predictedNextStatus = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL && hasConnectedBankAccount ? CONST.REPORT.STATUS_NUM.SUBMITTED : statusNum;
+
     // buildOptimisticNextStep is used in parallel
     const optimisticNextStepDeprecated = buildNextStepNew({
         report: expenseReport,
-        predictedNextStatus: statusNum,
+        predictedNextStatus,
         policy,
         currentUserAccountIDParam,
         currentUserEmailParam,
@@ -509,7 +519,7 @@ function cancelPayment(
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: expenseReport,
-        predictedNextStatus: statusNum,
+        predictedNextStatus,
         policy,
         currentUserAccountIDParam,
         currentUserEmailParam,
@@ -750,6 +760,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         amountOwed,
         ownerBillingGracePeriodEnd,
         methodID,
+        conciergeReportID,
         onPaid,
     } = params;
     const policyForBillingRestriction = chatReportPolicy ?? (policy?.id === chatReport.policyID ? policy : undefined);
@@ -783,6 +794,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         betas,
         isSelfTourViewed,
         bankAccountID: paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+        conciergeReportID,
     });
 
     // For now, we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
@@ -909,4 +921,3 @@ function savePreferredPaymentMethod(
 }
 
 export {cancelPayment, completePaymentOnboarding, payInvoice, payMoneyRequest, savePreferredPaymentMethod};
-export type {PayInvoiceArgs, PayMoneyRequestData, PayMoneyRequestFunctionParams};
