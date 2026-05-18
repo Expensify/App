@@ -611,4 +611,3 @@ function updateBulkEditDraftTransaction(transactionChanges: NullishDeep<OnyxType
 }
 
 export {updateMultipleMoneyRequests, initBulkEditDraftTransaction, clearBulkEditDraftTransaction, updateBulkEditDraftTransaction};
-export type {UpdateMultipleMoneyRequestsParams};
