@@ -144,7 +144,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         localeCompare,
         currentUserLogin: currentUserEmail,
     });
-
+    const canAccessSubmit2026Features = canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled);
     const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true).length > 0;
 
     const isAdvanceApproval = (approvalWorkflows.length > 1 || (approvalWorkflows?.at(0)?.approvers ?? []).length > 1) && isControlPolicy(policy);
@@ -229,7 +229,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             usedApproverEmails,
         });
 
-        if (canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled)) {
+        if (canAccessSubmit2026Features) {
             navigateToSubmitWorkspaceApprovalsUpgrade();
             return;
         }
@@ -246,7 +246,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         }
 
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID));
-    }, [policy, route.params.policyID, availableMembers, usedApproverEmails, isSubmit2026BetaEnabled, navigateToSubmitWorkspaceApprovalsUpgrade]);
+    }, [policy, route.params.policyID, availableMembers, usedApproverEmails, canAccessSubmit2026Features, navigateToSubmitWorkspaceApprovalsUpgrade]);
 
     const filteredApprovalWorkflows =
         policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED || policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL
@@ -343,7 +343,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         const approvalOptionSubtitle = isGustoConnected || !isSmartLimitEnabled ? approvalSubtitle : translate('workspace.moreFeatures.workflows.disableApprovalPrompt');
 
         const getAddApprovalsToggleDisabledAction = () => {
-            if (canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled)) {
+            if (canAccessSubmit2026Features) {
                 return navigateToSubmitWorkspaceApprovalsUpgrade;
             }
             if (isGustoConnected) {
@@ -470,7 +470,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         )}
                     </>
                 ),
-                disabled: isSmartLimitEnabled || isDEWEnabled || isGustoConnected || canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled),
+                disabled: isSmartLimitEnabled || isDEWEnabled || isGustoConnected || canAccessSubmit2026Features,
                 disabledAction: getAddApprovalsToggleDisabledAction(),
                 isActive:
                     isGustoConnected ||
@@ -485,7 +485,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 subtitle: translate('workflowsPage.makeOrTrackPaymentsDescription'),
                 switchAccessibilityLabel: translate('workflowsPage.makeOrTrackPaymentsDescription'),
                 onToggle: (isEnabled: boolean) => {
-                    if (isEnabled && canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled)) {
+                    if (isEnabled && canAccessSubmit2026Features) {
                         Navigation.navigate(
                             ROUTES.WORKSPACE_UPGRADE.getRoute(
                                 route.params.policyID,
@@ -690,7 +690,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         shouldShowContinueModal,
         confirmCurrencyChangeAndHideModal,
         delegateAccountID,
-        isSubmit2026BetaEnabled,
+        canAccessSubmit2026Features,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
