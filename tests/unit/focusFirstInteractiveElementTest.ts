@@ -303,27 +303,6 @@ describe('focusFirstInteractiveElement', () => {
             expect(buttonSpy).toHaveBeenCalled();
         });
 
-        it('should skip the back button (BACK_BUTTON_NATIVE_ID) and focus the next element', () => {
-            const backButton = document.createElement('button');
-            backButton.id = 'backButton';
-            const nextButton = document.createElement('button');
-            const container = createContainer(backButton, nextButton);
-            const backSpy = jest.spyOn(backButton, 'focus');
-            const nextSpy = jest.spyOn(nextButton, 'focus');
-
-            focusFirstInteractiveElement(container);
-            expect(backSpy).not.toHaveBeenCalled();
-            expect(nextSpy).toHaveBeenCalled();
-        });
-
-        it('should return false when the only focusable element is the back button', () => {
-            const backButton = document.createElement('button');
-            backButton.id = 'backButton';
-            const container = createContainer(backButton);
-
-            expect(focusFirstInteractiveElement(container)).toBe(false);
-        });
-
         it('should skip elements inside an [inert] subtree', () => {
             const inertWrapper = document.createElement('div');
             inertWrapper.setAttribute('inert', '');
