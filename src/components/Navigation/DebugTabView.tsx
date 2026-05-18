@@ -1,6 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
@@ -15,6 +16,7 @@ import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import getFocusedLeafScreenName from '@libs/Navigation/helpers/getFocusedLeafScreenName';
 import isTabRouteAtRoot from '@libs/Navigation/helpers/isTabRouteAtRoot';
 import Navigation from '@libs/Navigation/Navigation';
@@ -31,7 +33,6 @@ import SCREENS from '@src/SCREENS';
 import type {ReimbursementAccount} from '@src/types/onyx';
 import type IndicatorStatus from '@src/types/utils/IndicatorStatus';
 import NAVIGATION_TABS from './NavigationTabBar/NAVIGATION_TABS';
-import ROUTE_TO_NAVIGATION_TAB from './NavigationTabBar/ROUTE_TO_NAVIGATION_TAB';
 
 function getSettingsMessage(status: IndicatorStatus | undefined): TranslationPaths | undefined {
     switch (status) {
@@ -104,12 +105,17 @@ function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAcco
     }
 }
 
-function DebugTabView() {
+type Props = {
+    selectedTab: ValueOf<typeof NAVIGATION_TABS>;
+};
+
+function DebugTabView({selectedTab}: Props) {
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {windowWidth} = useWindowDimensions();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const reportAttributes = useReportAttributes();
     const {status, indicatorColor, policyIDWithErrors} = useIndicatorStatus();
@@ -131,13 +137,10 @@ function DebugTabView() {
         }
         const focusedLeaf = getFocusedLeafScreenName(activeRoute.state) ?? activeRoute.name;
         return {
-            selectedTab: ROUTE_TO_NAVIGATION_TAB[activeRoute.name],
             isAtRoot: isTabRouteAtRoot(activeRoute),
             isOnFullWidthTabRoot: focusedLeaf === SCREENS.WORKSPACES_LIST,
         };
     });
-
-    const selectedTab = tabRootInfo?.selectedTab;
 
     const message = useMemo((): TranslationPaths | undefined => {
         if (selectedTab === NAVIGATION_TABS.INBOX) {
@@ -189,7 +192,7 @@ function DebugTabView() {
     if (
         !tabRootInfo ||
         (shouldUseNarrowLayout && !tabRootInfo.isAtRoot) ||
-        !([NAVIGATION_TABS.INBOX, NAVIGATION_TABS.SETTINGS, NAVIGATION_TABS.WORKSPACES] as string[]).includes(selectedTab ?? '') ||
+        !([NAVIGATION_TABS.INBOX, NAVIGATION_TABS.SETTINGS, NAVIGATION_TABS.WORKSPACES] as string[]).includes(selectedTab) ||
         !indicator ||
         !message
     ) {
@@ -199,7 +202,7 @@ function DebugTabView() {
     let positionStyle: {bottom: number; left: number; right?: number; width?: number} | undefined;
     if (!shouldUseNarrowLayout) {
         positionStyle = tabRootInfo.isOnFullWidthTabRoot
-            ? {bottom: 0, left: variables.navigationTabBarSize, right: 0}
+            ? {bottom: 0, left: variables.navigationTabBarSize, width: windowWidth - variables.navigationTabBarSize}
             : {bottom: 0, left: variables.navigationTabBarSize, width: variables.sideBarWithLHBWidth - variables.cropBorderWidth};
     }
 

@@ -135,7 +135,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
     if (!shouldUseNarrowLayout) {
         return (
             <>
-                {shouldShowDebugTabView && <DebugTabView />}
+                {shouldShowDebugTabView && <DebugTabView selectedTab={selectedTab} />}
                 <View
                     style={styles.leftNavigationTabBarContainer}
                     testID="NavigationTabBar"
@@ -214,7 +214,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
 
     return (
         <>
-            {shouldShowDebugTabView && <DebugTabView />}
+            {shouldShowDebugTabView && <DebugTabView selectedTab={selectedTab} />}
             <View
                 style={styles.navigationTabBarContainer}
                 testID="NavigationTabBar"
