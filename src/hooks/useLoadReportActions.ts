@@ -120,7 +120,7 @@ function useLoadReportActions({
 
             // Keep transaction thread in sync for mixed report+thread views.
             if (isTransactionThreadReport) {
-                getNewerActions(transactionThreadReport.reportID, transactionThreadNewestAction?.reportActionID);
+                getNewerActions(transactionThreadReportID, transactionThreadNewestAction?.reportActionID);
             }
             return;
         }
