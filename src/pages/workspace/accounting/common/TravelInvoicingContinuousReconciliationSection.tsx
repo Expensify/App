@@ -1,12 +1,10 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useThemeStyles from '@hooks/useThemeStyles';
 import {getRouteParamForConnection} from '@libs/AccountingUtils';
 import {toggleTravelInvoicingContinuousReconciliation} from '@libs/actions/TravelInvoicing';
 import {getCardSettings, getConnectionBankAccountsForReconciliation} from '@libs/CardUtils';
@@ -25,7 +23,6 @@ type TravelInvoicingContinuousReconciliationSectionProps = {
     policy: OnyxEntry<Policy>;
     connectionName: ConnectionName;
     isAutoSyncEnabled: boolean;
-    shouldShowDivider?: boolean;
     toggleWrapperStyle?: StyleProp<ViewStyle>;
     menuItemWrapperStyle?: StyleProp<ViewStyle>;
 };
@@ -34,12 +31,10 @@ function TravelInvoicingContinuousReconciliationSection({
     policy,
     connectionName,
     isAutoSyncEnabled,
-    shouldShowDivider = false,
     toggleWrapperStyle,
     menuItemWrapperStyle,
 }: TravelInvoicingContinuousReconciliationSectionProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
@@ -94,7 +89,6 @@ function TravelInvoicingContinuousReconciliationSection({
                     />
                 </OfflineWithFeedback>
             )}
-            {shouldShowDivider && <View style={styles.dividerLine} />}
         </>
     );
 }
