@@ -35,6 +35,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 jest.mock('@libs/actions/Agent', () => ({
     openAgentsPage: jest.fn(),
     clearAgentPromptUpdateError: jest.fn(),
+    readAgentPrompt: jest.fn(),
     updateAgentPrompt: jest.fn(),
 }));
 
