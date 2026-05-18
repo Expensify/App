@@ -54,7 +54,7 @@ const TRIAL_REMINDER_VARIATIONS = [
 
 /**
  * Returns the remaining time (ms) of the 5-minute startup grace window relative to the trial's start time.
- * Returns 0 when the trial start is unparseable or the grace window has already elapsed.
+ * Returns 0 when the trial start is unparsable or the grace window has already elapsed.
  */
 function getTrialStartupGraceRemainingMs(firstDayFreeTrial: string): number {
     const trialStartMs = new Date(`${firstDayFreeTrial}Z`).getTime();
