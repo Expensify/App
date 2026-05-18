@@ -32,7 +32,7 @@ import SCREENS from '@src/SCREENS';
 import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import type {Beta, IntroSelected, Report} from '@src/types/onyx';
 import {doneCheckingPublicRoom, navigateToConciergeChat, openReport} from './Report';
-import {canAnonymousUserAccessRoute, hasAuthToken, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
+import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
 import {setOnboardingErrorMessage} from './Welcome';
 
 let currentUserEmail = '';
@@ -364,11 +364,11 @@ function openReportFromDeepLink(
                             }
                         };
 
-                        // We must check hasAuthToken() dynamically (not the stale `isAuthenticated` closure value)
-                        // before hasCompletedGuidedSetupFlowSelector because the selector returns true for empty
-                        // onboarding objects (the pre-login default state), which would cause premature deeplink
-                        // navigation before authentication completes.
-                        if ((hasAuthToken() && hasCompletedGuidedSetupFlowSelector(val)) || isAnonymousUser()) {
+                        // Guard deeplink navigation with a route truthiness check to prevent navigating to an
+                        // empty route when the user visits the root URL (e.g. new.expensify.com) and then signs in.
+                        // Without this, hasCompletedGuidedSetupFlowSelector returns true for empty onboarding objects
+                        // and Navigation.navigate('') fires, showing a "not found" page.
+                        if ((route && hasCompletedGuidedSetupFlowSelector(val)) || isAnonymousUser()) {
                             handleDeeplinkNavigation();
                         }
                     });
