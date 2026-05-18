@@ -8,37 +8,36 @@ import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
-import {getReportName} from '@libs/ReportNameUtils';
 import CONST from '@src/CONST';
-import type {Report} from '@src/types/onyx';
+import type {PersonalDetails, Report} from '@src/types/onyx';
+import COLUMN_FLEX from './columnFlex';
+
+const ROW_MIN_HEIGHT = 64;
 
 type WorkspaceRoomsListItemProps = {
     report: Report;
+    roomName: string;
+    ownerDetails: PersonalDetails | undefined;
+    ownerDisplayName: string;
+    memberCount: number;
     onPress: () => void;
 };
 
-function WorkspaceRoomsListItem({report, onPress}: WorkspaceRoomsListItemProps) {
+function WorkspaceRoomsListItem({report, roomName, ownerDetails, ownerDisplayName, memberCount, onPress}: WorkspaceRoomsListItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
-    const ownerAccountID = report.ownerAccountID;
-    const ownerDetails = ownerAccountID ? getPersonalDetailsByIDs({accountIDs: [ownerAccountID]}).at(0) : undefined;
-    const ownerDisplayName = ownerDetails ? getDisplayNameOrDefault(ownerDetails) : '';
-
-    const memberCount = Object.keys(report.participants ?? {}).length;
-    const roomName = getReportName(report);
-
     return (
         <PressableWithFeedback
-            accessibilityLabel={roomName}
+            accessibilityLabel={roomName || report.reportID}
             accessibilityRole={CONST.ROLE.BUTTON}
-            sentryLabel="WorkspaceRoomsPage-Row"
+            sentryLabel="workspaceRoomsPage-row"
             onPress={onPress}
-            style={[styles.flexRow, styles.alignItemsCenter, styles.ph5, styles.pv2]}
+            style={[styles.flexRow, styles.alignItemsCenter, styles.p4, styles.gap3, styles.br2, styles.highlightBG, {minHeight: ROW_MIN_HEIGHT}]}
+            hoverStyle={styles.hoveredComponentBG}
         >
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex3]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, COLUMN_FLEX.name]}>
                 <ReportActionAvatars
                     reportID={report.reportID}
                     size={CONST.AVATAR_SIZE.DEFAULT}
@@ -46,12 +45,12 @@ function WorkspaceRoomsListItem({report, onPress}: WorkspaceRoomsListItemProps) 
                 />
                 <Text
                     numberOfLines={1}
-                    style={[styles.textStrong, styles.ml3, styles.flexShrink1]}
+                    style={[styles.textStrong, styles.flexShrink1]}
                 >
                     {roomName}
                 </Text>
             </View>
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex2]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, COLUMN_FLEX.owner]}>
                 {!!ownerDetails && (
                     <>
                         <Avatar
@@ -60,7 +59,6 @@ function WorkspaceRoomsListItem({report, onPress}: WorkspaceRoomsListItemProps) 
                             name={ownerDisplayName}
                             type={CONST.ICON_TYPE_AVATAR}
                             size={CONST.AVATAR_SIZE.SMALLER}
-                            containerStyles={styles.mr2}
                         />
                         <Text
                             numberOfLines={1}
@@ -71,7 +69,7 @@ function WorkspaceRoomsListItem({report, onPress}: WorkspaceRoomsListItemProps) 
                     </>
                 )}
             </View>
-            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, COLUMN_FLEX.members]}>
                 <Text style={styles.flex1}>{memberCount}</Text>
                 <Icon
                     src={icons.ArrowRight}
