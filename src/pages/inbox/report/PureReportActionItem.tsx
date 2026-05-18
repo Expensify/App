@@ -532,7 +532,7 @@ function PureReportActionItem({
                         onPressIn={() => shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
                         onPressOut={() => ControlSelection.unblock()}
                         onSecondaryInteraction={showPopover}
-                        preventDefaultContextMenu={isContextMenuDisabled}
+                        preventDefaultContextMenu={!isContextMenuDisabled}
                         withoutFocusOnSecondaryInteraction
                         accessibilityLabel={accessibilityLabel}
                         accessibilityHint={translate('accessibilityHints.chatMessage')}
