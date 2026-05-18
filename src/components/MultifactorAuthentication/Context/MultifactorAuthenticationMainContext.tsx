@@ -23,7 +23,8 @@ import {processRegistration, processScenarioAction} from '@userActions/Multifact
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {DeviceBiometrics} from '@src/types/onyx';
-import {useMultifactorAuthenticationActions, useMultifactorAuthenticationState} from './State';
+import {useMultifactorAuthenticationActions} from './MultifactorAuthenticationActionsContext';
+import {useMultifactorAuthenticationState} from './MultifactorAuthenticationStateContext';
 
 let deviceBiometricsState: OnyxEntry<DeviceBiometrics>;
 
