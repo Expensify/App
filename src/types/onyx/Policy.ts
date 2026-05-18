@@ -1527,7 +1527,7 @@ type HRConnectionConfigBase = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Workspace member who acts as the final approver */
         finalApprover: string | null;
 
-        /** Collection of form field errors */
+        /** Collections of form field errors */
         errorFields?: OnyxCommon.ErrorFields;
     },
     'approvalMode' | 'finalApprover'
