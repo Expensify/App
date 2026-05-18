@@ -1,17 +1,18 @@
-import React, {useEffect, useRef} from 'react';
+import React from 'react';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceMemberRoleList from '@components/WorkspaceMemberRoleList';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useRedirectSubmitWorkspaceFeatureUpgrade from '@hooks/useRedirectSubmitWorkspaceFeatureUpgrade';
 import {setWorkspaceInviteRoleDraft} from '@libs/actions/Policy/Member';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {canAccessSubmitWorkspaceFeatures, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
+import {goBackFromInvalidPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -28,15 +29,14 @@ function DynamicWorkspaceInviteMessageRolePage({policy, route}: DynamicWorkspace
     const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const isOnyxLoading = isLoadingOnyxValue(roleResult);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_INVITE_MESSAGE_ROLE.path);
-    const didRedirectSubmitWorkspaceToUpgradeRef = useRef(false);
-
-    useEffect(() => {
-        if (didRedirectSubmitWorkspaceToUpgradeRef.current || isEmptyObject(policy) || isOnyxLoading || !canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled)) {
-            return;
-        }
-        didRedirectSubmitWorkspaceToUpgradeRef.current = true;
-        Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(route.params.policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias, backPath));
-    }, [policy, isOnyxLoading, route.params.policyID, backPath, isSubmit2026BetaEnabled]);
+    useRedirectSubmitWorkspaceFeatureUpgrade({
+        policy,
+        policyID: route.params.policyID,
+        backTo: backPath,
+        upgradeFeatureAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias,
+        isSubmit2026BetaEnabled,
+        shouldDeferRedirect: isOnyxLoading,
+    });
 
     return (
         <AccessOrNotFoundWrapper
