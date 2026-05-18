@@ -71,7 +71,7 @@ function ConnectToCertiniaFlow({policyID}: ConnectToCertiniaFlowProps) {
         }
 
         calculatePopoverPosition(threeDotsMenuContainerRef, anchorAlignment).then(setReuseConnectionPopoverPosition);
-    }, [isReuseConnectionsPopoverOpen, calculatePopoverPosition]);
+    }, [isReuseConnectionsPopoverOpen, calculatePopoverPosition, threeDotsMenuContainerRef]);
 
     if (!threeDotsMenuContainerRef || !reuseConnectionPopoverPosition) {
         return null;
