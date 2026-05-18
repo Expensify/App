@@ -24,7 +24,7 @@ const panResponder = PanResponder.create({
  * FileUpload — desktop web capture variant.
  * Renders a drag-and-drop zone + file picker button + receipt alternative methods.
  */
-function FileUpload({onPicked, shouldAcceptMultipleFiles = false, onLayout, isReplacingReceipt = false, isDraggingOverWrapper}: CameraProps) {
+function FileUpload({onPicked, shouldAcceptMultipleFiles = false, onLayout, isReplacingReceipt = false}: CameraProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -63,7 +63,7 @@ function FileUpload({onPicked, shouldAcceptMultipleFiles = false, onLayout, isRe
             style={[styles.flex1, styles.chooseFilesView(false)]}
         >
             <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                {!(isDraggingOver ?? isDraggingOverWrapper) && (
+                {!isDraggingOver && (
                     <View
                         style={[styles.alignItemsCenter, styles.justifyContentCenter]}
                         onLayout={(e) => setUploadViewHeight(e.nativeEvent.layout.height)}
@@ -76,7 +76,6 @@ function FileUpload({onPicked, shouldAcceptMultipleFiles = false, onLayout, isRe
                         <View
                             style={[styles.uploadFileViewTextContainer, styles.userSelectNone]}
                             // PanResponder handlers must be spread onto the View for gesture recognition
-
                             {...panResponder.panHandlers}
                         >
                             <Text style={[styles.textFileUpload, styles.mb2]}>{translate(shouldAcceptMultipleFiles ? 'receipt.uploadMultiple' : 'receipt.upload')}</Text>

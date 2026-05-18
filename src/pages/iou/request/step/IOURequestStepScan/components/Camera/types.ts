@@ -20,9 +20,6 @@ type CameraProps = {
     /** Whether we are replacing an existing receipt (affects drop zone icon/title on desktop) */
     isReplacingReceipt?: boolean;
 
-    /** Whether a file is being dragged over a parent wrapper (used by desktop for dual drag-over providers) */
-    isDraggingOverWrapper?: boolean;
-
     /** Called when the attachment picker opens or closes (useful for showing/hiding a full-screen loader) */
     onAttachmentPickerStatusChange?: (isOpen: boolean) => void;
 
