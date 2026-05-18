@@ -14,6 +14,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {setPolicyDistanceRatesUnit} from '@userActions/Policy/DistanceRate';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type PolicyDistanceRateUnitPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATES_UNIT>;
@@ -31,7 +32,7 @@ function PolicyDistanceRateUnitPage({route}: PolicyDistanceRateUnitPageProps) {
         }
         const attributes = {...customUnit.attributes, unit: unit.value};
         setPolicyDistanceRatesUnit(policyID, customUnit, {...customUnit, attributes});
-        Navigation.goBack();
+        Navigation.goBack(ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.getRoute(policyID));
     };
 
     return (
@@ -46,7 +47,10 @@ function PolicyDistanceRateUnitPage({route}: PolicyDistanceRateUnitPageProps) {
                 shouldEnableKeyboardAvoidingView={false}
                 testID={PolicyDistanceRateUnitPage.displayName}
             >
-                <HeaderWithBackButton title={translate('workspace.distanceRates.unit')} />
+                <HeaderWithBackButton
+                    title={translate('workspace.distanceRates.unit')}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.getRoute(policyID))}
+                />
                 <UnitPicker
                     defaultValue={customUnit?.attributes?.unit}
                     onOptionSelected={onUnitSelected}
