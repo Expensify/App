@@ -10,7 +10,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {PersonalDetails, Report} from '@src/types/onyx';
-import COLUMN_FLEX from './columnFlex';
 
 const ROW_MIN_HEIGHT = 64;
 
@@ -37,7 +36,7 @@ function WorkspaceRoomsListItem({report, roomName, ownerDetails, ownerDisplayNam
             style={[styles.flexRow, styles.alignItemsCenter, styles.p4, styles.gap3, styles.br2, styles.highlightBG, {minHeight: ROW_MIN_HEIGHT}]}
             hoverStyle={styles.hoveredComponentBG}
         >
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, COLUMN_FLEX.name]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.flex3]}>
                 <ReportActionAvatars
                     reportID={report.reportID}
                     size={CONST.AVATAR_SIZE.DEFAULT}
@@ -50,7 +49,7 @@ function WorkspaceRoomsListItem({report, roomName, ownerDetails, ownerDisplayNam
                     {roomName}
                 </Text>
             </View>
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, COLUMN_FLEX.owner]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.flex2]}>
                 {!!ownerDetails && (
                     <>
                         <Avatar
@@ -69,7 +68,7 @@ function WorkspaceRoomsListItem({report, roomName, ownerDetails, ownerDisplayNam
                     </>
                 )}
             </View>
-            <View style={[styles.flexRow, styles.alignItemsCenter, COLUMN_FLEX.members]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
                 <Text style={styles.flex1}>{memberCount}</Text>
                 <Icon
                     src={icons.ArrowRight}

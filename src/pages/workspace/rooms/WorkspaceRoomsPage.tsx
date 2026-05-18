@@ -34,7 +34,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
-import COLUMN_FLEX from './columnFlex';
 import WorkspaceRoomsListItem from './WorkspaceRoomsListItem';
 
 type WorkspaceRoomsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.ROOMS>;
@@ -141,7 +140,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                         ItemSeparatorComponent={RowSeparator}
                         ListHeaderComponent={
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.p4, styles.gap3]}>
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, COLUMN_FLEX.name]}>
+                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.flex3]}>
                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter, {width: variables.avatarSizeNormal}]}>
                                         <Icon
                                             src={icons.FallbackAvatar}
@@ -152,10 +151,10 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                                     </View>
                                     <Text style={styles.textLabelSupporting}>{translate('common.name')}</Text>
                                 </View>
-                                <View style={COLUMN_FLEX.owner}>
+                                <View style={styles.flex2}>
                                     <Text style={styles.textLabelSupporting}>{translate('common.createdBy')}</Text>
                                 </View>
-                                <View style={COLUMN_FLEX.members}>
+                                <View style={styles.flex1}>
                                     <Text style={styles.textLabelSupporting}>{translate('common.members')}</Text>
                                 </View>
                             </View>
