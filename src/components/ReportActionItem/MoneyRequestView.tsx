@@ -694,6 +694,7 @@ function MoneyRequestView({
                 <MenuItemWithTopDescription
                     description={translate('common.distance')}
                     title={distanceToDisplay}
+                    numberOfLinesTitle={2}
                     interactive={canEditDistance}
                     shouldShowRightIcon={canEditDistance}
                     titleStyle={styles.flex1}
@@ -742,6 +743,7 @@ function MoneyRequestView({
                 <MenuItemWithTopDescription
                     description={translate('common.rate')}
                     title={rateToDisplay}
+                    numberOfLinesTitle={2}
                     interactive={canEditDistanceRate}
                     shouldShowRightIcon={canEditDistanceRate}
                     titleStyle={styles.flex1}
@@ -932,6 +934,7 @@ function MoneyRequestView({
                         titleIcon={icons.Checkmark}
                         description={amountDescription}
                         titleStyle={styles.textHeadlineH2}
+                        numberOfLinesTitle={2}
                         interactive={canEditAmount}
                         shouldShowRightIcon={canEditAmount}
                         onPress={() => {
@@ -1025,6 +1028,7 @@ function MoneyRequestView({
                     <MenuItemWithTopDescription
                         description={dateDescription}
                         title={actualTransactionDate}
+                        numberOfLinesTitle={2}
                         interactive={canEditDate}
                         shouldShowRightIcon={canEditDate}
                         titleStyle={styles.flex1}
@@ -1099,6 +1103,7 @@ function MoneyRequestView({
                         <MenuItemWithTopDescription
                             description={translate('iou.card')}
                             title={cardCopyValue}
+                            numberOfLinesTitle={2}
                             titleStyle={styles.flex1}
                             interactive={false}
                             copyValue={cardCopyValue}
@@ -1111,6 +1116,7 @@ function MoneyRequestView({
                         <MenuItemWithTopDescription
                             title={taxRateValue}
                             description={taxRatesDescription ?? translate('common.tax')}
+                            numberOfLinesTitle={2}
                             interactive={canEditTaxFields}
                             shouldShowRightIcon={canEditTaxFields}
                             titleStyle={styles.flex1}
@@ -1138,6 +1144,7 @@ function MoneyRequestView({
                         <MenuItemWithTopDescription
                             title={taxAmountTitle}
                             description={translate('iou.taxAmount')}
+                            numberOfLinesTitle={2}
                             interactive={canEditTaxFields}
                             shouldShowRightIcon={canEditTaxFields}
                             titleStyle={styles.flex1}

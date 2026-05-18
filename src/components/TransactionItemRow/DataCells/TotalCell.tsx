@@ -1,9 +1,9 @@
 import React, {useRef, useState} from 'react';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
-import {EditableCell, useInlineEditState} from '@components/Table/EditableCell';
-import type {EditableProps} from '@components/Table/EditableCell';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import TextWithTooltip from '@components/TextWithTooltip';
+import {EditableCell, useInlineEditState} from '@components/TransactionItemRow/EditableCell';
+import type {EditableProps} from '@components/TransactionItemRow/EditableCell';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
