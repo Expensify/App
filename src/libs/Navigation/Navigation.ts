@@ -687,7 +687,6 @@ function setIsNavigationReady() {
 }
 
 /**
- * @private
  * Checks if the navigation state contains routes that are protected (over the auth wall).
  *
  * @param state - react-navigation state object
@@ -1234,6 +1233,7 @@ export default {
     getTopmostSuperWideRHPReportID,
     getTopmostSearchReportRouteParams,
     navigateBackToLastSuperWideRHPScreen,
+    navContainsProtectedRoutes,
 };
 
 export {navigationRef, getDeepestFocusedScreen, isTwoFactorSetupScreen, isMFAFlowScreen};

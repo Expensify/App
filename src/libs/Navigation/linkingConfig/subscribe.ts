@@ -2,11 +2,11 @@ import type {LinkingOptions} from '@react-navigation/native';
 import {findFocusedRoute} from '@react-navigation/native';
 import {Linking} from 'react-native';
 import continuePlaidOAuth from '@libs/continuePlaidOAuth';
+import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import {PROTECTED_SCREENS} from '@src/SCREENS';
 
 const subscribe: LinkingOptions<RootNavigatorParamList>['subscribe'] = (listener) => {
     const subscription = Linking.addEventListener('url', ({url}: {url: string}) => {
@@ -36,8 +36,7 @@ const subscribe: LinkingOptions<RootNavigatorParamList>['subscribe'] = (listener
         // on PublicScreens). The navigator tree can't handle authenticated routes at that point, which
         // causes an unhandled NAVIGATE action error. DeepLinkHandler handles these URLs separately via
         // openReportFromDeepLink after sign-in completes.
-        const rootState = navigationRef.current?.getRootState();
-        if (!rootState?.routeNames?.includes(PROTECTED_SCREENS.CONCIERGE)) {
+        if (!Navigation.navContainsProtectedRoutes(navigationRef.current?.getRootState())) {
             return;
         }
         listener(url);
