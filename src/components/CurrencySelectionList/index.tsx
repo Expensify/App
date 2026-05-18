@@ -98,7 +98,6 @@ function CurrencySelectionList({
 
     return (
         <SelectionListWithSections
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...restProps}
             sections={sections}
             ListItem={SingleSelectListItem}
