@@ -511,11 +511,11 @@ function WorkspacesListPage() {
     };
 
     const navigateToWorkspace = (policyID: string, event?: ModifiedMouseEvent) => {
-        const route = shouldUseNarrowLayout ? ROUTES.WORKSPACE_INITIAL.getRoute(policyID) : ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID);
-        if (openInternalRouteInNewTab(route, event)) {
+        const workspaceRoute = shouldUseNarrowLayout ? ROUTES.WORKSPACE_INITIAL.getRoute(policyID) : ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID);
+        if (openInternalRouteInNewTab(workspaceRoute, event)) {
             return;
         }
-        Navigation.navigate(route);
+        Navigation.navigate(workspaceRoute);
     };
 
     const navigateToDomain = ({domainAccountID, isAdmin}: {domainAccountID: number; isAdmin: boolean}) => {

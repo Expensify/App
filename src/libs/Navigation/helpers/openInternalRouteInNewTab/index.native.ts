@@ -7,21 +7,12 @@ type ModifiedMouseEvent = {
     ctrlKey?: boolean;
     button?: number;
     key?: string;
-    nativeEvent?: {
-        metaKey?: boolean;
-        ctrlKey?: boolean;
-        button?: number;
-        key?: string;
-    };
+    nativeEvent?: unknown;
 };
 
-function isModifiedMousePress(_event?: ModifiedMouseEvent) {
-    return false;
-}
+const isModifiedMousePress: (event?: ModifiedMouseEvent) => boolean = () => false;
 
-function openInternalRouteInNewTab(_route: Route, _event?: ModifiedMouseEvent) {
-    return false;
-}
+const openInternalRouteInNewTab: (route: Route, event?: ModifiedMouseEvent) => boolean = () => false;
 
 export {isModifiedMousePress};
 export type {ModifiedMouseEvent};

@@ -7,20 +7,17 @@ type ModifiedMouseEvent = {
     ctrlKey?: boolean;
     button?: number;
     key?: string;
-    nativeEvent?: {
-        metaKey?: boolean;
-        ctrlKey?: boolean;
-        button?: number;
-        key?: string;
-    };
+    nativeEvent?: unknown;
 };
+
+type ModifiedMouseEventSource = Pick<ModifiedMouseEvent, 'metaKey' | 'ctrlKey' | 'button' | 'key'>;
 
 function getRouteURL(route: Route) {
     return new URL(route.startsWith('/') ? route : `/${route}`, window.location.origin).toString();
 }
 
 function isModifiedMousePress(event?: ModifiedMouseEvent) {
-    const mouseEvent = event?.nativeEvent ?? event;
+    const mouseEvent = event?.nativeEvent && typeof event.nativeEvent === 'object' ? (event.nativeEvent as ModifiedMouseEventSource) : event;
 
     if (!mouseEvent || 'key' in mouseEvent) {
         return false;

@@ -2545,7 +2545,9 @@ function createAndOpenSearchTransactionThread(
     const shouldNavigateToTransactionThread = (!isFromOneTransactionReport || isFromSelfDM || isDeleted) && transactionThreadReport?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID;
     // When we have an actual transaction thread (childReportID from Onyx) but the report isn't in Onyx yet
     // (e.g. Search didn't return the IOU action for deleted items), use childReportID directly so we don't navigate with undefined
-    const targetReportID = shouldNavigateToTransactionThread ? (transactionThreadReport?.reportID ?? (hasActualTransactionThread ? iouReportAction.childReportID : undefined)) : item.reportID;
+    const targetReportID = shouldNavigateToTransactionThread
+        ? (transactionThreadReport?.reportID ?? (hasActualTransactionThread ? iouReportAction.childReportID : undefined))
+        : item.reportID;
 
     if (shouldNavigate && targetReportID) {
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID, backTo})));

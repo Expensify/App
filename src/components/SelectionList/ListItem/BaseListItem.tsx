@@ -176,7 +176,7 @@ function BaseListItem<TItem extends ListItem>({
         >
             <PressableWithFeedback
                 sentryLabel={CONST.SENTRY_LABEL.SELECTION_LIST.BASE_LIST_ITEM}
-                {...bind}
+                onMouseEnter={bind.onMouseEnter}
                 ref={pressableRef}
                 lang={item.lang}
                 accessibilityLanguage={item.lang}
@@ -222,7 +222,8 @@ function BaseListItem<TItem extends ListItem>({
                 onFocus={onFocus}
                 role={role}
                 tabIndex={tabIndex}
-                {...accessibleAndAccessibilityLabel}
+                accessible={accessibleAndAccessibilityLabel.accessible}
+                accessibilityLabel={accessibleAndAccessibilityLabel.accessibilityLabel ?? ''}
                 accessibilityState={accessibilityState}
                 aria-current={ariaCurrent}
                 onMouseLeave={handleMouseLeave}
