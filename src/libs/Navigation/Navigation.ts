@@ -712,7 +712,11 @@ function waitForProtectedRoutes() {
                 const state = data?.state;
                 if (navContainsProtectedRoutes(state)) {
                     unsubscribe?.();
-                    resolve();
+                    // Defer resolution by one frame so React can fully commit the new navigator tree
+                    // (AuthScreens + TabNavigator) before downstream code dispatches navigation actions.
+                    // Without this, the deep-link login flow can fire a NAVIGATE action targeting
+                    // TabNavigator before the navigator's action-handling chain is wired up.
+                    requestAnimationFrame(() => resolve());
                 }
             });
         });
