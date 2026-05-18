@@ -1,26 +1,45 @@
 import {useEffect} from 'react';
-// eslint-disable-next-line no-restricted-imports -- idiomatic defer primitive past navigation transitions.
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
-import FOCUSABLE_SELECTOR from '@libs/focusableSelector';
-import hasFocusableAttributes from '@libs/focusGuards';
-import getHadTabNavigation from '@libs/hadTabNavigation';
-import {Priorities, tryClaim} from '@libs/ScreenFocusArbiter';
 import type UseDialogContainerFocus from './types';
 
+const FOCUSABLE_SELECTOR = 'button, [href], input, textarea, select, [role="button"], [role="link"], [tabindex]:not([tabindex="-1"])';
+
+// Tracks whether the user is Tab-navigating (vs typing in a form or using mouse).
+// Tab sets it, typing keys clear it, Enter/Space preserve it, mousedown clears it.
+let hadTabNavigation = false;
+if (typeof document !== 'undefined') {
+    document.addEventListener(
+        'keydown',
+        (e: KeyboardEvent) => {
+            if (e.key === 'Tab') {
+                hadTabNavigation = true;
+            } else if (e.key !== 'Enter' && e.key !== ' ') {
+                hadTabNavigation = false;
+            }
+        },
+        true,
+    );
+    document.addEventListener(
+        'mousedown',
+        () => {
+            hadTabNavigation = false;
+        },
+        true,
+    );
+}
+
+/** @returns true if an element was focused, false otherwise. */
 function focusFirstInteractiveElement(container: HTMLElement | null): boolean {
-    if (!getHadTabNavigation() || !container || (document.activeElement && document.activeElement !== document.body)) {
+    if (!hadTabNavigation || !container || (document.activeElement && document.activeElement !== document.body)) {
         return false;
     }
     const targets = container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
-    const target = Array.from(targets).find(hasFocusableAttributes);
+    const target = Array.from(targets).find((el) => !el.closest('[aria-hidden="true"]') && !el.matches(':disabled') && el.getAttribute('aria-disabled') !== 'true');
     if (!target) {
         return false;
     }
-    // Arbitrated so a concurrent RETURN restore wins over this dialog's initial focus.
-    if (!tryClaim(Priorities.INITIAL)) {
-        return false;
-    }
-    target.focus({preventScroll: true, focusVisible: true});
+    target.focus({preventScroll: true, focusVisible: true} as FocusOptions);
     return true;
 }
 
