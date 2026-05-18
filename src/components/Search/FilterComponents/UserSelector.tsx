@@ -1,5 +1,5 @@
 import isEmpty from 'lodash/isEmpty';
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SelectionList from '@components/SelectionList';
 import UserSelectionListItem from '@components/SelectionList/ListItem/UserSelectionListItem';
@@ -53,12 +53,9 @@ function UserSelector({value = [], onChange, shouldExcludeExpensifyTeamMembers =
         return options;
     }, []);
 
-    const expensifyTeamExclusions = useMemo(() => {
-        if (!shouldExcludeExpensifyTeamMembers) {
-            return CONST.EMPTY_OBJECT as Record<string, boolean>;
-        }
-        return getExpensifyTeamExclusions(personalDetails, currentUserPersonalDetails.email);
-    }, [shouldExcludeExpensifyTeamMembers, personalDetails, currentUserPersonalDetails.email]);
+    const expensifyTeamExclusions = !shouldExcludeExpensifyTeamMembers
+        ? (CONST.EMPTY_OBJECT as Record<string, boolean>)
+        : getExpensifyTeamExclusions(personalDetails, currentUserPersonalDetails.email);
 
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, toggleSelection, areOptionsInitialized, selectedOptionsForDisplay, onListEndReached} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
