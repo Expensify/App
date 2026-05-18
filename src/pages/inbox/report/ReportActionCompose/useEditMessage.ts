@@ -38,11 +38,12 @@ function useEditMessage({reportID, originalReportID, reportAction, shouldScrollT
     const reportScrollManager = useReportScrollManager();
 
     const {email} = useCurrentUserPersonalDetails();
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`);
+    const actionOwnerReportID = originalReportID ?? reportID;
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${actionOwnerReportID}`);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
-    const originalParentReportID = getOriginalReportID(originalReportID, reportAction, reportActions);
-    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`);
-    const isOriginalReportArchived = useReportIsArchived(originalReportID);
+    const originalParentReportID = getOriginalReportID(actionOwnerReportID, reportAction, reportActions);
+    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${actionOwnerReportID}`);
+    const isOriginalReportArchived = useReportIsArchived(actionOwnerReportID);
     const isOriginalParentReportArchived = useReportIsArchived(originalParentReportID);
     const ancestors = useAncestors(originalReport);
 
@@ -82,7 +83,7 @@ function useEditMessage({reportID, originalReportID, reportAction, shouldScrollT
         // When user tries to save the empty message, it will delete it. Prompt the user to confirm deleting.
         if (!trimmedNewDraft) {
             composerRef.current?.blur();
-            ReportActionContextMenu.showDeleteModal(originalReportID ?? reportID, reportAction, true, deleteDraft, () => focusEditAfterCancelDelete(composerRef.current));
+            ReportActionContextMenu.showDeleteModal(actionOwnerReportID, reportAction, true, deleteDraft, () => focusEditAfterCancelDelete(composerRef.current));
             return;
         }
 

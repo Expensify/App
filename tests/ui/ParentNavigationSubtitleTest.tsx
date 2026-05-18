@@ -7,7 +7,21 @@ import ParentNavigationSubtitle from '../../src/components/ParentNavigationSubti
 import NAVIGATORS from '../../src/NAVIGATORS';
 import SCREENS from '../../src/SCREENS';
 
-jest.mock('@libs/Navigation/Navigation');
+jest.mock('@libs/Navigation/Navigation', () => ({
+    __esModule: true,
+    default: {
+        getActiveRouteWithoutParams: jest.fn(() => ''),
+        isNavigationReady: jest.fn(() => Promise.resolve()),
+        getTopmostReportId: jest.fn(),
+        getTopmostSuperWideRHPReportID: jest.fn(),
+        dismissModal: jest.fn(),
+        dismissToSuperWideRHP: jest.fn(),
+        goBack: jest.fn(),
+        setParams: jest.fn(),
+        navigate: jest.fn(),
+        getActiveRoute: jest.fn(() => ''),
+    },
+}));
 
 jest.mock('@libs/ReportActionsUtils', () => ({
     getReportAction: jest.fn(() => undefined),
