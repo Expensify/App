@@ -279,6 +279,71 @@ async function bootApp(): Promise<void> {
   platform.launch();
 
   /*
+   * iOS-specific workaround. On macos-latest GHA runners, the iOS Sim
+   * accessibility daemon takes ~508s (run 26024660329) before the
+   * first `agent-device snapshot` returns hydrated SignIn nodes.
+   * During that window, every poll-snapshot call routes through the
+   * agent-device daemon which terminates+relaunches the app on each
+   * timeout, kicking the AX-services boot back to t=0 in a kill loop.
+   *
+   * Five back-to-back retries on macos-latest produced zero green
+   * runs (0/5). Dedicated Blacksmith Mac infra isn't yet available
+   * to forks. So we explicitly sit out the AX-services boot before
+   * attempting any snapshot — one flat sleep, then one snapshot
+   * attempt. Inelegant but matches observed reality.
+   *
+   * Android keeps the original poll-driven path; its emulator's AX
+   * hydration is fast and the probe-snapshot-every-30s artifact is
+   * the only way to debug a hung boot.
+   */
+  if (platform.name === "ios") {
+    const IOS_AX_WARMUP_MS = 600_000;
+    log(
+      `boot[ios]: flat sleep ${IOS_AX_WARMUP_MS / 1000}s for AX services (workaround)`,
+    );
+    await sleep(IOS_AX_WARMUP_MS);
+    log("boot[ios]: warmup done; taking one snapshot");
+    let iosSnap;
+    try {
+      iosSnap = adCli.snapshot();
+    } catch (e) {
+      log(
+        `boot[ios]: post-sleep snapshot threw (${(e as Error).message.slice(0, 120)})`,
+      );
+      try {
+        const app = adCli.appstate();
+        fs.writeFileSync(
+          path.join(ARTIFACTS_DIR, "boot-timeout-appstate.txt"),
+          app.raw,
+        );
+      } catch {
+        /* best-effort diag */
+      }
+      fail(
+        `iOS boot: snapshot failed after ${IOS_AX_WARMUP_MS / 1000}s warmup`,
+      );
+    }
+    fs.writeFileSync(
+      path.join(ARTIFACTS_DIR, "boot-probe-ios-warmup.txt"),
+      iosSnap.raw,
+    );
+    if (
+      iosSnap.nodes.some((n) =>
+        n.text?.toLowerCase().includes("phone or email"),
+      )
+    ) {
+      log(
+        `boot[ios]: SignIn ready after warmup (${Math.round(IOS_AX_WARMUP_MS / 1000)}s)`,
+      );
+      return;
+    }
+    log(
+      `boot[ios]: post-warmup snap has no SignIn — saved boot-probe-ios-warmup.txt`,
+    );
+    fail("iOS boot: SignIn UI not visible after warmup snapshot");
+  }
+
+  /*
    * Bounded wait for the SignIn UI to hydrate. The LLM can technically
    * poll for it itself in step 1, but on slow runners that would burn
    * LLM budget on what's effectively boot-blocking emulator wait time.
