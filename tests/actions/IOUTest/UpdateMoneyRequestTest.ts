@@ -1349,4 +1349,44 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             expect(transaction2AfterUpdate?.transactionID).toBe(transactionID2);
         });
     });
+
+    describe('getUpdateTrackExpenseParams', () => {
+        it('preserves full-precision distance in API params (#90561 — mirror of getUpdateMoneyRequestParams)', async () => {
+            // Given a self-DM track expense whose stored quantity is at 2-decimal precision
+            const transactionID = 'track_distance_precision';
+            const transactionThreadReportID = 'thread_precision';
+            const policyID = 'policy_precision';
+
+            const fakeTransaction: Transaction = {
+                transactionID,
+                amount: 5000,
+                currency: CONST.CURRENCY.USD,
+                created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                merchant: 'Precision Test',
+                reportID: 'parent_precision',
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        quantity: 5,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                    waypoints: {},
+                },
+            };
+            const fakeThreadReport = {reportID: transactionThreadReportID, type: CONST.REPORT.TYPE.CHAT} as Report;
+            const fakePolicy = createRandomPolicy(Number(1));
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, fakeTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, fakeThreadReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            // When the caller passes a higher-precision distance than what `customUnit.quantity` would round to
+            const {params} = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, {distance: 5.555}, fakePolicy);
+
+            // Then the raw caller value flows into the API params instead of the rounded display value (5.56).
+            expect(params.distance).toBe(5.555);
+        });
+    });
 });
