@@ -3,6 +3,7 @@ import {subYears} from 'date-fns';
 import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
+import AddressSearch from '@components/AddressSearch';
 import CountrySelector from '@components/CountrySelector';
 import DatePicker from '@components/DatePicker';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
@@ -42,6 +43,7 @@ function PrivatePersonalDetailsPage() {
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const [defaultCountry] = useOnyx(ONYXKEYS.COUNTRY);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -58,7 +60,7 @@ function PrivatePersonalDetailsPage() {
     const zip = address?.zip ?? '';
     const country = address?.country ?? '';
 
-    const [selectedCountry, setSelectedCountry] = useState<Country | ''>(country);
+    const [selectedCountry, setSelectedCountry] = useState<Country | ''>(country || ((defaultCountry as Country | undefined) ?? ''));
     const [selectedState, setSelectedState] = useState(() => {
         // If the stored state value is a full name (e.g. "California"), resolve it to a 2-letter code
         // so the StateSelector dropdown can display it correctly.
@@ -292,16 +294,27 @@ function PrivatePersonalDetailsPage() {
                     <Text style={[styles.textStrong, styles.mb2]}>{translate('privatePersonalDetails.address')}</Text>
                     <View style={styles.mb4}>
                         <InputWrapper
-                            InputComponent={TextInput}
+                            InputComponent={AddressSearch}
                             inputID={INPUT_IDS.ADDRESS_LINE_1}
                             label={translate('common.addressLine', 1)}
-                            aria-label={translate('common.addressLine', 1)}
-                            role={CONST.ROLE.PRESENTATION}
                             defaultValue={initialStreet1}
                             shouldSaveDraft
-                            spellCheck={false}
                             autoComplete="address-line1"
-                            autoFocus={fieldToFocus === INPUT_IDS.ADDRESS_LINE_1}
+                            renamedInputKeys={{
+                                street: INPUT_IDS.ADDRESS_LINE_1,
+                                street2: INPUT_IDS.ADDRESS_LINE_2,
+                                city: INPUT_IDS.CITY,
+                                state: INPUT_IDS.STATE,
+                                zipCode: INPUT_IDS.ZIP_POST_CODE,
+                                country: INPUT_IDS.COUNTRY,
+                            }}
+                            onValueChange={(value: unknown, key: unknown) => {
+                                if (key === INPUT_IDS.COUNTRY) {
+                                    setSelectedCountry((value ?? '') as Country | '');
+                                } else if (key === INPUT_IDS.STATE) {
+                                    setSelectedState((value ?? '') as string);
+                                }
+                            }}
                         />
                     </View>
                     <View style={styles.mb4}>
