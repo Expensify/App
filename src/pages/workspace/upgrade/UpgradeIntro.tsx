@@ -147,7 +147,10 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
                     <View style={[styles.renderHTML]}>
                         <RenderHTML
                             html={translate(
-                                feature.id === 'preventSelfApproval' || feature.id === 'autoApproveCompliantReports' || feature.id === 'autoPayApprovedReports'
+                                feature.id === 'preventSelfApproval' ||
+                                    feature.id === 'autoApproveCompliantReports' ||
+                                    feature.id === 'autoPayApprovedReports' ||
+                                    feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.approveReport.id
                                     ? 'workspace.upgrade.approvals.onlyAvailableOnPlan'
                                     : `workspace.upgrade.${feature.id}.onlyAvailableOnPlan`,
                                 {formattedPrice, hasTeam2025Pricing},

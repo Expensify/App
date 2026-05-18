@@ -210,6 +210,7 @@ jest.mock('@libs/actions/Search', () => ({
 jest.mock('@libs/PolicyUtils', () => ({
     __esModule: true,
     hasDynamicExternalWorkflow: jest.fn(() => false),
+    isSubmitPolicy: jest.fn(() => false),
     sortPoliciesByName: jest.fn(() => []),
 }));
 
@@ -243,6 +244,7 @@ jest.mock('@userActions/Transaction', () => ({
 }));
 
 const ReportUtils = require('@libs/ReportUtils') as Record<string, jest.Mock>;
+const PolicyUtils = require('@libs/PolicyUtils') as Record<string, jest.Mock>;
 
 const DelegateProvider = require('@components/DelegateNoAccessModalProvider') as Record<string, jest.Mock>;
 
@@ -254,6 +256,7 @@ const PayMoneyRequestActions = require('@libs/actions/IOU/PayMoneyRequest') as R
 const usePaymentOptionsMock = require('@hooks/usePaymentOptions') as {default: jest.Mock};
 
 function resetMocksToDefaults() {
+    PolicyUtils.isSubmitPolicy.mockReturnValue(false);
     ReportUtils.hasHeldExpensesFromTransactions.mockReturnValue(false);
     ReportUtils.hasOnlyHeldExpenses.mockReturnValue(false);
     ReportUtils.isReportOwner.mockReturnValue(false);

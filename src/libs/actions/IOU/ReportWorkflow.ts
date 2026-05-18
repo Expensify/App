@@ -17,7 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
-import {arePaymentsEnabled, getSubmitToAccountID, hasDynamicExternalWorkflow, isPaidGroupPolicy, isPolicyAdmin, isSubmitAndClose} from '@libs/PolicyUtils';
+import {arePaymentsEnabled, getSubmitReportManagerAccountID, getSubmitToAccountID, hasDynamicExternalWorkflow, isPaidGroupPolicy, isPolicyAdmin, isSubmitAndClose} from '@libs/PolicyUtils';
 import {getAllReportActions, getReportActionHtml, getReportActionText, hasPendingDEWApprove, isCreatedAction, isDeletedAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticApprovedReportAction,
@@ -1305,11 +1305,10 @@ function submitReport({
     const managerIDFromChain = getAccountIDsByLogins(approvalChain).at(0);
     const trimmedManagerEmail = managerEmail?.trim();
     const managerAccountIDFromEmail = trimmedManagerEmail ? getAccountIDsByLogins([trimmedManagerEmail]).at(0) : undefined;
+    const managerIDIfNotUsingSubmitToEmail = getSubmitReportManagerAccountID(policy, expenseReport);
     const managerID = trimmedManagerEmail
         ? (managerAccountIDFromEmail ?? managerIDFromChain ?? expenseReport.managerID)
-        : submitToAccountID > 0
-          ? submitToAccountID
-          : expenseReport.managerID;
+        : (managerIDIfNotUsingSubmitToEmail ?? (submitToAccountID > 0 ? submitToAccountID : expenseReport.managerID));
     const isCurrentUserManager = currentUserAccountIDParam === managerID;
     const optimisticData: Array<
         OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.NEXT_STEP | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>
@@ -1514,7 +1513,6 @@ function submitReport({
         });
     }
 
-    const defaultManagerAccountID = submitToAccountID > 0 ? submitToAccountID : expenseReport.managerID;
     const parameters: SubmitReportParams = {
         reportID: expenseReport.reportID,
         managerAccountID: managerID,
@@ -1524,7 +1522,7 @@ function submitReport({
                   ...(managerAccountIDFromEmail !== undefined ? {managerAccountID: managerAccountIDFromEmail} : {}),
                   managerEmail: trimmedManagerEmail,
               }
-            : {managerAccountID: defaultManagerAccountID}),
+            : {managerAccountID: managerID}),
     };
 
     onSubmitted?.();
