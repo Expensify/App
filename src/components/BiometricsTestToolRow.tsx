@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import useBiometricRegistrationStatus, {REGISTRATION_STATUS} from '@hooks/useBiometricRegistrationStatus';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {revokeMultifactorAuthenticationCredentials} from '@libs/actions/MultifactorAuthentication';
 import CONST from '@src/CONST';
@@ -14,6 +15,7 @@ function BiometricsTestToolRow() {
     const {translate} = useLocalize();
     const {executeScenario} = useMultifactorAuthentication();
     const {localCredentialID, isCurrentDeviceRegistered, otherDeviceCount, registrationStatus} = useBiometricRegistrationStatus();
+    const {isOffline} = useNetwork();
     const [isMFARevokeLoading, setIsMFARevokeLoading] = useState(false);
 
     const statusTextMap = {
@@ -29,12 +31,14 @@ function BiometricsTestToolRow() {
             <View style={[styles.flexRow, styles.gap2]}>
                 <Button
                     small
+                    isDisabled={isOffline}
                     text={translate('multifactorAuthentication.biometricsTest.test')}
                     onPress={() => executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST)}
                 />
                 {isCurrentDeviceRegistered && !!localCredentialID && (
                     <Button
                         danger
+                        isDisabled={isOffline}
                         isLoading={isMFARevokeLoading}
                         small
                         text={translate('multifactorAuthentication.revoke.revoke')}
