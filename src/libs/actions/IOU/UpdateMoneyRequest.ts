@@ -1655,6 +1655,11 @@ function getUpdateTrackExpenseParams(
 
     const dataToIncludeInParams: Partial<TransactionDetails> = Object.fromEntries(Object.entries(transactionDetails ?? {}).filter(([key]) => key in transactionChanges));
 
+    // Preserve full-precision distance to avoid `increasedDistance` drift; mirrors `getUpdateMoneyRequestParams`.
+    if ('distance' in transactionChanges && typeof transactionChanges.distance === 'number') {
+        dataToIncludeInParams.distance = transactionChanges.distance;
+    }
+
     const apiParams: UpdateMoneyRequestParams = {
         ...dataToIncludeInParams,
         reportID: chatReport?.reportID,
