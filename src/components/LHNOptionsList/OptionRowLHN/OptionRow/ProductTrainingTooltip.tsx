@@ -1,6 +1,7 @@
 import React from 'react';
+import type {ReactElement} from 'react';
 import {useLHNTooltipContext} from '@components/LHNOptionsList/LHNTooltipContext';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import useLHNRowProductTrainingTooltip from '@components/LHNOptionsList/OptionRowLHN/useLHNRowProductTrainingTooltip';
 import {useSession} from '@components/OnyxListItemProvider';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useOnyx from '@hooks/useOnyx';
@@ -10,21 +11,20 @@ import type {OptionData} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useLHNRowProductTrainingTooltip from './useLHNRowProductTrainingTooltip';
 
-type OptionRowTooltipLayerProps = {
-    /** Option data, drives onboarding eligibility checks and forwards pendingAction/errors to OfflineWithFeedback */
+type ProductTrainingTooltipProps = {
+    /** Option data, drives onboarding eligibility checks for the educational tooltip. */
     optionItem: OptionData;
 
-    /** Renders the row content. */
-    renderChildren: () => React.ReactNode;
+    /** Row content the tooltip anchors to. */
+    children: ReactElement;
 };
 
-type OptionRowTooltipLayerInnerProps = {
-    renderChildren: () => React.ReactNode;
+type ProductTrainingTooltipInnerProps = {
+    children: ReactElement;
 };
 
-function OptionRowTooltipLayerInner({renderChildren}: OptionRowTooltipLayerInnerProps) {
+function ProductTrainingTooltipInner({children}: ProductTrainingTooltipInnerProps) {
     const styles = useThemeStyles();
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useLHNRowProductTrainingTooltip();
 
@@ -42,14 +42,14 @@ function OptionRowTooltipLayerInner({renderChildren}: OptionRowTooltipLayerInner
             onTooltipPress={hideProductTrainingTooltip}
             shouldHideOnScroll
         >
-            {renderChildren()}
+            {children}
         </EducationalTooltip>
     );
 }
 
-OptionRowTooltipLayerInner.displayName = 'OptionRowTooltipLayerInner';
+ProductTrainingTooltipInner.displayName = 'OptionRow.ProductTrainingTooltipInner';
 
-function OptionRowTooltipLayer({optionItem, renderChildren}: OptionRowTooltipLayerProps) {
+function ProductTrainingTooltip({optionItem, children}: ProductTrainingTooltipProps) {
     const {firstReportIDWithGBRorRBR, onboardingPurpose, onboarding} = useLHNTooltipContext();
     const session = useSession();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -62,18 +62,13 @@ function OptionRowTooltipLayer({optionItem, renderChildren}: OptionRowTooltipLay
     // Skip the inner component (and its heavy hooks) entirely when the row can never show a tooltip.
     const shouldEvaluateTooltip = shouldShowRBRorGBRTooltip || shouldShowGetStartedTooltip;
 
-    return (
-        <OfflineWithFeedback
-            pendingAction={optionItem.pendingAction}
-            errors={optionItem.allReportErrors}
-            shouldShowErrorMessages={false}
-            needsOffscreenAlphaCompositing
-        >
-            {shouldEvaluateTooltip ? <OptionRowTooltipLayerInner renderChildren={renderChildren} /> : renderChildren()}
-        </OfflineWithFeedback>
-    );
+    if (!shouldEvaluateTooltip) {
+        return children;
+    }
+
+    return <ProductTrainingTooltipInner>{children}</ProductTrainingTooltipInner>;
 }
 
-OptionRowTooltipLayer.displayName = 'OptionRowTooltipLayer';
+ProductTrainingTooltip.displayName = 'OptionRow.ProductTrainingTooltip';
 
-export default OptionRowTooltipLayer;
+export default ProductTrainingTooltip;

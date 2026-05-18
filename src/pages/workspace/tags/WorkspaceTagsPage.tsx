@@ -911,6 +911,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             selectedItems={selectedTags}
                             onSelectRow={navigateToTagSettings}
                             canSelectMultiple={canSelectMultiple}
+                            selectAllAccessibilityLabel={translate('accessibilityHints.selectAllTags')}
                             onSelectAll={filteredTagList.length > 0 ? toggleAllTags : undefined}
                             customListHeader={filteredTagList.length > 0 ? getCustomListHeader() : undefined}
                             onDismissError={(item) => !hasDependentTags && clearPolicyTagErrors({policyID, tagName: item.value, tagListIndex: 0, policyTags})}

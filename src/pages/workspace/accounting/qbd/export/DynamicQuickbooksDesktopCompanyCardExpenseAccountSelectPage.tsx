@@ -40,9 +40,7 @@ function DynamicQuickbooksDesktopCompanyCardExpenseAccountSelectPage({policy}: W
             value: card,
             text: card.name,
             keyForList: card.name,
-            // We use the logical OR (||) here instead of ?? because `nonReimbursableAccount` can be an empty string
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            isSelected: card.id === (nonReimbursableAccount || accounts.at(0)?.id),
+            isSelected: card.id === nonReimbursableAccount,
         }));
     }, [policy?.connections?.quickbooksDesktop, nonReimbursable, nonReimbursableAccount]);
 

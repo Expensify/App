@@ -61,7 +61,7 @@ type DomainSecurityGroupErrors = {
     enableRestrictedPolicyCreationErrors?: OnyxCommon.Errors;
 
     /**
-     * Errors related to deleting the security group
+     * Errors related to group-level operations (create, delete) on the security group
      */
     errors?: OnyxCommon.Errors;
 
