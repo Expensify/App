@@ -24,6 +24,7 @@ import {createNewReport} from '@libs/actions/Report';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import type CreateWorkspaceParams from '@libs/API/parameters/CreateWorkspaceParams';
 import getPlatform from '@libs/getPlatform';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
@@ -198,13 +199,19 @@ function IOURequestStepUpgrade({
             }
             case CONST.UPGRADE_PATHS.REPORTS:
                 if (action === CONST.IOU.ACTION.CREATE && policyID) {
-                    // Coming from "Create report" (no workspace) — create directly with the just-created
-                    // workspace. forceReplace removes the upgrade screen from history so back returns to
-                    // the originating screen, not the upgrade step.
+                    // "Create report" with no workspace: open the report where the user started.
                     const {reportID: newReportID} = createReportForCurrentUser(policyID);
-                    Navigation.setNavigationActionToMicrotaskQueue(() => {
-                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newReportID), {forceReplace: true});
-                    });
+                    if (isSearchTopmostFullScreenRoute()) {
+                        // Spend/Search tab: replace the upgrade screen within the RHP (same navigator,
+                        // so forceReplace holds). Back returns to Spend > Reports.
+                        Navigation.setNavigationActionToMicrotaskQueue(() => {
+                            Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: newReportID}), {forceReplace: true});
+                        });
+                    } else {
+                        // Elsewhere (e.g. FAB): dismiss the upgrade RHP first, then open in Inbox,
+                        // so back doesn't return to the upgrade step.
+                        Navigation.dismissModalWithReport({reportID: newReportID});
+                    }
                 } else {
                     Navigation.goBack();
                     navigateWithMicrotask(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
