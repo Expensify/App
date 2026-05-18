@@ -3,6 +3,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceMemberRoleList from '@components/WorkspaceMemberRoleList';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import {setWorkspaceInviteRoleDraft} from '@libs/actions/Policy/Member';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -23,18 +24,19 @@ type DynamicWorkspaceInviteMessageRolePageProps = WithPolicyAndFullscreenLoading
 
 function DynamicWorkspaceInviteMessageRolePage({policy, route}: DynamicWorkspaceInviteMessageRolePageProps) {
     const [role = CONST.POLICY.ROLE.USER, roleResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${route.params.policyID}`);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const {isBetaEnabled} = usePermissions();
+    const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const isOnyxLoading = isLoadingOnyxValue(roleResult);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_INVITE_MESSAGE_ROLE.path);
     const didRedirectSubmitWorkspaceToUpgradeRef = useRef(false);
 
     useEffect(() => {
-        if (didRedirectSubmitWorkspaceToUpgradeRef.current || isEmptyObject(policy) || isOnyxLoading || !canAccessSubmitWorkspaceFeatures(policy, betas)) {
+        if (didRedirectSubmitWorkspaceToUpgradeRef.current || isEmptyObject(policy) || isOnyxLoading || !canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled)) {
             return;
         }
         didRedirectSubmitWorkspaceToUpgradeRef.current = true;
         Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(route.params.policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias, backPath));
-    }, [policy, isOnyxLoading, route.params.policyID, backPath, betas]);
+    }, [policy, isOnyxLoading, route.params.policyID, backPath, isSubmit2026BetaEnabled]);
 
     return (
         <AccessOrNotFoundWrapper

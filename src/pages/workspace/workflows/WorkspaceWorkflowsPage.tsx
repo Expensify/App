@@ -27,6 +27,7 @@ import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hook
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
@@ -121,6 +122,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const {isBetaEnabled} = usePermissions();
+    const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds);
     const {showConfirmModal} = useConfirmModal();
@@ -220,7 +223,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             usedApproverEmails,
         });
 
-        if (canAccessSubmitWorkspaceFeatures(policy, betas)) {
+        if (canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled)) {
             Navigation.navigate(
                 ROUTES.WORKSPACE_UPGRADE.getRoute(
                     route.params.policyID,
@@ -243,7 +246,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         }
 
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID));
-    }, [policy, route.params.policyID, availableMembers, usedApproverEmails, betas]);
+    }, [policy, route.params.policyID, availableMembers, usedApproverEmails, isSubmit2026BetaEnabled]);
 
     const filteredApprovalWorkflows =
         policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED || policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL
@@ -457,7 +460,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         )}
                     </>
                 ),
-                disabled: isSmartLimitEnabled || isDEWEnabled || isGustoConnected || canAccessSubmitWorkspaceFeatures(policy, betas),
+                disabled: isSmartLimitEnabled || isDEWEnabled || isGustoConnected || canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled),
                 disabledAction: isGustoConnected ? promptConfigureApprovalsInGusto : undefined,
                 isActive:
                     isGustoConnected ||
@@ -472,7 +475,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 subtitle: translate('workflowsPage.makeOrTrackPaymentsDescription'),
                 switchAccessibilityLabel: translate('workflowsPage.makeOrTrackPaymentsDescription'),
                 onToggle: (isEnabled: boolean) => {
-                    if (isEnabled && canAccessSubmitWorkspaceFeatures(policy, betas)) {
+                    if (isEnabled && canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled)) {
                         Navigation.navigate(
                             ROUTES.WORKSPACE_UPGRADE.getRoute(
                                 route.params.policyID,
@@ -676,6 +679,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         shouldShowContinueModal,
         confirmCurrencyChangeAndHideModal,
         delegateAccountID,
+        isSubmit2026BetaEnabled,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (

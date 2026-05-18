@@ -18,6 +18,7 @@ import useAllPolicyExpenseChatReportActions from '@hooks/useAllPolicyExpenseChat
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {openExternalLink} from '@libs/actions/Link';
@@ -77,7 +78,8 @@ function WorkspaceInviteMessageComponent({
     const [invitedEmailsToAccountIDsDraft, invitedEmailsToAccountIDsDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`);
     const [workspaceInviteMessageDraft, workspaceInviteMessageDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${policyID}`);
     const [workspaceInviteRoleDraft = CONST.POLICY.ROLE.USER] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${policyID}`);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const {isBetaEnabled} = usePermissions();
+    const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
 
     const defaultApprover = getDefaultApprover(policy);
     const [approverDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`);
@@ -148,7 +150,7 @@ function WorkspaceInviteMessageComponent({
 
     const sendInvitation = () => {
         Keyboard.dismiss();
-        if (policy && canAccessSubmitWorkspaceFeatures(policy, betas) && workspaceInviteRoleDraft !== CONST.POLICY.ROLE.USER) {
+        if (policy && canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled) && workspaceInviteRoleDraft !== CONST.POLICY.ROLE.USER) {
             Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias, Navigation.getActiveRoute()));
             return;
         }
@@ -288,7 +290,7 @@ function WorkspaceInviteMessageComponent({
                                 description={translate('common.role')}
                                 shouldShowRightIcon
                                 onPress={() => {
-                                    if (canAccessSubmitWorkspaceFeatures(policy, betas)) {
+                                    if (canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled)) {
                                         Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias, Navigation.getActiveRoute()));
                                         return;
                                     }

@@ -20,7 +20,6 @@ import type {
     Transaction,
     TravelSettings,
 } from '@src/types/onyx';
-import type Beta from '@src/types/onyx/Beta';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
     ApprovalRule,
@@ -936,9 +935,11 @@ function isSubmitPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
 
 /**
  * We only allow users to access Submit feature if they have the SUBMIT_2026 beta enabled.
+ *
+ * @param isSubmit2026BetaEnabled - Prefer `isBetaEnabled(CONST.BETAS.SUBMIT_2026)` from `usePermissions()`, not raw betas from Onyx.
  */
-function canAccessSubmitWorkspaceFeatures(policy: OnyxInputOrEntry<Policy>, betas: OnyxEntry<Beta[]>): boolean {
-    return isSubmitPolicy(policy) && Permissions.isBetaEnabled(CONST.BETAS.SUBMIT_2026, betas);
+function canAccessSubmitWorkspaceFeatures(policy: OnyxInputOrEntry<Policy>, isSubmit2026BetaEnabled: boolean): boolean {
+    return isSubmitPolicy(policy) && isSubmit2026BetaEnabled;
 }
 
 const isPolicyEditor = (policy: OnyxInputOrEntry<Policy>, login?: string): boolean => getPolicyRole(policy, login) === CONST.POLICY.ROLE.EDITOR;
@@ -978,8 +979,8 @@ function isControlPolicy(policy: OnyxEntry<Policy>): boolean {
  * When conditions match, navigates to the workspace upgrade flow and returns true (caller should not enable the feature).
  * @returns true if upgrade navigation was shown; false otherwise
  */
-function shouldShowUpgradeSubmitPolicy(policy: OnyxEntry<Policy>, policyID: string | undefined, isEnabling: boolean, upgradeFeatureAlias: string, betas: OnyxEntry<Beta[]>): boolean {
-    if (!policyID || !isEnabling || !canAccessSubmitWorkspaceFeatures(policy, betas)) {
+function shouldShowUpgradeSubmitPolicy(policy: OnyxEntry<Policy>, policyID: string | undefined, isEnabling: boolean, upgradeFeatureAlias: string, isSubmit2026BetaEnabled: boolean): boolean {
+    if (!policyID || !isEnabling || !canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled)) {
         return false;
     }
     Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, upgradeFeatureAlias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
