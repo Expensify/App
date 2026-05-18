@@ -104,7 +104,6 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
 
         return (
             <WrappedComponent
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(props as TProps)}
                 report={report}
                 reportDraft={reportDraft}
