@@ -12,6 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {waitForIdle} from '@libs/Network/SequentialQueue';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import SignInPageWrapped, {SignInPage} from './SignInPage';
 import type {SignInPageRef} from './SignInPage';
@@ -57,6 +58,7 @@ function SignInModal() {
         }
 
         Navigation.dismissModal();
+        Navigation.navigate(ROUTES.HOME);
     }, [isLoadingApp]);
 
     return (
