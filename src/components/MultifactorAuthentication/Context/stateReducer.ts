@@ -95,8 +95,11 @@ function stateReducer(state: MultifactorAuthenticationState, action: Action): Mu
         case 'RESET':
             return DEFAULT_STATE;
         case 'REREGISTER':
+            // Re-registration restarts the flow in-place: keep the modal mounted so the navigator does not
+            // play the close animation (which would unmount mid-flow and strand the user via RESET).
             return {
                 ...DEFAULT_STATE,
+                isModalOpen: true,
                 scenarioName: state.scenarioName,
                 scenario: state.scenario,
                 payload: state.payload,
