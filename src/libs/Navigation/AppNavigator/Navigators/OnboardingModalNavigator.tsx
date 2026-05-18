@@ -47,8 +47,9 @@ function OnboardingModalNavigator() {
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const outerViewRef = React.useRef<View>(null);
     const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
-    const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
+    const [onboardingPurposeSelected, onboardingPurposeSelectedMetadata] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
+    const [onboardingPolicyID, onboardingPolicyIDMetadata] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
+    const [, onboardingMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const isOnPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && account?.hasAccessibleDomainPolicies;
 
     let initialRouteName: ValueOf<typeof SCREENS.ONBOARDING> = SCREENS.ONBOARDING.PURPOSE;
@@ -107,8 +108,10 @@ function OnboardingModalNavigator() {
         };
     }, [customInterpolator]);
 
-    // If the account data is not loaded yet, we don't want to show the onboarding modal
-    if (isLoadingOnyxValue(accountMetadata)) {
+    // Wait for all onboarding-related Onyx values to load before rendering.
+    // This prevents a flash of the wrong screen (e.g., PURPOSE) on page reload,
+    // because startOnboardingFlow needs these values to compute the correct route.
+    if (isLoadingOnyxValue(accountMetadata, onboardingPurposeSelectedMetadata, onboardingPolicyIDMetadata, onboardingMetadata)) {
         return null;
     }
 
