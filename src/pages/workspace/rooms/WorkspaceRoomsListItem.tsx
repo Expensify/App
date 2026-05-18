@@ -6,14 +6,11 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
-import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 
 type WorkspaceRoomsListItemProps = {
@@ -24,13 +21,11 @@ type WorkspaceRoomsListItemProps = {
 function WorkspaceRoomsListItem({report, onPress}: WorkspaceRoomsListItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     const ownerAccountID = report.ownerAccountID;
-    const ownerDetail = ownerAccountID ? personalDetails?.[ownerAccountID] : undefined;
-    const ownerDisplayName = ownerAccountID ? getDisplayNameForParticipant({accountID: ownerAccountID, formatPhoneNumber, personalDetailsData: personalDetails ?? undefined}) : '';
+    const ownerDetails = ownerAccountID ? getPersonalDetailsByIDs({accountIDs: [ownerAccountID]}).at(0) : undefined;
+    const ownerDisplayName = ownerDetails ? getDisplayNameOrDefault(ownerDetails) : '';
 
     const memberCount = Object.keys(report.participants ?? {}).length;
     const roomName = getReportName(report);
@@ -43,7 +38,7 @@ function WorkspaceRoomsListItem({report, onPress}: WorkspaceRoomsListItemProps) 
             onPress={onPress}
             style={[styles.flexRow, styles.alignItemsCenter, styles.ph5, styles.pv2]}
         >
-            <View style={[styles.flexRow, styles.alignItemsCenter, {flex: 3}]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex3]}>
                 <ReportActionAvatars
                     reportID={report.reportID}
                     size={CONST.AVATAR_SIZE.DEFAULT}
@@ -56,12 +51,12 @@ function WorkspaceRoomsListItem({report, onPress}: WorkspaceRoomsListItemProps) 
                     {roomName}
                 </Text>
             </View>
-            <View style={[styles.flexRow, styles.alignItemsCenter, {flex: 2}]}>
-                {!!ownerAccountID && (
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex2]}>
+                {!!ownerDetails && (
                     <>
                         <Avatar
-                            source={ownerDetail?.avatar}
-                            avatarID={ownerAccountID}
+                            source={ownerDetails.avatar}
+                            avatarID={ownerDetails.accountID}
                             name={ownerDisplayName}
                             type={CONST.ICON_TYPE_AVATAR}
                             size={CONST.AVATAR_SIZE.SMALLER}
@@ -77,7 +72,7 @@ function WorkspaceRoomsListItem({report, onPress}: WorkspaceRoomsListItemProps) 
                 )}
             </View>
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                <Text style={[styles.flex1]}>{memberCount}</Text>
+                <Text style={styles.flex1}>{memberCount}</Text>
                 <Icon
                     src={icons.ArrowRight}
                     fill={theme.icon}

@@ -92,29 +92,30 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                     />
                 </HeaderWithBackButton>
 
-                <View style={[styles.flexRow, styles.ph5, styles.pv2, styles.alignItemsCenter]}>
-                    <View style={[styles.flexRow, styles.alignItemsCenter, {flex: 3}]}>
-                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter, {width: variables.avatarSizeNormal}]}>
-                            <Icon
-                                src={icons.FallbackAvatar}
-                                width={variables.iconSizeSmall}
-                                height={variables.iconSizeSmall}
-                                fill={theme.icon}
-                            />
-                        </View>
-                        <Text style={[styles.textMicroSupporting, styles.ml3]}>{translate('common.name')}</Text>
-                    </View>
-                    <View style={{flex: 2}}>
-                        <Text style={[styles.textMicroSupporting]}>{translate('common.createdBy')}</Text>
-                    </View>
-                    <View style={[styles.flex1]}>
-                        <Text style={[styles.textMicroSupporting]}>{translate('common.members')}</Text>
-                    </View>
-                </View>
-
                 <FlatList
                     data={rooms ?? []}
                     keyExtractor={(report) => report.reportID}
+                    ListHeaderComponent={
+                        <View style={[styles.flexRow, styles.ph5, styles.pv2, styles.alignItemsCenter]}>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex3]}>
+                                <View style={[styles.alignItemsCenter, styles.justifyContentCenter, {width: variables.avatarSizeNormal}]}>
+                                    <Icon
+                                        src={icons.FallbackAvatar}
+                                        width={variables.iconSizeSmall}
+                                        height={variables.iconSizeSmall}
+                                        fill={theme.icon}
+                                    />
+                                </View>
+                                <Text style={[styles.textLabelSupporting, styles.ml3]}>{translate('common.name')}</Text>
+                            </View>
+                            <View style={styles.flex2}>
+                                <Text style={styles.textLabelSupporting}>{translate('common.createdBy')}</Text>
+                            </View>
+                            <View style={styles.flex1}>
+                                <Text style={styles.textLabelSupporting}>{translate('common.members')}</Text>
+                            </View>
+                        </View>
+                    }
                     renderItem={({item}) => (
                         <WorkspaceRoomsListItem
                             report={item}
