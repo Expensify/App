@@ -25,10 +25,14 @@ import ComposerProvider from './ComposerProvider';
 import ComposerSendButton from './ComposerSendButton';
 
 type ReportActionComposeProps = {
+    /** Report ID */
     reportID: string;
+
+    /** Whether the composer is edit only */
+    isEditOnly?: boolean;
 };
 
-function ComposerInner({reportID}: ReportActionComposeProps) {
+function ComposerInner({reportID, isEditOnly = false}: ReportActionComposeProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isEditingInComposer} = useComposerEditState();
@@ -57,11 +61,13 @@ function ComposerInner({reportID}: ReportActionComposeProps) {
                             <Composer.SendButton reportID={reportID} />
                         </Composer.Box>
                     </Composer.DropZone>
-                    <Composer.Footer>
-                        {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
-                        <Composer.TypingIndicator reportID={reportID} />
-                        <Composer.ExceededLength />
-                    </Composer.Footer>
+                    {!isEditOnly && (
+                        <Composer.Footer>
+                            {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
+                            <Composer.TypingIndicator reportID={reportID} />
+                            <Composer.ExceededLength />
+                        </Composer.Footer>
+                    )}
                 </OfflineWithFeedback>
                 <Composer.ImportedState />
             </View>
@@ -69,10 +75,13 @@ function ComposerInner({reportID}: ReportActionComposeProps) {
     );
 }
 
-function Composer({reportID}: ReportActionComposeProps) {
+function Composer({reportID, ...restProps}: ReportActionComposeProps) {
     return (
         <ComposerProvider reportID={reportID}>
-            <ComposerInner reportID={reportID} />
+            <ComposerInner
+                reportID={reportID}
+                {...restProps}
+            />
         </ComposerProvider>
     );
 }

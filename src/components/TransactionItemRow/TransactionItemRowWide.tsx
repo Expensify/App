@@ -419,6 +419,8 @@ function TransactionItemRowWide({
                             shouldUseNarrowLayout={false}
                             canEdit={canEditAmount}
                             onSave={onEditAmount}
+                            report={report}
+                            policy={policy}
                         />
                     </View>
                 );
