@@ -323,9 +323,7 @@ function openReportFromDeepLink(
                             }
 
                             // Navigation for signed users is handled by react-navigation.
-                            // When the deep link was opened while logged out, only navigate for
-                            // anonymous users (public room). For real sign-ins, react-navigation handles it.
-                            if (isAuthenticated || !isAnonymousUser()) {
+                            if (isAuthenticated) {
                                 return;
                             }
 

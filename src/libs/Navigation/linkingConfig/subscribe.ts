@@ -6,6 +6,7 @@ import navigationRef from '@libs/Navigation/navigationRef';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import {PROTECTED_SCREENS} from '@src/SCREENS';
 
 const subscribe: LinkingOptions<RootNavigatorParamList>['subscribe'] = (listener) => {
     const subscription = Linking.addEventListener('url', ({url}: {url: string}) => {
@@ -29,6 +30,14 @@ const subscribe: LinkingOptions<RootNavigatorParamList>['subscribe'] = (listener
             // Without this, the native SDK never sees the callback URL and retries OAuth in a loop
             // after app-to-app bank auth returns. See issue #87757.
             continuePlaidOAuth(url);
+            return;
+        }
+        // Don't forward URLs to React Navigation when AuthScreens isn't mounted yet (i.e., user is
+        // on PublicScreens). The navigator tree can't handle authenticated routes at that point, which
+        // causes an unhandled NAVIGATE action error. DeepLinkHandler handles these URLs separately via
+        // openReportFromDeepLink after sign-in completes.
+        const rootState = navigationRef.current?.getRootState();
+        if (!rootState?.routeNames?.includes(PROTECTED_SCREENS.CONCIERGE)) {
             return;
         }
         listener(url);
