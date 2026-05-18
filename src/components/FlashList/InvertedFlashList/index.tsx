@@ -17,7 +17,7 @@ type InvertedFlashListProps<T> = FlashListProps<T> & {
     keyExtractor: (item: T, index: number) => string;
 
     /** Ref to the underlying list instance. */
-    ref: FlatListRefType;
+    ref: FlatListRefType<T> | null;
 
     /** Whether the list should handle `maintainVisibleContentPosition` */
     shouldMaintainVisibleContentPosition?: boolean;
