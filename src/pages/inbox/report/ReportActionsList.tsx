@@ -35,6 +35,7 @@ import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopm
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {
     getFirstVisibleReportActionID,
     isConsecutiveActionMadeByPreviousActor,
@@ -489,14 +490,17 @@ function ReportActionsList({
             return;
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            if (shouldScrollToEndAfterLayout) {
-                return;
-            }
-            setIsFloatingMessageCounterVisible(false);
-            reportScrollManager.scrollToBottom();
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => {
+                if (shouldScrollToEndAfterLayout) {
+                    return;
+                }
+                setIsFloatingMessageCounterVisible(false);
+                reportScrollManager.scrollToBottom();
+            },
+            waitForUpcomingTransition: true,
         });
+        return () => handle.cancel();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
