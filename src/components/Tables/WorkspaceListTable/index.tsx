@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {AvatarSource} from '@libs/UserUtils';
+import WorkspacesEmptyStateComponent from '@pages/workspace/WorkspacesEmptyStateComponent';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
@@ -97,8 +98,9 @@ export default function WorkspaceListTable({workspaces}: WorkspaceListTableProps
             keyExtractor={(row) => row.policyID}
             initialSortColumn="workspaces"
             title={translate('common.workspaces')}
+            ListEmptyComponent={WorkspacesEmptyStateComponent}
         >
-            <Table.SearchBar label={translate('workspace.common.findWorkspace')} />
+            {workspaces.length > CONST.SEARCH_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.common.findWorkspace')} />}
             <Table.Header />
             <Table.Body />
         </Table>

@@ -1,6 +1,7 @@
 import {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
 import {ValueOf} from 'type-fest';
+import DomainListEmptyState from '@components/Domain/DomainListEmptyState';
 import Table, {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -70,6 +71,7 @@ export default function DomainListTable({domains}: DomainListTableProps) {
             keyExtractor={(row) => row.domainAccountID.toString()}
             initialSortColumn="domains"
             title={translate('common.domains')}
+            ListEmptyComponent={DomainListEmptyState}
         >
             {/* JACK_TODO: findDomain */}
             {/* <Table.SearchBar label={translate('workspace.common.findWorkspace')} /> */}
