@@ -2,7 +2,6 @@ import {flushDeferredWrite} from '@libs/deferredLayoutWrite';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getTopmostReportParams from '@libs/Navigation/helpers/getTopmostReportParams';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-// eslint-disable-next-line no-restricted-imports -- Navigation.pop and dismissModalWithReport don't support afterTransition
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';

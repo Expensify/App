@@ -160,7 +160,7 @@ function useConfirmationValidation({
         const isP2P = !!(firstParticipant?.accountID && !firstParticipant?.isPolicyExpenseChat);
 
         // P2P manual submit: $0 is invalid unless scan/time/distance (same guard as legacy inline confirm).
-        if (iouType !== CONST.IOU.TYPE.PAY && !isScanRequestUtil(transaction) && !isTimeRequest && !isDistanceRequest && iouAmount === 0 && isP2P) {
+        if (!isScanRequestUtil(transaction) && !isTimeRequest && !isDistanceRequest && iouAmount === 0 && isP2P) {
             return {errorKey: 'common.error.invalidAmount'};
         }
         if (isNewManualExpenseFlowEnabled && !transaction?.isAmountSet) {
