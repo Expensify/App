@@ -14,7 +14,6 @@ import {
     getConnectedHRProviders,
     getConnectedIntegrationNamesForPolicies,
     getCustomUnitsForDuplication,
-    getDefaultApprover,
     getDefaultTimeTrackingRate,
     getEligibleBankAccountShareRecipients,
     getHRApprovalMode,
@@ -2900,86 +2899,5 @@ describe('PolicyUtils', () => {
             });
         });
 
-        describe('getDefaultApprover with HR connections', () => {
-            it('returns HR finalApprover when Gusto is in basic mode', () => {
-                const policy = {
-                    ...createRandomPolicy(0),
-                    approver: 'policy-approver@example.com',
-                    owner: 'owner@example.com',
-                    connections: {
-                        [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: {config: {approvalMode: 'basic', finalApprover: 'gusto-approver@example.com', isConfigured: true}},
-                    },
-                } as unknown as Policy;
-                expect(getDefaultApprover(policy)).toBe('gusto-approver@example.com');
-            });
-
-            it('falls back to policy.approver when Gusto is in custom mode', () => {
-                const policy = {
-                    ...createRandomPolicy(0),
-                    approver: 'policy-approver@example.com',
-                    owner: 'owner@example.com',
-                    connections: {
-                        [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: {config: {approvalMode: 'custom', finalApprover: 'gusto-approver@example.com', isConfigured: true}},
-                    },
-                } as unknown as Policy;
-                expect(getDefaultApprover(policy)).toBe('policy-approver@example.com');
-            });
-
-            it('returns HR finalApprover when Zenefits is in manager mode', () => {
-                const policy = {
-                    ...createRandomPolicy(0),
-                    approver: 'policy-approver@example.com',
-                    owner: 'owner@example.com',
-                    connections: {
-                        [CONST.POLICY.CONNECTIONS.NAME.ZENEFITS]: {config: {approvalMode: 'manager', finalApprover: 'zenefits-approver@example.com', isConfigured: true}},
-                    },
-                } as unknown as Policy;
-                expect(getDefaultApprover(policy)).toBe('zenefits-approver@example.com');
-            });
-
-            it('returns HR finalApprover when Merge HR (Workday) is in basic mode', () => {
-                const policy = {
-                    ...createRandomPolicy(0),
-                    approver: 'policy-approver@example.com',
-                    owner: 'owner@example.com',
-                    connections: {
-                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
-                            config: {approvalMode: 'basic', finalApprover: 'workday-approver@example.com', integration: 'workday'},
-                        },
-                    },
-                } as unknown as Policy;
-                expect(getDefaultApprover(policy)).toBe('workday-approver@example.com');
-            });
-
-            it('returns policy.approver when no HR connection is present', () => {
-                const policy = {
-                    ...createRandomPolicy(0),
-                    approver: 'policy-approver@example.com',
-                    owner: 'owner@example.com',
-                } as Policy;
-                expect(getDefaultApprover(policy)).toBe('policy-approver@example.com');
-            });
-
-            it('returns policy.owner when no HR connection and no policy.approver', () => {
-                const policy = {
-                    ...createRandomPolicy(0),
-                    approver: '',
-                    owner: 'owner@example.com',
-                } as Policy;
-                expect(getDefaultApprover(policy)).toBe('owner@example.com');
-            });
-
-            it('falls back to policy.approver when HR is read-only but finalApprover is null', () => {
-                const policy = {
-                    ...createRandomPolicy(0),
-                    approver: 'policy-approver@example.com',
-                    owner: 'owner@example.com',
-                    connections: {
-                        [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: {config: {approvalMode: 'basic', finalApprover: null, isConfigured: true}},
-                    },
-                } as unknown as Policy;
-                expect(getDefaultApprover(policy)).toBe('policy-approver@example.com');
-            });
-        });
     });
 });

@@ -1198,16 +1198,9 @@ function getApprovalWorkflow(policy: OnyxEntry<Policy>): ValueOf<typeof CONST.PO
     return policy?.approvalMode ?? CONST.POLICY.APPROVAL_MODE.ADVANCED;
 }
 
-/** Returns the email of the default approver for the given policy. When an HR connection is in a read-only approval mode (basic/manager), the HR provider's `finalApprover` takes precedence; otherwise falls back to `policy.approver` then `policy.owner`. */
 function getDefaultApprover(policy: OnyxEntry<Policy>): string {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const policyDefaultApprover = policy?.approver || policy?.owner || '';
-    if (!isAnyHRReadOnlyWorkflowMode(policy)) {
-        return policyDefaultApprover;
-    }
-    const hrFinalApprover = getHRFinalApprover(policy);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    return hrFinalApprover || policyDefaultApprover;
+    return policy?.approver || policy?.owner || '';
 }
 
 function getRuleApprovers(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>) {
