@@ -32,7 +32,7 @@ import SCREENS from '@src/SCREENS';
 import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import type {Beta, IntroSelected, Report} from '@src/types/onyx';
 import {doneCheckingPublicRoom, navigateToConciergeChat, openReport} from './Report';
-import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
+import {canAnonymousUserAccessRoute, hasAuthToken, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
 import {setOnboardingErrorMessage} from './Welcome';
 
 let currentUserEmail = '';
@@ -364,10 +364,11 @@ function openReportFromDeepLink(
                             }
                         };
 
-                        // We must check isAuthenticated before hasCompletedGuidedSetupFlowSelector because the selector
-                        // returns true for empty onboarding objects (the pre-login default state), which would cause
-                        // premature deeplink navigation before authentication completes.
-                        if ((isAuthenticated && hasCompletedGuidedSetupFlowSelector(val)) || isAnonymousUser()) {
+                        // We must check hasAuthToken() dynamically (not the stale `isAuthenticated` closure value)
+                        // before hasCompletedGuidedSetupFlowSelector because the selector returns true for empty
+                        // onboarding objects (the pre-login default state), which would cause premature deeplink
+                        // navigation before authentication completes.
+                        if ((hasAuthToken() && hasCompletedGuidedSetupFlowSelector(val)) || isAnonymousUser()) {
                             handleDeeplinkNavigation();
                         }
                     });

@@ -8,18 +8,18 @@ describe('onboardingSelectors', () => {
     // the onboarding flow is only showed to the users with `hasCompletedGuidedSetupFlow` set to false
     describe('hasCompletedGuidedSetupFlowSelector', () => {
         // Regression test: hasCompletedGuidedSetupFlowSelector returns true for empty onboarding objects (the pre-login default state).
-        // The deeplink guard in Link.ts must combine this with an isAuthenticated check to prevent premature navigation.
-        it('Should return true for empty onboarding (pre-login default), confirming the need for an isAuthenticated guard in deeplink navigation', () => {
+        // The deeplink guard in Link.ts must combine this with a dynamic hasAuthToken() check to prevent premature navigation.
+        it('Should return true for empty onboarding (pre-login default), confirming the need for an auth guard in deeplink navigation', () => {
             const emptyOnboarding = {} as OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>;
-            const isAuthenticated = false;
+            const hasToken = false; // simulates hasAuthToken() returning false before login
             const selectorResult = hasCompletedGuidedSetupFlowSelector(emptyOnboarding);
 
             // The selector returns true for empty objects (old/migrated accounts), which is correct for its own purpose.
             expect(selectorResult).toBe(true);
 
-            // But the deeplink guard must NOT navigate when the user is not authenticated, even if the selector returns true.
-            // This is the condition from openReportFromDeepLink: (isAuthenticated && hasCompletedGuidedSetupFlowSelector(val))
-            expect(isAuthenticated && selectorResult).toBe(false);
+            // But the deeplink guard must NOT navigate when the user has no auth token, even if the selector returns true.
+            // This is the condition from openReportFromDeepLink: (hasAuthToken() && hasCompletedGuidedSetupFlowSelector(val))
+            expect(hasToken && selectorResult).toBe(false);
         });
 
         it('Should return true if onboarding NVP is an empty object', () => {
