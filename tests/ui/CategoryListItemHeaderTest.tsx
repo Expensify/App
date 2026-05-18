@@ -42,6 +42,7 @@ const mockSearchStateContext = {
     currentSimilarSearchHash: -1,
     suggestedSearches: {} as SearchStateContextValue['suggestedSearches'],
     sortedReportIDs: [],
+    hasSelectedTransactions: false,
 } satisfies SearchStateContextValue;
 
 const mockSearchActionsContext = {

@@ -9,7 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
 import {canSendInvoiceFromWorkspace, getActiveAdminWorkspaces, sortWorkspacesBySelected} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
-import {setMoneyRequestParticipants} from '@userActions/IOU';
+import {setMoneyRequestParticipants} from '@userActions/IOU/MoneyRequest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';

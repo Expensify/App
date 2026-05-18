@@ -368,7 +368,6 @@ function Composer({
             value={value}
             defaultValue={defaultValue}
             autoFocus={autoFocus}
-            /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
             onSelectionChange={addCursorPositionToSelectionChange}
             onContentSizeChange={(e) => {

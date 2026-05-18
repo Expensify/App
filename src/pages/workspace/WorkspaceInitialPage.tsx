@@ -39,6 +39,7 @@ import {
     hasAccountingFeatureConnection,
     hasPolicyCategoriesError,
     isGroupPolicy,
+    isHRIntegrationConnected,
     isPendingDeletePolicy,
     isTimeTrackingEnabled,
     shouldShowEmployeeListError,
@@ -121,6 +122,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         'Feed',
         'Folder',
         'Gear',
+        'Hashtag',
         'InvoiceGeneric',
         'Receipt',
         'Sync',
@@ -164,7 +166,9 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         [CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED]: policy?.areCompanyCardsEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]: !!policy?.areConnectionsEnabled || hasAccountingFeatureConnection(policy),
         [CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED]:
-            isBetaEnabled(CONST.BETAS.GUSTO) && (policy?.isHREnabled === true || !!policy?.connections?.gusto) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED),
+            (isBetaEnabled(CONST.BETAS.GUSTO) || isBetaEnabled(CONST.BETAS.ZENEFITS)) &&
+            (policy?.isHREnabled === true || isHRIntegrationConnected(policy)) &&
+            canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED),
         [CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED]: policy?.areExpensifyCardsEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED]: policy?.areReportFieldsEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED]: policy?.areRulesEnabled,
@@ -227,6 +231,16 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.MEMBERS,
         },
     ];
+
+    if (isBetaEnabled(CONST.BETAS.WORKSPACE_ROOMS_PAGE)) {
+        workspaceMenuItems.push({
+            translationKey: 'workspace.common.rooms',
+            icon: expensifyIcons.Hashtag,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ROOMS.getRoute(policyID)))),
+            screenName: SCREENS.WORKSPACE.ROOMS,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.ROOMS,
+        });
+    }
 
     if (isGroupPolicy(policy) && shouldShowProtectedItems) {
         workspaceMenuItems.push({

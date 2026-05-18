@@ -296,8 +296,14 @@ export default createOnyxDerivedValueConfig({
                     !!isReportArchived,
                     reports,
                 );
+
+                // When the report is ready to submit, always show the green Submit badge
+                // regardless of violations — the user can submit without fix.
+                const willShowGreenSubmit = requiresAttention && actionGreenBadge === CONST.REPORT.ACTION_BADGE.SUBMIT;
+
                 // if report has errors or violations, show red dot
-                if (reasonAndReportAction) {
+                // Also skip setting ERROR when we'll show the green Submit badge — let the user submit without fix.
+                if (reasonAndReportAction && !willShowGreenSubmit) {
                     needsParentChatErrorPropagation = true;
 
                     // RBR/Fix mirrors GBR's access rule: only show on the child when the user can't already
