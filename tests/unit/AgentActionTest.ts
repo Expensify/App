@@ -2,16 +2,7 @@ import Onyx from 'react-native-onyx';
 import {write} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
-import {
-    clearAgentAvatarUpdateError,
-    clearAgentUpdateError,
-    createAgent,
-    deleteAgent,
-    updateAgentAvatar,
-    updateAgentName,
-    updateAgentPrompt,
-    updateAgentPromptAsCopilot,
-} from '@userActions/Agent';
+import {clearAgentAvatarUpdateError, clearAgentUpdateError, createAgent, deleteAgent, updateAgentAvatar, updateAgentName, updateAgentPrompt} from '@userActions/Agent';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
@@ -292,7 +283,7 @@ describe('updateAgentPrompt', () => {
     it('calls write with UPDATE_AGENT_PROMPT command and correct params', () => {
         updateAgentPrompt(TEST_ACCOUNT_ID, 'New prompt', 'Old prompt');
 
-        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_AGENT_PROMPT, {agentAccountID: TEST_ACCOUNT_ID, prompt: 'New prompt'}, expect.any(Object));
+        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_AGENT_PROMPT, {agentAccountID: TEST_ACCOUNT_ID, reportID: 0, prompt: 'New prompt'}, expect.any(Object));
     });
 
     it('optimistic data sets prompt, pendingAction UPDATE, and errors null on the prompt key', () => {
@@ -341,58 +332,6 @@ describe('updateAgentPrompt', () => {
         expect(optimisticData.some((u) => u.key === ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM)).toBe(false);
         expect(successData.some((u) => u.key === ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM)).toBe(false);
         expect(failureData.some((u) => u.key === ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM)).toBe(false);
-    });
-});
-
-describe('updateAgentPromptAsCopilot', () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
-    it('calls write with SET_NAME_VALUE_PAIR command and serialised agentPrompt params', () => {
-        updateAgentPromptAsCopilot(TEST_ACCOUNT_ID, 'New prompt', 'Old prompt');
-
-        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, {name: 'agentPrompt', value: JSON.stringify({prompt: 'New prompt'})}, expect.any(Object));
-    });
-
-    it('optimistic data sets prompt, pendingAction UPDATE, and errors null on the prompt key', () => {
-        updateAgentPromptAsCopilot(TEST_ACCOUNT_ID, 'New prompt', 'Old prompt');
-
-        const {optimisticData} = getWriteOptions();
-        const promptUpdate = optimisticData.find((u) => u.key === `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${TEST_ACCOUNT_ID}`);
-
-        expect(promptUpdate?.value).toMatchObject({prompt: 'New prompt', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, errors: null});
-    });
-
-    it('success data sets pendingAction null and promptErrors null on the prompt key', () => {
-        updateAgentPromptAsCopilot(TEST_ACCOUNT_ID, 'New prompt', 'Old prompt');
-
-        const {successData} = getWriteOptions();
-        const promptUpdate = successData.find((u) => u.key === `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${TEST_ACCOUNT_ID}`);
-        const promptValue = promptUpdate?.value as Record<string, unknown> | undefined;
-
-        expect(promptValue?.pendingAction).toBeNull();
-        expect(promptValue?.promptErrors).toBeNull();
-    });
-
-    it('failure data reverts prompt to originalPrompt on the prompt key', () => {
-        updateAgentPromptAsCopilot(TEST_ACCOUNT_ID, 'New prompt', 'Old prompt');
-
-        const {failureData} = getWriteOptions();
-        const promptUpdate = failureData.find((u) => u.key === `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${TEST_ACCOUNT_ID}`);
-
-        expect((promptUpdate?.value as Record<string, unknown>).prompt).toBe('Old prompt');
-    });
-
-    it('failure data sets promptErrors (truthy) and pendingAction null on the prompt key', () => {
-        updateAgentPromptAsCopilot(TEST_ACCOUNT_ID, 'New prompt', 'Old prompt');
-
-        const {failureData} = getWriteOptions();
-        const promptUpdate = failureData.find((u) => u.key === `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${TEST_ACCOUNT_ID}`);
-        const promptValue = promptUpdate?.value as Record<string, unknown> | undefined;
-
-        expect(promptValue?.promptErrors).toBeTruthy();
-        expect(promptValue?.pendingAction).toBeNull();
     });
 });
 

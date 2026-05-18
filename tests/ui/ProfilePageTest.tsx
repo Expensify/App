@@ -36,7 +36,6 @@ jest.mock('@libs/actions/Agent', () => ({
     openAgentsPage: jest.fn(),
     clearAgentPromptUpdateError: jest.fn(),
     updateAgentPrompt: jest.fn(),
-    updateAgentPromptAsCopilot: jest.fn(),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -319,9 +318,9 @@ describe('ProfilePage - agent account', () => {
         expect(screen.queryByTestId('ai-prompt-input')).toBeNull();
     });
 
-    it('calls updateAgentPromptAsCopilot and returns to view mode when saving non-empty prompt', async () => {
+    it('calls updateAgentPrompt and returns to view mode when saving non-empty prompt', async () => {
         const accountID = 123;
-        const mockUpdateAgentPromptAsCopilot = jest.mocked(AgentActions.updateAgentPromptAsCopilot);
+        const mockUpdateAgentPrompt = jest.mocked(AgentActions.updateAgentPrompt);
         await setupUser('agent_123@expensify.ai');
 
         await act(async () => {
@@ -342,14 +341,14 @@ describe('ProfilePage - agent account', () => {
         fireEvent.press(screen.getByTestId('save-prompt-button'));
         await waitForBatchedUpdatesWithAct();
 
-        expect(mockUpdateAgentPromptAsCopilot).toHaveBeenCalledWith(accountID, 'Updated prompt text', 'Reject gambling expenses.');
+        expect(mockUpdateAgentPrompt).toHaveBeenCalledWith(accountID, 'Updated prompt text', 'Reject gambling expenses.');
         expect(screen.getByTestId('ai-prompt-box')).toBeDefined();
         expect(screen.queryByTestId('ai-prompt-input')).toBeNull();
     });
 
-    it('stays in edit mode and does not call updateAgentPromptAsCopilot when saving blank prompt', async () => {
+    it('stays in edit mode and does not call updateAgentPrompt when saving blank prompt', async () => {
         const accountID = 123;
-        const mockUpdateAgentPromptAsCopilot = jest.mocked(AgentActions.updateAgentPromptAsCopilot);
+        const mockUpdateAgentPrompt = jest.mocked(AgentActions.updateAgentPrompt);
         await setupUser('agent_123@expensify.ai');
 
         await act(async () => {
@@ -370,7 +369,7 @@ describe('ProfilePage - agent account', () => {
         fireEvent.press(screen.getByTestId('save-prompt-button'));
         await waitForBatchedUpdatesWithAct();
 
-        expect(mockUpdateAgentPromptAsCopilot).not.toHaveBeenCalled();
+        expect(mockUpdateAgentPrompt).not.toHaveBeenCalled();
         expect(screen.getByTestId('ai-prompt-input')).toBeDefined();
     });
 });
