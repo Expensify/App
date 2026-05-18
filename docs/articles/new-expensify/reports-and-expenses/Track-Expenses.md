@@ -19,7 +19,7 @@ Use this guide to create expenses that stay in your account for later reference.
 
 There are two ways you can create an expense that stays in your records but isn't submitted:
 
-## SmartScan a Receipt
+## How to SmartScan a receipt
 
 **On mobile:**
 1. Tap the green camera button and take a photo of the receipt or upload from gallery.
@@ -27,7 +27,7 @@ There are two ways you can create an expense that stays in your records but isn'
 3. Add details like description, category, tags, and tax.
    - Members with a default workspace will see expense fields that mirror their workspace's rules.
    - Members without a default workspace will see the expense fields: Amount, Description, Merchant, Category, Date, Report.
-5. Tap **Create expense**.
+4. Tap **Create expense**.
 
 **On desktop:**
 1. Click the green receipt button and drag and drop the receipt or click **Choose files** to upload.
@@ -35,14 +35,14 @@ There are two ways you can create an expense that stays in your records but isn'
 3. Add details like description, category, tags, and tax.
    - Members with a default workspace will see expense fields that mirror their workspace's rules.
    - Members without a default workspace will see the expense fields: Amount, Description, Merchant, Category, Date, Report.
-5. Click **Create expense**.
+4. Click **Create expense**.
 
 💡 **Note:** 
 Other ways to SmartScan receipts include:
 - Forward your digital receipts to `receipts@expensify.com`.
 - Text a photo of your receipts to 47777 (US numbers only). Just make sure you [add your phone number to Expensify](https://new.expensify.com/settings/profile/contact-methods).
 
-## Manually Add an Expense
+## How to manually add an expense
 
 **On mobile:**
 1. Tap the green camera button.
@@ -52,7 +52,7 @@ Other ways to SmartScan receipts include:
 5. Add optional fields like category, tags, or description.
    - Members with a default workspace will see expense fields that mirror their workspace's rules.
    - Members without a default workspace will see the expense fields: Amount, Description, Merchant, Category, Date, Report.
-7. Tap **Create expense**.
+6. Tap **Create expense**.
 
 **On desktop:**
 1. Click the green add receipt button.
@@ -62,17 +62,17 @@ Other ways to SmartScan receipts include:
 5. Add optional fields like category, tags, or description.
    - Members with a default workspace will see expense fields that mirror their workspace's rules.
    - Members without a default workspace will see the expense fields: Amount, Description, Merchant, Category, Date, Report.
-7. Click **Create expense**.
+6. Click **Create expense**.
 
 ---
 
-# Where to Find Tracked Expenses
+## Where to find tracked expenses
 
 After creating an expense, go to **Spend > Expenses** to find it.  Use the filters to search for the expense if it isn't immediately visible.
 
 After tracking an expense, it also appears in an **Expense Chat** in the left-hand navigation menu.
 
-# What You Can Do With Tracked Expenses
+## What you can do with tracked expenses
 
 When you create a tracked expense, Concierge will show an actionable message with options in the Expense Chat:
    - **Submit it to someone** – Send it for approval or reimbursement.

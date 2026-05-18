@@ -91,7 +91,7 @@ After it’s unapproved:
 
 ---
 
-## Understanding the Expense Table
+## How to view and use the expense table
 
 Each report includes a table showing all attached expenses.
 
@@ -106,7 +106,7 @@ Additional columns such as **Attendees** and **Per attendee** can be enabled via
 
 Clicking a row opens the full expense details in a side panel (web) or details screen (mobile).
 
-## Comments and Collaboration
+## How to use comments and collaboration on a report
 
 Every report has a comment thread where you can:
   - Add comments below the expense table or on individual expenses

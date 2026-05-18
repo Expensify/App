@@ -14,7 +14,7 @@ Report previews are summaries shown directly in your workspace chat in the **Inb
 
 ## Visibility of Report Previews
 - Visible to **all members** in the workspace chat.
-- Only the **report creator** sees interactive options like **Add expense.**  
+- Only the **report creator** sees interactive options like **Add expense**.  
 - **Workspace admins** can approve and pay reports.
 
 ## Preview Details
@@ -59,21 +59,21 @@ Each row represents an expense and includes:
 
 **Note:** The bulk action menu appears after selecting at least one expense.
 
-## Moving Expenses Between Reports
+## How to move expenses between reports
 
 1. Select the expenses using checkboxes.
 2. Click **Move to report** from the bulk action menu.
 3. In the right-hand panel, select a destination draft report.  
 4. Expenses are moved, and a system message logs the action.
 
-## Adding a New Expense to the Table
+## How to add a new expense to the table
 - The expense appears in the table.  
 - Its row is briefly highlighted as new.  
 - Once added, the **Submit** button appears in the header (replacing **Add expense**, which moves to the **More** menu).
 
 ---
 
-# Filters
+## How to use filters to find reports and expenses
 Filters help you narrow down expenses or reports so you can find exactly what you need, fast. This is especially useful when you're working with a large dataset or trying to take specific actions, such as reporting unsubmitted expenses.
 
 **Filters can help you:**
@@ -108,17 +108,17 @@ You can also combine filters with a keyword search for even more precision. For 
 
 ---
 
-# Smart Suggestions
+## How to use Smart Suggestions
 
 Smart suggestions recommend the next best action based on your activity.
 
-## Where they appear
+### Where Smart Suggestions appear
 
 - **SelfDM**: Suggests unreported expenses to add to a report.
 - **Empty draft reports**: Prompts you to add recent unreported expenses.
-- **Global create/quick actions**: Suggests creating a report if you frequently submit grouped expenses
+- **Global create/quick actions**: Suggests creating a report if you frequently submit grouped expenses.
 
-## Benefits
+### How Smart Suggestions help you report faster
 
 If you create a draft report and have unreported expenses in your SelfDM, a prompt may appear to add those expenses quickly. Smart Suggestions also: 
 
