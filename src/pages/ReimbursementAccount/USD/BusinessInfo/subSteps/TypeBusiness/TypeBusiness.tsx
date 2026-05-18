@@ -7,7 +7,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
-import type {SubPageProps} from '@hooks/useSubPage/types';
+import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
@@ -19,7 +19,7 @@ import BusinessTypePicker from './BusinessTypePicker';
 const COMPANY_INCORPORATION_TYPE_KEY = INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_TYPE;
 const STEP_FIELDS = [COMPANY_INCORPORATION_TYPE_KEY];
 
-function TypeBusiness({onNext, isEditing}: SubPageProps) {
+function TypeBusiness({onNext, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 

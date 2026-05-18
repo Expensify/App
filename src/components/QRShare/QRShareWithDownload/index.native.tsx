@@ -25,7 +25,6 @@ function QRShareWithDownload({ref, ...props}: QRShareWithDownloadProps) {
     return (
         <ViewShot ref={qrCodeScreenshotRef}>
             <QRShare
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 logo={isOffline ? undefined : props.logo}
             />

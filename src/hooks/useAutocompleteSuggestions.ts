@@ -537,4 +537,3 @@ function useAutocompleteSuggestions({
 }
 
 export default useAutocompleteSuggestions;
-export type {AutocompleteItemData};
