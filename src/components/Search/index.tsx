@@ -1112,14 +1112,17 @@ function Search({
         [selectedTransactions, setSelectedTransactions, filteredData, updateSelectAllMatchingItemsState, transactions, email, accountID, outstandingReportsByPolicyID, searchResults?.data],
     );
 
+    const onSelectRowInMobileSelectionMode = (item: SearchListItem) => {
+        if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return;
+        }
+
+        toggleTransaction(item);
+    };
+
     const onSelectRow = useCallback(
         (item: SearchListItem, transactionPreviewData?: TransactionPreviewData) => {
             if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                return;
-            }
-
-            if (isMobileSelectionModeEnabled) {
-                toggleTransaction(item);
                 return;
             }
 
@@ -1237,9 +1240,7 @@ function Search({
             requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
         },
         [
-            isMobileSelectionModeEnabled,
             markReportIDAsExpense,
-            toggleTransaction,
             handleSearch,
             markReportIDAsMultiTransactionExpense,
             unmarkReportIDAsMultiTransactionExpense,
@@ -1771,7 +1772,7 @@ function Search({
                     ref={searchListRef}
                     data={stableSortedData}
                     ListItem={ListItem}
-                    onSelectRow={onSelectRow}
+                    onSelectRow={isMobileSelectionModeEnabled ? onSelectRowInMobileSelectionMode : onSelectRow}
                     onCheckboxPress={toggleTransaction}
                     onAllCheckboxPress={toggleAllTransactions}
                     canSelectMultiple={canSelectMultiple}

@@ -2293,6 +2293,15 @@ const ROUTES = {
             return `workspaces/${policyID}/members` as const;
         },
     },
+    WORKSPACE_ROOMS: {
+        route: 'workspaces/:policyID/rooms',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_ROOMS route');
+            }
+            return `workspaces/${policyID}/rooms` as const;
+        },
+    },
     WORKSPACE_MEMBERS_IMPORT: {
         route: 'workspaces/:policyID/members/import',
         getRoute: (policyID: string) => `workspaces/${policyID}/members/import` as const,
