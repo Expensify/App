@@ -5,12 +5,10 @@ inputs:
         description: Auth token for New Expensify Github
         required: true
 outputs:
-  IS_LOCKED:
-    description: Whether or not the open deploy checklist issue is locked.
-  NUMBER:
-    description: Deploy checklist issue number
-  CHECKLIST_STATE:
-    description: 'Resolved state: absent | unlocked | locked | ambiguous | unknown (API failure after retries)'
+    IS_LOCKED:
+        description: Whether or not the open deploy checklist issue is locked.
+    NUMBER:
+        description: Deploy checklist issue number
 runs:
     using: 'node24'
     main: 'index.js'

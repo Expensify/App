@@ -5,7 +5,7 @@
 import * as core from '@actions/core';
 import {RequestError} from '@octokit/request-error';
 import type {Writable} from 'type-fest';
-import {generateDeployChecklistBodyAndAssignees, getDeployChecklist, listOpenStagingDeployChecklistIssuesWithRetry} from '@github/libs/DeployChecklistUtils';
+import {generateDeployChecklistBodyAndAssignees, getDeployChecklist, NoOpenDeployChecklistError} from '@github/libs/DeployChecklistUtils';
 import type {InternalOctokit, ListForRepoMethod} from '@github/libs/GithubUtils';
 import GithubUtils from '@github/libs/GithubUtils';
 
@@ -197,51 +197,85 @@ describe('DeployChecklistUtils', () => {
         });
 
         test('Test finding more than one issue', () => {
-            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [{a: 1}, {b: 2}]}) as unknown as ListForRepoMethod;
-            return getDeployChecklist().catch((e) => expect(e).toEqual(new Error('Found more than one StagingDeployCash issue.')));
+            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [{number: 1}, {number: 2}]}) as unknown as ListForRepoMethod;
+            return getDeployChecklist().catch((e) => expect(e).toEqual(new Error('Found more than one open StagingDeployCash issue: #1, #2.')));
         });
 
-        test('Test finding no issues', () => {
+        test('state:open empty + state:all returns closed issue → NoOpenDeployChecklistError', () => {
+            GithubUtils.octokit.issues.listForRepo = jest
+                .fn()
+                .mockResolvedValueOnce({data: []})
+                .mockResolvedValueOnce({data: [{number: 100, state: 'closed'}]}) as unknown as ListForRepoMethod;
+            return getDeployChecklist().catch((e: unknown) => {
+                expect(e).toBeInstanceOf(NoOpenDeployChecklistError);
+                expect((e as Error).message).toEqual(expect.stringContaining('#100'));
+            });
+        });
+
+        test('state:open empty + state:all returns open issue → fails closed (inconsistency)', () => {
+            GithubUtils.octokit.issues.listForRepo = jest
+                .fn()
+                .mockResolvedValueOnce({data: []})
+                .mockResolvedValueOnce({data: [{number: 500, state: 'open'}]}) as unknown as ListForRepoMethod;
+            return getDeployChecklist().catch((e: unknown) => {
+                expect(e).not.toBeInstanceOf(NoOpenDeployChecklistError);
+                expect((e as Error).message).toEqual(expect.stringContaining('Inconsistent GitHub response'));
+                expect((e as Error).message).toEqual(expect.stringContaining('#500'));
+            });
+        });
+
+        test('state:open empty + state:all empty → fails closed (pathological)', () => {
             GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: []}) as unknown as ListForRepoMethod;
-            return getDeployChecklist().catch((e) => expect(e).toEqual(new Error('Unable to find StagingDeployCash issue.')));
+            return getDeployChecklist().catch((e: unknown) => {
+                expect(e).not.toBeInstanceOf(NoOpenDeployChecklistError);
+                expect((e as Error).message).toEqual(expect.stringContaining(`No StagingDeployCash issues found at all`));
+            });
         });
     });
 
-    describe('listOpenStagingDeployChecklistIssuesWithRetry', () => {
-        test('returns issue list on first successful response', async () => {
-            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [{number: 5, labels: []}]}) as unknown as ListForRepoMethod;
-            const issues = await listOpenStagingDeployChecklistIssuesWithRetry();
-            expect(issues).toHaveLength(1);
-            expect(issues.at(0)?.number).toBe(5);
-            expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(1);
-        });
-
-        test('404 does not retry', async () => {
-            const err404 = new RequestError('Not Found', 404, {
-                request: {method: 'GET', url: 'https://api.github.com/repos/o/i/issues', headers: {}},
-            });
-            GithubUtils.octokit.issues.listForRepo = jest.fn().mockRejectedValue(err404) as unknown as ListForRepoMethod;
-            await expect(listOpenStagingDeployChecklistIssuesWithRetry()).rejects.toThrow(RequestError);
-            expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(1);
-        });
-
-        test('retries on 503 then succeeds', async () => {
+    describe('getDeployChecklist retry behaviour', () => {
+        test('retries on thrown error then succeeds', async () => {
             const err503 = new RequestError('Service Unavailable', 503, {
                 request: {method: 'GET', url: 'https://api.github.com/repos/o/i/issues', headers: {}},
             });
             GithubUtils.octokit.issues.listForRepo = jest
                 .fn()
                 .mockRejectedValueOnce(err503)
-                .mockResolvedValueOnce({data: [{number: 88, labels: []}]}) as unknown as ListForRepoMethod;
+                .mockResolvedValueOnce({data: [{number: 88, url: 'https://api.github.com/repos/o/i/issues/88', title: 't', labels: [], body: ''}]}) as unknown as ListForRepoMethod;
 
             jest.useFakeTimers();
-            const pending = listOpenStagingDeployChecklistIssuesWithRetry();
+            const pending = getDeployChecklist();
             await jest.advanceTimersByTimeAsync(2000);
-            const issues = await pending;
+            const data = await pending;
             jest.useRealTimers();
 
-            expect(issues).toHaveLength(1);
-            expect(issues.at(0)?.number).toBe(88);
+            expect(data.number).toBe(88);
+            expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(2);
+        });
+
+        test('re-throws after all retry attempts fail', async () => {
+            const err503 = new RequestError('Service Unavailable', 503, {
+                request: {method: 'GET', url: 'https://api.github.com/repos/o/i/issues', headers: {}},
+            });
+            GithubUtils.octokit.issues.listForRepo = jest.fn().mockRejectedValue(err503) as unknown as ListForRepoMethod;
+
+            jest.useFakeTimers();
+            const pending = getDeployChecklist();
+            const assertion = expect(pending).rejects.toThrow(RequestError);
+            await jest.advanceTimersByTimeAsync(2000);
+            await jest.advanceTimersByTimeAsync(5000);
+            await assertion;
+            jest.useRealTimers();
+
+            expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(3);
+        });
+
+        test('does not retry on empty result; falls through to state:all cross-check', async () => {
+            GithubUtils.octokit.issues.listForRepo = jest
+                .fn()
+                .mockResolvedValueOnce({data: []})
+                .mockResolvedValueOnce({data: [{number: 200, state: 'closed'}]}) as unknown as ListForRepoMethod;
+            await expect(getDeployChecklist()).rejects.toBeInstanceOf(NoOpenDeployChecklistError);
             expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(2);
         });
     });

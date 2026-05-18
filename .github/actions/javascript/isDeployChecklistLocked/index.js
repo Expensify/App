@@ -1,7 +1,6 @@
 /**
  * NOTE: This is a compiled file. DO NOT directly edit this file.
  */
-
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
@@ -11540,55 +11539,25 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const DeployChecklistUtils_1 = __nccwpck_require__(2141);
-function issueHasLockLabel(labels) {
-    if (!labels) {
-        return false;
-    }
-    return labels.some((label) => typeof label !== 'string' && label.name === CONST_1.default.LABELS.LOCK_DEPLOY);
-}
-const run = async function () {
-    try {
-        const issues = await (0, DeployChecklistUtils_1.listOpenStagingDeployChecklistIssuesWithRetry)();
-        if (issues.length === 0) {
-            console.log(`Successful GitHub response: no open ${CONST_1.default.LABELS.STAGING_DEPLOY} issue; treating as not locked.`);
+const run = function () {
+    return (0, DeployChecklistUtils_1.getDeployChecklist)()
+        .then(({ labels, number }) => {
+        const labelNames = (labels ?? []).map((label) => (typeof label === 'string' ? label : (label.name ?? '')));
+        const isLocked = labelNames.includes(CONST_1.default.LABELS.LOCK_DEPLOY);
+        console.log(`Found deploy checklist #${number} with labels: ${JSON.stringify(labelNames)}`);
+        core.setOutput('IS_LOCKED', isLocked);
+        core.setOutput('NUMBER', number);
+    })
+        .catch((error) => {
+        if (error instanceof DeployChecklistUtils_1.NoOpenDeployChecklistError) {
+            console.log(`No open deploy checklist; treating as not locked. ${error.message}`);
             core.setOutput('IS_LOCKED', false);
             core.setOutput('NUMBER', 0);
-            core.setOutput('CHECKLIST_STATE', 'absent');
             return;
         }
-        if (issues.length > 1) {
-            console.error(`Found ${issues.length} open ${CONST_1.default.LABELS.STAGING_DEPLOY} issues; blocking deploy until only one exists.`);
-            core.setOutput('IS_LOCKED', true);
-            core.setOutput('NUMBER', 0);
-            core.setOutput('CHECKLIST_STATE', 'ambiguous');
-            return;
-        }
-        const issue = issues.at(0);
-        if (!issue) {
-            console.error(`Expected exactly one ${CONST_1.default.LABELS.STAGING_DEPLOY} issue but got empty element.`);
-            core.setOutput('IS_LOCKED', true);
-            core.setOutput('NUMBER', 0);
-            core.setOutput('CHECKLIST_STATE', 'unknown');
-            return;
-        }
-        const labelsNames = (issue.labels ?? []).map((label) => {
-            if (typeof label === 'string') {
-                return '';
-            }
-            return label.name;
-        });
-        const locked = issueHasLockLabel(issue.labels);
-        console.log(`Found deploy checklist #${issue.number} with labels: ${JSON.stringify(labelsNames)}`);
-        core.setOutput('IS_LOCKED', locked);
-        core.setOutput('NUMBER', issue.number);
-        core.setOutput('CHECKLIST_STATE', locked ? 'locked' : 'unlocked');
-    }
-    catch (error) {
-        console.error('Failed to resolve deploy checklist after retries; blocking deploy.', error);
-        core.setOutput('IS_LOCKED', true);
-        core.setOutput('NUMBER', 0);
-        core.setOutput('CHECKLIST_STATE', 'unknown');
-    }
+        const message = error instanceof Error ? error.message : String(error);
+        core.setFailed(`Could not resolve deploy checklist; blocking deploy: ${message}`);
+    });
 };
 if (require.main === require.cache[eval('__filename')]) {
     run();
@@ -11686,18 +11655,29 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.NoOpenDeployChecklistError = void 0;
 exports.getDeployChecklist = getDeployChecklist;
 exports.getDeployChecklistData = getDeployChecklistData;
 exports.generateDeployChecklistBodyAndAssignees = generateDeployChecklistBodyAndAssignees;
-exports.listOpenStagingDeployChecklistIssuesWithRetry = listOpenStagingDeployChecklistIssuesWithRetry;
 exports.parseChecklistSection = parseChecklistSection;
-const request_error_1 = __nccwpck_require__(537);
 const dedent_1 = __importDefault(__nccwpck_require__(6762));
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
-const OPEN_STAGING_DEPLOY_LIST_MAX_ATTEMPTS = 3;
-/** Milliseconds to wait before the next `listForRepo` attempt after a retryable failure. */
-const OPEN_STAGING_DEPLOY_LIST_RETRY_DELAY_MS = [2000, 5000, 10_000];
+/** Milliseconds to wait before each subsequent `listForRepo` attempt. */
+const LIST_RETRY_DELAYS_MS = [2000, 5000];
+/**
+ * Thrown by `getDeployChecklist` when GitHub successfully confirms there is no open
+ * StagingDeployCash issue and the most recent checklist is closed - i.e. we're in the
+ * legitimate window between deploy cycles. Callers that need to distinguish "benign
+ * empty" from "could not resolve" should catch this specific subclass.
+ */
+class NoOpenDeployChecklistError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'NoOpenDeployChecklistError';
+    }
+}
+exports.NoOpenDeployChecklistError = NoOpenDeployChecklistError;
 /**
  * Generic checklist section parser. Extracts a section from the issue body,
  * parses checkbox items within it, and returns ChecklistItems sorted by number.
@@ -11733,68 +11713,67 @@ function getDeployChecklistDeployBlockers(issue) {
 function getDeployChecklistInternalQA(issue) {
     return parseChecklistSection(issue.body, /Internal QA:\*\*\r?\n((?:- \[[ x]].*\r?\n)+)/, new RegExp(`- \\[([ x])]\\s(${CONST_1.default.PULL_REQUEST_REGEX.source})`, 'g'), (url) => url.split('-').at(0)?.trim() ?? '');
 }
-function sleep(milliseconds) {
-    return new Promise((resolve) => {
-        setTimeout(resolve, milliseconds);
-    });
-}
-function isRetryableDeployChecklistListError(error) {
-    if (error instanceof request_error_1.RequestError) {
-        if (error.status === 401 || error.status === 404 || error.status === 403 || error.status === 422) {
-            return false;
-        }
-        if (error.status >= 500 || error.status === 408 || error.status === 429) {
-            return true;
-        }
-        if (error.status && error.status >= 400) {
-            return false;
-        }
-        return true;
-    }
-    return true;
-}
 /**
- * Lists open StagingDeployCash-labeled issues with retries on transient GitHub failures.
- * Used by the deploy-lock action so we never treat API errors as “unlocked”.
+ * Calls `issues.listForRepo` with simple retry-on-throw. Retries 1 + `LIST_RETRY_DELAYS_MS.length`
+ * times total, sleeping the corresponding delay between attempts. Empty results are NOT retried -
+ * the caller must decide whether an empty list is legitimate.
  */
-async function listOpenStagingDeployChecklistIssuesWithRetry() {
+async function listForRepoWithRetry(params) {
     let lastError;
-    for (let attempt = 1; attempt <= OPEN_STAGING_DEPLOY_LIST_MAX_ATTEMPTS; attempt++) {
+    const maxAttempts = LIST_RETRY_DELAYS_MS.length + 1;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
         try {
-            const { data } = await GithubUtils_1.default.octokit.issues.listForRepo({
-                owner: CONST_1.default.GITHUB_OWNER,
-                repo: CONST_1.default.APP_REPO,
-                labels: CONST_1.default.LABELS.STAGING_DEPLOY,
-                state: 'open',
-            });
+            const { data } = await GithubUtils_1.default.octokit.issues.listForRepo(params);
             return data;
         }
         catch (error) {
             lastError = error;
-            console.warn(`listForRepo ${CONST_1.default.LABELS.STAGING_DEPLOY} attempt ${attempt}/${OPEN_STAGING_DEPLOY_LIST_MAX_ATTEMPTS} failed`, error);
-            const canRetry = attempt < OPEN_STAGING_DEPLOY_LIST_MAX_ATTEMPTS && isRetryableDeployChecklistListError(error);
-            if (!canRetry) {
+            const delay = LIST_RETRY_DELAYS_MS.at(attempt - 1);
+            if (delay === undefined) {
                 throw error;
             }
-            const delayMs = OPEN_STAGING_DEPLOY_LIST_RETRY_DELAY_MS[attempt - 1] ?? 10_000;
-            await sleep(delayMs);
+            console.warn(`listForRepo attempt ${attempt}/${maxAttempts} failed; retrying in ${delay}ms`, error);
+            await new Promise((resolve) => {
+                setTimeout(resolve, delay);
+            });
         }
     }
     throw lastError;
 }
 async function getDeployChecklist() {
-    const data = await listOpenStagingDeployChecklistIssuesWithRetry();
-    if (!data.length) {
-        throw new Error(`Unable to find ${CONST_1.default.LABELS.STAGING_DEPLOY} issue.`);
+    const openIssues = await listForRepoWithRetry({
+        owner: CONST_1.default.GITHUB_OWNER,
+        repo: CONST_1.default.APP_REPO,
+        labels: CONST_1.default.LABELS.STAGING_DEPLOY,
+        state: 'open',
+    });
+    if (openIssues.length > 1) {
+        throw new Error(`Found more than one open ${CONST_1.default.LABELS.STAGING_DEPLOY} issue: #${openIssues.map((issue) => issue.number).join(', #')}.`);
     }
-    if (data.length > 1) {
-        throw new Error(`Found more than one ${CONST_1.default.LABELS.STAGING_DEPLOY} issue.`);
+    if (openIssues.length === 1) {
+        const issue = openIssues.at(0);
+        if (!issue) {
+            throw new Error(`Found an undefined ${CONST_1.default.LABELS.STAGING_DEPLOY} issue.`);
+        }
+        return getDeployChecklistData(issue);
     }
-    const issue = data.at(0);
-    if (!issue) {
-        throw new Error(`Found an undefined ${CONST_1.default.LABELS.STAGING_DEPLOY} issue.`);
+    // The filtered open list was empty. Cross-check against state:'all' to tell
+    // a legitimate between-cycles window apart from an API inconsistency.
+    const allIssues = await listForRepoWithRetry({
+        owner: CONST_1.default.GITHUB_OWNER,
+        repo: CONST_1.default.APP_REPO,
+        labels: CONST_1.default.LABELS.STAGING_DEPLOY,
+        state: 'all',
+    });
+    const mostRecent = allIssues.at(0);
+    if (!mostRecent) {
+        // The label has been in continuous use; an empty state:'all' result is pathological.
+        throw new Error(`No ${CONST_1.default.LABELS.STAGING_DEPLOY} issues found at all (state:'all' returned empty). Refusing to deploy.`);
     }
-    return getDeployChecklistData(issue);
+    if (mostRecent.state === 'open') {
+        throw new Error(`Inconsistent GitHub response: state:open returned empty but the most recent ${CONST_1.default.LABELS.STAGING_DEPLOY} issue #${mostRecent.number} is open. Refusing to deploy.`);
+    }
+    throw new NoOpenDeployChecklistError(`No open ${CONST_1.default.LABELS.STAGING_DEPLOY} issue (most recent #${mostRecent.number} is closed).`);
 }
 function getDeployChecklistData(issue) {
     try {

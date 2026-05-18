@@ -1,14 +1,23 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import type {components as OctokitComponents} from '@octokit/openapi-types/types';
-import {RequestError} from '@octokit/request-error';
 import dedent from '@libs/StringUtils/dedent';
 import CONST from './CONST';
 import GithubUtils from './GithubUtils';
 
-const OPEN_STAGING_DEPLOY_LIST_MAX_ATTEMPTS = 3;
+/** Milliseconds to wait before each subsequent `listForRepo` attempt. */
+const LIST_RETRY_DELAYS_MS = [2000, 5000] as const;
 
-/** Milliseconds to wait before the next `listForRepo` attempt after a retryable failure. */
-const OPEN_STAGING_DEPLOY_LIST_RETRY_DELAY_MS = [2000, 5000, 10_000] as const;
+/**
+ * Thrown by `getDeployChecklist` when GitHub successfully confirms there is no open
+ * StagingDeployCash issue and the most recent checklist is closed - i.e. we're in the
+ * legitimate window between deploy cycles. Callers that need to distinguish "benign
+ * empty" from "could not resolve" should catch this specific subclass.
+ */
+class NoOpenDeployChecklistError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = 'NoOpenDeployChecklistError';
+    }
+}
 
 type OctokitIssueItem = OctokitComponents['schemas']['issue'];
 
@@ -98,74 +107,72 @@ function getDeployChecklistInternalQA(issue: OctokitIssueItem): ChecklistItem[] 
     );
 }
 
-function sleep(milliseconds: number): Promise<void> {
-    return new Promise((resolve) => {
-        setTimeout(resolve, milliseconds);
-    });
-}
-
-function isRetryableDeployChecklistListError(error: unknown): boolean {
-    if (error instanceof RequestError) {
-        if (error.status === 401 || error.status === 404 || error.status === 403 || error.status === 422) {
-            return false;
-        }
-        if (error.status >= 500 || error.status === 408 || error.status === 429) {
-            return true;
-        }
-        if (error.status && error.status >= 400) {
-            return false;
-        }
-        return true;
-    }
-    return true;
-}
-
 /**
- * Lists open StagingDeployCash-labeled issues with retries on transient GitHub failures.
- * Used by the deploy-lock action so we never treat API errors as “unlocked”.
+ * Calls `issues.listForRepo` with simple retry-on-throw. Retries 1 + `LIST_RETRY_DELAYS_MS.length`
+ * times total, sleeping the corresponding delay between attempts. Empty results are NOT retried -
+ * the caller must decide whether an empty list is legitimate.
  */
-async function listOpenStagingDeployChecklistIssuesWithRetry(): Promise<OctokitIssueItem[]> {
+async function listForRepoWithRetry(params: Parameters<typeof GithubUtils.octokit.issues.listForRepo>[0]): Promise<OctokitIssueItem[]> {
     let lastError: unknown;
-    for (let attempt = 1; attempt <= OPEN_STAGING_DEPLOY_LIST_MAX_ATTEMPTS; attempt++) {
+    const maxAttempts = LIST_RETRY_DELAYS_MS.length + 1;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
         try {
-            const {data} = await GithubUtils.octokit.issues.listForRepo({
-                owner: CONST.GITHUB_OWNER,
-                repo: CONST.APP_REPO,
-                labels: CONST.LABELS.STAGING_DEPLOY,
-                state: 'open',
-            });
+            const {data} = await GithubUtils.octokit.issues.listForRepo(params);
             return data;
         } catch (error) {
             lastError = error;
-            console.warn(`listForRepo ${CONST.LABELS.STAGING_DEPLOY} attempt ${attempt}/${OPEN_STAGING_DEPLOY_LIST_MAX_ATTEMPTS} failed`, error);
-            const canRetry = attempt < OPEN_STAGING_DEPLOY_LIST_MAX_ATTEMPTS && isRetryableDeployChecklistListError(error);
-            if (!canRetry) {
+            const delay = LIST_RETRY_DELAYS_MS.at(attempt - 1);
+            if (delay === undefined) {
                 throw error;
             }
-            const delayMs = OPEN_STAGING_DEPLOY_LIST_RETRY_DELAY_MS[attempt - 1] ?? 10_000;
-            await sleep(delayMs);
+            console.warn(`listForRepo attempt ${attempt}/${maxAttempts} failed; retrying in ${delay}ms`, error);
+            await new Promise((resolve) => {
+                setTimeout(resolve, delay);
+            });
         }
     }
     throw lastError;
 }
 
 async function getDeployChecklist(): Promise<DeployChecklistData> {
-    const data = await listOpenStagingDeployChecklistIssuesWithRetry();
+    const openIssues = await listForRepoWithRetry({
+        owner: CONST.GITHUB_OWNER,
+        repo: CONST.APP_REPO,
+        labels: CONST.LABELS.STAGING_DEPLOY,
+        state: 'open',
+    });
 
-    if (!data.length) {
-        throw new Error(`Unable to find ${CONST.LABELS.STAGING_DEPLOY} issue.`);
+    if (openIssues.length > 1) {
+        throw new Error(`Found more than one open ${CONST.LABELS.STAGING_DEPLOY} issue: #${openIssues.map((issue) => issue.number).join(', #')}.`);
     }
 
-    if (data.length > 1) {
-        throw new Error(`Found more than one ${CONST.LABELS.STAGING_DEPLOY} issue.`);
+    if (openIssues.length === 1) {
+        const issue = openIssues.at(0);
+        if (!issue) {
+            throw new Error(`Found an undefined ${CONST.LABELS.STAGING_DEPLOY} issue.`);
+        }
+        return getDeployChecklistData(issue);
     }
 
-    const issue = data.at(0);
-    if (!issue) {
-        throw new Error(`Found an undefined ${CONST.LABELS.STAGING_DEPLOY} issue.`);
+    // The filtered open list was empty. Cross-check against state:'all' to tell
+    // a legitimate between-cycles window apart from an API inconsistency.
+    const allIssues = await listForRepoWithRetry({
+        owner: CONST.GITHUB_OWNER,
+        repo: CONST.APP_REPO,
+        labels: CONST.LABELS.STAGING_DEPLOY,
+        state: 'all',
+    });
+    const mostRecent = allIssues.at(0);
+    if (!mostRecent) {
+        // The label has been in continuous use; an empty state:'all' result is pathological.
+        throw new Error(`No ${CONST.LABELS.STAGING_DEPLOY} issues found at all (state:'all' returned empty). Refusing to deploy.`);
     }
-
-    return getDeployChecklistData(issue);
+    if (mostRecent.state === 'open') {
+        throw new Error(
+            `Inconsistent GitHub response: state:open returned empty but the most recent ${CONST.LABELS.STAGING_DEPLOY} issue #${mostRecent.number} is open. Refusing to deploy.`,
+        );
+    }
+    throw new NoOpenDeployChecklistError(`No open ${CONST.LABELS.STAGING_DEPLOY} issue (most recent #${mostRecent.number} is closed).`);
 }
 
 function getDeployChecklistData(issue: OctokitIssueItem): DeployChecklistData {
@@ -316,5 +323,5 @@ async function generateDeployChecklistBodyAndAssignees({
     return {issueBody, issueAssignees};
 }
 
-export {getDeployChecklist, getDeployChecklistData, generateDeployChecklistBodyAndAssignees, listOpenStagingDeployChecklistIssuesWithRetry, parseChecklistSection};
+export {getDeployChecklist, getDeployChecklistData, generateDeployChecklistBodyAndAssignees, NoOpenDeployChecklistError, parseChecklistSection};
 export type {ChecklistItem, DeployChecklistBody, DeployChecklistParams, DeployChecklistData};

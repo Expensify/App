@@ -10,13 +10,11 @@ jest.mock('../../.github/libs/DeployChecklistUtils', () => {
     const actual = jest.requireActual('../../.github/libs/DeployChecklistUtils') as unknown as typeof DeployChecklistUtils;
     return {
         ...actual,
-        listOpenStagingDeployChecklistIssuesWithRetry: jest.fn(),
+        getDeployChecklist: jest.fn(),
     };
 });
 
-const mockListOpenStagingDeployChecklistIssuesWithRetry = DeployChecklistUtils.listOpenStagingDeployChecklistIssuesWithRetry as jest.MockedFunction<
-    typeof DeployChecklistUtils.listOpenStagingDeployChecklistIssuesWithRetry
->;
+const mockGetDeployChecklist = DeployChecklistUtils.getDeployChecklist as jest.MockedFunction<typeof DeployChecklistUtils.getDeployChecklist>;
 
 beforeAll(() => {
     process.env.INPUT_GITHUB_TOKEN = 'fake_token';
@@ -32,66 +30,66 @@ afterAll(() => {
 
 describe('isDeployChecklistLockedTest', () => {
     describe('GitHub action run function', () => {
-        test('No open checklist after successful list → not locked', () => {
-            mockListOpenStagingDeployChecklistIssuesWithRetry.mockResolvedValue([]);
-            const setOutputMock = jest.spyOn(core, 'setOutput');
-            return run().then(() => {
-                expect(setOutputMock).toHaveBeenCalledWith('IS_LOCKED', false);
-                expect(setOutputMock).toHaveBeenCalledWith('NUMBER', 0);
-                expect(setOutputMock).toHaveBeenCalledWith('CHECKLIST_STATE', 'absent');
-            });
-        });
-
-        test('Multiple open checklists → locked (fail closed)', () => {
-            mockListOpenStagingDeployChecklistIssuesWithRetry.mockResolvedValue([
-                {number: 1, labels: []},
-                {number: 2, labels: []},
-            ] as unknown as Awaited<ReturnType<typeof DeployChecklistUtils.listOpenStagingDeployChecklistIssuesWithRetry>>);
-            const setOutputMock = jest.spyOn(core, 'setOutput');
-            return run().then(() => {
-                expect(setOutputMock).toHaveBeenCalledWith('IS_LOCKED', true);
-                expect(setOutputMock).toHaveBeenCalledWith('NUMBER', 0);
-                expect(setOutputMock).toHaveBeenCalledWith('CHECKLIST_STATE', 'ambiguous');
-            });
-        });
-
         test('Single issue with lock label → locked', () => {
-            mockListOpenStagingDeployChecklistIssuesWithRetry.mockResolvedValue([
-                {
-                    number: 42,
-                    labels: [{name: CONST.LABELS.LOCK_DEPLOY}],
-                },
-            ] as unknown as Awaited<ReturnType<typeof DeployChecklistUtils.listOpenStagingDeployChecklistIssuesWithRetry>>);
+            mockGetDeployChecklist.mockResolvedValue({
+                number: 42,
+                labels: [{name: CONST.LABELS.LOCK_DEPLOY}],
+            } as unknown as Awaited<ReturnType<typeof DeployChecklistUtils.getDeployChecklist>>);
             const setOutputMock = jest.spyOn(core, 'setOutput');
+            const setFailedMock = jest.spyOn(core, 'setFailed').mockImplementation(() => {});
             return run().then(() => {
                 expect(setOutputMock).toHaveBeenCalledWith('IS_LOCKED', true);
                 expect(setOutputMock).toHaveBeenCalledWith('NUMBER', 42);
-                expect(setOutputMock).toHaveBeenCalledWith('CHECKLIST_STATE', 'locked');
+                expect(setFailedMock).not.toHaveBeenCalled();
             });
         });
 
         test('Single issue without lock label → unlocked', () => {
-            mockListOpenStagingDeployChecklistIssuesWithRetry.mockResolvedValue([
-                {
-                    number: 99,
-                    labels: [{name: CONST.LABELS.STAGING_DEPLOY}],
-                },
-            ] as unknown as Awaited<ReturnType<typeof DeployChecklistUtils.listOpenStagingDeployChecklistIssuesWithRetry>>);
+            mockGetDeployChecklist.mockResolvedValue({
+                number: 99,
+                labels: [{name: CONST.LABELS.STAGING_DEPLOY}],
+            } as unknown as Awaited<ReturnType<typeof DeployChecklistUtils.getDeployChecklist>>);
             const setOutputMock = jest.spyOn(core, 'setOutput');
+            const setFailedMock = jest.spyOn(core, 'setFailed').mockImplementation(() => {});
             return run().then(() => {
                 expect(setOutputMock).toHaveBeenCalledWith('IS_LOCKED', false);
                 expect(setOutputMock).toHaveBeenCalledWith('NUMBER', 99);
-                expect(setOutputMock).toHaveBeenCalledWith('CHECKLIST_STATE', 'unlocked');
+                expect(setFailedMock).not.toHaveBeenCalled();
             });
         });
 
-        test('List throws after retries path → locked (unknown)', () => {
-            mockListOpenStagingDeployChecklistIssuesWithRetry.mockRejectedValue(new Error('GitHub unavailable'));
+        test('NoOpenDeployChecklistError → not locked, no fail', () => {
+            mockGetDeployChecklist.mockRejectedValue(new DeployChecklistUtils.NoOpenDeployChecklistError('No open StagingDeployCash issue (most recent #100 is closed).'));
             const setOutputMock = jest.spyOn(core, 'setOutput');
+            const setFailedMock = jest.spyOn(core, 'setFailed').mockImplementation(() => {});
             return run().then(() => {
-                expect(setOutputMock).toHaveBeenCalledWith('IS_LOCKED', true);
+                expect(setOutputMock).toHaveBeenCalledWith('IS_LOCKED', false);
                 expect(setOutputMock).toHaveBeenCalledWith('NUMBER', 0);
-                expect(setOutputMock).toHaveBeenCalledWith('CHECKLIST_STATE', 'unknown');
+                expect(setFailedMock).not.toHaveBeenCalled();
+            });
+        });
+
+        test('Generic error → core.setFailed, no IS_LOCKED set', () => {
+            mockGetDeployChecklist.mockRejectedValue(new Error('GitHub unavailable'));
+            const setOutputMock = jest.spyOn(core, 'setOutput');
+            const setFailedMock = jest.spyOn(core, 'setFailed').mockImplementation(() => {});
+            return run().then(() => {
+                expect(setFailedMock).toHaveBeenCalledTimes(1);
+                expect(setFailedMock.mock.calls.at(0)?.at(0)).toEqual(expect.stringContaining('Could not resolve deploy checklist'));
+                expect(setOutputMock).not.toHaveBeenCalledWith('IS_LOCKED', expect.anything());
+                expect(setOutputMock).not.toHaveBeenCalledWith('NUMBER', expect.anything());
+            });
+        });
+
+        test('Inconsistent GitHub response (non-NoOpen error) → core.setFailed', () => {
+            mockGetDeployChecklist.mockRejectedValue(
+                new Error('Inconsistent GitHub response: state:open returned empty but the most recent StagingDeployCash issue #500 is open. Refusing to deploy.'),
+            );
+            const setOutputMock = jest.spyOn(core, 'setOutput');
+            const setFailedMock = jest.spyOn(core, 'setFailed').mockImplementation(() => {});
+            return run().then(() => {
+                expect(setFailedMock).toHaveBeenCalledTimes(1);
+                expect(setOutputMock).not.toHaveBeenCalledWith('IS_LOCKED', expect.anything());
             });
         });
     });
