@@ -198,7 +198,7 @@ function NumberWithSymbolForm({
     currencyButtonAccessibilityLabel,
     ...props
 }: NumberWithSymbolFormProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'PlusMinus']);
+    const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'PlusMinus', 'Coins']);
     const isInLandscapeMode = useIsInLandscapeMode();
 
     const styles = useThemeStyles();
@@ -461,6 +461,7 @@ function NumberWithSymbolForm({
                     <Button
                         shouldShowRightIcon
                         small
+                        icon={icons.Coins}
                         iconRight={icons.DownArrow}
                         onPress={onTrailingDropdownPress}
                         iconWrapperStyles={styles.justifyContentCenter}
