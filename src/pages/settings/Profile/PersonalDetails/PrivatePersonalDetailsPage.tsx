@@ -20,7 +20,7 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearDraftValues} from '@libs/actions/FormActions';
+import {clearDraftValues, setDraftValues} from '@libs/actions/FormActions';
 import {normalizeCountryCode} from '@libs/CountryUtils';
 import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -36,6 +36,15 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
+
+// StateSelector keys on 2-letter codes, but stored addresses may use full state names (e.g. "California").
+function resolveStateCode(stateValue: string): string {
+    if (!stateValue || stateValue in COMMON_CONST.STATES) {
+        return stateValue;
+    }
+    const match = Object.entries(COMMON_CONST.STATES).find(([, v]) => v.stateName.toLowerCase() === stateValue.toLowerCase());
+    return match ? match[0] : stateValue;
+}
 
 function PrivatePersonalDetailsPage() {
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS>>();
@@ -60,16 +69,9 @@ function PrivatePersonalDetailsPage() {
     const zip = address?.zip ?? '';
     const country = address?.country ?? '';
 
+    const normalizedState = resolveStateCode(state);
     const [selectedCountry, setSelectedCountry] = useState<Country | ''>(country || ((defaultCountry as Country | undefined) ?? ''));
-    const [selectedState, setSelectedState] = useState(() => {
-        // If the stored state value is a full name (e.g. "California"), resolve it to a 2-letter code
-        // so the StateSelector dropdown can display it correctly.
-        if (state && !(state in COMMON_CONST.STATES)) {
-            const match = Object.entries(COMMON_CONST.STATES).find(([, v]) => v.stateName.toLowerCase() === state.toLowerCase());
-            return match ? match[0] : state;
-        }
-        return state;
-    });
+    const [selectedState, setSelectedState] = useState(normalizedState);
 
     useEffect(
         () => () => {
@@ -183,7 +185,7 @@ function PrivatePersonalDetailsPage() {
         if ((values[INPUT_IDS.CITY] ?? '') !== city) {
             return true;
         }
-        if ((values[INPUT_IDS.STATE] ?? '') !== state) {
+        if ((values[INPUT_IDS.STATE] ?? '') !== normalizedState) {
             return true;
         }
         if ((values[INPUT_IDS.ZIP_POST_CODE] ?? '') !== zip) {
@@ -200,6 +202,9 @@ function PrivatePersonalDetailsPage() {
             Navigation.goBack();
             return;
         }
+        // UI-prefilled values (geolocation country, normalized state) only live in component state until the user touches
+        // a field, so write the full form values to the draft before navigating so the confirm step submits them.
+        setDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM, values);
         Navigation.navigate(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE);
     };
 
@@ -388,10 +393,10 @@ function PrivatePersonalDetailsPage() {
                             onValueChange={(value: unknown) => {
                                 const newCountry = (value ?? '') as Country | '';
                                 setSelectedCountry(newCountry);
-                                if (newCountry === CONST.COUNTRY.US && selectedState && !(selectedState in COMMON_CONST.STATES)) {
-                                    const match = Object.entries(COMMON_CONST.STATES).find(([, v]) => v.stateName.toLowerCase() === selectedState.toLowerCase());
-                                    if (match) {
-                                        setSelectedState(match[0]);
+                                if (newCountry === CONST.COUNTRY.US) {
+                                    const resolved = resolveStateCode(selectedState);
+                                    if (resolved !== selectedState) {
+                                        setSelectedState(resolved);
                                     }
                                 }
                             }}
