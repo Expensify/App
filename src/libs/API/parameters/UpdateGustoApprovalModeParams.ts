@@ -3,7 +3,7 @@ import type CONST from '@src/CONST';
 
 type UpdateGustoApprovalModeParams = {
     policyID: string;
-    approvalMode: ValueOf<typeof CONST.GUSTO.APPROVAL_MODE>;
+    approvalMode: ValueOf<typeof CONST.HR.APPROVAL_MODE>;
 };
 
 export default UpdateGustoApprovalModeParams;

@@ -2868,7 +2868,7 @@ const CONST = {
         },
     },
 
-    GUSTO: {
+    HR: {
         APPROVAL_MODE: {
             BASIC: 'basic',
             MANAGER: 'manager',

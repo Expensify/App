@@ -18,11 +18,7 @@ function getGustoSetupLink(policyID: string) {
     return commandURL + new URLSearchParams(params).toString();
 }
 
-function updateGustoApprovalMode(
-    policyID: string | undefined,
-    approvalMode: ValueOf<typeof CONST.GUSTO.APPROVAL_MODE>,
-    currentApprovalMode?: ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | null,
-) {
+function updateGustoApprovalMode(policyID: string | undefined, approvalMode: ValueOf<typeof CONST.HR.APPROVAL_MODE>, currentApprovalMode?: ValueOf<typeof CONST.HR.APPROVAL_MODE> | null) {
     if (!policyID) {
         return;
     }

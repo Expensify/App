@@ -1525,7 +1525,7 @@ type MergeHRConnectionData = Record<string, never>;
 type HRConnectionConfigBase = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** Approval mode */
-        approvalMode: ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | null;
+        approvalMode: ValueOf<typeof CONST.HR.APPROVAL_MODE> | null;
 
         /** Workspace member who acts as the final approver */
         finalApprover: string | null;

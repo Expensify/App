@@ -24,7 +24,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 
-type ApprovalMode = ValueOf<typeof CONST.GUSTO.APPROVAL_MODE>;
+type ApprovalMode = ValueOf<typeof CONST.HR.APPROVAL_MODE>;
 type GustoApprovalModePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.HR_GUSTO_APPROVAL_MODE>;
 type ApprovalModeListItem = ListItem & {
     value: ApprovalMode;
@@ -48,23 +48,23 @@ function GustoApprovalModePage({
         {
             text: translate('workspace.hr.gusto.approvalModes.basic.label'),
             alternateText: translate('workspace.hr.gusto.approvalModes.basic.description'),
-            keyForList: CONST.GUSTO.APPROVAL_MODE.BASIC,
-            value: CONST.GUSTO.APPROVAL_MODE.BASIC,
-            isSelected: selectedApprovalMode === CONST.GUSTO.APPROVAL_MODE.BASIC,
+            keyForList: CONST.HR.APPROVAL_MODE.BASIC,
+            value: CONST.HR.APPROVAL_MODE.BASIC,
+            isSelected: selectedApprovalMode === CONST.HR.APPROVAL_MODE.BASIC,
         },
         {
             text: translate('workspace.hr.gusto.approvalModes.manager.label'),
             alternateText: translate('workspace.hr.gusto.approvalModes.manager.description'),
-            keyForList: CONST.GUSTO.APPROVAL_MODE.MANAGER,
-            value: CONST.GUSTO.APPROVAL_MODE.MANAGER,
-            isSelected: selectedApprovalMode === CONST.GUSTO.APPROVAL_MODE.MANAGER,
+            keyForList: CONST.HR.APPROVAL_MODE.MANAGER,
+            value: CONST.HR.APPROVAL_MODE.MANAGER,
+            isSelected: selectedApprovalMode === CONST.HR.APPROVAL_MODE.MANAGER,
         },
         {
             text: translate('workspace.hr.gusto.approvalModes.custom.label'),
             alternateText: translate('workspace.hr.gusto.approvalModes.custom.description'),
-            keyForList: CONST.GUSTO.APPROVAL_MODE.CUSTOM,
-            value: CONST.GUSTO.APPROVAL_MODE.CUSTOM,
-            isSelected: selectedApprovalMode === CONST.GUSTO.APPROVAL_MODE.CUSTOM,
+            keyForList: CONST.HR.APPROVAL_MODE.CUSTOM,
+            value: CONST.HR.APPROVAL_MODE.CUSTOM,
+            isSelected: selectedApprovalMode === CONST.HR.APPROVAL_MODE.CUSTOM,
         },
     ];
     const selectedApprovalModeKey = approvalModeOptions.find((approvalMode) => approvalMode.isSelected)?.keyForList;
