@@ -83,7 +83,15 @@ const METRO_READY_TIMEOUT_MS = 120_000;
  */
 const SIGNIN_LOAD_TIMEOUT_MS = 600_000;
 const BOOT_PROBE_INTERVAL_MS = 30_000;
-const STEP_WALL_CLOCK_BUDGET_MS = 60_000;
+/*
+ * Per-step wall-clock budget for the LLM loop. iOS snapshot calls on
+ * macos-latest take ~60s each (run 26024660329) — the LLM typically
+ * needs 2-3 snapshots per step plus thinking time, so the budget must
+ * accommodate at least snapshot + LLM call + action + verify-snapshot.
+ * 240s gives margin on iOS; Android's per-call cost is ~1-2s so this
+ * is heavily over-provisioned there but not a regression.
+ */
+const STEP_WALL_CLOCK_BUDGET_MS = 240_000;
 const MAX_STATE_CHANGING_ACTIONS = 4;
 const SCREENSHOT_BUDGET_PER_RUN = 2;
 const TEXT_LENGTH_CAP = 200;

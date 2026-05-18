@@ -52,17 +52,19 @@ const SESSION = process.env.AGENT_DEVICE_SESSION ?? "ci";
  *
  *  - 30s default: Android snapshot/screenshot/appstate consistently fit
  *    well under this on warm AVDs.
- *  - 60s for snapshot: iOS sims' first accessibility-tree collection
- *    after `agent-device open` was observed to exceed 30s on
- *    macos-latest. Run 25861525119 hit the 30s limit on every snapshot
- *    call after launch and bailed out at the SignIn-wait budget.
+ *  - 120s for snapshot: iOS sims' accessibility-tree collection on
+ *    macos-latest is genuinely slow. Run 26024660329 showed each
+ *    `agent-device snapshot` call taking ~60s, and the SignIn UI
+ *    needed ~508s of polling before the first successful snapshot.
+ *    120s gives 2x margin over the observed per-call latency and
+ *    keeps Android (which is ~1-2s/call) unaffected.
  *  - 90s for fill: typing a 30-char email into a single-line input on
  *    a 2-core ubuntu-latest under load exceeds 30s. Run 25568731827
  *    proved this — the CLI partial-typed and exited non-zero.
  */
 const CLI_TIMEOUT_MS = 30_000;
-const CLI_SNAPSHOT_TIMEOUT_MS = 60_000;
-const CLI_FILL_TIMEOUT_MS = 90_000;
+const CLI_SNAPSHOT_TIMEOUT_MS = 120_000;
+const CLI_FILL_TIMEOUT_MS = 120_000;
 
 function timeoutForCommand(cmd: string): number {
   if (cmd === "fill") {
