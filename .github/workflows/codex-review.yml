@@ -13,11 +13,24 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  validate_auto:
+  workflow_gate:
     if: |
-      github.event_name == 'pull_request_target'
-      && github.actor != 'OSBotify'
-      && github.actor != 'imgbot[bot]'
+      !contains(fromJSON('["OSBotify","imgbot[bot]","melvin-bot[bot]","codecov[bot]","github-actions[bot]","chatgpt-codex-connector"]'), github.actor)
+      && (
+        github.event_name == 'pull_request_target'
+        || (
+          github.event_name == 'issue_comment'
+          && github.event.issue.pull_request
+          && contains(github.event.comment.body, '@Codex review')
+        )
+      )
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - run: echo "Workflow gate passed"
+
+  validate_auto:
+    needs: workflow_gate
+    if: github.event_name == 'pull_request_target'
     uses: ./.github/workflows/contributorValidationGate.yml
     with:
       PR_NUMBER: ${{ github.event.pull_request.number }}
@@ -25,11 +38,8 @@ jobs:
       AUTHOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
 
   resolve_comment_pr:
-    if: |
-      github.event_name == 'issue_comment'
-      && github.event.issue.pull_request
-      && contains(github.event.comment.body, '@Codex review')
-      && !contains(fromJSON('["OSBotify","imgbot[bot]","melvin-bot[bot]","codecov[bot]","github-actions[bot]","chatgpt-codex-connector"]'), github.actor)
+    needs: workflow_gate
+    if: github.event_name == 'issue_comment'
     runs-on: blacksmith-2vcpu-ubuntu-2404
     permissions:
       pull-requests: read
