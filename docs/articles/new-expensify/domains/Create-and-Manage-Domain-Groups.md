@@ -47,7 +47,7 @@ Enable this if you want all new domain members to be automatically added to this
 
 **Strictly enforce expense workspace rules**
 
-Use this to ensure workspace-level rules are followed before a report is submitted. Enabling Strictly enforce expense workspace rules ensures policy compliance and prevents incomplete submissions.
+Use this to ensure workspace-level rules are followed before a report is submitted. Enabling Strictly enforce expense workspace rules ensures workspace rule compliance and prevents incomplete submissions.
 
 **Restrict primary contact method selection**
 
