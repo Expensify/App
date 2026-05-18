@@ -10,7 +10,10 @@ Once you receive your Expensify Visa® Commercial Card, you can activate it and 
 
 # Order Your Physical Card
 
-To order a physical Expensify Card, go to **Account > Wallet > Expensify Card** and follow the prompts. If you're on a GBP or EUR card program, you'll be asked to set a 4-digit PIN during the ordering process. You'll need to verify your identity via biometrics or passkey to complete the order.
+To order a physical Expensify Card, go to **Account > Wallet > Expensify Card** and follow the prompts. 
+
+**Setting and managing a PIN (UK and Europe only):**
+If you're on a GBP or EUR card program, you'll be asked to set a 4-digit PIN during the ordering process. You'll need to verify your identity via biometrics or passkey to complete the order.
 
 Once your card arrives, you can manage your PIN — including revealing, changing, or unlocking it — from the card details page. For details, see [Manage Your Expensify Card PIN](https://help.expensify.com/articles/new-expensify/expensify-card/Manage-Your-Expensify-Card-PIN).
 
