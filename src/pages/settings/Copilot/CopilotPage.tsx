@@ -475,28 +475,30 @@ function CopilotPage() {
                                         <MenuItemList menuItems={delegateMenuItems} />
                                     </>
                                 )}
-                                <MenuItem
-                                    title={translate('delegate.addCopilot')}
-                                    icon={icons.UserPlus}
-                                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SECURITY.ADD_COPILOT}
-                                    onPress={() => {
-                                        if (isActingAsDelegate) {
-                                            modalClose(() => showDelegateNoAccessModal());
-                                            return;
-                                        }
-                                        if (!isUserValidated) {
-                                            Navigation.navigate(ROUTES.SETTINGS_DELEGATE_VERIFY_ACCOUNT);
-                                            return;
-                                        }
-                                        if (isAccountLocked) {
-                                            showLockedAccountModal();
-                                            return;
-                                        }
-                                        Navigation.navigate(ROUTES.SETTINGS_ADD_DELEGATE);
-                                    }}
-                                    shouldShowRightIcon
-                                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                                />
+                                {isAgentAccount ? (
+                                    <MenuItem
+                                        title={translate('delegate.addCopilot')}
+                                        icon={icons.UserPlus}
+                                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SECURITY.ADD_COPILOT}
+                                        onPress={() => {
+                                            if (isActingAsDelegate) {
+                                                modalClose(() => showDelegateNoAccessModal());
+                                                return;
+                                            }
+                                            if (!isUserValidated) {
+                                                Navigation.navigate(ROUTES.SETTINGS_DELEGATE_VERIFY_ACCOUNT);
+                                                return;
+                                            }
+                                            if (isAccountLocked) {
+                                                showLockedAccountModal();
+                                                return;
+                                            }
+                                            Navigation.navigate(ROUTES.SETTINGS_ADD_DELEGATE);
+                                        }}
+                                        shouldShowRightIcon
+                                        wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                                    />
+                                ) : null}
                             </Section>
                             <PopoverMenu
                                 isVisible={shouldShowDelegatePopoverMenu}
