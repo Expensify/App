@@ -1,7 +1,7 @@
 ---
 title: Getting Started with the Spend Page
 description: Learn how to use the Spend page in New Expensify to view, filter, and manage your expense data using report previews, tables, filters, and smart suggestions.
-keywords: [New Expensify, Spend page, report preview, report table, filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation]
+keywords: [New Expensify, Spend page, report preview, report table, filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline]
 ---
 
 The Spend page in New Expensify gives you a complete view of your submitted, approved, and reimbursed expenses—all in one place. This guide shows you how to use report previews, tables, filters, and smart suggestions to track, manage, and take action on your expenses more efficiently.
@@ -49,6 +49,7 @@ Each row represents an expense and includes:
 
 ## Available Actions on the Table
 - **Click an expense** to view or edit it in the right-hand panel  
+- **Edit a cell directly (desktop only):** Click a **date**, **merchant**, **description**, **category**, or **amount** cell to edit the value inline without opening the expense details. Click outside the cell or press Enter to save.
 - **Select multiple expenses** using checkboxes, then apply bulk actions such as:
   - **Move to another report:** When you need to have multiple reports or need to break up expenses across multiple weeks or months.
   - **Download:** For exporting to a CSV file for analysis or to share with your accountant.
