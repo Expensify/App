@@ -329,6 +329,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const totalFormattedAmount = getTotalFormattedAmount(convertToDisplayString, selectedReports, selectedTransactions, selectedBulkCurrency);
 
     const onlyShowPayElsewhere = useMemo(() => {
+        const selectedCurrencies = [...selectedReports.map((report) => report.currency), ...Object.values(selectedTransactions).map((transaction) => transaction.currency)].filter(Boolean);
+        if (new Set(selectedCurrencies).size > 1) {
+            return true;
+        }
+
         const firstPolicyID = selectedPolicyIDs.at(0);
         const selectedPolicy = firstPolicyID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${firstPolicyID}`] : undefined;
         return (selectedTransactionReportIDs ?? selectedReportIDs).some((reportID) => {
@@ -371,6 +376,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         selectedTransactionReportIDs,
         selectedReportIDs,
         bankAccountList,
+        selectedReports,
+        selectedTransactions,
         currentUserPersonalDetails?.login,
         currentUserPersonalDetails.accountID,
     ]);
@@ -1267,13 +1274,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 },
             });
         }
-        const {shouldEnableBulkPayOption, isFirstTimePayment} = getPayOption(selectedReports, selectedTransactions, lastPaymentMethods, selectedReportIDs, personalPolicyID);
+        const {shouldEnableBulkPayOption} = getPayOption(selectedReports, selectedTransactions, lastPaymentMethods, selectedReportIDs, personalPolicyID);
 
-        const shouldShowPayOption = !isOffline && !isAnyTransactionOnHold && shouldEnableBulkPayOption;
+        const shouldShowPayOption = !isOffline && !isAnyTransactionOnHold && shouldEnableBulkPayOption && !!bulkPayButtonOptions?.length;
 
         if (shouldShowPayOption) {
-            const hasMultipleBusinessBankAccounts = (businessBankAccountOptions?.length ?? 0) > 1;
-            const shouldShowPaySubmenu = isFirstTimePayment || (shouldShowBusinessBankAccountOptions && hasMultipleBusinessBankAccounts);
+            const shouldShowPaySubmenu = !!bulkPayButtonOptions?.length;
 
             const payButtonOption = {
                 icon: expensifyIcons.MoneyBag,

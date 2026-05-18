@@ -2886,6 +2886,14 @@ const CONST = {
         },
     },
 
+    MERGE_HR: {
+        APPROVAL_MODE: {
+            BASIC: 'basic',
+            MANAGER: 'manager',
+            CUSTOM: 'custom',
+        },
+    },
+
     QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {
         VENDOR_BILL: 'bill',
         CHECK: 'check',
@@ -3823,6 +3831,7 @@ const CONST = {
                 CERTINIA: 'financialforce',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
+                MERGE_HR: 'merge_hris',
             },
             SUPPORTED_ONLY_ON_OLDDOT: {
                 FINANCIALFORCE: 'financialforce',
@@ -3839,6 +3848,7 @@ const CONST = {
                 CERTINIA: 'certinia',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
+                MERGE_HR: 'merge-hr',
             },
             NAME_USER_FRIENDLY: {
                 netsuite: 'NetSuite',
@@ -3854,12 +3864,13 @@ const CONST = {
                 oracle: 'Oracle',
                 microsoftDynamics: 'Microsoft Dynamics',
                 other: 'Other',
+                merge_hris: 'Merge HR',
             },
             get ACCOUNTING_CONNECTION_NAMES() {
                 return [this.NAME.QBO, this.NAME.QBD, this.NAME.XERO, this.NAME.NETSUITE, this.NAME.SAGE_INTACCT, this.NAME.CERTINIA] as const;
             },
             get HR_CONNECTION_NAMES() {
-                return [this.NAME.GUSTO, this.NAME.ZENEFITS] as const;
+                return [this.NAME.GUSTO, this.NAME.ZENEFITS, this.NAME.MERGE_HR] as const;
             },
             get EXPORTED_TO_INTEGRATION_DISPLAY_NAMES(): string[] {
                 return this.ACCOUNTING_CONNECTION_NAMES.map((name) => this.NAME_USER_FRIENDLY[name as keyof typeof this.NAME_USER_FRIENDLY]);
