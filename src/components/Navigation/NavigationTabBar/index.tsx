@@ -130,10 +130,12 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
         });
     };
 
+    const shouldShowDebugTabView = !!isDebugModeEnabled && shouldShowFloatingButtons;
+
     if (!shouldUseNarrowLayout) {
         return (
             <>
-                {!!isDebugModeEnabled && <DebugTabView />}
+                {shouldShowDebugTabView && <DebugTabView />}
                 <View
                     style={styles.leftNavigationTabBarContainer}
                     testID="NavigationTabBar"
@@ -212,7 +214,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
 
     return (
         <>
-            {!!isDebugModeEnabled && <DebugTabView />}
+            {shouldShowDebugTabView && <DebugTabView />}
             <View
                 style={styles.navigationTabBarContainer}
                 testID="NavigationTabBar"
