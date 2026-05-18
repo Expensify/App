@@ -4,6 +4,7 @@ import CONST from '@src/CONST';
 import type {Action, MultifactorAuthenticationState} from './types';
 
 const DEFAULT_STATE: MultifactorAuthenticationState = {
+    isModalOpen: false,
     error: undefined,
     continuableError: undefined,
     validateCode: undefined,
@@ -18,6 +19,7 @@ const DEFAULT_STATE: MultifactorAuthenticationState = {
     isFlowComplete: false,
     authenticationMethod: undefined,
     scenarioResponse: undefined,
+    isCancelConfirmVisible: false,
 };
 
 /**
@@ -69,16 +71,23 @@ function stateReducer(state: MultifactorAuthenticationState, action: Action): Mu
             return {...state, authenticationMethod: action.payload};
         case 'SET_SCENARIO_RESPONSE':
             return {...state, scenarioResponse: action.payload};
+        case 'SET_CANCEL_CONFIRM_VISIBLE':
+            return {...state, isCancelConfirmVisible: action.payload};
         case 'INIT': {
-            // We can safely make this assertion because the params type is already type-guarded in both the executeScenario and the actions themselves.
+            // We can safely make this assertion because the params type is already type-guarded in both the executeScenario and the actions themselves. Each scenario config satisfies MultifactorAuthenticationScenarioConfig at definition; the union prevents direct assertion
             const scenario = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[action.payload.scenario] as MultifactorAuthenticationScenarioConfig;
             return {
                 ...DEFAULT_STATE,
+                isModalOpen: true,
                 scenarioName: action.payload.scenario,
                 scenario,
                 payload: action.payload.payload,
             };
         }
+        case 'CLOSE_MODAL':
+            // Also clear the cancel-confirm flag: an async path (e.g. handleCallback → SKIP_OUTCOME_SCREEN) can dispatch
+            // CLOSE_MODAL while the confirm modal is still visible, and the modal would linger during the close animation.
+            return {...state, isModalOpen: false, isCancelConfirmVisible: false};
         case 'RESET':
             return DEFAULT_STATE;
         case 'REREGISTER':

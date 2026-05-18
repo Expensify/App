@@ -1064,11 +1064,9 @@ const SCREENS = {
     },
     MULTIFACTOR_AUTHENTICATION: {
         MAGIC_CODE: 'Multifactor_Authentication_Magic_Code',
-        BIOMETRICS_TEST: 'Multifactor_Authentication_Biometrics_Test',
         OUTCOME_SUCCESS: 'Multifactor_Authentication_Outcome_Success',
         OUTCOME_FAILURE: 'Multifactor_Authentication_Outcome_Failure',
         PROMPT: 'Multifactor_Authentication_Prompt',
-        NOT_FOUND: 'Multifactor_Authentication_Not_Found',
         REVOKE: 'Multifactor_Authentication_Revoke',
         AUTHORIZE_TRANSACTION: 'Multifactor_Authentication_Authorize_Transaction',
     },

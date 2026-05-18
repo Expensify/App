@@ -96,11 +96,9 @@ function MultifactorAuthenticationScenarioAuthorizeTransactionPage({route}: Mult
         setIsDenyingTransaction(true);
         denyTransaction({transactionID}).then(({reason, httpStatusCode, message}) => {
             addBreadcrumb('Deny completed', {transactionID, reason, httpStatusCode, message});
-            // The deny outcome is rendered inline inside this RHP page. The outcome screen's default
-            // close handler calls Navigation.closeRHPFlow() — that already lands in the right spot,
-            // but useBeforeRemove would re-open the cancel-confirm modal because the user technically
-            // navigates away with a pending "draft". Flip allowNavigatingAwayRef first so the close
-            // goes through cleanly.
+            // The deny outcome is rendered inside this RHP page (not inside the MFA modal navigator),
+            // so the outcome screen's default CLOSE_MODAL dispatch has no effect here. Override its
+            // close handler to dismiss the RHP instead.
             const closeRHP = () => {
                 allowNavigatingAwayRef.current = true;
                 Navigation.closeRHPFlow();

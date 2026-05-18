@@ -6,6 +6,7 @@ import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
+import {useMultifactorAuthenticationActions} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationActionsContext';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -13,7 +14,6 @@ import Text from '@components/Text';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 
 type OutcomeScreenBaseProps = {
@@ -26,10 +26,10 @@ type OutcomeScreenBaseProps = {
     customSubtitle?: React.ReactElement;
     padding?: ViewStyle;
     /**
-     * Override the back/confirm button handler. Defaults to closing the
-     * surrounding RHP. Hosts that need a different dismiss path (e.g. the
-     * AuthorizeTransactionPage rendering the deny outcome inline) should
-     * supply their own callback so the press doesn't get swallowed.
+     * Override the back/confirm button handler. Defaults to dispatching CLOSE_MODAL,
+     * which is correct when the screen is hosted inside the MFA modal navigator.
+     * Hosts outside that navigator (e.g. RHP pages rendering the outcome inline)
+     * must supply their own dismiss callback (e.g. Navigation.closeRHPFlow).
      */
     onClose?: () => void;
 };
@@ -56,11 +56,12 @@ function OutcomeScreenBase({headerTitle, illustration, iconWidth, iconHeight, ti
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {asset: icon} = useMemoizedLazyAsset(() => loadIllustration(illustration));
+    const {dispatch} = useMultifactorAuthenticationActions();
 
     const onClose =
         onCloseOverride ??
         (() => {
-            Navigation.closeRHPFlow();
+            dispatch({type: 'CLOSE_MODAL'});
         });
 
     const CustomSubtitle = customSubtitle ?? (

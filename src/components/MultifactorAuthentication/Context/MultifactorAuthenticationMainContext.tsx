@@ -5,10 +5,12 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {AuthorizeResult, RegisterResult} from '@components/MultifactorAuthentication/biometrics/shared/types';
 import useBiometrics from '@components/MultifactorAuthentication/biometrics/useBiometrics';
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioParams} from '@components/MultifactorAuthentication/config/types';
+import {navigate as mfaNavigate} from '@components/MultifactorAuthentication/mfaNavigation';
 import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
 import trackMFAFlowOutcome from '@components/MultifactorAuthentication/observability/trackMFAFlowOutcome';
 import type {CredentialsState} from '@components/MultifactorAuthentication/observability/trackMFAFlowOutcome';
 import trackMFAFlowStart from '@components/MultifactorAuthentication/observability/trackMFAFlowStart';
+import useSyncMfaModalNavigatorWithHistory from '@components/MultifactorAuthentication/useSyncMfaModalNavigatorWithHistory';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import {requestValidateCodeAction} from '@libs/actions/User';
@@ -17,11 +19,10 @@ import getPlatform from '@libs/getPlatform';
 import {isHttpSuccess} from '@libs/MultifactorAuthentication/shared/helpers';
 import {createLocalMFAError, createMFAErrorFromApiResponse} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import type {MultifactorAuthenticationCallbackInput} from '@libs/MultifactorAuthentication/shared/types';
-import Navigation from '@navigation/Navigation';
 import {clearLocalMFAPublicKeyList, getDeviceBiometricsOnyxKey, requestAuthorizationChallenge, requestRegistrationChallenge} from '@userActions/MultifactorAuthentication';
 import {processRegistration, processScenarioAction} from '@userActions/MultifactorAuthentication/processing';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {DeviceBiometrics} from '@src/types/onyx';
 import {useMultifactorAuthenticationActions} from './MultifactorAuthenticationActionsContext';
 import {useMultifactorAuthenticationState} from './MultifactorAuthenticationStateContext';
@@ -34,8 +35,18 @@ type MultifactorAuthenticationContextValue = {
     /** Execute a multifactor authentication scenario */
     executeScenario: <T extends MultifactorAuthenticationScenario>(scenario: T, params?: ExecuteScenarioParams<T>) => Promise<void>;
 
-    /** Cancel the current authentication flow and navigate to failure outcome */
-    cancel: () => Promise<void>;
+    /**
+     * Centralized back-press entry. Decides — based on current MFA state and the
+     * route shown by the modal navigator — whether to close the modal directly
+     * or surface the cancel-confirmation modal.
+     */
+    requestCancel: () => void;
+
+    /** Dismiss the cancel-confirmation modal without cancelling the flow. */
+    hideCancelConfirm: () => void;
+
+    /** Confirm cancellation — hides the modal and runs cancel(). */
+    confirmCancel: () => void;
 };
 
 const MultifactorAuthenticationContext = createContext<MultifactorAuthenticationContextValue | undefined>(undefined);
@@ -129,19 +140,16 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 endState,
             });
 
-            // If the callback returns SKIP_OUTCOME_SCREEN, the callback handles navigation itself
+            dispatch({type: 'SET_FLOW_COMPLETE', payload: true});
+
+            // If the callback returns SKIP_OUTCOME_SCREEN, the callback handles navigation itself.
+            // Close the modal so the overlay plays its exit animation and then resets.
             if (callbackResponse === CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SKIP_OUTCOME_SCREEN) {
-                dispatch({type: 'SET_FLOW_COMPLETE', payload: true});
+                dispatch({type: 'CLOSE_MODAL'});
                 return;
             }
 
-            if (isSuccessful) {
-                Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_OUTCOME_SUCCESS, {forceReplace: true});
-            } else {
-                Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_OUTCOME_FAILURE, {forceReplace: true});
-            }
-
-            dispatch({type: 'SET_FLOW_COMPLETE', payload: true});
+            mfaNavigate(isSuccessful ? SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS : SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE);
         },
         [captureCredentialsState, dispatch, state],
     );
@@ -222,7 +230,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             if (!validateCode) {
                 addMFABreadcrumb('Validate code requested');
                 requestValidateCodeAction();
-                Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_MAGIC_CODE, {forceReplace: true});
+                mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE);
                 return;
             }
 
@@ -245,7 +253,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             // Check if a soft prompt is needed
             if (!softPromptApproved) {
                 addMFABreadcrumb('Soft prompt shown', {context: 'registration'});
-                Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute(promptType), {forceReplace: true});
+                mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT, {promptType});
                 return;
             }
 
@@ -283,15 +291,13 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         // prompt first.
         if (!deviceBiometricsState?.hasAcceptedSoftPrompt && !softPromptApproved) {
             addMFABreadcrumb('Soft prompt shown', {context: 'authorization-reinstall'});
-            Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute(promptType), {forceReplace: true});
+            mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT, {promptType});
             return;
         }
 
         // 4. Authorize the user if that has not already been done
         if (!isAuthorizationComplete) {
-            if (!Navigation.isActiveRoute(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute(promptType))) {
-                Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute(promptType), {forceReplace: true});
-            }
+            mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT, {promptType});
 
             // Request authorization challenge if not already fetched
             if (!authorizationChallenge) {
@@ -444,6 +450,12 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
      */
     const executeScenario = useCallback(
         async <T extends MultifactorAuthenticationScenario>(scenario: T, params?: ExecuteScenarioParams<T>): Promise<void> => {
+            // Guard against rapid double-tap: if a scenario is already active, ignore the second invocation
+            // so we don't dispatch a second INIT that would reset progress of the in-flight flow.
+            if (state.scenario) {
+                return;
+            }
+
             startStateRef.current = await captureCredentialsState();
 
             const breadcrumbData = {
@@ -469,21 +481,18 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 },
             });
         },
-        [captureCredentialsState, dispatch, isOffline, platform],
+        [captureCredentialsState, dispatch, isOffline, platform, state.scenario],
     );
 
     /**
-     * Cancel the current authentication flow.
-     * When the scenario provides onCancel, awaits it to get the reason and sets the error accordingly.
-     * Otherwise, sets an error state with LOCAL_ERRORS.CANCELED. In both cases, the error triggers
-     * process() which calls handleCallback and navigates to the failure outcome.
+     * Cancel the current authentication flow. Dispatches SET_ERROR which drives process() to handleCallback
+     * and the failure outcome. When the scenario or network is unavailable, process() short-circuits, so we
+     * close the modal directly instead to avoid getting stuck.
      */
     const cancel = useCallback(async () => {
-        // When the app is reopened (e.g. page refresh on web), the MFA context resets to its default state
-        // and scenario becomes undefined. Without a scenario, the state machine in process() won't run,
-        // so dispatching SET_ERROR would have no effect. In this case we dismiss the modal directly.
-        if (!state.scenario) {
-            Navigation.dismissModal();
+        if (!state.scenario || isOffline) {
+            addMFABreadcrumb('Flow cancelled - closing directly', {hasScenario: !!state.scenario, isOffline}, 'warning');
+            dispatch({type: 'CLOSE_MODAL'});
             return;
         }
 
@@ -499,14 +508,37 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             type: 'SET_ERROR',
             payload: createLocalMFAError(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.CANCELED, 'User cancelled the MFA flow'),
         });
-    }, [dispatch, state.scenario, state.payload]);
+    }, [dispatch, isOffline, state.scenario, state.payload]);
+
+    const requestCancel = useCallback(() => {
+        if (state.isFlowComplete) {
+            dispatch({type: 'CLOSE_MODAL'});
+            return;
+        }
+        if (!state.scenario || isOffline) {
+            cancel();
+            return;
+        }
+        dispatch({type: 'SET_CANCEL_CONFIRM_VISIBLE', payload: true});
+    }, [cancel, dispatch, isOffline, state.isFlowComplete, state.scenario]);
+
+    const hideCancelConfirm = useCallback(() => dispatch({type: 'SET_CANCEL_CONFIRM_VISIBLE', payload: false}), [dispatch]);
+
+    const confirmCancel = useCallback(() => {
+        dispatch({type: 'SET_CANCEL_CONFIRM_VISIBLE', payload: false});
+        cancel();
+    }, [cancel, dispatch]);
+
+    useSyncMfaModalNavigatorWithHistory(state.isModalOpen, requestCancel);
 
     const contextValue: MultifactorAuthenticationContextValue = useMemo(
         () => ({
             executeScenario,
-            cancel,
+            requestCancel,
+            hideCancelConfirm,
+            confirmCancel,
         }),
-        [cancel, executeScenario],
+        [executeScenario, requestCancel, hideCancelConfirm, confirmCancel],
     );
 
     return <MultifactorAuthenticationContext.Provider value={contextValue}>{children}</MultifactorAuthenticationContext.Provider>;

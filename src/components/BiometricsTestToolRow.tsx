@@ -2,31 +2,19 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import useBiometricRegistrationStatus, {REGISTRATION_STATUS} from '@hooks/useBiometricRegistrationStatus';
 import useLocalize from '@hooks/useLocalize';
-import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {revokeMultifactorAuthenticationCredentials} from '@libs/actions/MultifactorAuthentication';
-import Navigation from '@libs/Navigation/Navigation';
-import ROUTES from '@src/ROUTES';
+import CONST from '@src/CONST';
 import Button from './Button';
+import {useMultifactorAuthentication} from './MultifactorAuthentication/Context';
 import TestToolRow from './TestToolRow';
 
 function BiometricsTestToolRow() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {executeScenario} = useMultifactorAuthentication();
     const {localCredentialID, isCurrentDeviceRegistered, otherDeviceCount, registrationStatus} = useBiometricRegistrationStatus();
     const [isMFARevokeLoading, setIsMFARevokeLoading] = useState(false);
-
-    const {singleExecution} = useSingleExecution();
-    const waitForNavigate = useWaitForNavigation();
-
-    // Wrapper guards against rapid double-taps on native that would otherwise trigger multiple navigations.
-    // Context: https://github.com/Expensify/App/pull/79475#discussion_r2708230681
-    const navigateToBiometricsTestPage = singleExecution(
-        waitForNavigate(() => {
-            Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_BIOMETRICS_TEST);
-        }),
-    );
 
     const statusTextMap = {
         [REGISTRATION_STATUS.NEVER_REGISTERED]: translate('multifactorAuthentication.biometricsTest.statusNeverRegistered'),
@@ -42,7 +30,7 @@ function BiometricsTestToolRow() {
                 <Button
                     small
                     text={translate('multifactorAuthentication.biometricsTest.test')}
-                    onPress={() => navigateToBiometricsTestPage()}
+                    onPress={() => executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST)}
                 />
                 {isCurrentDeviceRegistered && !!localCredentialID && (
                     <Button
