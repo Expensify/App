@@ -1275,6 +1275,7 @@ describe('actions/Policy', () => {
                 hasActiveAdminPolicies: false,
                 activePolicy: undefined,
                 type: CONST.POLICY.TYPE.SUBMIT,
+                currency: 'USD',
             });
             await waitForBatchedUpdates();
 
