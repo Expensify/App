@@ -818,6 +818,11 @@ function getReportFromHoldRequestsOnyxData({
 
     const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
 
+    // Held transactions just moved out, leaving total/nonReimbursableTotal stale on this report —
+    // offline consumers (e.g. the Pay button) would read the wrong amount until server reconciles.
+    // unheldTotal stays as-is: every remaining transaction is unheld, so it already equals the new total.
+    const shouldUpdateOriginalReportTotals = holdTransactions.length > 0 && iouReport?.unheldTotal !== undefined;
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -870,6 +875,17 @@ function getReportFromHoldRequestsOnyxData({
             value: updateHeldTransactions,
         },
     ];
+
+    if (shouldUpdateOriginalReportTotals) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+            value: {
+                total: iouReport?.unheldTotal ?? 0,
+                nonReimbursableTotal: iouReport?.unheldNonReimbursableTotal ?? 0,
+            },
+        });
+    }
 
     const bringReportActionsBack: Record<string, OnyxTypes.ReportAction> = {};
     for (const reportAction of holdReportActions) {
@@ -935,6 +951,17 @@ function getReportFromHoldRequestsOnyxData({
             value: bringHeldTransactionsBack,
         },
     ];
+
+    if (shouldUpdateOriginalReportTotals) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+            value: {
+                total: iouReport?.total,
+                nonReimbursableTotal: iouReport?.nonReimbursableTotal,
+            },
+        });
+    }
 
     // Copy submission/approval actions to the new report
     const [copiedActionsOptimistic, copiedActionsSuccess, copiedActionsFailure, optimisticReportActionCopyIDs] = getDuplicateActionsForPartialReport(

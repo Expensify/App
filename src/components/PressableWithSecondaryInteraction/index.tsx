@@ -93,7 +93,7 @@ function PressableWithSecondaryInteraction({
     return (
         <PressableWithFeedback
             // ESLint is disabled here to propagate all the props, enhancing PressableWithSecondaryInteraction's versatility across different use cases.
-            // eslint-disable-next-line react/jsx-props-no-spreading
+
             {...rest}
             wrapperStyle={[StyleUtils.combineStyles(canUseTouchScreen() ? [styles.userSelectNone, styles.noSelect] : [], inlineStyle), wrapperStyle]}
             onLongPress={onSecondaryInteraction ? executeSecondaryInteraction : undefined}

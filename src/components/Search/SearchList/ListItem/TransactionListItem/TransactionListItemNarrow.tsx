@@ -37,7 +37,23 @@ function TransactionListItemNarrow<TItem extends ListItem>({
     transactionPreviewData,
     exportedReportActions,
     nonPersonalAndWorkspaceCards,
-    policyForMovingExpenses,
+    isAttendeesEnabledForMovingPolicy,
+    shouldDisableHoverStyle,
+    onPressRow,
+    onMouseDownRow,
+    onHoverInRow,
+    onEditDate,
+    onEditMerchant,
+    onEditDescription,
+    onEditCategory,
+    onEditAmount,
+    onEditTag,
+    canEditDate,
+    canEditMerchant,
+    canEditDescription,
+    canEditCategory,
+    canEditAmount,
+    canEditTag,
 }: TransactionListItemNarrowProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -66,13 +82,14 @@ function TransactionListItemNarrow<TItem extends ListItem>({
             <PressableWithFeedback
                 ref={pressableRef}
                 onLongPress={() => onLongPressRow?.(item)}
-                onPress={isDeletedTransaction && !canSelectMultiple ? undefined : () => onSelectRow(item, transactionPreviewData)}
+                onPress={onPressRow}
                 disabled={isDisabled && !item.isSelected}
                 accessibilityLabel={item.text ?? ''}
                 role={!isDeletedTransaction ? getButtonRole(true) : 'none'}
                 isNested
-                onMouseDown={(e) => e.preventDefault()}
-                hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, item.isSelected && styles.activeComponentBG]}
+                onMouseDown={onMouseDownRow}
+                onHoverIn={onHoverInRow}
+                hoverStyle={[!item.isDisabled && !shouldDisableHoverStyle && styles.hoveredComponentBG, item.isSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                 id={item.keyForList ?? ''}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM}
@@ -87,8 +104,8 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                     styles.flex1,
                     animatedHighlightStyle,
                     styles.userSelectNone,
-                    isFirstItem && [styles.searchTableTopRadius, styles.overflowHidden],
-                    isLastItem && [styles.searchTableBottomRadius, styles.overflowHidden],
+                    isFirstItem && styles.tableTopRadius,
+                    isLastItem && styles.tableBottomRadius,
                     !isLastItem && StyleUtils.getSelectedBorderBottomStyle(item.isSelected),
                 ]}
             >
@@ -119,13 +136,25 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                             taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                             shouldShowCheckbox={!!canSelectMultiple}
                             checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM_CHECKBOX}
-                            style={[styles.p3, styles.pv2, styles.p0, styles.pt3, isLastItem ? styles.searchTableBottomRadius : styles.noBorderRadius]}
+                            style={[styles.p3, styles.pv2, styles.p0, styles.pt3, isLastItem ? styles.tableBottomRadius : styles.noBorderRadius]}
                             violations={transactionViolations}
                             onArrowRightPress={isDeletedTransaction ? undefined : () => onSelectRow(item, transactionPreviewData)}
                             isHover={false}
                             nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                             reportActions={exportedReportActions}
-                            policyForMovingExpenses={policyForMovingExpenses}
+                            isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
+                            onEditDate={onEditDate}
+                            onEditMerchant={onEditMerchant}
+                            onEditDescription={onEditDescription}
+                            onEditCategory={onEditCategory}
+                            onEditAmount={onEditAmount}
+                            onEditTag={onEditTag}
+                            canEditDate={canEditDate}
+                            canEditMerchant={canEditMerchant}
+                            canEditDescription={canEditDescription}
+                            canEditCategory={canEditCategory}
+                            canEditAmount={canEditAmount}
+                            canEditTag={canEditTag}
                         />
                     </>
                 )}

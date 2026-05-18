@@ -1,4 +1,4 @@
-import {Heap} from './Heap';
+import Heap from './Heap';
 
 type GetCompareValue<T> = (item: T) => number | string;
 
@@ -82,5 +82,4 @@ class MaxHeap<T = number> {
     }
 }
 
-export type {GetCompareValue};
-export {MaxHeap};
+export default MaxHeap;

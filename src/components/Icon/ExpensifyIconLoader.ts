@@ -81,4 +81,4 @@ function getExpensifyIconsChunk(): ExpensifyIconsChunk | null {
 
 export {loadExpensifyIcon, loadExpensifyIconsChunk, getExpensifyIconsChunk};
 
-export type {ExpensifyIconName, ExpensifyIconsChunk};
+export type {ExpensifyIconName};
