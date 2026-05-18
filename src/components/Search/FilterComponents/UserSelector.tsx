@@ -57,8 +57,8 @@ function UserSelector({value = [], onChange, shouldExcludeExpensifyTeamMembers =
         if (!shouldExcludeExpensifyTeamMembers) {
             return CONST.EMPTY_OBJECT as Record<string, boolean>;
         }
-        return getExpensifyTeamExclusions(personalDetails, currentUserPersonalDetails.login);
-    }, [shouldExcludeExpensifyTeamMembers, personalDetails, currentUserPersonalDetails.login]);
+        return getExpensifyTeamExclusions(personalDetails, currentUserPersonalDetails.email);
+    }, [shouldExcludeExpensifyTeamMembers, personalDetails, currentUserPersonalDetails.email]);
 
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, toggleSelection, areOptionsInitialized, selectedOptionsForDisplay, onListEndReached} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
