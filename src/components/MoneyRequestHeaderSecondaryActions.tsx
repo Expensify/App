@@ -3,8 +3,6 @@ import {shouldFailAllRequestsSelector} from '@selectors/Network';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import React, {useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -80,7 +78,7 @@ type MoneyRequestHeaderSecondaryActionsProps = {
     reportID: string | undefined;
 
     /** Method to trigger when pressing close button of the header */
-    onBackButtonPress: (prioritizeBackTo?: boolean) => void;
+    onBackButtonPress: (prioritizeBackTo?: boolean, options?: {afterTransition?: () => void}) => void;
 };
 
 function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: MoneyRequestHeaderSecondaryActionsProps) {
@@ -440,10 +438,16 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                             currentUserEmail: currentUserLogin ?? '',
                         });
                     } else {
-                        InteractionManager.runAfterInteractions(() => {
+                        const afterDelete = () => {
                             deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, isReportInSearch ? currentSearchHash : undefined, true);
                             removeTransaction(transaction.transactionID);
-                        });
+                        };
+                        if (isInNarrowPaneModal) {
+                            Navigation.navigateBackToLastSuperWideRHPScreen({afterTransition: afterDelete});
+                            return;
+                        }
+                        onBackButtonPress(false, {afterTransition: afterDelete});
+                        return;
                     }
                     if (isInNarrowPaneModal) {
                         Navigation.navigateBackToLastSuperWideRHPScreen();
