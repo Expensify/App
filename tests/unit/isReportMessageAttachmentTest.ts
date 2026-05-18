@@ -114,7 +114,6 @@ describe('isReportMessageAttachment', () => {
         expect(isReportMessageAttachment(message)).toBe(true);
     });
 
-    // Multi-upload is normally split into separate actions; if multiple attachments share one message, classification stays attachment-only.
     it('returns true for multiple attachments with no surrounding text', () => {
         const message: Message = {
             text: 'a.doc https://www.expensify.com/chat-attachments/1/a.doc\nb.pdf https://www.expensify.com/chat-attachments/2/b.pdf',
@@ -122,5 +121,23 @@ describe('isReportMessageAttachment', () => {
             type: '',
         };
         expect(isReportMessageAttachment(message)).toBe(true);
+    });
+
+    it('returns true for an attachment whose anchor wraps nested markup', () => {
+        const message: Message = {
+            text: 'sample.doc https://www.expensify.com/chat-attachments/123/sample.doc',
+            html: '<a href="https://www.expensify.com/chat-attachments/123/sample.doc" data-expensify-source="https://www.expensify.com/chat-attachments/123/sample.doc">pre<strong>sample</strong>.doc</a>',
+            type: '',
+        };
+        expect(isReportMessageAttachment(message)).toBe(true);
+    });
+
+    it('returns false for an attachment with nested markup AND a trailing caption', () => {
+        const message: Message = {
+            text: 'sample.doc https://www.expensify.com/chat-attachments/123/sample.doc see this',
+            html: '<a href="https://www.expensify.com/chat-attachments/123/sample.doc" data-expensify-source="https://www.expensify.com/chat-attachments/123/sample.doc">pre<strong>sample</strong>.doc</a> see this',
+            type: '',
+        };
+        expect(isReportMessageAttachment(message)).toBe(false);
     });
 });
