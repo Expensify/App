@@ -12,12 +12,7 @@ const personalDetailByAccountIDSelector =
     (personalDetailsList: OnyxEntry<PersonalDetailsList>): OnyxEntry<PersonalDetails> =>
         accountID ? (personalDetailsList?.[accountID] ?? undefined) : undefined;
 
-const conciergePersonalDetailSelector = (personalDetailsList: OnyxEntry<PersonalDetailsList>): OnyxEntry<PersonalDetails> => {
-    if (!personalDetailsList) {
-        return undefined;
-    }
-    return Object.values(personalDetailsList).find((detail): detail is PersonalDetails => detail?.login === CONST.EMAIL.CONCIERGE);
-};
+const conciergePersonalDetailSelector = personalDetailByAccountIDSelector(CONST.ACCOUNT_ID.CONCIERGE);
 
 const accountIDToLoginSelector = (reportsToArchive: Report[]) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => {
     const map: Record<number, string> = {};
