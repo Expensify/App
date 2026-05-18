@@ -11,6 +11,7 @@ type MultiSelectItem<T> = {
     value: T;
     icons?: Icon[];
     leftElement?: ReactNode;
+    searchableText?: string;
 };
 
 type MultiSelectPopupProps<T> = {
