@@ -176,7 +176,6 @@ function BaseListItem<TItem extends ListItem>({
         >
             <PressableWithFeedback
                 sentryLabel={CONST.SENTRY_LABEL.SELECTION_LIST.BASE_LIST_ITEM}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...bind}
                 ref={pressableRef}
                 lang={item.lang}
@@ -199,7 +198,7 @@ function BaseListItem<TItem extends ListItem>({
                 isNested
                 hoverDimmingValue={1}
                 pressDimmingValue={item.isInteractive === false ? 1 : variables.pressDimValue}
-                hoverStyle={!shouldDisableHoverStyle ? [!item.isDisabled && item.isInteractive !== false && styles.hoveredComponentBG, hoverStyle] : undefined}
+                hoverStyle={!shouldDisableHoverStyle ? [(!item.isDisabled || item.isSelected) && item.isInteractive !== false && styles.hoveredComponentBG, hoverStyle] : undefined}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: shouldShowBlueBorderOnFocus}}
                 onMouseDown={(e) => {
                     if ((e?.target as HTMLElement)?.tagName === CONST.ELEMENT_NAME.INPUT) {
@@ -223,7 +222,6 @@ function BaseListItem<TItem extends ListItem>({
                 onFocus={onFocus}
                 role={role}
                 tabIndex={tabIndex}
-                // eslint-disable-next-line react/jsx-props-no-spreading -- we can't pass those props here on their own because this Component expects a discriminated Union
                 {...accessibleAndAccessibilityLabel}
                 accessibilityState={accessibilityState}
                 aria-current={ariaCurrent}

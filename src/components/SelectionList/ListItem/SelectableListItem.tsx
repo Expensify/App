@@ -28,7 +28,6 @@ function SelectableListItem<TItem extends ListItem>({
 
     return (
         <BaseListItem
-            // eslint-disable-next-line react/jsx-props-no-spreading -- props are forwarded from SelectableListItem to BaseListItem as a pass-through layer
             {...baseProps}
             item={item}
             isFocused={isFocused}
@@ -41,8 +40,7 @@ function SelectableListItem<TItem extends ListItem>({
                         <ButtonComponent
                             item={item}
                             onSelectRow={onSelectionButtonPress ?? onSelectRow}
-                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- disabled if either of the optional booleans are true
-                            disabled={isDisabled || item.isDisabledCheckbox}
+                            disabled={!!isDisabled || !!item.isDisabledCheckbox}
                             style={styles.ml3}
                         />
                         {typeof rightHandSideComponent === 'function' ? rightHandSideComponent(item, isFocused) : rightHandSideComponent}
@@ -58,8 +56,7 @@ function SelectableListItem<TItem extends ListItem>({
                           <ButtonComponent
                               item={item}
                               onSelectRow={onSelectionButtonPress ?? onSelectRow}
-                              // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- disabled if either of the optional booleans are true
-                              disabled={isDisabled || item.isDisabledCheckbox}
+                              disabled={!!isDisabled || item.isDisabledCheckbox}
                               style={styles.mr3}
                           />
                           {typeof children === 'function' ? children(hovered) : children}

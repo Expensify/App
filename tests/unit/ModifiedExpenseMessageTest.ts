@@ -252,7 +252,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportName: '',
                 };
                 const result = getMovedFromOrToReportMessage(translateLocal, reportWithoutName, undefined, CURRENT_USER_LOGIN, undefined);
-                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromReport', '');
+                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromReportNoName');
 
                 expect(result).toEqual(expectedResult);
             });

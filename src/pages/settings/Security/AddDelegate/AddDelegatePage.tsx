@@ -33,13 +33,14 @@ function AddDelegatePage() {
             {} as Record<string, boolean>,
         ) ?? {};
 
-    const {searchTerm, debouncedSearchTerm, setSearchTerm, searchOptions, areOptionsInitialized, setSelectedOptions, onListEndReached} = useSearchSelector({
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized, setSelectedOptions, onListEndReached} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
         includeUserToInvite: true,
         excludeLogins: {...CONST.EXPENSIFY_EMAILS_OBJECT, ...existingDelegates},
         includeRecentReports: true,
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+        shouldKeepSelectedInAvailableOptions: true,
     });
 
     const handleSelectRow = (option: OptionData) => {
@@ -48,8 +49,8 @@ function AddDelegatePage() {
     };
 
     const headerMessage = getHeaderMessage(
-        (searchOptions.recentReports?.length || 0) + (searchOptions.personalDetails?.length || 0) !== 0,
-        !!searchOptions.userToInvite,
+        (availableOptions.recentReports?.length || 0) + (availableOptions.personalDetails?.length || 0) !== 0,
+        !!availableOptions.userToInvite,
         debouncedSearchTerm,
         countryCode,
     );
@@ -57,20 +58,20 @@ function AddDelegatePage() {
         {
             title: translate('common.recents'),
             sectionIndex: 0,
-            data: searchOptions.recentReports,
+            data: availableOptions.recentReports,
         },
         {
             title: translate('common.contacts'),
             sectionIndex: 1,
-            data: searchOptions.personalDetails,
+            data: availableOptions.personalDetails,
         },
     ];
 
-    if (searchOptions.userToInvite) {
+    if (availableOptions.userToInvite) {
         sectionsList.push({
             sectionIndex: 2,
             title: '',
-            data: [searchOptions.userToInvite],
+            data: [availableOptions.userToInvite],
         });
     }
 
