@@ -11,10 +11,10 @@ import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProv
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
+import * as AgentActions from '@libs/actions/Agent';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
-import * as AgentActions from '@libs/actions/Agent';
 import ProfilePage from '@pages/settings/Profile/ProfilePage';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

@@ -2,7 +2,16 @@ import Onyx from 'react-native-onyx';
 import {write} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
-import {clearAgentAvatarUpdateError, clearAgentUpdateError, createAgent, deleteAgent, updateAgentAvatar, updateAgentName, updateAgentPrompt, updateAgentPromptAsCopilot} from '@userActions/Agent';
+import {
+    clearAgentAvatarUpdateError,
+    clearAgentUpdateError,
+    createAgent,
+    deleteAgent,
+    updateAgentAvatar,
+    updateAgentName,
+    updateAgentPrompt,
+    updateAgentPromptAsCopilot,
+} from '@userActions/Agent';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
@@ -343,11 +352,7 @@ describe('updateAgentPromptAsCopilot', () => {
     it('calls write with SET_NAME_VALUE_PAIR command and serialised agentPrompt params', () => {
         updateAgentPromptAsCopilot(TEST_ACCOUNT_ID, 'New prompt', 'Old prompt');
 
-        expect(mockWrite).toHaveBeenCalledWith(
-            WRITE_COMMANDS.SET_NAME_VALUE_PAIR,
-            {name: 'agentPrompt', value: JSON.stringify({prompt: 'New prompt'})},
-            expect.any(Object),
-        );
+        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, {name: 'agentPrompt', value: JSON.stringify({prompt: 'New prompt'})}, expect.any(Object));
     });
 
     it('optimistic data sets prompt, pendingAction UPDATE, and errors null on the prompt key', () => {
