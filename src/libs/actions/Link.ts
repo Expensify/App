@@ -364,7 +364,7 @@ function openReportFromDeepLink(
                             }
                         };
 
-                        if (hasCompletedGuidedSetupFlowSelector(val) || isAnonymousUser()) {
+                        if ((isAuthenticated && hasCompletedGuidedSetupFlowSelector(val)) || isAnonymousUser()) {
                             handleDeeplinkNavigation();
                         }
                     });
