@@ -120,5 +120,5 @@ Ensure uninterrupted service by adding a billing card:
 3. Enter your card details and click *Accept Terms*.
 
 # You’re All Set!
-Your Expensify setup is complete! If you need help, reach out via [new.expensify.com](https://new.expensify.com) in your workspace’s #admins room. If you don’t have a Account Executive yet, upgrade to a **Control** workspace to be assigned one automatically.
+Your Expensify setup is complete! If you need help, reach out via [new.expensify.com](https://new.expensify.com) in your workspace’s #admins room. If you don’t have an Account Executive yet, upgrade to a **Control** workspace to be assigned one automatically.
 
