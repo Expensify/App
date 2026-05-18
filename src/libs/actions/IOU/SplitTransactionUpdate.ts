@@ -1366,11 +1366,25 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     const isReverseSplitOperation =
         splitExpenses.length === 1 && originalChildTransactions.length > 0 && hasEditableSplitExpensesLeft && allChildTransactions.length === originalChildTransactions.length;
     const expenseReportID = params.expenseReport?.reportID;
-    const isLastTransactionInReport =
-        isReverseSplitOperation && Object.values(params.allTransactionsList ?? {}).filter((itemTransaction) => itemTransaction?.reportID === expenseReportID).length === 1;
+    const transactionsOnExpenseReport = Object.values(params.allTransactionsList ?? {}).filter((itemTransaction) => itemTransaction?.reportID === expenseReportID);
+    const isLastTransactionInReport = isReverseSplitOperation && transactionsOnExpenseReport.length === 1;
+
+    // Also detect when the update will empty the expense report even without a reverse split.
+    // This happens when a sibling split was moved to another submitted report, so
+    // isReverseSplitOperation is false, but the removed child is the last transaction on this report.
+    const remainingSplitTransactionIDs = new Set(splitExpenses.map((expense) => expense.transactionID));
+    const removedChildTransactionIDs = new Set(
+        originalChildTransactions.filter((tx) => !!tx?.transactionID && !remainingSplitTransactionIDs.has(tx.transactionID)).map((tx) => tx!.transactionID),
+    );
+    const willExpenseReportBeEmpty =
+        !isLastTransactionInReport &&
+        !!expenseReportID &&
+        transactionsOnExpenseReport.length > 0 &&
+        transactionsOnExpenseReport.every((tx) => !!tx?.transactionID && removedChildTransactionIDs.has(tx.transactionID));
+    const willDeleteExpenseReport = isLastTransactionInReport || willExpenseReportBeEmpty;
     const fallbackReportID = params.expenseReport?.chatReportID ?? params.expenseReport?.parentReportID;
 
-    if (isLastTransactionInReport && fallbackReportID) {
+    if (willDeleteExpenseReport && fallbackReportID) {
         setDeleteTransactionNavigateBackUrl(ROUTES.REPORT_WITH_ID.getRoute(fallbackReportID));
     }
 
@@ -1389,7 +1403,7 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
         params?.searchContext?.clearSelectedTransactions?.(true);
     }
 
-    if (isSearchPageTopmostFullScreenRoute || !params.transactionReport?.parentReportID) {
+    if (isSearchPageTopmostFullScreenRoute) {
         Navigation.navigateBackToLastSuperWideRHPScreen();
 
         // After the modal is dismissed, remove the transaction thread report screen
@@ -1405,14 +1419,28 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
         return;
     }
 
-    // When the reverse split deletes the expense report, use the backward navigation pattern
+    // When the update deletes the expense report (reverse split or removing the last child after
+    // a sibling was moved to a submitted report), use the backward navigation pattern
     // (dismissToSuperWideRHP + goBack) instead of dismissModalWithReport. This naturally pops
     // stale screens from the stack instead of leaving them behind.
-    if (isLastTransactionInReport && fallbackReportID) {
+    if (willDeleteExpenseReport && fallbackReportID) {
         const backRoute = ROUTES.REPORT_WITH_ID.getRoute(fallbackReportID);
         navigateBackOnDeleteTransaction(backRoute);
 
         // Remove the transaction thread report screen to avoid navigating back to a removed report
+        requestAnimationFrame(() => {
+            if (!transactionThreadReportScreen?.key) {
+                return;
+            }
+            Navigation.removeScreenByKey(transactionThreadReportScreen.key);
+        });
+
+        return;
+    }
+
+    if (!params.transactionReport?.parentReportID) {
+        Navigation.navigateBackToLastSuperWideRHPScreen();
+
         requestAnimationFrame(() => {
             if (!transactionThreadReportScreen?.key) {
                 return;
