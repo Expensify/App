@@ -1,5 +1,4 @@
 import React, {useState} from 'react';
-import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import usePermissions from '@hooks/usePermissions';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import FreezeWrapper from '@libs/Navigation/AppNavigator/FreezeWrapper';
@@ -26,7 +25,6 @@ const Split = createSplitNavigator<ReportsSplitNavigatorParamList>();
 function ReportsSplitNavigator({route}: PlatformStackScreenProps<TabNavigatorParamList, typeof NAVIGATORS.REPORTS_SPLIT_NAVIGATOR>) {
     const {isBetaEnabled} = usePermissions();
     const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
-    const archivedReportsIdSet = useArchivedReportsIdSet();
     const isOpenOnAdminRoom = shouldOpenOnAdminRoom();
 
     const [initialReportID] = useState(() => {
@@ -50,7 +48,10 @@ function ReportsSplitNavigator({route}: PlatformStackScreenProps<TabNavigatorPar
             return '';
         }
 
-        const initialReport = ReportUtils.findLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), isOpenOnAdminRoom, undefined, archivedReportsIdSet);
+        // archivedReportsIdSet is intentionally omitted: findLastAccessedReport falls back to the
+        // module-scoped REPORT_NAME_VALUE_PAIRS cache in ReportUtils, which avoids subscribing
+        // a top-level navigator to the full collection on every write.
+        const initialReport = ReportUtils.findLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), isOpenOnAdminRoom);
         // eslint-disable-next-line rulesdir/no-default-id-values
         return initialReport?.reportID ?? '';
     });
