@@ -2776,6 +2776,9 @@ type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.MEMBERS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ROOMS]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.CATEGORIES]: {
         policyID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md

@@ -32,8 +32,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {isLoadingInitialReportActionsSelector} from '@src/selectors/ReportMetaData';
 import type * as OnyxTypes from '@src/types/onyx';
 import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
-import {useReportActionActiveEdit} from './ReportActionEditMessageContext';
 import SystemChatReportFooterMessage from './SystemChatReportFooterMessage';
+import useShouldShowComposerForActiveEditDraft from './useShouldShowComposerForActiveEditDraft';
 
 const policyRoleSelector = (policy: OnyxEntry<OnyxTypes.Policy>) => policy?.role;
 
@@ -78,10 +78,7 @@ function ReportFooter() {
     const canWriteInReport = canWriteInReportUtil(report);
     const isSystemChat = isSystemChatUtil(report);
     const isAdminsOnlyPostingRoom = isAdminsOnlyPostingRoomUtil(report);
-    const {editingReportActionID} = useReportActionActiveEdit();
-
-    // Narrow-screen edits use the bottom composer (#90516); mount it when a draft exists even if posting is admin-only.
-    const shouldShowComposerForActiveEditDraft = shouldUseNarrowLayout && editingReportActionID !== null;
+    const shouldShowComposerForActiveEditDraft = useShouldShowComposerForActiveEditDraft();
 
     if (!isCurrentReportLoadedFromOnyx || !report || !reportIDFromRoute) {
         return null;
@@ -89,23 +86,15 @@ function ReportFooter() {
 
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
 
-    const renderEditOnlyComposerSwipeable = () => (
-        <SwipeableView onSwipeDown={Keyboard.dismiss}>
-            <ReportActionCompose.EditOnly reportID={reportIDFromRoute} />
-        </SwipeableView>
-    );
-
-    const renderComposer = () => (
-        <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
-            <SwipeableView onSwipeDown={Keyboard.dismiss}>
-                <ReportActionCompose reportID={reportIDFromRoute} />
-            </SwipeableView>
-        </View>
-    );
-
     // Happy path — user can compose
     if (!shouldHideComposer) {
-        return renderComposer();
+        return (
+            <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
+                <SwipeableView onSwipeDown={Keyboard.dismiss}>
+                    <ReportActionCompose reportID={reportIDFromRoute} />
+                </SwipeableView>
+            </View>
+        );
     }
 
     // Archived room
@@ -170,7 +159,13 @@ function ReportFooter() {
 
         return (
             <View style={[styles.chatFooter, !isEditingWithComposer && styles.mt4, shouldUseNarrowLayout && styles.mb5]}>
-                {isEditingWithComposer && <View style={[isComposerFullSize ? styles.chatFooterFullCompose : undefined, styles.mb2]}>{renderEditOnlyComposerSwipeable()}</View>}
+                {isEditingWithComposer && (
+                    <View style={[isComposerFullSize ? styles.chatFooterFullCompose : undefined, styles.mb2]}>
+                        <SwipeableView onSwipeDown={Keyboard.dismiss}>
+                            <ReportActionCompose.EditOnly reportID={reportIDFromRoute} />
+                        </SwipeableView>
+                    </View>
+                )}
                 <Banner
                     containerStyles={[styles.chatFooterBanner, isEditingWithComposer && styles.mt2]}
                     text={translate('adminOnlyCanPost')}
