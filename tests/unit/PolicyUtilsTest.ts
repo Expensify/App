@@ -2668,7 +2668,7 @@ describe('PolicyUtils', () => {
                     },
                 } as Policy;
                 const provider = getConnectedHRProvider(policy);
-                expect(provider?.connectionName).toBe('gusto');
+                expect(provider?.connectionName).toBe(CONST.POLICY.CONNECTIONS.NAME.GUSTO);
             });
 
             it('prefers Gusto when both Gusto and Zenefits are connected', () => {
@@ -2680,7 +2680,7 @@ describe('PolicyUtils', () => {
                     },
                 } as Policy;
                 const provider = getConnectedHRProvider(policy);
-                expect(provider?.connectionName).toBe('gusto');
+                expect(provider?.connectionName).toBe(CONST.POLICY.CONNECTIONS.NAME.GUSTO);
             });
 
             it('returns Merge HR with displayName from integration slug', () => {
@@ -2691,7 +2691,7 @@ describe('PolicyUtils', () => {
                     },
                 } as Policy;
                 const provider = getConnectedHRProvider(policy);
-                expect(provider?.connectionName).toBe('merge_hris');
+                expect(provider?.connectionName).toBe(CONST.POLICY.CONNECTIONS.NAME.MERGE_HR);
                 expect(provider?.displayName).toBe('Workday');
             });
         });
@@ -2749,7 +2749,7 @@ describe('PolicyUtils', () => {
                 const policy = {
                     ...createRandomPolicy(0),
                     connections: {
-                        [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: {config: {approvalMode: 'custom', finalApprover: null}},
+                        [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: {config: {approvalMode: CONST.GUSTO.APPROVAL_MODE.CUSTOM, finalApprover: null}},
                     },
                 } as Policy;
                 expect(isAnyHRReadOnlyWorkflowMode(policy)).toBe(false);
@@ -2759,7 +2759,7 @@ describe('PolicyUtils', () => {
                 const policy = {
                     ...createRandomPolicy(0),
                     connections: {
-                        [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: {config: {approvalMode: 'basic', finalApprover: null}},
+                        [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: {config: {approvalMode: CONST.GUSTO.APPROVAL_MODE.BASIC, finalApprover: null}},
                     },
                 } as Policy;
                 expect(isAnyHRReadOnlyWorkflowMode(policy)).toBe(true);
@@ -2769,7 +2769,7 @@ describe('PolicyUtils', () => {
                 const policy = {
                     ...createRandomPolicy(0),
                     connections: {
-                        [CONST.POLICY.CONNECTIONS.NAME.ZENEFITS]: {config: {approvalMode: 'manager', finalApprover: null, isConfigured: true}},
+                        [CONST.POLICY.CONNECTIONS.NAME.ZENEFITS]: {config: {approvalMode: CONST.ZENEFITS.APPROVAL_MODE.MANAGER, finalApprover: null, isConfigured: true}},
                     },
                 } as Policy;
                 expect(isAnyHRReadOnlyWorkflowMode(policy)).toBe(true);
@@ -2779,7 +2779,7 @@ describe('PolicyUtils', () => {
                 const policy = {
                     ...createRandomPolicy(0),
                     connections: {
-                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {config: {approvalMode: 'basic', finalApprover: null, integration: 'workday'}},
+                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {config: {approvalMode: CONST.MERGE_HR.APPROVAL_MODE.BASIC, finalApprover: null, integration: 'workday'}},
                     },
                 } as Policy;
                 expect(isAnyHRReadOnlyWorkflowMode(policy)).toBe(true);
@@ -2799,30 +2799,30 @@ describe('PolicyUtils', () => {
                 const policy = {
                     ...createRandomPolicy(0),
                     connections: {
-                        [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: {config: {approvalMode: 'custom', finalApprover: null}},
+                        [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: {config: {approvalMode: CONST.GUSTO.APPROVAL_MODE.CUSTOM, finalApprover: null}},
                     },
                 } as Policy;
-                expect(getHRApprovalMode(policy, 'gusto')).toBe('custom');
+                expect(getHRApprovalMode(policy, CONST.POLICY.CONNECTIONS.NAME.GUSTO)).toBe(CONST.GUSTO.APPROVAL_MODE.CUSTOM);
             });
 
             it('returns correct mode for Zenefits', () => {
                 const policy = {
                     ...createRandomPolicy(0),
                     connections: {
-                        [CONST.POLICY.CONNECTIONS.NAME.ZENEFITS]: {config: {approvalMode: 'manager', finalApprover: null, isConfigured: true}},
+                        [CONST.POLICY.CONNECTIONS.NAME.ZENEFITS]: {config: {approvalMode: CONST.ZENEFITS.APPROVAL_MODE.MANAGER, finalApprover: null, isConfigured: true}},
                     },
                 } as Policy;
-                expect(getHRApprovalMode(policy, 'zenefits')).toBe('manager');
+                expect(getHRApprovalMode(policy, CONST.POLICY.CONNECTIONS.NAME.ZENEFITS)).toBe(CONST.ZENEFITS.APPROVAL_MODE.MANAGER);
             });
 
             it('returns correct mode for Merge HR', () => {
                 const policy = {
                     ...createRandomPolicy(0),
                     connections: {
-                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {config: {approvalMode: 'basic', finalApprover: null, integration: 'workday'}},
+                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {config: {approvalMode: CONST.MERGE_HR.APPROVAL_MODE.BASIC, finalApprover: null, integration: 'workday'}},
                     },
                 } as Policy;
-                expect(getHRApprovalMode(policy, 'merge_hris')).toBe('basic');
+                expect(getHRApprovalMode(policy, CONST.POLICY.CONNECTIONS.NAME.MERGE_HR)).toBe(CONST.MERGE_HR.APPROVAL_MODE.BASIC);
             });
 
             it('returns null for unknown connection name', () => {
@@ -2830,7 +2830,7 @@ describe('PolicyUtils', () => {
                     ...createRandomPolicy(0),
                     connections: {},
                 } as Policy;
-                expect(getHRApprovalMode(policy, 'gusto')).toBeNull();
+                expect(getHRApprovalMode(policy, CONST.POLICY.CONNECTIONS.NAME.GUSTO)).toBeNull();
             });
         });
     });
