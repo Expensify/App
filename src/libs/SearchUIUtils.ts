@@ -2501,7 +2501,7 @@ function createAndOpenSearchTransactionThread(
     IOUTransactionID?: string,
     transactionPreviewData?: TransactionPreviewData,
     shouldNavigate = true,
-) {
+): string | undefined {
     const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isDeleted = isDeletedTransaction(item);
     const iouReportAction = getIOUActionForReportID(isFromSelfDM ? findSelfDMReportID() : item.reportID, item.transactionID);
@@ -2540,20 +2540,18 @@ function createAndOpenSearchTransactionThread(
         });
     }
 
-    if (shouldNavigate) {
-        // Navigate to transaction thread if there are multiple transactions in the report, or to the parent report if it's the only transaction
-        const isFromOneTransactionReport = isOneTransactionReport(item.report);
-        const shouldNavigateToTransactionThread = (!isFromOneTransactionReport || isFromSelfDM || isDeleted) && transactionThreadReport?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID;
-        // When we have an actual transaction thread (childReportID from Onyx) but the report isn't in Onyx yet
-        // (e.g. Search didn't return the IOU action for deleted items), use childReportID directly so we don't navigate with undefined
-        const targetReportID = shouldNavigateToTransactionThread
-            ? (transactionThreadReport?.reportID ?? (hasActualTransactionThread ? iouReportAction.childReportID : undefined))
-            : item.reportID;
+    // Navigate to transaction thread if there are multiple transactions in the report, or to the parent report if it's the only transaction
+    const isFromOneTransactionReport = isOneTransactionReport(item.report);
+    const shouldNavigateToTransactionThread = (!isFromOneTransactionReport || isFromSelfDM || isDeleted) && transactionThreadReport?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID;
+    // When we have an actual transaction thread (childReportID from Onyx) but the report isn't in Onyx yet
+    // (e.g. Search didn't return the IOU action for deleted items), use childReportID directly so we don't navigate with undefined
+    const targetReportID = shouldNavigateToTransactionThread ? (transactionThreadReport?.reportID ?? (hasActualTransactionThread ? iouReportAction.childReportID : undefined)) : item.reportID;
 
-        if (targetReportID) {
-            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID, backTo})));
-        }
+    if (shouldNavigate && targetReportID) {
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID, backTo})));
     }
+
+    return targetReportID;
 }
 
 /**
