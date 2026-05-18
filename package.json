@@ -123,7 +123,7 @@
     "date-fns-tz": "^3.2.0",
     "dom-serializer": "^0.2.2",
     "domhandler": "^5.0.3",
-    "expensify-common": "2.0.179",
+    "expensify-common": "2.0.180",
     "expo": "55.0.0",
     "expo-asset": "55.0.2",
     "expo-audio": "55.0.4",
