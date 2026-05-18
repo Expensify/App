@@ -3,7 +3,6 @@ import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
     ConnectPolicyToQuickBooksDesktopParams,
-    UpdateManyPolicyConnectionConfigurationsParams,
     UpdateQuickbooksDesktopAccountingMethodParams,
     UpdateQuickbooksDesktopCompanyCardExpenseAccountTypeParams,
     UpdateQuickbooksDesktopExpensesExportDestinationTypeParams,
@@ -520,30 +519,20 @@ function updateQuickbooksDesktopNonReimbursableBillDefaultVendor<TSettingValue e
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_BILL_DEFAULT_VENDOR, parameters, onyxData);
 }
 
-function updateQuickbooksDesktopTravelInvoicingConfig<TSettingName extends typeof CONST.QUICKBOOKS_DESKTOP_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT>(
+function updateQuickbooksDesktopTravelInvoicingPayableAccount(
     policyID: string,
-    settingName: TSettingName,
-    settingValue: Partial<Connections['quickbooksDesktop']['config']['export'][TSettingName]>,
-    oldSettingValue?: Partial<Connections['quickbooksDesktop']['config']['export'][TSettingName]>,
+    settingValue: string,
+    oldSettingValue?: Connections['quickbooksDesktop']['config']['export']['travelInvoicingPayableAccountID'],
 ) {
-    const onyxData = buildOnyxDataForQuickbooksExportConfiguration(policyID, settingName, settingValue, oldSettingValue);
+    const onyxData = buildOnyxDataForQuickbooksExportConfiguration(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT, settingValue, oldSettingValue);
 
-    const parameters: UpdateManyPolicyConnectionConfigurationsParams = {
+    const parameters: UpdateQuickbooksDesktopGenericTypeParams = {
         policyID,
-        connectionName: CONST.POLICY.CONNECTIONS.NAME.QBD,
-        configUpdate: JSON.stringify({export: {[settingName]: settingValue}}),
-        idempotencyKey: String(settingName),
+        settingValue,
+        idempotencyKey: String(CONST.QUICKBOOKS_DESKTOP_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT),
     };
 
-    API.write(WRITE_COMMANDS.UPDATE_MANY_POLICY_CONNECTION_CONFIGS, parameters, onyxData);
-}
-
-function updateQuickbooksDesktopTravelInvoicingPayableAccount<TSettingValue extends Connections['quickbooksDesktop']['config']['export']['travelInvoicingPayableAccountID']>(
-    policyID: string,
-    settingValue: TSettingValue,
-    oldSettingValue?: TSettingValue,
-) {
-    updateQuickbooksDesktopTravelInvoicingConfig(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT, settingValue, oldSettingValue);
+    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_TRAVEL_INVOICING_PAYABLE_ACCOUNT, parameters, onyxData);
 }
 
 function updateQuickbooksDesktopExportDate<TSettingValue extends Connections['quickbooksDesktop']['config']['export']['exportDate']>(
