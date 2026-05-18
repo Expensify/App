@@ -61,7 +61,6 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
         transactionThreadReportID,
         transactionThreadReport,
         parentReportActionForTransactionThread,
-        shouldAddCreatedAction,
         treatAsNoPaginationAnchor,
         setTreatAsNoPaginationAnchor,
     } = useReportActionsPagination(reportID, reportActionIDFromRoute);
