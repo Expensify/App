@@ -450,8 +450,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
      */
     const executeScenario = useCallback(
         async <T extends MultifactorAuthenticationScenario>(scenario: T, params?: ExecuteScenarioParams<T>): Promise<void> => {
-            // Guard against rapid double-tap: if a scenario is already active, ignore the second invocation
-            // so we don't dispatch a second INIT that would reset progress of the in-flight flow.
+            // Perf short-circuit: skip native call + telemetry when already active. Reducer's INIT guard enforces correctness.
             if (state.scenario) {
                 return;
             }

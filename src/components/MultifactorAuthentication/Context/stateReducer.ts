@@ -74,6 +74,10 @@ function stateReducer(state: MultifactorAuthenticationState, action: Action): Mu
         case 'SET_CANCEL_CONFIRM_VISIBLE':
             return {...state, isCancelConfirmVisible: action.payload};
         case 'INIT': {
+            // Race guard: drop duplicate INIT — reducer sees latest state, catches stale-closure dispatches.
+            if (state.scenario) {
+                return state;
+            }
             // We can safely make this assertion because the params type is already type-guarded in both the executeScenario and the actions themselves. Each scenario config satisfies MultifactorAuthenticationScenarioConfig at definition; the union prevents direct assertion
             const scenario = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[action.payload.scenario] as MultifactorAuthenticationScenarioConfig;
             return {
