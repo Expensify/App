@@ -4,6 +4,8 @@ import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {SelectorType} from '@components/SelectionScreen';
 import CONST from '@src/CONST';
+import MERGE_HR_PROVIDERS, {MERGE_HR_PREFIX} from '@src/CONST/MERGE_HR_PROVIDERS';
+import type {MergeHRConnectionName} from '@src/CONST/MERGE_HR_PROVIDERS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
@@ -59,6 +61,12 @@ type TravelStep = ValueOf<typeof CONST.TRAVEL.STEPS>;
 
 type AccountingConnectionName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES>;
 type HRConnectionName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.HR_CONNECTION_NAMES>;
+
+type HRProviderInfo = {
+    connectionName: string;
+    displayName: string;
+    iconUrl?: string;
+};
 
 type WorkspaceDetails = {
     policyID: string | undefined;
@@ -1168,7 +1176,7 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFe
         return policy?.[featureName] ? !!policy?.[featureName] : hasAccountingFeatureConnection(policy);
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED) {
-        return policy?.isHREnabled === true || isHRIntegrationConnected(policy);
+        return policy?.isHREnabled === true || isAnyHRConnected(policy);
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED) {
         return policy?.receiptPartners?.enabled ?? false;
@@ -1812,8 +1820,101 @@ function isZenefitsConnected(policy?: OnyxEntry<Policy>) {
     return !!policy?.connections?.zenefits;
 }
 
-function isHRIntegrationConnected(policy?: OnyxEntry<Policy>) {
-    return isGustoConnected(policy) || isZenefitsConnected(policy);
+const KNOWN_MERGE_HR_NAMES = new Set<string>(Object.values(MERGE_HR_PROVIDERS).map((p) => p.connectionName));
+
+/** Type guard that narrows a string to a known Merge HR connection name. Checks both the prefix and membership in the known provider set. */
+function isMergeHRConnectionName(name: string): name is MergeHRConnectionName {
+    return name.startsWith(MERGE_HR_PREFIX) && KNOWN_MERGE_HR_NAMES.has(name);
+}
+
+/** Checks whether the policy has a Merge HR connection. When `connectionName` is provided, checks only that specific provider; otherwise checks for any. */
+function isMergeHRConnected(policy?: OnyxEntry<Policy>, connectionName?: MergeHRConnectionName): boolean {
+    if (!policy?.connections) {
+        return false;
+    }
+    if (connectionName) {
+        return !!policy.connections[connectionName];
+    }
+    return Object.entries(policy.connections).some(([key, value]) => isMergeHRConnectionName(key) && !!value);
+}
+
+/** Returns display info for every HR provider currently connected to the policy (Gusto, Zenefits, and any Merge HR providers). */
+function getConnectedHRProviders(policy?: OnyxEntry<Policy>): HRProviderInfo[] {
+    const providers: HRProviderInfo[] = [];
+    if (isGustoConnected(policy)) {
+        providers.push({
+            connectionName: CONST.POLICY.CONNECTIONS.NAME.GUSTO,
+            displayName: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.gusto,
+            iconUrl: '',
+        });
+    }
+    if (isZenefitsConnected(policy)) {
+        providers.push({
+            connectionName: CONST.POLICY.CONNECTIONS.NAME.ZENEFITS,
+            displayName: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.zenefits,
+            iconUrl: '',
+        });
+    }
+    for (const name of Object.values(CONST.POLICY.CONNECTIONS.NAME).filter(isMergeHRConnectionName)) {
+        const connection = policy?.connections?.[name];
+        if (!connection) {
+            continue;
+        }
+        const slug = connection.config?.mergeProviderSlug;
+        const providerInfo = slug ? MERGE_HR_PROVIDERS[slug] : undefined;
+        providers.push({
+            connectionName: name,
+            displayName: providerInfo?.displayName ?? name,
+            iconUrl: providerInfo?.iconUrl ?? '',
+        });
+    }
+    return providers;
+}
+
+/** Returns true if the policy has any HR integration connected (Gusto, Zenefits, or any Merge HR provider). */
+function isAnyHRConnected(policy?: OnyxEntry<Policy>): boolean {
+    return isGustoConnected(policy) || isZenefitsConnected(policy) || isMergeHRConnected(policy);
+}
+
+/** Returns true if any connected HR integration uses a read-only approval mode (basic or manager), which blocks manual workflow editing. */
+function isAnyHRReadOnlyWorkflowMode(policy?: OnyxEntry<Policy>): boolean {
+    const gustoReadOnlyModes = new Set<ValueOf<typeof CONST.GUSTO.APPROVAL_MODE>>([CONST.GUSTO.APPROVAL_MODE.BASIC, CONST.GUSTO.APPROVAL_MODE.MANAGER]);
+    const gustoMode = policy?.connections?.gusto?.config?.approvalMode;
+    if (gustoMode && gustoReadOnlyModes.has(gustoMode)) {
+        return true;
+    }
+    const zenefitsMode = policy?.connections?.zenefits?.config?.approvalMode;
+    if (zenefitsMode && gustoReadOnlyModes.has(zenefitsMode)) {
+        return true;
+    }
+    const mergeHRReadOnlyModes = new Set<ValueOf<typeof CONST.MERGE_HR.APPROVAL_MODE>>([CONST.MERGE_HR.APPROVAL_MODE.BASIC, CONST.MERGE_HR.APPROVAL_MODE.MANAGER]);
+    for (const name of Object.values(CONST.POLICY.CONNECTIONS.NAME).filter(isMergeHRConnectionName)) {
+        const mode = policy?.connections?.[name]?.config?.approvalMode;
+        if (mode && mergeHRReadOnlyModes.has(mode)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/** Returns the approval mode configured for a specific HR connection, or null if not found. */
+function getHRApprovalMode(
+    policy?: OnyxEntry<Policy>,
+    connectionName?: HRConnectionName | MergeHRConnectionName,
+): ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | ValueOf<typeof CONST.MERGE_HR.APPROVAL_MODE> | null {
+    if (!connectionName || !policy?.connections) {
+        return null;
+    }
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.GUSTO) {
+        return policy.connections.gusto?.config?.approvalMode ?? null;
+    }
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.ZENEFITS) {
+        return policy.connections.zenefits?.config?.approvalMode ?? null;
+    }
+    if (isMergeHRConnectionName(connectionName)) {
+        return policy.connections[connectionName]?.config?.approvalMode ?? null;
+    }
+    return null;
 }
 
 function getConnectedIntegration(policy: Policy | undefined, connectionNames: readonly ConnectionName[] = getAccountingConnectionNames()) {
@@ -2364,9 +2465,14 @@ export {
     getHRConnectionNames,
     isGustoConnected,
     isZenefitsConnected,
-    isHRIntegrationConnected,
+    isMergeHRConnectionName,
+    isMergeHRConnected,
+    getConnectedHRProviders,
+    isAnyHRConnected,
+    isAnyHRReadOnlyWorkflowMode,
+    getHRApprovalMode,
     isSubmitPolicy,
     isPolicyEditor,
 };
 
-export type {MemberEmailsToAccountIDs};
+export type {MemberEmailsToAccountIDs, HRProviderInfo};

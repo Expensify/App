@@ -3,6 +3,7 @@ import type {ValueOf} from 'type-fest';
 import type {GustoSyncResult} from '@libs/API/GustoSyncResult';
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
+import type MERGE_HR_PROVIDERS from '@src/CONST/MERGE_HR_PROVIDERS';
 import type * as OnyxTypes from '.';
 import type * as OnyxCommon from './OnyxCommon';
 import type {WorkspaceTravelSettings} from './TravelSettings';
@@ -1532,6 +1533,27 @@ type GustoConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
     'approvalMode' | 'finalApprover'
 >;
 
+/** Merge HR connection data */
+type MergeHRConnectionData = Record<string, never>;
+
+/** Merge HR connection config */
+type MergeHRConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** Merge HR approval mode */
+        approvalMode: ValueOf<typeof CONST.MERGE_HR.APPROVAL_MODE> | null;
+
+        /** Workspace member who acts as the final approver */
+        finalApprover: string | null;
+
+        /** The slug identifying which Merge HR provider is connected */
+        mergeProviderSlug: keyof typeof MERGE_HR_PROVIDERS;
+
+        /** Collections of form field errors */
+        errorFields?: OnyxCommon.ErrorFields;
+    },
+    'approvalMode' | 'finalApprover'
+>;
+
 /** TriNet (Zenefits) connection data */
 type ZenefitsConnectionData = Record<string, never>;
 
@@ -1689,6 +1711,15 @@ type Connections = {
 
     /** TriNet (Zenefits) integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.ZENEFITS]: Connection<ZenefitsConnectionData, ZenefitsConnectionConfig>;
+
+    /** Merge HR Workday integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR_WORKDAY]: Connection<MergeHRConnectionData, MergeHRConnectionConfig>;
+
+    /** Merge HR BambooHR integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR_BAMBOOHR]: Connection<MergeHRConnectionData, MergeHRConnectionConfig>;
+
+    /** Merge HR HiBob integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR_HIBOB]: Connection<MergeHRConnectionData, MergeHRConnectionConfig>;
 };
 
 /** All integration connections, including unsupported ones */
@@ -2425,4 +2456,6 @@ export type {
     Subrate,
     ProhibitedExpenses,
     NetSuiteConnectionData,
+    MergeHRConnectionConfig,
+    MergeHRConnectionData,
 };

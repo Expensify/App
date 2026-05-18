@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
+import type {Connection, OnyxCollection, OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import DateUtils from '@libs/DateUtils';
 import {
@@ -11,10 +11,12 @@ import {
     getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
     getAllTaxRates,
     getAllTaxRatesNamesAndValues,
+    getConnectedHRProviders,
     getConnectedIntegrationNamesForPolicies,
     getCustomUnitsForDuplication,
     getDefaultTimeTrackingRate,
     getEligibleBankAccountShareRecipients,
+    getHRApprovalMode,
     getManagerAccountID,
     getPolicyEmployeeAccountIDs,
     getRateDisplayValue,
@@ -31,6 +33,10 @@ import {
     hasOnlyPersonalPolicies,
     hasOtherControlWorkspaces,
     hasPolicyWithXeroConnection,
+    isAnyHRConnected,
+    isAnyHRReadOnlyWorkflowMode,
+    isMergeHRConnected,
+    isMergeHRConnectionName,
     isPolicyMemberWithoutPendingDelete,
     shouldShowPolicy,
     sortPoliciesByName,
@@ -38,6 +44,7 @@ import {
 } from '@libs/PolicyUtils';
 import {isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import {MERGE_HR_PREFIX} from '@src/CONST/MERGE_HR_PROVIDERS';
 import {getPolicyBrickRoadIndicatorStatus} from '@src/libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
@@ -2611,6 +2618,246 @@ describe('PolicyUtils', () => {
 
             it('returns false when prohibitedExpenses is an empty object', () => {
                 expect(hasConfiguredRules({prohibitedExpenses: {}} as Policy)).toBe(false);
+            });
+        });
+    });
+
+    describe('HR connection helpers', () => {
+        describe('isMergeHRConnectionName', () => {
+            const mergeHRNames = Object.values(CONST.POLICY.CONNECTIONS.NAME).filter((n) => n.startsWith(MERGE_HR_PREFIX));
+
+            it.each(mergeHRNames)('returns true for %s', (name) => {
+                expect(isMergeHRConnectionName(name)).toBe(true);
+            });
+
+            it.each(['gusto', 'zenefits', 'quickbooksOnline'])('returns false for %s', (name) => {
+                expect(isMergeHRConnectionName(name)).toBe(false);
+            });
+        });
+
+        describe('isMergeHRConnected', () => {
+            it('returns false for undefined policy', () => {
+                expect(isMergeHRConnected(undefined)).toBe(false);
+            });
+
+            it('returns false for policy with no connections', () => {
+                const policy = createRandomPolicy(0);
+                delete policy.connections;
+                expect(isMergeHRConnected(policy)).toBe(false);
+            });
+
+            it('returns true for policy with merge_hr_workday connection', () => {
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR_WORKDAY]: {config: {approvalMode: null, finalApprover: null, mergeProviderSlug: 'workday'}},
+                    },
+                } as Policy;
+                expect(isMergeHRConnected(policy)).toBe(true);
+            });
+
+            it('returns false for policy with gusto connection', () => {
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: {config: {approvalMode: null, finalApprover: null}},
+                    },
+                } as Policy;
+                expect(isMergeHRConnected(policy)).toBe(false);
+            });
+
+            it('filters correctly by specific connectionName', () => {
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR_WORKDAY]: {config: {approvalMode: null, finalApprover: null, mergeProviderSlug: 'workday'}},
+                    },
+                } as Policy;
+                expect(isMergeHRConnected(policy, 'merge_hr_workday')).toBe(true);
+                expect(isMergeHRConnected(policy, 'merge_hr_bamboohr')).toBe(false);
+            });
+        });
+
+        describe('getConnectedHRProviders', () => {
+            it('returns empty array for no connections', () => {
+                const policy = createRandomPolicy(0);
+                delete policy.connections;
+                expect(getConnectedHRProviders(policy)).toEqual([]);
+            });
+
+            it('returns Gusto only', () => {
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: {config: {approvalMode: null, finalApprover: null}},
+                    },
+                } as Policy;
+                const providers = getConnectedHRProviders(policy);
+                expect(providers).toHaveLength(1);
+                expect(providers.at(0)?.connectionName).toBe('gusto');
+            });
+
+            it('returns Gusto and Zenefits', () => {
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: {config: {approvalMode: null, finalApprover: null}},
+                        [CONST.POLICY.CONNECTIONS.NAME.ZENEFITS]: {config: {approvalMode: null, finalApprover: null, isConfigured: true}},
+                    },
+                } as Policy;
+                const providers = getConnectedHRProviders(policy);
+                expect(providers).toHaveLength(2);
+            });
+
+            it('includes Merge provider with correct displayName', () => {
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR_WORKDAY]: {config: {approvalMode: null, finalApprover: null, mergeProviderSlug: 'workday'}},
+                    },
+                } as Policy;
+                const providers = getConnectedHRProviders(policy);
+                expect(providers).toHaveLength(1);
+                expect(providers.at(0)?.displayName).toBe('Workday');
+                expect(providers.at(0)?.connectionName).toBe('merge_hr_workday');
+            });
+        });
+
+        describe('isAnyHRConnected', () => {
+            it('returns false for empty connections', () => {
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {},
+                } as Policy;
+                expect(isAnyHRConnected(policy)).toBe(false);
+            });
+
+            it('returns true for Gusto', () => {
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: {config: {approvalMode: null, finalApprover: null}},
+                    },
+                } as Policy;
+                expect(isAnyHRConnected(policy)).toBe(true);
+            });
+
+            it('returns true for Zenefits', () => {
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.ZENEFITS]: {config: {approvalMode: null, finalApprover: null, isConfigured: true}},
+                    },
+                } as Policy;
+                expect(isAnyHRConnected(policy)).toBe(true);
+            });
+
+            it('returns true for merge_hr_workday', () => {
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR_WORKDAY]: {config: {approvalMode: null, finalApprover: null, mergeProviderSlug: 'workday'}},
+                    },
+                } as Policy;
+                expect(isAnyHRConnected(policy)).toBe(true);
+            });
+        });
+
+        describe('isAnyHRReadOnlyWorkflowMode', () => {
+            it('returns false with no HR connections', () => {
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {},
+                } as Policy;
+                expect(isAnyHRReadOnlyWorkflowMode(policy)).toBe(false);
+            });
+
+            it('returns false with custom mode for Gusto', () => {
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: {config: {approvalMode: 'custom', finalApprover: null}},
+                    },
+                } as Policy;
+                expect(isAnyHRReadOnlyWorkflowMode(policy)).toBe(false);
+            });
+
+            it('returns true with basic mode for Gusto', () => {
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: {config: {approvalMode: 'basic', finalApprover: null}},
+                    },
+                } as Policy;
+                expect(isAnyHRReadOnlyWorkflowMode(policy)).toBe(true);
+            });
+
+            it('returns true with manager mode for Zenefits', () => {
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.ZENEFITS]: {config: {approvalMode: 'manager', finalApprover: null, isConfigured: true}},
+                    },
+                } as Policy;
+                expect(isAnyHRReadOnlyWorkflowMode(policy)).toBe(true);
+            });
+
+            it('returns true with basic mode for Merge HR', () => {
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR_WORKDAY]: {config: {approvalMode: 'basic', finalApprover: null, mergeProviderSlug: 'workday'}},
+                    },
+                } as Policy;
+                expect(isAnyHRReadOnlyWorkflowMode(policy)).toBe(true);
+            });
+        });
+
+        describe('getHRApprovalMode', () => {
+            it('returns null for no connection', () => {
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {},
+                } as Policy;
+                expect(getHRApprovalMode(policy, undefined)).toBeNull();
+            });
+
+            it('returns correct mode for Gusto', () => {
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: {config: {approvalMode: 'custom', finalApprover: null}},
+                    },
+                } as Policy;
+                expect(getHRApprovalMode(policy, 'gusto')).toBe('custom');
+            });
+
+            it('returns correct mode for Zenefits', () => {
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.ZENEFITS]: {config: {approvalMode: 'manager', finalApprover: null, isConfigured: true}},
+                    },
+                } as Policy;
+                expect(getHRApprovalMode(policy, 'zenefits')).toBe('manager');
+            });
+
+            it('returns correct mode for Merge HR', () => {
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR_WORKDAY]: {config: {approvalMode: 'basic', finalApprover: null, mergeProviderSlug: 'workday'}},
+                    },
+                } as Policy;
+                expect(getHRApprovalMode(policy, 'merge_hr_workday')).toBe('basic');
+            });
+
+            it('returns null for unknown connection name', () => {
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {},
+                } as Policy;
+                expect(getHRApprovalMode(policy, 'gusto')).toBeNull();
             });
         });
     });

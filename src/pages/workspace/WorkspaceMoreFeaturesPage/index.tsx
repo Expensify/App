@@ -27,15 +27,14 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {
     canPolicyAccessFeature,
+    getConnectedHRProviders,
     getDistanceRateCustomUnit,
     getPerDiemCustomUnit,
     hasAccountingConnections,
     hasAccountingFeatureConnection,
+    isAnyHRConnected,
     isControlPolicy,
-    isGustoConnected,
-    isHRIntegrationConnected,
     isTimeTrackingEnabled,
-    isZenefitsConnected,
 } from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -173,14 +172,15 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     };
 
     const warnDisconnectHRFirst = async () => {
-        if (!isHRIntegrationConnected(policy)) {
+        if (!isAnyHRConnected(policy)) {
             return;
         }
-        let integration = '';
-        if (isZenefitsConnected(policy)) {
-            integration = translate('workspace.hr.zenefits.title');
-        } else if (isGustoConnected(policy)) {
+        const hrProvider = getConnectedHRProviders(policy).at(0);
+        let integration = hrProvider?.displayName ?? '';
+        if (hrProvider?.connectionName === CONST.POLICY.CONNECTIONS.NAME.GUSTO) {
             integration = translate('workspace.hr.gusto.title');
+        } else if (hrProvider?.connectionName === CONST.POLICY.CONNECTIONS.NAME.ZENEFITS) {
+            integration = translate('workspace.hr.zenefits.title');
         }
         await showConfirmModal({
             title: translate('workspace.distanceRates.oopsNotSoFast'),
@@ -323,11 +323,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 icon={illustrations.Members}
                                 title={translate('workspace.hr.title')}
                                 subtitle={translate('workspace.hr.subtitle')}
-                                isActive={
-                                    ((policy?.isHREnabled === true || isHRIntegrationConnected(policy)) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED)) ?? false
-                                }
+                                isActive={((policy?.isHREnabled === true || isAnyHRConnected(policy)) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED)) ?? false}
                                 pendingAction={policy?.pendingFields?.isHREnabled}
-                                disabled={isHRIntegrationConnected(policy)}
+                                disabled={isAnyHRConnected(policy)}
                                 disabledAction={warnDisconnectHRFirst}
                                 onToggle={(isEnabled) => {
                                     if (!policyID) {

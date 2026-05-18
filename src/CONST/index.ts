@@ -16,6 +16,7 @@ import type {PolicyTagLists} from '@src/types/onyx';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import CI from './CI';
 import {LOCALES} from './LOCALES';
+import MERGE_HR_PROVIDERS from './MERGE_HR_PROVIDERS';
 
 // Creating a default array and object this way because objects ({}) and arrays ([]) are not stable types.
 // Freezing the array ensures that it cannot be unintentionally modified.
@@ -2883,6 +2884,14 @@ const CONST = {
         },
     },
 
+    MERGE_HR: {
+        APPROVAL_MODE: {
+            BASIC: 'basic',
+            MANAGER: 'manager',
+            CUSTOM: 'custom',
+        },
+    },
+
     QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {
         VENDOR_BILL: 'bill',
         CHECK: 'check',
@@ -3820,6 +3829,9 @@ const CONST = {
                 CERTINIA: 'financialforce',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
+                MERGE_HR_WORKDAY: MERGE_HR_PROVIDERS.workday.connectionName,
+                MERGE_HR_BAMBOOHR: MERGE_HR_PROVIDERS.bamboohr.connectionName,
+                MERGE_HR_HIBOB: MERGE_HR_PROVIDERS.hibob.connectionName,
             },
             SUPPORTED_ONLY_ON_OLDDOT: {
                 FINANCIALFORCE: 'financialforce',
@@ -3836,6 +3848,9 @@ const CONST = {
                 CERTINIA: 'certinia',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
+                MERGE_HR_WORKDAY: 'merge-hr-workday',
+                MERGE_HR_BAMBOOHR: 'merge-hr-bamboohr',
+                MERGE_HR_HIBOB: 'merge-hr-hibob',
             },
             NAME_USER_FRIENDLY: {
                 netsuite: 'NetSuite',
@@ -3847,6 +3862,9 @@ const CONST = {
                 gusto: 'Gusto',
                 billCom: 'Bill.com',
                 zenefits: 'TriNet',
+                [MERGE_HR_PROVIDERS.workday.connectionName]: MERGE_HR_PROVIDERS.workday.displayName,
+                [MERGE_HR_PROVIDERS.bamboohr.connectionName]: MERGE_HR_PROVIDERS.bamboohr.displayName,
+                [MERGE_HR_PROVIDERS.hibob.connectionName]: MERGE_HR_PROVIDERS.hibob.displayName,
                 sap: 'SAP',
                 oracle: 'Oracle',
                 microsoftDynamics: 'Microsoft Dynamics',
@@ -3856,7 +3874,7 @@ const CONST = {
                 return [this.NAME.QBO, this.NAME.QBD, this.NAME.XERO, this.NAME.NETSUITE, this.NAME.SAGE_INTACCT, this.NAME.CERTINIA] as const;
             },
             get HR_CONNECTION_NAMES() {
-                return [this.NAME.GUSTO, this.NAME.ZENEFITS] as const;
+                return [this.NAME.GUSTO, this.NAME.ZENEFITS, this.NAME.MERGE_HR_WORKDAY, this.NAME.MERGE_HR_BAMBOOHR, this.NAME.MERGE_HR_HIBOB] as const;
             },
             get EXPORTED_TO_INTEGRATION_DISPLAY_NAMES(): string[] {
                 return this.ACCOUNTING_CONNECTION_NAMES.map((name) => this.NAME_USER_FRIENDLY[name as keyof typeof this.NAME_USER_FRIENDLY]);
