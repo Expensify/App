@@ -50,6 +50,7 @@ function ButtonText({children, numberOfLines = 1, style, hoverStyle}: ButtonText
                 sizeTextStyles[size],
                 variant ? variantTextStyles[variant] : undefined,
                 isHovered && hoverStyle,
+                styles.ph1,
                 style,
                 variant === 'link' && [styles.link, isHovered && StyleUtils.getColorStyle(theme.linkHover)],
             ]}

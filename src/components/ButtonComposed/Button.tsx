@@ -1,6 +1,7 @@
 import React, {useMemo, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import ActivityIndicator from '@components/ActivityIndicator';
 import {getButtonRole} from '@components/Button/utils';
 import type {PressableRef} from '@components/Pressable/GenericPressable/types';
@@ -80,17 +81,27 @@ function Button({
         [styles.noRightBorderRadius, styles.noLeftBorderRadius],
     );
 
+    const horizontalPaddingBySize = useMemo<Record<ValueOf<typeof CONST.BUTTON_SIZE>, ViewStyle>>(
+        () => ({
+            [CONST.BUTTON_SIZE.SMALL]: styles.ph2,
+            [CONST.BUTTON_SIZE.MEDIUM]: styles.ph3,
+            [CONST.BUTTON_SIZE.LARGE]: styles.ph4,
+        }),
+        [styles.ph2, styles.ph3, styles.ph4],
+    );
+
     const buttonStyles = useMemo<StyleProp<ViewStyle>>(
         () => [
             styles.button,
             StyleUtils.getButtonSizeStyle(styles, size),
+            horizontalPaddingBySize[size],
             buttonVariantStyles,
             shouldRemoveBorderRadius ? borderRadiusStyles[shouldRemoveBorderRadius] : undefined,
             styles.alignItemsStretch,
             innerStyles,
             variant === 'link' && styles.bgTransparent,
         ],
-        [styles, StyleUtils, size, buttonVariantStyles, shouldRemoveBorderRadius, borderRadiusStyles, innerStyles, variant],
+        [styles, StyleUtils, size, horizontalPaddingBySize, buttonVariantStyles, shouldRemoveBorderRadius, borderRadiusStyles, innerStyles, variant],
     );
 
     const buttonContainerStyles = useMemo<StyleProp<ViewStyle>>(
@@ -181,7 +192,7 @@ function Button({
                         styles.justifyContentCenter,
                         contentContainerStyle,
                         styles.mw100,
-                        size === CONST.BUTTON_SIZE.SMALL ? styles.gap1 : styles.gap2,
+                        size !== CONST.BUTTON_SIZE.SMALL && styles.gap1,
                         isLoading && styles.opacity0,
                     ]}
                 >
