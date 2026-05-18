@@ -931,7 +931,9 @@
         "lintrk",
         "Fbclid",
         "Gclid",
-        "autocorrection"
+        "autocorrection",
+        "BambooHr",
+        "HiBob"
     ],
     "ignorePaths": [
         ".gitignore",
