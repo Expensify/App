@@ -346,6 +346,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     originalTransactionID: item.comment?.originalTransactionID,
                     source: item.comment?.source,
                     isLinkedTrackedExpenseReportArchived,
+                    odometerStart: isOdometerDistanceRequest ? item.comment?.odometerStart : undefined,
+                    odometerEnd: isOdometerDistanceRequest ? item.comment?.odometerEnd : undefined,
                     isFromGlobalCreate: item?.isFromFloatingActionButton ?? item?.isFromGlobalCreate,
                     ...(isTimeRequest ? {type: CONST.TRANSACTION.TYPE.TIME, count: item.comment?.units?.count, rate: item.comment?.units?.rate, unit: CONST.TIME_TRACKING.UNIT.HOUR} : {}),
                 },
