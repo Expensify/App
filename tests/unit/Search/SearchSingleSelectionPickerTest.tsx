@@ -116,8 +116,11 @@ function renderPicker(props: Partial<React.ComponentProps<typeof SearchSingleSel
     return render(
         <OnyxListItemProvider>
             <SearchSingleSelectionPicker
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...defaultProps}
+                items={defaultProps.items}
+                initiallySelectedItem={defaultProps.initiallySelectedItem}
+                onSaveSelection={defaultProps.onSaveSelection}
+                shouldAutoSave={defaultProps.shouldAutoSave}
+                allowNoneOption={defaultProps.allowNoneOption}
             />
         </OnyxListItemProvider>,
     );
@@ -151,7 +154,7 @@ describe('SearchSingleSelectionPicker', () => {
     it('shows None option after the selected item', () => {
         renderPicker({
             allowNoneOption: true,
-            initiallySelectedItem: mockItems[0],
+            initiallySelectedItem: mockItems.at(0),
         });
 
         expect(screen.getByText('Food')).toBeTruthy();
@@ -162,7 +165,7 @@ describe('SearchSingleSelectionPicker', () => {
         const onSaveSelection = jest.fn();
         renderPicker({
             allowNoneOption: true,
-            initiallySelectedItem: mockItems[0],
+            initiallySelectedItem: mockItems.at(0),
             onSaveSelection,
             shouldAutoSave: true,
         });
@@ -188,7 +191,7 @@ describe('SearchSingleSelectionPicker', () => {
 
     it('marks the initially selected item as selected', () => {
         renderPicker({
-            initiallySelectedItem: mockItems[1],
+            initiallySelectedItem: mockItems.at(1),
         });
 
         const selectedItem = screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}travel`);
