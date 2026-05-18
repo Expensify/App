@@ -89,20 +89,13 @@ function ReportFooter() {
 
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
 
-    const renderComposerSwipeable = (isEditOnly = false) => (
-        <SwipeableView onSwipeDown={Keyboard.dismiss}>
-            <ReportActionCompose
-                reportID={reportIDFromRoute}
-                isEditOnly={isEditOnly}
-            />
-        </SwipeableView>
-    );
-
-    const renderComposer = () => <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>{renderComposerSwipeable()}</View>;
-
     // Happy path — user can compose
     if (!shouldHideComposer) {
-        return renderComposer();
+        return (
+            <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
+                <ComposerSwipeable reportID={reportIDFromRoute} />
+            </View>
+        );
     }
 
     // Archived room
@@ -167,7 +160,14 @@ function ReportFooter() {
 
         return (
             <View style={[styles.chatFooter, !isEditingWithComposer && styles.mt4, shouldUseNarrowLayout && styles.mb5]}>
-                {isEditingWithComposer && <View style={[isComposerFullSize ? styles.chatFooterFullCompose : undefined, styles.mb2]}>{renderComposerSwipeable(true)}</View>}
+                {isEditingWithComposer && (
+                    <View style={[isComposerFullSize ? styles.chatFooterFullCompose : undefined, styles.mb2]}>
+                        <ComposerSwipeable
+                            reportID={reportIDFromRoute}
+                            isEditOnly
+                        />
+                    </View>
+                )}
                 <Banner
                     containerStyles={[styles.chatFooterBanner, isEditingWithComposer && styles.mt2]}
                     text={translate('adminOnlyCanPost')}
@@ -208,6 +208,17 @@ function ReportFooter() {
     }
 
     return null;
+}
+
+function ComposerSwipeable({reportID, isEditOnly = false}: {reportID: string; isEditOnly?: boolean}) {
+    return (
+        <SwipeableView onSwipeDown={Keyboard.dismiss}>
+            <ReportActionCompose
+                reportID={reportID}
+                isEditOnly={isEditOnly}
+            />
+        </SwipeableView>
+    );
 }
 
 export default ReportFooter;
