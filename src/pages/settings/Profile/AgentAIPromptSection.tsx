@@ -14,6 +14,8 @@ import {clearAgentPromptUpdateError, readAgentPrompt, updateAgentPrompt} from '@
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+const MAX_VISIBLE_PROMPT_LINES = 15;
+
 type AgentAIPromptSectionProps = {
     accountID: number;
 };
@@ -101,7 +103,7 @@ function AgentAIPromptSection({accountID}: AgentAIPromptSectionProps) {
                         onKeyPress={handleKeyPress}
                         multiline
                         autoGrowHeight
-                        maxAutoGrowHeight={variables.lineHeightNormal * 15}
+                        maxAutoGrowHeight={variables.lineHeightNormal * MAX_VISIBLE_PROMPT_LINES}
                         errorText={showEmptyError ? translate('profilePage.aiPromptSection.promptCannotBeEmpty') : ''}
                         containerStyles={[styles.mb4]}
                         testID="ai-prompt-input"
