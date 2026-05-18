@@ -1542,7 +1542,7 @@ describe('actions/Task', () => {
 
             doesReportHaveVisibleActionsSpy.mockReturnValue(false);
 
-            const result = deleteTask(taskReport, parentReport, false, mockCurrentUserAccountID, false, undefined, 'concierge_123', undefined, [], {backTo});
+            const result = deleteTask(taskReport, parentReport, false, mockCurrentUserAccountID, false, undefined, 'concierge_123', undefined, [], backTo);
 
             expect(result).toBe(backTo);
             expect(Navigation.goBack).toHaveBeenCalledWith(backTo);
