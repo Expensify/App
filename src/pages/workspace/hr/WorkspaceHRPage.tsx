@@ -40,7 +40,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type WorkspaceHRPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.HR>;
-type GustoApprovalMode = ValueOf<typeof CONST.HR.APPROVAL_MODE>;
+type GustoApprovalMode = ValueOf<typeof CONST.GUSTO.APPROVAL_MODE>;
 
 function WorkspaceHRPage({
     route: {
@@ -119,11 +119,11 @@ function WorkspaceHRPage({
         }
 
         switch (approvalMode) {
-            case CONST.HR.APPROVAL_MODE.BASIC:
+            case CONST.GUSTO.APPROVAL_MODE.BASIC:
                 return translate('workspace.hr.gusto.approvalModes.basic.label');
-            case CONST.HR.APPROVAL_MODE.MANAGER:
+            case CONST.GUSTO.APPROVAL_MODE.MANAGER:
                 return translate('workspace.hr.gusto.approvalModes.manager.label');
-            case CONST.HR.APPROVAL_MODE.CUSTOM:
+            case CONST.GUSTO.APPROVAL_MODE.CUSTOM:
                 return translate('workspace.hr.gusto.approvalModes.custom.label');
             default:
                 return translate('workspace.hr.gusto.notSet');

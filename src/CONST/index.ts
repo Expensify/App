@@ -2870,7 +2870,7 @@ const CONST = {
         },
     },
 
-    HR: {
+    GUSTO: {
         APPROVAL_MODE: {
             BASIC: 'basic',
             MANAGER: 'manager',
@@ -2879,6 +2879,14 @@ const CONST = {
     },
 
     ZENEFITS: {
+        APPROVAL_MODE: {
+            BASIC: 'basic',
+            MANAGER: 'manager',
+            CUSTOM: 'custom',
+        },
+    },
+
+    MERGE_HR: {
         APPROVAL_MODE: {
             BASIC: 'basic',
             MANAGER: 'manager',

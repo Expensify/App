@@ -1524,9 +1524,6 @@ type MergeHRConnectionData = Record<string, never>;
 /** Shared config for HR integrations (Gusto, Merge HR) */
 type HRConnectionConfigBase = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
-        /** Approval mode */
-        approvalMode: ValueOf<typeof CONST.HR.APPROVAL_MODE> | null;
-
         /** Workspace member who acts as the final approver */
         finalApprover: string | null;
 
@@ -1537,10 +1534,16 @@ type HRConnectionConfigBase = OnyxCommon.OnyxValueWithOfflineFeedback<
 >;
 
 /** Gusto connection config */
-type GustoConnectionConfig = HRConnectionConfigBase;
+type GustoConnectionConfig = HRConnectionConfigBase & {
+    /** Approval mode */
+    approvalMode: ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | null;
+};
 
 /** Merge HR connection config (shared by all Merge-backed HR integrations) */
 type MergeHRConnectionConfig = HRConnectionConfigBase & {
+    /** Approval mode */
+    approvalMode: ValueOf<typeof CONST.MERGE_HR.APPROVAL_MODE> | null;
+
     /** Merge provider slug identifying the connected HR system */
     mergeProviderSlug: keyof typeof MERGE_HR_PROVIDERS;
 };
