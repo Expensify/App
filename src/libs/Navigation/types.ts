@@ -244,6 +244,19 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.BANK_ACCOUNT_PURPOSE]: undefined;
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.AGENTS.ADD]: undefined;
+    [SCREENS.SETTINGS.AGENTS.ADD_AVATAR]: undefined;
+    [SCREENS.SETTINGS.AGENTS.EDIT]: {
+        accountID: number;
+    };
+    [SCREENS.SETTINGS.AGENTS.EDIT_NAME]: {
+        accountID: number;
+    };
+    [SCREENS.SETTINGS.AGENTS.EDIT_PROMPT]: {
+        accountID: number;
+    };
+    [SCREENS.SETTINGS.AGENTS.EDIT_AVATAR]: {
+        accountID: number;
+    };
     [SCREENS.SETTINGS.RULES.ADD]: undefined;
     [SCREENS.SETTINGS.RULES.ADD_MERCHANT]: undefined;
     [SCREENS.SETTINGS.RULES.ADD_RENAME_MERCHANT]: undefined;
@@ -330,10 +343,8 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_CREATE]: {
         policyID: string;
     };
-    [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_CREATE]: {
+    [SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_CREATE]: {
         policyID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_EDIT]: {
         policyID: string;
@@ -423,10 +434,8 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_SETTINGS]: {
         policyID: string;
     };
-    [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_SETTINGS]: {
+    [SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORIES_SETTINGS]: {
         policyID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.DYNAMIC_SPEND_CATEGORY_SELECTOR]: {
         policyID: string;
@@ -770,10 +779,8 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_COMPANY_CARD_SELECT]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_COMPANY_CARD_SELECT]: {
         policyID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT]: {
         policyID: string;
@@ -781,25 +788,17 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_ADVANCED]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_ADVANCED]: {
         policyID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT]: {
         policyID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_EXPORT_PREFERRED_EXPORTER]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_EXPORT_PREFERRED_EXPORTER]: {
         policyID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES]: {
         policyID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_OUT_OF_POCKET_EXPENSE_ACCOUNT_SELECT]: {
         policyID: string;
@@ -1112,6 +1111,39 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PAYMENT_ACCOUNT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_PREREQUISITES]: {
+        policyID: string;
+        isSandbox?: string;
+        subPage?: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_EXISTING_CONNECTIONS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_IMPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_DIMENSION_MAPPING]: {
+        policyID: string;
+        dimension: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_EXPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_PREFERRED_EXPORTER]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_EXPORT_STATUS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_EXPORT_DATE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_DEFAULT_VENDOR]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_ADVANCED]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: {
         policyID: string;
         connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>;
@@ -1398,6 +1430,12 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.HR_GUSTO_FINAL_APPROVER]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.HR_ZENEFITS_APPROVAL_MODE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.HR_ZENEFITS_FINAL_APPROVER]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.RULES_PROHIBITED_DEFAULT]: {
@@ -2570,12 +2608,13 @@ type TravelNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: string;
     };
-    [SCREENS.TRAVEL.TCS]: {
+    [SCREENS.TRAVEL.DYNAMIC_TCS]: {
         domain?: string;
         policyID?: string;
     };
-    [SCREENS.TRAVEL.DOMAIN_PERMISSION_INFO]: {
+    [SCREENS.TRAVEL.DYNAMIC_DOMAIN_PERMISSION_INFO]: {
         domain: string;
+        policyID?: string;
     };
     [SCREENS.TRAVEL.WORKSPACE_CONFIRMATION]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
@@ -2587,19 +2626,12 @@ type TravelNavigatorParamList = {
         backTo?: Routes;
         policyID?: string;
     };
-    [SCREENS.TRAVEL.PUBLIC_DOMAIN_ERROR]: {
+    [SCREENS.TRAVEL.DYNAMIC_PUBLIC_DOMAIN_ERROR]: {
         policyID?: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
-    [SCREENS.TRAVEL.UPGRADE]: {
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
-    };
-    [SCREENS.TRAVEL.DOMAIN_SELECTOR]: {
+    [SCREENS.TRAVEL.DYNAMIC_UPGRADE]: undefined;
+    [SCREENS.TRAVEL.DYNAMIC_DOMAIN_SELECTOR]: {
         policyID?: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.TRAVEL.VERIFY_ACCOUNT]: {
         domain?: string;
@@ -2626,6 +2658,7 @@ type SettingsSplitNavigatorParamList = {
     [SCREENS.SETTINGS.ROOT]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.ROOT]: undefined;
     [SCREENS.SETTINGS.SECURITY]: undefined;
+    [SCREENS.SETTINGS.COPILOT]: undefined;
     [SCREENS.SETTINGS.PROFILE.ROOT]?: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
