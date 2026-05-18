@@ -27,7 +27,7 @@ To comply with financial regulations, the following documents are needed:
 
 * Government-issued photo ID
 * Utility bill or bank statement (for proof of address)
-* File types: PDF, PNG, JPEG
+* File types: PDF, PNG, JPEG (each file must be 2 MB or less)
 
 ---
 
@@ -35,7 +35,7 @@ To comply with financial regulations, the following documents are needed:
 
 1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), select **Workspaces > [Workspace Name] > Overview**.
 2. Under **Default currency**, select **USD$**.
-3. From the workspace settings **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workflows > enable Make or track payments**
+3. From the workspace settings **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workflows > Payments**
 4. Under **Connect bank account > Confirm currency and country (United States - USD$)**
 5. Click **Confirm**.
      - See [this help article](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Business-Bank-Account) for more details on connecting a US business bank account.
@@ -57,7 +57,7 @@ To comply with financial regulations, the following documents are needed:
 4. **Add Director Information**: Expensify must verify that the signer is a Director or Senior Officer.
    - If **you are** a Director/Senior Officer:
      - Provide your full legal name, address, and ID.
-     - Upload proof of address and a valid form of identification (PDF, PNG, or JPEG only).
+     - Upload proof of address and a valid form of identification (PDF, PNG, or JPEG only, 2 MB max per file).
    - If **you are not** a Director/Senior Officer:
      - Enter details for someone who is.
      - Expensify will send a message to the Director/Senior Officer outlining what's required.
@@ -81,7 +81,7 @@ Once you agree to the terms, Expensify’s Compliance Team will review your subm
 
 To begin reimbursing:
 
-1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Make or track payments**.
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Payments**.
 2. Set the verified USD account as the default reimbursement method.
 3. Ask employees to add their personal deposit account.
 

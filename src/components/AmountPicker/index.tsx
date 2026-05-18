@@ -41,7 +41,6 @@ function AmountPicker({value, description, title, errorText = '', onInputChange,
                 errorText={errorText}
             />
             <AmountSelectorModal
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
                 value={value}
                 isVisible={isPickerVisible}

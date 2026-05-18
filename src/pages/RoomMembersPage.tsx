@@ -1,6 +1,6 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -26,6 +26,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
+import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
@@ -74,7 +75,6 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     const {formatPhoneNumber, translate, localeCompare} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE);
-    const [searchValue, setSearchValue] = useState('');
     const [didLoadRoomMembers, setDidLoadRoomMembers] = useState(false);
     const personalDetails = usePersonalDetails();
     const isPolicyExpenseChat = useMemo(() => isPolicyExpenseChatUtils(report), [report]);
@@ -86,6 +86,11 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
         () => getReportPersonalDetailsParticipants(report, personalDetails, reportMetadata, true),
         [report, personalDetails, reportMetadata],
     );
+
+    const [searchValue, setSearchValue, searchFilteredAccountIDs] = useSearchResults(participants, (accountID, search) => {
+        const details = personalDetails?.[accountID];
+        return !!details && isSearchStringMatchUserDetails(details, search);
+    });
 
     const shouldIncludeMember = useCallback(
         (participant?: PersonalDetails) => {
@@ -151,11 +156,9 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
             removeFromRoom(report, selectedMembers);
         }
         setSearchValue('');
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            setSelectedMembers([]);
-            clearUserSearchPhrase();
-        });
+
+        setSelectedMembers([]);
+        clearUserSearchPhrase();
     }, [report, selectedMembers, setSearchValue, setSelectedMembers]);
 
     const showRemoveMembersModal = useCallback(async () => {
@@ -249,7 +252,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
             return;
         }
         setSearchValue(userSearchPhrase ?? '');
-    }, [isFocusedScreen, shouldShowTextInput, userSearchPhrase]);
+    }, [isFocusedScreen, setSearchValue, shouldShowTextInput, userSearchPhrase]);
 
     useEffect(() => {
         updateUserSearchPhrase(searchValue);
@@ -278,11 +281,9 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     const data = useMemo((): ListItem[] => {
         let result: ListItem[] = [];
 
-        for (const accountID of participants) {
+        for (const accountID of searchFilteredAccountIDs) {
             const details = personalDetails?.[accountID];
-
-            // If search value is provided, filter out members that don't match the search value
-            if (!details || (searchValue.trim() && !isSearchStringMatchUserDetails(details, searchValue))) {
+            if (!details) {
                 continue;
             }
             const pendingChatMember = reportMetadata?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
@@ -322,12 +323,11 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
         formatPhoneNumber,
         localeCompare,
         isPolicyExpenseChat,
-        participants,
+        searchFilteredAccountIDs,
         personalDetails,
         policy,
         report.ownerAccountID,
         reportMetadata?.pendingChatMembers,
-        searchValue,
         selectedMembers,
         session?.accountID,
         icons.FallbackAvatar,
@@ -419,7 +419,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
             onChangeText: setSearchValue,
             headerMessage: searchValue.trim() && !data.length ? `${translate('roomMembersPage.memberNotFound')} ${translate('roomMembersPage.useInviteButton')}` : '',
         }),
-        [data.length, searchValue, translate],
+        [data.length, searchValue, setSearchValue, translate],
     );
 
     let subtitleKey: '' | TranslationPaths | undefined;
@@ -462,7 +462,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
                         data={data}
                         ListItem={TableListItem}
                         onSelectRow={openRoomMemberDetails}
-                        onCheckboxPress={toggleUser}
+                        onSelectionButtonPress={toggleUser}
                         textInputOptions={textInputOptions}
                         shouldShowTextInput={shouldShowTextInput}
                         shouldShowLoadingPlaceholder={!isPersonalDetailsReady(personalDetails) || !didLoadRoomMembers}
@@ -470,6 +470,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
                         onTurnOnSelectionMode={(item) => item && toggleUser(item)}
                         onSelectAll={() => toggleAllUsers(data)}
                         canSelectMultiple={canSelectMultiple}
+                        selectAllAccessibilityLabel={translate('accessibilityHints.selectAllMembers')}
                         customListHeader={customListHeader}
                         onDismissError={dismissError}
                         turnOnSelectionModeOnLongPress

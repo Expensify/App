@@ -130,4 +130,4 @@ function createSidebarTestData(): {
     };
 }
 
-export {createSidebarReport, createSidebarReportsCollection, createSidebarTestData};
+export {createSidebarReportsCollection, createSidebarTestData};

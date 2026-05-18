@@ -20,6 +20,12 @@
         <meta name="robots" content="noindex, nofollow">
     <% } %>
 
+    <% if (htmlWebpackPlugin.options.useThirdPartyScripts && htmlWebpackPlugin.options.isWeb) { %>
+        <!-- Ketch cookie consent -->
+            <script>!function(){window.semaphore=window.semaphore||[],window.ketch=function(){window.semaphore.push(arguments)};var e=document.createElement("script");e.type="text/javascript",e.src="https://global.ketchcdn.com/web/v3/config/expensify/website_smart_tag/boot.js",e.defer=e.async=!0,document.getElementsByTagName("head")[0].appendChild(e)}();</script>
+        <!-- End Ketch cookie consent -->
+    <% } %>
+
     <% if (htmlWebpackPlugin.options.isWeb) { %>
         <!-- begin Convert Experiences code-->
         <script type="text/javascript" src="//cdn-4.convertexperiments.com/v1/js/10042537-100413459.js">

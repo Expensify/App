@@ -56,6 +56,9 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
 }));
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-return -- jest.requireActual returns `any` by design
+jest.mock('@libs/actions/IOU/submitWithDismissFirst', () => jest.requireActual('../../__mocks__/submitWithDismissFirst'));
+
 jest.mock('@libs/getCurrentPosition');
 
 describe('MoneyRequest', () => {
@@ -1169,7 +1172,6 @@ describe('MoneyRequest', () => {
             expect(TrackExpense.trackExpense).toHaveBeenCalledWith({
                 report: baseParams.report,
                 isDraftPolicy: false,
-                activePolicyID: undefined,
                 introSelected: undefined,
                 isSelfTourViewed: false,
                 participantParams: {
@@ -1205,6 +1207,8 @@ describe('MoneyRequest', () => {
                     taxCode: '',
                     taxAmount: 0,
                 },
+                shouldHandleNavigation: true,
+                shouldDeferForSearch: false,
                 isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
                 currentUserAccountIDParam: baseParams.currentUserAccountID,
                 currentUserEmailParam: baseParams.currentUserLogin,
@@ -1231,7 +1235,7 @@ describe('MoneyRequest', () => {
                         enabled: true,
                         name: 'Distance',
                         rates: {
-                            // eslint-disable-next-line camelcase, @typescript-eslint/naming-convention
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
                             '4542B77F7C3F8': {
                                 currency: 'ETB',
                                 customUnitRateID: '4542B77F7C3F8',

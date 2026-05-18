@@ -119,7 +119,7 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
             {shouldShowImage ? (
                 <View style={[styles.w100]}>
                     {isLoading && (
-                        <View style={[StyleSheet.absoluteFillObject, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                        <View style={[StyleSheet.absoluteFill, styles.justifyContentCenter, styles.alignItemsCenter]}>
                             <ActivityIndicator
                                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                                 reasonAttributes={reasonAttributes}
@@ -128,6 +128,7 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
                     )}
 
                     <View style={[styles.w100, {aspectRatio: imageAspectRatio ?? 1}]}>
+                        {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
                         <Image
                             source={sourceObject}
                             style={[styles.w100, styles.h100]}
