@@ -2376,13 +2376,8 @@ const ROUTES = {
     },
     WORKSPACE_UPGRADE: {
         route: 'workspaces/:policyID?/upgrade/:featureName?',
-        getRoute: (policyID?: string, featureName?: string, backTo?: string, reportID?: string) => {
-            const base = getUrlWithBackToParam(policyID ? (`workspaces/${policyID}/upgrade/${encodeURIComponent(featureName ?? '')}` as const) : (`workspaces/upgrade` as const), backTo);
-            if (!reportID) {
-                return base;
-            }
-            return `${base}${base.includes('?') ? '&' : '?'}reportID=${encodeURIComponent(reportID)}` as typeof base;
-        },
+        getRoute: (policyID?: string, featureName?: string, backTo?: string) =>
+            getUrlWithBackToParam(policyID ? (`workspaces/${policyID}/upgrade/${encodeURIComponent(featureName ?? '')}` as const) : (`workspaces/upgrade` as const), backTo),
     },
     WORKSPACE_DOWNGRADE: {
         route: 'workspaces/:policyID?/downgrade/',
