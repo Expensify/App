@@ -255,7 +255,8 @@ function setApprovalWorkflowApprover({approver, approverIndex, currentApprovalWo
     }
 
     const approvers: Array<Approver | undefined> = [...currentApprovalWorkflow.approvers];
-    approvers[approverIndex] = approver;
+    const overLimitForwardsToDisplayName = approver.overLimitForwardsTo ? (personalDetailsByEmail[approver.overLimitForwardsTo]?.displayName ?? approver.overLimitForwardsTo) : undefined;
+    approvers[approverIndex] = {...approver, overLimitForwardsToDisplayName};
 
     // Check if the approver forwards to other approvers and add them to the list
     if (policy.employeeList[approver.email]?.forwardsTo) {
@@ -271,6 +272,7 @@ function setApprovalWorkflowApprover({approver, approverIndex, currentApprovalWo
                 ...existingApprover,
                 approvalLimit: approver.approvalLimit,
                 overLimitForwardsTo: approver.overLimitForwardsTo,
+                overLimitForwardsToDisplayName,
             };
         }
     }

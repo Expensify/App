@@ -57,6 +57,7 @@ function calculateApprovers({employees, firstEmail, personalDetailsByEmail}: Get
 
         const isCircularReference = currentApproverEmails.has(nextEmail);
         const employee = employees[nextEmail];
+        const overLimitForwardsTo = employee.overLimitForwardsTo;
         approvers.push({
             email: nextEmail,
             forwardsTo: employee.forwardsTo,
@@ -64,7 +65,8 @@ function calculateApprovers({employees, firstEmail, personalDetailsByEmail}: Get
             displayName: personalDetailsByEmail[nextEmail]?.displayName ?? nextEmail,
             isCircularReference,
             approvalLimit: employee.approvalLimit,
-            overLimitForwardsTo: employee.overLimitForwardsTo,
+            overLimitForwardsTo,
+            overLimitForwardsToDisplayName: overLimitForwardsTo ? (personalDetailsByEmail[overLimitForwardsTo]?.displayName ?? overLimitForwardsTo) : undefined,
         });
 
         // If we've already seen this approver, break to prevent infinite loop
@@ -628,20 +630,18 @@ type GetApprovalLimitDescriptionParams = {
     currency: string;
     translate: LocaleContextProps['translate'];
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
-    personalDetailsByEmail: PersonalDetailsList | undefined;
 };
 
 /**
  * Get the approval limit description for an approver (e.g., "Reports above $1,000 forward to John Doe")
  */
-function getApprovalLimitDescription({approver, currency, translate, convertToDisplayString, personalDetailsByEmail}: GetApprovalLimitDescriptionParams): string | undefined {
+function getApprovalLimitDescription({approver, currency, translate, convertToDisplayString}: GetApprovalLimitDescriptionParams): string | undefined {
     if (approver?.approvalLimit == null || !approver?.overLimitForwardsTo) {
         return undefined;
     }
 
     const formattedAmount = convertToDisplayString(approver.approvalLimit, currency);
-    const overLimitApproverDetails = personalDetailsByEmail?.[approver.overLimitForwardsTo];
-    const approverDisplayName = Str.removeSMSDomain(overLimitApproverDetails?.displayName ?? approver.overLimitForwardsTo);
+    const approverDisplayName = Str.removeSMSDomain(approver.overLimitForwardsToDisplayName ?? approver.overLimitForwardsTo);
 
     return translate('workflowsApprovalLimitPage.forwardLimitDescription', {
         approvalLimit: formattedAmount,
