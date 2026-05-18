@@ -8,6 +8,7 @@ import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import TopBarWithLoadingBar from '@components/Navigation/TopBarWithLoadingBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import DomainListTable, {DomainRowData} from '@components/Tables/DomainListTable';
+import WorkspaceTabs from '@components/WorkspacesTabs';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useLocalize from '@hooks/useLocalize';
@@ -98,6 +99,9 @@ function WorkspacesListPage() {
                 >
                     {!shouldDisplayButtonsInSeparateLine && <View style={styles.pr2}>{headerButton}</View>}
                 </TopBarWithLoadingBar>
+
+                <WorkspaceTabs />
+
                 {shouldDisplayButtonsInSeparateLine && <View style={[styles.ph5, styles.pt2]}>{headerButton}</View>}
 
                 {shouldShowLoadingIndicator && (

@@ -12,6 +12,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceListTable, {WorkspaceRowData} from '@components/Tables/WorkspaceListTable';
+import WorkspaceTabs from '@components/WorkspacesTabs';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -571,6 +572,9 @@ function WorkspacesListPage() {
                 >
                     {!shouldDisplayButtonsInSeparateLine && <View style={styles.pr2}>{headerButton}</View>}
                 </TopBarWithLoadingBar>
+
+                <WorkspaceTabs />
+
                 {shouldDisplayButtonsInSeparateLine && <View style={[styles.ph5, styles.pt2]}>{headerButton}</View>}
                 {shouldShowLoadingIndicator ? (
                     <View style={[styles.flex1, styles.fullScreenLoading]}>
