@@ -88,7 +88,7 @@ function TagPicker({
     const policyTagList = getTagList(policyTags, tagListIndex);
     const selectedOptions = getSelectedOptions(selectedTag);
 
-    // Merge any orphaned tag names into the policy's tag map so they are pickable too.
+    // Merge any orphaned tag names into the policy's tag map so they appear as selectable options.
     const policyTagsWithAdditions = useMemo<PolicyTags>(() => {
         const baseTags = policyTagList.tags ?? {};
         if (!additionalTagsToInclude?.length) {
