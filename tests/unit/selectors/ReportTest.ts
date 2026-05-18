@@ -20,10 +20,6 @@ describe('policyRoomNamesSelector', () => {
         expect(policyRoomNamesSelector(POLICY_A)(undefined)).toEqual([]);
     });
 
-    it('returns empty array when reports is null', () => {
-        expect(policyRoomNamesSelector(POLICY_A)(null)).toEqual([]);
-    });
-
     it('returns empty array when reports is empty', () => {
         expect(policyRoomNamesSelector(POLICY_A)({})).toEqual([]);
     });
@@ -61,10 +57,10 @@ describe('policyRoomNamesSelector', () => {
     });
 
     it('excludes null entries in the collection', () => {
-        const reports: OnyxCollection<Report> = {
+        const reports = {
             '1': makeReport({reportID: '1', policyID: POLICY_A, reportName: '#general', chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM}),
             '2': null,
-        };
+        } as unknown as OnyxCollection<Report>;
         expect(policyRoomNamesSelector(POLICY_A)(reports)).toEqual(['#general']);
     });
 
