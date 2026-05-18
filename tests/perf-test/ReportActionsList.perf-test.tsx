@@ -121,6 +121,7 @@ function ReportActionsListWrapper() {
                             loadOlderChats={mockLoadChats}
                             loadNewerChats={mockLoadChats}
                             hasNewerActions={false}
+                            hasOlderActions={false}
                             sortedAllReportActionsForPagination={reportActions}
                             reportActionPages={undefined}
                             treatAsNoPaginationAnchor={false}

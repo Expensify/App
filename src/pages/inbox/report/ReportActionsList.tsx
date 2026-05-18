@@ -110,6 +110,9 @@ type ReportActionsListProps = {
     /** Whether the report has newer actions to load */
     hasNewerActions: boolean;
 
+    /** Whether the report has older actions to load */
+    hasOlderActions: boolean;
+
     /** The oldest unread report action */
     oldestUnreadReportAction?: OnyxEntry<OnyxTypes.ReportAction> | undefined;
 
@@ -203,6 +206,7 @@ function ReportActionsList({
     loadNewerChats,
     loadOlderChats,
     hasNewerActions,
+    hasOlderActions,
     oldestUnreadReportAction,
     sortedAllReportActionsForPagination,
     reportActionPages,
@@ -371,6 +375,12 @@ function ReportActionsList({
     const shouldMeasureLinkedAnchorScrollPosition = !!linkedReportActionID && hasInitialScrollTarget;
     const [listHeight, setListHeight] = useState(0);
     const [isInitialViewportLoading, setIsInitialViewportLoading] = useState(true);
+    /**
+     * Linked opens scroll near the anchor immediately; inverted FlashList often fires `onEndReached` right away,
+     * fetching older messages after the viewport skeleton drops. Delay revealing the list until we've allowed that
+     * fetch to flip `isLoadingOlderReportActions`, then keep the overlay until it clears so rows don't stream in visibly.
+     */
+    const [linkedOlderRevealGateReady, setLinkedOlderRevealGateReady] = useState(() => !(!!linkedReportActionID && hasOlderActions));
     const mountedInitialViewportIndicesRef = useRef(new Set<number>());
     const hasInitialViewportLoadedRef = useRef(!hasInitialScrollTarget);
     /** Linked deeplink opens need post-layout corrective scroll so the inverted anchor lands correctly; skips unread-only flows (mark unread). */
@@ -415,7 +425,9 @@ function ReportActionsList({
         };
     }, [hasInitialScrollTarget, initialScrollIndex, listHeight, sortedVisibleReportActions.length]);
     const shouldRenderFlashList = !hasInitialScrollTarget || listHeight > 0;
-    const shouldShowInitialViewportSkeleton = hasInitialScrollTarget && (isInitialViewportLoading || (shouldMeasureLinkedAnchorScrollPosition && !hasAppliedMeasuredAnchorScroll));
+    const shouldAwaitLinkedOlderRevealWhileGateCold = !!linkedReportActionID && hasOlderActions && (!linkedOlderRevealGateReady || !!reportLoadingState?.isLoadingOlderReportActions);
+    const shouldShowInitialViewportSkeleton =
+        hasInitialScrollTarget && (isInitialViewportLoading || (shouldMeasureLinkedAnchorScrollPosition && !hasAppliedMeasuredAnchorScroll) || shouldAwaitLinkedOlderRevealWhileGateCold);
 
     const reportScrollManagerRefValue = reportScrollManager.ref?.current as FlashListRef<OnyxTypes.ReportAction> | null;
 
@@ -493,12 +505,59 @@ function ReportActionsList({
             return;
         }
 
+        const shouldDeferLinkedOlderReveal = !!(normalizedLinkedReportActionID && hasOlderActions);
+        setLinkedOlderRevealGateReady(!shouldDeferLinkedOlderReveal);
+
         mountedInitialViewportIndicesRef.current.clear();
         hasInitialViewportLoadedRef.current = !hasInitialScrollTarget;
         hasCommittedMeasuredAnchorScrollRef.current = false;
         setHasAppliedMeasuredAnchorScroll(!shouldMeasureLinkedAnchorScrollPosition);
         setIsInitialViewportLoading(hasInitialScrollTarget);
-    }, [hasInitialScrollTarget, initialScrollKey, linkedReportActionID, listID, report.reportID, shouldMeasureLinkedAnchorScrollPosition]);
+    }, [hasInitialScrollTarget, hasOlderActions, initialScrollKey, linkedReportActionID, listID, report.reportID, shouldMeasureLinkedAnchorScrollPosition]);
+
+    useEffect(() => {
+        let cancelled = false;
+        let rafId = 0;
+        let fallbackRevealTimeoutId: ReturnType<typeof setTimeout> | undefined;
+
+        const markRevealGateReadyOnNextFrame = (ready: boolean) => {
+            rafId = requestAnimationFrame(() => {
+                if (cancelled) {
+                    return;
+                }
+                setLinkedOlderRevealGateReady(ready);
+            });
+        };
+
+        if (!linkedReportActionID || !hasOlderActions) {
+            markRevealGateReadyOnNextFrame(true);
+        } else if (!hasAppliedMeasuredAnchorScroll || isInitialViewportLoading) {
+            markRevealGateReadyOnNextFrame(false);
+        } else if (reportLoadingState?.isLoadingOlderReportActions) {
+            markRevealGateReadyOnNextFrame(true);
+        } else {
+            rafId = requestAnimationFrame(() => {
+                if (cancelled) {
+                    return;
+                }
+
+                fallbackRevealTimeoutId = setTimeout(() => {
+                    if (cancelled) {
+                        return;
+                    }
+                    setLinkedOlderRevealGateReady(true);
+                }, 800);
+            });
+        }
+
+        return () => {
+            cancelled = true;
+            cancelAnimationFrame(rafId);
+            if (fallbackRevealTimeoutId) {
+                clearTimeout(fallbackRevealTimeoutId);
+            }
+        };
+    }, [hasAppliedMeasuredAnchorScroll, hasOlderActions, isInitialViewportLoading, linkedReportActionID, listID, report.reportID, reportLoadingState?.isLoadingOlderReportActions]);
 
     useEffect(() => {
         if (!linkedReportActionID || !hasInitialScrollTarget || hasAppliedMeasuredAnchorScroll) {

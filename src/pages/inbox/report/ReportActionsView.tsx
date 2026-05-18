@@ -263,6 +263,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
                 loadOlderChats={loadOlderChats}
                 loadNewerChats={loadNewerChats}
                 hasNewerActions={hasNewerActions}
+                hasOlderActions={hasOlderActions}
                 oldestUnreadReportAction={oldestUnreadReportAction}
                 sortedAllReportActionsForPagination={sortedAllReportActions ?? []}
                 reportActionPages={reportActionPages}
