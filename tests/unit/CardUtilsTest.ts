@@ -2342,7 +2342,7 @@ describe('CardUtils', () => {
             expect(description).toBe(CONST.EXPENSIFY_CARD.BANK);
         });
 
-        it('should return Central invoicing for travel invoicing cards', () => {
+        it('should return Travel invoicing for travel invoicing cards', () => {
             const card: Card = {
                 accountID: 18439984,
                 bank: CONST.EXPENSIFY_CARD.BANK,
@@ -2359,7 +2359,7 @@ describe('CardUtils', () => {
                 } as Card['nameValuePairs'],
             };
             const description = getCardDescription(card, translateLocal);
-            expect(description).toBe('Central invoicing');
+            expect(description).toBe('Travel invoicing');
         });
 
         it('should return the correct card description for personal card', () => {
@@ -2381,7 +2381,7 @@ describe('CardUtils', () => {
     });
 
     describe('getCardDescriptionForSearchTable', () => {
-        it('should return Central invoicing for travel invoicing cards when translate is provided', () => {
+        it('should return Travel invoicing for travel invoicing cards when translate is provided', () => {
             const card: Card = {
                 accountID: 18439984,
                 bank: CONST.EXPENSIFY_CARD.BANK,
@@ -2398,7 +2398,7 @@ describe('CardUtils', () => {
                 } as Card['nameValuePairs'],
             };
             const description = getCardDescriptionForSearchTable(card, translateLocal, 'John Doe');
-            expect(description).toBe('Central invoicing');
+            expect(description).toBe('Travel invoicing');
         });
 
         it('should return normal description for non-travel Expensify cards', () => {
@@ -2983,8 +2983,8 @@ describe('CardUtils', () => {
 
     describe('getCompanyCardDescription', () => {
         const mockTranslate = ((key: string) => {
-            if (key === 'cardTransactions.centralInvoicing') {
-                return 'Central invoicing';
+            if (key === 'cardTransactions.travelInvoicing') {
+                return 'Travel invoicing';
             }
             return key;
         }) as LocalizedTranslate;
@@ -3025,7 +3025,7 @@ describe('CardUtils', () => {
             expect(description).toBe('Test');
         });
 
-        it('should return "Central invoicing" for a travel card', () => {
+        it('should return "Travel invoicing" for a travel card', () => {
             const travelCardList = {
                 '99999': {
                     cardID: 99999,
@@ -3036,7 +3036,7 @@ describe('CardUtils', () => {
                 },
             } as unknown as CardList;
             const description = getCompanyCardDescription(mockTranslate, 'Expensify Card - 6909', 99999, travelCardList);
-            expect(description).toBe('Central invoicing');
+            expect(description).toBe('Travel invoicing');
         });
     });
 

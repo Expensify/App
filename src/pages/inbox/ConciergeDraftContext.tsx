@@ -153,4 +153,3 @@ function useConciergeDraftActions(): ConciergeDraftActions {
 }
 
 export {ConciergeDraftProvider, useConciergeDraft, useConciergeDraftActions};
-export type {ConciergeDraftState, ConciergeDraftActions};

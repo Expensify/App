@@ -21,7 +21,7 @@ function FABFocusableMenuItem({itemId, isVisible = true, onPress, shouldCallAfte
     return (
         <FocusableMenuItem
             // FABFocusableMenuItemProps is a strict subset of MenuItemProps — spreading forwards all remaining props safely
-            // eslint-disable-next-line react/jsx-props-no-spreading
+
             {...(props as MenuItemProps)}
             focused={isFocused}
             onFocus={() => setFocusedIndex(itemIndex)}

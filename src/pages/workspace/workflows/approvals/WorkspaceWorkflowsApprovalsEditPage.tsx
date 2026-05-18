@@ -1,8 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -57,9 +55,10 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         // We need to remove members and approvers that are no longer in the updated workflow
         const membersToRemove = initialApprovalWorkflow.members.filter((initialMember) => !approvalWorkflow.members.some((member) => member.email === initialMember.email));
         const approversToRemove = initialApprovalWorkflow.approvers.filter((initialApprover) => !approvalWorkflow.approvers.some((approver) => approver.email === initialApprover.email));
-        Navigation.dismissModal();
-        InteractionManager.runAfterInteractions(() => {
-            updateApprovalWorkflow(approvalWorkflow, membersToRemove, approversToRemove, policy);
+        Navigation.dismissModal({
+            afterTransition: () => {
+                updateApprovalWorkflow(approvalWorkflow, membersToRemove, approversToRemove, policy);
+            },
         });
     };
 
@@ -70,10 +69,11 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
 
         // Mark as deleting to prevent the useEffect from clearing the workflow and causing a blink
         isDeleting.current = true;
-        Navigation.dismissModal();
-        InteractionManager.runAfterInteractions(() => {
-            // Remove the approval workflow using the initial data as it could be already edited
-            removeApprovalWorkflow(initialApprovalWorkflow, policy);
+        Navigation.dismissModal({
+            afterTransition: () => {
+                // Remove the approval workflow using the initial data as it could be already edited
+                removeApprovalWorkflow(initialApprovalWorkflow, policy);
+            },
         });
     };
 
