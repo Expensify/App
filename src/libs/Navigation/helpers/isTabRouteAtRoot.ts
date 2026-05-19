@@ -43,11 +43,14 @@ type TabRouteLike = {
 
 /**
  * Returns true when the active tab route resolves to a tab's root view.
- * Checks both the focused leaf of the route's state and the deepest push target in its params,
- * so wrapper hydration doesn't flash the tab bar on the push target (Android).
+ * Trusts the focused leaf as the source of truth. Falls back to the push target only when the
+ * navigator state hasn't hydrated yet (Android cold start), so the tab bar doesn't flash on the
+ * push target during the transition. Tab-level params can be stale after within-tab back
+ * navigation, so they must not override an already-hydrated focused leaf.
  */
 function isTabRouteAtRoot(route: TabRouteLike | undefined): boolean {
-    return isAtTabRootLevel(getFocusedLeafScreenName(route?.state)) && isAtTabRootLevel(getPushTargetLeaf(route?.params));
+    const focusedLeaf = getFocusedLeafScreenName(route?.state);
+    return isAtTabRootLevel(focusedLeaf ?? getPushTargetLeaf(route?.params));
 }
 
 export default isTabRouteAtRoot;
