@@ -9,7 +9,7 @@ function hasCreditBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountLi
 
     return Object.values(bankAccountList).some((bankAccountJSON) => {
         const bankAccount = new BankAccount(bankAccountJSON);
-        return bankAccount.isDefaultCredit();
+        return bankAccount.isDefaultCredit() || bankAccount.isOpen();
     });
 }
 
