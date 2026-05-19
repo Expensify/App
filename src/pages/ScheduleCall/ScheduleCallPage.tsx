@@ -194,6 +194,7 @@ function ScheduleCallPage() {
                                     selectableDates={Object.keys(timeSlotDateMap)}
                                     DayComponent={AvailableBookingDay}
                                     onSelected={loadTimeSlotsAndSaveDate}
+                                    pickerContextID="scheduleCall"
                                 />
                             </View>
                         </View>

@@ -108,6 +108,23 @@ const DYNAMIC_ROUTES = {
         path: 'imported-members-role',
         entryScreens: [SCREENS.WORKSPACE.MEMBERS_IMPORTED_CONFIRMATION],
     },
+    YEAR_SELECTOR: {
+        path: 'year-selector',
+        queryParams: ['contextID', 'currentYear', 'minYear', 'maxYear'],
+        entryScreens: [
+            SCREENS.SETTINGS.PROFILE.DATE_OF_BIRTH,
+            SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE,
+            SCREENS.MONEY_REQUEST.STEP_DATE,
+            SCREENS.MONEY_REQUEST.STEP_TIME,
+            SCREENS.MONEY_REQUEST.STEP_TIME_EDIT,
+            SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_CREATE_DATE_RANGE,
+            SCREENS.SEARCH.ROOT,
+            SCREENS.SEARCH.ADVANCED_FILTERS_DATE_RHP,
+            SCREENS.SEARCH.EDIT_MULTIPLE_DATE_RHP,
+            SCREENS.CHRONOS_SCHEDULE_OOO_ROOT,
+            SCREENS.SCHEDULE_CALL,
+        ],
+    },
     REPORT_SETTINGS_NAME: {
         path: 'settings/name',
         entryScreens: [SCREENS.REPORT_DETAILS.ROOT],

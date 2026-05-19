@@ -32,12 +32,6 @@ jest.mock('../../src/hooks/useLocalize', () =>
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
 type MockMonthPickerModalProps = {isVisible: boolean; onMonthChange?: (month: number) => void; onClose?: () => void};
-type MockYearPickerModalProps = {
-    isVisible: boolean;
-    years: Array<{value: number; text: string}>;
-    onYearChange?: (year: number) => void;
-    onClose?: () => void;
-};
 
 jest.mock('@components/DatePicker/CalendarPicker/MonthPickerModal', () => {
     const ReactNativeActual = jest.requireActual<MockReactNativePrimitives>('react-native');
@@ -74,39 +68,16 @@ jest.mock('@components/DatePicker/CalendarPicker/MonthPickerModal', () => {
     return MockMonthPickerModal;
 });
 
-jest.mock('@components/DatePicker/CalendarPicker/YearPickerModal', () => {
-    const ReactNativeActual = jest.requireActual<MockReactNativePrimitives>('react-native');
-    const {Pressable, Text, View} = ReactNativeActual;
-    function MockYearPickerModal({isVisible, years, onYearChange, onClose}: MockYearPickerModalProps) {
-        if (!isVisible) {
-            return null;
-        }
-        return (
-            <View testID="YearPickerModal">
-                {years.map((year) => (
-                    <Pressable
-                        key={year.value}
-                        testID={`year-option-${year.value}`}
-                        accessibilityLabel={year.text}
-                        role="button"
-                        onPress={() => onYearChange?.(year.value)}
-                    >
-                        <Text>{year.text}</Text>
-                    </Pressable>
-                ))}
-                <Pressable
-                    testID="year-modal-close"
-                    accessibilityLabel="close"
-                    role="button"
-                    onPress={onClose}
-                >
-                    <Text>close</Text>
-                </Pressable>
-            </View>
-        );
-    }
-    return MockYearPickerModal;
-});
+const mockNavigate = jest.fn<void, [route: string]>();
+jest.mock('@libs/Navigation/Navigation', () => ({
+    __esModule: true,
+    default: {
+        navigate: (route: string) => {
+            mockNavigate(route);
+        },
+        getActiveRoute: jest.fn(() => 'settings/profile'),
+    },
+}));
 
 describe('CalendarPicker', () => {
     test('renders calendar component', () => {
@@ -597,7 +568,8 @@ describe('CalendarPicker', () => {
         expect(within(screen.getByTestId('currentMonthText')).getByText(monthNames.at(8) ?? '')).toBeTruthy();
     });
 
-    test('clicking the year button opens the year picker and selecting a year updates the calendar', () => {
+    test('clicking the year button navigates to the year picker screen with the current year and context', () => {
+        mockNavigate.mockClear();
         const minDate = new Date('2020-01-01');
         const maxDate = new Date('2030-12-31');
         const value = '2025-06-15';
@@ -606,27 +578,28 @@ describe('CalendarPicker', () => {
                 value={value}
                 minDate={minDate}
                 maxDate={maxDate}
+                pickerContextID="datePicker-testInput"
             />,
         );
 
         fireEvent.press(screen.getByTestId('currentYearButton'));
 
-        const yearPickerModal = screen.getByTestId('YearPickerModal');
-        expect(yearPickerModal).toBeTruthy();
-
-        fireEvent.press(within(yearPickerModal).getByTestId('year-option-2027'));
-
-        expect(within(screen.getByTestId('currentYearText')).getByText('2027')).toBeTruthy();
+        expect(mockNavigate).toHaveBeenCalledTimes(1);
+        const navigatedRoute = mockNavigate.mock.calls.at(0)?.at(0) ?? '';
+        expect(navigatedRoute).toContain('year-selector');
+        expect(navigatedRoute).toContain('contextID=datePicker-testInput');
+        expect(navigatedRoute).toContain('currentYear=2025');
     });
 
-    test('closing the year picker via onClose hides the modal', () => {
-        render(<CalendarPicker />);
+    test('the year button invokes onBeforeOpenYearPicker before navigating (so popover hosts can dismiss themselves)', () => {
+        mockNavigate.mockClear();
+        const onBeforeOpenYearPicker = jest.fn();
+        render(<CalendarPicker onBeforeOpenYearPicker={onBeforeOpenYearPicker} />);
 
         fireEvent.press(screen.getByTestId('currentYearButton'));
-        expect(screen.getByTestId('YearPickerModal')).toBeTruthy();
 
-        fireEvent.press(screen.getByTestId('year-modal-close'));
-        expect(screen.queryByTestId('YearPickerModal')).toBeNull();
+        expect(onBeforeOpenYearPicker).toHaveBeenCalledTimes(1);
+        expect(mockNavigate).toHaveBeenCalledTimes(1);
     });
 
     test('closing the month picker via onClose hides the modal', () => {

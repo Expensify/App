@@ -103,6 +103,9 @@ type DatePresetFilterBaseProps = {
     /** Force vertical stacking of calendars in range picker */
     forceVerticalCalendars?: boolean;
 
+    /** Called right before navigating to the year picker screen (used by popover hosts to dismiss themselves) */
+    onBeforeOpenYearPicker?: () => void;
+
     /** The ref handle */
     ref: Ref<DatePresetFilterBaseHandle>;
 };
@@ -123,6 +126,7 @@ function DatePresetFilterBase({
     onDateValuesChange,
     onRangeValidationErrorChange,
     forceVerticalCalendars = false,
+    onBeforeOpenYearPicker,
     ref,
 }: DatePresetFilterBaseProps) {
     const theme = useTheme();
@@ -456,6 +460,7 @@ function DatePresetFilterBase({
                     onRangeValidationErrorChange?.(false);
                 }}
                 forceVertical={forceVerticalCalendars}
+                onBeforeOpenYearPicker={onBeforeOpenYearPicker}
             />
         );
     }
@@ -467,6 +472,8 @@ function DatePresetFilterBase({
                 onSelected={handleSingleDateSelected}
                 minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                 maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
+                pickerContextID="searchSingleDate"
+                onBeforeOpenYearPicker={onBeforeOpenYearPicker}
             />
             <SpacerView
                 shouldShow

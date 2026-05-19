@@ -8,16 +8,20 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {clearCalendarPickerSelectedYear} from '@libs/actions/CalendarPicker';
 import DateUtils from '@libs/DateUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import ArrowIcon from './ArrowIcon';
 import Day from './Day';
 import generateMonthMatrix from './generateMonthMatrix';
 import MonthPickerModal from './MonthPickerModal';
-import type CalendarPickerListItem from './types';
-import YearPickerModal from './YearPickerModal';
 
 type CalendarPickerProps = {
     /** An initial value of date string */
@@ -41,8 +45,23 @@ type CalendarPickerProps = {
     /** Optional style override for the header container */
     headerContainerStyle?: StyleProp<ViewStyle>;
 
-    /** Whether Month/Year right-docked picker modals should keep backdrop in narrow pane context */
+    /** Whether Month right-docked picker modal should keep backdrop in narrow pane context */
     shouldEnableMonthYearBackdropInNarrowPane?: boolean;
+
+    /**
+     * Stable identifier used to match the year selected on the year picker screen back to this
+     * CalendarPicker instance. Hosts that render CalendarPicker inside a popover/modal that is
+     * dismissed when navigating (so this component unmounts) must pass a stable id; hosts that
+     * mount more than one CalendarPicker (e.g. range pickers) must pass distinct ids.
+     */
+    pickerContextID?: string;
+
+    /**
+     * Called right before navigating to the year picker screen. Hosts that render CalendarPicker
+     * inside a popover/modal use this to dismiss it first, so the year picker screen is not
+     * rendered behind it.
+     */
+    onBeforeOpenYearPicker?: () => void;
 };
 
 function getInitialCurrentDateView(value: Date | string, minDate: Date, maxDate: Date) {
@@ -75,6 +94,8 @@ function CalendarPicker({
     selectableDates,
     headerContainerStyle,
     shouldEnableMonthYearBackdropInNarrowPane = false,
+    pickerContextID,
+    onBeforeOpenYearPicker,
 }: CalendarPickerProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -84,8 +105,10 @@ function CalendarPicker({
     const pressableRef = useRef<View>(null);
     const monthPressableRef = useRef<View>(null);
     const [currentDateView, setCurrentDateView] = useState(() => getInitialCurrentDateView(value, minDate, maxDate));
-    const [isYearPickerVisible, setIsYearPickerVisible] = useState(false);
     const [isMonthPickerVisible, setIsMonthPickerVisible] = useState(false);
+    const [fallbackContextID] = useState(() => `calendarPicker-${Math.random().toString(36).slice(2)}`);
+    const contextID = pickerContextID ?? fallbackContextID;
+    const [selectedYearResult] = useOnyx(ONYXKEYS.CALENDAR_PICKER_SELECTED_YEAR);
     const isFirstRender = useRef(true);
 
     const currentMonthView = currentDateView.getMonth();
@@ -97,27 +120,24 @@ function CalendarPicker({
     const minYear = CONST.CALENDAR_PICKER.MIN_YEAR;
     const maxYear = CONST.CALENDAR_PICKER.MAX_YEAR;
 
-    const [years, setYears] = useState<CalendarPickerListItem[]>(() =>
-        Array.from({length: maxYear - minYear + 1}, (v, i) => i + minYear).map((year) => ({
-            text: year.toString(),
-            value: year,
-            keyForList: year.toString(),
-            isSelected: year === currentDateView.getFullYear(),
-        })),
-    );
+    // When the year picker screen writes back a selection for this CalendarPicker instance,
+    // apply it to the displayed date and clear the transient result so it isn't re-applied.
+    useEffect(() => {
+        if (!selectedYearResult || selectedYearResult.contextID !== contextID) {
+            return;
+        }
+        const {year} = selectedYearResult;
+        clearCalendarPickerSelectedYear();
+        requestAnimationFrame(() => setCurrentDateView((prev) => setYear(new Date(prev), year)));
+    }, [selectedYearResult, contextID]);
 
-    const onYearSelected = (year: number) => {
-        setCurrentDateView((prev) => {
-            const newCurrentDateView = setYear(new Date(prev), year);
-            setYears((prevYears) =>
-                prevYears.map((item) => ({
-                    ...item,
-                    isSelected: item.value === newCurrentDateView.getFullYear(),
-                })),
-            );
-            return newCurrentDateView;
-        });
-        requestAnimationFrame(() => setIsYearPickerVisible(false));
+    const openYearPicker = () => {
+        onBeforeOpenYearPicker?.();
+        Navigation.navigate(
+            createDynamicRoute(
+                `${DYNAMIC_ROUTES.YEAR_SELECTOR.path}?contextID=${encodeURIComponent(contextID)}&currentYear=${currentYearView}&minYear=${minYear}&maxYear=${maxYear}`,
+            ),
+        );
     };
 
     const onMonthSelected = (month: number) => {
@@ -149,15 +169,6 @@ function CalendarPicker({
             if (prevMonth.getFullYear() < CONST.CALENDAR_PICKER.MIN_YEAR) {
                 return prev;
             }
-            // if year is subtracted, we need to update the years list
-            if (prevMonth.getFullYear() < prev.getFullYear()) {
-                setYears((prevYears) =>
-                    prevYears.map((item) => ({
-                        ...item,
-                        isSelected: item.value === prevMonth.getFullYear(),
-                    })),
-                );
-            }
             return prevMonth;
         });
     };
@@ -171,16 +182,6 @@ function CalendarPicker({
             if (nextMonth.getFullYear() > CONST.CALENDAR_PICKER.MAX_YEAR) {
                 return prev;
             }
-            // if year is added, we need to update the years list
-            if (nextMonth.getFullYear() > prev.getFullYear()) {
-                setYears((prevYears) =>
-                    prevYears.map((item) => ({
-                        ...item,
-                        isSelected: item.value === nextMonth.getFullYear(),
-                    })),
-                );
-            }
-
             return nextMonth;
         });
     };
@@ -191,7 +192,6 @@ function CalendarPicker({
             if (prevYear.getFullYear() < CONST.CALENDAR_PICKER.MIN_YEAR) {
                 return prev;
             }
-            setYears((prevYears) => prevYears.map((item) => ({...item, isSelected: item.value === prevYear.getFullYear()})));
             return prevYear;
         });
     };
@@ -202,7 +202,6 @@ function CalendarPicker({
             if (nextYear.getFullYear() > CONST.CALENDAR_PICKER.MAX_YEAR) {
                 return prev;
             }
-            setYears((prevYears) => prevYears.map((item) => ({...item, isSelected: item.value === nextYear.getFullYear()})));
             return nextYear;
         });
     };
@@ -317,7 +316,7 @@ function CalendarPicker({
                         <PressableWithFeedback
                             onPress={() => {
                                 pressableRef?.current?.blur();
-                                setIsYearPickerVisible(true);
+                                openYearPicker();
                             }}
                             ref={pressableRef}
                             style={[themeStyles.alignItemsCenter]}
@@ -422,14 +421,6 @@ function CalendarPicker({
                     </View>
                 ))}
             </CalendarBody>
-            <YearPickerModal
-                isVisible={isYearPickerVisible}
-                years={years}
-                currentYear={currentYearView}
-                onYearChange={onYearSelected}
-                onClose={() => setIsYearPickerVisible(false)}
-                shouldEnableBackdropInNarrowPane={shouldEnableMonthYearBackdropInNarrowPane}
-            />
             <MonthPickerModal
                 isVisible={isMonthPickerVisible}
                 currentMonth={currentMonthView}

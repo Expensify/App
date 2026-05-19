@@ -87,6 +87,8 @@ function DatePickerModal({
                 value={selectedDate}
                 onSelected={handleDateSelection}
                 shouldEnableMonthYearBackdropInNarrowPane={shouldEnableMonthYearBackdropInNarrowPane}
+                pickerContextID={`datePicker-${inputID}`}
+                onBeforeOpenYearPicker={onClose}
             />
         </PopoverWithMeasuredContent>
     );
