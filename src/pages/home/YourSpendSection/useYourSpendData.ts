@@ -216,6 +216,10 @@ function useYourSpendData(): UseYourSpendDataReturn {
     const approvalTotals: YourSpendRowTotals = shouldUseCachedApproval && cachedApprovalReady ? cachedApprovalReady : approvalTotalsRaw;
     const paymentTotals: YourSpendRowTotals = shouldUseCachedPayment && cachedPaymentReady ? cachedPaymentReady : paymentTotalsRaw;
 
+    // Stable key that changes whenever approval/payment applicability flips, so the
+    // search-firing effect re-runs and the gating inside fireSearches takes effect.
+    const applicabilityKey = `${isApprovalApplicable ? 1 : 0}${isPaymentApplicable ? 1 : 0}`;
+
     const fireSearches = useEffectEvent(() => {
         if (isOffline) {
             return;
@@ -235,7 +239,7 @@ function useYourSpendData(): UseYourSpendDataReturn {
                 shouldUpdateLastSearchParams: false,
             });
         }
-        if (approvalQueryJSON) {
+        if (isApprovalApplicable && approvalQueryJSON) {
             search({
                 queryJSON: approvalQueryJSON,
                 searchKey: undefined,
@@ -246,7 +250,7 @@ function useYourSpendData(): UseYourSpendDataReturn {
                 shouldUpdateLastSearchParams: false,
             });
         }
-        if (paymentQueryJSON) {
+        if (isPaymentApplicable && paymentQueryJSON) {
             search({
                 queryJSON: paymentQueryJSON,
                 searchKey: undefined,
@@ -264,7 +268,7 @@ function useYourSpendData(): UseYourSpendDataReturn {
             return;
         }
         fireSearches();
-    }, [isFocused, isOffline, displayableCardIDsKey]);
+    }, [isFocused, isOffline, displayableCardIDsKey, applicabilityKey]);
 
     return {
         approvalRowState,
