@@ -994,15 +994,14 @@ function isControlPolicy(policy: OnyxEntry<Policy>): boolean {
  */
 function tryNavigateToSubmitWorkspaceUpgrade(
     policy: OnyxEntry<Policy>,
-    policyID: string | undefined,
     isEnabling: boolean,
     upgradeFeatureAlias: string,
     isSubmit2026BetaEnabled: boolean,
 ): boolean {
-    if (!policyID || !isEnabling || !canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled)) {
+    if (!policy?.id || !isEnabling || !canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled)) {
         return false;
     }
-    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, upgradeFeatureAlias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
+    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policy?.id, upgradeFeatureAlias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policy?.id)));
     return true;
 }
 

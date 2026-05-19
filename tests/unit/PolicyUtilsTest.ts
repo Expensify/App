@@ -2659,22 +2659,22 @@ describe('PolicyUtils', () => {
         });
 
         it('returns false and does not navigate when policyID is missing', () => {
-            expect(tryNavigateToSubmitWorkspaceUpgrade(submitPolicyForNavTest, undefined, true, featureAlias, true)).toBe(false);
+            expect(tryNavigateToSubmitWorkspaceUpgrade(submitPolicyForNavTest, true, featureAlias, true)).toBe(false);
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
         it('returns false and does not navigate when isEnabling is false', () => {
-            expect(tryNavigateToSubmitWorkspaceUpgrade(submitPolicyForNavTest, submitPolicyForNavTest.id, false, featureAlias, true)).toBe(false);
+            expect(tryNavigateToSubmitWorkspaceUpgrade(submitPolicyForNavTest, false, featureAlias, true)).toBe(false);
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
         it('returns false when policy is not Submit', () => {
-            expect(tryNavigateToSubmitWorkspaceUpgrade(teamPolicyForNavTest, teamPolicyForNavTest.id, true, featureAlias, true)).toBe(false);
+            expect(tryNavigateToSubmitWorkspaceUpgrade(teamPolicyForNavTest, true, featureAlias, true)).toBe(false);
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
         it('returns false when Submit policy but beta is disabled', () => {
-            expect(tryNavigateToSubmitWorkspaceUpgrade(submitPolicyForNavTest, submitPolicyForNavTest.id, true, featureAlias, false)).toBe(false);
+            expect(tryNavigateToSubmitWorkspaceUpgrade(submitPolicyForNavTest, true, featureAlias, false)).toBe(false);
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
@@ -2682,7 +2682,7 @@ describe('PolicyUtils', () => {
             const policyID = submitPolicyForNavTest.id;
             const expectedRoute = ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, featureAlias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
 
-            expect(tryNavigateToSubmitWorkspaceUpgrade(submitPolicyForNavTest, policyID, true, featureAlias, true)).toBe(true);
+            expect(tryNavigateToSubmitWorkspaceUpgrade(submitPolicyForNavTest, true, featureAlias, true)).toBe(true);
 
             expect(Navigation.navigate).toHaveBeenCalledTimes(1);
             expect(Navigation.navigate).toHaveBeenCalledWith(expectedRoute);

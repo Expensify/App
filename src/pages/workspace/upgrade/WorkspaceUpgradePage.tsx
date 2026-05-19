@@ -321,7 +321,6 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                         buttonDisabled={isOffline || !canPerformUpgrade}
                         loading={policy?.isPendingUpgrade}
                         backTo={route.params.backTo}
-                        isSubmitPolicy={canAccessSubmitWorkspace}
                     />
                 )}
             </ScrollView>

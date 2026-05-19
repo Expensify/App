@@ -8,7 +8,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type UseRedirectSubmitWorkspaceFeatureUpgradeParams = {
     policy: OnyxEntry<Policy> | undefined;
-    policyID: string | undefined;
     /** Route passed to `ROUTES.WORKSPACE_UPGRADE.getRoute` as `backTo`. */
     backTo: string | undefined;
     /** `CONST.UPGRADE_FEATURE_INTRO_MAPPING.*.alias` for the feature being gated. */
@@ -24,7 +23,6 @@ type UseRedirectSubmitWorkspaceFeatureUpgradeParams = {
  */
 function useRedirectSubmitWorkspaceFeatureUpgrade({
     policy,
-    policyID,
     backTo,
     upgradeFeatureAlias,
     isSubmit2026BetaEnabled,
@@ -33,12 +31,12 @@ function useRedirectSubmitWorkspaceFeatureUpgrade({
     const didRedirectRef = useRef(false);
 
     useEffect(() => {
-        if (didRedirectRef.current || !policyID || !backTo || isEmptyObject(policy) || shouldDeferRedirect || !canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled)) {
+        if (didRedirectRef.current || !backTo || isEmptyObject(policy) || shouldDeferRedirect || !canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled)) {
             return;
         }
         didRedirectRef.current = true;
-        Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, upgradeFeatureAlias, backTo));
-    }, [policy, policyID, backTo, upgradeFeatureAlias, isSubmit2026BetaEnabled, shouldDeferRedirect]);
+        Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policy?.id, upgradeFeatureAlias, backTo));
+    }, [policy, backTo, upgradeFeatureAlias, isSubmit2026BetaEnabled, shouldDeferRedirect]);
 }
 
 export default useRedirectSubmitWorkspaceFeatureUpgrade;

@@ -31,7 +31,6 @@ function DynamicWorkspaceInviteMessageRolePage({policy, route}: DynamicWorkspace
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_INVITE_MESSAGE_ROLE.path);
     useRedirectSubmitWorkspaceFeatureUpgrade({
         policy,
-        policyID: route.params.policyID,
         backTo: backPath,
         upgradeFeatureAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias,
         isSubmit2026BetaEnabled,

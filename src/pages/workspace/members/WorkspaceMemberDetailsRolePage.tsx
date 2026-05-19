@@ -32,7 +32,6 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
     const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     useRedirectSubmitWorkspaceFeatureUpgrade({
         policy,
-        policyID,
         backTo: ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID),
         upgradeFeatureAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias,
         isSubmit2026BetaEnabled,
