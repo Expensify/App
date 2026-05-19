@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -17,6 +16,7 @@ import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
+import {skipNextFocusRestore} from '@libs/NavigationFocusReturn';
 import {getTransactionDetails, isExpenseRequest, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {hasReceipt} from '@libs/TransactionUtils';
 import {isInvalidMerchantValue, isValidInputLength} from '@libs/ValidationUtils';
@@ -83,6 +83,8 @@ function IOURequestStepMerchant({
             return;
         }
         shouldNavigateAfterSaveRef.current = false;
+        // Only on the save path. The Back button (onBackButtonPress) should still restore focus.
+        skipNextFocusRestore();
         navigateBack();
     }, [isSaved, navigateBack]);
 
@@ -150,9 +152,7 @@ function IOURequestStepMerchant({
 
     useDiscardChangesConfirmation({
         onCancel: () => {
-            InteractionManager.runAfterInteractions(() => {
-                inputRef.current?.focus();
-            });
+            inputRef.current?.focus();
         },
         getHasUnsavedChanges: () => {
             if (isSaved) {
