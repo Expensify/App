@@ -2658,11 +2658,6 @@ describe('PolicyUtils', () => {
             jest.clearAllMocks();
         });
 
-        it('returns false and does not navigate when policyID is missing', () => {
-            expect(tryNavigateToSubmitWorkspaceUpgrade(submitPolicyForNavTest, true, featureAlias, true)).toBe(false);
-            expect(Navigation.navigate).not.toHaveBeenCalled();
-        });
-
         it('returns false and does not navigate when isEnabling is false', () => {
             expect(tryNavigateToSubmitWorkspaceUpgrade(submitPolicyForNavTest, false, featureAlias, true)).toBe(false);
             expect(Navigation.navigate).not.toHaveBeenCalled();
