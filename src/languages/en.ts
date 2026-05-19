@@ -7840,7 +7840,7 @@ const translations = {
         resetColumns: 'Reset columns',
         groupColumns: 'Group columns',
         expenseColumns: 'Expense Columns',
-        saveSearch: 'Save search',
+        saveSearch: 'Save view',
         deleteSavedSearch: 'Delete saved search',
         deleteSavedSearchConfirm: 'Are you sure you want to delete this search?',
         searchName: 'Search name',
