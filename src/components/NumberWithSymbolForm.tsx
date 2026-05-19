@@ -614,9 +614,8 @@ function NumberWithSymbolForm({
                             )}
                             {allowFlippingAmount && (
                                 <Button
-                                    shouldShowRightIcon
                                     small
-                                    iconRight={icons.PlusMinus}
+                                    icon={icons.PlusMinus}
                                     onPress={toggleNegative}
                                     style={styles.minWidth18}
                                     iconWrapperStyles={styles.justifyContentCenter}
@@ -720,9 +719,8 @@ function NumberWithSymbolForm({
                 )}
                 {allowFlippingAmount && canUseTouchScreen && (
                     <Button
-                        shouldShowRightIcon
                         small
-                        iconRight={icons.PlusMinus}
+                        icon={icons.PlusMinus}
                         onPress={toggleNegative}
                         style={styles.minWidth18}
                         iconWrapperStyles={styles.justifyContentCenter}
