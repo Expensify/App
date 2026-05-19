@@ -39,9 +39,7 @@ function FollowupListSkeleton() {
     useSkeletonSpan('FollowupListSkeleton', {context: 'ReportScreen.ChatActionableButtons'});
 
     return (
-        <Animated.View
-            entering={FadeIn}
-        >
+        <Animated.View entering={FadeIn}>
             <View style={[styles.gap2, styles.mt2, styles.flexColumn, styles.alignItemsStart]}>
                 {Array.from({length: BAR_COUNT}, (_, index) => (
                     <ActionableItemSkeleton key={index} />
