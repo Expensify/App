@@ -85,7 +85,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
     const sessionStartTime = isConciergeSidePanel ? sidePanelSessionStartTime : mainDMSessionStartTime;
 
     useLayoutEffect(() => {
-        if (!isConciergeMainDM) {
+        if (!isConciergeMainDM || !hasOnceLoadedReportActions) {
             return;
         }
         startSession(oldestUnreadReportAction ? report?.lastReadTime : undefined);
@@ -93,7 +93,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
             endSession();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- startSession/endSession are stable; captured values at mount only
-    }, [isConciergeMainDM, startSession, endSession]);
+    }, [isConciergeMainDM, startSession, endSession, hasOnceLoadedReportActions]);
 
     const hasUserSentMessage = useMemo(() => {
         if (!isConciergeHiddenHistory || !sessionStartTime) {
@@ -274,7 +274,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
                 treatAsNoPaginationAnchor={treatAsNoPaginationAnchor}
                 setTreatAsNoPaginationAnchor={setTreatAsNoPaginationAnchor}
                 listID={listID}
-                showHiddenHistory={!showFullHistory}
+                showHiddenHistory={isConciergeHiddenHistory && !showFullHistory}
                 hasPreviousMessages={hasPreviousMessages}
                 onShowPreviousMessages={handleShowPreviousMessages}
             />
