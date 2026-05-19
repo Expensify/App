@@ -59,7 +59,7 @@ function ReportSubmitToPage({report, policy, isLoadingReportData}: ReportSubmitT
     const prepopulatedEmail = useMemo(() => {
         const login = currentUserDetails.login ?? '';
         const submitsTo = policy?.employeeList?.[login]?.submitsTo?.trim();
-        return submitsTo || getDefaultApprover(policy) || '';
+        return submitsTo ?? getDefaultApprover(policy) ?? '';
     }, [policy, currentUserDetails.login]);
 
     const [managerEmail, setManagerEmail] = useState('');
@@ -195,7 +195,6 @@ function ReportSubmitToPage({report, policy, isLoadingReportData}: ReportSubmitT
         setEmailError('');
     }, []);
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isExpenseReport(report) || isMoneyRequestReportPendingDeletion(report);
 
     const confirmButtonOptions = useMemo(

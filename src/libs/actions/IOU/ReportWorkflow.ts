@@ -1305,10 +1305,10 @@ function submitReport({
     const managerIDFromChain = getAccountIDsByLogins(approvalChain).at(0);
     const trimmedManagerEmail = managerEmail?.trim();
     const managerAccountIDFromEmail = trimmedManagerEmail ? getAccountIDsByLogins([trimmedManagerEmail]).at(0) : undefined;
-    const managerIDIfNotUsingSubmitToEmail = getSubmitReportManagerAccountID(policy, expenseReport);
+    const submitReportManagerAccountID = getSubmitReportManagerAccountID(policy, expenseReport);
     const managerID = trimmedManagerEmail
         ? (managerAccountIDFromEmail ?? managerIDFromChain ?? expenseReport.managerID)
-        : (managerIDIfNotUsingSubmitToEmail ?? (submitToAccountID > 0 ? submitToAccountID : expenseReport.managerID));
+        : (submitReportManagerAccountID ?? (submitToAccountID > 0 ? submitToAccountID : expenseReport.managerID));
     const isCurrentUserManager = currentUserAccountIDParam === managerID;
     const optimisticData: Array<
         OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.NEXT_STEP | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>
