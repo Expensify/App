@@ -11,6 +11,7 @@ import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
+import useReportAttributes from './useReportAttributes';
 
 /**
  * Returns sorted keys of reports pending deletion.
@@ -52,6 +53,7 @@ function useSearchSections(): UseSearchSectionsResult {
 
     const archivedReportsIdSet = useArchivedReportsIdSet();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const reportAttributesDerivedValue = useReportAttributes();
 
     const {type, status, sortBy, sortOrder, groupBy} = lastSearchQuery?.queryJSON ?? {};
     const searchResultsData = currentSearchResults?.data;
@@ -78,6 +80,7 @@ function useSearchSections(): UseSearchSectionsResult {
             cardFeeds,
             allReportMetadata,
             conciergeReportID,
+            reportAttributesDerivedValue,
             convertToDisplayString,
         });
         results = getSortedSections(type, status ?? '', searchData, localeCompare, translate, sortBy, sortOrder, groupBy).map((value) => value.reportID);

@@ -133,8 +133,9 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
             danger: true,
         });
         if (action === ModalActions.CONFIRM) {
-            deactivateCardAction(defaultFundID, card);
-            Navigation.goBack();
+            Navigation.goBack(undefined, {
+                afterTransition: () => deactivateCardAction(defaultFundID, card),
+            });
         }
     };
 
@@ -327,7 +328,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                         title={translate('workspace.common.viewTransactions')}
                         style={styles.mt3}
                         onPress={() => {
-                            Navigation.navigate(
+                            Navigation.revealRouteBeforeDismissingModal(
                                 ROUTES.SEARCH_ROOT.getRoute({
                                     query: buildCannedSearchQuery({
                                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,

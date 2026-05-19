@@ -1,55 +1,53 @@
 import {act, renderHook} from '@testing-library/react-native';
-import type {Dispatch, SetStateAction} from 'react';
 import useInlineEditState from '@components/TransactionItemRow/EditableCell/useInlineEditState';
+import usePopoverEditState from '@components/TransactionItemRow/EditableCell/usePopoverEditState';
 
-type SetupOptions<T> = {
-    canEdit?: boolean;
-    onSave?: (value: T) => void;
-    isEqual?: (newValue: T, originalValue: T) => boolean;
+type InlineHookParameters<T> = Parameters<typeof useInlineEditState<T>>;
+
+type InlineSetupOptions<T> = {
+    canEdit?: InlineHookParameters<T>[0];
+    onSave?: InlineHookParameters<T>[2];
+    isEqual?: InlineHookParameters<T>[3];
 };
 
 type WidenLiteral<T> = T extends string ? string : T extends number ? number : T extends boolean ? boolean : T;
 
-type HookProps<T> = {
-    value: T;
-    canEdit: boolean;
+type InlineHookProps<T> = {
+    value: InlineHookParameters<T>[1];
+    canEdit: NonNullable<InlineHookParameters<T>[0]>;
 };
 
-type HookResult<T> = {
-    current: {
-        isEditing: boolean;
-        localValue: T;
-        setLocalValue: Dispatch<SetStateAction<T>>;
-        startEditing: () => void;
-        save: () => void;
-        cancelEditing: () => void;
-    };
-};
-
-const setup = <T>(value: T, {canEdit = true, onSave, isEqual}: SetupOptions<WidenLiteral<T>> = {}) =>
-    renderHook(({value: currentValue, canEdit: currentCanEdit}: HookProps<WidenLiteral<T>>) => useInlineEditState<WidenLiteral<T>>(currentCanEdit, currentValue, onSave, isEqual), {
+const setupInline = <T>(value: T, {canEdit = true, onSave, isEqual}: InlineSetupOptions<WidenLiteral<T>> = {}) =>
+    renderHook(({value: currentValue, canEdit: currentCanEdit}: InlineHookProps<WidenLiteral<T>>) => useInlineEditState<WidenLiteral<T>>(currentCanEdit, currentValue, onSave, isEqual), {
         initialProps: {value: value as WidenLiteral<T>, canEdit},
     });
 
-const startEditing = <T>(result: HookResult<T>) => {
+type InlineHookResult<T> = ReturnType<typeof setupInline<T>>['result'];
+
+const startInlineEditing = <T>(result: InlineHookResult<T>) => {
     act(() => result.current.startEditing());
 };
 
-const setValue = <T>(result: HookResult<T>, value: T) => {
+const setInlineValue = <T>(result: InlineHookResult<T>, value: WidenLiteral<T>) => {
     act(() => result.current.setLocalValue(value));
 };
 
-const save = <T>(result: HookResult<T>) => {
+const saveInline = <T>(result: InlineHookResult<T>) => {
     act(() => result.current.save());
 };
 
-const cancelEditing = <T>(result: HookResult<T>) => {
-    act(() => result.current.cancelEditing());
+type PopoverSetupOptions<T> = Partial<Parameters<typeof usePopoverEditState<T>>[0]>;
+type PopoverHookResult<T> = ReturnType<typeof setupPopover<T>>['result'];
+
+const setupPopover = <T>(options: PopoverSetupOptions<T> = {}) => renderHook(() => usePopoverEditState<T>({canEdit: true, ...options}));
+
+const handlePopoverSave = <T>(result: PopoverHookResult<T>, value: T) => {
+    act(() => result.current.handleSave(value));
 };
 
 describe('useInlineEditState', () => {
     it('starts with isEditing=false and localValue equal to the initial value', () => {
-        const {result} = setup('hello');
+        const {result} = setupInline('hello');
 
         expect(result.current.isEditing).toBe(false);
         expect(result.current.localValue).toBe('hello');
@@ -57,11 +55,11 @@ describe('useInlineEditState', () => {
 
     it('save calls onSave with the new value when localValue differs from original', () => {
         const onSave = jest.fn();
-        const {result} = setup('hello', {onSave});
+        const {result} = setupInline('hello', {onSave});
 
-        startEditing(result);
-        setValue(result, 'world');
-        save(result);
+        startInlineEditing(result);
+        setInlineValue(result, 'world');
+        saveInline(result);
 
         expect(onSave).toHaveBeenCalledWith('world');
         expect(result.current.isEditing).toBe(false);
@@ -70,10 +68,10 @@ describe('useInlineEditState', () => {
 
     it('save does not call onSave when localValue matches the original value', () => {
         const onSave = jest.fn();
-        const {result} = setup('hello', {onSave});
+        const {result} = setupInline('hello', {onSave});
 
-        startEditing(result);
-        save(result);
+        startInlineEditing(result);
+        saveInline(result);
 
         expect(onSave).not.toHaveBeenCalled();
         expect(result.current.isEditing).toBe(false);
@@ -82,11 +80,11 @@ describe('useInlineEditState', () => {
     it('uses isEqual to skip redundant saves after normalization', () => {
         const onSave = jest.fn();
         const isEqual = jest.fn((newValue: string, originalValue: string) => newValue.trim() === originalValue.trim());
-        const {result} = setup('hello', {onSave, isEqual});
+        const {result} = setupInline('hello', {onSave, isEqual});
 
-        startEditing(result);
-        setValue(result, ' hello ');
-        save(result);
+        startInlineEditing(result);
+        setInlineValue(result, ' hello ');
+        saveInline(result);
 
         expect(onSave).not.toHaveBeenCalled();
         expect(result.current.isEditing).toBe(false);
@@ -96,11 +94,11 @@ describe('useInlineEditState', () => {
     it('calls onSave when isEqual returns false', () => {
         const onSave = jest.fn();
         const isEqual = jest.fn((newValue: string, originalValue: string) => newValue.length === originalValue.length);
-        const {result} = setup('hello', {onSave, isEqual});
+        const {result} = setupInline('hello', {onSave, isEqual});
 
-        startEditing(result);
-        setValue(result, 'world!');
-        save(result);
+        startInlineEditing(result);
+        setInlineValue(result, 'world!');
+        saveInline(result);
 
         expect(isEqual).toHaveBeenCalledWith('world!', 'hello');
         expect(onSave).toHaveBeenCalledWith('world!');
@@ -108,25 +106,25 @@ describe('useInlineEditState', () => {
     });
 
     it('save exits cleanly when onSave is undefined and the value changed', () => {
-        const {result} = setup('hello');
+        const {result} = setupInline('hello');
 
-        startEditing(result);
-        setValue(result, 'changed');
+        startInlineEditing(result);
+        setInlineValue(result, 'changed');
 
-        expect(() => save(result)).not.toThrow();
+        expect(() => saveInline(result)).not.toThrow();
         expect(result.current.isEditing).toBe(false);
         expect(result.current.localValue).toBe('hello');
     });
 
     it('cancel resets localValue to the original and sets isEditing to false', () => {
         const onSave = jest.fn();
-        const {result} = setup('hello', {onSave});
+        const {result} = setupInline('hello', {onSave});
 
-        startEditing(result);
-        setValue(result, 'modified');
+        startInlineEditing(result);
+        setInlineValue(result, 'modified');
         expect(result.current.localValue).toBe('modified');
 
-        cancelEditing(result);
+        act(() => result.current.cancelEditing());
 
         expect(result.current.localValue).toBe('hello');
         expect(result.current.isEditing).toBe(false);
@@ -134,7 +132,7 @@ describe('useInlineEditState', () => {
     });
 
     it('syncs localValue when the external value prop changes', () => {
-        const {result, rerender} = setup('initial');
+        const {result, rerender} = setupInline('initial');
 
         expect(result.current.localValue).toBe('initial');
 
@@ -144,10 +142,10 @@ describe('useInlineEditState', () => {
     });
 
     it('syncs localValue to the external value even while editing', () => {
-        const {result, rerender} = setup('initial');
+        const {result, rerender} = setupInline('initial');
 
-        startEditing(result);
-        setValue(result, 'draft');
+        startInlineEditing(result);
+        setInlineValue(result, 'draft');
 
         expect(result.current.localValue).toBe('draft');
 
@@ -159,13 +157,13 @@ describe('useInlineEditState', () => {
 
     it('cancels editing when canEdit becomes false while editing', () => {
         const onSave = jest.fn();
-        const {result, rerender} = setup('hello', {canEdit: true, onSave});
+        const {result, rerender} = setupInline('hello', {canEdit: true, onSave});
 
-        startEditing(result);
+        startInlineEditing(result);
 
         expect(result.current.isEditing).toBe(true);
 
-        setValue(result, 'modified');
+        setInlineValue(result, 'modified');
 
         rerender({value: 'hello', canEdit: false});
 
@@ -176,10 +174,10 @@ describe('useInlineEditState', () => {
 
     it('prevents duplicate onSave calls when save is called multiple times', () => {
         const onSave = jest.fn();
-        const {result} = setup('hello', {onSave});
+        const {result} = setupInline('hello', {onSave});
 
-        startEditing(result);
-        setValue(result, 'world');
+        startInlineEditing(result);
+        setInlineValue(result, 'world');
 
         act(() => {
             result.current.save();
@@ -192,10 +190,10 @@ describe('useInlineEditState', () => {
 
     it('ignores cancelEditing after save has already ended editing', () => {
         const onSave = jest.fn();
-        const {result} = setup('hello', {onSave});
+        const {result} = setupInline('hello', {onSave});
 
-        startEditing(result);
-        setValue(result, 'world');
+        startInlineEditing(result);
+        setInlineValue(result, 'world');
 
         act(() => {
             result.current.save();
@@ -210,10 +208,10 @@ describe('useInlineEditState', () => {
 
     it('ignores save after cancelEditing has already ended editing', () => {
         const onSave = jest.fn();
-        const {result} = setup('hello', {onSave});
+        const {result} = setupInline('hello', {onSave});
 
-        startEditing(result);
-        setValue(result, 'world');
+        startInlineEditing(result);
+        setInlineValue(result, 'world');
 
         act(() => {
             result.current.cancelEditing();
@@ -227,12 +225,43 @@ describe('useInlineEditState', () => {
 
     it('auto-cancels after starting to edit when canEdit is already false', () => {
         const onSave = jest.fn();
-        const {result} = setup('hello', {canEdit: false, onSave});
+        const {result} = setupInline('hello', {canEdit: false, onSave});
 
-        startEditing(result);
+        startInlineEditing(result);
 
         expect(result.current.isEditing).toBe(false);
         expect(result.current.localValue).toBe('hello');
         expect(onSave).not.toHaveBeenCalled();
+    });
+});
+
+describe('usePopoverEditState', () => {
+    it('starts with isEditing=false and isPopoverVisible=false', () => {
+        const {result} = setupPopover({value: 'hello'});
+
+        expect(result.current.isEditing).toBe(false);
+        expect(result.current.isPopoverVisible).toBe(false);
+    });
+
+    it('does not call onSave when selecting the same value multiple times', () => {
+        const onSave = jest.fn();
+        const {result} = setupPopover({value: 'hello', onSave});
+
+        handlePopoverSave(result, 'hello');
+        handlePopoverSave(result, 'hello');
+        handlePopoverSave(result, 'hello');
+
+        expect(onSave).not.toHaveBeenCalled();
+        expect(result.current.isPopoverVisible).toBe(false);
+    });
+
+    it('calls onSave when selecting a different value', () => {
+        const onSave = jest.fn();
+        const {result} = setupPopover({value: 'hello', onSave});
+
+        handlePopoverSave(result, 'world');
+
+        expect(onSave).toHaveBeenCalledWith('world');
+        expect(result.current.isPopoverVisible).toBe(false);
     });
 });

@@ -64,18 +64,16 @@ describe('actions/connections/SageIntacct', () => {
             writeSpy.mockClear();
         });
 
-        it('writes the UpdateManyPolicyConnectionConfigs command with travelInvoicingPayableAccountID', () => {
+        it('writes the UpdateSageIntacctTravelInvoicingPayableAccount command with creditCardAccountID', () => {
             updateSageIntacctTravelInvoicingPayableAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
 
             const {command} = getFirstWriteCall();
-            expect(command).toBe(WRITE_COMMANDS.UPDATE_MANY_POLICY_CONNECTION_CONFIGS);
+            expect(command).toBe(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_TRAVEL_INVOICING_PAYABLE_ACCOUNT);
 
             const call = writeSpy.mock.calls.at(0);
-            const params = call?.[1] as {connectionName: string; configUpdate: string; idempotencyKey: string; policyID: string};
+            const params = call?.[1] as {policyID: string; creditCardAccountID: string};
             expect(params.policyID).toBe(MOCK_POLICY_ID);
-            expect(params.connectionName).toBe(CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT);
-            expect(params.idempotencyKey).toBe(CONST.SAGE_INTACCT_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT);
-            expect(JSON.parse(params.configUpdate)).toEqual({[CONST.SAGE_INTACCT_CONFIG.EXPORT]: {[CONST.SAGE_INTACCT_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT]: 'account-123'}});
+            expect(params.creditCardAccountID).toBe('account-123');
         });
 
         it('updates travelInvoicingPayableAccountID optimistically, sets pending field, and clears error field', () => {
