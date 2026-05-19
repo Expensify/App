@@ -98,9 +98,8 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         }
         switch (feature?.id) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approveReport.id: {
-                const {reportID} = route.params;
-                if (reportID) {
-                    Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+                if (route.params?.reportID) {
+                    Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(route.params.reportID));
                     return;
                 }
                 Navigation.goBack();
