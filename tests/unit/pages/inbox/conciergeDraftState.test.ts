@@ -1,4 +1,4 @@
-import {applyConciergeDraftEvent, getCachedDraft, setCachedDraft, stripIncompleteMarkdown} from '@pages/inbox/conciergeDraftState';
+import {applyConciergeDraftEvent, getCachedDraft, getNextVisibleConciergeDraftBodyMarkdown, setCachedDraft, stripIncompleteMarkdown} from '@pages/inbox/conciergeDraftState';
 import CONST from '@src/CONST';
 
 const REPORT_ID = '123';
@@ -43,6 +43,7 @@ describe('conciergeDraftState', () => {
     it('should create a synthetic Concierge draft action from the first streamed snapshot', () => {
         const draft = applyConciergeDraftEvent(null, createDraftEvent(), REPORT_ID);
 
+        expect(draft?.bodyMarkdown).toBe('Hello, **world**!');
         expect(draft?.reportAction.reportActionID).toBe(REPORT_ACTION_ID);
         expect(draft?.reportAction.actorAccountID).toBe(CONST.ACCOUNT_ID.CONCIERGE);
         expect(draft?.reportAction.created).toBe(CREATED);
@@ -63,6 +64,7 @@ describe('conciergeDraftState', () => {
         );
 
         expect(updatedDraft?.sequence).toBe(2);
+        expect(updatedDraft?.bodyMarkdown).toBe('Hello, **streaming** world!');
         expect(getFirstMessageHTML(updatedDraft)).toContain('<strong>streaming</strong>');
     });
 
@@ -130,6 +132,22 @@ describe('conciergeDraftState', () => {
         );
 
         expect(otherReportDraft).toBe(initialDraft);
+    });
+
+    describe('getNextVisibleConciergeDraftBodyMarkdown', () => {
+        it('handles normal reveal, completion acceleration, code points, and corrections', () => {
+            expect(getNextVisibleConciergeDraftBodyMarkdown('', 'Hello')).toBe('H');
+            expect(getNextVisibleConciergeDraftBodyMarkdown('H', 'Hello')).toBe('He');
+            expect(getNextVisibleConciergeDraftBodyMarkdown('Hi ', 'Hi 😃 there')).toBe('Hi 😃');
+
+            const longTarget = 'a'.repeat(200);
+            expect(getNextVisibleConciergeDraftBodyMarkdown('', longTarget).length).toBeGreaterThan(1);
+
+            const completionTarget = 'a'.repeat(40);
+            expect(getNextVisibleConciergeDraftBodyMarkdown('', completionTarget, true).length).toBeGreaterThan(getNextVisibleConciergeDraftBodyMarkdown('', completionTarget).length);
+
+            expect(getNextVisibleConciergeDraftBodyMarkdown('Old draft', 'New draft')).toBe('New draft');
+        });
     });
 
     describe('stripIncompleteMarkdown', () => {
