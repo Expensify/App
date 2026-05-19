@@ -76,25 +76,29 @@ function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLo
     // Only strict admins can assign the ADMIN role. Editors (e.g. Submit workspace owners) can
     // invite/manage members but must not be able to escalate anyone to admin.
     const canAssignAdminRole = isPolicyAdmin(policy, currentUserEmail);
-    const availableRoleItems: ListItemType[] = workspaceRoles.filter((item) => {
-        if (item.value === CONST.POLICY.ROLE.AUDITOR && !isPolicyControl) {
-            return false;
-        }
-        if (item.value === CONST.POLICY.ROLE.ADMIN && !canAssignAdminRole) {
-            return false;
-        }
-        // Editor only exists on Submit workspaces (and the SUBMIT_2026 beta must be on); surfacing it elsewhere
-        // would let admins assign an unsupported role.
-        if (item.value === CONST.POLICY.ROLE.EDITOR && !isPolicySubmit2026) {
-            return false;
-        }
-        // On Submit workspaces every invited/managed user is an Editor — Member isn't a valid target there
-        // (the backend forces Editor anyway, so showing Member would be misleading UX).
-        if (item.value === CONST.POLICY.ROLE.USER && isPolicySubmit2026) {
-            return false;
-        }
-        return true;
-    });
+    const availableRoleItems: ListItemType[] = workspaceRoles
+        .filter((item) => {
+            if (item.value === CONST.POLICY.ROLE.AUDITOR && !isPolicyControl) {
+                return false;
+            }
+            if (item.value === CONST.POLICY.ROLE.ADMIN && !canAssignAdminRole) {
+                return false;
+            }
+            // Editor only exists on Submit workspaces (and the SUBMIT_2026 beta must be on); surfacing it elsewhere
+            // would let admins assign an unsupported role.
+            if (item.value === CONST.POLICY.ROLE.EDITOR && !isPolicySubmit2026) {
+                return false;
+            }
+            // On Submit workspaces every invited/managed user is an Editor — Member isn't a valid target there
+            // (the backend forces Editor anyway, so showing Member would be misleading UX).
+            if (item.value === CONST.POLICY.ROLE.USER && isPolicySubmit2026) {
+                return false;
+            }
+            return true;
+        })
+        // On Submit workspaces the only valid role is Editor — there's nothing to choose, so render the row
+        // as read-only rather than letting the user tap a no-op selection.
+        .map((item) => (isPolicySubmit2026 ? {...item, isInteractive: false} : item));
 
     return (
         <>
