@@ -102,6 +102,7 @@ function WorkspaceFieldsSection({
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentConnectionName(policy);
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
+    const fieldList = policy?.fieldList;
 
     const fetchFields = useCallback(() => {
         openFieldsPage(policyID);
@@ -114,11 +115,11 @@ function WorkspaceFieldsSection({
     }, [fetchFields]);
 
     const fields = useMemo<FieldListItem[]>(() => {
-        if (!policy?.fieldList) {
+        if (!fieldList) {
             return [];
         }
 
-        return Object.values(policy.fieldList)
+        return Object.values(fieldList)
             .filter(fieldFilter)
             .sort((a, b) => localeCompare(a.name, b.name))
             .map((field) => ({
@@ -129,7 +130,7 @@ function WorkspaceFieldsSection({
                 isDisabled: field.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 rightLabel: Str.recapitalize(translate(getReportFieldTypeTranslationKey(field.type ?? CONST.REPORT_FIELD_TYPES.TEXT))),
             }));
-    }, [fieldFilter, localeCompare, policy?.fieldList, translate]);
+    }, [fieldFilter, fieldList, localeCompare, translate]);
 
     const navigateToFieldSettings = useCallback(
         (item: FieldListItem) => {
