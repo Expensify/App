@@ -9,12 +9,6 @@ type ImportTransactionsSpreadsheetPageProps = PlatformStackScreenProps<SettingsN
 
 function ImportTransactionsSpreadsheetPage({route}: ImportTransactionsSpreadsheetPageProps) {
     const {cardID} = route.params ?? {};
-
-    // When cardID is provided we're adding transactions to an existing card. The screen can be entered
-    // either from the card details RHP (PersonalCardDetailsHeaderMenu) or from the wallet 3-dot menu,
-    // so we omit `backTo` and let the default stack pop return to whichever screen is underneath.
-    // Without a cardID we're in the new-card flow and want to skip past the intermediate card-name
-    // and currency screens straight back to the import-transactions landing.
     const backTo = cardID ? undefined : ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS;
 
     return (
