@@ -168,6 +168,7 @@ type GetTrackExpenseInformationParams = {
     moneyRequestReportID?: string;
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     existingTransactionID?: string;
+    optimisticTransactionID?: string;
     participantParams: GetTrackExpenseInformationParticipantParams;
     policyParams: BasePolicyParams;
     transactionParams: GetTrackExpenseInformationTransactionParams;
@@ -808,6 +809,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         moneyRequestReportID = '',
         existingTransaction,
         existingTransactionID,
+        optimisticTransactionID: providedOptimisticTransactionID,
         participantParams,
         policyParams,
         transactionParams,
@@ -983,7 +985,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     let shouldCreateNewMoneyRequestReport = false;
 
     // Generate IDs upfront so we can pass them to buildOptimisticExpenseReport for formula computation
-    const optimisticTransactionID = existingTransactionID ?? NumberUtils.rand64();
+    const optimisticTransactionID = existingTransactionID ?? providedOptimisticTransactionID ?? NumberUtils.rand64();
     const optimisticExpenseReportID = generateReportID();
 
     if (shouldUseMoneyReport) {
@@ -1687,6 +1689,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         transactionParams,
         moneyRequestReportID,
         existingTransactionID,
+        optimisticTransactionID: requestMoneyInformation.optimisticTransactionID,
         existingTransaction: isDistanceRequestTransactionUtils(existingTransaction) ? existingTransaction : undefined,
         retryParams,
         testDriveCommentReportActionID,
@@ -2276,6 +2279,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         shouldPlaySound = true,
         shouldDeferAPIWrite = true,
         optimisticChatReportID,
+        optimisticTransactionID,
         isASAPSubmitBetaEnabled,
         currentUserAccountIDParam,
         currentUserEmailParam,
@@ -2383,6 +2387,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         parentChatReport: currentChatReport,
         moneyRequestReportID,
         existingTransaction,
+        optimisticTransactionID,
         existingTransactionID:
             isMovingTransactionFromTrackExpense && linkedTrackedExpenseReportAction && isMoneyRequestAction(linkedTrackedExpenseReportAction)
                 ? getOriginalMessage(linkedTrackedExpenseReportAction)?.IOUTransactionID

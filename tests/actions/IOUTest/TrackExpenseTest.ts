@@ -317,6 +317,7 @@ describe('actions/IOU/TrackExpense', () => {
                     linkedTrackedExpenseReportID: transactionDraft?.linkedTrackedExpenseReportID,
                     customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
                 },
+                optimisticTransactionID: 'optimistic-ignored-for-move-from-track',
                 isASAPSubmitBetaEnabled: false,
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
@@ -341,6 +342,9 @@ describe('actions/IOU/TrackExpense', () => {
                         // Then the transaction must remain a distance request, ensuring that the optimistic data is correctly built and the transaction type remains accurate.
                         const isDistanceRequest = isDistanceRequestUtil(categorizedTransaction);
                         expect(isDistanceRequest).toBe(true);
+
+                        // Move-from-track must keep the tracked transaction id, not the UI-provided optimisticTransactionID.
+                        expect(transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}optimistic-ignored-for-move-from-track`]).toBeUndefined();
 
                         // Then the transaction category must match the original category
                         expect(categorizedTransaction?.category).toBe(Object.keys(fakeCategories).at(0) ?? '');
@@ -1380,6 +1384,27 @@ describe('actions/IOU/TrackExpense', () => {
             });
 
             expect(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${optimisticSelfDMReportID}`]?.chatType).toBe(CONST.REPORT.CHAT_TYPE.SELF_DM);
+        });
+
+        it('should create the optimistic transaction under the UI-provided optimisticTransactionID when there is no existing transaction', async () => {
+            const optimisticTransactionID = 'optimistic-txn-99';
+
+            trackExpense({
+                ...getDefaultTrackExpenseParams(undefined, {amount: 3000, merchant: 'Optimistic Txn ID Test'}),
+                optimisticTransactionID,
+            });
+            await waitForBatchedUpdates();
+
+            let transactions: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (val) => {
+                    transactions = val;
+                },
+            });
+
+            expect(transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransactionID}`]?.merchant).toBe('Optimistic Txn ID Test');
         });
 
         it('should handle API failure gracefully with failure data', async () => {
