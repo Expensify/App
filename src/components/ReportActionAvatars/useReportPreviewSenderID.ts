@@ -199,9 +199,6 @@ function getReportPreviewSenderID({
             return undefined;
         }
     } else {
-        // 1. If all amounts have the same sign - either all amounts are positive or all amounts are negative.
-        // We have to do it this way because there can be a case when actions are not available
-        // See: https://github.com/Expensify/App/pull/64802#issuecomment-3008944401
         const transactionsWithUnknownDirection = (transactions ?? []).filter((transaction, index) => transactionSigns.at(index) === undefined);
         const hasUnknownDirection = transactionSigns.some((sign) => sign === undefined);
         const unknownDirectionComesOnlyFromPendingScans = transactionsWithUnknownDirection.length > 0 && transactionsWithUnknownDirection.every(hasPendingScanStateAndUnknownDirection);
@@ -231,6 +228,9 @@ function getReportPreviewSenderID({
             return undefined;
         }
 
+        // 1. If all amounts have the same sign - either all amounts are positive or all amounts are negative.
+        // We have to do it this way because there can be a case when actions are not available.
+        // See: https://github.com/Expensify/App/pull/64802#issuecomment-3008944401
         const areAmountsSignsTheSame = hasOnlyUnknownNonPendingScanDirections || new Set(knownTransactionSigns).size < 2;
 
         if (!areAmountsSignsTheSame) {

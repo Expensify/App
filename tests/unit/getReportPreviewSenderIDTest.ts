@@ -84,8 +84,8 @@ describe('getReportPreviewSenderID', () => {
     });
 
     it('returns childOwnerAccountID when all transactions map to IOU actions from the same actor', () => {
-        const transaction1 = makeTransaction(100, 'user1@test.com', {transactionID: 'tr-1'});
-        const transaction2 = makeTransaction(200, 'user2@test.com', {transactionID: 'tr-2'});
+        const transaction1 = makeTransaction(100, 'user1@test.com', {transactionID: '123'});
+        const transaction2 = makeTransaction(200, 'user1@test.com', {transactionID: '321'});
 
         const result = getReportPreviewSenderID({
             ...baseParams,
@@ -96,7 +96,7 @@ describe('getReportPreviewSenderID', () => {
                     actorAccountID: 10,
                     originalMessage: {
                         type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                        IOUTransactionID: 'tr-1',
+                        IOUTransactionID: '123',
                         amount: 100,
                         currency: 'USD',
                     },
@@ -105,7 +105,7 @@ describe('getReportPreviewSenderID', () => {
                     actorAccountID: 10,
                     originalMessage: {
                         type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                        IOUTransactionID: 'tr-2',
+                        IOUTransactionID: '321',
                         amount: 200,
                         currency: 'USD',
                     },
@@ -118,8 +118,8 @@ describe('getReportPreviewSenderID', () => {
     });
 
     it('returns undefined when transactions map to IOU actions from different actors', () => {
-        const transaction1 = makeTransaction(100, 'user1@test.com', {transactionID: 'tr-1'});
-        const transaction2 = makeTransaction(200, 'user2@test.com', {transactionID: 'tr-2'});
+        const transaction1 = makeTransaction(100, 'user1@test.com', {transactionID: '123'});
+        const transaction2 = makeTransaction(200, 'user1@test.com', {transactionID: '321'});
 
         const result = getReportPreviewSenderID({
             ...baseParams,
@@ -130,7 +130,7 @@ describe('getReportPreviewSenderID', () => {
                     actorAccountID: 10,
                     originalMessage: {
                         type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                        IOUTransactionID: 'tr-1',
+                        IOUTransactionID: '123',
                         amount: 100,
                         currency: 'USD',
                     },
@@ -139,7 +139,7 @@ describe('getReportPreviewSenderID', () => {
                     actorAccountID: 20,
                     originalMessage: {
                         type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                        IOUTransactionID: 'tr-2',
+                        IOUTransactionID: '321',
                         amount: 200,
                         currency: 'USD',
                     },
@@ -419,7 +419,7 @@ describe('getReportPreviewSenderID', () => {
                     actorAccountID: 10,
                     originalMessage: {
                         type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                        IOUTransactionID: 'tr-active',
+                        IOUTransactionID: '987654321012345678',
                         amount: 100,
                         currency: 'USD',
                     },
@@ -428,7 +428,7 @@ describe('getReportPreviewSenderID', () => {
                     actorAccountID: 20,
                     originalMessage: {
                         type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                        IOUTransactionID: 'tr-deleted',
+                        IOUTransactionID: '987654321012345679',
                         amount: 100,
                         currency: 'USD',
                         deleted: '2026-04-11 07:12:23.697',
@@ -436,7 +436,7 @@ describe('getReportPreviewSenderID', () => {
                     message: [{type: 'COMMENT', text: 'Deleted expense', deleted: '2026-04-11 07:12:23.697'}],
                 }),
             ],
-            transactions: [makeTransaction(100, 'user@test.com', {transactionID: 'tr-active'})],
+            transactions: [makeTransaction(100, 'user@test.com', {transactionID: '987654321012345678'})],
         });
 
         expect(result).toBe(OWNER_ACCOUNT_ID);
