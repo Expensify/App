@@ -31,6 +31,43 @@ type MeasuredAnchorScrollRef = {
     scrollToIndex: (params: {index: number; animated: boolean; viewOffset: number}) => Promise<void> | void;
 };
 
+type InitialViewportResetSession = {
+    listID: string;
+    reportID: string;
+    linkedReportActionID: string | undefined;
+    initialScrollKey: string | undefined;
+};
+
+function isUnreadMarkerOnlyInitialScrollKeyChange(
+    previousSession: InitialViewportResetSession | undefined,
+    listID: string,
+    reportID: string,
+    linkedReportActionID: string | undefined,
+    initialScrollKey: string | undefined,
+) {
+    if (!previousSession) {
+        return false;
+    }
+
+    return (
+        previousSession.initialScrollKey !== initialScrollKey &&
+        !linkedReportActionID &&
+        previousSession.listID === listID &&
+        previousSession.reportID === reportID &&
+        previousSession.linkedReportActionID === linkedReportActionID
+    );
+}
+
+function isMatchingInitialViewportResetSession(
+    session: InitialViewportResetSession | undefined,
+    listID: string,
+    reportID: string,
+    linkedReportActionID: string | undefined,
+    initialScrollKey: string | undefined,
+) {
+    return !!session && session.listID === listID && session.reportID === reportID && session.linkedReportActionID === linkedReportActionID && session.initialScrollKey === initialScrollKey;
+}
+
 function isInitialViewportCovered(mountedIndices: Set<number>, range: InitialViewportRange, initialScrollIndex: number) {
     if (mountedIndices.size < range.requiredMountedItems) {
         return false;
@@ -57,10 +94,21 @@ function useVerticallyCenteredInitialContent({
 }: UseVerticallyCenteredInitialContentProps) {
     const reportScrollManager = useReportScrollManager();
     const {windowHeight} = useWindowDimensions();
+    /**
+     * Last scroll/viewport-reset session identifiers. Avoids resetting the initial viewport skeleton or measured-anchor
+     * scroll when only the unread marker action ID changes during mark-as-unread (same FlashList/listID).
+     */
+    const initialViewportResetSessionRef = useRef<InitialViewportResetSession | undefined>(undefined);
+    const [initialViewportResetSession, setInitialViewportResetSession] = useState<InitialViewportResetSession | undefined>(undefined);
+    const [suppressedInitialScrollSession, setSuppressedInitialScrollSession] = useState<InitialViewportResetSession | undefined>(undefined);
+    const shouldSuppressUnreadMarkerInitialScroll =
+        isUnreadMarkerOnlyInitialScrollKeyChange(initialViewportResetSession, listID, report.reportID, linkedReportActionID, initialScrollKey) ||
+        isMatchingInitialViewportResetSession(suppressedInitialScrollSession, listID, report.reportID, linkedReportActionID, initialScrollKey);
+    const initialScrollKeyForInitialScroll = shouldSuppressUnreadMarkerInitialScroll ? undefined : initialScrollKey;
 
-    const initialScrollIndex = !initialScrollKey ? -1 : sortedVisibleReportActions.findIndex((item) => keyExtractor(item) === initialScrollKey);
+    const initialScrollIndex = !initialScrollKeyForInitialScroll ? -1 : sortedVisibleReportActions.findIndex((item) => keyExtractor(item) === initialScrollKeyForInitialScroll);
     const hasInitialScrollTarget = initialScrollIndex >= 0;
-    const shouldMeasureInitialScrollTargetPosition = !!initialScrollKey && hasInitialScrollTarget;
+    const shouldMeasureInitialScrollTargetPosition = !!initialScrollKeyForInitialScroll && hasInitialScrollTarget;
     const [listHeight, setListHeight] = useState(0);
     const [isInitialViewportLoading, setIsInitialViewportLoading] = useState(true);
     /**
@@ -78,19 +126,6 @@ function useVerticallyCenteredInitialContent({
     const shouldSkipMeasuredInitialTargetScrollRef = useRef(false);
     const measuredAnchorScrollFrameRef = useRef<number | undefined>(undefined);
     const measuredAnchorScrollAttemptCountRef = useRef(0);
-    /**
-     * Last scroll/viewport-reset session identifiers. Avoids resetting the initial viewport skeleton or measured-anchor
-     * scroll when only the unread marker action ID changes during mark-as-unread (same FlashList/listID).
-     */
-    const initialViewportResetSessionRef = useRef<
-        | {
-              listID: string;
-              reportID: string;
-              linkedReportActionID: string | undefined;
-              initialScrollKey: string | undefined;
-          }
-        | undefined
-    >(undefined);
 
     const initialScrollIndexViewOffset = !hasInitialScrollTarget ? undefined : -Math.max(listHeight / 2, 0);
 
@@ -189,23 +224,19 @@ function useVerticallyCenteredInitialContent({
         const normalizedInitialScrollKey = initialScrollKey;
         const previousSession = initialViewportResetSessionRef.current;
 
-        const isFirstViewportResetCycle = previousSession === undefined;
-        const listIDBumped = isFirstViewportResetCycle ? true : previousSession.listID !== listID;
-        const reportSwitched = isFirstViewportResetCycle ? true : previousSession.reportID !== report.reportID;
-        const linkedTargetingChanged = isFirstViewportResetCycle ? false : previousSession.linkedReportActionID !== normalizedLinkedReportActionID;
+        const isUnreadMarkerOnlyChange = isUnreadMarkerOnlyInitialScrollKeyChange(previousSession, listID, report.reportID, normalizedLinkedReportActionID, normalizedInitialScrollKey);
 
-        const didInitialScrollKeyChange = previousSession?.initialScrollKey !== normalizedInitialScrollKey;
-        const isUnreadMarkerOnlyChange =
-            didInitialScrollKeyChange && previousSession !== undefined && !normalizedLinkedReportActionID && !listIDBumped && !reportSwitched && !linkedTargetingChanged;
-
-        initialViewportResetSessionRef.current = {
+        const currentSession = {
             listID,
             reportID: report.reportID,
             linkedReportActionID: normalizedLinkedReportActionID,
             initialScrollKey: normalizedInitialScrollKey,
         };
+        initialViewportResetSessionRef.current = currentSession;
+        setInitialViewportResetSession(currentSession);
 
         if (isUnreadMarkerOnlyChange) {
+            setSuppressedInitialScrollSession(currentSession);
             shouldSkipMeasuredInitialTargetScrollRef.current = true;
             hasCommittedMeasuredAnchorScrollRef.current = false;
             measuredAnchorScrollAttemptCountRef.current = 0;
@@ -218,6 +249,7 @@ function useVerticallyCenteredInitialContent({
         }
 
         const shouldDeferLinkedOlderReveal = !!(normalizedLinkedReportActionID && hasOlderActions);
+        setSuppressedInitialScrollSession(undefined);
         setLinkedOlderRevealGateReady(!shouldDeferLinkedOlderReveal);
 
         mountedInitialViewportIndicesRef.current.clear();
@@ -353,6 +385,7 @@ function useVerticallyCenteredInitialContent({
         handleReportActionsListLayout,
         handleInitialViewportItemMounted,
         hasInitialScrollTarget,
+        initialScrollKeyForInitialScroll,
     };
 }
 

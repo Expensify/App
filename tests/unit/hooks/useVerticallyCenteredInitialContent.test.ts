@@ -128,6 +128,7 @@ describe('useVerticallyCenteredInitialContent', () => {
             await Promise.resolve();
         });
 
+        expect(result.current.initialScrollKeyForInitialScroll).toBe('2');
         expect(mockScrollToIndex).toHaveBeenCalledWith({
             index: 1,
             animated: false,
@@ -152,6 +153,7 @@ describe('useVerticallyCenteredInitialContent', () => {
         rerender(createProps({initialScrollKey: '2'}));
 
         expect(result.current.shouldShowInitialViewportSkeleton).toBe(false);
+        expect(result.current.initialScrollKeyForInitialScroll).toBeUndefined();
 
         await act(async () => {
             result.current.handleInitialScrollTargetLayout(120);

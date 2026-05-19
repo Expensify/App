@@ -767,6 +767,7 @@ function ReportActionsList({
         handleInitialViewportItemMounted,
         handleInitialScrollTargetLayout,
         handleReportActionsListLayout,
+        initialScrollKeyForInitialScroll,
     } = useVerticallyCenteredInitialContent({
         initialScrollKey,
         sortedVisibleReportActions,
@@ -839,7 +840,8 @@ function ReportActionsList({
                 );
             }
 
-            const isMeasuredInitialScrollTargetRow = target === 'Cell' && !!initialScrollKey && keyExtractor(reportAction) === initialScrollKey && hasInitialScrollTarget;
+            const isMeasuredInitialScrollTargetRow =
+                target === 'Cell' && !!initialScrollKeyForInitialScroll && keyExtractor(reportAction) === initialScrollKeyForInitialScroll && hasInitialScrollTarget;
 
             if (isMeasuredInitialScrollTargetRow) {
                 return (
@@ -863,7 +865,7 @@ function ReportActionsList({
             handleInitialViewportItemMounted,
             hasInitialScrollTarget,
             hasPreviousMessages,
-            initialScrollKey,
+            initialScrollKeyForInitialScroll,
             initialViewportRange,
             isInitialViewportLoading,
             isOffline,
@@ -1023,7 +1025,7 @@ function ReportActionsList({
                         maintainVisibleContentPosition={
                             shouldAutoscrollToBottom ? {autoscrollToBottomThreshold: CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD, animateAutoScrollToBottom: false} : undefined
                         }
-                        initialScrollKey={initialScrollKey}
+                        initialScrollKey={initialScrollKeyForInitialScroll}
                         onContentSizeChange={() => {
                             trackVerticalScrolling(undefined);
                         }}
