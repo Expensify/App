@@ -283,7 +283,7 @@ describe('updateAgentPrompt', () => {
     it('calls write with UPDATE_AGENT_PROMPT command and correct params', () => {
         updateAgentPrompt(TEST_ACCOUNT_ID, 'New prompt', 'Old prompt');
 
-        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_AGENT_PROMPT, {agentAccountID: TEST_ACCOUNT_ID, reportID: 0, prompt: 'New prompt'}, expect.any(Object));
+        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_AGENT_PROMPT, {agentAccountID: TEST_ACCOUNT_ID, prompt: 'New prompt'}, expect.any(Object));
     });
 
     it('optimistic data sets prompt, pendingAction UPDATE, and errors null on the prompt key', () => {

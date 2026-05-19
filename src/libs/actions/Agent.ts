@@ -15,8 +15,8 @@ function openAgentsPage() {
     read(READ_COMMANDS.OPEN_AGENTS_PAGE, null);
 }
 
-function readAgentPrompt(agentAccountID: number) {
-    read(READ_COMMANDS.READ_AGENT_PROMPT, {agentAccountID, reportID: 0});
+function openAgentProfilePage() {
+    read(READ_COMMANDS.OPEN_AGENT_PROFILE_PAGE, null);
 }
 
 function createAgent(firstName: string | undefined, prompt: string, customExpensifyAvatarID?: string, file?: File | CustomRNImageManipulatorResult, optimisticAvatarURI?: string) {
@@ -176,7 +176,7 @@ function updateAgentPrompt(accountID: number, prompt: string, originalPrompt: st
         },
     ];
 
-    write(WRITE_COMMANDS.UPDATE_AGENT_PROMPT, {agentAccountID: accountID, reportID: 0, prompt}, {optimisticData, successData, failureData});
+    write(WRITE_COMMANDS.UPDATE_AGENT_PROMPT, {agentAccountID: accountID, prompt}, {optimisticData, successData, failureData});
 }
 
 function clearAgentAvatarUpdateError(accountID: number) {
@@ -292,7 +292,7 @@ function deleteAgent(accountID: number) {
 
 export {
     openAgentsPage,
-    readAgentPrompt,
+    openAgentProfilePage,
     createAgent,
     clearAgentError,
     clearAgentUpdateError,

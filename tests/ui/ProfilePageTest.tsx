@@ -35,7 +35,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 jest.mock('@libs/actions/Agent', () => ({
     openAgentsPage: jest.fn(),
     clearAgentPromptUpdateError: jest.fn(),
-    readAgentPrompt: jest.fn(),
+    openAgentProfilePage: jest.fn(),
     updateAgentPrompt: jest.fn(),
 }));
 
@@ -268,6 +268,26 @@ describe('ProfilePage - agent account', () => {
 
         expect(screen.queryByTestId('ai-prompt-box')).toBeNull();
         expect(screen.queryByTestId('edit-prompt-button')).toBeNull();
+    });
+
+    it('calls openAgentProfilePage on mount for agent account', async () => {
+        const mockOpenAgentProfilePage = jest.mocked(AgentActions.openAgentProfilePage);
+        await setupUser('agent_123@expensify.ai');
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockOpenAgentProfilePage).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call openAgentProfilePage on mount for non-agent account', async () => {
+        const mockOpenAgentProfilePage = jest.mocked(AgentActions.openAgentProfilePage);
+        await setupUser('user@expensify.com');
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockOpenAgentProfilePage).not.toHaveBeenCalled();
     });
 
     it('switches to edit mode when edit button pressed', async () => {

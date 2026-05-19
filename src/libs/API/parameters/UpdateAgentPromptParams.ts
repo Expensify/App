@@ -1,7 +1,7 @@
 type UpdateAgentPromptParams = {
     agentAccountID: number;
-    reportID: number;
     prompt: string;
+    reportID?: number;
 };
 
 export default UpdateAgentPromptParams;
