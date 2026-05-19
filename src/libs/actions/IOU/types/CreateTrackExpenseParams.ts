@@ -22,6 +22,7 @@ type CreateTrackExpenseParams = {
     isRetry?: boolean;
     shouldPlaySound?: boolean;
     shouldHandleNavigation?: boolean;
+    shouldDeferForSearch?: boolean;
     isASAPSubmitBetaEnabled: boolean;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
