@@ -8565,7 +8565,16 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             `<muted-text-label>Bon in behandeling vanwege een verbroken bankverbinding. Los dit op in <a href="${workspaceCompanyCardRoute}">Bedrijfspassen</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Bon wordt vastgehouden vanwege een verbroken bankkoppeling. Vraag een werkruimtebeheerder om dit op te lossen.',
         markAsCashToIgnore: 'Markeren als contant om te negeren en betaling aan te vragen.',
-        smartscanFailed: ({canEdit = true}) => `Bon scannen mislukt.${canEdit ? 'Voer gegevens handmatig in.' : ''}`,
+        smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
+            if (missingFields.length > 0) {
+                const fieldNames: Record<string, string> = {merchant: 'handelaar', date: 'datum', amount: 'bedrag'};
+                const translated = missingFields.map((f) => fieldNames[f] ?? f);
+                const fieldList = translated.join(translated.length > 2 ? ', ' : ' en ');
+                const verb = translated.length === 1 ? 'ontbreekt' : 'ontbreken';
+                return `Bon scannen mislukt — ${fieldList} ${verb}.${canEdit ? ' Voer gegevens handmatig in.' : ''}`;
+            }
+            return `Bon scannen mislukt.${canEdit ? 'Voer gegevens handmatig in.' : ''}`;
+        },
         receiptGeneratedWithAI: 'Mogelijke AI-gegenereerde bon',
         someTagLevelsRequired: (tagName?: string) => `Ontbreekt ${tagName ?? 'Label'}`,
         tagOutOfPolicy: (tagName?: string) => `${tagName ?? 'Label'} niet meer geldig`,

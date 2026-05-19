@@ -8624,7 +8624,22 @@ const translations = {
             `<muted-text-label>Receipt pending due to broken bank connection. Please resolve in <a href="${workspaceCompanyCardRoute}">Company cards</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Receipt pending due to broken bank connection. Please ask a workspace admin to resolve.',
         markAsCashToIgnore: 'Mark as cash to ignore and request payment.',
-        smartscanFailed: ({canEdit = true}) => `Receipt scanning failed.${canEdit ? ' Enter details manually.' : ''}`,
+        smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
+            if (missingFields.length > 0) {
+                const fieldNames: Record<string, string> = {merchant: 'merchant', date: 'date', amount: 'amount'};
+                const translated = missingFields.map((f) => fieldNames[f] ?? f);
+                let fieldList = '';
+                if (translated.length === 1) {
+                    fieldList = translated.at(0) ?? '';
+                } else if (translated.length === 2) {
+                    fieldList = translated.join(' and ');
+                } else {
+                    fieldList = `${translated.slice(0, translated.length - 1).join(', ')}, and ${translated.at(-1)}`;
+                }
+                return `Receipt scanning failed — missing ${fieldList}.${canEdit ? ' Enter details manually.' : ''}`;
+            }
+            return `Receipt scanning failed.${canEdit ? ' Enter details manually.' : ''}`;
+        },
         receiptGeneratedWithAI: 'Potential AI-generated receipt',
         someTagLevelsRequired: (tagName?: string) => `Missing ${tagName ?? 'Tag'}`,
         tagOutOfPolicy: (tagName?: string) => `${tagName ?? 'Tag'} no longer valid`,

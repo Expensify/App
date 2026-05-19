@@ -8343,7 +8343,22 @@ ${reportName}
             `<muted-text-label>由于银行连接中断，收据暂时待处理。请前往<a href="${workspaceCompanyCardRoute}">公司卡</a>中解决。</muted-text-label>`,
         memberBrokenConnectionError: '由于银行连接中断，收据处于待处理状态。请联系工作区管理员解决。',
         markAsCashToIgnore: '标记为现金以忽略并请求付款。',
-        smartscanFailed: ({canEdit = true}) => `收据扫描失败。${canEdit ? '手动输入详细信息。' : ''}`,
+        smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
+            if (missingFields.length > 0) {
+                const fieldNames: Record<string, string> = {merchant: '商家', date: '日期', amount: '金额'};
+                const translated = missingFields.map((f) => fieldNames[f] ?? f);
+                let fieldList = '';
+                if (translated.length === 1) {
+                    fieldList = translated.at(0) ?? '';
+                } else if (translated.length === 2) {
+                    fieldList = translated.join('和');
+                } else {
+                    fieldList = translated.join('、');
+                }
+                return `收据扫描失败 — 缺少${fieldList}。${canEdit ? '手动输入详细信息。' : ''}`;
+            }
+            return `收据扫描失败。${canEdit ? '手动输入详细信息。' : ''}`;
+        },
         receiptGeneratedWithAI: '可能由 AI 生成的收据',
         someTagLevelsRequired: (tagName?: string) => `缺少 ${tagName ?? '标签'}`,
         tagOutOfPolicy: (tagName?: string) => `${tagName ?? '标签'} 不再有效`,
