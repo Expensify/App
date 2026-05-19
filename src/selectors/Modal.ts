@@ -6,4 +6,6 @@ const willAlertModalBecomeVisibleSelector = (modal: OnyxEntry<Modal>) => modal?.
 
 const isRHPVisibleSelector = (modal: OnyxEntry<Modal>) => modal?.type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED;
 
-export {willAlertModalBecomeVisibleSelector, isRHPVisibleSelector};
+const isModalActiveSelector = (modal: OnyxEntry<Modal>) => !!modal?.isVisible || !!modal?.willAlertModalBecomeVisible;
+
+export {willAlertModalBecomeVisibleSelector, isRHPVisibleSelector, isModalActiveSelector};
