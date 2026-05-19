@@ -76,6 +76,20 @@ function isInitialViewportCovered(mountedIndices: Set<number>, range: InitialVie
     return hasItemBeforeInitialTarget && hasItemAfterInitialTarget;
 }
 
+/**
+ * Inverted FlashList `scrollToIndex` with `-listHeight / 2` places the row's bottom edge at mid-viewport.
+ * Adjust from that baseline to land either the row's top edge or vertical center on mid-viewport.
+ */
+function getMeasuredLinkedRowScrollViewOffset(listHeight: number, layoutHeight: number) {
+    const midViewportOffset = -listHeight / 2;
+
+    if (layoutHeight > listHeight) {
+        return midViewportOffset + layoutHeight;
+    }
+
+    return midViewportOffset + layoutHeight / 2;
+}
+
 function useVerticallyCenteredInitialContent({
     initialScrollKey,
     sortedVisibleReportActions,
@@ -162,9 +176,7 @@ function useVerticallyCenteredInitialContent({
 
         linkedRowScrollIndexRef.current = scrollIndex;
 
-        // Inverted FlashList initially aligns the target row's bottom edge at mid-viewport.
-        // Shift by the measured row height so the row's top edge lands there instead.
-        const viewOffsetAlignedToTopEdge = -listHeight / 2 + layoutHeight;
+        const measuredScrollViewOffset = getMeasuredLinkedRowScrollViewOffset(listHeight, layoutHeight);
 
         function scheduleMeasuredAnchorScroll() {
             measuredAnchorScrollFrameRef.current = requestAnimationFrame(scrollToMeasuredAnchor);
@@ -215,7 +227,7 @@ function useVerticallyCenteredInitialContent({
                 scrollResult = flashListRef.scrollToIndex({
                     index: indexToScroll,
                     animated: false,
-                    viewOffset: viewOffsetAlignedToTopEdge,
+                    viewOffset: measuredScrollViewOffset,
                 });
             } catch {
                 if (!isFollowUp) {
@@ -474,3 +486,4 @@ function useVerticallyCenteredInitialContent({
 export default useVerticallyCenteredInitialContent;
 
 export type {InitialViewportRange};
+export {getMeasuredLinkedRowScrollViewOffset};

@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 import type {LayoutChangeEvent} from 'react-native';
-import useVerticallyCenteredInitialContent from '@pages/inbox/report/useVerticallyCenteredInitialContent';
+import useVerticallyCenteredInitialContent, {getMeasuredLinkedRowScrollViewOffset} from '@pages/inbox/report/useVerticallyCenteredInitialContent';
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -98,6 +98,16 @@ describe('useVerticallyCenteredInitialContent', () => {
         jest.restoreAllMocks();
     });
 
+    describe('getMeasuredLinkedRowScrollViewOffset', () => {
+        it('centers the row vertical midpoint when the row fits within the list', () => {
+            expect(getMeasuredLinkedRowScrollViewOffset(600, 120)).toBe(-240);
+        });
+
+        it('centers the row top edge when the row is taller than the list', () => {
+            expect(getMeasuredLinkedRowScrollViewOffset(600, 700)).toBe(400);
+        });
+    });
+
     it('shows the initial viewport skeleton on initial render when there is an initial scroll target', async () => {
         const {result} = renderHook((props: HookProps) => useVerticallyCenteredInitialContent(props), {
             initialProps: createProps({initialScrollKey: '2'}),
@@ -139,7 +149,7 @@ describe('useVerticallyCenteredInitialContent', () => {
         expect(mockScrollToIndex).toHaveBeenCalledWith({
             index: 1,
             animated: false,
-            viewOffset: -180,
+            viewOffset: -240,
         });
         expect(result.current.shouldShowInitialViewportSkeleton).toBe(false);
     });
