@@ -3862,11 +3862,11 @@ const CONST = {
                 gusto: 'Gusto',
                 billCom: 'Bill.com',
                 zenefits: 'TriNet',
+                merge_hris: 'Merge HR',
                 sap: 'SAP',
                 oracle: 'Oracle',
                 microsoftDynamics: 'Microsoft Dynamics',
                 other: 'Other',
-                merge_hris: 'Merge HR',
             },
             get ACCOUNTING_CONNECTION_NAMES() {
                 return [this.NAME.QBO, this.NAME.QBD, this.NAME.XERO, this.NAME.NETSUITE, this.NAME.SAGE_INTACCT, this.NAME.CERTINIA] as const;
@@ -6423,6 +6423,7 @@ const CONST = {
         DENIED_ACCESS_VARIANTS: {
             DELEGATE: 'delegate',
             SUBMITTER: 'submitter',
+            AGENT: 'agent',
         },
     },
     DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK: 'https://help.expensify.com/expensify-classic/hubs/copilots-and-delegates/',

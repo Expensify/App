@@ -2436,4 +2436,7 @@ export type {
     Subrate,
     ProhibitedExpenses,
     NetSuiteConnectionData,
+    HRConnectionConfigBase,
+    MergeHRConnectionConfig,
+    MergeHRConnectionData,
 };
