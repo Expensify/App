@@ -118,6 +118,8 @@ export default function useReportUnreadMessageScrollTracking({
         const viewableIndexes = viewableItems.map((viewableItem) => viewableItem.index).filter((value) => typeof value === 'number');
 
         if (viewableIndexes.length === 0) {
+            // Reset action badge visibility when there are no viewable items (e.g., after switching reports)
+            setIsActionBadgeAboveViewport(false);
             return;
         }
 
@@ -172,10 +174,7 @@ export default function useReportUnreadMessageScrollTracking({
     // When actionBadgeTargetIndex changes, recalculate visibility
     useEffect(() => {
         ref.current.actionBadgeTargetIndex = actionBadgeTargetIndex;
-
-        if (ref.current.previousViewableItems.length) {
-            onViewableItemsChanged({viewableItems: ref.current.previousViewableItems, changed: []});
-        }
+        onViewableItemsChanged({viewableItems: ref.current.previousViewableItems, changed: []});
     }, [onViewableItemsChanged, actionBadgeTargetIndex]);
 
     return {
