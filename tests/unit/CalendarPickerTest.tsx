@@ -5,6 +5,7 @@ import type {ComponentType, ReactNode} from 'react';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
 import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 type MockPressableProps = {testID?: string; accessibilityLabel?: string; role?: string; onPress?: () => void; children?: ReactNode};
 type MockTextProps = {children?: ReactNode};
@@ -623,5 +624,14 @@ describe('CalendarPicker', () => {
         // The current month (June, index 6) should be selected
         expect(allMonths.find((m) => m.value === 6)?.isSelected).toBe(true);
         expect(allMonths.find((m) => m.value === 0)?.isSelected).toBe(false);
+    });
+
+    test('the year selector dynamic route is reachable from any CalendarPicker host (not gated to an allowlist)', () => {
+        // CalendarPicker is rendered from many screens (date input fields, DateSelectPopup,
+        // RangeDatePicker, DatePresetFilterBase, ScheduleCallPage, ...). The previous in-place
+        // YearPickerModal had no screen restriction, so the migrated dynamic route must stay
+        // unrestricted; a partial entryScreens allowlist would silently break the year picker
+        // on any screen it omits.
+        expect(DYNAMIC_ROUTES.YEAR_SELECTOR.entryScreens).toContain('*');
     });
 });

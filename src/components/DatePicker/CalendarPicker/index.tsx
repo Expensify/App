@@ -134,9 +134,7 @@ function CalendarPicker({
     const openYearPicker = () => {
         onBeforeOpenYearPicker?.();
         Navigation.navigate(
-            createDynamicRoute(
-                `${DYNAMIC_ROUTES.YEAR_SELECTOR.path}?contextID=${encodeURIComponent(contextID)}&currentYear=${currentYearView}&minYear=${minYear}&maxYear=${maxYear}`,
-            ),
+            createDynamicRoute(`${DYNAMIC_ROUTES.YEAR_SELECTOR.path}?contextID=${encodeURIComponent(contextID)}&currentYear=${currentYearView}&minYear=${minYear}&maxYear=${maxYear}`),
         );
     };
 

@@ -111,19 +111,12 @@ const DYNAMIC_ROUTES = {
     YEAR_SELECTOR: {
         path: 'year-selector',
         queryParams: ['contextID', 'currentYear', 'minYear', 'maxYear'],
-        entryScreens: [
-            SCREENS.SETTINGS.PROFILE.DATE_OF_BIRTH,
-            SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE,
-            SCREENS.MONEY_REQUEST.STEP_DATE,
-            SCREENS.MONEY_REQUEST.STEP_TIME,
-            SCREENS.MONEY_REQUEST.STEP_TIME_EDIT,
-            SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_CREATE_DATE_RANGE,
-            SCREENS.SEARCH.ROOT,
-            SCREENS.SEARCH.ADVANCED_FILTERS_DATE_RHP,
-            SCREENS.SEARCH.EDIT_MULTIPLE_DATE_RHP,
-            SCREENS.CHRONOS_SCHEDULE_OOO_ROOT,
-            SCREENS.SCHEDULE_CALL,
-        ],
+        // CalendarPicker is a generic component reached from many screens (date input fields,
+        // DateSelectPopup, RangeDatePicker, DatePresetFilterBase, ScheduleCallPage, ...), and the
+        // previous in-place YearPickerModal had no screen restriction. Use '*' so the year selector
+        // remains reachable from every CalendarPicker host and doesn't silently break when new
+        // date-input screens are added (matches KEYBOARD_SHORTCUTS / EXIT_SURVEY_* generic flows).
+        entryScreens: ['*'],
     },
     REPORT_SETTINGS_NAME: {
         path: 'settings/name',
