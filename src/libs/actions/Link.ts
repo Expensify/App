@@ -264,7 +264,7 @@ function openReportFromDeepLink(
 
     // React Navigation generates /Home (capitalized) for the root URL because PublicScreens uses SCREENS.HOME ('Home')
     // at the root level without a path mapping. Treat it as empty route to avoid showing a “not found” page after sign-in.
-    if (normalizePath(route).toLowerCase() === `/${ROUTES.HOME}`) {
+    if (normalizePath(route) === `/${SCREENS.HOME}`) {
         route = '';
     }
 
