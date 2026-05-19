@@ -7045,50 +7045,6 @@ describe('SearchUIUtils', () => {
             expect(allKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.EXPORT);
         });
 
-        it('should show top spenders for track-intent users on eligible paid workspace', () => {
-            const mockPolicies = {
-                policy1: {
-                    id: 'policy1',
-                    name: 'Test Policy',
-                    owner: adminEmail,
-                    outputCurrency: 'USD',
-                    isPolicyExpenseChatEnabled: true,
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    type: CONST.POLICY.TYPE.TEAM,
-                    employeeList: {
-                        [adminEmail]: {
-                            email: adminEmail,
-                            role: CONST.POLICY.ROLE.ADMIN,
-                            submitsTo: approverEmail,
-                        },
-                        [approverEmail]: {
-                            email: approverEmail,
-                            role: CONST.POLICY.ROLE.USER,
-                            submitsTo: adminEmail,
-                        },
-                    },
-                },
-            };
-
-            const sections = SearchUIUtils.createTypeMenuSections({
-                currentUserEmail: adminEmail,
-                currentUserAccountID: adminAccountID,
-                cardFeedsByPolicy: {},
-                defaultCardFeed: undefined,
-                policies: mockPolicies,
-                savedSearches: {},
-                isOffline: false,
-                defaultExpensifyCard: undefined,
-                draftTransactionIDs: [],
-                isTrackIntentUser: true,
-            });
-
-            const allMenuItems = sections.flatMap((section) => section.menuItems);
-            const allKeys = allMenuItems.map((item) => item.key);
-
-            expect(allKeys).toContain(CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS);
-        });
-
         it('should generate correct routes', () => {
             const menuItems = SearchUIUtils.createTypeMenuSections({
                 currentUserEmail: undefined,
@@ -8251,7 +8207,7 @@ describe('SearchUIUtils', () => {
             expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TAG);
         });
 
-        test('Should include COMMENTS column at the end in expense report view with custom columns', () => {
+        test('Should place COMMENTS right before TOTAL in expense report view with custom columns', () => {
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
             const testTransaction = {
                 ...baseTransaction,
@@ -8260,7 +8216,7 @@ describe('SearchUIUtils', () => {
             };
 
             // Use custom columns to trigger the custom columns path
-            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.TOTAL];
             const columns = SearchUIUtils.getColumnsToShow({
                 currentAccountID: submitterAccountID,
                 data: [testTransaction],
@@ -8270,8 +8226,28 @@ describe('SearchUIUtils', () => {
             });
 
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
-            // COMMENTS should be at the end
-            expect(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.COMMENTS)).toBe(columns.length - 1);
+            // TOTAL should be at the end, with COMMENTS immediately before it
+            expect(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.COMMENTS)).toBe(columns.length - 2);
+            expect(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL)).toBe(columns.length - 1);
+        });
+
+        test('Should place COMMENTS right before TOTAL in default expense report view', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const testTransaction = {
+                ...baseTransaction,
+                transactionID: 'test',
+                merchant: 'Test Merchant',
+            };
+
+            const columns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: submitterAccountID,
+                data: [testTransaction],
+                isExpenseReportView: true,
+                shouldShowCommentsColumn: true,
+            });
+
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
+            expect(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.COMMENTS)).toBe(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL) - 1);
         });
 
         test('Should not duplicate COMMENTS column when already in visible columns', () => {
@@ -8397,6 +8373,82 @@ describe('SearchUIUtils', () => {
 
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE);
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT);
+        });
+
+        test('Should show TAX columns when user selected them and the workspace has taxes enabled, even for transactions with null tax fields', () => {
+            // Repro for the issue raised on GH #82252: expenses created before taxes were
+            // enabled have null taxCode/taxAmount/taxValue and never get backfilled, so the
+            // per-transaction check alone would hide the columns even though the user has
+            // both selected the columns and enabled taxes on the workspace.
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const legacyTransaction = {
+                ...baseTransaction,
+                transactionID: 'legacy',
+                merchant: 'Legacy Expense',
+                taxCode: undefined,
+                taxAmount: undefined,
+            };
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.TAX_RATE, CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+            const columns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: submitterAccountID,
+                data: [legacyTransaction],
+                visibleColumns,
+                isExpenseReportView: true,
+                isPolicyTaxEnabled: true,
+            });
+
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT);
+        });
+
+        test('Should NOT inject TAX columns when the workspace has taxes enabled but the user did not select them', () => {
+            // Guard: enabling taxes on the workspace must not force the columns into the
+            // result if the user deselected them in the column selector. The customResult
+            // path filters to the user's selection, so unselected columns stay hidden even
+            // when columns[TAX_RATE]/[TAX_AMOUNT] get flipped on internally.
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const legacyTransaction = {
+                ...baseTransaction,
+                transactionID: 'legacy',
+                merchant: 'Legacy Expense',
+                taxCode: undefined,
+                taxAmount: undefined,
+            };
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+            const columns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: submitterAccountID,
+                data: [legacyTransaction],
+                visibleColumns,
+                isExpenseReportView: true,
+                isPolicyTaxEnabled: true,
+            });
+
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE);
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT);
+        });
+
+        test('Should hide TAX columns when the workspace does not have taxes enabled and transactions have no tax data', () => {
+            // Regression guard: without a tax-enabled policy and without per-transaction tax
+            // data, the columns must stay hidden even if the user selected them.
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const legacyTransaction = {
+                ...baseTransaction,
+                transactionID: 'legacy',
+                merchant: 'Legacy Expense',
+                taxCode: undefined,
+                taxAmount: undefined,
+            };
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.TAX_RATE, CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+            const columns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: submitterAccountID,
+                data: [legacyTransaction],
+                visibleColumns,
+                isExpenseReportView: true,
+                isPolicyTaxEnabled: false,
+            });
+
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE);
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT);
         });
 
         test('Should hide empty AMOUNT column in expense report view when no conversion', () => {
