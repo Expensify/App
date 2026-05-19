@@ -1,3 +1,4 @@
+---
 title: Complete a hotel stay using Travel Invoicing
 description: Learn what happens after you book a hotel with Travel Invoicing and how to handle payment verification at check-in.
 keywords: [expensify hotel booking payment, travel invoicing hotel check in, expensify travel hotel authorization, hotel cvv expensify]
