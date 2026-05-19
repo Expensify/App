@@ -27,7 +27,7 @@ function SelectFeedType() {
     const isCSVCardImportBetaEnabled = isBetaEnabled(CONST.BETAS.CSV_CARD_IMPORT);
     const doesCountrySupportPlaid = isPlaidSupportedCountry(addNewCard?.data?.selectedCountry);
     const isUSCountry = addNewCard?.data?.selectedCountry === CONST.COUNTRY.US;
-    const defaultTypeSelected = addNewCard?.data.selectedFeedType ?? (doesCountrySupportPlaid ? CONST.COMPANY_CARDS.FEED_TYPE.DIRECT : undefined);
+    const defaultTypeSelected = addNewCard?.data.selectedFeedType ?? (doesCountrySupportPlaid ? CONST.COMPANY_CARDS.FEED_TYPE.DIRECT : CONST.COMPANY_CARDS.FEED_TYPE.CUSTOM);
     const typeSelected = localTypeSelected ?? defaultTypeSelected;
 
     const submit = useCallback(() => {
