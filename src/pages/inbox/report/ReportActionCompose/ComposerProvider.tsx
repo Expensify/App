@@ -51,9 +51,16 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
 
     const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(isComposerFullSize);
     const [isMenuVisible, setMenuVisibility] = useState(false);
-    const [text, setText] = useState(() => {
+    const getInitialText = () => {
         return draftComment ?? '';
-    });
+    };
+    const textRef = useRef<string>(getInitialText());
+    const [text, setTextState] = useState(getInitialText);
+
+    const setText = (v: string) => {
+        setTextState(v);
+        textRef.current = v;
+    };
 
     const containerRef = useRef<View>(null);
     const suggestionsRef = useRef<SuggestionsRef>(null);
@@ -161,6 +168,7 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
         actionButtonRef,
         isNextModalWillOpenRef,
         attachmentFileRef,
+        textRef,
     };
 
     return (
