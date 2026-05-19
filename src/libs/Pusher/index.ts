@@ -46,6 +46,7 @@ let resolveInitPromise: () => void;
 let initPromise = new Promise<void>((resolve) => {
     resolveInitPromise = resolve;
 });
+let pusherGeneration = 0;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Pusher callbacks have varying signatures due to chunking wrapper
 type BoundCallback = (eventData: any) => void;
@@ -222,12 +223,22 @@ function subscribe<EventName extends PusherEventName>(
     let wrappedCb: BoundCallback | undefined;
     let resolvedChannel: Channel | undefined;
     let disposed = false;
+    const subscribeGeneration = pusherGeneration;
 
     const promise = initPromise.then(
         () =>
             new Promise<void>((resolve, reject) => {
                 InteractionManager.runAfterInteractions(() => {
                     if (disposed) {
+                        resolve();
+                        return;
+                    }
+
+                    // If Pusher was disconnected (and potentially re-initialized) after this
+                    // subscribe was called, bail out silently. The new init flow will create
+                    // fresh subscriptions for the new account.
+                    if (subscribeGeneration !== pusherGeneration) {
+                        Log.info('[Pusher] Stale subscribe call after disconnect, skipping', false, {channelName, eventName});
                         resolve();
                         return;
                     }
@@ -441,6 +452,7 @@ function disconnect() {
         return;
     }
 
+    pusherGeneration++;
     socket.disconnect();
     socket = null;
     pusherSocketID = '';
