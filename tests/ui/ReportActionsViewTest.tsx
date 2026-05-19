@@ -14,6 +14,7 @@ import useSidePanelState from '@hooks/useSidePanelState';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import DateUtils from '@libs/DateUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import {useConciergeSessionActions, useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
 import ReportActionsView from '@pages/inbox/report/ReportActionsView';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -44,6 +45,10 @@ jest.mock('@hooks/useParentReportAction', () => jest.fn());
 jest.mock('@hooks/useIsInSidePanel', () => jest.fn());
 jest.mock('@hooks/useSidePanelState', () => jest.fn());
 jest.mock('@hooks/useReportTransactionsCollection', () => jest.fn());
+jest.mock('@pages/inbox/ConciergeSessionContext', () => ({
+    useConciergeSessionState: jest.fn(),
+    useConciergeSessionActions: jest.fn(),
+}));
 
 const mockUseNetwork = useNetwork as jest.MockedFunction<typeof useNetwork>;
 const mockUseOnyx = useOnyx as jest.MockedFunction<typeof useOnyx>;
@@ -54,6 +59,8 @@ const mockUseParentReportAction = useParentReportAction as jest.MockedFunction<t
 const mockUseIsInSidePanel = useIsInSidePanel as jest.MockedFunction<typeof useIsInSidePanel>;
 const mockUseSidePanelState = useSidePanelState as jest.MockedFunction<typeof useSidePanelState>;
 const mockUseReportTransactionsCollection = useReportTransactionsCollection as jest.MockedFunction<typeof useReportTransactionsCollection>;
+const mockUseConciergeSessionState = useConciergeSessionState as jest.MockedFunction<typeof useConciergeSessionState>;
+const mockUseConciergeSessionActions = useConciergeSessionActions as jest.MockedFunction<typeof useConciergeSessionActions>;
 
 const defaultPaginatedReportActionsResult: ReturnType<typeof usePaginatedReportActions> = {
     reportActions: [],
@@ -193,6 +200,8 @@ describe('ReportActionsView', () => {
         mockUseIsInSidePanel.mockReturnValue(false);
         mockUseSidePanelState.mockReturnValue(defaultSidePanelState);
         mockUseReportTransactionsCollection.mockReturnValue({});
+        mockUseConciergeSessionState.mockReturnValue({sessionStartTime: null, showFullHistory: false});
+        mockUseConciergeSessionActions.mockReturnValue({startSession: jest.fn(), endSession: jest.fn(), setShowFullHistory: jest.fn()});
 
         mockUseOnyx.mockImplementation((key: string) => {
             if (key === ONYXKEYS.IS_LOADING_APP) {
@@ -357,7 +366,7 @@ describe('ReportActionsView', () => {
         });
     });
 
-    describe('Concierge Chat History', () => {
+    describe('Concierge Side Panel', () => {
         const CONCIERGE_REPORT_ID = '123';
         const CURRENT_USER_ACCOUNT_ID = 100;
 
@@ -436,50 +445,21 @@ describe('ReportActionsView', () => {
             expect(passedActions?.at(0)?.reportActionID).toBe(CONST.CONCIERGE_GREETING_ACTION_ID);
         });
 
-        it('should show welcome state in main DM when report has read messages (lastReadTime set)', () => {
+        it('should not show welcome state when not in side panel', () => {
             setupConciergeMocks();
-
-            mockUseOnyx.mockImplementation((key: string) => {
-                if (key === ONYXKEYS.CONCIERGE_REPORT_ID) {
-                    return [CONCIERGE_REPORT_ID, {status: 'loaded'}];
-                }
-                if (key === ONYXKEYS.IS_LOADING_APP) {
-                    return [false, {status: 'loaded'}];
-                }
-                if (key === ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING) {
-                    return [false, {status: 'loaded'}];
-                }
-                if (key.includes('reportLoadingState')) {
-                    return [{isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true}, {status: 'loaded'}];
-                }
-                if (key.includes('reportActions')) {
-                    return [[], {status: 'loaded'}];
-                }
-                if (key === `${ONYXKEYS.COLLECTION.REPORT}${CONCIERGE_REPORT_ID}`) {
-                    return [{...mockReport, reportID: CONCIERGE_REPORT_ID}, {status: 'loaded'}];
-                }
-                if (key.includes('report')) {
-                    return [undefined, {status: 'loaded'}];
-                }
-                return [undefined, {status: 'loaded'}];
-            });
 
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
                 reportActions: oldReportActions,
             });
             mockUseIsInSidePanel.mockReturnValue(false);
-            mockUseIsFocused.mockReturnValue(true);
 
             renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
 
-            expect(mockReportActionsList).toHaveBeenCalled();
-            const passedActions = (mockReportActionsList.mock.calls.at(0) as [{sortedVisibleReportActions: OnyxTypes.ReportAction[]}]).at(0)?.sortedVisibleReportActions;
-            expect(passedActions?.length).toBeGreaterThanOrEqual(1);
-            expect(passedActions?.at(0)?.reportActionID).toBe(CONST.CONCIERGE_GREETING_ACTION_ID);
+            expect(mockReportActionItemCreated).not.toHaveBeenCalled();
         });
 
-        it('should not show welcome state for non-concierge reports', () => {
+        it('should not show welcome state for non-concierge reports in side panel', () => {
             setupConciergeMocks();
 
             mockUsePaginatedReportActions.mockReturnValue({
@@ -493,7 +473,7 @@ describe('ReportActionsView', () => {
             expect(mockReportActionItemCreated).not.toHaveBeenCalled();
         });
 
-        it('should hide welcome and show filtered actions when user sends a message in side panel', () => {
+        it('should hide welcome and show filtered actions when user sends a message', () => {
             setupConciergeMocks();
 
             const sessionStart = DateUtils.getDBTime();
@@ -523,15 +503,64 @@ describe('ReportActionsView', () => {
 
             renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
 
+            // Welcome should not be shown since user has sent a message
             expect(mockReportActionItemCreated).not.toHaveBeenCalled();
+            // ReportActionsList should be rendered with filtered actions
             expect(mockReportActionsList).toHaveBeenCalled();
         });
+    });
 
-        it('should hide welcome and show filtered actions when user sends a message in main DM', () => {
-            const newMessageTime = DateUtils.getDBTime();
+    describe('Concierge Main DM Hidden History', () => {
+        const CONCIERGE_REPORT_ID = '123';
+        const CURRENT_USER_ACCOUNT_ID = 100;
+        const SESSION_START = '2024-06-01 12:00:00.000';
 
+        const oldReportActions: OnyxTypes.ReportAction[] = [
+            {
+                reportActionID: 'created-1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                created: '2023-01-01 00:00:00.000',
+                actorAccountID: 123,
+                message: [{type: 'COMMENT', html: '', text: ''}],
+                originalMessage: {},
+                shouldShow: true,
+                person: [{type: 'TEXT', style: 'strong', text: 'System'}],
+                pendingAction: null,
+                errors: {},
+            },
+            {
+                reportActionID: 'old-user-msg',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2023-06-15 10:00:00.000',
+                actorAccountID: CURRENT_USER_ACCOUNT_ID,
+                message: [{type: 'COMMENT', html: 'Old user message', text: 'Old user message'}],
+                originalMessage: {},
+                shouldShow: true,
+                person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
+                pendingAction: null,
+                errors: {},
+            },
+            {
+                reportActionID: 'old-concierge-msg',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2023-06-15 10:01:00.000',
+                actorAccountID: 456,
+                message: [{type: 'COMMENT', html: 'Old concierge reply', text: 'Old concierge reply'}],
+                originalMessage: {},
+                shouldShow: true,
+                person: [{type: 'TEXT', style: 'strong', text: 'Concierge'}],
+                pendingAction: null,
+                errors: {},
+            },
+        ];
+
+        const setupMainDMConciergeMocks = (sessionStartTime: string | null = SESSION_START, showFullHistory = false) => {
             jest.spyOn(ReportActionsUtils, 'shouldReportActionBeVisible').mockReturnValue(true);
             mockUseNetwork.mockReturnValue({isOffline: false});
+            mockUseIsInSidePanel.mockReturnValue(false);
+            mockUseSidePanelState.mockReturnValue(defaultSidePanelState);
+            mockUseConciergeSessionState.mockReturnValue({sessionStartTime, showFullHistory});
+            mockUseConciergeSessionActions.mockReturnValue({startSession: jest.fn(), endSession: jest.fn(), setShowFullHistory: jest.fn()});
 
             mockUseOnyx.mockImplementation((key: string) => {
                 if (key === ONYXKEYS.CONCIERGE_REPORT_ID) {
@@ -557,15 +586,54 @@ describe('ReportActionsView', () => {
                 }
                 return [undefined, {status: 'loaded'}];
             });
+        };
 
-            const actionsWithNewMessage: OnyxTypes.ReportAction[] = [
+        it('should show greeting and filter old messages when session is active with prior user messages', () => {
+            setupMainDMConciergeMocks();
+
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: oldReportActions,
+                hasOlderActions: false,
+            });
+
+            renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
+
+            expect(mockReportActionsList).toHaveBeenCalled();
+            const passedActions = (mockReportActionsList.mock.calls.at(0) as [{sortedVisibleReportActions: OnyxTypes.ReportAction[]}]).at(0)?.sortedVisibleReportActions;
+            expect(passedActions?.some((a) => a.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID)).toBe(true);
+            expect(passedActions?.some((a) => a.reportActionID === 'old-user-msg')).toBe(false);
+            expect(passedActions?.some((a) => a.reportActionID === 'old-concierge-msg')).toBe(false);
+        });
+
+        it('should show all actions when showFullHistory is true', () => {
+            setupMainDMConciergeMocks(SESSION_START, true);
+
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: oldReportActions,
+                hasOlderActions: false,
+            });
+
+            renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
+
+            expect(mockReportActionsList).toHaveBeenCalled();
+            const passedActions = (mockReportActionsList.mock.calls.at(0) as [{sortedVisibleReportActions: OnyxTypes.ReportAction[]}]).at(0)?.sortedVisibleReportActions;
+            expect(passedActions?.some((a) => a.reportActionID === 'old-user-msg')).toBe(true);
+            expect(passedActions?.some((a) => a.reportActionID === 'old-concierge-msg')).toBe(true);
+        });
+
+        it('should show all actions unfiltered when user sends a message in current session', () => {
+            setupMainDMConciergeMocks();
+
+            const actionsWithNewMsg: OnyxTypes.ReportAction[] = [
                 ...oldReportActions,
                 {
-                    reportActionID: 'new-msg-1',
+                    reportActionID: 'new-user-msg',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    created: newMessageTime,
+                    created: '2024-06-01 12:05:00.000',
                     actorAccountID: CURRENT_USER_ACCOUNT_ID,
-                    message: [{type: 'COMMENT', html: 'New message', text: 'New message'}],
+                    message: [{type: 'COMMENT', html: 'Hello', text: 'Hello'}],
                     originalMessage: {},
                     shouldShow: true,
                     person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
@@ -576,15 +644,97 @@ describe('ReportActionsView', () => {
 
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
-                reportActions: actionsWithNewMessage,
+                reportActions: actionsWithNewMsg,
+                hasOlderActions: false,
             });
-            mockUseIsInSidePanel.mockReturnValue(false);
-            mockUseIsFocused.mockReturnValue(true);
 
             renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
 
-            expect(mockReportActionItemCreated).not.toHaveBeenCalled();
             expect(mockReportActionsList).toHaveBeenCalled();
+            const passedActions = (mockReportActionsList.mock.calls.at(0) as [{sortedVisibleReportActions: OnyxTypes.ReportAction[]}]).at(0)?.sortedVisibleReportActions;
+            // After user sends a message, the greeting should not show and all session actions appear
+            expect(passedActions?.some((a) => a.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID)).toBe(false);
+            expect(passedActions?.some((a) => a.reportActionID === 'new-user-msg')).toBe(true);
+        });
+
+        it('should not show old messages when sessionStartTime is null (session not started)', () => {
+            setupMainDMConciergeMocks(null);
+
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: oldReportActions,
+                hasOlderActions: false,
+            });
+
+            renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
+
+            expect(mockReportActionsList).toHaveBeenCalled();
+            const passedActions = (mockReportActionsList.mock.calls.at(0) as [{sortedVisibleReportActions: OnyxTypes.ReportAction[]}]).at(0)?.sortedVisibleReportActions;
+            // With no session, old messages should not be shown
+            expect(passedActions?.some((a) => a.reportActionID === 'old-user-msg')).toBe(false);
+            expect(passedActions?.some((a) => a.reportActionID === 'old-concierge-msg')).toBe(false);
+        });
+
+        it('should pass through onboarding messages for a new user with no prior messages', () => {
+            setupMainDMConciergeMocks();
+
+            // Only onboarding messages from Concierge, no user messages before session
+            const onboardingActions: OnyxTypes.ReportAction[] = [
+                {
+                    reportActionID: 'created-1',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                    created: '2024-06-01 11:59:00.000',
+                    actorAccountID: 123,
+                    message: [{type: 'COMMENT', html: '', text: ''}],
+                    originalMessage: {},
+                    shouldShow: true,
+                    person: [{type: 'TEXT', style: 'strong', text: 'System'}],
+                    pendingAction: null,
+                    errors: {},
+                },
+                {
+                    reportActionID: 'onboarding-msg',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    created: '2024-06-01 11:59:30.000',
+                    actorAccountID: 456,
+                    message: [{type: 'COMMENT', html: 'Welcome to Expensify!', text: 'Welcome to Expensify!'}],
+                    originalMessage: {},
+                    shouldShow: true,
+                    person: [{type: 'TEXT', style: 'strong', text: 'Concierge'}],
+                    pendingAction: null,
+                    errors: {},
+                },
+            ];
+
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: onboardingActions,
+                hasOlderActions: false,
+            });
+
+            renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
+
+            expect(mockReportActionsList).toHaveBeenCalled();
+            const passedActions = (mockReportActionsList.mock.calls.at(0) as [{sortedVisibleReportActions: OnyxTypes.ReportAction[]}]).at(0)?.sortedVisibleReportActions;
+            // New user with no prior messages — onboarding messages pass through (no filtering)
+            expect(passedActions?.some((a) => a.reportActionID === 'onboarding-msg')).toBe(true);
+        });
+
+        it('should call startSession on mount for main DM concierge', () => {
+            const mockStartSession = jest.fn();
+            mockUseConciergeSessionActions.mockReturnValue({startSession: mockStartSession, endSession: jest.fn(), setShowFullHistory: jest.fn()});
+            setupMainDMConciergeMocks();
+            mockUseConciergeSessionActions.mockReturnValue({startSession: mockStartSession, endSession: jest.fn(), setShowFullHistory: jest.fn()});
+
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: oldReportActions,
+                hasOlderActions: false,
+            });
+
+            renderReportActionsView({reportID: CONCIERGE_REPORT_ID});
+
+            expect(mockStartSession).toHaveBeenCalled();
         });
     });
 });
