@@ -52,7 +52,7 @@ describe('sortAndSectionPopoverMenuItems', () => {
     });
 
     it('keeps received payment with report payment workflow actions', () => {
-        const paymentWorkflowActions = REPORT_MORE_MENU_SECTIONS.at(0) ?? [];
+        const paymentWorkflowActions: string[] = REPORT_MORE_MENU_SECTIONS.at(0) ?? [];
         const approveActionIndex = paymentWorkflowActions.indexOf(CONST.REPORT.SECONDARY_ACTIONS.APPROVE);
         const unapproveActionIndex = paymentWorkflowActions.indexOf(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE);
 
