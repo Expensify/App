@@ -35,7 +35,23 @@ function TransactionListItemWide<TItem extends ListItem>({
     transactionPreviewData,
     exportedReportActions,
     nonPersonalAndWorkspaceCards,
-    policyForMovingExpenses,
+    isAttendeesEnabledForMovingPolicy,
+    shouldDisableHoverStyle,
+    onPressRow,
+    onMouseDownRow,
+    onHoverInRow,
+    onEditDate,
+    onEditMerchant,
+    onEditDescription,
+    onEditCategory,
+    onEditAmount,
+    onEditTag,
+    canEditDate,
+    canEditMerchant,
+    canEditDescription,
+    canEditCategory,
+    canEditAmount,
+    canEditTag,
 }: TransactionListItemWideProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -75,13 +91,14 @@ function TransactionListItemWide<TItem extends ListItem>({
             <PressableWithFeedback
                 ref={pressableRef}
                 onLongPress={() => onLongPressRow?.(item)}
-                onPress={isDeletedTransaction && !canSelectMultiple ? undefined : () => onSelectRow(item, transactionPreviewData)}
+                onPress={onPressRow}
                 disabled={isDisabled && !item.isSelected}
                 accessibilityLabel={item.text ?? ''}
                 role={!isDeletedTransaction ? getButtonRole(true) : 'none'}
                 isNested
-                onMouseDown={(e) => e.preventDefault()}
-                hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, item.isSelected && styles.activeComponentBG]}
+                onMouseDown={onMouseDownRow}
+                onHoverIn={onHoverInRow}
+                hoverStyle={[!item.isDisabled && !shouldDisableHoverStyle && styles.hoveredComponentBG, item.isSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                 id={item.keyForList ?? ''}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM}
@@ -91,7 +108,7 @@ function TransactionListItemWide<TItem extends ListItem>({
                     isDeletedTransaction && styles.cursorDefault,
                 ]}
                 onFocus={onFocus}
-                wrapperStyle={[styles.mh5, styles.flex1, animatedHighlightStyle, styles.userSelectNone, isLastItem && [styles.searchTableBottomRadius, styles.overflowHidden]]}
+                wrapperStyle={[styles.mh5, styles.flex1, animatedHighlightStyle, styles.userSelectNone, isLastItem && [styles.tableBottomRadius, styles.overflowHidden]]}
             >
                 {({hovered}) => (
                     <TransactionItemRow
@@ -117,13 +134,25 @@ function TransactionListItemWide<TItem extends ListItem>({
                         isActionColumnWide={transactionItem.isActionColumnWide}
                         shouldShowCheckbox={!!canSelectMultiple}
                         checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM_CHECKBOX}
-                        style={[styles.p3, styles.pv2, isLastItem ? styles.searchTableBottomRadius : styles.noBorderRadius]}
+                        style={[styles.p3, styles.pv2, isLastItem ? styles.tableBottomRadius : styles.noBorderRadius]}
                         violations={transactionViolations}
                         onArrowRightPress={isDeletedTransaction ? undefined : () => onSelectRow(item, transactionPreviewData)}
                         isHover={hovered}
                         nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                         reportActions={exportedReportActions}
-                        policyForMovingExpenses={policyForMovingExpenses}
+                        isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
+                        onEditDate={onEditDate}
+                        onEditMerchant={onEditMerchant}
+                        onEditDescription={onEditDescription}
+                        onEditCategory={onEditCategory}
+                        onEditAmount={onEditAmount}
+                        onEditTag={onEditTag}
+                        canEditDate={canEditDate}
+                        canEditMerchant={canEditMerchant}
+                        canEditDescription={canEditDescription}
+                        canEditCategory={canEditCategory}
+                        canEditAmount={canEditAmount}
+                        canEditTag={canEditTag}
                     />
                 )}
             </PressableWithFeedback>

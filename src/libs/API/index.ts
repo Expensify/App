@@ -4,7 +4,7 @@ import type {SetRequired} from 'type-fest';
 import {resolveDuplicationConflictAction, resolveEnableFeatureConflicts} from '@libs/actions/RequestConflictUtils';
 import type {AnyRequestMatcher, EnablePolicyFeatureCommand} from '@libs/actions/RequestConflictUtils';
 import Log from '@libs/Log';
-import {FailureTracking, handleDeletedAccount, HandleUnusedOptimisticID, Logging, Pagination, Reauthentication, SaveResponseInOnyx, SupportalPermission} from '@libs/Middleware';
+import {FailureTracking, handleDeletedAccount, HandleUnusedOptimisticID, LoadTest, Logging, Pagination, Reauthentication, SaveResponseInOnyx, SupportalPermission} from '@libs/Middleware';
 import FraudMonitoring from '@libs/Middleware/FraudMonitoring';
 import SentryServerTiming from '@libs/Middleware/SentryServerTiming';
 import {push as pushToSequentialQueue, waitForIdle as waitForSequentialQueueIdle} from '@libs/Network/SequentialQueue';
@@ -25,6 +25,9 @@ import {READ_COMMANDS} from './types';
 
 // Logging - Logs request details and errors.
 addMiddleware(Logging);
+
+// Duplicates API calls (tagged with mockRequest=true) when the server sends load-test parameters via the X-Load-Test response header.
+addMiddleware(LoadTest);
 
 // FailureTracking - Observes request outcomes and feeds them to FailureTracker for sustained failure detection.
 addMiddleware(FailureTracking);

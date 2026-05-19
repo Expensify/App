@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
@@ -400,16 +399,16 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         Navigation.navigate(
             isQuickSettingsFlow
                 ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(policyId, category.keyForList, backTo)
-                : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyId, category.keyForList),
+                : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(category.keyForList)),
         );
     };
 
     const navigateToCategoriesSettings = useCallback(() => {
-        Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_SETTINGS.getRoute(policyId, backTo) : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_SETTINGS.path));
-    }, [isQuickSettingsFlow, policyId, backTo]);
+        Navigation.navigate(createDynamicRoute(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_CATEGORIES_SETTINGS.path : DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_SETTINGS.path));
+    }, [isQuickSettingsFlow]);
 
     const navigateToCreateCategoryPage = () => {
-        Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORY_CREATE.getRoute(policyId, backTo) : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_CREATE.path));
+        Navigation.navigate(createDynamicRoute(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_CATEGORY_CREATE.path : DYNAMIC_ROUTES.WORKSPACE_CATEGORY_CREATE.path));
     };
 
     const dismissError = (item: ListItem) => {
@@ -430,9 +429,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             );
         }
 
-        InteractionManager.runAfterInteractions(() => {
-            setSelectedCategories([]);
-        });
+        setSelectedCategories([]);
     };
     const hasVisibleCategories = categoryList.some((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
@@ -786,7 +783,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 {!hasVisibleCategories && !isLoading && inputValue.length === 0 && (
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                         <GenericEmptyStateComponent
-                            // eslint-disable-next-line react/jsx-props-no-spreading
                             {...genericIllustration}
                             title={translate('workspace.categories.emptyCategories.title')}
                             subtitleText={subtitleText}

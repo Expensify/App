@@ -4,8 +4,8 @@ import type {ReactNode} from 'react';
 import React, {useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/types';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -165,7 +165,14 @@ function WorkspacePageWithSections({
     const shouldShowPolicy = useMemo(() => shouldShowPolicyUtil(policy, false, currentUserLogin), [policy, currentUserLogin]);
     const isPendingDelete = isPendingDeletePolicy(policy);
     const prevIsPendingDelete = isPendingDeletePolicy(prevPolicy);
+
     const shouldShow = useMemo(() => {
+        // Don't trigger the not-found view while the screen is in the background — prevents unexpected
+        // navigation when the workspace is deleted from another device while this screen is unfocused.
+        if (!isFocused) {
+            return false;
+        }
+
         // If the policy object doesn't exist or contains only error data, we shouldn't display it.
         if (((isEmptyObject(policy) || (Object.keys(policy).length === 1 && !isEmptyObject(policy.errors))) && isEmptyObject(policyDraft)) || shouldShowNotFoundPage) {
             return true;
@@ -174,7 +181,7 @@ function WorkspacePageWithSections({
         // We check isPendingDelete and prevIsPendingDelete to prevent the NotFound view from showing right after we delete the workspace
         return (!isEmptyObject(policy) && !canEditWorkspaceSettings(policy) && !shouldShowNonAdmin) || (!shouldShowPolicy && !(isPendingDelete && !prevIsPendingDelete));
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [policy, shouldShowNonAdmin, shouldShowPolicy]);
+    }, [isFocused, policy, shouldShowNonAdmin, shouldShowPolicy]);
 
     const handleOnBackButtonPress = () => {
         if (shouldShow) {
@@ -228,16 +235,18 @@ function WorkspacePageWithSections({
                     {headerContent}
                 </HeaderWithBackButton>
                 {!isOffline && (isLoading || firstRender.current) && shouldShowLoading && isFocused ? (
-                    <FullScreenLoadingIndicator
-                        style={[styles.flex1, styles.pRelative]}
-                        reasonAttributes={
-                            {
-                                context: 'WorkspacePageWithSections',
-                                isLoading,
-                                isFirstRender: firstRender.current,
-                            } satisfies SkeletonSpanReasonAttributes
-                        }
-                    />
+                    <View style={[styles.flex1, styles.fullScreenLoading]}>
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            reasonAttributes={
+                                {
+                                    context: 'WorkspacePageWithSections',
+                                    isLoading,
+                                    isFirstRender: firstRender.current,
+                                } satisfies SkeletonSpanReasonAttributes
+                            }
+                        />
+                    </View>
                 ) : (
                     <>
                         {shouldUseScrollView ? (
