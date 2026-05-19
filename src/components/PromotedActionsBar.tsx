@@ -57,7 +57,7 @@ const PromotedActions = {
         translationKey: report.isPinned ? 'common.unPin' : 'common.pin',
         onSelected: callFunctionIfActionIsAllowed(() => togglePinnedState(report.reportID, !!report.isPinned)),
     }),
-    share: (report) => ({
+    share: () => ({
         key: CONST.PROMOTED_ACTIONS.SHARE,
         icon: 'QrCode',
         translationKey: 'common.share',
