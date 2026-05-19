@@ -7751,6 +7751,96 @@ describe('SearchUIUtils', () => {
             const response = SearchUIUtils.getSuggestedSearchesVisibility(regularEmail, {}, policies, undefined);
             expect(response.visibility.topSpenders).toBe(false);
         });
+
+        test('Should show Unapproved Cash for Auditor role in paid policy with approvals and payments enabled', () => {
+            const auditorEmail = 'auditor@policy.com';
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.AUDITOR,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(auditorEmail, {}, policies, undefined);
+            expect(response.visibility.unapprovedCash).toBe(true);
+        });
+
+        test('Should show Unapproved Card for Auditor role in paid policy with approvals enabled and a default Expensify card', () => {
+            const auditorEmail = 'auditor@policy.com';
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.AUDITOR,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(auditorEmail, {}, policies, {} as CardFeedForDisplay);
+            expect(response.visibility.unapprovedCard).toBe(true);
+        });
+
+        test('Should show Reconciliation for Auditor role in paid policy with Expensify Cards enabled', () => {
+            const auditorEmail = 'auditor@policy.com';
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.AUDITOR,
+                    areExpensifyCardsEnabled: true,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(auditorEmail, {}, policies, undefined);
+            expect(response.visibility.reconciliation).toBe(true);
+        });
+
+        test('Should hide Unapproved Cash, Unapproved Card, and Reconciliation for User role even when prerequisites are met', () => {
+            const userEmail = 'user@policy.com';
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.USER,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    areExpensifyCardsEnabled: true,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(userEmail, {}, policies, {} as CardFeedForDisplay);
+            expect(response.visibility.unapprovedCash).toBe(false);
+            expect(response.visibility.unapprovedCard).toBe(false);
+            expect(response.visibility.reconciliation).toBe(false);
+        });
+
+        test('Should still show Unapproved Cash, Unapproved Card, and Reconciliation for Admin role when prerequisites are met (regression)', () => {
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    areExpensifyCardsEnabled: true,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, {} as CardFeedForDisplay);
+            expect(response.visibility.unapprovedCash).toBe(true);
+            expect(response.visibility.unapprovedCard).toBe(true);
+            expect(response.visibility.reconciliation).toBe(true);
+        });
     });
 
     describe('Test getSuggestedSearches sort defaults', () => {
@@ -8486,7 +8576,16 @@ describe('SearchUIUtils', () => {
 
             expect(setOptimisticDataForTransactionThreadPreview).toHaveBeenCalled();
             // The full reportAction is passed to preserve originalMessage.type for proper expense type detection
-            expect(createTransactionThreadReport).toHaveBeenCalledWith(introSelectedData, currentUserLogin, currentUserAccountID, undefined, report1, reportAction1, undefined, undefined);
+            expect(createTransactionThreadReport).toHaveBeenCalledWith({
+                introSelected: introSelectedData,
+                currentUserLogin,
+                currentUserAccountID,
+                betas: undefined,
+                iouReport: report1,
+                iouReportAction: reportAction1,
+                transaction: undefined,
+                transactionViolations: undefined,
+            });
         });
 
         test('Should not navigate if shouldNavigate = false', () => {
@@ -8567,7 +8666,7 @@ describe('SearchUIUtils', () => {
                 false,
             );
 
-            expect(((createTransactionThreadReport as jest.Mock).mock.calls.at(0) as unknown[] | undefined)?.at(0)).toEqual(customIntroSelected);
+            expect(jest.mocked(createTransactionThreadReport).mock.calls.at(0)?.at(0)?.introSelected).toEqual(customIntroSelected);
         });
 
         test('Should pass undefined introSelected without bypassing with empty values', () => {
@@ -8575,7 +8674,7 @@ describe('SearchUIUtils', () => {
 
             SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, undefined, backTo, currentUserLogin, currentUserAccountID, undefined, threadReportID, undefined, false);
 
-            expect(((createTransactionThreadReport as jest.Mock).mock.calls.at(0) as unknown[] | undefined)?.at(0)).toBeUndefined();
+            expect(jest.mocked(createTransactionThreadReport).mock.calls.at(0)?.at(0)?.introSelected).toBeUndefined();
         });
     });
 

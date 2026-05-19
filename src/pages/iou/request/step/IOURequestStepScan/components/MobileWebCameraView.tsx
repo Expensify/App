@@ -407,4 +407,3 @@ function MobileWebCameraView({
 }
 
 export default MobileWebCameraView;
-export type {MobileWebCameraViewProps};
