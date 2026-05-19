@@ -25,6 +25,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import AppNavigator from './AppNavigator';
 import {cleanPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import getActiveTabName from './helpers/getActiveTabName';
@@ -220,19 +221,27 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             return;
         }
 
-        // REPORTS_SPLIT_NAVIGATOR will persist after user logout, because it is used both for logged-in and logged-out users
-        // That's why for ReportsSplit we need to explicitly clear params when resetting navigation state,
-        // However in case other routes (related to login/logout) appear in nav state, then we want to preserve params for those
-        const isReportSplitNavigatorMounted = lastRoute.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
+        // ValidateLogin's /v/ code is spent by logout; keeping it strands the user.
+        // Only this route is special-cased — others (e.g. TransitionBetweenApps) keep their
+        // live auth params.
+        const isConsumedMagicLink = lastRoute.name === SCREENS.VALIDATE_LOGIN;
+        const signInHostRoute = isConsumedMagicLink
+            ? rootState.routes.find((route) => route.name === NAVIGATORS.TAB_NAVIGATOR || route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR)
+            : undefined;
+
+        // Fresh magic-link session: no host mounted, PublicScreens active → go to SignInPage.
+        if (isConsumedMagicLink && !signInHostRoute) {
+            navigationRef.reset({index: 0, routes: [{name: SCREENS.HOME}]});
+            return;
+        }
+
+        // ReportsSplit & the consumed magic-link host must drop stale params; others keep theirs.
+        const targetRoute = signInHostRoute ?? lastRoute;
+        const shouldClearParams = isConsumedMagicLink || targetRoute.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
         navigationRef.reset({
             ...rootState,
             index: 0,
-            routes: [
-                {
-                    ...lastRoute,
-                    params: isReportSplitNavigatorMounted ? undefined : lastRoute.params,
-                },
-            ],
+            routes: [{...targetRoute, params: shouldClearParams ? undefined : targetRoute.params}],
         });
     }, [authenticated, previousAuthenticated]);
 
