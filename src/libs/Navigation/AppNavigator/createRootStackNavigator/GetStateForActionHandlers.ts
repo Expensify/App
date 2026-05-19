@@ -396,13 +396,15 @@ function handleReplaceFullscreenUnderRHP(
             if (i !== targetTabIndex) {
                 return r;
             }
-            // suppressSidebarSeed: replace the tab with the destination leaf only, so the dismiss
-            // animation doesn't flash a seeded sidebar (e.g. WORKSPACES_LIST after creating a workspace).
+            // collapseTabToLeaf: replace the tab's nested stack with a single leaf route.
+            // Used when the caller has just created the destination (e.g. a new workspace) and
+            // wants the dismiss animation to reveal only that leaf — without flashing a seeded
+            // sidebar underneath, and without leaving the prior list in the back stack.
             // Default: prepend the existing sidebar/root (or the split navigator's default if the tab
             // had no nested routes) so back navigation from the new screen lands there.
             const newNestedRoutes = focusedTargetTab.state?.routes;
             let mergedNestedState = focusedTargetTab.state;
-            if (action.payload.suppressSidebarSeed) {
+            if (action.payload.collapseTabToLeaf) {
                 const leafRoute = newNestedRoutes?.at(-1);
                 if (leafRoute && focusedTargetTab.state) {
                     mergedNestedState = {...focusedTargetTab.state, routes: [leafRoute], index: 0};
