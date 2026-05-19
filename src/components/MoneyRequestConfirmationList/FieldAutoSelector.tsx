@@ -1,7 +1,7 @@
 import {useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import {setMoneyRequestCategory, setMoneyRequestTag} from '@libs/actions/IOU';
+import {setMoneyRequestCategory, setMoneyRequestTag} from '@libs/actions/IOU/MoneyRequest';
 import {insertTagIntoTransactionTagsString} from '@libs/IOUUtils';
 import {getTag} from '@libs/TransactionUtils';
 import type {Policy, PolicyCategories, PolicyTagLists, Transaction} from '@src/types/onyx';
