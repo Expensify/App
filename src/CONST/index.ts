@@ -6423,6 +6423,7 @@ const CONST = {
         DENIED_ACCESS_VARIANTS: {
             DELEGATE: 'delegate',
             SUBMITTER: 'submitter',
+            AGENT: 'agent',
         },
     },
     DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK: 'https://help.expensify.com/expensify-classic/hubs/copilots-and-delegates/',
