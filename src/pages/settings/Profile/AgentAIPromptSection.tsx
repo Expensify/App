@@ -10,7 +10,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearAgentPromptUpdateError, openAgentProfilePage, updateAgentPrompt} from '@libs/actions/Agent';
+import {clearAgentPromptUpdateError, openProfilePage, updateAgentPrompt} from '@libs/actions/Agent';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -30,7 +30,7 @@ function AgentAIPromptSection({accountID}: AgentAIPromptSectionProps) {
     const inputRef = useRef<BaseTextInputRef>(null);
 
     useEffect(() => {
-        openAgentProfilePage();
+        openProfilePage();
     }, []);
 
     useEffect(() => {

@@ -15,8 +15,8 @@ function openAgentsPage() {
     read(READ_COMMANDS.OPEN_AGENTS_PAGE, null);
 }
 
-function openAgentProfilePage() {
-    read(READ_COMMANDS.OPEN_AGENT_PROFILE_PAGE, null);
+function openProfilePage() {
+    read(READ_COMMANDS.OPEN_PROFILE_PAGE, null);
 }
 
 function createAgent(firstName: string | undefined, prompt: string, customExpensifyAvatarID?: string, file?: File | CustomRNImageManipulatorResult, optimisticAvatarURI?: string) {
@@ -292,7 +292,7 @@ function deleteAgent(accountID: number) {
 
 export {
     openAgentsPage,
-    openAgentProfilePage,
+    openProfilePage,
     createAgent,
     clearAgentError,
     clearAgentUpdateError,
