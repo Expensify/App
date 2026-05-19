@@ -114,7 +114,7 @@ function ReceiptEmptyState({
                                 {!isThumbnail && (
                                     <Icon
                                         src={icons.ReceiptPlaceholderPlus}
-                                        fill={theme.textLight}
+                                        fill={theme.receiptPlaceholderPlus}
                                         width={variables.avatarSizeSmall}
                                         height={variables.avatarSizeSmall}
                                         additionalStyles={styles.moneyRequestAttachReceiptThumbnailIcon}
