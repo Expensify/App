@@ -98,6 +98,22 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The date the report was approved */
         approved?: string;
 
+        /**
+         * Ordered list of users who approved this report, as computed by the backend (mirrors the
+         * detailed export template's `report.approvers`). `approvers[0]` is the first approver.
+         * Not yet sent by the Search command — the Reports table falls back to FE-derived data when absent.
+         */
+        approvers?: Array<{
+            /** Email of the approver */
+            email: string;
+
+            /** Account ID of the approver, when provided by the backend */
+            accountID?: number;
+
+            /** Timestamp of this approval */
+            date: string;
+        }>;
+
         /** The specific type of chat */
         chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
 

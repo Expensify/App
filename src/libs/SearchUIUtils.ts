@@ -295,6 +295,8 @@ const expenseReportColumnNamesToSortingProperty: ExpenseReportSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.DATE]: 'created' as const,
     [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: 'submitted' as const,
     [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: 'approved' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED]: 'firstApproved' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER]: 'formattedFirstApprover' as const,
     [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: 'exported' as const,
     [CONST.SEARCH.TABLE_COLUMNS.STATUS]: 'formattedStatus' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TITLE]: 'reportName' as const,
@@ -1230,6 +1232,69 @@ function isReportActionEntry(key: string): key is ReportActionKey {
 }
 
 /**
+ * Reports-list (EXPENSE_REPORT) columns that are hidden when no report in the current results
+ * has a value for them — mirrors the per-row data-presence convention used by `updateColumns`
+ * in the transaction-search path. Columns not listed here are always shown (they always have a
+ * value: avatar, date, status, title, from, totals, ids, action).
+ */
+const HIDEABLE_EXPENSE_REPORT_COLUMNS = new Set<SearchColumnType>([
+    CONST.SEARCH.TABLE_COLUMNS.SUBMITTED,
+    CONST.SEARCH.TABLE_COLUMNS.APPROVED,
+    CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED,
+    CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER,
+    CONST.SEARCH.TABLE_COLUMNS.EXPORTED,
+    CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO,
+    CONST.SEARCH.TABLE_COLUMNS.TO,
+    CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME,
+]);
+
+/**
+ * Scans the search results once and returns the set of hideable Reports-list columns that have
+ * at least one report with a value. Used to drop empty columns from the Reports table, the same
+ * way `updateColumns` does for the transaction-search path.
+ * @private
+ */
+function getReportListColumnsWithData(data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[]): Set<SearchColumnType> {
+    const present = new Set<SearchColumnType>();
+    if (Array.isArray(data)) {
+        return present;
+    }
+    for (const key of Object.keys(data)) {
+        if (isReportActionEntry(key)) {
+            for (const action of Object.values(data[key])) {
+                if (action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV || action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
+                    present.add(CONST.SEARCH.TABLE_COLUMNS.EXPORTED);
+                    present.add(CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO);
+                }
+            }
+            continue;
+        }
+        if (isReportEntry(key)) {
+            const report = data[key];
+            if (report?.submitted) {
+                present.add(CONST.SEARCH.TABLE_COLUMNS.SUBMITTED);
+            }
+            if (report?.approved) {
+                present.add(CONST.SEARCH.TABLE_COLUMNS.APPROVED);
+            }
+            // First approver/approved mirror the export's `report.approvers[0]`; show the columns
+            // when the backend sends approvers or (fallback) the report has an approved date.
+            if (report?.approvers?.length || report?.approved) {
+                present.add(CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED);
+                present.add(CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER);
+            }
+            if (report?.managerID) {
+                present.add(CONST.SEARCH.TABLE_COLUMNS.TO);
+            }
+            if (report?.policyID) {
+                present.add(CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME);
+            }
+        }
+    }
+    return present;
+}
+
+/**
  * @private
  */
 function isTransactionEntry(key: string): key is TransactionKey {
@@ -1738,6 +1803,7 @@ type PreprocessingContext = {
     shouldShowYearCreatedReport: boolean;
     shouldShowYearSubmittedReport: boolean;
     shouldShowYearApprovedReport: boolean;
+    shouldShowYearFirstApprovedReport: boolean;
     shouldShowYearExportedReport: boolean;
     shouldShowAmountInWideColumn: boolean;
     shouldShowTaxAmountInWideColumn: boolean;
@@ -1764,6 +1830,7 @@ function createPreprocessingContext(): PreprocessingContext {
         shouldShowYearCreatedReport: false,
         shouldShowYearSubmittedReport: false,
         shouldShowYearApprovedReport: false,
+        shouldShowYearFirstApprovedReport: false,
         shouldShowYearExportedReport: false,
         shouldShowAmountInWideColumn: false,
         shouldShowTaxAmountInWideColumn: false,
@@ -1823,6 +1890,12 @@ function processReportEntry(ctx: PreprocessingContext, report: OnyxTypes.Report)
     }
     if (!ctx.shouldShowYearApprovedReport && report.approved && DateUtils.doesDateBelongToAPastYear(report.approved)) {
         ctx.shouldShowYearApprovedReport = true;
+    }
+    // First-approved date: prefer the backend-computed approvers[0].date (matches the export
+    // template); fall back to report.approved when the backend doesn't send approvers.
+    const firstApprovedDate = report.approvers?.at(0)?.date ?? report.approved;
+    if (!ctx.shouldShowYearFirstApprovedReport && firstApprovedDate && DateUtils.doesDateBelongToAPastYear(firstApprovedDate)) {
+        ctx.shouldShowYearFirstApprovedReport = true;
     }
 
     if (!ctx.shouldShowYearSubmitted && report.submitted && DateUtils.doesDateBelongToAPastYear(report.submitted)) {
@@ -2665,6 +2738,7 @@ function getReportSections({
         shouldShowYearCreatedReport,
         shouldShowYearSubmittedReport,
         shouldShowYearApprovedReport,
+        shouldShowYearFirstApprovedReport,
         shouldShowYearExportedReport,
         shouldShowAmountInWideColumn,
         shouldShowTaxAmountInWideColumn,
@@ -2719,8 +2793,24 @@ function getReportSections({
                     emptyPersonalDetails;
                 const toDetails = !shouldShowBlankTo && reportItem.managerID ? mergedPersonalDetails?.[reportItem.managerID] : emptyPersonalDetails;
 
+                // First approver/approved mirror the detailed export template's `report.approvers[0]`.
+                // Prefer the backend-computed approvers list; the Search snapshot doesn't send it yet,
+                // so fall back to the report's approver (managerID) + approved date — but only for
+                // reports that are actually approved, so unapproved reports stay blank like the export.
+                const reportFirstApprover = reportItem.approvers?.at(0);
+                const isReportApproved = !!reportFirstApprover || !!reportItem.approved;
+                let firstApproverAccountID: number | undefined;
+                if (reportFirstApprover) {
+                    firstApproverAccountID = reportFirstApprover.accountID ?? Object.values(mergedPersonalDetails).find((details) => details?.login === reportFirstApprover.email)?.accountID;
+                } else if (isReportApproved) {
+                    firstApproverAccountID = reportItem.managerID;
+                }
+                const firstApproverDetails = firstApproverAccountID ? (mergedPersonalDetails?.[firstApproverAccountID] ?? emptyPersonalDetails) : emptyPersonalDetails;
+                const firstApproved = reportFirstApprover?.date ?? (isReportApproved ? (reportItem.approved ?? '') : '');
+
                 const formattedFrom = formatPhoneNumber(getDisplayNameOrDefault(fromDetails));
                 const formattedTo = !shouldShowBlankTo ? formatPhoneNumber(getDisplayNameOrDefault(toDetails)) : '';
+                const formattedFirstApprover = firstApproverAccountID ? formatPhoneNumber(getDisplayNameOrDefault(firstApproverDetails)) : '';
 
                 const formattedStatus = getReportStatusTranslation({stateNum: reportItem.stateNum, statusNum: reportItem.statusNum, translate});
                 const policyFromKey = getPolicyFromKey(data, reportItem);
@@ -2757,6 +2847,10 @@ function getReportSections({
                     from: (fromDetails ?? emptyPersonalDetails) as OnyxTypes.PersonalDetails,
                     to: (toDetails ?? emptyPersonalDetails) as OnyxTypes.PersonalDetails,
                     exported: lastExportedActionByReportID.get(reportItem.reportID)?.created ?? '',
+                    firstApproved,
+                    firstApprover: (firstApproverDetails ?? emptyPersonalDetails) as OnyxTypes.PersonalDetails,
+                    firstApproverAccountID,
+                    formattedFirstApprover,
                     formattedFrom,
                     formattedTo,
                     formattedStatus,
@@ -2766,6 +2860,7 @@ function getReportSections({
                     shouldShowYear: shouldShowYearCreatedReport,
                     shouldShowYearSubmitted: shouldShowYearSubmittedReport,
                     shouldShowYearApproved: shouldShowYearApprovedReport,
+                    shouldShowYearFirstApproved: shouldShowYearFirstApprovedReport,
                     shouldShowYearExported: shouldShowYearExportedReport,
                     hasVisibleViolations: hasVisibleViolationsForReport,
                     isRejectedReport,
@@ -4062,6 +4157,10 @@ function getSearchColumnTranslationKey(column: SearchColumnType): TranslationPat
             return 'common.submitted';
         case CONST.SEARCH.TABLE_COLUMNS.APPROVED:
             return 'search.filters.approved';
+        case CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER:
+            return 'search.filters.firstApprover';
+        case CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED:
+            return 'search.filters.firstApproved';
         case CONST.SEARCH.TABLE_COLUMNS.POSTED:
             return 'search.filters.posted';
         case CONST.SEARCH.TABLE_COLUMNS.EXPORTED:
@@ -5213,6 +5312,16 @@ function getColumnsToShow({
 
         for (const col of filteredVisibleColumns) {
             result.push(col);
+        }
+
+        // Drop hideable columns that have no value in any report in the current results — an
+        // empty column is just noise. Mirrors the per-row data-presence convention that
+        // `updateColumns` applies to the transaction-search path. Columns not in
+        // HIDEABLE_EXPENSE_REPORT_COLUMNS always have a value and are kept as-is.
+        const hasHideableColumnSelected = result.some((col) => HIDEABLE_EXPENSE_REPORT_COLUMNS.has(col));
+        if (hasHideableColumnSelected) {
+            const columnsWithData = getReportListColumnsWithData(data);
+            return result.filter((col) => !HIDEABLE_EXPENSE_REPORT_COLUMNS.has(col) || columnsWithData.has(col));
         }
 
         return result;
