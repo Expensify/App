@@ -26,7 +26,6 @@ jest.mock('@hooks/useLocalize', () => ({
 }));
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({accountID: 1, email: 'test@test.com'}),
 }));

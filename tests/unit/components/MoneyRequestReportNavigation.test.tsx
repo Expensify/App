@@ -17,7 +17,6 @@ jest.mock('@components/Search/SearchContext', () => ({
 
 const mockUseOnyx = jest.fn();
 jest.mock('@hooks/useOnyx', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     default: (...args: unknown[]) => mockUseOnyx(...args),
@@ -25,14 +24,12 @@ jest.mock('@hooks/useOnyx', () => ({
 
 const mockUseSearchSections = jest.fn();
 jest.mock('@hooks/useSearchSections', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     default: () => mockUseSearchSections(),
 }));
 
 jest.mock('@hooks/useFilterPendingDeleteReports', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: (ids: ReadonlyArray<string | undefined>) => ids.filter(Boolean),
 }));
