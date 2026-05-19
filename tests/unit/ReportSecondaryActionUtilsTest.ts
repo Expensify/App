@@ -3123,7 +3123,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
     });
 
-    it('includes the SPLIT option for the surviving split after the unreported sibling was deleted', async () => {
+    it('includes the SPLIT option after the other split half was deleted', async () => {
         // Given an open expense report owned by the current user
         const report = {
             reportID: REPORT_ID,
