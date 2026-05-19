@@ -15,7 +15,7 @@ import type {ConnectionName, PolicyConnectionSyncProgress} from '@src/types/onyx
 import type Policy from '@src/types/onyx/Policy';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-type ConnectFlowType = 'gusto' | 'zenefits' | 'none';
+type ConnectFlowType = 'gusto' | 'zenefits' | 'merge' | 'none';
 
 type HRCardConfig = {
     approvalMode?: string;
@@ -146,6 +146,9 @@ function getConnectFlowType(connectionName: HRConnectionName): ConnectFlowType {
     }
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.ZENEFITS) {
         return 'zenefits';
+    }
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR) {
+        return 'merge';
     }
     return 'none';
 }

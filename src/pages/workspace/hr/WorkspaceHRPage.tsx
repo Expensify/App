@@ -1,6 +1,8 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
+import ConnectToGustoFlow from '@components/ConnectToGustoFlow';
+import ConnectToMergeHRFlow from '@components/ConnectToMergeHRFlow';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -27,7 +29,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import HRProviderCard from './HRProviderCard';
-import type {ConnectFlowType} from './utils';
+import type {HRCardDescriptor} from './utils';
 import {getHRCards} from './utils';
 
 type WorkspaceHRPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.HR>;
@@ -49,6 +51,7 @@ function WorkspaceHRPage({
 
     const [isOtherExpanded, setIsOtherExpanded] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [connectingCard, setConnectingCard] = useState<HRCardDescriptor | null>(null);
 
     useWorkspaceDocumentTitle(undefined, 'workspace.common.hr');
 
@@ -78,13 +81,11 @@ function WorkspaceHRPage({
 
     const shouldBeBlocked = !isBetaEnabled(CONST.BETAS.GUSTO) && !isBetaEnabled(CONST.BETAS.ZENEFITS) && !isBetaEnabled(CONST.BETAS.MERGE_HR);
 
-    // TODO: Replace with actual connect flow invocations per provider
-    const handleConnect = (connectFlowType: ConnectFlowType) => {
-        if (connectFlowType === 'none') {
+    const handleConnect = (card: HRCardDescriptor) => {
+        if (card.connectFlowType === 'none') {
             return;
         }
-        // eslint-disable-next-line no-console
-        console.log(`[WorkspaceHRPage] connect flow triggered: ${connectFlowType}`);
+        setConnectingCard(card);
     };
 
     return (
@@ -121,7 +122,7 @@ function WorkspaceHRPage({
                                     card={card}
                                     policy={policy}
                                     isFirst={index === 0}
-                                    onConnect={() => handleConnect(card.connectFlowType)}
+                                    onConnect={() => handleConnect(card)}
                                 />
                             ))}
 
@@ -132,7 +133,7 @@ function WorkspaceHRPage({
                                         card={card}
                                         policy={policy}
                                         isFirst={index === 0}
-                                        onConnect={() => handleConnect(card.connectFlowType)}
+                                        onConnect={() => handleConnect(card)}
                                     />
                                 ))}
 
@@ -162,7 +163,7 @@ function WorkspaceHRPage({
                                                     key={card.key}
                                                     card={card}
                                                     policy={policy}
-                                                    onConnect={() => handleConnect(card.connectFlowType)}
+                                                    onConnect={() => handleConnect(card)}
                                                 />
                                             ))}
                                         </>
@@ -173,6 +174,13 @@ function WorkspaceHRPage({
                     </View>
                 </ScrollView>
             </ScreenWrapper>
+            {connectingCard?.connectFlowType === 'gusto' && <ConnectToGustoFlow policyID={policyID} />}
+            {connectingCard?.connectFlowType === 'merge' && !!connectingCard.mergeSlug && (
+                <ConnectToMergeHRFlow
+                    policyID={policyID}
+                    integration={connectingCard.mergeSlug}
+                />
+            )}
         </AccessOrNotFoundWrapper>
     );
 }
