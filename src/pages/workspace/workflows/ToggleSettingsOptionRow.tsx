@@ -149,7 +149,7 @@ function ToggleSettingOptionRow({
         if (typeof subtitle === 'string') {
             if (!!subtitle && shouldParseSubtitle) {
                 return (
-                    <View style={[styles.flexRow, styles.renderHTML, shouldPlaceSubtitleBelowSwitch ? styles.mt1 : {...styles.mt1, ...styles.mr5}]}>
+                    <View style={[styles.flexRow, styles.renderHTML, shouldPlaceSubtitleBelowSwitch ? styles.mt3 : {...styles.mt1, ...styles.mr5}]}>
                         <RenderHTML html={processedSubtitle} />
                     </View>
                 );
@@ -162,7 +162,7 @@ function ToggleSettingOptionRow({
                 <Text
                     accessible={!areSubtitleAndSwitchAccessibilityLabelEqual}
                     aria-hidden={areSubtitleAndSwitchAccessibilityLabelEqual}
-                    style={[styles.mutedNormalTextLabel, shouldPlaceSubtitleBelowSwitch ? styles.mt1 : {...styles.mt1, ...styles.mr5}, subtitleStyle]}
+                    style={[styles.mutedNormalTextLabel, shouldPlaceSubtitleBelowSwitch ? styles.mt3 : {...styles.mt1, ...styles.mr5}, subtitleStyle]}
                 >
                     {subtitle}
                 </Text>
@@ -195,7 +195,7 @@ function ToggleSettingOptionRow({
                 />
             )}
             {customTitle ?? (
-                <View style={[styles.flexColumn, styles.flex1]}>
+                <View style={[styles.flexColumn, styles.flex1, styles.mr3]}>
                     <Text
                         style={[styles.textNormal, styles.lh20, titleStyle]}
                         accessibilityRole={titleAccessibilityRole}
@@ -236,7 +236,7 @@ function ToggleSettingOptionRow({
             onClose={onCloseError}
         >
             <View style={styles.pRelative}>
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, shouldPlaceSubtitleBelowSwitch && styles.h10]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                     <PressableWithoutFeedback
                         style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                         onPress={shouldMakeContentPressable ? onPress : undefined}
