@@ -211,11 +211,13 @@ describe('DebugTabView', () => {
 
             const container = await screen.findByTestId('DebugTabViewContainer');
             expect(container.props.pointerEvents).toBe('box-none');
-            expect((container.props.style as Array<Record<string, unknown>>).at(1)).toEqual({
-                bottom: 0,
-                left: variables.navigationTabBarSize,
-                width: variables.sideBarWithLHBWidth - variables.cropBorderWidth,
-            });
+            expect((container.props.style as Array<Record<string, unknown>>).at(0)).toEqual(
+                expect.objectContaining({
+                    bottom: 0,
+                    left: variables.navigationTabBarSize,
+                    width: variables.sideBarWithLHBWidth - variables.cropBorderWidth,
+                }),
+            );
         });
 
         it('positions at full width for workspaces tab', async () => {
@@ -225,11 +227,13 @@ describe('DebugTabView', () => {
 
             const container = await screen.findByTestId('DebugTabViewContainer');
             expect(container.props.pointerEvents).toBe('box-none');
-            expect((container.props.style as Array<Record<string, unknown>>).at(1)).toEqual({
-                bottom: 0,
-                left: variables.navigationTabBarSize,
-                width: 1280 - variables.navigationTabBarSize,
-            });
+            expect((container.props.style as Array<Record<string, unknown>>).at(0)).toEqual(
+                expect.objectContaining({
+                    bottom: 0,
+                    left: variables.navigationTabBarSize,
+                    width: 1280 - variables.navigationTabBarSize,
+                }),
+            );
         });
     });
 });

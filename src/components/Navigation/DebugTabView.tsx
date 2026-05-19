@@ -13,7 +13,6 @@ import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
-import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -130,7 +129,6 @@ function DebugTabView({selectedTab}: Props) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowWidth} = useWindowDimensions();
-    const {paddingBottom: safeAreaPaddingBottom} = useSafeAreaPaddings();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const reportAttributes = useReportAttributes();
     const {status, indicatorColor, policyIDWithErrors} = useIndicatorStatus();
