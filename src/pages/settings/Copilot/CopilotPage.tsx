@@ -17,8 +17,8 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
-import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -436,10 +436,16 @@ function CopilotPage() {
                             <Section
                                 title={translate('delegate.copilotDelegatedAccess')}
                                 renderSubtitle={() => (
-                                    <SectionSubtitleHTML
-                                        html={`${translate('delegate.copilotDelegatedAccessDescription')} <a href="${CONST.COPILOT_HELP_URL}" accessibilityLabel="${translate('delegate.learnMoreAboutDelegatedAccess')}">${translate('common.learnMore')}</a>.`}
-                                        subtitleMuted
-                                    />
+                                    <Text style={[styles.textNormal, styles.colorMuted, styles.mt2]}>
+                                        {translate('delegate.copilotDelegatedAccessDescription')}{' '}
+                                        <TextLink
+                                            href={CONST.COPILOT_HELP_URL}
+                                            accessibilityLabel={translate('delegate.learnMoreAboutDelegatedAccess')}
+                                        >
+                                            {translate('common.learnMore')}
+                                        </TextLink>
+                                        .
+                                    </Text>
                                 )}
                                 isCentralPane
                                 subtitleMuted
