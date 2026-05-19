@@ -972,7 +972,7 @@ function addMembersToWorkspace(
         return;
     }
     // Submit workspaces only allow the editor role on invite. Override here so the API request and
-    // every callsite that funnels through this function get the same role as the optimistic data.
+    // every call site that funnels through this function get the same role as the optimistic data.
     // The backend enforces this too (Policy::shareWithEmployees), but normalizing it on the client
     // avoids a flash of the wrong role in the UI. Gated on the beta so the override is a no-op for users without it.
     const effectiveRole = canUseSubmit2026 && isSubmitPolicy(policy) ? CONST.POLICY.ROLE.EDITOR : role;
