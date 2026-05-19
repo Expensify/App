@@ -1297,7 +1297,8 @@ function getReportOrDraftReport(
 ): OnyxEntry<Report> {
     const searchReport = searchReports?.find((searchItem) => searchItem?.reportID === reportID);
     const onyxReport = report ?? deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    const resolvedDraft = isEmptyObject(reportDraft) ? undefined : ((reportDraft as OnyxEntry<Report>) ?? deprecatedAllReportsDraft?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`]);
+    const shouldSkipDraft = reportDraft !== undefined && isEmptyObject(reportDraft);
+    const resolvedDraft = shouldSkipDraft ? undefined : ((reportDraft as OnyxEntry<Report>) ?? deprecatedAllReportsDraft?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`]);
     return searchReport ?? onyxReport ?? resolvedDraft ?? fallbackReport;
 }
 
