@@ -68,8 +68,6 @@ jobs:
 
       # Manually run Jekyll, bypassing Github Pages
       - name: Build Jekyll site
-        env:
-          JEKYLL_ENV: production
         run: bundle exec jekyll build --source ./ --destination ./_site
         working-directory: ./help  # Ensure Jekyll is building the site in /help
 
