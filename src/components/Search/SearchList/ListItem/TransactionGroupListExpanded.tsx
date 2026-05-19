@@ -57,7 +57,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     shouldDisplayEmptyView,
     searchTransactions,
     isInSingleTransactionReport,
-    policyForMovingExpenses,
+    isAttendeesEnabledForMovingPolicy,
     onLongPress,
     nonPersonalAndWorkspaceCards,
     onUndelete,
@@ -323,7 +323,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                                     onArrowRightPress={isDeletedOrPendingDelete ? undefined : () => openReportInRHP(transaction)}
                                     shouldShowArrowRightOnNarrowLayout
                                     reportActions={exportedReportActions}
-                                    policyForMovingExpenses={policyForMovingExpenses}
+                                    isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                                     nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                                     isActionColumnWide={isActionColumnWide}
                                     isHover={hovered}
