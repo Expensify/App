@@ -6,7 +6,6 @@ function OnboardingPersonalTrackGoal(props: OnboardingPersonalTrackGoalProps) {
     return (
         <BaseOnboardingPersonalTrackGoal
             shouldUseNativeStyles
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />
     );
