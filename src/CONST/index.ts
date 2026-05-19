@@ -190,7 +190,6 @@ const EMAIL = {
     EXPENSIFY_EMAIL_DOMAIN: '@expensify.com',
     EXPENSIFY_TEAM_EMAIL_DOMAIN: '@team.expensify.com',
     TEAM: 'team@expensify.com',
-    MANAGER_MCTEST: 'manager_mctest@expensify.com',
     QA_GUIDE: 'qa.guide@team.expensify.com',
 };
 
@@ -888,7 +887,6 @@ const CONST = {
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
         PER_DIEM: 'newDotPerDiem',
-        NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
         TRAVEL_INVOICING: 'travelInvoicing',
         EXPENSIFY_CARD_EU_UK: 'expensifyCardEuUk',
@@ -3295,7 +3293,6 @@ const CONST = {
         REWARDS: Number(Config?.EXPENSIFY_ACCOUNT_ID_REWARDS ?? 11023767), // rewards@expensify.com
         STUDENT_AMBASSADOR: Number(Config?.EXPENSIFY_ACCOUNT_ID_STUDENT_AMBASSADOR ?? 10476956),
         SVFG: Number(Config?.EXPENSIFY_ACCOUNT_ID_SVFG ?? 2012843),
-        MANAGER_MCTEST: Number(Config?.EXPENSIFY_ACCOUNT_ID_MANAGER_MCTEST ?? 18964612),
         QA_GUIDE: Number(Config?.EXPENSIFY_ACCOUNT_ID_QA_GUIDE ?? 14365522),
     },
 
@@ -4744,7 +4741,6 @@ const CONST = {
         EMAIL.STUDENT_AMBASSADOR,
         EMAIL.SVFG,
         EMAIL.TEAM,
-        EMAIL.MANAGER_MCTEST,
         EMAIL.QA_GUIDE,
     ] as string[],
     get EXPENSIFY_ACCOUNT_IDS() {
@@ -4766,7 +4762,6 @@ const CONST = {
             this.ACCOUNT_ID.REWARDS,
             this.ACCOUNT_ID.STUDENT_AMBASSADOR,
             this.ACCOUNT_ID.SVFG,
-            this.ACCOUNT_ID.MANAGER_MCTEST,
         ].filter((id) => id !== -1);
     },
 

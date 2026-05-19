@@ -429,22 +429,6 @@ describe('OptionsListUtils', () => {
         },
     };
 
-    const REPORTS_WITH_MANAGER_MCTEST: OnyxCollection<Report> = {
-        ...REPORTS,
-        '18': {
-            lastReadTime: '2021-01-14 11:25:39.302',
-            lastVisibleActionCreated: '2022-11-22 03:26:02.022',
-            isPinned: false,
-            reportID: '18',
-            participants: {
-                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-                1003: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-            },
-            reportName: 'Manager McTest',
-            type: CONST.REPORT.TYPE.CHAT,
-        },
-    };
-
     const activePolicyID = 'DEF456';
 
     // And a set of personalDetails some with existing reports and some without
@@ -563,17 +547,6 @@ describe('OptionsListUtils', () => {
             displayName: 'Receipts',
             login: 'receipts@expensify.com',
             keyForList: 'receipts@expensify.com',
-            reportID: '',
-        },
-    };
-
-    const PERSONAL_DETAILS_WITH_MANAGER_MCTEST: PersonalDetailsList = {
-        ...PERSONAL_DETAILS,
-        '1003': {
-            accountID: 1003,
-            displayName: 'Manager McTest',
-            login: CONST.EMAIL.MANAGER_MCTEST,
-            keyForList: CONST.EMAIL.MANAGER_MCTEST,
             reportID: '',
         },
     };
@@ -734,13 +707,10 @@ describe('OptionsListUtils', () => {
     const MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CHRONOS = createMockReportAttributesDerived(REPORTS_WITH_CHRONOS, PERSONAL_DETAILS_WITH_CHRONOS, CURRENT_USER_ACCOUNT_ID);
     const MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_RECEIPTS = createMockReportAttributesDerived(REPORTS_WITH_RECEIPTS, PERSONAL_DETAILS_WITH_RECEIPTS, CURRENT_USER_ACCOUNT_ID);
     const MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_WORKSPACE_ROOM = createMockReportAttributesDerived(REPORTS_WITH_WORKSPACE_ROOMS, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID);
-    const MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_MANAGER_MCTEST = createMockReportAttributesDerived(REPORTS_WITH_MANAGER_MCTEST, PERSONAL_DETAILS_WITH_MANAGER_MCTEST, CURRENT_USER_ACCOUNT_ID);
-
     let OPTIONS_WITH_CONCIERGE: OptionList;
     let OPTIONS_WITH_CHRONOS: OptionList;
     let OPTIONS_WITH_RECEIPTS: OptionList;
     let OPTIONS_WITH_WORKSPACE_ROOM: OptionList;
-    let OPTIONS_WITH_MANAGER_MCTEST: OptionList;
 
     // Set the currently logged in user, report data, and personal details
     beforeAll(async () => {
@@ -790,13 +760,6 @@ describe('OptionsListUtils', () => {
             REPORTS_WITH_WORKSPACE_ROOMS,
             undefined,
             MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_WORKSPACE_ROOM,
-        );
-        OPTIONS_WITH_MANAGER_MCTEST = createOptionList(
-            PERSONAL_DETAILS_WITH_MANAGER_MCTEST,
-            EMPTY_PRIVATE_IS_ARCHIVED_MAP,
-            REPORTS_WITH_MANAGER_MCTEST,
-            undefined,
-            MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_MANAGER_MCTEST,
         );
     });
 
@@ -1257,56 +1220,6 @@ describe('OptionsListUtils', () => {
             expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_RECEIPTS.personalDetails).length - 2);
             // Then the result should not include receipts
             expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'receipts@expensify.com'})]));
-        });
-
-        it('should include Manager McTest in results by default', () => {
-            // Given a set of reports and personalDetails that includes Manager McTest
-            // When we call getValidOptions()
-            const result = getValidOptions(
-                {reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails},
-                allPolicies,
-                {},
-                loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                undefined,
-                {
-                    includeP2P: true,
-                    canShowManagerMcTest: true,
-                    betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST],
-                    sortedActions: undefined,
-                },
-            );
-
-            // Then the result should include all personalDetails except the currently logged in user
-            expect(result.personalDetails.length).toBe(Object.values(OPTIONS_WITH_MANAGER_MCTEST.personalDetails).length - 1);
-            // Then the result should include Manager McTest
-            expect(result.personalDetails).toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.MANAGER_MCTEST})]));
-        });
-
-        it('should exclude Manager McTest from results if flag is set to false', () => {
-            // Given a set of reports and personalDetails that includes Manager McTest and a config object that excludes Manager McTest
-            // When we call getValidOptions()
-            const result = getValidOptions(
-                {reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails},
-                allPolicies,
-                {},
-                loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                undefined,
-                {
-                    includeP2P: true,
-                    canShowManagerMcTest: false,
-                    betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST],
-                    sortedActions: undefined,
-                },
-            );
-
-            // Then the result should include all personalDetails except the currently logged in user and Manager McTest
-            expect(result.personalDetails.length).toBe(Object.values(OPTIONS_WITH_MANAGER_MCTEST.personalDetails).length - 2);
-            // Then the result should not include Manager McTest
-            expect(result.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.MANAGER_MCTEST})]));
         });
 
         it('should keep admin rooms if specified', () => {
@@ -2041,25 +1954,6 @@ describe('OptionsListUtils', () => {
             const lastAction: ReportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-            };
-
-            const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID);
-            expect(result).toBe(false);
-        });
-
-        it('should return false when the last action is a REPORT_PREVIEW with MANAGER_MCTEST as participant', () => {
-            // Given a report with a REPORT_PREVIEW last action and MANAGER_MCTEST as participant
-            const report = {
-                ...REPORTS['1'],
-                participants: {
-                    2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-                    [CONST.ACCOUNT_ID.MANAGER_MCTEST]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-                },
-            } as Report;
-            const lastActorDetails = PERSONAL_DETAILS['2'];
-            const lastAction: ReportAction = {
-                ...createRandomReportAction(1),
-                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
             };
 
             const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID);

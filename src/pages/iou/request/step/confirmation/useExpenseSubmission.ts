@@ -26,7 +26,7 @@ import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterEx
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
-import {findSelfDMReportID, generateReportID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils, isMoneyRequestReport, isSelectedManagerMcTest} from '@libs/ReportUtils';
+import {findSelfDMReportID, generateReportID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils, isMoneyRequestReport} from '@libs/ReportUtils';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import markSubmitExpenseEnd from '@libs/telemetry/markSubmitExpenseEnd';
 import {
@@ -840,13 +840,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
         if (Object.values(receiptFiles).filter((receipt) => !!receipt).length && !!transaction) {
             // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
-            if (
-                transaction.amount === 0 &&
-                !isSharingTrackExpense &&
-                !isCategorizingTrackExpense &&
-                locationPermissionGranted &&
-                !selectedParticipantsArg.some((participant) => isSelectedManagerMcTest(participant.login))
-            ) {
+            if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && locationPermissionGranted) {
                 if (userLocation) {
                     requestMoney(selectedParticipantsArg, shouldHandleNavigation, {
                         lat: userLocation.latitude,

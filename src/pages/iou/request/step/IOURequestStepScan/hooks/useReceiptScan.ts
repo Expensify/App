@@ -97,7 +97,7 @@ function useReceiptScan({
     );
 
     const participantsPolicyTags = useParticipantsPolicyTags(participants);
-    function navigateToConfirmationStep(files: ReceiptFile[], locationPermissionGranted = false, isTestTransaction = false) {
+    function navigateToConfirmationStep(files: ReceiptFile[], locationPermissionGranted = false) {
         startSpan(CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE, {
             name: CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE,
             op: CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE,
@@ -137,7 +137,6 @@ function useReceiptScan({
             policyRecentlyUsedCurrencies,
             introSelected,
             files,
-            isTestTransaction,
             locationPermissionGranted,
             selfDMReport,
             policyForMovingExpenses,
