@@ -3,6 +3,7 @@ import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNewTransactions from '@hooks/useNewTransactions';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -11,8 +12,15 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
+import {createTransactionThreadReport} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getIOUActionForReportID, isSplitBillAction as isSplitBillActionReportActionsUtils, isTrackExpenseAction as isTrackExpenseActionReportActionsUtils} from '@libs/ReportActionsUtils';
+import {
+    getIOUActionForReportID,
+    getOriginalMessage,
+    isMoneyRequestAction,
+    isSplitBillAction as isSplitBillActionReportActionsUtils,
+    isTrackExpenseAction as isTrackExpenseActionReportActionsUtils,
+} from '@libs/ReportActionsUtils';
 import {isIOUReport} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import Navigation from '@navigation/Navigation';
@@ -45,6 +53,9 @@ function MoneyRequestReportPreview({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const personalDetailsList = usePersonalDetails();
+    const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(invoiceReceiverPolicyID)}`);
@@ -125,29 +136,84 @@ function MoneyRequestReportPreview({
 
     const transactionPreviewContainerStyles = [styles.h100, reportPreviewStyles.transactionPreviewCarouselStyle];
 
-    const renderItem: ListRenderItem<Transaction> = ({item}) => (
-        <TransactionPreview
-            chatReportID={chatReportID}
-            action={getIOUActionForReportID(item.reportID, item.transactionID)}
-            contextAction={action}
-            reportID={item.reportID}
-            isBillSplit={isSplitBillAction}
-            isTrackExpense={isTrackExpenseAction}
-            contextMenuAnchor={contextMenuAnchor}
-            isWhisper={isWhisper}
-            isHovered={isHovered}
-            iouReportID={iouReportID}
-            containerStyles={transactionPreviewContainerStyles}
-            shouldDisplayContextMenu={shouldDisplayContextMenu}
-            transactionPreviewWidth={reportPreviewStyles.transactionPreviewCarouselStyle.width}
-            transactionID={item.transactionID}
-            reportPreviewAction={action}
-            onPreviewPressed={openReportFromPreview}
-            shouldShowPayerAndReceiver={shouldShowPayerAndReceiver}
-            shouldHighlight={!!newTransactionIDs?.has(item.transactionID)}
-            originalReportID={originalReportID}
-        />
+    const openTransactionFromPreview = useCallback(
+        (transactionIOUAction: ReturnType<typeof getIOUActionForReportID>) => {
+            if (contextMenuRef.current?.isContextMenuOpening) {
+                return;
+            }
+
+            // Resolve the target transaction thread report. If the thread has not been materialized yet,
+            // create it inline so the click never lands on a dead route.
+            let childReportID = transactionIOUAction?.childReportID;
+            if (!childReportID && transactionIOUAction?.reportActionID) {
+                const transactionID = isMoneyRequestAction(transactionIOUAction) ? getOriginalMessage(transactionIOUAction)?.IOUTransactionID : undefined;
+                if (transactionID) {
+                    const transactionThreadReport = createTransactionThreadReport({
+                        introSelected,
+                        currentUserLogin: currentUserEmail ?? '',
+                        currentUserAccountID,
+                        betas,
+                        iouReport,
+                        iouReportAction: transactionIOUAction,
+                    });
+                    childReportID = transactionThreadReport?.reportID;
+                }
+            }
+
+            if (!childReportID) {
+                // Fall back to opening the parent report rather than swallowing the click.
+                openReportFromPreview();
+                return;
+            }
+
+            startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${childReportID}`, {
+                name: 'MoneyRequestReportPreview.Transaction',
+                op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
+            });
+
+            // On narrow layouts (mobile), push the report on top of the chat first and then the
+            // transaction thread on top of the report, so the back button returns the user to the report.
+            // On wide layouts the transaction thread opens in the RHP next to the report, so a single
+            // navigation is enough.
+            if (isSmallScreenWidth) {
+                if (iouReportID) {
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
+                }
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID, undefined, undefined, Navigation.getActiveRoute()));
+                return;
+            }
+
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: Navigation.getActiveRoute()}));
+        },
+        [betas, currentUserAccountID, currentUserEmail, introSelected, iouReport, iouReportID, isSmallScreenWidth, openReportFromPreview],
     );
+
+    const renderItem: ListRenderItem<Transaction> = ({item}) => {
+        const transactionIOUAction = getIOUActionForReportID(item.reportID, item.transactionID);
+        return (
+            <TransactionPreview
+                chatReportID={chatReportID}
+                action={transactionIOUAction}
+                contextAction={action}
+                reportID={item.reportID}
+                isBillSplit={isSplitBillAction}
+                isTrackExpense={isTrackExpenseAction}
+                contextMenuAnchor={contextMenuAnchor}
+                isWhisper={isWhisper}
+                isHovered={isHovered}
+                iouReportID={iouReportID}
+                containerStyles={transactionPreviewContainerStyles}
+                shouldDisplayContextMenu={shouldDisplayContextMenu}
+                transactionPreviewWidth={reportPreviewStyles.transactionPreviewCarouselStyle.width}
+                transactionID={item.transactionID}
+                reportPreviewAction={action}
+                onPreviewPressed={() => openTransactionFromPreview(transactionIOUAction)}
+                shouldShowPayerAndReceiver={shouldShowPayerAndReceiver}
+                shouldHighlight={!!newTransactionIDs?.has(item.transactionID)}
+                originalReportID={originalReportID}
+            />
+        );
+    };
 
     return (
         <MoneyRequestReportPreviewContent
