@@ -3,6 +3,17 @@ import type {ReactNode, RefObject} from 'react';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import CompactMenuContext from '@components/CompactMenuContext';
+import FocusableMenuItem from '@components/FocusableMenuItem';
+import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
+import MenuItem from '@components/MenuItem';
+import type {MenuItemProps} from '@components/MenuItem';
+import type ReanimatedModalProps from '@components/Modal/ReanimatedModal/types';
+import type BaseModalProps from '@components/Modal/types';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
+import ScrollView from '@components/ScrollView';
+import Text from '@components/Text';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -23,17 +34,6 @@ import type {AnchorPosition} from '@src/styles';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
-import CompactMenuContext from './CompactMenuContext';
-import FocusableMenuItem from './FocusableMenuItem';
-import FocusTrapForModal from './FocusTrap/FocusTrapForModal';
-import MenuItem from './MenuItem';
-import type {MenuItemProps} from './MenuItem';
-import type ReanimatedModalProps from './Modal/ReanimatedModal/types';
-import type BaseModalProps from './Modal/types';
-import OfflineWithFeedback from './OfflineWithFeedback';
-import PopoverWithMeasuredContent from './PopoverWithMeasuredContent';
-import ScrollView from './ScrollView';
-import Text from './Text';
 
 type PopoverMenuItem = MenuItemProps & {
     /** Text label */
