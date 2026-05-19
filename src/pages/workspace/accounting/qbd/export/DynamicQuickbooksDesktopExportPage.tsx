@@ -42,7 +42,7 @@ function DynamicQuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps
     const menuItems = [
         {
             description: translate('workspace.accounting.preferredExporter'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_PREFERRED_EXPORTER.getRoute(policyID, Navigation.getActiveRoute())),
+            onPress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_PREFERRED_EXPORTER.path)),
             // We use the logical OR (||) here instead of ?? because `exporter` could be an empty string
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             title: qbdConfig?.export?.exporter || policyOwner,
@@ -50,13 +50,13 @@ function DynamicQuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps
         },
         {
             description: translate('workspace.qbd.date'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT.getRoute(policyID, Navigation.getActiveRoute())),
+            onPress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT.path)),
             title: qbdConfig?.export?.exportDate ? translate(`workspace.qbd.exportDate.values.${qbdConfig?.export.exportDate}.label`) : undefined,
             subscribedSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORT_DATE],
         },
         {
             description: translate('workspace.accounting.exportOutOfPocket'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID, Navigation.getActiveRoute())),
+            onPress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES.path)),
             title: qbdConfig?.export.reimbursable ? translate(`workspace.qbd.accounts.${qbdConfig?.export.reimbursable}`) : undefined,
             subscribedSettings: [
                 CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE,

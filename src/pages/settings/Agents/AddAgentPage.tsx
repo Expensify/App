@@ -1,4 +1,5 @@
-import React, {useState} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
 import FormProvider from '@components/Form/FormProvider';
@@ -14,26 +15,58 @@ import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import {isMobile} from '@libs/Browser';
+import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import {createAgent} from '@userActions/Agent';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/AddAgentForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import {clearPendingAvatar, getPendingAvatar, setInitialPresetID, setNavigationToken} from './pendingAgentAvatarStore';
 
 function AddAgentPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const isInLandscapeMode = useIsInLandscapeMode();
+    const {windowWidth, windowHeight} = useWindowDimensions();
+    const shouldUseScrollableLayout = useIsInLandscapeMode() || (isMobile() && windowWidth > windowHeight);
     const {displayName} = useCurrentUserPersonalDetails();
     const defaultAgentName = displayName ? translate('addAgentPage.defaultAgentName', displayName) : undefined;
     const defaultPrompt = translate('addAgentPage.defaultPrompt');
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Sync']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil']);
     const avatarStyle = [styles.avatarXLarge, styles.alignSelfCenter];
-    const [avatarSource, setAvatarSource] = useState(() => botAvatars[Math.floor(Math.random() * botAvatars.length)]);
+    const [avatarSource, setAvatarSource] = useState<AvatarSource>(() => botAvatars[Math.floor(Math.random() * botAvatars.length)]);
+    const pendingFileRef = useRef<{file: File | CustomRNImageManipulatorResult; uri: string} | null>(null);
 
-    const handleSwitchAvatar = () => {
-        setAvatarSource((prev: BotAvatar) => botAvatars[(botAvatars.indexOf(prev) + 1) % botAvatars.length]);
+    useFocusEffect(
+        useCallback(() => {
+            const pending = getPendingAvatar();
+            if (!pending) {
+                return;
+            }
+            clearPendingAvatar();
+
+            if (pending.type === 'preset') {
+                const matchingAvatar = botAvatars.find((av) => botAvatarIDs.get(av) === pending.id);
+                if (matchingAvatar) {
+                    setAvatarSource(() => matchingAvatar);
+                }
+                pendingFileRef.current = null;
+            } else {
+                setAvatarSource(pending.uri);
+                pendingFileRef.current = {file: pending.file, uri: pending.uri};
+            }
+        }, []),
+    );
+
+    const handleAvatarPress = () => {
+        const presetID = botAvatarIDs.get(avatarSource as BotAvatar);
+        setInitialPresetID(presetID);
+        setNavigationToken();
+        Navigation.navigate(ROUTES.SETTINGS_AGENTS_ADD_AVATAR);
     };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_AGENT_FORM>): Errors => {
@@ -46,8 +79,15 @@ function AddAgentPage() {
 
     const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_AGENT_FORM>) => {
         const firstName = values[INPUT_IDS.FIRST_NAME].trim() || undefined;
-        const customExpensifyAvatarID = botAvatarIDs.get(avatarSource);
-        createAgent(firstName, values[INPUT_IDS.PROMPT].trim(), customExpensifyAvatarID);
+        const prompt = values[INPUT_IDS.PROMPT].trim();
+        const pendingFile = pendingFileRef.current;
+
+        if (pendingFile) {
+            createAgent(firstName, prompt, undefined, pendingFile.file, pendingFile.uri);
+        } else {
+            createAgent(firstName, prompt, botAvatarIDs.get(avatarSource as BotAvatar));
+        }
+
         Navigation.goBack();
     };
 
@@ -56,7 +96,7 @@ function AddAgentPage() {
             testID={AddAgentPage.displayName}
             includeSafeAreaPaddingBottom
             offlineIndicatorStyle={styles.mtAuto}
-            shouldEnableMaxHeight={isInLandscapeMode}
+            shouldEnableMaxHeight={shouldUseScrollableLayout}
         >
             <HeaderWithBackButton
                 title={translate('addAgentPage.title')}
@@ -68,20 +108,20 @@ function AddAgentPage() {
                 validate={validate}
                 submitButtonText={translate('addAgentPage.createAgent')}
                 style={[styles.flex1, styles.ph5]}
-                shouldUseScrollView={isInLandscapeMode}
-                submitFlexEnabled={isInLandscapeMode ? undefined : false}
+                shouldUseScrollView={shouldUseScrollableLayout}
+                submitFlexEnabled={shouldUseScrollableLayout ? undefined : false}
                 shouldHideFixErrorsAlert
                 enabledWhenOffline
             >
                 <View style={[styles.flex1, styles.flexColumn, styles.gap5]}>
                     <View style={[styles.alignItemsCenter]}>
                         <AvatarButtonWithIcon
-                            text={translate('addAgentPage.switchAvatar')}
+                            text={translate('addAgentPage.editAvatar')}
                             source={avatarSource}
-                            onPress={handleSwitchAvatar}
+                            onPress={handleAvatarPress}
                             size={CONST.AVATAR_SIZE.X_LARGE}
                             avatarStyle={avatarStyle}
-                            editIcon={expensifyIcons.Sync}
+                            editIcon={expensifyIcons.Pencil}
                             editIconStyle={styles.profilePageAvatar}
                             sentryLabel={CONST.SENTRY_LABEL.ADD_AGENT_PAGE.AVATAR}
                         />
@@ -96,7 +136,7 @@ function AddAgentPage() {
                         spellCheck={false}
                         defaultValue={defaultAgentName}
                     />
-                    <View style={[styles.flex1, isInLandscapeMode && styles.minHeight42]}>
+                    <View style={[styles.flex1, shouldUseScrollableLayout && styles.minHeight42]}>
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.PROMPT}

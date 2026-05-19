@@ -118,6 +118,7 @@ jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     getActiveRoute: jest.fn().mockReturnValue(''),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
     dismissModalWithReport: jest.fn(),
     dismissModal: jest.fn(),
     dismissToSuperWideRHP: jest.fn(),
@@ -1157,6 +1158,56 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
 
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+    });
+
+    it('should not optimistically inject default report name when report has no known name', async () => {
+        const REPORT_ID = 'openReport_noKnownName';
+
+        setHasRadio(false);
+        await waitForBatchedUpdates();
+
+        Report.openReport({
+            reportID: REPORT_ID,
+            introSelected: undefined,
+            betas: undefined,
+        });
+        await waitForBatchedUpdates();
+
+        const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
+        expect(report?.reportName).toBeUndefined();
+
+        setHasRadio(true);
+        await waitForBatchedUpdates();
+    });
+
+    it('should keep optimistic new report write on report collection key', async () => {
+        const REPORT_ID = 'openReport_newReportOptimistic';
+
+        setHasRadio(false);
+        await waitForBatchedUpdates();
+
+        Report.openReport({
+            reportID: REPORT_ID,
+            introSelected: undefined,
+            betas: undefined,
+            newReportObject: {
+                reportID: REPORT_ID,
+            },
+        });
+        await waitForBatchedUpdates();
+
+        const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
+        expect(report).toMatchObject({
+            reportID: REPORT_ID,
+            reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
+        });
+
+        const loadingState = await getOnyxValue(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`);
+        expect(loadingState).not.toHaveProperty('reportID');
+        expect(loadingState).not.toHaveProperty('reportName');
+
+        setHasRadio(true);
+        await waitForBatchedUpdates();
     });
 
     it('openReport legacy preview fallback stores action under correct Onyx key and preserves existing actions', async () => {

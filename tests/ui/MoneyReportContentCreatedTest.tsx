@@ -68,7 +68,6 @@ const renderWithProps = (props: Partial<React.ComponentProps<typeof MoneyReportC
 
     return render(
         <OnyxListItemProvider>
-            {/* eslint-disable-next-line react/jsx-props-no-spreading */}
             <MoneyReportContentCreated {...merged} />
         </OnyxListItemProvider>,
     );
