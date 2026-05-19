@@ -2,7 +2,7 @@
 title: Coming from Expensify Classic for Submitters and Approvers
 description: Learn how familiar Expensify Classic workflows, reports, and settings work in New Expensify so you can confidently navigate the updated experience.
 keywords: [Expensify Classic, New Expensify, Classic to New Expensify, migration guide, reports in New Expensify, switching from Classic]
-internalScope: Audience is all Expensify members transitioning from Expensify Classic to New Expensify. Covers how familiar workflows, navigation, and concepts work in New Expensify. Does not cover admin workflows or how to configire individual features. 
+internalScope: Audience is all Expensify members transitioning from Expensify Classic to New Expensify. Covers how familiar workflows, navigation, and concepts work in New Expensify. Does not cover admin workflows or how to configure individual features. 
 ---
 
 # Coming from Expensify Classic for Submitters and Approvers 
