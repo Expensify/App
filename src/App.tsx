@@ -44,6 +44,7 @@ import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
 import HybridAppHandler from './HybridAppHandler';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import './libs/HybridApp';
+import {ConciergeSessionProvider} from './pages/inbox/ConciergeSessionContext';
 import './setup/backgroundLocationTrackingTask';
 import './setup/backgroundTask';
 import './setup/fraudProtection';
@@ -103,6 +104,7 @@ function App() {
                                         SafeArea,
                                         PopoverContextProvider,
                                         CurrentReportIDContextProvider,
+                                        ConciergeSessionProvider,
                                         ScrollOffsetContextProvider,
                                         PickerStateProvider,
                                         EnvironmentProvider,

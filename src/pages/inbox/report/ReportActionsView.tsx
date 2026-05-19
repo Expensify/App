@@ -1,11 +1,11 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useEffect, useLayoutEffect, useMemo, useRef} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
-import useConciergeSessionStartTime from '@hooks/useConciergeSessionStartTime';
-import useConciergeReportActions from '@hooks/useConciergeSidePanelReportActions';
+import useConciergeSidePanelReportActions from '@hooks/useConciergeSidePanelReportActions';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -14,6 +14,7 @@ import useParentReportAction from '@hooks/useParentReportAction';
 import usePendingConciergeResponse from '@hooks/usePendingConciergeResponse';
 import useReportActionsPagination from '@hooks/useReportActionsPagination';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useSidePanelState from '@hooks/useSidePanelState';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {updateLoadingInitialReportAction} from '@libs/actions/Report';
@@ -21,6 +22,7 @@ import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {isCreatedAction, isDeletedParentAction, isIOUActionMatchingTransactionList, isReportActionVisible} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction, isConciergeChatReport, isReportTransactionThread as isReportTransactionThreadUtil, isUnread} from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
+import {useConciergeSessionActions, useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
 import type ReportScreenNavigationProps from '@pages/inbox/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -70,16 +72,35 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
     const isLoadingInitialReportActions = reportLoadingState?.isLoadingInitialReportActions;
     const hasOnceLoadedReportActions = reportLoadingState?.hasOnceLoadedReportActions;
 
+    const isInSidePanel = useIsInSidePanel();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
-    const sessionStartTime = useConciergeSessionStartTime(isConciergeChat, report?.lastReadTime);
+    const isConciergeSidePanel = isInSidePanel && isConciergeChatReport(report, conciergeReportID);
+    const isConciergeMainDM = !isInSidePanel && isConciergeChatReport(report, conciergeReportID);
+
+    const {sessionStartTime: sidePanelSessionStartTime} = useSidePanelState();
+    const {sessionStartTime: mainDMSessionStartTime, showFullHistory: conciergeShowFullHistory} = useConciergeSessionState();
+    const {startSession, endSession, setShowFullHistory: setConciergeShowFullHistory} = useConciergeSessionActions();
+
+    const isConciergeHiddenHistory = isConciergeSidePanel || isConciergeMainDM;
+    const sessionStartTime = isConciergeSidePanel ? sidePanelSessionStartTime : mainDMSessionStartTime;
+
+    useLayoutEffect(() => {
+        if (!isConciergeMainDM) {
+            return;
+        }
+        startSession(oldestUnreadReportAction ? report?.lastReadTime : undefined);
+        return () => {
+            endSession();
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- startSession/endSession are stable; captured values at mount only
+    }, [isConciergeMainDM, startSession, endSession]);
 
     const hasUserSentMessage = useMemo(() => {
-        if (!isConciergeChat || !sessionStartTime) {
+        if (!isConciergeHiddenHistory || !sessionStartTime) {
             return false;
         }
-        return allReportActions.some((action) => !isCreatedAction(action) && action.actorAccountID === currentUserAccountID && action.created > sessionStartTime);
-    }, [isConciergeChat, allReportActions, currentUserAccountID, sessionStartTime]);
+        return allReportActions.some((action) => !isCreatedAction(action) && action.actorAccountID === currentUserAccountID && action.created >= sessionStartTime);
+    }, [isConciergeHiddenHistory, allReportActions, currentUserAccountID, sessionStartTime]);
 
     const isReportTransactionThread = isReportTransactionThreadUtil(report);
 
@@ -151,23 +172,25 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
     });
 
     const {
-        filteredVisibleActions: conciergeFilteredVisibleActions,
-        filteredReportActions: conciergeFilteredReportActions,
-        showConciergeWelcome,
+        filteredVisibleActions: conciergeSidePanelFilteredVisibleActions,
+        filteredReportActions: conciergeSidePanelFilteredReportActions,
+        showConciergeSidePanelWelcome,
         showFullHistory,
         hasPreviousMessages,
         handleShowPreviousMessages,
-    } = useConciergeReportActions({
+    } = useConciergeSidePanelReportActions({
         report,
         reportActions,
         visibleReportActions,
-        isConciergeChat,
+        isConciergeHiddenHistory,
         hasUserSentMessage,
         hasOlderActions,
         sessionStartTime,
         currentUserAccountID,
         greetingText: translate('common.concierge.greeting'),
         loadOlderChats,
+        showFullHistory: isConciergeMainDM ? conciergeShowFullHistory : undefined,
+        onSetShowFullHistory: isConciergeMainDM ? setConciergeShowFullHistory : undefined,
     });
 
     /**
@@ -192,13 +215,13 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
     // Show skeleton while the app is loading and we're online
     const shouldShowSkeletonForAppLoad = isLoadingApp && !isOffline;
 
-    // Show skeleton for the Concierge chat until report data has been
-    // loaded at least once. Before the first openReport response, hasOlderActions
-    // is unreliable, so we can't determine whether to show the greeting or
-    // onboarding messages. The skeleton avoids flashing wrong content.
-    const shouldShowSkeletonForConciergeChat = isConciergeChat && !hasOnceLoadedReportActions && !isOffline;
+    // Show skeleton for the Concierge chat (side panel or main DM) until report
+    // data has been loaded at least once. Before the first openReport response,
+    // hasOlderActions is unreliable, so we can't determine whether to show the
+    // greeting or onboarding messages. The skeleton avoids flashing wrong content.
+    const shouldShowSkeletonForConciergePanel = isConciergeHiddenHistory && !hasOnceLoadedReportActions && !isOffline;
 
-    const shouldShowSkeleton = shouldShowSkeletonForConciergeChat || shouldShowSkeletonForInitialLoad || shouldShowSkeletonForAppLoad;
+    const shouldShowSkeleton = shouldShowSkeletonForConciergePanel || shouldShowSkeletonForInitialLoad || shouldShowSkeletonForAppLoad;
 
     useEffect(() => {
         if (!shouldShowSkeleton || !report) {
@@ -228,7 +251,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
     }
 
     const hasDerivedValueTimingIssue = reportActions.length > 0 && isMissingReportActions;
-    if ((hasDerivedValueTimingIssue || (!isReportTransactionThread && isMissingReportActions)) && !showConciergeWelcome) {
+    if ((hasDerivedValueTimingIssue || (!isReportTransactionThread && isMissingReportActions)) && !showConciergeSidePanelWelcome) {
         return <ReportActionsSkeletonView shouldAnimate={false} />;
     }
 
@@ -240,8 +263,8 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
                 parentReportAction={parentReportAction}
                 parentReportActionForTransactionThread={parentReportActionForTransactionThread}
                 onLayout={recordTimeToMeasureItemLayout}
-                sortedReportActions={conciergeFilteredReportActions}
-                sortedVisibleReportActions={conciergeFilteredVisibleActions}
+                sortedReportActions={conciergeSidePanelFilteredReportActions}
+                sortedVisibleReportActions={conciergeSidePanelFilteredVisibleActions}
                 loadOlderChats={loadOlderChats}
                 loadNewerChats={loadNewerChats}
                 hasNewerActions={hasNewerActions}

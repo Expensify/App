@@ -60,6 +60,7 @@ import {
 import Visibility from '@libs/Visibility';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
+import {useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import {openReport, readNewestAction} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -130,7 +131,7 @@ type ReportActionsListProps = {
     /** Stable key to remount the list when the deep-linked action or unread anchor (or report) changes */
     listID: string;
 
-    /** Whether the chat history is hidden (concierge fresh state) */
+    /** Whether the chat history is hidden (concierge side panel fresh state) */
     showHiddenHistory?: boolean;
 
     /** Whether there are previous messages that can be revealed */
@@ -195,6 +196,7 @@ function ReportActionsList({
     const {scrollOffsetRef} = useContext(ActionListContext);
     const {draftReportAction, hasActiveDraft} = useConciergeDraft();
     const {clearDraft} = useConciergeDraftActions();
+    const {sessionStartTime: conciergeSessionStartTime} = useConciergeSessionState();
     const userActiveSince = useRef<string>(DateUtils.getDBTime());
     const lastMessageTime = useRef<string | null>(null);
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
@@ -272,8 +274,12 @@ function ReportActionsList({
      * The reportActionID the unread marker should display above
      */
     const prevUnreadMarkerReportActionID = useRef<string | null>(null);
+    const [hadUnreadAtSessionStart, setHadUnreadAtSessionStart] = useState(() => showHiddenHistory && !!oldestUnreadReportAction);
     const [unreadMarkerTime, setUnreadMarkerTime] = useState(reportLastReadTime);
     const [unreadMarkerReportActionID, unreadMarkerReportActionIndex] = useMemo(() => {
+        if (showHiddenHistory && !hadUnreadAtSessionStart) {
+            return [null, -1] as const;
+        }
         // eslint-disable-next-line react-hooks/refs
         const scanned = getUnreadMarkerReportAction({
             visibleReportActions: sortedVisibleReportActions,
@@ -299,11 +305,13 @@ function ReportActionsList({
     }, [
         currentUserAccountID,
         earliestReceivedOfflineMessageIndex,
+        hadUnreadAtSessionStart,
         isAnonymousUser,
         isOffline,
         oldestUnreadReportActionMarker,
         prevSortedVisibleReportActionsObjects,
         scrollOffsetRef,
+        showHiddenHistory,
         sortedVisibleReportActions,
         unreadMarkerTime,
     ]);
@@ -331,17 +339,8 @@ function ReportActionsList({
             return sortedVisibleReportActions;
         }
 
-        // When Concierge history is filtered, skip the draft if its real action
-        // already exists in the full list but was excluded by the filter. This
-        // prevents a completed trickle from re-appearing after a session reset.
-        // If the real action doesn't exist yet (trickle in progress), allow it.
-        // Scoped to Concierge via hasPreviousMessages to avoid affecting AgentZero
-        // admin chats that also use the trickle draft mechanism.
-        if (showHiddenHistory && hasPreviousMessages) {
-            const realActionExists = sortedReportActions.some((a) => a.reportActionID === draftReportAction.reportActionID);
-            if (realActionExists) {
-                return sortedVisibleReportActions;
-            }
+        if (showHiddenHistory && conciergeSessionStartTime && draftReportAction.created < conciergeSessionStartTime) {
+            return sortedVisibleReportActions;
         }
 
         // Insert the synthetic draft into the already-descending render list without treating it as a persisted report action.
@@ -359,7 +358,7 @@ function ReportActionsList({
         const visibleReportActionsWithDraft = [...sortedVisibleReportActions];
         visibleReportActionsWithDraft.push(draftReportAction);
         return visibleReportActionsWithDraft;
-    }, [draftReportAction, sortedVisibleReportActions, showHiddenHistory, hasPreviousMessages, sortedReportActions]);
+    }, [conciergeSessionStartTime, draftReportAction, showHiddenHistory, sortedVisibleReportActions]);
     const draftMessageHTML = draftReportAction ? getReportActionMessage(draftReportAction)?.html : undefined;
     const isSyntheticDraftVisible = !!draftReportAction && renderedVisibleReportActions !== sortedVisibleReportActions;
     const draftAutoScrollKey = isSyntheticDraftVisible ? `${draftReportAction.reportActionID}:${draftMessageHTML ?? ''}` : '';
@@ -377,6 +376,7 @@ function ReportActionsList({
      * - reads a new message as it is received
      */
     useEffect(() => {
+        setHadUnreadAtSessionStart(showHiddenHistory && !!oldestUnreadReportAction);
         setUnreadMarkerTime(reportLastReadTime);
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -414,6 +414,9 @@ function ReportActionsList({
             userActiveSince.current = DateUtils.getDBTime();
         });
         const readNewestActionSubscription = DeviceEventEmitter.addListener(`readNewestAction_${report.reportID}`, (newLastReadTime: string) => {
+            if (showHiddenHistory && hadUnreadAtSessionStart) {
+                return;
+            }
             setUnreadMarkerTime(newLastReadTime);
         });
 
@@ -421,7 +424,7 @@ function ReportActionsList({
             unreadActionSubscription.remove();
             readNewestActionSubscription.remove();
         };
-    }, [report.reportID, isAnonymousUser]);
+    }, [report.reportID, isAnonymousUser, showHiddenHistory, hadUnreadAtSessionStart]);
 
     /**
      * When the user reads a new message as it is received, we'll push the unreadMarkerTime down to the timestamp of
@@ -430,7 +433,7 @@ function ReportActionsList({
      * lastReadTime.
      */
     useLayoutEffect(() => {
-        if (isAnonymousUser || unreadMarkerReportActionID) {
+        if (isAnonymousUser || unreadMarkerReportActionID || (showHiddenHistory && hadUnreadAtSessionStart)) {
             return;
         }
 
