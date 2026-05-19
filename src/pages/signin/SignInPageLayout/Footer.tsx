@@ -84,7 +84,7 @@ const columns = ({navigateFocus = () => {}}: Pick<FooterProps, 'navigateFocus'>)
                 translationPath: 'footer.support',
             },
             {
-                href: CONST.HELP_URL,
+                href: CONST.NEWHELP_URL,
                 translationPath: 'footer.expensifyHelp',
             },
             {
