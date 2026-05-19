@@ -9,20 +9,33 @@ import useMeasuredLinkedRowScroll from './useMeasuredLinkedRowScroll';
 const LINKED_OLDER_REVEAL_FALLBACK_MS = 800;
 const MEASURED_SCROLL_FALLBACK_MS = 3000;
 
-type UseVerticallyCenteredInitialContentProps = {
+type UseCenteredInitialScrollKeyListProps = {
+    /** The initial scroll key to use for the list. */
     initialScrollKey: string | undefined;
+    /** The sorted visible report actions. */
     sortedVisibleReportActions: OnyxTypes.ReportAction[];
+    /** The key extractor for the report actions. */
     keyExtractor: (item: OnyxTypes.ReportAction) => string;
+    /** The linked report action ID. */
     linkedReportActionID: string | undefined;
+    /** Whether the report has older actions. */
     hasOlderActions: boolean;
+    /** The report loading state. */
     reportLoadingState: OnyxTypes.ReportLoadingState | undefined;
+    /** Whether to focus to the top of the list on mount. */
     shouldFocusToTopOnMount: boolean;
+    /** The list ID. */
     listID: string;
+    /** The report. */
     report: OnyxTypes.Report;
+    /** The callback to call when the list is loaded. */
     onLoad: () => void;
 };
 
-function useVerticallyCenteredInitialContent({
+/** This hook is used to vertically center the linked/unread report action
+ * within the list when the report is openend initially.
+ */
+function useCenteredInitialScrollKeyList({
     initialScrollKey,
     sortedVisibleReportActions,
     keyExtractor,
@@ -33,7 +46,7 @@ function useVerticallyCenteredInitialContent({
     listID,
     report,
     onLoad,
-}: UseVerticallyCenteredInitialContentProps) {
+}: UseCenteredInitialScrollKeyListProps) {
     const {windowHeight} = useWindowDimensions();
     const sessionRef = useRef<InitialViewportResetSession | undefined>(undefined);
     const [sessionSnapshot, setSessionSnapshot] = useState<InitialViewportResetSession | undefined>(undefined);
@@ -262,7 +275,4 @@ function useVerticallyCenteredInitialContent({
     };
 }
 
-export default useVerticallyCenteredInitialContent;
-
-export {getMeasuredLinkedRowScrollViewOffset} from './InitialViewportUtils';
-export type {InitialViewportRange} from './InitialViewportUtils';
+export default useCenteredInitialScrollKeyList;

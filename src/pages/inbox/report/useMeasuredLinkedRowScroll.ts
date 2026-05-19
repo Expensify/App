@@ -8,6 +8,7 @@ const MEASURED_ANCHOR_SCROLL_RETRY_LIMIT = 10;
 const MEASURED_ANCHOR_SCROLL_FOLLOW_UP_FRAMES = 3;
 
 type MeasuredAnchorScrollRef = {
+    /** The method to scroll to an index in the list. */
     scrollToIndex: (params: {index: number; animated: boolean; viewOffset: number}) => Promise<void> | void;
 };
 
@@ -23,40 +24,9 @@ type UseMeasuredLinkedRowScrollProps = {
     onMeasuredScrollApplied: () => void;
 };
 
-type MeasuredScrollRuntime = {
-    hasCommittedScroll: boolean;
-    shouldSkipScroll: boolean;
-    pendingFrameId: number | undefined;
-    retryCount: number;
-    rowHeight: number;
-};
-
-function createMeasuredScrollRuntime(): MeasuredScrollRuntime {
-    return {
-        hasCommittedScroll: false,
-        shouldSkipScroll: false,
-        pendingFrameId: undefined,
-        retryCount: 0,
-        rowHeight: 0,
-    };
-}
-
-function cancelPendingMeasuredScrollFrame(runtime: MeasuredScrollRuntime) {
-    if (runtime.pendingFrameId === undefined) {
-        return;
-    }
-
-    cancelAnimationFrame(runtime.pendingFrameId);
-    runtime.pendingFrameId = undefined;
-}
-
-function resetMeasuredScrollRuntime(runtime: MeasuredScrollRuntime) {
-    cancelPendingMeasuredScrollFrame(runtime);
-    runtime.hasCommittedScroll = false;
-    runtime.retryCount = 0;
-    runtime.rowHeight = 0;
-}
-
+/** This hook is used to measure the scroll position of the linked/unread report action
+ * within the list when the report is openend initially.
+ */
 function useMeasuredLinkedRowScroll({
     canMeasureScrollTarget,
     initialScrollKeyForInitialScroll,
@@ -235,6 +205,40 @@ function useMeasuredLinkedRowScroll({
         resetMeasuredScroll,
         skipMeasuredScroll,
     };
+}
+
+type MeasuredScrollRuntime = {
+    hasCommittedScroll: boolean;
+    shouldSkipScroll: boolean;
+    pendingFrameId: number | undefined;
+    retryCount: number;
+    rowHeight: number;
+};
+
+function createMeasuredScrollRuntime(): MeasuredScrollRuntime {
+    return {
+        hasCommittedScroll: false,
+        shouldSkipScroll: false,
+        pendingFrameId: undefined,
+        retryCount: 0,
+        rowHeight: 0,
+    };
+}
+
+function cancelPendingMeasuredScrollFrame(runtime: MeasuredScrollRuntime) {
+    if (runtime.pendingFrameId === undefined) {
+        return;
+    }
+
+    cancelAnimationFrame(runtime.pendingFrameId);
+    runtime.pendingFrameId = undefined;
+}
+
+function resetMeasuredScrollRuntime(runtime: MeasuredScrollRuntime) {
+    cancelPendingMeasuredScrollFrame(runtime);
+    runtime.hasCommittedScroll = false;
+    runtime.retryCount = 0;
+    runtime.rowHeight = 0;
 }
 
 export default useMeasuredLinkedRowScroll;

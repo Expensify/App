@@ -1,6 +1,7 @@
 import {act, renderHook} from '@testing-library/react-native';
 import type {LayoutChangeEvent} from 'react-native';
-import useVerticallyCenteredInitialContent, {getMeasuredLinkedRowScrollViewOffset} from '@pages/inbox/report/useVerticallyCenteredInitialContent';
+import {getMeasuredLinkedRowScrollViewOffset} from '@pages/inbox/report/InitialViewportUtils';
+import useCenteredInitialScrollKeyList from '@pages/inbox/report/useCenteredInitialScrollKeyList';
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -22,7 +23,7 @@ jest.mock('@hooks/useWindowDimensions', () =>
     })),
 );
 
-type HookProps = Parameters<typeof useVerticallyCenteredInitialContent>[0];
+type HookProps = Parameters<typeof useCenteredInitialScrollKeyList>[0];
 
 const report = {
     reportID: 'report-1',
@@ -89,7 +90,7 @@ const flushMicrotasks = () =>
         await Promise.resolve();
     });
 
-describe('useVerticallyCenteredInitialContent', () => {
+describe('useCenteredInitialScrollKeyList', () => {
     beforeEach(() => {
         jest.clearAllMocks();
     });
@@ -109,7 +110,7 @@ describe('useVerticallyCenteredInitialContent', () => {
     });
 
     it('shows the initial viewport skeleton on initial render when there is an initial scroll target', async () => {
-        const {result} = renderHook((props: HookProps) => useVerticallyCenteredInitialContent(props), {
+        const {result} = renderHook((props: HookProps) => useCenteredInitialScrollKeyList(props), {
             initialProps: createProps({initialScrollKey: '2'}),
         });
 
@@ -120,7 +121,7 @@ describe('useVerticallyCenteredInitialContent', () => {
     it('hides the initial viewport skeleton after the initial unread-anchor viewport is mounted and measured', async () => {
         mockRequestAnimationFrame();
 
-        const {result} = renderHook((props: HookProps) => useVerticallyCenteredInitialContent(props), {
+        const {result} = renderHook((props: HookProps) => useCenteredInitialScrollKeyList(props), {
             initialProps: createProps({initialScrollKey: '2'}),
         });
         await flushMicrotasks();
@@ -157,7 +158,7 @@ describe('useVerticallyCenteredInitialContent', () => {
     it('does not scroll or show the initial viewport skeleton when an unread marker appears after the list mounted', async () => {
         mockRequestAnimationFrame();
 
-        const {result, rerender} = renderHook((props: HookProps) => useVerticallyCenteredInitialContent(props), {
+        const {result, rerender} = renderHook((props: HookProps) => useCenteredInitialScrollKeyList(props), {
             initialProps: createProps(),
         });
         await flushMicrotasks();

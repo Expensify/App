@@ -77,7 +77,7 @@ import ShowPreviousMessagesButton from './ShowPreviousMessagesButton';
 import useReportActionsNewActionLiveTail from './useReportActionsNewActionLiveTail';
 import useReportUnreadMessageScrollTracking from './useReportUnreadMessageScrollTracking';
 import useShouldShowComposerForActiveEditDraft from './useShouldShowComposerForActiveEditDraft';
-import useVerticallyCenteredInitialContent from './useVerticallyCenteredInitialContent';
+import useCenteredInitialScrollKeyList from './useVerticallyCenteredListContent';
 
 type ReportActionsListProps = {
     /** The report currently being looked at */
@@ -758,7 +758,7 @@ function ReportActionsList({
         handleReportActionsListLayout,
         initialScrollKeyForInitialScroll,
         shouldKeepLinkScrollPosition,
-    } = useVerticallyCenteredInitialContent({
+    } = useCenteredInitialScrollKeyList({
         initialScrollKey,
         sortedVisibleReportActions,
         keyExtractor,
