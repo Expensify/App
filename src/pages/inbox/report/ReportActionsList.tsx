@@ -759,7 +759,6 @@ function ReportActionsList({
         sortedVisibleReportActions,
         keyExtractor,
         linkedReportActionID,
-        hasOlderActions,
         reportLoadingState,
         shouldFocusToTopOnMount,
         listID,

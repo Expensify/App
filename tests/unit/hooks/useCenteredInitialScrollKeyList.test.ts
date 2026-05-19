@@ -70,7 +70,6 @@ const createProps = (overrides: Partial<HookProps> = {}): HookProps => ({
     sortedVisibleReportActions,
     keyExtractor,
     linkedReportActionID: undefined,
-    hasOlderActions: false,
     reportLoadingState,
     shouldFocusToTopOnMount: false,
     listID: 'report-1:params',

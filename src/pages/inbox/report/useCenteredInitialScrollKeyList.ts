@@ -6,7 +6,6 @@ import {computeInitialViewportRange, findInitialScrollIndex, isInitialViewportCo
 import type {InitialViewportResetSession} from './InitialViewportUtils';
 import useMeasuredLinkedRowScroll from './useMeasuredLinkedRowScroll';
 
-const LINKED_OLDER_REVEAL_FALLBACK_MS = 800;
 const MEASURED_SCROLL_FALLBACK_MS = 3000;
 
 type UseCenteredInitialScrollKeyListProps = {
@@ -18,8 +17,6 @@ type UseCenteredInitialScrollKeyListProps = {
     keyExtractor: (item: OnyxTypes.ReportAction) => string;
     /** The linked report action ID. */
     linkedReportActionID: string | undefined;
-    /** Whether the report has older actions. */
-    hasOlderActions: boolean;
     /** The report loading state. */
     reportLoadingState: OnyxTypes.ReportLoadingState | undefined;
     /** Whether to focus to the top of the list on mount. */
@@ -40,7 +37,6 @@ function useCenteredInitialScrollKeyList({
     sortedVisibleReportActions,
     keyExtractor,
     linkedReportActionID,
-    hasOlderActions,
     reportLoadingState,
     shouldFocusToTopOnMount,
     listID,
@@ -61,14 +57,11 @@ function useCenteredInitialScrollKeyList({
     const [listHeight, setListHeight] = useState(0);
     const [isInitialViewportLoading, setIsInitialViewportLoading] = useState(true);
     const [hasAppliedMeasuredScroll, setHasAppliedMeasuredScroll] = useState(() => !shouldMeasureScrollTarget);
-    const [isLinkedOlderRevealReady, setIsLinkedOlderRevealReady] = useState(() => !(!!linkedReportActionID && hasOlderActions));
 
     const mountedViewportIndicesRef = useRef(new Set<number>());
     const hasInitialViewportLoadedRef = useRef(!hasInitialScrollTarget);
 
     const isLoadingOlderReportActions = reportLoadingState?.isLoadingOlderReportActions;
-    const isLinkedOpen = !!linkedReportActionID;
-    const shouldDeferLinkedOlderReveal = isLinkedOpen && hasOlderActions;
 
     const {handleInitialScrollTargetLayout, resetMeasuredScroll, skipMeasuredScroll} = useMeasuredLinkedRowScroll({
         canMeasureScrollTarget: shouldMeasureScrollTarget,
@@ -86,8 +79,7 @@ function useCenteredInitialScrollKeyList({
     const shouldRenderFlashList = !hasInitialScrollTarget || listHeight > 0;
 
     const isWaitingForMeasuredScroll = shouldMeasureScrollTarget && !hasAppliedMeasuredScroll;
-    const isWaitingForLinkedOlderPagination = shouldDeferLinkedOlderReveal && (!isLinkedOlderRevealReady || !!isLoadingOlderReportActions);
-    const shouldShowInitialViewportSkeleton = hasInitialScrollTarget && (isInitialViewportLoading || isWaitingForMeasuredScroll || isWaitingForLinkedOlderPagination);
+    const shouldShowInitialViewportSkeleton = hasInitialScrollTarget && (isInitialViewportLoading || isWaitingForMeasuredScroll);
 
     const initialScrollIndexViewOffset = hasInitialScrollTarget ? -Math.max(listHeight / 2, 0) : undefined;
     let initialScrollIndexParams;
@@ -132,7 +124,6 @@ function useCenteredInitialScrollKeyList({
         }
 
         publishSessionSnapshot(nextSession);
-        setIsLinkedOlderRevealReady(!shouldDeferLinkedOlderReveal);
         resetMeasuredScroll();
 
         mountedViewportIndicesRef.current.clear();
@@ -143,69 +134,7 @@ function useCenteredInitialScrollKeyList({
         return () => {
             isCancelled = true;
         };
-    }, [
-        hasInitialScrollTarget,
-        hasOlderActions,
-        initialScrollKey,
-        linkedReportActionID,
-        listID,
-        report.reportID,
-        resetMeasuredScroll,
-        shouldDeferLinkedOlderReveal,
-        shouldMeasureScrollTarget,
-        skipMeasuredScroll,
-    ]);
-
-    useEffect(() => {
-        let cancelled = false;
-        let animationFrameId = 0;
-        let fallbackTimeoutId: ReturnType<typeof setTimeout> | undefined;
-
-        const setRevealReadyOnNextFrame = (isReady: boolean) => {
-            animationFrameId = requestAnimationFrame(() => {
-                if (cancelled) {
-                    return;
-                }
-
-                setIsLinkedOlderRevealReady(isReady);
-            });
-        };
-
-        const shouldOpenRevealGateImmediately = !shouldDeferLinkedOlderReveal;
-        const isWaitingForInitialViewport = !hasAppliedMeasuredScroll || isInitialViewportLoading;
-        const isFetchingOlderMessages = !!isLoadingOlderReportActions;
-
-        if (shouldOpenRevealGateImmediately) {
-            setRevealReadyOnNextFrame(true);
-        } else if (isWaitingForInitialViewport) {
-            setRevealReadyOnNextFrame(false);
-        } else if (isFetchingOlderMessages) {
-            setRevealReadyOnNextFrame(true);
-        } else {
-            animationFrameId = requestAnimationFrame(() => {
-                if (cancelled) {
-                    return;
-                }
-
-                fallbackTimeoutId = setTimeout(() => {
-                    if (cancelled) {
-                        return;
-                    }
-
-                    setIsLinkedOlderRevealReady(true);
-                }, LINKED_OLDER_REVEAL_FALLBACK_MS);
-            });
-        }
-
-        return () => {
-            cancelled = true;
-            cancelAnimationFrame(animationFrameId);
-
-            if (fallbackTimeoutId) {
-                clearTimeout(fallbackTimeoutId);
-            }
-        };
-    }, [hasAppliedMeasuredScroll, isInitialViewportLoading, isLoadingOlderReportActions, linkedReportActionID, listID, report.reportID, shouldDeferLinkedOlderReveal]);
+    }, [hasInitialScrollTarget, initialScrollKey, linkedReportActionID, listID, report.reportID, resetMeasuredScroll, shouldMeasureScrollTarget, skipMeasuredScroll]);
 
     useEffect(() => {
         if (!shouldMeasureScrollTarget || hasAppliedMeasuredScroll) {
