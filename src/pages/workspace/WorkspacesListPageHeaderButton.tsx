@@ -2,7 +2,6 @@ import React from 'react';
 import Button from '@components/Button';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -15,7 +14,6 @@ type WorkspacesListPageHeaderButtonProps = {
 
 function WorkspacesListPageHeaderButton({shouldShowNewWorkspaceButton}: WorkspacesListPageHeaderButtonProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Building', 'Globe', 'Plus']);
-    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     if (shouldShowNewWorkspaceButton) {

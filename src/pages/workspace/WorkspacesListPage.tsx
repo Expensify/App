@@ -7,8 +7,9 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import ConfirmModal from '@components/ConfirmModal';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import {TableHandle} from '@components/Table';
-import WorkspaceListTable, {WorkspaceRowData, WorkspaceTableColumnKey} from '@components/Tables/WorkspaceListTable';
+import type {TableHandle} from '@components/Table';
+import type {WorkspaceRowData, WorkspaceTableColumnKey} from '@components/Tables/WorkspaceListTable';
+import WorkspaceListTable from '@components/Tables/WorkspaceListTable';
 import WorkspaceListLayout from '@components/WorkspaceListLayout';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useCardFeeds from '@hooks/useCardFeeds';
@@ -427,13 +428,6 @@ function WorkspacesListPage() {
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID));
     };
 
-    const navigateToDomain = ({domainAccountID, isAdmin}: {domainAccountID: number; isAdmin: boolean}) => {
-        if (!isAdmin) {
-            return Navigation.navigate(ROUTES.WORKSPACES_DOMAIN_ACCESS_RESTRICTED.getRoute(domainAccountID));
-        }
-        Navigation.navigate(ROUTES.DOMAIN_INITIAL.getRoute(domainAccountID));
-    };
-
     const {policiesWithCardFeedErrors} = usePoliciesWithCardFeedErrors();
 
     /**
@@ -479,7 +473,7 @@ function WorkspacesListPage() {
             })();
 
             if (policy?.isJoinRequestPending && policy?.policyDetailsForNonMembers) {
-                const policyID = Object.keys(policy.policyDetailsForNonMembers).at(0) as string;
+                const policyID = Object.keys(policy.policyDetailsForNonMembers).at(0) ?? '';
                 const policyInfo = Object.values(policy.policyDetailsForNonMembers).at(0) as PolicyDetailsForNonMembers;
 
                 const policyOwnerAccountID = policyInfo.ownerAccountID;

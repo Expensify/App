@@ -3,19 +3,14 @@ import React from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import DomainListPageHeaderButton from '@components/Domain/DomainListPageHeaderButton';
-import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
-import TopBarWithLoadingBar from '@components/Navigation/TopBarWithLoadingBar';
-import ScreenWrapper from '@components/ScreenWrapper';
-import DomainListTable, {DomainRowData} from '@components/Tables/DomainListTable';
+import type {DomainRowData} from '@components/Tables/DomainListTable';
+import DomainListTable from '@components/Tables/DomainListTable';
 import WorkspaceListLayout from '@components/WorkspaceListLayout';
-import WorkspaceTabs from '@components/WorkspacesTabs';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hasDomainErrors} from '@libs/DomainUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -38,10 +33,16 @@ function DomainsListPage() {
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const [allDomainErrors] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_ERRORS);
 
-    const tabBarContent = <TabBarBottomContent selectedTab={NAVIGATION_TABS.WORKSPACES} />;
+    const navigateToDomain = ({domainAccountID, isAdmin}: {domainAccountID: number; isAdmin: boolean}) => {
+        if (!isAdmin) {
+            return Navigation.navigate(ROUTES.WORKSPACES_DOMAIN_ACCESS_RESTRICTED.getRoute(domainAccountID));
+        }
+
+        Navigation.navigate(ROUTES.DOMAIN_INITIAL.getRoute(domainAccountID));
+    };
 
     const domainRows: DomainRowData[] = [];
-    const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
+    const shouldShowLoadingIndicator = !!isLoadingApp && !isOffline;
 
     if (!isEmptyObject(allDomains)) {
         for (const domain of Object.values(allDomains)) {
@@ -65,16 +66,6 @@ function DomainsListPage() {
             });
         }
     }
-
-    const navigateToDomain = ({domainAccountID, isAdmin}: {domainAccountID: number; isAdmin: boolean}) => {
-        if (!isAdmin) {
-            return Navigation.navigate(ROUTES.WORKSPACES_DOMAIN_ACCESS_RESTRICTED.getRoute(domainAccountID));
-        }
-
-        Navigation.navigate(ROUTES.DOMAIN_INITIAL.getRoute(domainAccountID));
-    };
-
-    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
     const activityIndicatorReasonAttributes = {
         context: 'DomainsListPage',

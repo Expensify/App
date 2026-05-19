@@ -2,7 +2,6 @@ import React from 'react';
 import Button from '@components/Button';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -14,7 +13,6 @@ type DomainListPageHeaderButtonProps = {
 };
 
 function DomainListPageHeaderButton({shouldShowNewDomainButton}: DomainListPageHeaderButtonProps) {
-    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
 

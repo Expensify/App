@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import SearchBar from '@components/SearchBar';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import {useTableContext} from './TableContext';

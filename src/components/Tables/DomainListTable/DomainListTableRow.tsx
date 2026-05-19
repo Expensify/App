@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {PopoverMenuItem} from '@components/PopoverMenu';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import TableRow from '@components/Table/TableRow';
 import TextWithTooltip from '@components/TextWithTooltip';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';

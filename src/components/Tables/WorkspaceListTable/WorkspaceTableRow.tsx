@@ -18,7 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getUserFriendlyWorkspaceType} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import {WorkspaceRowData} from '.';
+import type {WorkspaceRowData} from '.';
 
 type WorkspaceRowProps = {
     /** The workspace data */
@@ -55,7 +55,7 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
         .filter(Boolean)
         .join(', ');
 
-    const BrickRoadIndicator = item.brickRoadIndicator && (
+    const BrickRoadIndicator = !!item.brickRoadIndicator && (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
             <Icon
                 src={icons.DotIndicator}

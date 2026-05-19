@@ -1,21 +1,22 @@
-import {ListRenderItemInfo} from '@shopify/flash-list';
+import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
-import {ValueOf} from 'type-fest';
-import {PopoverMenuItem} from '@components/PopoverMenu';
-import Table, {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
+import type {ValueOf} from 'type-fest';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
+import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
+import Table from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserUtils';
 import WorkspacesEmptyStateComponent from '@pages/workspace/WorkspacesEmptyStateComponent';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import WorkspaceRow from './WorkspaceTableRow';
 
-export type WorkspaceTableColumnKey = 'workspaces' | 'owner' | 'type' | 'actions';
+type WorkspaceTableColumnKey = 'workspaces' | 'owner' | 'type' | 'actions';
 
-export type WorkspaceRowData = {
+type WorkspaceRowData = {
     rowType: 'workspace';
     title: string;
     icon: AvatarSource;
@@ -46,7 +47,7 @@ type WorkspaceListTableProps = {
 
 export default function WorkspaceListTable({ref, workspaces}: WorkspaceListTableProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
@@ -61,15 +62,15 @@ export default function WorkspaceListTable({ref, workspaces}: WorkspaceListTable
         const orderMultiplier = activeSorting.order === 'asc' ? 1 : -1;
 
         if (activeSorting.columnKey === 'workspaces') {
-            return item1.title.localeCompare(item2.title) * orderMultiplier;
+            return orderMultiplier * localeCompare(item1.title, item2.title);
         }
 
         if (activeSorting.columnKey === 'owner') {
-            return (item1.ownerName ?? '').localeCompare(item2.ownerName ?? '') * orderMultiplier;
+            return orderMultiplier * localeCompare(item1.ownerName ?? '', item2.ownerName ?? '');
         }
 
         if (activeSorting.columnKey === 'type') {
-            return item1.type.localeCompare(item2.type) * orderMultiplier;
+            return orderMultiplier * localeCompare(item1.type, item2.type);
         }
 
         return 0;
@@ -108,3 +109,5 @@ export default function WorkspaceListTable({ref, workspaces}: WorkspaceListTable
         </Table>
     );
 }
+
+export type {WorkspaceRowData, WorkspaceTableColumnKey};

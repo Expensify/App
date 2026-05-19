@@ -1,19 +1,20 @@
-import {ListRenderItemInfo} from '@shopify/flash-list';
+import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import DomainListEmptyState from '@components/Domain/DomainListEmptyState';
-import Table, {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
+import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
+import Table from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import DomainListTableRow from './DomainListTableRow';
 
 type DomainTableColumnKey = 'domains' | 'actions';
 
-export type DomainRowData = {
+type DomainRowData = {
     rowType: 'domain';
     domainAccountID: number;
     title: string;
@@ -31,7 +32,7 @@ type DomainListTableProps = {
 
 export default function DomainListTable({domains}: DomainListTableProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
@@ -43,8 +44,7 @@ export default function DomainListTable({domains}: DomainListTableProps) {
 
     const compareTableItems: CompareItemsCallback<DomainRowData> = (item1, item2, activeSorting) => {
         const orderMultiplier = activeSorting.order === 'asc' ? 1 : -1;
-
-        return item1.title.localeCompare(item2.title) * orderMultiplier;
+        return orderMultiplier * localeCompare(item1.title, item2.title);
     };
 
     const isTableItemInSearch: IsItemInSearchCallback<DomainRowData> = (item, searchValue) => {
@@ -79,3 +79,5 @@ export default function DomainListTable({domains}: DomainListTableProps) {
         </Table>
     );
 }
+
+export type {DomainRowData};
