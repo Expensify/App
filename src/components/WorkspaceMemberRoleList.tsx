@@ -106,6 +106,7 @@ function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLo
                         shouldSingleExecuteRowSelect
                         initiallyFocusedItemKey={availableRoleItems.find((item) => item.isSelected)?.keyForList}
                         addBottomSafeAreaPadding
+                        alternateNumberOfSupportedLines={2}
                     />
                 </View>
             )}
