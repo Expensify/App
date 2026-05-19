@@ -164,7 +164,21 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const activePolicy = useActivePolicy();
     const styles = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Users', 'Gear', 'Send', 'Folder', 'UserPlus', 'Pencil', 'Checkmark', 'Building', 'Exit', 'Bug', 'Camera', 'Trashcan']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'Users',
+        'Gear',
+        'Send',
+        'Folder',
+        'UserPlus',
+        'Pencil',
+        'Checkmark',
+        'Building',
+        'Exit',
+        'Bug',
+        'Camera',
+        'Trashcan',
+        'ArrowSplit',
+    ]);
     const backTo = route.params.backTo;
 
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
@@ -311,13 +325,20 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
     const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const [iouOriginalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransaction?.comment?.originalTransactionID)}`);
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(iouTransactionID ? [iouTransactionID] : []);
-    const {deleteTransactions} = useDeleteTransactions({
+    const {deleteTransactions, shouldOpenSplitExpenseEditFlowOnDelete} = useDeleteTransactions({
         report: parentReport,
         reportActions: requestParentReportAction ? [requestParentReportAction] : [],
         policy,
     });
     const isCardTransactionCanBeDeleted = canDeleteCardTransactionByLiabilityType(iouTransaction);
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || (canDeleteRequest && isCardTransactionCanBeDeleted) || isDemoTransaction(iouTransaction);
+    const shouldShowEditSplitOnDeleteAction = iouTransactionID ? shouldOpenSplitExpenseEditFlowOnDelete([iouTransactionID]) : false;
+    let deleteMenuItemTitle = translate('reportActionContextMenu.deleteAction', {action: requestParentReportAction});
+    if (shouldShowEditSplitOnDeleteAction) {
+        deleteMenuItemTitle = translate('iou.editSplits');
+    } else if (caseID === CASES.DEFAULT) {
+        deleteMenuItemTitle = translate('common.delete');
+    }
     const reportAttributes = useReportAttributes();
     const isWorkspaceChat = useMemo(() => isWorkspaceChatUtil(report?.chatType ?? ''), [report?.chatType]);
 
@@ -900,7 +921,10 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
                 currentUserEmail: currentUserPersonalDetails.email ?? '',
             });
         } else if (iouTransactionID) {
-            deleteTransactions([iouTransactionID], duplicateTransactions, duplicateTransactionViolations, undefined, isSingleTransactionView);
+            const deleteResult = deleteTransactions([iouTransactionID], duplicateTransactions, duplicateTransactionViolations, undefined, isSingleTransactionView);
+            if (deleteResult.action === 'redirected') {
+                return;
+            }
             removeTransaction(iouTransactionID);
         }
     }, [
@@ -1012,7 +1036,13 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
         if (action !== ModalActions.CONFIRM) {
             return;
         }
+        const shouldOpenSplitExpenseEditFlow = iouTransactionID ? shouldOpenSplitExpenseEditFlowOnDelete([iouTransactionID]) : false;
         Navigation.setNavigationActionToMicrotaskQueue(() => {
+            if (shouldOpenSplitExpenseEditFlow) {
+                deleteTransaction();
+                return;
+            }
+
             navigateToTargetUrl();
             // Delay deletion until the RHP close animation finishes to prevent a brief
             // "Not Found" flash inside the animating-out panel on slower devices.
@@ -1020,7 +1050,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
                 deleteTransaction();
             });
         });
-    }, [showConfirmModal, translate, caseID, navigateToTargetUrl, deleteTransaction]);
+    }, [showConfirmModal, translate, caseID, iouTransactionID, shouldOpenSplitExpenseEditFlowOnDelete, navigateToTargetUrl, deleteTransaction]);
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: report.reportID, exactlyMatch: true}), [report.reportID]);
 
@@ -1102,9 +1132,9 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
                     {shouldShowDeleteButton && (
                         <MenuItem
                             key={CONST.REPORT_DETAILS_MENU_ITEM.DELETE}
-                            icon={expensifyIcons.Trashcan}
-                            title={caseID === CASES.DEFAULT ? translate('common.delete') : translate('reportActionContextMenu.deleteAction', {action: requestParentReportAction})}
-                            onPress={showDeleteModal}
+                            icon={shouldShowEditSplitOnDeleteAction ? expensifyIcons.ArrowSplit : expensifyIcons.Trashcan}
+                            title={deleteMenuItemTitle}
+                            onPress={shouldShowEditSplitOnDeleteAction ? deleteTransaction : showDeleteModal}
                         />
                     )}
                 </ScrollView>

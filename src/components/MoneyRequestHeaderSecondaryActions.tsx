@@ -150,7 +150,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const [defaultPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(defaultExpensePolicy?.id)}`);
     const {policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses(isPerDiemRequest(transaction));
     const shouldNavigateToUpgradePath = !policyForMovingExpenses && !shouldSelectPolicy;
-    const {deleteTransactions} = useDeleteTransactions({report: parentReport, reportActions: parentReportAction ? [parentReportAction] : [], policy});
+    const {deleteTransactions, shouldOpenSplitExpenseEditFlowOnDelete} = useDeleteTransactions({report: parentReport, reportActions: parentReportAction ? [parentReportAction] : [], policy});
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(parentReportAction);
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
     const {isBetaEnabled} = usePermissions();
@@ -191,6 +191,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const hasMultipleSplits = useHasMultipleSplitChildren(transaction?.comment?.originalTransactionID);
     const isReportOpen = isOpenReport(parentReport);
     const shouldShowSplitIndicator = isExpenseSplit && (hasMultipleSplits || isReportOpen);
+    const shouldShowEditSplitOnDeleteAction = !!transaction?.transactionID && shouldOpenSplitExpenseEditFlowOnDelete([transaction.transactionID]);
     const isReportSubmitter = isCurrentUserSubmitter(chatIOUReport);
     const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
     const targetPolicyTags = defaultPolicyTags ?? {};
@@ -404,10 +405,15 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DELETE]: {
-            text: translate('common.delete'),
-            icon: expensifyIcons.Trashcan,
+            text: shouldShowEditSplitOnDeleteAction ? translate('iou.editSplits') : translate('common.delete'),
+            icon: shouldShowEditSplitOnDeleteAction ? expensifyIcons.ArrowSplit : expensifyIcons.Trashcan,
             value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
             onSelected: () => {
+                if (shouldShowEditSplitOnDeleteAction && transaction?.transactionID) {
+                    deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, true);
+                    return;
+                }
+
                 showConfirmModal({
                     title: translate('iou.deleteExpense', {count: 1}),
                     prompt: translate('iou.deleteConfirmation', {count: 1}),
@@ -442,8 +448,24 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                             currentUserEmail: currentUserLogin ?? '',
                         });
                     } else {
+                        if (shouldOpenSplitExpenseEditFlowOnDelete([transaction.transactionID])) {
+                            deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, true);
+                            return;
+                        }
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         InteractionManager.runAfterInteractions(() => {
-                            deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, isReportInSearch ? currentSearchHash : undefined, true);
+                            const deleteResult = deleteTransactions(
+                                [transaction.transactionID],
+                                duplicateTransactions,
+                                duplicateTransactionViolations,
+                                isReportInSearch ? currentSearchHash : undefined,
+                                true,
+                            );
+
+                            if (deleteResult.action === 'redirected') {
+                                return;
+                            }
+
                             removeTransaction(transaction.transactionID);
                         });
                     }

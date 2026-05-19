@@ -177,6 +177,7 @@ type RequestMoneyInformation = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     shouldDeferAutoSubmit?: boolean;
+    shouldDeferForSearch?: boolean;
 };
 
 type MoneyRequestInformationParams = {

@@ -158,7 +158,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactions.map((t) => t.transactionID));
 
     // Delete hook — pass chatReport (as in MoneyReportHeader) not moneyRequestReport
-    const {deleteTransactions} = useDeleteTransactions({
+    const {deleteTransactions, shouldOpenSplitExpenseEditFlowOnDelete} = useDeleteTransactions({
         report: chatReport,
         reportActions,
         policy,
@@ -172,6 +172,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const hasMultipleSplits = !!transaction?.comment?.originalTransactionID && getChildTransactions(allTransactions, transaction.comment.originalTransactionID).length > 1;
     const isReportOpen = isOpenReport(moneyRequestReport);
     const hasSplitIndicator = isExpenseSplit && (hasMultipleSplits || isReportOpen);
+    const shouldShowEditSplitOnDeleteAction = !!transaction?.transactionID && shouldOpenSplitExpenseEditFlowOnDelete([transaction.transactionID]);
 
     // Duplicate report throttle
     const [isDuplicateReportActive, temporarilyDisableDuplicateReportAction] = useThrottledButtonState();
@@ -460,14 +461,19 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DELETE]: {
-            text: translate('common.delete'),
-            icon: expensifyIcons.Trashcan,
+            text: shouldShowEditSplitOnDeleteAction ? translate('iou.editSplits') : translate('common.delete'),
+            icon: shouldShowEditSplitOnDeleteAction ? expensifyIcons.ArrowSplit : expensifyIcons.Trashcan,
             value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
-            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.DELETE,
+            sentryLabel: shouldShowEditSplitOnDeleteAction ? CONST.SENTRY_LABEL.MORE_MENU.SPLIT : CONST.SENTRY_LABEL.MORE_MENU.DELETE,
             onSelected: async () => {
                 const transactionCount = Object.keys(transactions).length;
 
                 if (transactionCount === 1) {
+                    if (shouldShowEditSplitOnDeleteAction && transaction?.transactionID) {
+                        deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, false);
+                        return;
+                    }
+
                     const result = await showConfirmModal({
                         title: translate('iou.deleteExpense', {count: 1}),
                         prompt: translate('iou.deleteConfirmation', {count: 1}),
@@ -483,6 +489,10 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                         if (!requestParentReportAction || !transaction?.transactionID) {
                             throw new Error('Missing data!');
                         }
+                        if (shouldOpenSplitExpenseEditFlowOnDelete([transaction.transactionID])) {
+                            deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, false);
+                            return;
+                        }
                         const goBackRoute = getNavigationUrlOnMoneyRequestDelete(
                             transaction.transactionID,
                             requestParentReportAction,
@@ -497,7 +507,18 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                             navigateOnDeleteExpense(goBackRoute);
                         }
                         InteractionManager.runAfterInteractions(() => {
-                            deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, isReportInSearch ? currentSearchHash : undefined, false);
+                            const deleteResult = deleteTransactions(
+                                [transaction.transactionID],
+                                duplicateTransactions,
+                                duplicateTransactionViolations,
+                                isReportInSearch ? currentSearchHash : undefined,
+                                false,
+                            );
+
+                            if (deleteResult.action === 'redirected') {
+                                return;
+                            }
+
                             removeTransaction(transaction.transactionID);
                         });
                     }

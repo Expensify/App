@@ -14,7 +14,7 @@ import ROUTES from '@src/ROUTES';
 import type {BillingGraceEndPeriod, Policy, Report, Transaction} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
-import {initSplitExpenseItemData, resolveSplitItemReportID, resolveSplitMileageRate, updateSplitExpenseDistanceFromAmount} from './IOU/SplitExpenseItems';
+import {initDraftSplitExpenseDataForEdit, initSplitExpenseItemData, resolveSplitItemReportID, resolveSplitMileageRate, updateSplitExpenseDistanceFromAmount} from './IOU/SplitExpenseItems';
 
 // We use connectWithoutView because `initSplitExpense` doesn't affect the UI rendering and
 // this avoids unnecessary re-rendering for components when any transaction changes. This data should ONLY
@@ -86,7 +86,12 @@ Onyx.connectWithoutView({
 /**
  * Create a draft transaction to set up split expense details for the split expense flow
  */
-function initSplitExpense(transaction: OnyxEntry<Transaction>, policy?: OnyxEntry<Policy>, report?: OnyxEntry<Report>): void {
+function initSplitExpense(
+    transaction: OnyxEntry<Transaction>,
+    policy?: OnyxEntry<Policy>,
+    report?: OnyxEntry<Report>,
+    {navigateToEditSplitExpense = false}: {navigateToEditSplitExpense?: boolean} = {},
+): void {
     if (!transaction) {
         return;
     }
@@ -108,15 +113,15 @@ function initSplitExpense(transaction: OnyxEntry<Transaction>, policy?: OnyxEntr
 
     const isSelfDMReport = isSelfDM(report) || isSelfDM(parentReport);
 
-    let reportID;
+    let reportID: string;
     if (isSelfDMReport) {
         // If the report itself is selfDM, use its ID directly.
         // If only the parent is selfDM (e.g. user opened from a transaction thread inside selfDM),
         // use the selfDM parent report ID so the edit screen resolves the correct report name
         // instead of showing the transaction thread name (which uses the expense merchant).
-        reportID = isSelfDM(report) ? report?.reportID : parentReport?.reportID;
+        reportID = (isSelfDM(report) ? report?.reportID : parentReport?.reportID) ?? String(CONST.DEFAULT_NUMBER_ID);
     } else {
-        reportID = transaction.reportID;
+        reportID = transaction.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
     }
 
     if (isExpenseSplit && shouldShowSplitIndicator) {
@@ -147,6 +152,14 @@ function initSplitExpense(transaction: OnyxEntry<Transaction>, policy?: OnyxEntr
         });
 
         Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, draftTransaction);
+        if (navigateToEditSplitExpense) {
+            const splitExpenseOverviewRoute = isSearchTopmostFullScreenRoute()
+                ? ROUTES.SPLIT_EXPENSE_SEARCH.getRoute(reportID, originalTransactionID, undefined, Navigation.getActiveRoute())
+                : ROUTES.SPLIT_EXPENSE.getRoute(reportID, originalTransactionID, undefined, Navigation.getActiveRoute());
+            initDraftSplitExpenseDataForEdit(draftTransaction, transaction.transactionID, reportID);
+            Navigation.navigate(ROUTES.SPLIT_EXPENSE_EDIT.getRoute(reportID, originalTransactionID, transaction.transactionID, splitExpenseOverviewRoute));
+            return;
+        }
         if (isSearchTopmostFullScreenRoute()) {
             Navigation.navigate(ROUTES.SPLIT_EXPENSE_SEARCH.getRoute(reportID, originalTransactionID, transaction.transactionID, Navigation.getActiveRoute()));
         } else {
