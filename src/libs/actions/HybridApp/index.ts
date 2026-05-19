@@ -1,6 +1,7 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {isLockedToNewApp, shouldBlockOldAppExit} from '@libs/TryNewDotUtils';
 import {setIsGPSInProgressModalOpen} from '@userActions/isGPSInProgressModalOpen';
@@ -132,11 +133,20 @@ function closeReactNativeApp({shouldSetNVP, isTrackingGPS, shouldIgnoreTryNewDot
 
     const closingPromise = CONFIG.IS_HYBRID_APP ? Onyx.merge(ONYXKEYS.HYBRID_APP, {closingReactNativeApp: true}) : Promise.resolve();
 
-    closingPromise.then(() => {
-        Navigation.clearPreloadedRoutes();
-        // eslint-disable-next-line no-restricted-properties
-        HybridAppModule.closeReactNativeApp({shouldSetNVP});
-    });
+    closingPromise
+        .then(() => {
+            Navigation.clearPreloadedRoutes();
+            // We need to call HybridAppModule.closeReactNativeApp directly as a native module method
+            // eslint-disable-next-line no-restricted-properties
+            HybridAppModule.closeReactNativeApp({shouldSetNVP});
+        })
+        .catch((error) => {
+            Log.warn('Failed to merge HYBRID_APP closing state', {error});
+            // Still attempt to close the app to avoid leaving the user stuck
+            Navigation.clearPreloadedRoutes();
+            // eslint-disable-next-line no-restricted-properties
+            HybridAppModule.closeReactNativeApp({shouldSetNVP});
+        });
 }
 
 /*
