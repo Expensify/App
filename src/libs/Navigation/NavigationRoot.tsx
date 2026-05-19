@@ -31,6 +31,7 @@ import {cleanPreservedNavigatorStates} from './AppNavigator/createSplitNavigator
 import getActiveTabName from './helpers/getActiveTabName';
 import getAdaptedStateFromPath from './helpers/getAdaptedStateFromPath';
 import getPathFromState from './helpers/getPathFromState';
+import getStateToResetAfterLogout from './helpers/getStateToResetAfterLogout';
 import {isSplitNavigatorName} from './helpers/isNavigatorName';
 import {saveSettingsTabPathToSessionStorage, saveWorkspacesTabPathToSessionStorage} from './helpers/lastVisitedTabPathUtils';
 import {linkingConfig} from './linkingConfig';
@@ -208,41 +209,26 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
     }, [shouldUseNarrowLayout]);
 
     useEffect(() => {
-        // Since the NAVIGATORS.REPORTS_SPLIT_NAVIGATOR url is "/" and it has to be used as an URL for SignInPage,
-        // this navigator should be the only one in the navigation state after logout.
+        // After logout, reset the nav state so a logged-out user can't stay on a protected or
+        // consumed route.
         const hasUserLoggedOut = !authenticated && !!previousAuthenticated;
         if (!hasUserLoggedOut || !navigationRef.isReady()) {
             return;
         }
 
-        const rootState = navigationRef.getRootState();
-        const lastRoute = rootState.routes.at(-1);
-        if (!lastRoute) {
+        const stateToReset = getStateToResetAfterLogout(navigationRef.getRootState());
+        if (!stateToReset) {
             return;
         }
 
-        // ValidateLogin's /v/ code is spent by logout; keeping it strands the user.
-        // Only this route is special-cased — others (e.g. TransitionBetweenApps) keep their
-        // live auth params.
-        const isConsumedMagicLink = lastRoute.name === SCREENS.VALIDATE_LOGIN;
-        const signInHostRoute = isConsumedMagicLink
-            ? rootState.routes.find((route) => route.name === NAVIGATORS.TAB_NAVIGATOR || route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR)
-            : undefined;
-
-        // Fresh magic-link session: no host mounted, PublicScreens active → go to SignInPage.
-        if (isConsumedMagicLink && !signInHostRoute) {
+        try {
+            navigationRef.reset(stateToReset);
+        } catch (error) {
+            // A synthesized reset state can be rejected by RN; fall back to a known-valid
+            // SCREENS.HOME (PublicScreens maps "/" → SignInPage) instead of leaving a blank screen.
+            Log.alert('[NavigationRoot] Post-logout navigation reset failed', {error: String(error)});
             navigationRef.reset({index: 0, routes: [{name: SCREENS.HOME}]});
-            return;
         }
-
-        // ReportsSplit & the consumed magic-link host must drop stale params; others keep theirs.
-        const targetRoute = signInHostRoute ?? lastRoute;
-        const shouldClearParams = isConsumedMagicLink || targetRoute.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
-        navigationRef.reset({
-            ...rootState,
-            index: 0,
-            routes: [{...targetRoute, params: shouldClearParams ? undefined : targetRoute.params}],
-        });
     }, [authenticated, previousAuthenticated]);
 
     const handleStateChange = (state: NavigationState | undefined) => {

@@ -5,6 +5,7 @@ import ExpiredValidateCodeModal from '@components/ValidateCode/ExpiredValidateCo
 import JustSignedInModal from '@components/ValidateCode/JustSignedInModal';
 import ValidateCodeModal from '@components/ValidateCode/ValidateCodeModal';
 import useOnyx from '@hooks/useOnyx';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {isValidValidateCode} from '@libs/ValidationUtils';
 import {handleExitToNavigation, initAutoAuthState, signInWithValidateCode} from '@userActions/Session';
@@ -15,6 +16,9 @@ import type {Session as SessionType} from '@src/types/onyx';
 import type ValidateLoginPageProps from './types';
 
 const autoAuthStateSelector = (session: OnyxEntry<SessionType>) => session?.autoAuthState;
+
+/** If a separate-session magic-link sign-in hasn't completed in this long, it's likely stuck. */
+const STUCK_DIRECT_SIGN_IN_TIMEOUT_MS = 30 * 1000;
 
 function ValidateLoginPage({
     route: {
@@ -50,9 +54,10 @@ function ValidateLoginPage({
         setHasInitialized(true);
 
         if (isUserClickedSignIn) {
-            // Fresh/different session (no original tab): goBack() left a blank page (#89545), so
-            // go Home. Wait for protected routes since HOME mounts async; forceReplace so Home
-            // doesn't stack on the consumed `/v/...` route.
+            // Just signed in via the magic link with no cached `login` (separate-session
+            // sign-in). goBack() left a blank page (#89545), so go Home: wait for protected
+            // routes (HOME mounts async) and forceReplace so Home doesn't stack on the
+            // consumed `/v/...` route.
             Navigation.waitForProtectedRoutes().then(() => {
                 Navigation.navigate(ROUTES.HOME, {forceReplace: true});
             });
@@ -86,6 +91,20 @@ function ValidateLoginPage({
             Navigation.goBack();
         });
     }, [login, cachedAccountID, is2FARequired, exitTo]);
+
+    // #89545: waitForProtectedRoutes()/authToken can hang (lazy AuthScreens chunk fails, token
+    // never lands). We can't recover the consumed code here, but surface a stuck sign-in to
+    // Sentry/Log instead of leaving an indefinitely silent spinner. Observability only — no
+    // navigation/UX change. Cleared on unmount (successful redirect) or when the state changes.
+    useEffect(() => {
+        if (!isCompletingDirectSignIn) {
+            return;
+        }
+        const timeoutID = setTimeout(() => {
+            Log.alert('[ValidateLoginPage] Magic-link sign-in appears stuck (protected routes / authToken not ready)', {autoAuthState: autoAuthStateWithDefault});
+        }, STUCK_DIRECT_SIGN_IN_TIMEOUT_MS);
+        return () => clearTimeout(timeoutID);
+    }, [isCompletingDirectSignIn, autoAuthStateWithDefault]);
 
     return (
         <>

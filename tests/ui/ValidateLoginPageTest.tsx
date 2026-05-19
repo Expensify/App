@@ -12,11 +12,20 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
+// Controllable deferred so tests can assert the *ordering* guarantee (navigate only after
+// protected routes are available) — not just the final args.
+const mockWaitForProtectedRoutes = {resolve: () => {}};
+
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     goBack: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
-    waitForProtectedRoutes: jest.fn(() => Promise.resolve()),
+    waitForProtectedRoutes: jest.fn(
+        () =>
+            new Promise<void>((resolve) => {
+                mockWaitForProtectedRoutes.resolve = resolve;
+            }),
+    ),
     getActiveRoute: jest.fn(() => ''),
     getActiveRouteWithoutParams: jest.fn(() => ''),
     isActiveRoute: jest.fn(() => false),
@@ -47,6 +56,7 @@ describe('ValidateLoginPage', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        mockWaitForProtectedRoutes.resolve = () => {};
         await act(async () => {
             await Onyx.clear();
         });
@@ -80,7 +90,7 @@ describe('ValidateLoginPage', () => {
         expect(screen.queryByTestId('validate-code')).toBeNull();
     });
 
-    it('Should navigate to home after signing in via magic link in a fresh session (no cached login)', async () => {
+    it('Should navigate to home only AFTER protected routes are available (separate-session magic link)', async () => {
         await act(async () => {
             await Onyx.set(ONYXKEYS.SESSION, {
                 authToken: 'abcd',
@@ -93,6 +103,17 @@ describe('ValidateLoginPage', () => {
         });
 
         renderPage({accountID: '1', validateCode: '123456'});
+        await waitForBatchedUpdatesWithAct();
+
+        // Protected routes have not mounted yet: navigating now is the exact race #89545 fixes,
+        // so navigate must NOT have been called. (This assertion fails for both the old
+        // isNavigationReady().then(goBack) and an unguarded navigate.)
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+
+        await act(async () => {
+            mockWaitForProtectedRoutes.resolve();
+            await Promise.resolve();
+        });
         await waitForBatchedUpdatesWithAct();
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.HOME, {forceReplace: true});
