@@ -67,14 +67,14 @@ function ListHeader() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
+    const icons = useMemoizedLazyExpensifyIcons(['Profile']);
 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.p4, styles.gap3]}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.flex3]}>
                 <View style={[styles.alignItemsCenter, styles.justifyContentCenter, {width: variables.avatarSizeNormal}]}>
                     <Icon
-                        src={icons.FallbackAvatar}
+                        src={icons.Profile}
                         width={variables.iconSizeSmall}
                         height={variables.iconSizeSmall}
                         fill={theme.icon}
