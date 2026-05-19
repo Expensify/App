@@ -2,7 +2,7 @@ import {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
 import {ValueOf} from 'type-fest';
 import {PopoverMenuItem} from '@components/PopoverMenu';
-import Table, {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
+import Table, {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -13,7 +13,7 @@ import CONST from '@src/CONST';
 import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import WorkspaceRow from './WorkspaceTableRow';
 
-type WorkspaceTableColumnKey = 'workspaces' | 'owner' | 'type' | 'actions';
+export type WorkspaceTableColumnKey = 'workspaces' | 'owner' | 'type' | 'actions';
 
 export type WorkspaceRowData = {
     rowType: 'workspace';
@@ -40,10 +40,11 @@ export type WorkspaceRowData = {
 };
 
 type WorkspaceListTableProps = {
+    ref?: React.Ref<TableHandle<WorkspaceRowData, WorkspaceTableColumnKey, string>> | undefined;
     workspaces: WorkspaceRowData[];
 };
 
-export default function WorkspaceListTable({workspaces}: WorkspaceListTableProps) {
+export default function WorkspaceListTable({ref, workspaces}: WorkspaceListTableProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -90,6 +91,7 @@ export default function WorkspaceListTable({workspaces}: WorkspaceListTableProps
 
     return (
         <Table
+            ref={ref}
             data={workspaces}
             columns={workspaceTableColumns}
             renderItem={renderTableItem}
@@ -98,6 +100,7 @@ export default function WorkspaceListTable({workspaces}: WorkspaceListTableProps
             keyExtractor={(row) => row.policyID}
             initialSortColumn="workspaces"
             title={translate('common.workspaces')}
+            extraData={workspaces.length}
             ListEmptyComponent={WorkspacesEmptyStateComponent}
         >
             {workspaces.length > CONST.SEARCH_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.common.findWorkspace')} />}

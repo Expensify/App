@@ -49,7 +49,7 @@ function TableBody<T>({contentContainerStyle, ...props}: TableBodyProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {processedData: filteredAndSortedData, activeSearchString, listProps, hasActiveFilters, hasSearchString, isEmptyResult} = useTableContext<T>();
-    const {ListEmptyComponent, contentContainerStyle: listContentContainerStyle, ...restListProps} = listProps ?? {};
+    const {ListEmptyComponent, contentContainerStyle: listContentContainerStyle, extraData: listExtraData, ...restListProps} = listProps ?? {};
 
     const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: true,

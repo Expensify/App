@@ -56,7 +56,6 @@ export default function TableRow({
     const styles = useThemeStyles();
     const {processedData, columns, shouldUseNarrowTableLayout} = useTableContext();
 
-    const columnCount = columns.length;
     const rowCount = processedData.length;
     const isLastRow = rowIndex === rowCount - 1;
     const isInteractive = interactive && !isLoading;
