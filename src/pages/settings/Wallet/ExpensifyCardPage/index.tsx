@@ -212,7 +212,8 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const shouldShowEditSpendRules = !isProduction && isWorkspaceAdmin;
     const shouldShowActionRows =
         shouldShowReportVirtualCardFraudRows || shouldShowReportTravelCardFraudRows || shouldShowReportLostCardButton || shouldShowSpendRulesSummary || shouldShowEditSpendRules;
-    const shouldShowPhysicalCardFooterButton = currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED || currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED;
+    const shouldShowPhysicalCardFooterButton =
+        currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED || currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED;
 
     const scarfOverlayStyle = useMemo<ViewStyle>(
         () => ({
