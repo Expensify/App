@@ -10,7 +10,7 @@ import ROUTES from '@src/ROUTES';
 const subscribe: LinkingOptions<RootNavigatorParamList>['subscribe'] = (listener) => {
     const subscription = Linking.addEventListener('url', ({url}: {url: string}) => {
         // Skip deep links to screens where the user is already focused.
-        const routesToSkipIfAlreadyFocused = [ROUTES.DISTANCE_REQUEST_CREATE_TAB_GPS.route, ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.route];
+        const routesToSkipIfAlreadyFocused = [ROUTES.DISTANCE_REQUEST_CREATE_TAB_GPS.route, ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.route, ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.route];
         const matchedRoute = routesToSkipIfAlreadyFocused.find((route) => url.includes(route));
         if (matchedRoute) {
             const state = navigationRef.current?.getRootState();
