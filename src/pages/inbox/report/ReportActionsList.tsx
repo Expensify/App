@@ -362,8 +362,6 @@ function ReportActionsList({
     const draftAutoScrollKey = isSyntheticDraftVisible ? `${draftReportAction.reportActionID}:${draftMessageHTML ?? ''}` : '';
     const previousDraftAutoScrollKey = usePrevious(draftAutoScrollKey);
 
-    const [hasScrolledOverThreshold, setHasScrolledOverThreshold] = useState(() => scrollOffsetRef.current > CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
-
     /**
      * The timestamp for the unread marker.
      *
@@ -453,7 +451,6 @@ function ReportActionsList({
         onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
             const offset = event.nativeEvent.contentOffset.y;
             scrollOffsetRef.current = offset;
-            setHasScrolledOverThreshold(offset > CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
             onScroll?.(event);
         },
         hasOnceLoadedReportActions: !!reportLoadingState?.hasOnceLoadedReportActions,
@@ -757,7 +754,6 @@ function ReportActionsList({
         handleInitialScrollTargetLayout,
         handleReportActionsListLayout,
         initialScrollKeyForInitialScroll,
-        shouldKeepLinkScrollPosition,
     } = useCenteredInitialScrollKeyList({
         initialScrollKey,
         sortedVisibleReportActions,
@@ -770,7 +766,6 @@ function ReportActionsList({
         report,
         onLoad: handleListLoad,
     });
-    const shouldMaintainVisibleContentPosition = hasScrolledOverThreshold || shouldFocusToTopOnMount || shouldKeepLinkScrollPosition;
 
     const renderItem = useCallback(
         ({item: reportAction, index, target}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
@@ -992,7 +987,6 @@ function ReportActionsList({
                             contentOffset: shouldFocusToTopOnMount ? {x: 0, y: windowHeight} : undefined,
                         }}
                         getItemType={(item) => item.actionName}
-                        shouldMaintainVisibleContentPosition={shouldMaintainVisibleContentPosition}
                         initialScrollIndex={shouldFocusToTopOnMount ? renderedVisibleReportActions.length - 1 : undefined}
                         initialScrollIndexParams={initialScrollIndexParams}
                         maintainVisibleContentPosition={

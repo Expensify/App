@@ -88,7 +88,6 @@ function useCenteredInitialScrollKeyList({
     const isWaitingForMeasuredScroll = shouldMeasureScrollTarget && !hasAppliedMeasuredScroll;
     const isWaitingForLinkedOlderPagination = shouldDeferLinkedOlderReveal && (!isLinkedOlderRevealReady || !!isLoadingOlderReportActions);
     const shouldShowInitialViewportSkeleton = hasInitialScrollTarget && (isInitialViewportLoading || isWaitingForMeasuredScroll || isWaitingForLinkedOlderPagination);
-    const shouldKeepLinkScrollPosition = isLinkedOpen && (isWaitingForMeasuredScroll || isWaitingForLinkedOlderPagination);
 
     const initialScrollIndexViewOffset = hasInitialScrollTarget ? -Math.max(listHeight / 2, 0) : undefined;
     let initialScrollIndexParams;
@@ -271,7 +270,6 @@ function useCenteredInitialScrollKeyList({
         handleInitialViewportItemMounted,
         hasInitialScrollTarget,
         initialScrollKeyForInitialScroll,
-        shouldKeepLinkScrollPosition,
     };
 }
 
