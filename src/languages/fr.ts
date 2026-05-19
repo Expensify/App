@@ -4364,6 +4364,7 @@ ${amount} pour ${merchant} - ${date}`,
             travelInvoicingVendor: 'Fournisseur de voyages',
             travelInvoicingPayableAccount: 'Compte fournisseur déplacements',
             hr: 'RH',
+            rooms: 'Salons',
         },
         createdForClient: {
             title: 'Vous avez créé un espace de travail pour votre client !',
@@ -5591,8 +5592,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                         subtitle: 'Félicitations ! Vous êtes prêt à réserver et gérer des voyages sur cet espace de travail.',
                         manageTravelLabel: 'Gérer les déplacements',
                     },
-                    centralInvoicingSection: {
-                        title: 'Facturation centralisée',
+                    travelInvoicingSection: {
+                        title: 'Facturation de voyages',
                         subtitle: 'Centralisez toutes les dépenses de voyage dans une facture mensuelle au lieu de payer au moment de l’achat.',
                         learnHow: 'Découvrez comment.',
                         subsections: {
@@ -5610,7 +5611,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                             reduceLimitWarning:
                                 'Si vous réduisez la limite, les membres ayant déjà dépensé plus que ce montant ne pourront pas effectuer de nouvelles réservations de voyage avant le mois prochain.',
                             provisioningError:
-                                'Nous n’avons pas pu configurer certains membres de votre espace de travail pour la facturation centralisée. Veuillez réessayer plus tard ou contacter Concierge pour obtenir de l’aide.',
+                                'Nous n’avons pas pu provisionner certains membres de votre espace de travail pour la facturation de voyage. Veuillez réessayer plus tard ou contacter Concierge pour obtenir de l’aide.',
                         },
                     },
                     disableModal: {
@@ -5631,7 +5632,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     exportToCSV: 'Exporter en CSV',
                     selectDateRangeError: 'Veuillez sélectionner une plage de dates à exporter',
                     invalidDateRangeError: 'La date de début doit être antérieure à la date de fin',
-                    enabled: 'Facturation centralisée activée !',
+                    enabled: 'Facturation des déplacements activée !',
                     enabledDescription: 'Toutes les dépenses de voyage sur cet espace de travail seront désormais centralisées dans une facture mensuelle.',
                 },
                 personalDetailsDescription: 'Pour pouvoir réserver un voyage, veuillez saisir votre nom légal tel qu’il apparaît sur votre pièce d’identité délivrée par le gouvernement.',
@@ -6406,7 +6407,11 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 chooseBankAccount: 'Choisissez le compte bancaire avec lequel les paiements de votre Carte Expensify seront rapprochés.',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `Assurez-vous que ce compte correspond à votre <a href="${settlementAccountUrl}">compte de règlement Carte Expensify</a> (se terminant par ${lastFourPAN}) afin que la réconciliation continue fonctionne correctement.`,
+                chooseTravelInvoicingBankAccount: 'Choisissez le compte bancaire sur lequel les paiements de facturation de voyage seront rapprochés.',
+                travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
+                    `Assurez-vous que ce compte correspond à votre compte de règlement de facturation de voyage (se terminant par ${lastFourPAN}) afin que le rapprochement continu fonctionne correctement.`,
             },
+            syncTravelInvoicingSettlements: 'Synchroniser les règlements de facturation de voyage',
         },
         export: {
             notReadyHeading: 'Pas prêt à être exporté',
@@ -7141,6 +7146,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     }),
                 },
             },
+            merge: {
+                approvalMode: 'Mode d’approbation',
+                finalApprover: 'Approbateur final',
+            },
             zenefits: {
                 title: 'TriNet',
                 connect: 'Connecter',
@@ -7874,7 +7883,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `Tous les ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `Toutes les cartes CSV importées${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
-                centralInvoicing: 'Facturation centralisée',
+                travelInvoicing: 'Facturation de voyages',
             },
             reportField: (name: string, value: string) => `${name} est ${value}`,
             current: 'Actuel',
@@ -7908,7 +7917,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Carte Expensify',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Remboursement',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Facturation centralisée',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Facturation de voyages',
             },
             is: 'Est',
             action: {
@@ -8331,7 +8340,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         personalCard: 'Carte personnelle',
         companyCard: 'Carte d’entreprise',
         expensifyCard: 'Carte Expensify',
-        centralInvoicing: 'Facturation centralisée',
+        travelInvoicing: 'Facturation de voyages',
         travelCard: 'Carte de voyage',
     },
     distance: {
@@ -8698,6 +8707,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         bookACallTextBottom:
             'Nous serions ravis d’organiser un appel avec vous pour comprendre pourquoi. Vous pouvez réserver un appel avec l’un de nos chefs de produit senior pour discuter de vos besoins.',
         takeMeToExpensifyClassic: 'M’emmener vers Expensify Classic',
+        goBackJustOnce: 'Revenir une seule fois',
     },
     listBoundary: {
         errorMessage: 'Une erreur est survenue lors du chargement de messages supplémentaires',
