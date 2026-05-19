@@ -164,9 +164,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const isPolicyAdmin = canEditWorkspaceSettings(policy);
     const {isBetaEnabled} = usePermissions();
     const canUseSubmit2026 = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
-    // Submit workspaces aren't `isPaidGroupPolicy`, but editors there still manage members (per the design doc):
-    // treat them like paid group policies for the purpose of opening the Member Details page (vs. the public Profile).
-    const canManageMembers = isPaidGroupPolicy(policy) || (canUseSubmit2026 && isSubmitPolicy(policy));
     const isLoading = useMemo(
         () => !isOfflineAndNoMemberDataAvailable && (!isPersonalDetailsReady(personalDetails) || isEmptyObject(policy?.employeeList)),
         [isOfflineAndNoMemberDataAvailable, personalDetails, policy?.employeeList],
@@ -383,7 +380,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     /** Opens the member details page */
     const openMemberDetails = useCallback(
         (item: MemberOption) => {
-            if (!isPolicyAdmin || !canManageMembers) {
+            if (!isPolicyAdmin) {
                 Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID, Navigation.getActiveRoute()));
                 return;
             }
@@ -392,7 +389,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(route.params.policyID, item.accountID));
             });
         },
-        [isPolicyAdmin, canManageMembers, policyID, route.params.policyID],
+        [isPolicyAdmin, policyID, route.params.policyID],
     );
 
     /**
