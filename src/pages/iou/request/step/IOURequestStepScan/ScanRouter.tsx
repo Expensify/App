@@ -82,8 +82,14 @@ ScanNonGlobalCreate.displayName = 'ScanNonGlobalCreate';
 function ScanNewReceipt({report, iouType, reportID, transactionID, transaction, backToReport}: NewReceiptProps) {
     const isArchived = useReportIsArchived(report?.reportID);
     const isFromGlobalCreate = !!transaction?.isFromGlobalCreate;
+    // QAB → "Scan receipt" enters with iouType=CREATE but sets the skip-confirmation flag on a real policy chat,
+    // so it needs to land on ScanSkipConfirmation. Without this, the auto-submit flow falls through to
+    // ScanGlobalCreate's confirmation-page navigation. Plain FAB scans don't set the flag so they aren't affected.
+    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
+    const isQuickActionScanWithSkip = !!skipConfirmation && !!report?.reportID;
+    const isReportScopedEntry = !isFromGlobalCreate && iouType !== CONST.IOU.TYPE.CREATE;
 
-    if (!isFromGlobalCreate && !isArchived && iouType !== CONST.IOU.TYPE.CREATE) {
+    if (!isArchived && (isReportScopedEntry || isQuickActionScanWithSkip)) {
         return (
             <ScanNonGlobalCreate
                 report={report}
