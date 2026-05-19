@@ -7,7 +7,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useTransactionViolations from '@hooks/useTransactionViolations';
-import {setMoneyRequestAttendees} from '@libs/actions/IOU';
+import {setMoneyRequestAttendees} from '@libs/actions/IOU/MoneyRequest';
 import {updateMoneyRequestAttendees} from '@libs/actions/IOU/UpdateMoneyRequest';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';

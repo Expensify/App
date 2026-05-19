@@ -20,6 +20,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {resolveReportFieldValue} from '@libs/Formula';
+import {isSingleTransactionReport} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyTaxEnabled} from '@libs/PolicyUtils';
 import {
@@ -105,7 +106,8 @@ function MoneyReportView({
     const {billableTotal, taxTotal} = getBillableAndTaxTotal(report, transactions);
 
     const isTaxEnabled = isPolicyTaxEnabled(policy);
-    const shouldShowBreakdown = nonReimbursableSpend || !!billableTotal || (!!taxTotal && isTaxEnabled);
+    const isSingleNonReimbursableExpense = isSingleTransactionReport(report, transactions) && transactions.at(0)?.reimbursable === false;
+    const shouldShowBreakdown = !isSingleNonReimbursableExpense && (!!nonReimbursableSpend || !!billableTotal || (!!taxTotal && isTaxEnabled));
     const formattedTotalAmount = convertToDisplayString(totalDisplaySpend, report?.currency);
     const formattedOutOfPocketAmount = convertToDisplayString(reimbursableSpend, report?.currency);
     const formattedCompanySpendAmount = convertToDisplayString(nonReimbursableSpend, report?.currency);
