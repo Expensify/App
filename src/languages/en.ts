@@ -1006,8 +1006,8 @@ const translations = {
         },
         freeTrialSection: {
             title: ({days}: {days: number}) => `Free trial: ${days} ${days === 1 ? 'day' : 'days'} left!`,
-            offer50Body: 'Get 50% off your first year!',
-            offer25Body: 'Get 25% off your first year!',
+            offer50Body: 'Get 50% off your first year',
+            offer25Body: 'Get 25% off your first year',
             addCardBody: "Don't wait! Add your payment card now.",
             ctaClaim: 'Claim',
             ctaAdd: 'Add card',
@@ -2545,6 +2545,7 @@ const translations = {
             expiration: 'Expiration',
             cvv: 'CVV',
             address: 'Address',
+            reveal: 'Reveal',
             revealDetails: 'Reveal details',
             revealCvv: 'Reveal CVV',
             copyCardNumber: 'Copy card number',
@@ -6016,6 +6017,9 @@ const translations = {
         emptyDomain: {
             title: 'Enhance your security with domains',
             subtitle: 'Require members on your domain to log in via single sign-on, restrict workspace creation, and more.',
+        },
+        copyPolicySettings: {
+            error: 'An error occurred while copying workspace settings. Please try again.',
         },
         emptyWorkspace: {
             title: 'No workspaces yet',

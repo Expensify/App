@@ -984,8 +984,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         freeTrialSection: {
             title: ({days}: {days: number}) => `免费试用：剩余 ${days} ${days === 1 ? '天' : '天'} 天！`,
-            offer50Body: '首年可享受五折优惠！',
-            offer25Body: '首年可享 75 折优惠！',
+            offer50Body: '首年可享受五折优惠',
+            offer25Body: '首年可享 75 折优惠',
             addCardBody: '别再犹豫！现在就添加你的付款卡。',
             ctaClaim: '报销申请',
             ctaAdd: '添加卡片',
@@ -2404,6 +2404,7 @@ const translations: TranslationDeepObject<typeof en> = {
             expiration: '到期日期',
             cvv: 'CVV',
             address: '地址',
+            reveal: '显示',
             revealDetails: '显示详细信息',
             revealCvv: '显示 CVV',
             copyCardNumber: '复制卡号',
@@ -5815,6 +5816,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 `您即将创建并共享 ${newWorkspaceName ?? ''}，其中包含来自原始工作区的 ${totalMembers ?? 0} 位成员。`,
             error: '复制您的新工作区时发生错误。请重试。',
         },
+        copyPolicySettings: {error: '复制工作区设置时发生错误。请重试。'},
         emptyWorkspace: {
             title: '你还没有工作区',
             subtitle: '跟踪收据、报销费用、管理差旅、发送发票等。',
