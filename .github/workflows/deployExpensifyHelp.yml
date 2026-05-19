@@ -125,7 +125,7 @@ jobs:
           PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
 
       - name: Leave a comment on the PR
-        uses: ./.github/actions/javascript/postTestBuildComment
+        uses: ./.github/actions/javascript/postOrReplaceComment
         if: ${{ github.event_name == 'pull_request' && env.IS_PR_FROM_FORK != 'true' }}
         with:
           REPO: App

@@ -147,7 +147,7 @@ jobs:
 
       - name: Publish links to apps for download on Expensify/App PR
         if: ${{ inputs.APP_PR_NUMBER != '' }}
-        uses: ./.github/actions/javascript/postTestBuildComment
+        uses: ./.github/actions/javascript/postOrReplaceComment
         with:
           REPO: App
           APP_PR_NUMBER: ${{ inputs.APP_PR_NUMBER }}
@@ -163,7 +163,7 @@ jobs:
 
       - name: Publish links to apps for download on Expensify/Mobile-Expensify PR
         if: ${{ inputs.MOBILE_EXPENSIFY_PR != '' }}
-        uses: ./.github/actions/javascript/postTestBuildComment
+        uses: ./.github/actions/javascript/postOrReplaceComment
         with:
           REPO: Mobile-Expensify
           MOBILE_EXPENSIFY_PR_NUMBER: ${{ inputs.MOBILE_EXPENSIFY_PR }}

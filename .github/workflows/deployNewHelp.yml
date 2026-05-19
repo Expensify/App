@@ -88,7 +88,7 @@ jobs:
 
       # After deploying Cloudflare preview build, share wherever it deployed to in the PR comment.
       - name: Leave a comment on the PR
-        uses: ./.github/actions/javascript/postTestBuildComment
+        uses: ./.github/actions/javascript/postOrReplaceComment
         if: ${{ github.event_name == 'pull_request' && env.IS_PR_FROM_FORK != 'true' }}
         with:
           REPO: App

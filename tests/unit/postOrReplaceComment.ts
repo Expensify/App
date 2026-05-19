@@ -4,7 +4,7 @@
 import * as core from '@actions/core';
 import type {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types';
 import {when} from 'jest-when';
-import ghAction from '@github/actions/javascript/postTestBuildComment/postTestBuildComment';
+import ghAction from '@github/actions/javascript/postOrReplaceComment/postOrReplaceComment';
 import CONST from '@github/libs/CONST';
 import type {CreateCommentResponse} from '@github/libs/GithubUtils';
 import GithubUtils from '@github/libs/GithubUtils';
@@ -103,7 +103,7 @@ Built from Mobile-Expensify PR Expensify/Mobile-Expensify#13.
 :eyes: [View the workflow run that generated this build](https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/1234) :eyes:
 `;
 
-describe('Post test build comments action tests', () => {
+describe('postOrReplaceComment action tests', () => {
     beforeAll(() => {
         // Mock core module
         asMutable(core).getInput = mockGetInput;

@@ -1,4 +1,4 @@
-name: "Post Test Build Comment"
+name: "postOrReplaceComment"
 description: "Post a test build or custom pull request comment, hiding the previous matching comment"
 inputs:
     REPO:
