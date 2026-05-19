@@ -1266,6 +1266,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.HR_ZENEFITS_FINAL_APPROVER]: {
                             path: ROUTES.WORKSPACE_HR_ZENEFITS_FINAL_APPROVER.route,
                         },
+                        [SCREENS.WORKSPACE.HR_MERGE_APPROVAL_MODE]: {
+                            path: ROUTES.WORKSPACE_HR_MERGE_APPROVAL_MODE.route,
+                        },
+                        [SCREENS.WORKSPACE.HR_MERGE_FINAL_APPROVER]: {
+                            path: ROUTES.WORKSPACE_HR_MERGE_FINAL_APPROVER.route,
+                        },
                         [SCREENS.WORKSPACE.RULES_CUSTOM]: {
                             path: ROUTES.RULES_CUSTOM.route,
                         },
