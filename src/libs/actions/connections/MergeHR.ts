@@ -7,12 +7,16 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Connections} from '@src/types/onyx/Policy';
 
 /**
- * Initiates a new Merge HR connection for the given policy.
+ * Fetches a Merge link_token. The token is returned by the server and stored in a RAM-only Onyx key
+ * so it is never persisted to disk. The UI reads it to initialize the Merge Link SDK.
+ * The actual connection is only established after the user completes the Merge
+ * Link flow and the public_token callback is processed by the backend.
  */
 function connectPolicyToMergeHR(policyID: string, providerSlug: MergeHRProviderSlug) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.RAM_ONLY_MERGE_HR_LINK_TOKEN>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -20,13 +24,17 @@ function connectPolicyToMergeHR(policyID: string, providerSlug: MergeHRProviderS
                 connections: {
                     [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
                         config: {
-                            integration: providerSlug,
                             pendingFields: {integration: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
                             errorFields: {integration: null},
                         },
                     },
                 },
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.RAM_ONLY_MERGE_HR_LINK_TOKEN,
+            value: null,
         },
     ];
 
@@ -53,14 +61,19 @@ function connectPolicyToMergeHR(policyID: string, providerSlug: MergeHRProviderS
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: null,
+                    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
+                        config: {
+                            pendingFields: {integration: null},
+                            errorFields: {integration: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                        },
+                    },
                 },
             },
         },
     ];
 
-    write(
-        WRITE_COMMANDS.CONNECT_POLICY_TO_MERGE_HR,
+    read(
+        READ_COMMANDS.CONNECT_POLICY_TO_MERGE_HR,
         {
             policyID,
             providerSlug,
@@ -237,7 +250,7 @@ function updateMergeHRFinalApprover(policyID: string, finalApprover: string | nu
 /**
  * Removes the Merge HR connection from a policy.
  */
-function disconnectMergeHR(policyID: string) {
+function disconnectMergeHR(policyID: string, currentConnection: Connections[typeof CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -255,7 +268,19 @@ function disconnectMergeHR(policyID: string) {
         },
     ];
 
-    write(WRITE_COMMANDS.REMOVE_POLICY_CONNECTION, {policyID, connectionName: CONST.POLICY.CONNECTIONS.NAME.MERGE_HR}, {optimisticData});
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: currentConnection,
+                },
+            },
+        },
+    ];
+
+    write(WRITE_COMMANDS.REMOVE_POLICY_CONNECTION, {policyID, connectionName: CONST.POLICY.CONNECTIONS.NAME.MERGE_HR}, {optimisticData, failureData});
 }
 
 export {connectPolicyToMergeHR, syncMergeHR, updateMergeHRApprovalMode, updateMergeHRFinalApprover, disconnectMergeHR};
