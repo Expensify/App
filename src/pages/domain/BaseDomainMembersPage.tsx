@@ -273,6 +273,7 @@ function BaseDomainMembersPage({
                     icon={!useSelectionModeHeader ? headerIcon : undefined}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldUseHeadlineHeader={!useSelectionModeHeader}
+                    shouldDisplayHelpButton
                 >
                     {!shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.flexRow, styles.gap2]}>{headerContent}</View>}
                 </HeaderWithBackButton>
@@ -296,6 +297,7 @@ function BaseDomainMembersPage({
                     customListHeader={getFilteredListHeader()}
                     shouldHeaderBeInsideList
                     canSelectMultiple={canSelectMultiple}
+                    selectAllAccessibilityLabel={translate('accessibilityHints.selectAllMembers')}
                     customListHeaderContent={listHeaderContent}
                     onSelectAll={toggleAllUsers}
                     onSelectionButtonPress={toggleUser}

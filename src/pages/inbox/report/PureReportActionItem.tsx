@@ -38,9 +38,10 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {cleanUpMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
+import {isSafari} from '@libs/Browser';
 import {isChronosOOOListAction} from '@libs/ChronosUtils';
 import ControlSelection from '@libs/ControlSelection';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {canUseTouchScreen, hasHoverSupport} from '@libs/DeviceCapabilities';
 import type {OnyxDataWithErrors} from '@libs/ErrorUtils';
 import {getLatestErrorMessageField, isReceiptError} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -210,9 +211,6 @@ type PureReportActionItemProps = {
     /** Whether the room is archived */
     isArchivedRoom?: boolean;
 
-    /** Whether the room is a chronos report */
-    isChronosReport?: boolean;
-
     /** Whether the provided report is a closed expense report with no expenses */
     isClosedExpenseReportWithNoExpenses?: boolean;
 
@@ -264,7 +262,6 @@ function PureReportActionItem({
     originalReportID = '-1',
     originalReport,
     isArchivedRoom,
-    isChronosReport,
     isClosedExpenseReportWithNoExpenses,
     userBillingFundID,
     shouldShowBorder,
@@ -296,6 +293,7 @@ function PureReportActionItem({
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
     const [isReportActionActive, setIsReportActionActive] = useState(!!isReportActionLinked);
     const isReportArchived = useReportIsArchived(reportID);
+    const isEditingInline = !shouldUseNarrowLayout && draftMessage !== undefined;
 
     const isHarvestCreatedExpenseReport = isHarvestCreatedExpenseReportUtils(reportNameValuePairsOrigin, reportNameValuePairsOriginalID);
 
@@ -459,6 +457,15 @@ function PureReportActionItem({
 
     const disabledActions = useMemo(() => (!canWriteInReport(report) ? RestrictedReadOnlyContextMenuActions : []), [report]);
 
+    const hasActionErrors = !isEmptyValueObject(action.errors);
+
+    // Receipt upload errors should still allow the context menu so the user can access "Delete expense"
+    const hasOnlyReceiptErrors = hasActionErrors && Object.values(action.errors ?? {}).every((error) => error === null || isReceiptError(error));
+
+    const isContextMenuDisabled = useMemo(() => {
+        return draftMessage !== undefined || (hasActionErrors && !hasOnlyReceiptErrors) || !shouldDisplayContextMenuValue;
+    }, [draftMessage, hasActionErrors, hasOnlyReceiptErrors, shouldDisplayContextMenuValue]);
+
     /**
      * Show the ReportActionContextMenu modal popover.
      *
@@ -467,7 +474,7 @@ function PureReportActionItem({
     const showPopover = useCallback(
         (event: GestureResponderEvent | MouseEvent) => {
             // Block menu on the message being Edited or if the report action item has errors
-            if (draftMessage !== undefined || !isEmptyValueObject(action.errors) || !shouldDisplayContextMenuValue) {
+            if (isContextMenuDisabled) {
                 return;
             }
 
@@ -482,12 +489,9 @@ function PureReportActionItem({
                     report: {
                         reportID,
                         originalReportID,
-                        isArchivedRoom,
-                        isChronos: isChronosReport,
                     },
                     reportAction: {
                         reportActionID: action.reportActionID,
-                        draftMessage,
                         isThreadReportParentAction,
                     },
                     callbacks: {
@@ -500,17 +504,13 @@ function PureReportActionItem({
             });
         },
         [
-            draftMessage,
-            action.errors,
             action.reportActionID,
             reportID,
             toggleContextMenuFromActiveReportAction,
             originalReportID,
-            shouldDisplayContextMenuValue,
             disabledActions,
-            isArchivedRoom,
-            isChronosReport,
             handleShowContextMenu,
+            isContextMenuDisabled,
             isThreadReportParentAction,
         ],
     );
@@ -519,14 +519,13 @@ function PureReportActionItem({
         () => ({
             anchor: popoverAnchorRef.current,
             report,
-            isReportArchived,
             action,
             transactionThreadReport,
             isDisabled: false,
             shouldDisplayContextMenu: shouldDisplayContextMenuValue,
             originalReportID,
         }),
-        [report, action, transactionThreadReport, shouldDisplayContextMenuValue, isReportArchived, originalReportID],
+        [report, action, transactionThreadReport, shouldDisplayContextMenuValue, originalReportID],
     );
 
     const contextMenuActionsValue = useMemo(
@@ -541,10 +540,9 @@ function PureReportActionItem({
      * Get the content of ReportActionItem
      * @param hovered whether the ReportActionItem is hovered
      * @param isWhisper whether the report action is a whisper
-     * @param hasErrors whether the report action has any errors
      * @returns child component(s)
      */
-    const renderItemContent = (hovered = false, isWhisper = false, hasErrors = false): React.JSX.Element => {
+    const renderItemContent = (hovered = false, isWhisper = false): React.JSX.Element => {
         let children;
         const moneyRequestOriginalMessage = isMoneyRequestAction(action) ? getOriginalMessage(action) : undefined;
         const moneyRequestActionType = moneyRequestOriginalMessage?.type;
@@ -720,7 +718,6 @@ function PureReportActionItem({
             children = (
                 <MovedTransactionAction
                     action={action as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION>}
-                    emptyHTML={emptyHTML}
                     originalReport={originalReport}
                 />
             );
@@ -882,7 +879,7 @@ function PureReportActionItem({
                 ?.split(',')
                 .map((accountID) => Number(accountID))
                 .filter((accountID): accountID is number => typeof accountID === 'number') ?? [];
-        const draftMessageRightAlign = draftMessage !== undefined ? styles.chatItemReactionsDraftRight : {};
+        const draftMessageRightAlign = isEditingInline ? styles.chatItemReactionsDraftRight : {};
 
         const itemContent = (
             <>
@@ -897,7 +894,7 @@ function PureReportActionItem({
                         <ReportActionItemEmojiReactions
                             reportAction={action}
                             reportID={reportID}
-                            shouldBlockReactions={hasErrors}
+                            shouldBlockReactions={hasActionErrors}
                             setIsEmojiPickerActive={setIsEmojiPickerActive}
                         />
                     </View>
@@ -927,18 +924,17 @@ function PureReportActionItem({
      * Get ReportActionItem with a proper wrapper
      * @param hovered whether the ReportActionItem is hovered
      * @param isWhisper whether the ReportActionItem is a whisper
-     * @param hasErrors whether the report action has any errors
      * @returns report action item
      */
 
-    const renderReportActionItem = (hovered: boolean, isWhisper: boolean, hasErrors: boolean): React.JSX.Element => {
-        const content = renderItemContent(hovered || isContextMenuActive || isEmojiPickerActive, isWhisper, hasErrors);
+    const renderReportActionItem = (hovered: boolean, isWhisper: boolean): React.JSX.Element => {
+        const content = renderItemContent(hovered || isContextMenuActive || isEmojiPickerActive, isWhisper);
 
         if (isEmptyHTML(content) || (!shouldRenderViewBasedOnAction && !isClosedExpenseReportWithNoExpenses)) {
             return emptyHTML;
         }
 
-        if (draftMessage !== undefined) {
+        if (!shouldUseNarrowLayout && draftMessage !== undefined) {
             return <ReportActionItemDraft>{content}</ReportActionItemDraft>;
         }
 
@@ -946,7 +942,7 @@ function PureReportActionItem({
             return (
                 <ReportActionItemSingle
                     action={action}
-                    showHeader={draftMessage === undefined}
+                    showHeader={draftMessage === undefined || shouldUseNarrowLayout}
                     wrapperStyle={{
                         ...(isOnSearch && styles.p0),
                         ...(isWhisper && styles.pt1),
@@ -1013,7 +1009,6 @@ function PureReportActionItem({
         return null;
     }
 
-    const hasErrors = !isEmptyValueObject(action.errors);
     const whisperedTo = getWhisperedTo(action);
 
     const iouReportID = isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUReportID ? getOriginalMessage(action)?.IOUReportID?.toString() : undefined;
@@ -1043,11 +1038,11 @@ function PureReportActionItem({
                 onPressIn={() => shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
                 onSecondaryInteraction={showPopover}
-                preventDefaultContextMenu={draftMessage === undefined && !hasErrors}
+                preventDefaultContextMenu={!isContextMenuDisabled}
                 withoutFocusOnSecondaryInteraction
                 accessibilityLabel={accessibilityLabel}
                 accessibilityHint={translate('accessibilityHints.chatMessage')}
-                accessibilityRole={CONST.ROLE.BUTTON}
+                accessibilityRole={isSafari() && hasHoverSupport() ? undefined : CONST.ROLE.BUTTON}
                 sentryLabel={CONST.SENTRY_LABEL.REPORT.PURE_REPORT_ACTION_ITEM}
             >
                 <Hoverable
@@ -1064,19 +1059,16 @@ function PureReportActionItem({
                     {(hovered) => (
                         <View style={highlightedBackgroundColorIfNeeded}>
                             {shouldDisplayNewMarker && (!shouldUseThreadDividerLine || !isFirstVisibleReportAction) && <UnreadActionIndicator reportActionID={action.reportActionID} />}
-                            {shouldDisplayContextMenuValue && (
+                            {shouldDisplayContextMenuValue && (hovered || !!isEmojiPickerActive || isContextMenuActive) && draftMessage === undefined && !hasActionErrors && (
                                 <MiniReportActionContextMenu
                                     reportID={reportID}
                                     reportActionID={action.reportActionID}
                                     anchor={popoverAnchorRef}
                                     originalReportID={originalReportID}
-                                    isArchivedRoom={isArchivedRoom}
                                     displayAsGroup={displayAsGroup}
                                     disabledActions={disabledActions}
-                                    isVisible={hovered && draftMessage === undefined && !hasErrors}
+                                    isVisible={hovered}
                                     isThreadReportParentAction={isThreadReportParentAction}
-                                    draftMessage={draftMessage}
-                                    isChronosReport={isChronosReport}
                                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                                     setIsEmojiPickerActive={setIsEmojiPickerActive}
                                 />
@@ -1106,7 +1098,7 @@ function PureReportActionItem({
                                         onPress={onPress}
                                     >
                                         {isWhisper && <WhisperBanner whisperedTo={whisperedTo} />}
-                                        {renderReportActionItem(!!hovered || !!isReportActionLinked, isWhisper, hasErrors)}
+                                        {renderReportActionItem(!!hovered || !!isReportActionLinked, isWhisper)}
                                     </SearchActionHeader>
                                 </OfflineWithFeedback>
                             </View>
@@ -1162,7 +1154,6 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.originalReportID === nextProps.originalReportID &&
         deepEqual(prevProps.originalReport?.participants, nextProps.originalReport?.participants) &&
         prevProps.isArchivedRoom === nextProps.isArchivedRoom &&
-        prevProps.isChronosReport === nextProps.isChronosReport &&
         prevProps.isClosedExpenseReportWithNoExpenses === nextProps.isClosedExpenseReportWithNoExpenses &&
         prevProps.userBillingFundID === nextProps.userBillingFundID &&
         prevProps.shouldHighlight === nextProps.shouldHighlight &&

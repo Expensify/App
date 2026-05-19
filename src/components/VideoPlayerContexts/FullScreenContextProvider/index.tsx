@@ -39,4 +39,4 @@ function useFullScreenState() {
 
 export default FullScreenContextProvider;
 export {FullScreenStateContext, FullScreenActionsContext, useFullScreenState};
-export type {ResponsiveLayoutProperties, FullScreenStateContextType, FullScreenActionsContextType};
+export type {ResponsiveLayoutProperties};
