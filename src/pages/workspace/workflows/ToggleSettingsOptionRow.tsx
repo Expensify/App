@@ -175,6 +175,7 @@ function ToggleSettingOptionRow({
         shouldParseSubtitle,
         styles.mutedNormalTextLabel,
         styles.mt1,
+        styles.mt3,
         styles.mr5,
         styles.flexRow,
         styles.renderHTML,
