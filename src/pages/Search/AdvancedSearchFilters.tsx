@@ -624,7 +624,7 @@ function AdvancedSearchFilters() {
     };
 
     const filters = typeFiltersKeys.map((section) => {
-        return section.map((key) => {
+        return section.filter((key) => key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED).map((key) => {
             const onPress = singleExecution(waitForNavigate(() => Navigation.navigate(baseFilterConfig[key].route)));
             let filterTitle;
             if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
