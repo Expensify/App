@@ -56,7 +56,7 @@ function useVerticallyCenteredInitialContent({
 
     const initialScrollIndex = !initialScrollKey ? -1 : sortedVisibleReportActions.findIndex((item) => keyExtractor(item) === initialScrollKey);
     const hasInitialScrollTarget = initialScrollIndex >= 0;
-    const shouldMeasureLinkedAnchorScrollPosition = !!initialScrollKey && hasInitialScrollTarget;
+    const shouldMeasureLinkedAnchorScrollPosition = !!linkedReportActionID && hasInitialScrollTarget;
     const [listHeight, setListHeight] = useState(0);
     const [isInitialViewportLoading, setIsInitialViewportLoading] = useState(true);
     /**
@@ -156,18 +156,9 @@ function useVerticallyCenteredInitialContent({
         const reportSwitched = isFirstViewportResetCycle ? true : previousSession.reportID !== report.reportID;
         const linkedTargetingChanged = isFirstViewportResetCycle ? false : previousSession.linkedReportActionID !== normalizedLinkedReportActionID;
 
-        const hadScrollAnchor = !!previousSession?.initialScrollKey;
-        const hasScrollAnchor = !!normalizedInitialScrollKey;
-
-        const isUnreadMarkerOnlyShuffle =
-            hasScrollAnchor &&
-            hadScrollAnchor &&
-            previousSession !== undefined &&
-            previousSession.initialScrollKey !== normalizedInitialScrollKey &&
-            !normalizedLinkedReportActionID &&
-            !listIDBumped &&
-            !reportSwitched &&
-            !linkedTargetingChanged;
+        const didInitialScrollKeyChange = previousSession?.initialScrollKey !== normalizedInitialScrollKey;
+        const isUnreadMarkerOnlyChange =
+            didInitialScrollKeyChange && previousSession !== undefined && !normalizedLinkedReportActionID && !listIDBumped && !reportSwitched && !linkedTargetingChanged;
 
         initialViewportResetSessionRef.current = {
             listID,
@@ -176,7 +167,7 @@ function useVerticallyCenteredInitialContent({
             initialScrollKey: normalizedInitialScrollKey,
         };
 
-        if (isUnreadMarkerOnlyShuffle) {
+        if (isUnreadMarkerOnlyChange) {
             return;
         }
 
