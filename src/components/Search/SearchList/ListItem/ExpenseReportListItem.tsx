@@ -7,6 +7,7 @@ import {View} from 'react-native';
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
+import {ReportSubmitToPopoverAnchor, useOpenReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -39,7 +40,16 @@ import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 /**
  * An expense report row in search results, showing status badge, total, and participants.
  */
-function ExpenseReportListItem<TItem extends ListItem>({
+function ExpenseReportListItem<TItem extends ListItem>(props: ExpenseReportListItemProps<TItem>) {
+    const reportItem = props.item as unknown as ExpenseReportListItemType;
+    return (
+        <ReportSubmitToPopoverAnchor reportID={reportItem.reportID}>
+            <ExpenseReportListItemInner {...props} />
+        </ReportSubmitToPopoverAnchor>
+    );
+}
+
+function ExpenseReportListItemInner<TItem extends ListItem>({
     item,
     isLoading,
     isFocused,
@@ -142,6 +152,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const {showHoldMenu} = useHoldMenuModal();
+    const openReportSubmitToPopover = useOpenReportSubmitToPopover();
 
     const handleOnButtonPress = useCallback(() => {
         handleActionButtonPress({
@@ -179,6 +190,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             },
             ownerBillingGracePeriodEnd,
             amountOwed,
+            openReportSubmitToPopover,
         });
     }, [
         currentSearchHash,
@@ -199,6 +211,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
         showHoldMenu,
         ownerBillingGracePeriodEnd,
         amountOwed,
+        openReportSubmitToPopover,
     ]);
 
     const handleSelectionButtonPress = useCallback(() => {

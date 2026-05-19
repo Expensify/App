@@ -8,6 +8,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import {ReportSubmitToPopoverAnchor, useOpenReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import type {TransactionListItemProps, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {ListItem} from '@components/SelectionList/types';
@@ -31,7 +32,16 @@ import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
 import TransactionListItemNarrow from './TransactionListItemNarrow';
 import TransactionListItemWide from './TransactionListItemWide';
 
-function TransactionListItem<TItem extends ListItem>({
+function TransactionListItem<TItem extends ListItem>(props: TransactionListItemProps<TItem>) {
+    const transactionItem = props.item as unknown as TransactionListItemType;
+    return (
+        <ReportSubmitToPopoverAnchor reportID={transactionItem.reportID}>
+            <TransactionListItemInner {...props} />
+        </ReportSubmitToPopoverAnchor>
+    );
+}
+
+function TransactionListItemInner<TItem extends ListItem>({
     item,
     isFocused,
     showTooltip,
@@ -162,6 +172,8 @@ function TransactionListItem<TItem extends ListItem>({
         linkedReportAction: transactionItem.reportAction,
     });
 
+    const openReportSubmitToPopover = useOpenReportSubmitToPopover();
+
     const handleOnPress = () => {
         // Consume the tap that dismissed an editing cell — a second tap will open the row.
         // We check the ref rather than isEditingCell because blur fires before onPress and resets the state.
@@ -207,6 +219,7 @@ function TransactionListItem<TItem extends ListItem>({
             ownerBillingGracePeriodEnd,
             amountOwed,
             onUndelete: () => onUndelete?.(transactionItem),
+            openReportSubmitToPopover,
         });
     };
 

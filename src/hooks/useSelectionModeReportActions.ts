@@ -11,6 +11,7 @@ import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
+import {useOpenReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
@@ -20,7 +21,6 @@ import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {search} from '@libs/actions/Search';
 import getPlatform from '@libs/getPlatform';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
-import Navigation from '@libs/Navigation/Navigation';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {handleUnvalidatedAccount, selectPaymentType} from '@libs/PaymentUtils';
 import {isSubmitPolicy, sortPoliciesByName} from '@libs/PolicyUtils';
@@ -44,7 +44,6 @@ import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import useActiveAdminPolicies from './useActiveAdminPolicies';
@@ -85,6 +84,7 @@ function useSelectionModeReportActions({
     transactions,
     selectedTransactionIDs,
 }: UseSelectionModeReportActionsParams) {
+    const openReportSubmitToPopover = useOpenReportSubmitToPopover();
     const {translate, localeCompare} = useLocalize();
     const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
@@ -287,7 +287,7 @@ function useSelectionModeReportActions({
         }
         const doSubmit = () => {
             if (isSubmitPolicy(policy)) {
-                Navigation.navigate(ROUTES.REPORT_SUBMIT_TO.getRoute(report.reportID, Navigation.getActiveRoute()));
+                openReportSubmitToPopover();
                 clearSelectedTransactions(true);
                 turnOffMobileSelectionMode();
                 return;

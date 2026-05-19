@@ -15,6 +15,7 @@ import MoneyReportHeaderKYCDropdown from '@components/MoneyReportHeaderKYCDropdo
 import {useMoneyReportHeaderModals} from '@components/MoneyReportHeaderModalsContext';
 import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+import {ReportSubmitToPopoverAnchor} from '@components/ReportSubmitToPopoverAnchor';
 import BulkDuplicateHandler from '@components/Search/BulkDuplicateHandler';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
@@ -73,7 +74,7 @@ type MoneyReportHeaderSelectionDropdownProps = {
     wrapperStyle?: StyleProp<ViewStyle>;
 };
 
-function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportInSearch, wrapperStyle}: MoneyReportHeaderSelectionDropdownProps) {
+function MoneyReportHeaderSelectionDropdownContent({reportID, primaryAction, isReportInSearch, wrapperStyle}: MoneyReportHeaderSelectionDropdownProps) {
     const route = useRoute();
     const {startAnimation, startApprovedAnimation, startSubmittingAnimation} = usePaymentAnimationsContext();
     const {openHoldMenu: openHoldMenuAsync, openRejectModal} = useMoneyReportHeaderModals();
@@ -522,6 +523,14 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
                 wrapperStyle={wrapperStyle}
             />
         </>
+    );
+}
+
+function MoneyReportHeaderSelectionDropdown(props: MoneyReportHeaderSelectionDropdownProps) {
+    return (
+        <ReportSubmitToPopoverAnchor reportID={props.reportID}>
+            <MoneyReportHeaderSelectionDropdownContent {...props} />
+        </ReportSubmitToPopoverAnchor>
     );
 }
 

@@ -1,37 +1,47 @@
 import {delegateEmailSelector} from '@selectors/Account';
 import React, {useCallback, useMemo, useState} from 'react';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ScreenWrapper from '@components/ScreenWrapper';
+import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {search} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {ReportSubmitToNavigatorParamList} from '@libs/Navigation/types';
 import {getDefaultApprover, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils, isExpenseReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
 import {submitReport} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
+import type Policy from '@src/types/onyx/Policy';
+import type Report from '@src/types/onyx/Report';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import NotFoundPage from './ErrorPage/NotFoundPage';
-import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
-import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 
 type WorkspaceMemberItem = ListItem & {email: string};
 
-type ReportSubmitToPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportSubmitToNavigatorParamList, typeof SCREENS.REPORT_SUBMIT_TO.ROOT>;
+type ReportSubmitToContentProps = {
+    report: OnyxEntry<Report>;
+    policy: OnyxEntry<Policy>;
+    isLoadingReportData: OnyxEntry<boolean>;
+    onDismiss: () => void;
+    /** When true, shows a compact title row (e.g. inside a popover). */
+    shouldShowTitle?: boolean;
+    /** Called after submit API path invokes success (e.g. primary-action payment animation). */
+    onSubmitSuccess?: () => void;
+    /** When false, skips closing the RHP stack after submit (e.g. submit-to popover on report screen). */
+    shouldDismissRHPAfterSubmit?: boolean;
+};
 
-function ReportSubmitToPage({report, policy, isLoadingReportData}: ReportSubmitToPageProps) {
+function ReportSubmitToContent({report, policy, isLoadingReportData, onDismiss, shouldShowTitle = false, onSubmitSuccess, shouldDismissRHPAfterSubmit = true}: ReportSubmitToContentProps) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
@@ -116,7 +126,11 @@ function ReportSubmitToPage({report, policy, isLoadingReportData}: ReportSubmitT
                         isLoading: !!currentSearchResults?.search?.isLoading,
                     });
                 }
-                Navigation.dismissToPreviousRHP();
+                onSubmitSuccess?.();
+                onDismiss();
+                if (shouldDismissRHPAfterSubmit) {
+                    Navigation.dismissToPreviousRHP();
+                }
             },
         });
     }, [
@@ -137,6 +151,9 @@ function ReportSubmitToPage({report, policy, isLoadingReportData}: ReportSubmitT
         currentSearchKey,
         shouldCalculateTotals,
         currentSearchResults?.search?.isLoading,
+        onDismiss,
+        onSubmitSuccess,
+        shouldDismissRHPAfterSubmit,
     ]);
 
     const onSelectMember = useCallback((item: WorkspaceMemberItem) => {
@@ -148,26 +165,23 @@ function ReportSubmitToPage({report, policy, isLoadingReportData}: ReportSubmitT
     const confirmButtonOptions = useMemo(
         () => ({
             showButton: true,
-            text: translate('common.submit'),
+            text: translate('common.confirm'),
             onConfirm: handleSubmit,
         }),
         [handleSubmit, translate],
     );
 
     if (shouldShowNotFoundView) {
-        return <NotFoundPage />;
+        return (
+            <View style={[styles.ph5, styles.pv4]}>
+                <Text style={[styles.textNormal]}>{translate('notFound.noAccess')}</Text>
+            </View>
+        );
     }
 
     return (
-        <ScreenWrapper
-            testID="ReportSubmitToPage"
-            includeSafeAreaPaddingBottom
-            shouldEnableMaxHeight
-        >
-            <HeaderWithBackButton
-                title={translate('common.submitTo')}
-                onBackButtonPress={Navigation.goBack}
-            />
+        <View style={[styles.w100, styles.flexColumn, shouldShowTitle && styles.gap2]}>
+            {!!shouldShowTitle && <Text style={[styles.textStrong, styles.ph3, styles.pt3]}>{translate('common.submitTo')}</Text>}
             <SelectionList
                 data={workspaceMembers}
                 ListItem={SingleSelectListItem}
@@ -176,10 +190,11 @@ function ReportSubmitToPage({report, policy, isLoadingReportData}: ReportSubmitT
                 shouldUpdateFocusedIndex
                 initiallyFocusedItemKey={workspaceMembers.find((m) => m.isSelected)?.keyForList}
                 disableMaintainingScrollPosition
-                addBottomSafeAreaPadding
+                addBottomSafeAreaPadding={!shouldShowTitle}
             />
-        </ScreenWrapper>
+        </View>
     );
 }
 
-export default withReportOrNotFound()(ReportSubmitToPage);
+export type {ReportSubmitToContentProps};
+export default ReportSubmitToContent;

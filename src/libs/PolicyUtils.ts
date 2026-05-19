@@ -930,7 +930,7 @@ function isPaidGroupPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
 }
 
 function isSubmitPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
-    return policy?.type === CONST.POLICY.TYPE.SUBMIT;
+    return true//policy?.type === CONST.POLICY.TYPE.SUBMIT;
 }
 
 const isPolicyEditor = (policy: OnyxInputOrEntry<Policy>, login?: string): boolean => getPolicyRole(policy, login) === CONST.POLICY.ROLE.EDITOR;

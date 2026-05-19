@@ -1745,14 +1745,6 @@ type ReportChangeWorkspaceNavigatorParamList = {
     };
 };
 
-type ReportSubmitToNavigatorParamList = {
-    [SCREENS.REPORT_SUBMIT_TO.ROOT]: {
-        reportID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
-    };
-};
-
 type ReportSettingsNavigatorParamList = {
     [SCREENS.REPORT_SETTINGS.ROOT]: {
         reportID: string;
@@ -2580,7 +2572,6 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.ADD_EXISTING_EXPENSE]: NavigatorScreenParams<{reportId: string | undefined}>;
     [SCREENS.RIGHT_MODAL.SCHEDULE_CALL]: NavigatorScreenParams<ScheduleCallParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_CHANGE_APPROVER]: NavigatorScreenParams<ReportChangeApproverParamList>;
-    [SCREENS.RIGHT_MODAL.REPORT_SUBMIT_TO]: NavigatorScreenParams<ReportSubmitToNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.MERGE_TRANSACTION]: NavigatorScreenParams<MergeTransactionNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.EXPENSE_REPORT]: {
         reportID: string;
@@ -3413,7 +3404,6 @@ export type {
     SetParamsAction,
     WorkspaceNavigatorRouteName,
     ReportChangeApproverParamList,
-    ReportSubmitToNavigatorParamList,
     TestToolsModalModalNavigatorParamList,
     MergeTransactionNavigatorParamList,
     AttachmentModalScreensParamList,

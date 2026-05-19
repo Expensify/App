@@ -1,6 +1,7 @@
 import {useFocusEffect, useRoute} from '@react-navigation/native';
 import React, {useState} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
@@ -12,6 +13,7 @@ import MoneyReportHeaderKYCDropdown from '@components/MoneyReportHeaderKYCDropdo
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
+import {ReportSubmitToPopoverAnchor} from '@components/ReportSubmitToPopoverAnchor';
 import BulkDuplicateHandler from '@components/Search/BulkDuplicateHandler';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
@@ -52,113 +54,46 @@ type SelectionToolbarProps = {
     reportActions: OnyxTypes.ReportAction[];
 };
 
-function SelectionToolbar({reportID, transactions, reportActions}: SelectionToolbarProps) {
+type SelectionToolbarMobileSelectionModeProps = {
+    report: OnyxEntry<OnyxTypes.Report>;
+    chatReport: OnyxEntry<OnyxTypes.Report>;
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    reportActions: OnyxTypes.ReportAction[];
+    reportNameValuePairs: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
+    reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>;
+    transactionsWithoutPendingDelete: OnyxTypes.Transaction[];
+    transactions: OnyxTypes.Transaction[];
+    selectedTransactionIDs: string[];
+    originalSelectedTransactionsOptions: ReturnType<typeof useSelectedTransactionsActions>['options'];
+    isDelegateAccessRestricted: boolean;
+    showDelegateNoAccessModal: () => void;
+    dismissedRejectUseExplanation: boolean | undefined;
+    route: PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>;
+    clearSelectedTransactions: ReturnType<typeof useSearchActionsContext>['clearSelectedTransactions'];
+    setSelectedTransactions: ReturnType<typeof useSearchActionsContext>['setSelectedTransactions'];
+};
+
+function SelectionToolbarMobileSelectionMode({
+    report,
+    chatReport,
+    policy,
+    reportActions,
+    reportNameValuePairs,
+    reportMetadata,
+    transactionsWithoutPendingDelete,
+    transactions,
+    selectedTransactionIDs,
+    originalSelectedTransactionsOptions,
+    isDelegateAccessRestricted,
+    showDelegateNoAccessModal,
+    dismissedRejectUseExplanation,
+    route,
+    clearSelectedTransactions,
+    setSelectedTransactions,
+}: SelectionToolbarMobileSelectionModeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isOffline} = useNetworkWithOfflineStatus();
-    const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
-    const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
-
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION);
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(reportID)}`);
-    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(reportID)}`);
-
-    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
-    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-
-    const {selectedTransactionIDs} = useSearchStateContext();
-    const {setSelectedTransactions, clearSelectedTransactions} = useSearchActionsContext();
-
-    useFilterSelectedTransactions(transactions, reportID);
-
-    const isMobileSelectionModeEnabled = useMobileSelectionMode();
-    const {showConfirmModal} = useConfirmModal();
-
-    const [offlineModalVisible, setOfflineModalVisible] = useState(false);
-    const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
     const [rejectModalAction, setRejectModalAction] = useState<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK> | null>(null);
-
-    const transactionsWithoutPendingDelete = transactions.filter((t) => !isTransactionPendingDelete(t));
-
-    const beginExportWithTemplate = (templateName: string, templateType: string, transactionIDList: string[]) => {
-        if (isOffline) {
-            setOfflineModalVisible(true);
-            return;
-        }
-
-        if (!report) {
-            return;
-        }
-
-        queueExportSearchWithTemplate({
-            templateName,
-            templateType,
-            jsonQuery: '{}',
-            reportIDList: [report.reportID],
-            transactionIDList,
-            policyID: policy?.id,
-        });
-
-        showConfirmModal({
-            title: translate('export.exportInProgress'),
-            prompt: translate('export.conciergeWillSend'),
-            confirmText: translate('common.buttonConfirm'),
-            shouldShowCancelButton: false,
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-            clearSelectedTransactions(undefined, true);
-        });
-    };
-
-    const onDeleteSelected = (handleDeleteTransactions: () => void, handleDeleteTransactionsWithNavigation: (backToRoute?: Route) => void) => {
-        showConfirmModal({
-            title: translate('iou.deleteExpense', {
-                count: selectedTransactionIDs.length,
-            }),
-            prompt: translate('iou.deleteConfirmation', {
-                count: selectedTransactionIDs.length,
-            }),
-            confirmText: translate('common.delete'),
-            cancelText: translate('common.cancel'),
-            danger: true,
-            shouldEnableNewFocusManagement: true,
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-            const shouldNavigateBack = transactions.filter((trans) => trans.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length === selectedTransactionIDs.length;
-            if (shouldNavigateBack) {
-                const backToRoute = route.params?.backTo ?? (chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined);
-                handleDeleteTransactionsWithNavigation(backToRoute);
-                return;
-            }
-            handleDeleteTransactions();
-        });
-    };
-
-    const {
-        options: originalSelectedTransactionsOptions,
-        isDuplicateOptionVisible,
-        setDuplicateHandler,
-        allTransactions: allTransactionsForDuplicate,
-        allReports: allReportsForDuplicate,
-    } = useSelectedTransactionsActions({
-        report,
-        reportActions,
-        allTransactionsLength: transactions.length,
-        session,
-        onExportFailed: () => setIsDownloadErrorModalVisible(true),
-        onExportOffline: () => setOfflineModalVisible(true),
-        policy,
-        beginExportWithTemplate: (templateName, templateType, transactionIDList) => beginExportWithTemplate(templateName, templateType, transactionIDList),
-        onDeleteSelected,
-    });
 
     const {
         selectionModeReportLevelActions,
@@ -238,96 +173,66 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
 
     return (
         <>
-            {isDuplicateOptionVisible && (
-                <BulkDuplicateHandler
-                    selectedTransactionsKeys={selectedTransactionIDs}
-                    allTransactions={allTransactionsForDuplicate}
-                    allReports={allReportsForDuplicate}
-                    searchData={undefined}
-                    onHandlerReady={setDuplicateHandler}
-                    onAfterDuplicate={() => clearSelectedTransactions(true)}
-                />
-            )}
-            {shouldUseNarrowLayout && isMobileSelectionModeEnabled && (
-                <OfflineWithFeedback pendingAction={reportPendingAction}>
-                    {hasPayInSelectionMode ? (
-                        <View style={styles.ph5}>
-                            <MoneyReportHeaderKYCDropdown
-                                chatReportID={chatReport?.reportID}
-                                iouReport={report}
-                                onPaymentSelect={onSelectionModePaymentSelect}
-                                onSuccessfulKYC={selectionModeKYCSuccess}
-                                primaryAction={primaryAction}
-                                applicableSecondaryActions={selectedTransactionsOptions}
-                                customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
-                                shouldShowSuccessStyle
-                                ref={kycWallRef}
-                            />
-                        </View>
-                    ) : (
-                        <ButtonWithDropdownMenu
-                            onPress={() => null}
-                            options={selectedTransactionsOptions}
-                            customText={translate('workspace.common.selected', {
-                                count: selectedTransactionIDs.length,
-                            })}
-                            isSplitButton={false}
-                            shouldAlwaysShowDropdownMenu
-                            shouldPopoverUseScrollView={popoverUseScrollView}
-                            wrapperStyle={[styles.w100, styles.ph5]}
+            <OfflineWithFeedback pendingAction={reportPendingAction}>
+                {hasPayInSelectionMode ? (
+                    <View style={styles.ph5}>
+                        <MoneyReportHeaderKYCDropdown
+                            chatReportID={chatReport?.reportID}
+                            iouReport={report}
+                            onPaymentSelect={onSelectionModePaymentSelect}
+                            onSuccessfulKYC={selectionModeKYCSuccess}
+                            primaryAction={primaryAction}
+                            applicableSecondaryActions={selectedTransactionsOptions}
+                            customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
+                            shouldShowSuccessStyle
+                            ref={kycWallRef}
                         />
-                    )}
-                    <View style={[styles.alignItemsCenter, styles.userSelectNone, styles.flexRow, styles.pt6, styles.ph8, styles.pb3]}>
-                        <Checkbox
-                            accessibilityLabel={translate('accessibilityHints.selectAllItems')}
-                            isChecked={isSelectAllChecked}
-                            isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== transactionsWithoutPendingDelete.length}
-                            onPress={() => {
-                                if (selectedTransactionIDs.length !== 0) {
-                                    clearSelectedTransactions(true);
-                                } else {
-                                    setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID));
-                                }
-                            }}
-                        />
-                        <PressableWithFeedback
-                            style={[styles.userSelectNone, styles.alignItemsCenter]}
-                            onPress={() => {
-                                if (isSelectAllChecked) {
-                                    clearSelectedTransactions(true);
-                                } else {
-                                    setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID));
-                                }
-                            }}
-                            accessibilityLabel={translate('accessibilityHints.selectAllItems')}
-                            role="button"
-                            accessibilityState={{checked: isSelectAllChecked}}
-                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                            sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REQUEST_REPORT_ACTIONS_LIST_SELECT_ALL}
-                        >
-                            <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
-                        </PressableWithFeedback>
                     </View>
-                </OfflineWithFeedback>
-            )}
-            <DecisionModal
-                title={translate('common.downloadFailedTitle')}
-                prompt={translate('common.downloadFailedDescription')}
-                isSmallScreenWidth={shouldUseNarrowLayout}
-                onSecondOptionSubmit={() => setIsDownloadErrorModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={isDownloadErrorModalVisible}
-                onClose={() => setIsDownloadErrorModalVisible(false)}
-            />
-            <DecisionModal
-                title={translate('common.youAppearToBeOffline')}
-                prompt={translate('common.offlinePrompt')}
-                isSmallScreenWidth={shouldUseNarrowLayout}
-                onSecondOptionSubmit={() => setOfflineModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={offlineModalVisible}
-                onClose={() => setOfflineModalVisible(false)}
-            />
+                ) : (
+                    <ButtonWithDropdownMenu
+                        onPress={() => null}
+                        options={selectedTransactionsOptions}
+                        customText={translate('workspace.common.selected', {
+                            count: selectedTransactionIDs.length,
+                        })}
+                        isSplitButton={false}
+                        shouldAlwaysShowDropdownMenu
+                        shouldPopoverUseScrollView={popoverUseScrollView}
+                        wrapperStyle={[styles.w100, styles.ph5]}
+                    />
+                )}
+                <View style={[styles.alignItemsCenter, styles.userSelectNone, styles.flexRow, styles.pt6, styles.ph8, styles.pb3]}>
+                    <Checkbox
+                        accessibilityLabel={translate('accessibilityHints.selectAllItems')}
+                        isChecked={isSelectAllChecked}
+                        isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== transactionsWithoutPendingDelete.length}
+                        onPress={() => {
+                            if (selectedTransactionIDs.length !== 0) {
+                                clearSelectedTransactions(true);
+                            } else {
+                                setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID));
+                            }
+                        }}
+                    />
+                    <PressableWithFeedback
+                        style={[styles.userSelectNone, styles.alignItemsCenter]}
+                        onPress={() => {
+                            if (isSelectAllChecked) {
+                                clearSelectedTransactions(true);
+                            } else {
+                                setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID));
+                            }
+                        }}
+                        accessibilityLabel={translate('accessibilityHints.selectAllItems')}
+                        role="button"
+                        accessibilityState={{checked: isSelectAllChecked}}
+                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                        sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REQUEST_REPORT_ACTIONS_LIST_SELECT_ALL}
+                    >
+                        <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
+                    </PressableWithFeedback>
+                </View>
+            </OfflineWithFeedback>
             {!!rejectModalAction && (
                 <HoldOrRejectEducationalModal
                     onClose={dismissRejectModalBasedOnAction}
@@ -350,6 +255,168 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                     transactionCount={transactions.length}
                 />
             )}
+        </>
+    );
+}
+
+function SelectionToolbar({reportID, transactions, reportActions}: SelectionToolbarProps) {
+    const {translate} = useLocalize();
+    const {isOffline} = useNetworkWithOfflineStatus();
+    const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
+    const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
+
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(reportID)}`);
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(reportID)}`);
+
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+
+    const {selectedTransactionIDs} = useSearchStateContext();
+    const {setSelectedTransactions, clearSelectedTransactions} = useSearchActionsContext();
+
+    useFilterSelectedTransactions(transactions, reportID);
+
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
+    const {showConfirmModal} = useConfirmModal();
+
+    const [offlineModalVisible, setOfflineModalVisible] = useState(false);
+    const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
+
+    const transactionsWithoutPendingDelete = transactions.filter((t) => !isTransactionPendingDelete(t));
+
+    const beginExportWithTemplate = (templateName: string, templateType: string, transactionIDList: string[]) => {
+        if (isOffline) {
+            setOfflineModalVisible(true);
+            return;
+        }
+
+        if (!report) {
+            return;
+        }
+
+        queueExportSearchWithTemplate({
+            templateName,
+            templateType,
+            jsonQuery: '{}',
+            reportIDList: [report.reportID],
+            transactionIDList,
+            policyID: policy?.id,
+        });
+
+        showConfirmModal({
+            title: translate('export.exportInProgress'),
+            prompt: translate('export.conciergeWillSend'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+            clearSelectedTransactions(undefined, true);
+        });
+    };
+
+    const onDeleteSelected = (handleDeleteTransactions: () => void, handleDeleteTransactionsWithNavigation: (backToRoute?: Route) => void) => {
+        showConfirmModal({
+            title: translate('iou.deleteExpense', {
+                count: selectedTransactionIDs.length,
+            }),
+            prompt: translate('iou.deleteConfirmation', {
+                count: selectedTransactionIDs.length,
+            }),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            danger: true,
+            shouldEnableNewFocusManagement: true,
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+            const shouldNavigateBack = transactions.filter((trans) => trans.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length === selectedTransactionIDs.length;
+            if (shouldNavigateBack) {
+                const backToRoute = route.params?.backTo ?? (chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined);
+                handleDeleteTransactionsWithNavigation(backToRoute);
+                return;
+            }
+            handleDeleteTransactions();
+        });
+    };
+
+    const {
+        options: originalSelectedTransactionsOptions,
+        isDuplicateOptionVisible,
+        setDuplicateHandler,
+        allTransactions: allTransactionsForDuplicate,
+        allReports: allReportsForDuplicate,
+    } = useSelectedTransactionsActions({
+        report,
+        reportActions,
+        allTransactionsLength: transactions.length,
+        session,
+        onExportFailed: () => setIsDownloadErrorModalVisible(true),
+        onExportOffline: () => setOfflineModalVisible(true),
+        policy,
+        beginExportWithTemplate: (templateName, templateType, transactionIDList) => beginExportWithTemplate(templateName, templateType, transactionIDList),
+        onDeleteSelected,
+    });
+
+    return (
+        <>
+            {isDuplicateOptionVisible && (
+                <BulkDuplicateHandler
+                    selectedTransactionsKeys={selectedTransactionIDs}
+                    allTransactions={allTransactionsForDuplicate}
+                    allReports={allReportsForDuplicate}
+                    searchData={undefined}
+                    onHandlerReady={setDuplicateHandler}
+                    onAfterDuplicate={() => clearSelectedTransactions(true)}
+                />
+            )}
+            {shouldUseNarrowLayout && isMobileSelectionModeEnabled && (
+                <ReportSubmitToPopoverAnchor reportID={report?.reportID ?? reportID}>
+                    <SelectionToolbarMobileSelectionMode
+                        report={report}
+                        chatReport={chatReport}
+                        policy={policy}
+                        reportActions={reportActions}
+                        reportNameValuePairs={reportNameValuePairs}
+                        reportMetadata={reportMetadata}
+                        transactionsWithoutPendingDelete={transactionsWithoutPendingDelete}
+                        transactions={transactions}
+                        selectedTransactionIDs={selectedTransactionIDs}
+                        originalSelectedTransactionsOptions={originalSelectedTransactionsOptions}
+                        isDelegateAccessRestricted={isDelegateAccessRestricted}
+                        showDelegateNoAccessModal={showDelegateNoAccessModal}
+                        dismissedRejectUseExplanation={dismissedRejectUseExplanation}
+                        route={route}
+                        clearSelectedTransactions={clearSelectedTransactions}
+                        setSelectedTransactions={setSelectedTransactions}
+                    />
+                </ReportSubmitToPopoverAnchor>
+            )}
+            <DecisionModal
+                title={translate('common.downloadFailedTitle')}
+                prompt={translate('common.downloadFailedDescription')}
+                isSmallScreenWidth={shouldUseNarrowLayout}
+                onSecondOptionSubmit={() => setIsDownloadErrorModalVisible(false)}
+                secondOptionText={translate('common.buttonConfirm')}
+                isVisible={isDownloadErrorModalVisible}
+                onClose={() => setIsDownloadErrorModalVisible(false)}
+            />
+            <DecisionModal
+                title={translate('common.youAppearToBeOffline')}
+                prompt={translate('common.offlinePrompt')}
+                isSmallScreenWidth={shouldUseNarrowLayout}
+                onSecondOptionSubmit={() => setOfflineModalVisible(false)}
+                secondOptionText={translate('common.buttonConfirm')}
+                isVisible={offlineModalVisible}
+                onClose={() => setOfflineModalVisible(false)}
+            />
         </>
     );
 }

@@ -243,6 +243,14 @@ jest.mock('@userActions/Transaction', () => ({
     markPendingRTERTransactionsAsCash: jest.fn(),
 }));
 
+const mockOpenReportSubmitToPopover = jest.fn();
+
+jest.mock('@components/ReportSubmitToPopoverAnchor', () => ({
+    __esModule: true,
+    ReportSubmitToPopoverAnchor: ({children}: {children: React.ReactNode}) => children,
+    useOpenReportSubmitToPopover: () => mockOpenReportSubmitToPopover,
+}));
+
 const ReportUtils = require('@libs/ReportUtils') as Record<string, jest.Mock>;
 const PolicyUtils = require('@libs/PolicyUtils') as Record<string, jest.Mock>;
 

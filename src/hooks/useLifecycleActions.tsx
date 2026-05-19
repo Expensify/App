@@ -4,11 +4,11 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import type {ActionHandledType} from '@components/Modal/Global/HoldMenuModalWrapper';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {SecondaryActionEntry} from '@components/MoneyReportHeaderActions/types';
+import {useOpenReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import Navigation from '@libs/Navigation/Navigation';
 import {getValidConnectedIntegration, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
 import {
@@ -26,7 +26,6 @@ import {approveMoneyRequest, reopenReport, retractReport, submitReport, unapprov
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import useConfirmModal from './useConfirmModal';
 import useConfirmPendingRTERAndProceed from './useConfirmPendingRTERAndProceed';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -61,6 +60,7 @@ type UseLifecycleActionsResult = {
  * and their associated guards (delegate access, hold, pending RTER, strict policy rules).
  */
 function useLifecycleActions({reportID, startApprovedAnimation, startSubmittingAnimation, onHoldMenuOpen}: UseLifecycleActionsParams): UseLifecycleActionsResult {
+    const openReportSubmitToPopover = useOpenReportSubmitToPopover();
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
@@ -183,7 +183,9 @@ function useLifecycleActions({reportID, startApprovedAnimation, startSubmittingA
 
         const doSubmit = () => {
             if (isSubmitPolicy(policy)) {
-                Navigation.navigate(ROUTES.REPORT_SUBMIT_TO.getRoute(moneyRequestReport.reportID, Navigation.getActiveRoute()));
+                openReportSubmitToPopover({
+                    onSubmitSuccess: skipAnimation ? undefined : startSubmittingAnimation,
+                });
                 if (skipAnimation) {
                     clearSelectedTransactions(true);
                 }
@@ -238,7 +240,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startSubmittingA
                 }
                 confirmPendingRTERAndProceed(() => {
                     if (isSubmitPolicy(policy)) {
-                        Navigation.navigate(ROUTES.REPORT_SUBMIT_TO.getRoute(moneyRequestReport.reportID, Navigation.getActiveRoute()));
+                        openReportSubmitToPopover();
                         return;
                     }
                     submitReport({

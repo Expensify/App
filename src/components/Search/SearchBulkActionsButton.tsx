@@ -11,6 +11,7 @@ import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import ReportPDFDownloadModal from '@components/ReportPDFDownloadModal';
+import {ReportSubmitToPopoverAnchor} from '@components/ReportSubmitToPopoverAnchor';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -36,6 +37,29 @@ type SearchBulkActionsButtonProps = {
 };
 
 function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
+    const {selectedTransactions, selectedReports} = useSearchStateContext();
+    const anchorReportID = useMemo(() => {
+        const transactionReportIDs = [
+            ...new Set(
+                Object.values(selectedTransactions ?? {})
+                    .map((transaction) => transaction.reportID)
+                    .filter((reportID): reportID is string => !!reportID),
+            ),
+        ];
+        const reportIDs = Object.values(selectedReports ?? {})
+            .map((report) => report.reportID)
+            .filter((reportID): reportID is string => !!reportID);
+        return transactionReportIDs.at(0) ?? reportIDs.at(0);
+    }, [selectedTransactions, selectedReports]);
+
+    return (
+        <ReportSubmitToPopoverAnchor reportID={anchorReportID}>
+            <SearchBulkActionsButtonInner queryJSON={queryJSON} />
+        </ReportSubmitToPopoverAnchor>
+    );
+}
+
+function SearchBulkActionsButtonInner({queryJSON}: SearchBulkActionsButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     // We need isSmallScreenWidth (not just shouldUseNarrowLayout) because DecisionModal requires it for correct modal type

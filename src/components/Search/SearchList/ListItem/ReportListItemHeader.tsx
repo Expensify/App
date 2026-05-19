@@ -6,6 +6,7 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import ReportSearchHeader from '@components/ReportSearchHeader';
+import {ReportSubmitToPopoverAnchor, useOpenReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -190,7 +191,15 @@ function HeaderFirstRow<TItem extends ListItem>({
     );
 }
 
-function ReportListItemHeader<TItem extends ListItem>({
+function ReportListItemHeader<TItem extends ListItem>(props: ReportListItemHeaderProps<TItem>) {
+    return (
+        <ReportSubmitToPopoverAnchor reportID={props.report.reportID}>
+            <ReportListItemHeaderInner {...props} />
+        </ReportSubmitToPopoverAnchor>
+    );
+}
+
+function ReportListItemHeaderInner<TItem extends ListItem>({
     report: reportItem,
     onSelectRow,
     onCheckboxPress,
@@ -228,6 +237,8 @@ function ReportListItemHeader<TItem extends ListItem>({
         StyleUtils.getItemBackgroundColorStyle(!!reportItem.isSelected, !!isFocused || !!isHovered, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ??
         theme.highlightBG;
 
+    const openReportSubmitToPopover = useOpenReportSubmitToPopover();
+
     const handleOnButtonPress = () => {
         handleActionButtonPress({
             hash: currentSearchHash,
@@ -244,6 +255,7 @@ function ReportListItemHeader<TItem extends ListItem>({
             personalPolicyID,
             ownerBillingGracePeriodEnd,
             amountOwed,
+            openReportSubmitToPopover,
         });
     };
     return !isLargeScreenWidth ? (
