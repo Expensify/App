@@ -2,8 +2,6 @@ import lodashPick from 'lodash/pick';
 import React, {useEffect} from 'react';
 import type {Ref} from 'react';
 import type {GestureResponderEvent} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 import ContactPermissionModal from '@components/ContactPermissionModal';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
