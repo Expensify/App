@@ -902,6 +902,7 @@ const CONST = {
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         WORKSPACE_ROOMS_PAGE: 'workspaceRoomsPage',
         CERTINIA: 'financialForceNewDot',
+        MERGE_HR: 'mergeHRConnections',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -2087,6 +2088,7 @@ const CONST = {
             SEARCH_PRE_INSERT: 'search_pre_insert',
             REPORT_PRE_INSERT: 'report_pre_insert',
             DISMISS_MODAL: 'dismiss_modal',
+            DISMISS_TO_REPORT: 'dismiss_to_report',
             REPORT_IN_RHP_DISMISS: 'report_in_rhp_dismiss',
             SEARCH_DISMISS: 'search_dismiss',
             DEFAULT: 'default',
@@ -2871,13 +2873,21 @@ const CONST = {
 
     GUSTO: {
         APPROVAL_MODE: {
+            BASIC: 'APPROVAL_SUBMIT_AND_APPROVE',
+            MANAGER: 'APPROVAL_ADVANCED',
+            CUSTOM: 'APPROVAL_MANUAL',
+        },
+    },
+
+    ZENEFITS: {
+        APPROVAL_MODE: {
             BASIC: 'basic',
             MANAGER: 'manager',
             CUSTOM: 'custom',
         },
     },
 
-    ZENEFITS: {
+    MERGE_HR: {
         APPROVAL_MODE: {
             BASIC: 'basic',
             MANAGER: 'manager',
@@ -3822,6 +3832,7 @@ const CONST = {
                 CERTINIA: 'financialforce',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
+                MERGE_HR: 'merge_hris',
             },
             SUPPORTED_ONLY_ON_OLDDOT: {
                 FINANCIALFORCE: 'financialforce',
@@ -3838,6 +3849,7 @@ const CONST = {
                 CERTINIA: 'certinia',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
+                MERGE_HR: 'merge-hr',
             },
             NAME_USER_FRIENDLY: {
                 netsuite: 'NetSuite',
@@ -3853,12 +3865,13 @@ const CONST = {
                 oracle: 'Oracle',
                 microsoftDynamics: 'Microsoft Dynamics',
                 other: 'Other',
+                merge_hris: 'Merge HR',
             },
             get ACCOUNTING_CONNECTION_NAMES() {
                 return [this.NAME.QBO, this.NAME.QBD, this.NAME.XERO, this.NAME.NETSUITE, this.NAME.SAGE_INTACCT, this.NAME.CERTINIA] as const;
             },
             get HR_CONNECTION_NAMES() {
-                return [this.NAME.GUSTO, this.NAME.ZENEFITS] as const;
+                return [this.NAME.GUSTO, this.NAME.ZENEFITS, this.NAME.MERGE_HR] as const;
             },
             get EXPORTED_TO_INTEGRATION_DISPLAY_NAMES(): string[] {
                 return this.ACCOUNTING_CONNECTION_NAMES.map((name) => this.NAME_USER_FRIENDLY[name as keyof typeof this.NAME_USER_FRIENDLY]);
