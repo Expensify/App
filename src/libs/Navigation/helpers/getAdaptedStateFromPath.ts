@@ -411,12 +411,6 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldR
         normalizedPath = '/';
     }
 
-    // React Navigation generates /Home (capitalized) for the sign-in page because PublicScreens uses SCREENS.HOME ('Home')
-    // at the root level without a path mapping. Normalize it to the correct lowercase route to avoid “not found” pages.
-    if (normalizedPath.toLowerCase() === `/${ROUTES.HOME}`) {
-        normalizedPath = `/${ROUTES.HOME}`;
-    }
-
     const state = getStateFromPath(normalizedPath as RoutePath) as PartialState<NavigationState<RootNavigatorParamList>>;
     if (shouldReplacePathInNestedState) {
         replacePathInNestedState(state, normalizedPath);
