@@ -19,20 +19,19 @@ import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
-import type {Participant} from '@src/types/onyx/IOU';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {getSubmitHandler, SUBMIT_HANDLER} from './getSubmitHandler';
 import type {SubmitHandler, SubmitNavigationSnapshot} from './getSubmitHandler';
 import {dismissOnly, dismissRHPToReport, dismissSuperWideRHP, dismissWideToNewSearchType, executeDismissModalStrategy} from './submitDismissStrategies';
 
 type SubmitExpenseOrchestratorRenderProps = {
-    onConfirm: (participants: Participant[]) => void;
+    onConfirm: () => void;
     isConfirming: boolean;
 };
 
 type SubmitExpenseOrchestratorProps = {
     /** Calls the appropriate IOU action (requestMoney, trackExpense, etc.) to create the transaction. */
-    createTransaction: (participants: Participant[], locationPermissionGranted?: boolean, shouldHandleNavigation?: boolean) => void;
+    createTransaction: (locationPermissionGranted?: boolean, shouldHandleNavigation?: boolean) => void;
 
     /** Report that the expense will land on (undefined when destination is unknown, e.g. global create to Search). */
     destinationReportID: string | undefined;
@@ -123,7 +122,6 @@ function SubmitExpenseOrchestrator({
     children,
 }: SubmitExpenseOrchestratorProps) {
     const [isConfirming, setIsConfirming] = useState(false);
-    const [selectedParticipantList, setSelectedParticipantList] = useState<Participant[]>([]);
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const confirmingSafetyTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -187,7 +185,7 @@ function SubmitExpenseOrchestrator({
     // Fast-path handlers defer createTransaction until after the dismiss animation completes
     // via dismissModal's afterTransition callback (backed by TransitionTracker). This prevents
     // heavy optimistic Onyx writes from blocking the JS thread during the RHP slide-out animation.
-    const handleSearchPreInsert = (listOfParticipants: Participant[]) => {
+    const handleSearchPreInsert = () => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.SEARCH_PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH);
         Navigation.clearFullscreenPreInsertedFlag();
@@ -198,32 +196,32 @@ function SubmitExpenseOrchestrator({
                 // Search pre-insert relies on createTransaction's internal navigation to handle the
                 // post-creation flow (navigateAfterExpenseCreate), because the Search screen was
                 // pre-inserted before the modal opened - the navigation stack is already correct.
-                createTransaction(listOfParticipants);
+                createTransaction();
                 setIsConfirming(false);
             },
         });
     };
 
-    const handleReportPreInsert = (listOfParticipants: Participant[]) => {
+    const handleReportPreInsert = () => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.REPORT_PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         Navigation.clearFullscreenPreInsertedFlag();
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, destinationReportID);
         reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID});
         Navigation.dismissModal({
             afterTransition: () => {
-                createTransaction(listOfParticipants, false, false);
+                createTransaction(false, false);
                 setIsConfirming(false);
             },
         });
     };
 
-    const handleDismissModalFastPath = (listOfParticipants: Participant[]) => {
+    const handleDismissModalFastPath = () => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DISMISS_MODAL, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         const shouldPreserveSearchWithPlaceholder = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK) && isSearchTopmostFullScreenRoute();
         reserveDeferredWriteChannel(shouldPreserveSearchWithPlaceholder ? CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH : CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID});
 
         const runAfterDismiss = () => {
-            createTransaction(listOfParticipants, false, false);
+            createTransaction(false, false);
             setIsConfirming(false);
         };
 
@@ -241,7 +239,7 @@ function SubmitExpenseOrchestrator({
     // Wide: always the handler
     // Narrow: only runs if the user submitted before the pre-insert timer (300ms)
     // elapsed - SEARCH_PRE_INSERT is the primary narrow handler.
-    const handleSearchDismiss = (listOfParticipants: Participant[]) => {
+    const handleSearchDismiss = () => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.SEARCH_DISMISS, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         const searchType = iouType === CONST.IOU.TYPE.INVOICE ? CONST.SEARCH.DATA_TYPES.INVOICE : CONST.SEARCH.DATA_TYPES.EXPENSE;
         const isSameType = getCurrentSearchQueryJSON()?.type === searchType;
@@ -249,7 +247,7 @@ function SubmitExpenseOrchestrator({
         reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
 
         const runAfterDismiss = () => {
-            createTransaction(listOfParticipants, false, false);
+            createTransaction(false, false);
             setIsConfirming(false);
         };
 
@@ -269,7 +267,7 @@ function SubmitExpenseOrchestrator({
         });
     };
 
-    const handleDismissToReport = (listOfParticipants: Participant[]) => {
+    const handleDismissToReport = () => {
         if (!destinationReportID) {
             // Tracking already started in onSubmit; just override the fast path label.
             Log.warn('[SubmitExpenseOrchestrator] handleDismissToReport reached without destinationReportID - falling back to default submit');
@@ -281,7 +279,7 @@ function SubmitExpenseOrchestrator({
             // is intentionally the same approach used in handleDefaultSubmit so
             // this fallback behaves identically to the standard submit path.
             requestAnimationFrame(() => {
-                createTransaction(listOfParticipants);
+                createTransaction();
                 requestAnimationFrame(() => {
                     setIsConfirming(false);
                 });
@@ -294,16 +292,16 @@ function SubmitExpenseOrchestrator({
 
         Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(destinationReportID), {
             afterTransition: () => {
-                createTransaction(listOfParticipants, false, false);
+                createTransaction(false, false);
                 setIsConfirming(false);
             },
         });
     };
 
-    const handleDefaultSubmit = (listOfParticipants: Participant[]) => {
+    const handleDefaultSubmit = () => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DEFAULT);
         requestAnimationFrame(() => {
-            createTransaction(listOfParticipants);
+            createTransaction();
             requestAnimationFrame(() => {
                 setIsConfirming(false);
             });
@@ -314,7 +312,7 @@ function SubmitExpenseOrchestrator({
     // When the destination report is empty we reserve a DISMISS_MODAL deferred-write channel
     // so that MoneyRequestReportActionsList can show a loading skeleton instead of the
     // "no expenses" empty state while the dismiss animation plays.
-    const handleReportInRHPDismiss = (listOfParticipants: Participant[]) => {
+    const handleReportInRHPDismiss = () => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.REPORT_IN_RHP_DISMISS, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         const rootState = navigationRef.getRootState();
 
@@ -332,7 +330,7 @@ function SubmitExpenseOrchestrator({
             if (isDestinationEmpty) {
                 flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
             }
-            createTransaction(listOfParticipants, false, false);
+            createTransaction(false, false);
             setIsConfirming(false);
         };
 
@@ -350,16 +348,15 @@ function SubmitExpenseOrchestrator({
         if (isDestinationEmpty) {
             cancelDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
         }
-        handleDefaultSubmit(listOfParticipants);
+        handleDefaultSubmit();
     };
 
     // Not wrapped in useCallback: MoneyRequestConfirmationList is React.memo-wrapped, but this
     // matches the pre-existing pattern in IOURequestStepConfirmation. The parent re-renders
     // frequently from Onyx subscriptions anyway, and wrapping this properly would require
     // memoizing every handler + all their captured props for no measurable gain.
-    const onConfirm = (listOfParticipants: Participant[]) => {
+    const onConfirm = () => {
         setIsConfirming(true);
-        setSelectedParticipantList(listOfParticipants);
 
         if (gpsRequired) {
             const shouldStartPermissionFlow =
@@ -379,13 +376,13 @@ function SubmitExpenseOrchestrator({
         const handler = getSubmitHandler(buildNavigationSnapshot(rootState));
 
         const handlers: Record<SubmitHandler, () => void> = {
-            [SUBMIT_HANDLER.SEARCH_PRE_INSERT]: () => handleSearchPreInsert(listOfParticipants),
-            [SUBMIT_HANDLER.REPORT_PRE_INSERT]: () => handleReportPreInsert(listOfParticipants),
-            [SUBMIT_HANDLER.DISMISS_MODAL]: () => handleDismissModalFastPath(listOfParticipants),
-            [SUBMIT_HANDLER.DISMISS_TO_REPORT]: () => handleDismissToReport(listOfParticipants),
-            [SUBMIT_HANDLER.REPORT_IN_RHP_DISMISS]: () => handleReportInRHPDismiss(listOfParticipants),
-            [SUBMIT_HANDLER.SEARCH_DISMISS]: () => handleSearchDismiss(listOfParticipants),
-            [SUBMIT_HANDLER.DEFAULT]: () => handleDefaultSubmit(listOfParticipants),
+            [SUBMIT_HANDLER.SEARCH_PRE_INSERT]: handleSearchPreInsert,
+            [SUBMIT_HANDLER.REPORT_PRE_INSERT]: handleReportPreInsert,
+            [SUBMIT_HANDLER.DISMISS_MODAL]: handleDismissModalFastPath,
+            [SUBMIT_HANDLER.DISMISS_TO_REPORT]: handleDismissToReport,
+            [SUBMIT_HANDLER.REPORT_IN_RHP_DISMISS]: handleReportInRHPDismiss,
+            [SUBMIT_HANDLER.SEARCH_DISMISS]: handleSearchDismiss,
+            [SUBMIT_HANDLER.DEFAULT]: handleDefaultSubmit,
         };
 
         handlers[handler]();
@@ -403,7 +400,7 @@ function SubmitExpenseOrchestrator({
                         startSubmitSpans();
                         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DEFAULT);
                         navigateAfterInteraction(() => {
-                            createTransaction(selectedParticipantList, true);
+                            createTransaction(true);
                         });
                     }}
                     onDeny={() => {
@@ -411,7 +408,7 @@ function SubmitExpenseOrchestrator({
                         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DEFAULT);
                         updateLastLocationPermissionPrompt();
                         navigateAfterInteraction(() => {
-                            createTransaction(selectedParticipantList, false);
+                            createTransaction(false);
                         });
                     }}
                     onInitialGetLocationCompleted={() => {

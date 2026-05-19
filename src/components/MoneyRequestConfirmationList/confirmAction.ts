@@ -49,7 +49,7 @@ type BuildConfirmActionParams = {
     showDelegateNoAccessModal: () => void;
 
     /** Caller-provided confirm handler for non-pay flows */
-    onConfirm?: (selectedParticipants: Participant[]) => void;
+    onConfirm?: (selectedParticipants?: Participant[]) => void;
 
     /** Caller-provided send-money handler for pay flows */
     onSendMoney?: (paymentMethod: PaymentMethodType | undefined) => void;
