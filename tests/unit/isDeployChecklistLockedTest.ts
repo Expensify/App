@@ -24,6 +24,10 @@ beforeEach(() => {
     jest.clearAllMocks();
 });
 
+afterEach(() => {
+    jest.restoreAllMocks();
+});
+
 afterAll(() => {
     delete process.env.INPUT_GITHUB_TOKEN;
 });
