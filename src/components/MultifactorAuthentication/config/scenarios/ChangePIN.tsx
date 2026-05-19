@@ -5,8 +5,8 @@ import {DefaultClientFailureScreen, DefaultServerFailureScreen} from '@component
 import type {MultifactorAuthenticationScenarioCustomConfig} from '@components/MultifactorAuthentication/config/types';
 import {useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
 import {changePINForCard} from '@libs/actions/MultifactorAuthentication';
-import CONST from '@src/CONST';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 
 /**
  * Payload type for the CHANGE_PIN scenario.
