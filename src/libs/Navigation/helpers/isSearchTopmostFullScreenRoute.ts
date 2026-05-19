@@ -5,7 +5,7 @@ import getActiveTabName from './getActiveTabName';
 import {isFullScreenName} from './isNavigatorName';
 
 const isSearchTopmostFullScreenRoute = (): boolean => {
-    if (!navigationRef.isReady()) {
+    if (!navigationRef.isReady?.()) {
         return false;
     }
 
