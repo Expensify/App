@@ -19,24 +19,24 @@ import fileDownload from './fileDownload';
  * 3. Only loading state exists (new account opening page)
  */
 function getIsTravelInvoicingEnabled(cardSettings: ExpensifyCardSettingsBase | undefined): boolean {
-    // if (!cardSettings) {
-    //     return false;
-    // }
+    if (!cardSettings) {
+        return false;
+    }
 
-    // // If isEnabled is explicitly set, use that value
-    // if (cardSettings.isEnabled !== undefined) {
-    //     return cardSettings.isEnabled;
-    // }
+    // If isEnabled is explicitly set, use that value
+    if (cardSettings.isEnabled !== undefined) {
+        return cardSettings.isEnabled;
+    }
 
-    // // For backward compatibility: if isEnabled is undefined but we have a payment account,
-    // // assume it was enabled before the isEnabled field existed
-    // // This prevents false positives from just having loading state
-    // if (cardSettings.paymentBankAccountID && cardSettings.paymentBankAccountID !== CONST.DEFAULT_NUMBER_ID) {
-    //     return true;
-    // }
+    // For backward compatibility: if isEnabled is undefined but we have a payment account,
+    // assume it was enabled before the isEnabled field existed
+    // This prevents false positives from just having loading state
+    if (cardSettings.paymentBankAccountID && cardSettings.paymentBankAccountID !== CONST.DEFAULT_NUMBER_ID) {
+        return true;
+    }
 
-    // // No explicit isEnabled and no payment account - not enabled
-    return true;
+    // No explicit isEnabled and no payment account - not enabled
+    return false;
 }
 
 /**
