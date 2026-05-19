@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Table from '@components/Table';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -94,53 +93,126 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
     );
 
     return (
-        <OfflineWithFeedback
-            errors={item.errors}
-            pendingAction={item.pendingAction}
-            onClose={item.dismissError}
-            shouldHideOnDelete={false}
+        <Table.Row
+            interactive
+            rowIndex={rowIndex}
+            disabled={item.disabled}
+            accessibilityLabel={accessibilityLabel}
+            skeletonReasonAttributes={{context: 'WorkspaceRow'}}
+            onPress={item.action}
+            offlineWithFeedback={{
+                shouldHideOnDelete: false,
+                errors: item.errors,
+                pendingAction: item.pendingAction,
+                onClose: item.dismissError,
+            }}
         >
-            <Table.Row
-                interactive
-                rowIndex={rowIndex}
-                disabled={item.disabled}
-                accessibilityLabel={accessibilityLabel}
-                skeletonReasonAttributes={{context: 'WorkspaceRow'}}
-                onPress={item.action}
-            >
-                {({hovered}) => (
-                    <>
-                        {shouldUseNarrowTableLayout && (
-                            <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
+            {({hovered}) => (
+                <>
+                    {shouldUseNarrowTableLayout && (
+                        <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
+                            <Avatar
+                                name={item.title}
+                                source={item.icon}
+                                avatarID={item.policyID}
+                                type={CONST.ICON_TYPE_WORKSPACE}
+                                size={CONST.AVATAR_SIZE.DEFAULT}
+                                imageStyles={styles.alignSelfCenter}
+                                fallbackIcon={icons.FallbackWorkspaceAvatar}
+                            />
+
+                            <View style={[styles.flexGrow1, styles.gap1]}>
+                                <TextWithTooltip
+                                    shouldShowTooltip
+                                    text={item.title}
+                                    style={itemDeletedStyles}
+                                />
+
+                                <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
+                                    {item.isDefault && DefaultWorkspaceBadge}
+                                    {item.isJoinRequestPending && JoinRequestPendingBadge}
+                                    <Text
+                                        numberOfLines={1}
+                                        style={[styles.textLabelSupporting]}
+                                    >
+                                        {narrowWorkspaceLabel}
+                                    </Text>
+                                </View>
+                            </View>
+
+                            {!item.isJoinRequestPending && (
+                                <View style={[styles.flexRow, styles.gap1]}>
+                                    {item.brickRoadIndicator && BrickRoadIndicator}
+                                    <ThreeDotsMenu
+                                        isNested
+                                        shouldOverlay
+                                        shouldSelfPosition
+                                        disabled={item.disabled}
+                                        isContainerFocused={isFocused}
+                                        threeDotsMenuRef={threeDotsMenuRef}
+                                        menuItems={item.threeDotMenuItems ?? []}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.THREE_DOT_MENU}
+                                        anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                                    />
+                                </View>
+                            )}
+
+                            <Icon
+                                src={icons.ArrowRight}
+                                fill={theme.icon}
+                                additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
+                                width={variables.iconSizeSmall}
+                                height={variables.iconSizeSmall}
+                            />
+                        </View>
+                    )}
+
+                    {!shouldUseNarrowTableLayout && (
+                        <>
+                            <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
                                 <Avatar
                                     name={item.title}
                                     source={item.icon}
                                     avatarID={item.policyID}
                                     type={CONST.ICON_TYPE_WORKSPACE}
-                                    size={CONST.AVATAR_SIZE.DEFAULT}
+                                    size={CONST.AVATAR_SIZE.SMALL}
                                     imageStyles={styles.alignSelfCenter}
                                     fallbackIcon={icons.FallbackWorkspaceAvatar}
                                 />
-
-                                <View style={[styles.flexGrow1, styles.gap1]}>
+                                <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.flex1]}>
                                     <TextWithTooltip
                                         shouldShowTooltip
                                         text={item.title}
-                                        style={itemDeletedStyles}
+                                        style={[itemDeletedStyles, styles.flexShrink1]}
                                     />
-
-                                    <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
-                                        {item.isDefault && DefaultWorkspaceBadge}
-                                        {item.isJoinRequestPending && JoinRequestPendingBadge}
-                                        <Text
-                                            numberOfLines={1}
-                                            style={[styles.textLabelSupporting]}
-                                        >
-                                            {narrowWorkspaceLabel}
-                                        </Text>
-                                    </View>
+                                    {item.isDefault && DefaultWorkspaceBadge}
+                                    {item.isJoinRequestPending && JoinRequestPendingBadge}
                                 </View>
+                            </View>
 
+                            <View style={[styles.flex1, styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
+                                <Avatar
+                                    source={item.ownerAvatar}
+                                    avatarID={item.ownerAccountID}
+                                    type={CONST.ICON_TYPE_AVATAR}
+                                    size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                                />
+                                <WorkspacesListRowDisplayName
+                                    isDeleted={item.isDeleted}
+                                    ownerName={formattedOwnerName}
+                                />
+                            </View>
+
+                            <View style={[styles.flex1]}>
+                                <Text
+                                    numberOfLines={1}
+                                    style={itemDeletedStyles}
+                                >
+                                    {formattedWorkspaceType}
+                                </Text>
+                            </View>
+
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3, styles.wAuto]}>
                                 {!item.isJoinRequestPending && (
                                     <View style={[styles.flexRow, styles.gap1]}>
                                         {item.brickRoadIndicator && BrickRoadIndicator}
@@ -162,88 +234,14 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
                                     src={icons.ArrowRight}
                                     fill={theme.icon}
                                     additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
-                                    width={variables.iconSizeSmall}
-                                    height={variables.iconSizeSmall}
+                                    width={variables.iconSizeNormal}
+                                    height={variables.iconSizeNormal}
                                 />
                             </View>
-                        )}
-
-                        {!shouldUseNarrowTableLayout && (
-                            <>
-                                <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
-                                    <Avatar
-                                        name={item.title}
-                                        source={item.icon}
-                                        avatarID={item.policyID}
-                                        type={CONST.ICON_TYPE_WORKSPACE}
-                                        size={CONST.AVATAR_SIZE.SMALL}
-                                        imageStyles={styles.alignSelfCenter}
-                                        fallbackIcon={icons.FallbackWorkspaceAvatar}
-                                    />
-                                    <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.flex1]}>
-                                        <TextWithTooltip
-                                            shouldShowTooltip
-                                            text={item.title}
-                                            style={[itemDeletedStyles, styles.flexShrink1]}
-                                        />
-                                        {item.isDefault && DefaultWorkspaceBadge}
-                                        {item.isJoinRequestPending && JoinRequestPendingBadge}
-                                    </View>
-                                </View>
-
-                                <View style={[styles.flex1, styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
-                                    <Avatar
-                                        source={item.ownerAvatar}
-                                        avatarID={item.ownerAccountID}
-                                        type={CONST.ICON_TYPE_AVATAR}
-                                        size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
-                                    />
-                                    <WorkspacesListRowDisplayName
-                                        isDeleted={item.isDeleted}
-                                        ownerName={formattedOwnerName}
-                                    />
-                                </View>
-
-                                <View style={[styles.flex1]}>
-                                    <Text
-                                        numberOfLines={1}
-                                        style={itemDeletedStyles}
-                                    >
-                                        {formattedWorkspaceType}
-                                    </Text>
-                                </View>
-
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3, styles.wAuto]}>
-                                    {!item.isJoinRequestPending && (
-                                        <View style={[styles.flexRow, styles.gap1]}>
-                                            {item.brickRoadIndicator && BrickRoadIndicator}
-                                            <ThreeDotsMenu
-                                                isNested
-                                                shouldOverlay
-                                                shouldSelfPosition
-                                                disabled={item.disabled}
-                                                isContainerFocused={isFocused}
-                                                threeDotsMenuRef={threeDotsMenuRef}
-                                                menuItems={item.threeDotMenuItems ?? []}
-                                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.THREE_DOT_MENU}
-                                                anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
-                                            />
-                                        </View>
-                                    )}
-
-                                    <Icon
-                                        src={icons.ArrowRight}
-                                        fill={theme.icon}
-                                        additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
-                                        width={variables.iconSizeNormal}
-                                        height={variables.iconSizeNormal}
-                                    />
-                                </View>
-                            </>
-                        )}
-                    </>
-                )}
-            </Table.Row>
-        </OfflineWithFeedback>
+                        </>
+                    )}
+                </>
+            )}
+        </Table.Row>
     );
 }

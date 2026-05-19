@@ -45,7 +45,7 @@ type TableBodyProps = ViewProps & {
  * </Table>
  * ```
  */
-function TableBody<T>({contentContainerStyle, ...props}: TableBodyProps) {
+function TableBody<T>({contentContainerStyle, style, ...props}: TableBodyProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {processedData: filteredAndSortedData, activeSearchString, listProps, hasActiveFilters, hasSearchString, isEmptyResult} = useTableContext<T>();
@@ -85,15 +85,15 @@ function TableBody<T>({contentContainerStyle, ...props}: TableBodyProps) {
 
     return (
         <View
-            style={styles.flex1}
+            style={[styles.flex1, styles.mnh0, style]}
             {...props}
         >
             <FlashList<T>
                 data={filteredAndSortedData}
                 showsVerticalScrollIndicator={false}
-                style={styles.flex1}
+                style={[styles.flex1, styles.mnh0]}
                 ListEmptyComponent={isEmptyResult ? EmptyResultComponent : ListEmptyComponent}
-                contentContainerStyle={[filteredAndSortedData.length === 0 && styles.flex1, listContentContainerStyle, tableBodyContentContainerStyle]}
+                contentContainerStyle={[filteredAndSortedData.length === 0 && styles.flex1, listContentContainerStyle, tableBodyContentContainerStyle, contentContainerStyle]}
                 keyboardShouldPersistTaps="handled"
                 extraData={listExtraData}
                 {...restListProps}

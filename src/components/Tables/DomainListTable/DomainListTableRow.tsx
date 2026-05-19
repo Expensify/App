@@ -2,7 +2,6 @@ import React from 'react';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import TableRow from '@components/Table/TableRow';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -67,54 +66,53 @@ export default function DomainListTableRow({item, rowIndex, shouldUseNarrowTable
     ];
 
     return (
-        <OfflineWithFeedback
-            errors={item.errors}
-            pendingAction={item.pendingAction}
-            onClose={() => clearDomainErrors(item.domainAccountID)}
+        <TableRow
+            interactive
+            rowIndex={rowIndex}
+            skeletonReasonAttributes={{context: 'domainTableRow'}}
+            onPress={item.action}
+            offlineWithFeedback={{
+                errors: item.errors,
+                pendingAction: item.pendingAction,
+                onClose: () => clearDomainErrors(item.domainAccountID),
+            }}
         >
-            <TableRow
-                interactive
-                rowIndex={rowIndex}
-                skeletonReasonAttributes={{context: 'domainTableRow'}}
-                onPress={item.action}
-            >
-                {({hovered}) => (
-                    <>
-                        <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
-                            <Icon
-                                src={icons.Globe}
-                                fill={theme.icon}
-                                additionalStyles={[shouldUseNarrowTableLayout ? styles.domainIconCompact : styles.domainIcon]}
+            {({hovered}) => (
+                <>
+                    <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
+                        <Icon
+                            src={icons.Globe}
+                            fill={theme.icon}
+                            additionalStyles={[shouldUseNarrowTableLayout ? styles.domainIconCompact : styles.domainIcon]}
+                        />
+                        <View style={domainDetailsContainerStyles}>
+                            <TextWithTooltip
+                                text={item.title}
+                                shouldShowTooltip
                             />
-                            <View style={domainDetailsContainerStyles}>
-                                <TextWithTooltip
-                                    text={item.title}
-                                    shouldShowTooltip
-                                />
-                                {item.isAdmin && VerifiedDomainBadge}
-                            </View>
+                            {item.isAdmin && VerifiedDomainBadge}
                         </View>
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3]}>
-                            {threeDotMenuItems.length > 0 && (
-                                <ThreeDotsMenu
-                                    isNested
-                                    shouldOverlay
-                                    shouldSelfPosition
-                                    menuItems={threeDotMenuItems}
-                                />
-                            )}
+                    </View>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3]}>
+                        {threeDotMenuItems.length > 0 && (
+                            <ThreeDotsMenu
+                                isNested
+                                shouldOverlay
+                                shouldSelfPosition
+                                menuItems={threeDotMenuItems}
+                            />
+                        )}
 
-                            <Icon
-                                src={icons.ArrowRight}
-                                fill={theme.icon}
-                                additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
-                                width={arrowIconSize}
-                                height={arrowIconSize}
-                            />
-                        </View>
-                    </>
-                )}
-            </TableRow>
-        </OfflineWithFeedback>
+                        <Icon
+                            src={icons.ArrowRight}
+                            fill={theme.icon}
+                            additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
+                            width={arrowIconSize}
+                            height={arrowIconSize}
+                        />
+                    </View>
+                </>
+            )}
+        </TableRow>
     );
 }

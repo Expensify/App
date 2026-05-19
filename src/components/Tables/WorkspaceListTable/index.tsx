@@ -105,7 +105,7 @@ export default function WorkspaceListTable({ref, workspaces}: WorkspaceListTable
         >
             {workspaces.length > CONST.SEARCH_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.common.findWorkspace')} />}
             <Table.Header />
-            <Table.Body />
+            <Table.Body contentContainerStyle={styles.pb20} />
         </Table>
     );
 }

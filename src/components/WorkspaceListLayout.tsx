@@ -14,6 +14,7 @@ import HighlightableMenuItem from './HighlightableMenuItem';
 import NAVIGATION_TABS from './Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TabBarBottomContent from './Navigation/TabBarBottomContent';
 import TopBarWithLoadingBar from './Navigation/TopBarWithLoadingBar';
+import OfflineIndicator from './OfflineIndicator';
 import ScreenWrapper from './ScreenWrapper';
 import ScrollView from './ScrollView';
 import TabSelectorBase from './TabSelector/TabSelectorBase';
@@ -66,9 +67,8 @@ export default function WorkspaceListLayout({children, headerButton}: WorkspaceL
         <ScreenWrapper
             testID="WorkspacesPage"
             shouldEnableMaxHeight
-            shouldShowOfflineIndicatorInWideScreen
+            enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
-            enableEdgeToEdgeBottomSafeAreaPadding={false}
             bottomContentStyle={styles.overflowVisible}
             bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.WORKSPACES} />}
         >
@@ -98,7 +98,7 @@ export default function WorkspaceListLayout({children, headerButton}: WorkspaceL
                     </View>
                 )}
 
-                <View style={styles.flex1}>
+                <View style={[styles.flex1]}>
                     <TopBarWithLoadingBar
                         shouldDisplayHelpButton
                         breadcrumbLabel={activeTabLabel}
@@ -118,6 +118,7 @@ export default function WorkspaceListLayout({children, headerButton}: WorkspaceL
                     )}
 
                     {children}
+                    {!shouldUseNarrowLayout && <OfflineIndicator style={styles.pl5} />}
                 </View>
             </View>
         </ScreenWrapper>

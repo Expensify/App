@@ -75,7 +75,7 @@ export default function DomainListTable({domains}: DomainListTableProps) {
         >
             {domains.length > CONST.SEARCH_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.common.findDomain')} />}
             <Table.Header />
-            <Table.Body />
+            <Table.Body style={styles.pb20} />
         </Table>
     );
 }
