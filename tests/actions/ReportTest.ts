@@ -3991,6 +3991,53 @@ describe('actions/Report', () => {
                 expect(rolledBackTransaction?.convertedAmount).toBe(6000);
                 expect(rolledBackTransaction?.convertedTaxAmount).toBe(600);
             });
+
+            it('should store a negative converted magnitude even when the IOU transaction already has negative converted amounts', () => {
+                // Given an IOU transaction whose converted amounts are stored negative (IOU amounts can be stored with either sign)
+                const policyID = '303';
+                const policyWithEmptyFieldList: OnyxTypes.Policy = {
+                    ...createRandomPolicy(Number(policyID)),
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    fieldList: {},
+                    name: 'Test Policy',
+                };
+
+                const iouReport: OnyxTypes.Report = {
+                    ...createRandomReport(3, undefined),
+                    reportID: 'iouReport303',
+                    type: CONST.REPORT.TYPE.IOU,
+                    ownerAccountID: 3,
+                    reportName: 'Original IOU Report Name',
+                    total: 5000,
+                };
+
+                const transaction: OnyxTypes.Transaction = {
+                    ...createRandomTransaction(303),
+                    transactionID: 'transaction303',
+                    reportID: iouReport.reportID,
+                    amount: 5000,
+                    modifiedAmount: '',
+                    convertedAmount: -6000,
+                    convertedTaxAmount: -600,
+                };
+
+                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithEmptyFieldList);
+
+                // When converting the IOU report to an expense report
+                const result = Report.convertIOUReportToExpenseReport(iouReport, policyWithEmptyFieldList, policyID, 'expenseChat303', [transaction]);
+
+                // Then the optimistic transaction still stores a negative converted magnitude so the expense-report
+                // sign convention renders a positive table total (a plain negation would have flipped it back to positive here)
+                const transactionUpdate = result.optimisticData.find((update) => update.key === ONYXKEYS.COLLECTION.TRANSACTION) as
+                    | OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>
+                    | undefined;
+                const optimisticTransaction = (transactionUpdate?.value as Record<string, OnyxTypes.Transaction> | undefined)?.[
+                    `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`
+                ];
+                expect(optimisticTransaction?.convertedAmount).toBe(-6000);
+                expect(optimisticTransaction?.convertedTaxAmount).toBe(-600);
+            });
         });
     });
 
