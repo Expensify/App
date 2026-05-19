@@ -136,17 +136,26 @@ describe('conciergeDraftState', () => {
 
     describe('getNextVisibleConciergeDraftBodyMarkdown', () => {
         it('handles normal reveal, completion acceleration, code points, and corrections', () => {
-            expect(getNextVisibleConciergeDraftBodyMarkdown('', 'Hello')).toBe('H');
-            expect(getNextVisibleConciergeDraftBodyMarkdown('H', 'Hello')).toBe('He');
-            expect(getNextVisibleConciergeDraftBodyMarkdown('Hi ', 'Hi 😃 there')).toBe('Hi 😃');
-
+            // Given representative pacing inputs
             const longTarget = 'a'.repeat(200);
-            expect(getNextVisibleConciergeDraftBodyMarkdown('', longTarget).length).toBeGreaterThan(1);
-
             const completionTarget = 'a'.repeat(40);
-            expect(getNextVisibleConciergeDraftBodyMarkdown('', completionTarget, true).length).toBeGreaterThan(getNextVisibleConciergeDraftBodyMarkdown('', completionTarget).length);
 
-            expect(getNextVisibleConciergeDraftBodyMarkdown('Old draft', 'New draft')).toBe('New draft');
+            // When calculating the next visible body
+            const firstSlice = getNextVisibleConciergeDraftBodyMarkdown('', 'Hello');
+            const secondSlice = getNextVisibleConciergeDraftBodyMarkdown('H', 'Hello');
+            const emojiSlice = getNextVisibleConciergeDraftBodyMarkdown('Hi ', 'Hi 😃 there');
+            const longBacklogSlice = getNextVisibleConciergeDraftBodyMarkdown('', longTarget);
+            const normalCompletionSlice = getNextVisibleConciergeDraftBodyMarkdown('', completionTarget);
+            const acceleratedCompletionSlice = getNextVisibleConciergeDraftBodyMarkdown('', completionTarget, true);
+            const correctedSlice = getNextVisibleConciergeDraftBodyMarkdown('Old draft', 'New draft');
+
+            // Then each pacing path preserves its expected reveal behavior
+            expect(firstSlice).toBe('H');
+            expect(secondSlice).toBe('He');
+            expect(emojiSlice).toBe('Hi 😃');
+            expect(longBacklogSlice.length).toBeGreaterThan(1);
+            expect(acceleratedCompletionSlice.length).toBeGreaterThan(normalCompletionSlice.length);
+            expect(correctedSlice).toBe('New draft');
         });
     });
 

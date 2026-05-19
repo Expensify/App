@@ -93,6 +93,7 @@ describe('ConciergeDraftContext', () => {
     });
 
     it('resumes pending completion after remount and applies the cached final HTML', async () => {
+        // Given a cached draft with pending completion
         const visibleDraft = applyConciergeDraftEvent(null, createDraftEvent('H'), REPORT_ID);
         if (!visibleDraft) {
             throw new Error('Expected visible draft to be created');
@@ -110,8 +111,10 @@ describe('ConciergeDraftContext', () => {
         });
 
         const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
+        // When the provider remounts
         const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
 
+        // Then the cached completion applies final HTML after pacing catches up
         await waitFor(() => {
             expect(getCachedDraft(REPORT_ID)?.status).toBe('completed');
             expect(getFirstMessageText(result.current.draftReportAction)).toBe('Server final response');
@@ -129,11 +132,13 @@ describe('ConciergeDraftContext', () => {
             expect(Pusher.subscribe).toHaveBeenCalledTimes(5);
         });
 
+        // Given an active paced Pusher target
         act(() => {
             emitPusherEvent(Pusher.TYPE.CONCIERGE_DRAFT_UPDATED, createDraftEvent(TARGET_BODY_MARKDOWN));
         });
         expect(getFirstMessageText(result.current.draftReportAction)).toBe('H');
 
+        // When completion arrives before the visible body reaches the target
         act(() => {
             emitPusherEvent(
                 Pusher.TYPE.CONCIERGE_DRAFT_COMPLETED,
@@ -146,6 +151,7 @@ describe('ConciergeDraftContext', () => {
             );
         });
 
+        // Then final HTML waits until the banked text is visible
         expect(getFirstMessageText(result.current.draftReportAction)).toBe('He');
         expect(getFirstMessageText(result.current.draftReportAction)).not.toBe('Server final response');
 
@@ -160,11 +166,13 @@ describe('ConciergeDraftContext', () => {
             expect(Pusher.subscribe).toHaveBeenCalledTimes(5);
         });
 
+        // Given an in-progress Pusher target
         act(() => {
             emitPusherEvent(Pusher.TYPE.CONCIERGE_DRAFT_UPDATED, createDraftEvent(TARGET_BODY_MARKDOWN));
         });
         expect(getFirstMessageText(result.current.draftReportAction)).toBe('H');
 
+        // When completion includes final markdown and server HTML
         act(() => {
             emitPusherEvent(
                 Pusher.TYPE.CONCIERGE_DRAFT_COMPLETED,
@@ -176,6 +184,7 @@ describe('ConciergeDraftContext', () => {
             );
         });
 
+        // Then the completed markdown paces before final HTML is applied
         expect(getFirstMessageText(result.current.draftReportAction)).toBe('Hell');
         expect(getFirstMessageText(result.current.draftReportAction)).not.toBe('Server final response');
         expect(getCachedDraft(REPORT_ID)?.pusherTargetBodyMarkdown).toBe(COMPLETED_BODY_MARKDOWN);
@@ -189,6 +198,7 @@ describe('ConciergeDraftContext', () => {
     });
 
     it('renders bodyMarkdown from a completed Pusher event without final HTML', async () => {
+        // Given a mounted draft provider with no prior Pusher target
         const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
         const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
 
@@ -196,6 +206,7 @@ describe('ConciergeDraftContext', () => {
             expect(Pusher.subscribe).toHaveBeenCalledTimes(5);
         });
 
+        // When completion arrives with markdown only
         act(() => {
             emitPusherEvent(
                 Pusher.TYPE.CONCIERGE_DRAFT_COMPLETED,
@@ -207,6 +218,7 @@ describe('ConciergeDraftContext', () => {
 
         expect(getFirstMessageText(result.current.draftReportAction)).toBe('He');
 
+        // Then the completed markdown becomes fully visible
         await waitFor(() => {
             expect(getCachedDraft(REPORT_ID)?.status).toBe('completed');
             expect(getFirstMessageText(result.current.draftReportAction)).toBe(TARGET_BODY_MARKDOWN);
