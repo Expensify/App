@@ -98,7 +98,6 @@ function SearchPage({route}: SearchPageProps) {
     }, []);
 
     const prevIsLoading = usePrevious(currentSearchResults?.isLoading);
-    const prevSearchIsLoading = usePrevious(metadata?.isLoading);
 
     useEffect(() => {
         if (!isSorting || !prevIsLoading || currentSearchResults?.isLoading) {
@@ -122,13 +121,15 @@ function SearchPage({route}: SearchPageProps) {
         setDefaultFooterCurrency(metadata.currency);
     }, [defaultFooterCurrency, metadata?.currency, selectedCurrency]);
 
+    const hasPendingFooterCurrencySettled = !!pendingFooterCurrency && metadata?.currency === pendingFooterCurrency && metadata?.count != null && metadata?.total != null;
+
     useEffect(() => {
-        if (!pendingFooterCurrency || !prevSearchIsLoading || metadata?.isLoading) {
+        if (!hasPendingFooterCurrencySettled) {
             return;
         }
 
         setPendingFooterCurrency(undefined);
-    }, [metadata?.isLoading, pendingFooterCurrency, prevSearchIsLoading]);
+    }, [hasPendingFooterCurrencySettled]);
 
     const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
 
@@ -189,7 +190,6 @@ function SearchPage({route}: SearchPageProps) {
                   return acc - (shouldUseGroupAmount ? (transaction.groupAmount ?? -Math.abs(transaction.amount)) : -Math.abs(transaction.amount));
               }, 0)
             : metadata?.total;
-
         return {count: numberOfExpense, total, currency, isLoading: isSelectedSubtotalLoading};
     }, [areAllMatchingItemsSelected, metadata?.count, metadata?.currency, metadata?.total, selectedCurrency, selectedTransactions, selectedTransactionsKeys, shouldAllowFooterTotals]);
 
@@ -209,6 +209,8 @@ function SearchPage({route}: SearchPageProps) {
         onDestinationVisible: overlayEndSubmitSpans,
     });
 
+    const isFooterTotalLoading = !!footerData.isLoading || (!!pendingFooterCurrency && !hasPendingFooterCurrencySettled);
+
     return (
         <Animated.View style={[styles.flex1]}>
             {shouldUseNarrowLayout ? (
@@ -219,7 +221,7 @@ function SearchPage({route}: SearchPageProps) {
                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                     footerData={footerData}
                     footerDefaultCurrency={defaultFooterCurrency ?? metadata?.currency}
-                    isFooterTotalLoading={!!pendingFooterCurrency || !!footerData.isLoading}
+                    isFooterTotalLoading={isFooterTotalLoading}
                     targetCurrency={selectedCurrency}
                     onFooterCurrencyChange={handleFooterCurrencyChange}
                     shouldShowFooter={shouldShowFooter}
@@ -237,7 +239,7 @@ function SearchPage({route}: SearchPageProps) {
                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                     footerData={footerData}
                     footerDefaultCurrency={defaultFooterCurrency ?? metadata?.currency}
-                    isFooterTotalLoading={!!pendingFooterCurrency || !!footerData.isLoading}
+                    isFooterTotalLoading={isFooterTotalLoading}
                     targetCurrency={selectedCurrency}
                     onFooterCurrencyChange={handleFooterCurrencyChange}
                     handleSearchAction={handleSearchAction}
