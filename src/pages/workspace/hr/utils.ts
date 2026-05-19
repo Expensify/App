@@ -190,12 +190,11 @@ function getHRCards({policy, connectionSyncProgress, isBetaEnabled, getLocalDate
 
     if (isBetaEnabled(CONST.BETAS.MERGE_HR)) {
         const mergeConnectionName = CONST.POLICY.CONNECTIONS.NAME.MERGE_HR;
-        const mergeConnectedSlug = policy?.connections?.merge_hris?.config?.integration;
+        const disconnectedState = {isConnected: false, isSyncInProgress: false, hasError: false} as const;
 
         for (const [slug, providerEntry] of Object.entries(MERGE_HR_PROVIDERS) as Array<[MergeHRProviderSlug, (typeof MERGE_HR_PROVIDERS)[MergeHRProviderSlug]]>) {
             const state = getHRCardState({policy, connectionName: mergeConnectionName, connectionSyncProgress, getLocalDateFromDatetime, mergeSlug: slug});
-            const isThisSlugConnected = !!mergeConnectedSlug && mergeConnectedSlug === slug;
-            const config = isThisSlugConnected ? getCardConfig(policy, mergeConnectionName) : undefined;
+            const config = state.isConnected ? getCardConfig(policy, mergeConnectionName) : undefined;
 
             cards.push({
                 key: `merge_${slug}`,
@@ -203,10 +202,7 @@ function getHRCards({policy, connectionSyncProgress, isBetaEnabled, getLocalDate
                 displayName: providerEntry.displayName,
                 icon: providerEntry.iconUrl,
                 iconType: CONST.ICON_TYPE_AVATAR,
-                isConnected: isThisSlugConnected,
-                isSyncInProgress: isThisSlugConnected ? state.isSyncInProgress : false,
-                successfulDate: isThisSlugConnected ? state.successfulDate : undefined,
-                hasError: isThisSlugConnected ? state.hasError : false,
+                ...(state.isConnected ? state : disconnectedState),
                 onConnect: () => connectPolicyToMergeHR(policyID, slug),
                 approvalModeRoute: ROUTES.WORKSPACE_HR_MERGE_APPROVAL_MODE.getRoute(policyID),
                 finalApproverRoute: ROUTES.WORKSPACE_HR_MERGE_FINAL_APPROVER.getRoute(policyID),
