@@ -1,6 +1,7 @@
 import {useEffect, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {applyPendingConciergeAction, clearPendingFollowupList, discardPendingConciergeAction} from '@libs/actions/Report/SuggestedFollowup';
+import {MAX_AGE_MS} from '@libs/AgentZeroOptimisticStore';
 import Log from '@libs/Log';
 import {rand64} from '@libs/NumberUtils';
 import type {ConciergeDraftEvent} from '@libs/Pusher/types';
@@ -23,7 +24,7 @@ const ACCELERATED_REMAINING_MS = 1_500;
 /** Minimum char-level anchors before we opt into the trickle reveal. Replies under this fall back to the binary reveal at `displayAfter`. */
 const MIN_TRICKLE_TOKEN_COUNT = 100;
 /** Hard cap on a pending followup-list skeleton. If the server never appends a real followup-list within this window, drop the marker so the UI stops showing a perpetual skeleton. */
-const PENDING_FOLLOWUP_LIST_HARD_CAP_MS = 60_000;
+const PENDING_FOLLOWUP_LIST_HARD_CAP_MS = MAX_AGE_MS;
 
 function easeOut(t: number): number {
     const clamped = Math.max(0, Math.min(1, t));
