@@ -3,6 +3,7 @@ import React from 'react';
 import FloatingMessageCounter from '@pages/inbox/report/FloatingMessageCounter';
 import CONST from '@src/CONST';
 
+/* eslint-disable @typescript-eslint/naming-convention */
 const translationMap: Record<string, string> = {
     newMessages: 'New messages',
     latestMessages: 'Latest messages',
@@ -13,6 +14,7 @@ const translationMap: Record<string, string> = {
     'accessibilityHints.scrollToActionBadgeTarget': 'Scroll to action requiring attention',
     'accessibilityHints.scrollToNewestMessages': 'Scroll to newest messages',
 };
+/* eslint-enable @typescript-eslint/naming-convention */
 
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
