@@ -249,10 +249,12 @@ function useVerticallyCenteredInitialContent({
                     }
                 })
                 .catch(() => {
-                    if (!isFollowUp) {
-                        hasCommittedMeasuredAnchorScrollRef.current = false;
-                        retryMeasuredAnchorScroll();
+                    if (isFollowUp) {
+                        return;
                     }
+
+                    hasCommittedMeasuredAnchorScrollRef.current = false;
+                    retryMeasuredAnchorScroll();
                 });
         }
 
