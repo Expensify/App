@@ -108,12 +108,7 @@ function SearchRouterItem(props: UserListItemProps<AutocompleteListItem> | Searc
     const styles = useThemeStyles();
 
     if (isSearchQueryListItem(props)) {
-        return (
-            <SearchQueryListItem
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
-            />
-        );
+        return <SearchQueryListItem {...props} />;
     }
 
     const {item, isFocused, showTooltip, isDisabled, onSelectRow, onDismissError, shouldPreventEnterKeySubmit, rightHandSideComponent, onFocus, shouldSyncFocus, wrapperStyle} = props;

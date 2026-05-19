@@ -49,6 +49,11 @@ function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = tr
 
     const [mapboxAccessToken] = useOnyx(ONYXKEYS.MAPBOX_ACCESS_TOKEN);
 
+    useEffect(() => {
+        initMapboxToken();
+        return stopMapboxToken;
+    }, []);
+
     const getMarkerComponent = (icon: IconAsset): ReactNode => (
         <ImageSVG
             src={icon}
@@ -81,11 +86,6 @@ function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = tr
             markerComponent: (): ReactNode => getMarkerComponent(MarkerComponent),
         });
     }
-
-    useEffect(() => {
-        initMapboxToken();
-        return stopMapboxToken;
-    }, []);
 
     const hasCoordinates = getArrayDepth(coordinates) === 3 ? !!coordinates.flat().length : !!coordinates.length;
     const shouldDisplayMap = !requireRouteToDisplayMap || hasCoordinates;

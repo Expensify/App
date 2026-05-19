@@ -30,5 +30,4 @@ function staticPolicyInfoSelector(policies: OnyxCollection<Policy>): StaticPolic
     return {hasMultipleWorkspaces: workspaceCount > 1, hasPaidGroupPolicy};
 }
 
-export type {StaticPolicyInfo};
 export default staticPolicyInfoSelector;

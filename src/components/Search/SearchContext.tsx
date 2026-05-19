@@ -1,4 +1,4 @@
-import {useNavigation} from '@react-navigation/core';
+import {useNavigation} from '@react-navigation/native';
 import type {NavigationState} from '@react-navigation/routers';
 import React, {useContext, useEffect, useRef, useState} from 'react';
 // We need direct access to useOnyx from react-native-onyx to avoid circular dependencies in SearchContext
@@ -51,9 +51,11 @@ const defaultSearchContextData: SearchContextData = {
     isOnSearch: false,
     shouldTurnOffSelectionMode: false,
     shouldResetSearchQuery: false,
+    hasSelectedTransactions: false,
     currentSearchHash: -1,
     currentSimilarSearchHash: -1,
     suggestedSearches: {} as Record<SearchKey, SearchTypeMenuItem>,
+    sortedReportIDs: CONST.EMPTY_ARRAY,
 };
 
 const defaultSearchStateContext: SearchStateContextValue = {
@@ -76,6 +78,7 @@ const defaultSearchActionsContext: SearchActionsContextValue = {
     setShouldShowSelectAllMatchingItems: () => {},
     selectAllMatchingItems: () => {},
     setShouldResetSearchQuery: () => {},
+    setSortedReportIDs: () => {},
 };
 
 const SearchStateContext = React.createContext<SearchStateContextValue>(defaultSearchStateContext);
@@ -315,6 +318,15 @@ function SearchContextProvider({children}: SearchContextProps) {
         }));
     };
 
+    const setSortedReportIDs = (newIDs: ReadonlyArray<string | undefined>) => {
+        setSearchContextData((prev) => {
+            // ensure that we don't save the same report IDs unless they are really different
+            const hasChanged = prev.sortedReportIDs.length !== newIDs.length || prev.sortedReportIDs.some((id, i) => id !== newIDs.at(i));
+
+            return hasChanged ? {...prev, sortedReportIDs: newIDs} : prev;
+        });
+    };
+
     const searchStateContextValue: SearchStateContextValue = {
         ...searchContextData,
         suggestedSearches,
@@ -327,6 +339,7 @@ function SearchContextProvider({children}: SearchContextProps) {
         lastSearchType,
         shouldShowSelectAllMatchingItems,
         areAllMatchingItemsSelected,
+        hasSelectedTransactions: searchContextData.selectedTransactionIDs.length > 0 || Object.values(searchContextData.selectedTransactions).some((t) => t.isSelected),
         currentSearchQueryJSON,
     };
 
@@ -340,6 +353,7 @@ function SearchContextProvider({children}: SearchContextProps) {
         setShouldShowSelectAllMatchingItems,
         selectAllMatchingItems,
         setShouldResetSearchQuery,
+        setSortedReportIDs,
     };
 
     return (
