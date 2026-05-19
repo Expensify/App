@@ -21,16 +21,25 @@ export default function useSelection<DataType extends TableData>({data}: UseSele
     const lastSelectedRowIsSelectedRef = useRef<boolean>(false);
     const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
 
-    /**
-     *
-     */
-    const handleSelectAll = () => {};
+    const keyForLists = data.map((item) => item.keyForList);
 
     /**
-     *
+     * When the select all checkbox is toggled, select or deselect all of the
+     * rows in the table
+     */
+    const handleSelectAll = () => {
+        if (selectedKeys.length === data.length) {
+            setSelectedKeys([]);
+        } else {
+            setSelectedKeys(keyForLists);
+        }
+    };
+
+    /**
+     * When a row is selected, while holding shift, select all of the rows in-between
+     * the last selected row and the current row
      */
     const handleMultipleRowSelection = (keyForList: string) => {
-        const keyForLists = data.map((item) => item.keyForList);
         const keyForListExists = keyForLists.includes(keyForList);
 
         if (!keyForListExists) {
@@ -78,9 +87,12 @@ export default function useSelection<DataType extends TableData>({data}: UseSele
     };
 
     /**
-     *
+     * When a single row is selected in the table, update the selection state
      */
     const handleSingleRowSelection = (keyForList: string) => {
+        lastSelectedRowKeyRef.current = keyForList;
+        lastSelectedRowIsSelectedRef.current = !selectedKeys.includes(keyForList);
+
         setSelectedKeys((prevSelectedKeys) => {
             if (prevSelectedKeys.includes(keyForList)) {
                 return prevSelectedKeys.filter((key) => key !== keyForList);

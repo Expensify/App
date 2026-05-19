@@ -11,6 +11,7 @@ export type WorkspaceCategoryTableColumnKey = 'name' | 'glCode' | 'approver' | '
 export type WorkspaceCategoryTableRowData = TableData & {
     name: string;
     glCode?: string;
+    enabled: boolean;
     approverAvatar?: AvatarSource;
     approverAccountID?: number;
     approverDisplayName?: string;

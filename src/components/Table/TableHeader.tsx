@@ -6,6 +6,7 @@ import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -50,7 +51,8 @@ type TableHeaderProps = ViewProps;
 function TableHeader<DataType extends TableData, ColumnKey extends string = string>({style, ...props}: TableHeaderProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {columns, isEmptyResult, title, shouldUseNarrowTableLayout, processedData, selectionEnabled} = useTableContext<DataType, ColumnKey>();
+    const {translate} = useLocalize();
+    const {columns, isEmptyResult, title, shouldUseNarrowTableLayout, tableMethods, processedData, selectionEnabled} = useTableContext<DataType, ColumnKey>();
 
     if (shouldUseNarrowTableLayout && !title) {
         return null;
@@ -102,9 +104,9 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                     {selectionEnabled && (
                         <View style={styles.flex1}>
                             <Checkbox
-                                accessibilityLabel="TODO"
                                 isChecked={false}
-                                onPress={() => {}}
+                                onPress={tableMethods.handleSelectAll}
+                                accessibilityLabel={translate('workspace.common.selectAll')}
                             />
                         </View>
                     )}

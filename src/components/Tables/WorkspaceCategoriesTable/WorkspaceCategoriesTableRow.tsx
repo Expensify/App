@@ -2,10 +2,12 @@ import React from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
+import Switch from '@components/Switch';
 import Table from '@components/Table';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -23,6 +25,7 @@ type WorkspaceCategoriesTableRowProps = {
 export default function WorkspaceCategoriesTableRow({rowIndex, shouldShowApproverColumn, item}: WorkspaceCategoriesTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     return (
@@ -59,7 +62,13 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldShowApprove
                         </View>
                     )}
 
-                    <View style={[styles.flex1, styles.flexRow]}></View>
+                    <View style={[styles.flex1, styles.flexRow]}>
+                        <Switch
+                            isOn={item.enabled}
+                            accessibilityLabel={`${translate('workspace.categories.enableCategory')}: ${item.name}`}
+                            onToggle={() => {}}
+                        />
+                    </View>
 
                     <View style={[styles.flex1, styles.flexRow]}>
                         <Icon

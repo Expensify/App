@@ -238,10 +238,11 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 keyForList: `${value.name}-${index}`,
                 name: getDecodedCategoryName(value.name),
                 glCode: value['GL Code'],
+                isDisabled,
                 approverAvatar,
                 approverAccountID,
                 approverDisplayName,
-                isDisabled,
+                enabled: value.enabled,
                 errors: value.errors ?? undefined,
                 pendingAction: value.pendingAction,
                 action: () => {
