@@ -3,6 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
 import Text from '@components/Text';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -50,6 +51,12 @@ function TableBody<T>({contentContainerStyle, ...props}: TableBodyProps) {
     const {processedData: filteredAndSortedData, activeSearchString, listProps, hasActiveFilters, hasSearchString, isEmptyResult} = useTableContext<T>();
     const {ListEmptyComponent, contentContainerStyle: listContentContainerStyle, ...restListProps} = listProps ?? {};
 
+    const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding: true,
+        addOfflineIndicatorBottomSafeAreaPadding: true,
+        style: styles.pb4,
+    });
+
     // Determine the message based on what caused the empty result
     const getEmptyMessage = () => {
         if (hasSearchString) {
@@ -84,8 +91,9 @@ function TableBody<T>({contentContainerStyle, ...props}: TableBodyProps) {
             <FlashList<T>
                 data={filteredAndSortedData}
                 showsVerticalScrollIndicator={false}
+                style={styles.flex1}
                 ListEmptyComponent={isEmptyResult ? EmptyResultComponent : ListEmptyComponent}
-                contentContainerStyle={[filteredAndSortedData.length === 0 && styles.flex1, listContentContainerStyle, contentContainerStyle]}
+                contentContainerStyle={[filteredAndSortedData.length === 0 && styles.flex1, listContentContainerStyle, tableBodyContentContainerStyle]}
                 keyboardShouldPersistTaps="handled"
                 {...restListProps}
             />

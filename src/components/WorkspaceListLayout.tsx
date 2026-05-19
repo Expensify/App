@@ -52,15 +52,13 @@ export default function WorkspaceListLayout({children, headerButton}: WorkspaceL
     ];
 
     const onTabPress = (key: string) => {
-        if (key === 'workspaces') {
-            Navigation.navigate(ROUTES.WORKSPACES_LIST.route);
+        const matchingNavigationOption = navigationOptions.find((option) => option.key === key);
+
+        if (!matchingNavigationOption) {
             return;
         }
 
-        if (key === 'domains') {
-            Navigation.navigate(ROUTES.DOMAINS_LIST.route);
-            return;
-        }
+        Navigation.navigate(matchingNavigationOption.route);
     };
 
     return (
