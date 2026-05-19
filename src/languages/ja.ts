@@ -2571,9 +2571,10 @@ ${date} の ${merchant} への ${amount}`,
             approverSubtitle: 'すべての承認者は、既存のワークフローに属しています。',
             bulkApproverSubtitle: '選択されたレポートの条件に一致する承認者がいません。',
         },
-        configureViaGusto: 'Gusto で設定する。',
-        gustoApprovalWorkflowLockedPrompt: '承認はGusto連携によって管理されています。承認ワークフローを更新するには、Gusto接続設定に移動してください。',
-        goToGustoSettings: 'Gusto設定に移動',
+        configureViaHR: ({provider}: {provider: string}) => `${provider} で設定する。`,
+        hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
+            `承認は${provider}連携によって管理されています。承認ワークフローを更新するには、${provider}接続設定に移動してください。`,
+        goToHRSettings: ({provider}: {provider: string}) => `${provider}設定に移動`,
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: '提出頻度を変更できませんでした。もう一度お試しいただくか、サポートまでご連絡ください。',

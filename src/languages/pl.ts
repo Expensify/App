@@ -2589,10 +2589,10 @@ ${amount} dla ${merchant} - ${date}`,
             approverSubtitle: 'Wszyscy zatwierdzający należą do istniejącego przepływu pracy.',
             bulkApproverSubtitle: 'Żaden akceptujący nie spełnia kryteriów dla wybranych raportów.',
         },
-        configureViaGusto: 'Skonfiguruj przez Gusto.',
-        gustoApprovalWorkflowLockedPrompt:
-            'Zatwierdzanie jest zarządzane przez Twoją integrację z Gusto. Aby zaktualizować swój proces zatwierdzania, przejdź do ustawień połączenia z Gusto.',
-        goToGustoSettings: 'Przejdź do ustawień Gusto',
+        configureViaHR: ({provider}: {provider: string}) => `Skonfiguruj przez ${provider}.`,
+        hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
+            `Zatwierdzanie jest zarządzane przez Twoją integrację z ${provider}. Aby zaktualizować swój proces zatwierdzania, przejdź do ustawień połączenia z ${provider}.`,
+        goToHRSettings: ({provider}: {provider: string}) => `Przejdź do ustawień ${provider}`,
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: 'Nie udało się zmienić częstotliwości wysyłania. Spróbuj ponownie lub skontaktuj się z pomocą techniczną.',
