@@ -708,6 +708,11 @@ function updateWorkspaceMembersRole(policy: OnyxEntry<Policy>, selectedMemberEma
     if (!policy?.id) {
         return;
     }
+    // Submit workspaces lock everyone to the Editor role — role changes are not allowed.
+    // This guard prevents any future code path from bypassing the UI-level blocks.
+    if (isSubmitPolicy(policy)) {
+        return;
+    }
     const {optimisticData, successData, failureData, memberRoles} = buildUpdateWorkspaceMembersRoleOnyxData(policy, selectedMemberEmails, selectedMemberAccountIDs, newRole);
 
     const params: UpdateWorkspaceMembersRoleParams = {

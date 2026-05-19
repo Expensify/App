@@ -460,6 +460,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 roleBadgeText = translate('common.admin');
             } else if (policyEmployee.role === CONST.POLICY.ROLE.AUDITOR) {
                 roleBadgeText = translate('common.auditor');
+            } else if (policyEmployee.role === CONST.POLICY.ROLE.EDITOR) {
+                roleBadgeText = translate('common.editor');
             }
             const memberName = formatPhoneNumber(getDisplayNameOrDefault(details));
             const memberEmail = formatPhoneNumber(details?.login ?? '');
