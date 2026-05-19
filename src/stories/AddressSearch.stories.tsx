@@ -25,9 +25,9 @@ function Template(props: AddressSearchProps) {
     const [value, setValue] = useState<string | number | Address | StreetValue>('');
     return (
         <AddressSearch
+            inputID="addressLine1"
             value={value as string}
             onInputChange={(inputValue) => setValue(inputValue)}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />
     );

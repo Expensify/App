@@ -11,6 +11,81 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {FieldVisibility, TagEntry} from './fieldVisibility';
 
+type TagFieldRowProps = {
+    /** Tag entry to render (carries name, index, and required flag) */
+    entry: TagEntry;
+
+    /** Tag lists configured on the policy (used to look up the list at the entry's index) */
+    policyTagLists: Array<ValueOf<OnyxTypes.PolicyTagLists>>;
+
+    /** Previous render's per-tag-list `shouldShow` projection (drives transition styling) */
+    previousTagsVisibility: boolean[];
+
+    /** Whether the user has confirmed (locks editable controls) */
+    didConfirm: boolean;
+
+    /** Whether the surface is read-only */
+    isReadOnly: boolean;
+
+    /** ID of the active transaction */
+    transactionID: string | undefined;
+
+    /** Action being performed (drives section navigation targets) */
+    action: IOUAction;
+
+    /** Type of IOU being confirmed */
+    iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
+
+    /** ID of the report the transaction belongs to */
+    reportID: string;
+
+    /** ID of the originating report action when editing */
+    reportActionID: string | undefined;
+
+    /** Active transaction */
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
+
+    /** Form-level error message */
+    formError: string;
+};
+
+function TagFieldRow({
+    entry: {index, isTagRequired},
+    policyTagLists,
+    previousTagsVisibility,
+    didConfirm,
+    isReadOnly,
+    transactionID,
+    action,
+    iouType,
+    reportID,
+    reportActionID,
+    transaction,
+    formError,
+}: TagFieldRowProps) {
+    const policyTagList = policyTagLists.at(index);
+    if (!policyTagList) {
+        return null;
+    }
+    return (
+        <TagFields
+            tagIndex={index}
+            policyTagList={policyTagList}
+            isTagRequired={isTagRequired}
+            previousShouldShow={previousTagsVisibility.at(index) ?? false}
+            didConfirm={didConfirm}
+            isReadOnly={isReadOnly}
+            transactionID={transactionID}
+            action={action}
+            iouType={iouType}
+            reportID={reportID}
+            reportActionID={reportActionID}
+            transaction={transaction}
+            formError={formError}
+        />
+    );
+}
+
 type ClassificationFieldsProps = {
     /** Action being performed (drives section navigation targets) */
     action: IOUAction;
@@ -103,31 +178,19 @@ function ClassificationFields({
     isCompactMode,
     fieldVisibility,
 }: ClassificationFieldsProps) {
-    const renderTagFields = (entries: TagEntry[]) =>
-        entries.map(({name, index, isTagRequired}) => {
-            const policyTagList = policyTagLists.at(index);
-            if (!policyTagList) {
-                return null;
-            }
-            return (
-                <TagFields
-                    key={`tag_${name}`}
-                    tagIndex={index}
-                    policyTagList={policyTagList}
-                    isTagRequired={isTagRequired}
-                    previousShouldShow={previousTagsVisibility.at(index) ?? false}
-                    didConfirm={didConfirm}
-                    isReadOnly={isReadOnly}
-                    transactionID={transactionID}
-                    action={action}
-                    iouType={iouType}
-                    reportID={reportID}
-                    reportActionID={reportActionID}
-                    transaction={transaction}
-                    formError={formError}
-                />
-            );
-        });
+    const tagRowSharedProps = {
+        policyTagLists,
+        previousTagsVisibility,
+        didConfirm,
+        isReadOnly,
+        transactionID,
+        action,
+        iouType,
+        reportID,
+        reportActionID,
+        transaction,
+        formError,
+    };
 
     return (
         <>
@@ -163,9 +226,42 @@ function ClassificationFields({
                 />
             )}
 
-            {renderTagFields(fieldVisibility.tagsRequired)}
+            {fieldVisibility.tagsRequired.map((entry) => (
+                <TagFieldRow
+                    key={`tag_${entry.name}`}
+                    entry={entry}
+                    policyTagLists={tagRowSharedProps.policyTagLists}
+                    previousTagsVisibility={tagRowSharedProps.previousTagsVisibility}
+                    didConfirm={tagRowSharedProps.didConfirm}
+                    isReadOnly={tagRowSharedProps.isReadOnly}
+                    transactionID={tagRowSharedProps.transactionID}
+                    action={tagRowSharedProps.action}
+                    iouType={tagRowSharedProps.iouType}
+                    reportID={tagRowSharedProps.reportID}
+                    reportActionID={tagRowSharedProps.reportActionID}
+                    transaction={tagRowSharedProps.transaction}
+                    formError={tagRowSharedProps.formError}
+                />
+            ))}
 
-            {!isCompactMode && renderTagFields(fieldVisibility.tagsOptional)}
+            {!isCompactMode &&
+                fieldVisibility.tagsOptional.map((entry) => (
+                    <TagFieldRow
+                        key={`tag_${entry.name}`}
+                        entry={entry}
+                        policyTagLists={tagRowSharedProps.policyTagLists}
+                        previousTagsVisibility={tagRowSharedProps.previousTagsVisibility}
+                        didConfirm={tagRowSharedProps.didConfirm}
+                        isReadOnly={tagRowSharedProps.isReadOnly}
+                        transactionID={tagRowSharedProps.transactionID}
+                        action={tagRowSharedProps.action}
+                        iouType={tagRowSharedProps.iouType}
+                        reportID={tagRowSharedProps.reportID}
+                        reportActionID={tagRowSharedProps.reportActionID}
+                        transaction={tagRowSharedProps.transaction}
+                        formError={tagRowSharedProps.formError}
+                    />
+                ))}
 
             {!isCompactMode && fieldVisibility.tax && (
                 <TaxFields

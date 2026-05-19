@@ -1283,9 +1283,12 @@ const translations = {
         deleteReceipt: 'Delete receipt',
         findExpense: 'Find expense',
         deletedTransaction: (amount: string, merchant: string) => `deleted an expense (${amount} for ${merchant})`,
-        movedFromReport: (reportName: string) => `moved an expense${reportName ? ` from ${reportName}` : ''}`,
-        movedTransactionTo: (reportUrl: string, reportName?: string) => `moved this expense${reportName ? ` to <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        movedTransactionFrom: (reportUrl: string, reportName?: string) => `moved this expense${reportName ? ` from <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedFromReport: (reportName: string) => `moved an expense from ${reportName}`,
+        movedFromReportNoName: 'moved an expense',
+        movedTransactionTo: (reportUrl: string, reportName: string) => `moved this expense to <a href="${reportUrl}">${reportName}</a>`,
+        movedTransactionToAnotherReport: 'moved this expense to another report',
+        movedTransactionFrom: (reportUrl: string, reportName: string) => `moved this expense from <a href="${reportUrl}">${reportName}</a>`,
+        movedTransactionFromAnotherReport: 'moved this expense from another report',
         unreportedTransaction: (reportUrl: string) => `moved this expense to your <a href="${reportUrl}">personal space</a>`,
         movedAction: (shouldHideMovedReportUrl: boolean, movedReportUrl: string, newParentReportUrl: string, toPolicyName: string) => {
             if (shouldHideMovedReportUrl) {
@@ -1501,6 +1504,8 @@ const translations = {
             receiptDeleteFailureError: 'Unexpected error deleting this receipt. Please try again later.',
             receiptFailureMessage: '<rbr>There was an error uploading your receipt. Please <a href="download">save the receipt</a> and <a href="retry">try again</a> later.</rbr>',
             receiptFailureMessageShort: 'There was an error uploading your receipt.',
+            receiptUploadFailedMessage: 'Receipt upload failed. Save the receipt, or delete the expense and lose it.',
+            saveReceipt: 'Save receipt',
             genericDeleteFailureMessage: 'Unexpected error deleting this expense. Please try again later.',
             genericEditFailureMessage: 'Unexpected error editing this expense. Please try again later.',
             genericSmartscanFailureMessage: 'Transaction is missing fields',
@@ -2547,6 +2552,7 @@ const translations = {
             revealDetails: 'Reveal details',
             revealCvv: 'Reveal CVV',
             copyCardNumber: 'Copy card number',
+            copyCvv: 'Copy CVV',
             updateAddress: 'Update address',
         },
         cardAddedToWallet: ({platform}: {platform: 'Google' | 'Apple'}) => `Added to ${platform} Wallet`,
@@ -2606,9 +2612,10 @@ const translations = {
         addApprovalTip: 'This default workflow applies to all members, unless a more specific workflow exists.',
         approver: 'Approver',
         addApprovalsDescription: 'Require additional approval before authorizing a payment.',
-        configureViaGusto: 'Configure via Gusto.',
-        gustoApprovalWorkflowLockedPrompt: 'Approvals are managed by your Gusto integration. To update your approval workflow, head to your Gusto connection settings.',
-        goToGustoSettings: 'Go to Gusto settings',
+        configureViaHR: ({provider}: {provider: string}) => `Configure via ${provider}.`,
+        hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
+            `Approvals are managed by your ${provider} integration. To update your approval workflow, head to your ${provider} connection settings.`,
+        goToHRSettings: ({provider}: {provider: string}) => `Go to ${provider} settings`,
         makeOrTrackPaymentsTitle: 'Payments',
         makeOrTrackPaymentsDescription: 'Add an authorized payer for payments made in Expensify or track payments made elsewhere.',
         customApprovalWorkflowEnabled:
@@ -2799,6 +2806,10 @@ const translations = {
         },
         error: {
             genericAdd: 'There was a problem adding this agent',
+            genericUpdate: 'There was a problem updating this agent',
+            updateName: "There was a problem updating this agent's name",
+            updatePrompt: "There was a problem updating this agent's instructions",
+            updateAvatar: "There was a problem updating this agent's avatar",
         },
     },
     addAgentPage: {
@@ -2806,10 +2817,30 @@ const translations = {
         agentName: 'Agent name',
         instructions: 'Write custom instructions',
         createAgent: 'Create agent',
-        switchAvatar: 'Switch avatar',
+        editAvatar: 'Edit avatar',
         defaultAgentName: (displayName: string) => `${displayName}'s Agent`,
         defaultPrompt:
             "Reject expenses that are for gambling, movies, or other obvious non-business reasons.\n\nRemind the user to always include a receipt image that makes the tip clear.\n\nApprove the report if it's very similar to previous reports from the same user.\n\nReject reports with more than $500 in travel expenses.",
+    },
+    editAgentPage: {
+        title: 'Edit agent',
+        agentName: 'Agent name',
+        instructions: 'Write custom instructions',
+        deleteAgent: 'Delete agent',
+        deleteAgentTitle: 'Delete agent?',
+        deleteAgentMessage: 'Are you sure you want to delete this agent? This action cannot be undone.',
+    },
+    editAgentAvatarPage: {
+        title: 'Edit avatar',
+    },
+    editAgentNamePage: {
+        title: 'Agent name',
+    },
+    editAgentPromptPage: {
+        title: 'Write custom instructions',
+        error: {
+            emptyPrompt: 'Please enter instructions for your agent.',
+        },
     },
     expenseRulesPage: {
         title: 'Expense rules',
@@ -4291,6 +4322,7 @@ const translations = {
             perDiem: 'Per diem',
             travel: 'Travel',
             members: 'Members',
+            rooms: 'Rooms',
             accounting: 'Accounting',
             hr: 'HR',
             receiptPartners: 'Receipt partners',
@@ -4639,6 +4671,7 @@ const translations = {
             notConfigured: 'Not configured',
             bankAccountDescription: 'Choose where to send checks from.',
             creditCardAccount: 'Credit card account',
+            travelInvoicingDescription: 'Travel expenses will export as credit card charges to the QuickBooks Online account specified below.',
             companyCardsLocationEnabledDescription:
                 "QuickBooks Online doesn't support locations on vendor bill exports. As you have locations enabled on your workspace, this export option is unavailable.",
             outOfPocketTaxEnabledDescription:
@@ -4826,6 +4859,7 @@ const translations = {
                     [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: 'Vendor bills',
                 },
             },
+            travelInvoicingDescription: 'Travel expenses will export as credit card charges to the Sage Intacct account specified below.',
             creditCardAccount: 'Credit card account',
             defaultVendor: 'Default vendor',
             defaultVendorDescription: (isReimbursable: boolean) =>
@@ -4871,8 +4905,8 @@ const translations = {
             journalPostingPreference: {
                 label: 'Journal entries posting preference',
                 values: {
-                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE]: 'Single, itemized entry for each report',
-                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE]: 'Single entry for each expense',
+                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE]: 'Single entry for each expense',
+                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE]: 'Single, itemized entry for each report',
                 },
             },
             invoiceItem: {
@@ -5221,6 +5255,7 @@ const translations = {
             free: 'Free',
             control: 'Control',
             collect: 'Collect',
+            submit: 'Submit',
         },
         companyCards: {
             addCards: 'Add cards',
@@ -5238,6 +5273,7 @@ const translations = {
             addNewCard: {
                 other: 'Other',
                 fileImport: 'Import transactions from file',
+                fileImportDescription: "A manual option if your bank can't send a feed.",
                 createFileFeedHelpText: `<muted-text>Please follow this <a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">help guide</a> to get your company card expenses imported!</muted-text>`,
                 companyCardLayoutName: 'Company card layout name',
                 cardLayoutNameRequired: 'The Company card layout name is required',
@@ -5562,8 +5598,8 @@ const translations = {
                         subtitle: "Congrats! You're all set to book and manage travel on this workspace.",
                         manageTravelLabel: 'Manage travel',
                     },
-                    centralInvoicingSection: {
-                        title: 'Central invoicing',
+                    travelInvoicingSection: {
+                        title: 'Travel invoicing',
                         subtitle: 'Centralize all travel spend in a monthly invoice instead of paying at time of purchase.',
                         learnHow: 'Learn how.',
                         subsections: {
@@ -5579,7 +5615,7 @@ const translations = {
                             reduceLimitTitle: 'Reduce travel spend limit?',
                             reduceLimitWarning: 'If you reduce the limit, members who have already spent more than this amount will be unable to make new travel bookings until next month.',
                             provisioningError:
-                                "We weren't able to provision some of the members of your workspace for central invoicing. Please try again later or reach out to Concierge for assistance.",
+                                "We weren't able to provision some of the members of your workspace for travel invoicing. Please try again later or reach out to Concierge for assistance.",
                         },
                     },
                     disableModal: {
@@ -5600,7 +5636,7 @@ const translations = {
                     exportToCSV: 'Export to CSV',
                     selectDateRangeError: 'Please select a date range to export',
                     invalidDateRangeError: 'The start date must be before the end date',
-                    enabled: 'Central Invoicing enabled!',
+                    enabled: 'Travel Invoicing enabled!',
                     enabledDescription: 'All travel spend on this workspace will now be centralized in a monthly invoice.',
                 },
                 personalDetailsDescription: 'In order to book travel, please enter your legal name as it appears on your government-issued ID.',
@@ -5747,7 +5783,7 @@ const translations = {
                 confirmText: 'Got it',
             },
             hrWarningModal: {
-                disconnectText: 'To disable HR, please disconnect Gusto from this workspace first.',
+                disconnectText: ({integration}: {integration: string}) => `To disable HR, please disconnect ${integration} from this workspace first.`,
             },
             workflowWarningModal: {
                 featureEnabledTitle: 'Not so fast...',
@@ -6371,14 +6407,18 @@ const translations = {
             cardReconciliation: 'Card reconciliation',
             reconciliationAccount: 'Reconciliation account',
             continuousReconciliation: 'Continuous Reconciliation',
+            syncTravelInvoicingSettlements: 'Sync travel invoicing settlements',
             saveHoursOnReconciliation:
                 'Save hours on reconciliation each accounting period by having Expensify continuously reconcile Expensify Card statements and settlements on your behalf.',
             enableContinuousReconciliation: (accountingAdvancedSettingsLink: string, connectionName: string) =>
                 `<muted-text-label>In order to enable Continuous Reconciliation, please enable <a href="${accountingAdvancedSettingsLink}">auto-sync</a> for ${connectionName}.</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Choose the bank account that your Expensify Card payments will be reconciled against.',
+                chooseTravelInvoicingBankAccount: 'Choose the bank account that your travel invoicing payments will be reconciled against.',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `Make sure this account matches your <a href="${settlementAccountUrl}">Expensify Card settlement account</a> (ending in ${lastFourPAN}) so Continuous Reconciliation works properly.`,
+                travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
+                    `Make sure this account matches your travel invoicing settlement account (ending in ${lastFourPAN}) so Continuous Reconciliation works properly.`,
             },
         },
         hr: {
@@ -6392,6 +6432,12 @@ const translations = {
                     case 'gustoSyncLoadData':
                         return 'Loading data from Gusto';
                     case 'gustoSyncProvisioning':
+                        return 'Provisioning employees in policy';
+                    case 'zenefitsSyncTitle':
+                        return 'Synchronizing TriNet Employees';
+                    case 'zenefitsSyncLoadData':
+                        return 'Loading data from TriNet';
+                    case 'zenefitsSyncProvisioning':
                         return 'Provisioning employees in policy';
                     case 'jobDone':
                         return 'Waiting for imported data to load';
@@ -6430,6 +6476,54 @@ const translations = {
                     custom: {
                         label: 'Custom approval',
                         description: 'I’ll manually setup approval workflows in Expensify.',
+                    },
+                },
+                syncResults: {
+                    title: 'Gusto sync results',
+                    successTitle: 'Successfully synced your Gusto connection!',
+                    added: 'Added',
+                    removed: 'Removed',
+                    skipped: 'Skipped',
+                    employeeCount: () => ({
+                        one: '1 employee',
+                        other: (count: number) => `${count} employees`,
+                    }),
+                },
+            },
+            merge: {
+                approvalMode: 'Approval mode',
+                finalApprover: 'Final approver',
+            },
+            zenefits: {
+                title: 'TriNet',
+                connect: 'Connect',
+                syncNow: 'Sync now',
+                disconnect: 'Disconnect',
+                lastSync: (relativeDate: string) => `Last synced ${relativeDate}`,
+                syncError: "Can't connect to TriNet",
+                disconnectTitle: 'Disconnect TriNet',
+                disconnectPrompt: 'Are you sure you want to disconnect TriNet?',
+                connectionDescription: 'Connect TriNet to keep employee approvals in sync with your workspace.',
+                approvalMode: 'Approval mode',
+                finalApprover: 'Final approver',
+                notSet: 'Not set',
+                approvalModeDescription: 'Members and managers are set up to sync with TriNet.',
+                approvalModeWarningTitle: 'Change approval mode?',
+                approvalModeWarningPrompt: (helpSiteURL: string) =>
+                    `Are you sure you would like to change the approval mode for this workspace? Learn more about the different TriNet-enabled workflow modes in our <a href="${helpSiteURL}">help site</a>.`,
+                approvalModeWarningConfirm: 'Change approval mode',
+                approvalModes: {
+                    basic: {
+                        label: 'Basic approval',
+                        description: 'All users submit to a single person for processing and approval.',
+                    },
+                    manager: {
+                        label: 'Manager approval',
+                        description: 'Employees submit reports to their direct manager configured in TriNet.',
+                    },
+                    custom: {
+                        label: 'Custom approval',
+                        description: "I'll manually setup approval workflows in Expensify.",
                     },
                 },
             },
@@ -7756,13 +7850,14 @@ const translations = {
         deleteSavedSearchConfirm: 'Are you sure you want to delete this search?',
         searchName: 'Search name',
         savedSearchesMenuItemTitle: 'Saved',
+        urlCopied: 'URL copied',
         spendOverTime: 'Spend over time',
         groupedExpenses: 'grouped expenses',
         bulkActions: {
             editMultiple: 'Edit multiple',
             editMultipleTitle: 'Edit multiple expenses',
             // cspell:disable
-            editMultipleDescription: "Changes will be set for all selected expenses and will override any previously set values. Just sayin'.",
+            editMultipleDescription: 'Changes will be set for all selected expenses and will override any previously set values.',
             approve: 'Approve',
             pay: 'Pay',
             delete: 'Delete',
@@ -7806,7 +7901,7 @@ const translations = {
             },
             card: {
                 expensify: 'Expensify',
-                centralInvoicing: 'Central invoicing',
+                travelInvoicing: 'Travel invoicing',
                 individualCards: 'Individual cards',
                 closedCards: 'Closed cards',
                 cardFeeds: 'Card feeds',
@@ -7846,7 +7941,7 @@ const translations = {
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Reimbursement',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Central invoicing',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Travel invoicing',
             },
             is: 'Is',
             action: {
@@ -8071,7 +8166,7 @@ const translations = {
         oooEventSummaryFullDay: (summary: string, dayCount: number, date: string) => `${summary} for ${dayCount} ${dayCount === 1 ? 'day' : 'days'} until ${date}`,
         oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${summary} from ${timePeriod} on ${date}`,
         startTimer: 'Start Timer',
-        stopTimer: 'Stop Timer',
+        stopTimer: (duration: string) => `Stop Timer (${duration})`,
         scheduleOOO: 'Schedule OOO',
         scheduleOOOTitle: 'Schedule Out of Office',
         date: 'Date',
@@ -8137,6 +8232,14 @@ const translations = {
         selectAllFeatures: 'Select all features',
         selectAllTransactions: 'Select all transactions',
         selectAllItems: 'Select all items',
+        selectAllCategories: 'Select all categories',
+        selectAllDistanceRates: 'Select all distance rates',
+        selectAllTags: 'Select all tags',
+        selectAllTaxes: 'Select all taxes',
+        selectAllPerDiemRates: 'Select all per diem rates',
+        selectAllMembers: 'Select all members',
+        selectAllValues: 'Select all values',
+        selectAllRules: 'Select all rules',
     },
     parentReportAction: {
         deletedReport: 'Deleted report',
@@ -8232,7 +8335,8 @@ const translations = {
         personalCard: 'Personal card',
         companyCard: 'Company card',
         expensifyCard: 'Expensify Card',
-        centralInvoicing: 'Central invoicing',
+        travelInvoicing: 'Travel invoicing',
+        travelCard: 'Travel Card',
     },
     distance: {
         addStop: 'Add stop',
@@ -8524,7 +8628,22 @@ const translations = {
             `<muted-text-label>Receipt pending due to broken bank connection. Please resolve in <a href="${workspaceCompanyCardRoute}">Company cards</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Receipt pending due to broken bank connection. Please ask a workspace admin to resolve.',
         markAsCashToIgnore: 'Mark as cash to ignore and request payment.',
-        smartscanFailed: ({canEdit = true}) => `Receipt scanning failed.${canEdit ? ' Enter details manually.' : ''}`,
+        smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
+            if (missingFields.length > 0) {
+                const fieldNames: Record<string, string> = {merchant: 'merchant', date: 'date', amount: 'amount'};
+                const translated = missingFields.map((f) => fieldNames[f] ?? f);
+                let fieldList = '';
+                if (translated.length === 1) {
+                    fieldList = translated.at(0) ?? '';
+                } else if (translated.length === 2) {
+                    fieldList = translated.join(' and ');
+                } else {
+                    fieldList = `${translated.slice(0, translated.length - 1).join(', ')}, and ${translated.at(-1)}`;
+                }
+                return `Receipt scanning failed — missing ${fieldList}.${canEdit ? ' Enter details manually.' : ''}`;
+            }
+            return `Receipt scanning failed.${canEdit ? ' Enter details manually.' : ''}`;
+        },
         receiptGeneratedWithAI: 'Potential AI-generated receipt',
         someTagLevelsRequired: (tagName?: string) => `Missing ${tagName ?? 'Tag'}`,
         tagOutOfPolicy: (tagName?: string) => `${tagName ?? 'Tag'} no longer valid`,
@@ -8605,6 +8724,7 @@ const translations = {
         bookACallTextTop: 'By switching to Expensify Classic, you will miss out on:',
         bookACallTextBottom: 'We’d be excited to get on a call with you to understand why. You can book a call with one of our senior product managers to discuss your needs.',
         takeMeToExpensifyClassic: 'Take me to Expensify Classic',
+        goBackJustOnce: 'Go back just once',
     },
     listBoundary: {
         errorMessage: 'An error occurred while loading more messages',
@@ -8864,12 +8984,14 @@ const translations = {
     },
     delegate: {
         switchAccount: 'Switch accounts:',
+        switch: 'Switch',
+        copilot: 'Copilot',
         copilotDelegatedAccess: 'Copilot: Delegated access',
         copilotDelegatedAccessDescription: 'Allow other members to access your account.',
         learnMoreAboutDelegatedAccess: 'Learn more about delegated access',
-        addCopilot: 'Add copilot',
+        addCopilot: 'Add a copilot to your account',
         membersCanAccessYourAccount: 'These members can access your account:',
-        youCanAccessTheseAccounts: 'You can access these accounts via the account switcher:',
+        youCanAccessTheseAccounts: 'You can access these accounts:',
         role: ({role}: OptionalParam<DelegateRoleParams> = {}) => {
             switch (role) {
                 case CONST.DELEGATE_ROLE.ALL:
@@ -9222,6 +9344,8 @@ const translations = {
                 removeMember: 'Unable to remove this user. Please try again.',
                 moveMember: 'Unable to move this member. Please try again.',
                 vacationDelegate: 'Unable to set this user as a vacation delegate. Please try again.',
+                moveMemberNotPolicyAdmin:
+                    'Cannot move member to the domain group. You must be a Policy Admin for the Preferred Policy set on the domain group you are trying to move this user to.',
             },
             cannotSetVacationDelegateForMember: (email: string) => `You can't set a vacation delegate for ${email} because they're currently the delegate for the following members:`,
 
@@ -9252,7 +9376,13 @@ const translations = {
                 `Are you sure you want to make ${newName} the default group? New members will be invited to this group instead of the previous default group (${currentName}). `,
             makeDefault: 'Make default',
             neverMind: 'Never mind',
+            createGroupError: 'Unable to create this group. Please try again.',
             permissions: 'Group permissions',
+            createNewGroupButton: 'New group',
+            createGroupSubmitButton: 'Create group',
+            expensifyCardPreferredWorkspace: 'Expensify Card preferred workspace',
+            expensifyCardPreferredWorkspaceDescription:
+                'All Expensify Card transactions will be created on the Expensify Card Preferred Workspace instead of the Preferred Workspace. Enabling this feature will override the Preferred Workspace setting for Expensify Card transactions only.',
             strictlyEnforceWorkspaceRules: 'Strictly enforce workspace rules',
             strictlyEnforceWorkspaceRulesDescription: 'All workspace rules must be met before submitting a report. No manual exceptions allowed.',
             restrictExpenseWorkspaceCreation: 'Restrict expense workspace creation/removal',
@@ -9269,10 +9399,7 @@ const translations = {
             noWorkspacesMessage: 'There are no workspaces on this domain. A workspace is required to enable this restriction.',
             restrictDefaultLoginSelection: 'Restrict default login selection',
             restrictDefaultLoginSelectionDescription: 'Prevent members from changing their login email away from their company domain to avoid policy restrictions.',
-            expensifyCardPreferredWorkspace: 'Expensify Card Preferred Workspace',
-            expensifyCardPreferredWorkspaceDescription:
-                'All Expensify Card transactions will be created on the Expensify Card Preferred Workspace instead of the Preferred Workspace. Enabling this feature will override the Preferred Workspace setting for Expensify Card transactions only.',
-            expensifyCardPreferredWorkspaceDisabledMessage: 'To use this setting, Preferred Workspace must be enabled and the domain must have Expensify Card set up.',
+            expensifyCardPreferredWorkspaceDisabledMessage: 'To enable this setting, please first enable a preferred workspace and set up Expensify Cards on your domain.',
             findGroup: 'Find group',
         },
     },
