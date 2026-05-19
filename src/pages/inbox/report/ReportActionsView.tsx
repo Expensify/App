@@ -1,4 +1,4 @@
-import {useRoute} from '@react-navigation/native';
+import {useNavigationState, useRoute} from '@react-navigation/native';
 import React, {useEffect, useMemo, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
@@ -19,6 +19,7 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {updateLoadingInitialReportAction} from '@libs/actions/Report';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
+import getTopmostReportParams from '@libs/Navigation/helpers/getTopmostReportParams';
 import {isCreatedAction, isDeletedParentAction, isIOUActionMatchingTransactionList, isReportActionVisible} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction, isConciergeChatReport, isReportTransactionThread as isReportTransactionThreadUtil, isUnread} from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
@@ -39,7 +40,9 @@ type ReportActionsViewProps = {
 
 function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
     const route = useRoute<ReportScreenNavigationProps['route']>();
-    const reportActionIDFromRoute = route?.params?.reportActionID;
+    const reportActionIDFromNavigationState = useNavigationState((state) => getTopmostReportParams(state)?.reportActionID);
+    const rawReportActionIDFromRoute = route?.params?.reportActionID ?? reportActionIDFromNavigationState;
+    const reportActionIDFromRoute = typeof rawReportActionIDFromRoute === 'string' && rawReportActionIDFromRoute.length > 0 ? rawReportActionIDFromRoute : undefined;
 
     useCopySelectionHelper();
     const {translate} = useLocalize();
@@ -117,7 +120,10 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
     // Remount the list when the deep-linked message or unread anchor changes (scroll positioning), or when the report changes.
     // Bump listID remounts FlashList so `initialScrollIndex` can run again. Do that for comment linking / first unread
     // anchor resolution, but not when the unread anchor changes while staying on the same report (e.g. mark as unread).
-    const listID = [reportID, reportActionIDFromRoute, hasOnceLoadedReportActions ? undefined : oldestUnreadReportAction?.reportActionID].join(':');
+    // When opening to a linked reportActionID, omit the unread anchor segment so `hasOnceLoadedReportActions` flipping
+    // true does not remount the list and undo measured linked-message centering.
+    const shouldIncludeOldestUnreadInListID = !reportActionIDFromRoute && !hasOnceLoadedReportActions;
+    const listID = [reportID, reportActionIDFromRoute, shouldIncludeOldestUnreadInListID ? oldestUnreadReportAction?.reportActionID : undefined].join(':');
 
     const visibleReportActions = useMemo(
         () =>

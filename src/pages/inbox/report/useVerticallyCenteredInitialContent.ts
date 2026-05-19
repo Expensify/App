@@ -8,6 +8,8 @@ import type * as OnyxTypes from '@src/types/onyx';
 const INITIAL_TARGET_REPORT_ACTION_ESTIMATED_HEIGHT = CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT;
 const INITIAL_VIEWPORT_OVERSCAN_ITEMS = 2;
 const MEASURED_ANCHOR_SCROLL_RETRY_LIMIT = 10;
+/** Extra corrective passes after the first scrollToIndex to win races with FlashList's async initialScrollIndex. */
+const MEASURED_ANCHOR_SCROLL_FOLLOW_UP_FRAMES = 3;
 
 type InitialViewportRange = {
     first: number;
@@ -49,9 +51,13 @@ function isUnreadMarkerOnlyInitialScrollKeyChange(
         return false;
     }
 
+    // Deep-link / LHN target (e.g. green brick road → reportAction in the URL) must always use initial scroll logic.
+    if (linkedReportActionID) {
+        return false;
+    }
+
     return (
         previousSession.initialScrollKey !== initialScrollKey &&
-        !linkedReportActionID &&
         previousSession.listID === listID &&
         previousSession.reportID === reportID &&
         previousSession.linkedReportActionID === linkedReportActionID
@@ -113,6 +119,8 @@ function useVerticallyCenteredInitialContent({
     const shouldSkipMeasuredInitialTargetScrollRef = useRef(false);
     const measuredAnchorScrollFrameRef = useRef<number | undefined>(undefined);
     const measuredAnchorScrollAttemptCountRef = useRef(0);
+    const linkedRowMeasuredHeightRef = useRef(0);
+    const linkedRowScrollIndexRef = useRef(-1);
 
     const initialScrollIndexViewOffset = !hasInitialScrollTarget ? undefined : -Math.max(listHeight / 2, 0);
 
@@ -135,16 +143,24 @@ function useVerticallyCenteredInitialContent({
     const shouldAwaitLinkedOlderRevealWhileGateCold = !!linkedReportActionID && hasOlderActions && (!linkedOlderRevealGateReady || !!reportLoadingState?.isLoadingOlderReportActions);
     const shouldShowInitialViewportSkeleton =
         hasInitialScrollTarget && (isInitialViewportLoading || (shouldMeasureInitialScrollTargetPosition && !hasAppliedMeasuredAnchorScroll) || shouldAwaitLinkedOlderRevealWhileGateCold);
+    const shouldKeepLinkScrollPosition = !!linkedReportActionID && (!hasAppliedMeasuredAnchorScroll || !linkedOlderRevealGateReady || !!reportLoadingState?.isLoadingOlderReportActions);
 
     /** Correct inverted initial-target positioning using the laid-out row height. */
-    const handleInitialScrollTargetLayout = (layoutHeight: number) => {
+    const tryApplyMeasuredAnchorScroll = (layoutHeight: number, {isFollowUp = false}: {isFollowUp?: boolean} = {}) => {
         if (!shouldMeasureInitialScrollTargetPosition || shouldSkipMeasuredInitialTargetScrollRef.current || layoutHeight <= 0 || listHeight <= 0) {
             return;
         }
 
-        if (hasCommittedMeasuredAnchorScrollRef.current || measuredAnchorScrollFrameRef.current !== undefined) {
+        if (!isFollowUp && (hasCommittedMeasuredAnchorScrollRef.current || measuredAnchorScrollFrameRef.current !== undefined)) {
             return;
         }
+
+        const scrollIndex = sortedVisibleReportActions.findIndex((item) => keyExtractor(item) === initialScrollKeyForInitialScroll);
+        if (scrollIndex < 0) {
+            return;
+        }
+
+        linkedRowScrollIndexRef.current = scrollIndex;
 
         // Inverted FlashList initially aligns the target row's bottom edge at mid-viewport.
         // Shift by the measured row height so the row's top edge lands there instead.
@@ -152,6 +168,17 @@ function useVerticallyCenteredInitialContent({
 
         function scheduleMeasuredAnchorScroll() {
             measuredAnchorScrollFrameRef.current = requestAnimationFrame(scrollToMeasuredAnchor);
+        }
+
+        function scheduleFollowUpMeasuredAnchorScroll(remainingFrames: number) {
+            if (remainingFrames <= 0) {
+                return;
+            }
+
+            requestAnimationFrame(() => {
+                tryApplyMeasuredAnchorScroll(layoutHeight, {isFollowUp: true});
+                scheduleFollowUpMeasuredAnchorScroll(remainingFrames - 1);
+            });
         }
 
         function retryMeasuredAnchorScroll() {
@@ -165,45 +192,69 @@ function useVerticallyCenteredInitialContent({
 
         function scrollToMeasuredAnchor() {
             measuredAnchorScrollFrameRef.current = undefined;
-            if (hasCommittedMeasuredAnchorScrollRef.current) {
+            if (!isFollowUp && hasCommittedMeasuredAnchorScrollRef.current) {
                 return;
             }
 
             const flashListRef = reportScrollManager.ref?.current as MeasuredAnchorScrollRef | null;
             if (!flashListRef?.scrollToIndex) {
-                retryMeasuredAnchorScroll();
+                if (!isFollowUp) {
+                    retryMeasuredAnchorScroll();
+                }
                 return;
             }
 
-            hasCommittedMeasuredAnchorScrollRef.current = true;
+            if (!isFollowUp) {
+                hasCommittedMeasuredAnchorScrollRef.current = true;
+            }
+
+            const indexToScroll = linkedRowScrollIndexRef.current;
 
             let scrollResult: Promise<void> | void;
             try {
                 scrollResult = flashListRef.scrollToIndex({
-                    index: initialScrollIndex,
+                    index: indexToScroll,
                     animated: false,
                     viewOffset: viewOffsetAlignedToTopEdge,
                 });
             } catch {
-                hasCommittedMeasuredAnchorScrollRef.current = false;
-                retryMeasuredAnchorScroll();
+                if (!isFollowUp) {
+                    hasCommittedMeasuredAnchorScrollRef.current = false;
+                    retryMeasuredAnchorScroll();
+                }
                 return;
             }
 
             Promise.resolve(scrollResult)
                 .then(() => {
-                    if (!hasCommittedMeasuredAnchorScrollRef.current) {
+                    if (!isFollowUp && !hasCommittedMeasuredAnchorScrollRef.current) {
                         return;
                     }
-                    setHasAppliedMeasuredAnchorScroll(true);
+
+                    if (!isFollowUp) {
+                        setHasAppliedMeasuredAnchorScroll(true);
+                        scheduleFollowUpMeasuredAnchorScroll(MEASURED_ANCHOR_SCROLL_FOLLOW_UP_FRAMES);
+                    }
                 })
                 .catch(() => {
-                    hasCommittedMeasuredAnchorScrollRef.current = false;
-                    retryMeasuredAnchorScroll();
+                    if (!isFollowUp) {
+                        hasCommittedMeasuredAnchorScrollRef.current = false;
+                        retryMeasuredAnchorScroll();
+                    }
                 });
         }
 
+        if (isFollowUp) {
+            scrollToMeasuredAnchor();
+            return;
+        }
+
         scheduleMeasuredAnchorScroll();
+    };
+
+    const handleInitialScrollTargetLayout = (layoutHeight: number) => {
+        linkedRowMeasuredHeightRef.current = layoutHeight;
+        tryApplyMeasuredAnchorScroll(layoutHeight);
     };
 
     useLayoutEffect(() => {
@@ -254,6 +305,8 @@ function useVerticallyCenteredInitialContent({
         shouldSkipMeasuredInitialTargetScrollRef.current = false;
         hasCommittedMeasuredAnchorScrollRef.current = false;
         measuredAnchorScrollAttemptCountRef.current = 0;
+        linkedRowMeasuredHeightRef.current = 0;
+        linkedRowScrollIndexRef.current = -1;
         if (measuredAnchorScrollFrameRef.current !== undefined) {
             cancelAnimationFrame(measuredAnchorScrollFrameRef.current);
             measuredAnchorScrollFrameRef.current = undefined;
@@ -319,6 +372,33 @@ function useVerticallyCenteredInitialContent({
             }
         };
     }, [hasAppliedMeasuredAnchorScroll, hasOlderActions, isInitialViewportLoading, linkedReportActionID, listID, report.reportID, reportLoadingState?.isLoadingOlderReportActions]);
+
+    const prevSortedVisibleReportActionsLengthRef = useRef(sortedVisibleReportActions.length);
+    const prevIsLoadingOlderReportActionsRef = useRef(reportLoadingState?.isLoadingOlderReportActions);
+
+    useEffect(() => {
+        const previousLength = prevSortedVisibleReportActionsLengthRef.current;
+        const previousIsLoadingOlderReportActions = prevIsLoadingOlderReportActionsRef.current;
+        const currentIsLoadingOlderReportActions = reportLoadingState?.isLoadingOlderReportActions;
+
+        prevSortedVisibleReportActionsLengthRef.current = sortedVisibleReportActions.length;
+        prevIsLoadingOlderReportActionsRef.current = currentIsLoadingOlderReportActions;
+
+        if (!linkedReportActionID || !initialScrollKeyForInitialScroll || linkedRowMeasuredHeightRef.current <= 0 || listHeight <= 0) {
+            return;
+        }
+
+        const didAppendVisibleActions = sortedVisibleReportActions.length > previousLength;
+        const didFinishLoadingOlderReportActions = previousIsLoadingOlderReportActions && !currentIsLoadingOlderReportActions;
+
+        if (!didAppendVisibleActions && !didFinishLoadingOlderReportActions) {
+            return;
+        }
+
+        hasCommittedMeasuredAnchorScrollRef.current = false;
+        measuredAnchorScrollAttemptCountRef.current = 0;
+        tryApplyMeasuredAnchorScroll(linkedRowMeasuredHeightRef.current);
+    }, [initialScrollKeyForInitialScroll, linkedReportActionID, listHeight, reportLoadingState?.isLoadingOlderReportActions, sortedVisibleReportActions.length]);
 
     useEffect(() => {
         if (!shouldMeasureInitialScrollTargetPosition || hasAppliedMeasuredAnchorScroll) {
@@ -387,6 +467,7 @@ function useVerticallyCenteredInitialContent({
         handleInitialViewportItemMounted,
         hasInitialScrollTarget,
         initialScrollKeyForInitialScroll,
+        shouldKeepLinkScrollPosition,
     };
 }
 

@@ -1,4 +1,4 @@
-import {useIsFocused, useRoute} from '@react-navigation/native';
+import {useIsFocused, useNavigationState, useRoute} from '@react-navigation/native';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
@@ -27,6 +27,7 @@ import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import DateUtils from '@libs/DateUtils';
 import FS from '@libs/Fullstory';
 import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
+import getTopmostReportParams from '@libs/Navigation/helpers/getTopmostReportParams';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -232,7 +233,9 @@ function ReportActionsList({
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
 
     const backTo = route?.params?.backTo as string;
-    const linkedReportActionID = route?.params?.reportActionID;
+    const reportActionIDFromNavigationState = useNavigationState((state) => getTopmostReportParams(state)?.reportActionID);
+    const rawLinkedReportActionID = route?.params?.reportActionID ?? reportActionIDFromNavigationState;
+    const linkedReportActionID = typeof rawLinkedReportActionID === 'string' && rawLinkedReportActionID.length > 0 ? rawLinkedReportActionID : undefined;
 
     useEffect(() => {
         const unsubscribe = Visibility.onVisibilityChange(() => {
@@ -373,7 +376,6 @@ function ReportActionsList({
     const previousDraftAutoScrollKey = usePrevious(draftAutoScrollKey);
 
     const [hasScrolledOverThreshold, setHasScrolledOverThreshold] = useState(() => scrollOffsetRef.current > CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
-    const shouldMaintainVisibleContentPosition = hasScrolledOverThreshold || shouldFocusToTopOnMount;
 
     /**
      * The timestamp for the unread marker.
@@ -768,6 +770,7 @@ function ReportActionsList({
         handleInitialScrollTargetLayout,
         handleReportActionsListLayout,
         initialScrollKeyForInitialScroll,
+        shouldKeepLinkScrollPosition,
     } = useVerticallyCenteredInitialContent({
         initialScrollKey,
         sortedVisibleReportActions,
@@ -780,6 +783,7 @@ function ReportActionsList({
         report,
         onLoad: handleListLoad,
     });
+    const shouldMaintainVisibleContentPosition = hasScrolledOverThreshold || shouldFocusToTopOnMount || shouldKeepLinkScrollPosition;
 
     const renderItem = useCallback(
         ({item: reportAction, index, target}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
