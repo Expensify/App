@@ -75,10 +75,11 @@ function useVerticallyCenteredInitialContent({
     const [hasAppliedMeasuredAnchorScroll, setHasAppliedMeasuredAnchorScroll] = useState(() => !shouldMeasureInitialScrollTargetPosition);
     /** Prevents repeated corrective scrollToIndex calls when onLayout repeats. */
     const hasCommittedMeasuredAnchorScrollRef = useRef(false);
+    const shouldSkipMeasuredInitialTargetScrollRef = useRef(false);
     const measuredAnchorScrollFrameRef = useRef<number | undefined>(undefined);
     const measuredAnchorScrollAttemptCountRef = useRef(0);
     /**
-     * Last scroll/viewport-reset session identifiers. Avoids resetting the initial viewport skeleton + measured-anchor
+     * Last scroll/viewport-reset session identifiers. Avoids resetting the initial viewport skeleton or measured-anchor
      * scroll when only the unread marker action ID changes during mark-as-unread (same FlashList/listID).
      */
     const initialViewportResetSessionRef = useRef<
@@ -115,7 +116,7 @@ function useVerticallyCenteredInitialContent({
 
     /** Correct inverted initial-target positioning using the laid-out row height. */
     const handleInitialScrollTargetLayout = (layoutHeight: number) => {
-        if (!shouldMeasureInitialScrollTargetPosition || layoutHeight <= 0 || listHeight <= 0) {
+        if (!shouldMeasureInitialScrollTargetPosition || shouldSkipMeasuredInitialTargetScrollRef.current || layoutHeight <= 0 || listHeight <= 0) {
             return;
         }
 
@@ -205,6 +206,7 @@ function useVerticallyCenteredInitialContent({
         };
 
         if (isUnreadMarkerOnlyChange) {
+            shouldSkipMeasuredInitialTargetScrollRef.current = true;
             hasCommittedMeasuredAnchorScrollRef.current = false;
             measuredAnchorScrollAttemptCountRef.current = 0;
             if (measuredAnchorScrollFrameRef.current !== undefined) {
@@ -220,6 +222,7 @@ function useVerticallyCenteredInitialContent({
 
         mountedInitialViewportIndicesRef.current.clear();
         hasInitialViewportLoadedRef.current = !hasInitialScrollTarget;
+        shouldSkipMeasuredInitialTargetScrollRef.current = false;
         hasCommittedMeasuredAnchorScrollRef.current = false;
         measuredAnchorScrollAttemptCountRef.current = 0;
         if (measuredAnchorScrollFrameRef.current !== undefined) {

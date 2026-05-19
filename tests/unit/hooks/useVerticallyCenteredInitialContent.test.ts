@@ -128,10 +128,15 @@ describe('useVerticallyCenteredInitialContent', () => {
             await Promise.resolve();
         });
 
+        expect(mockScrollToIndex).toHaveBeenCalledWith({
+            index: 1,
+            animated: false,
+            viewOffset: -180,
+        });
         expect(result.current.shouldShowInitialViewportSkeleton).toBe(false);
     });
 
-    it('scrolls to a measured unread anchor without showing the initial viewport skeleton when an unread marker appears after the list mounted', async () => {
+    it('does not scroll or show the initial viewport skeleton when an unread marker appears after the list mounted', async () => {
         mockRequestAnimationFrame();
 
         const {result, rerender} = renderHook((props: HookProps) => useVerticallyCenteredInitialContent(props), {
@@ -153,11 +158,7 @@ describe('useVerticallyCenteredInitialContent', () => {
             await Promise.resolve();
         });
 
-        expect(mockScrollToIndex).toHaveBeenCalledWith({
-            index: 1,
-            animated: false,
-            viewOffset: -180,
-        });
+        expect(mockScrollToIndex).not.toHaveBeenCalled();
         expect(result.current.shouldShowInitialViewportSkeleton).toBe(false);
     });
 });
