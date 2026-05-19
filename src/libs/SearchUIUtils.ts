@@ -5295,8 +5295,8 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: shouldShowReimbursableColumn,
               [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: shouldShowBillableColumn,
               [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: false,
-              [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
               [CONST.SEARCH.TABLE_COLUMNS.COMMENTS]: shouldShowCommentsColumn,
+              [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
           }
         : {
               [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
@@ -5358,7 +5358,12 @@ function getColumnsToShow({
             }
 
             if (shouldShowCommentsColumn && !addedColumns.has(CONST.SEARCH.TABLE_COLUMNS.COMMENTS)) {
-                result.push(CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
+                const totalIndex = result.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL);
+                if (totalIndex === -1) {
+                    result.push(CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
+                } else {
+                    result.splice(totalIndex, 0, CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
+                }
             }
 
             // Don't return early — fall through to updateColumns to detect empty columns
