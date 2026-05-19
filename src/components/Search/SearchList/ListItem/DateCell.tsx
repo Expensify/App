@@ -18,15 +18,14 @@ type DateCellProps = {
 function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, canEdit, onSave}: DateCellProps) {
     const styles = useThemeStyles();
     const {isInNarrowPaneModal} = useResponsiveLayout();
-    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing} = usePopoverEditState({canEdit});
+    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing, handleSave} = usePopoverEditState({
+        canEdit,
+        value: date,
+        onSave,
+    });
 
     const formattedDate = DateUtils.formatWithUTCTimeZone(date, DateUtils.doesDateBelongToAPastYear(date) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
     const displayText = suffixText ? `${formattedDate} • ${suffixText}` : formattedDate;
-
-    const handleDateSelected = (newDate: string) => {
-        onSave?.(newDate);
-        cancelEditing();
-    };
 
     const displayContent = (
         <TextWithTooltip
@@ -47,7 +46,7 @@ function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, canEdit, o
                     value={date}
                     isVisible={isPopoverVisible}
                     onClose={cancelEditing}
-                    onSelected={handleDateSelected}
+                    onSelected={handleSave}
                     anchorPosition={popoverPosition}
                     anchorAlignment={{
                         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
