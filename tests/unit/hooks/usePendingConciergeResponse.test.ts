@@ -1,6 +1,7 @@
 import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import usePendingConciergeResponse from '@hooks/usePendingConciergeResponse';
+import {MAX_AGE_MS as PENDING_FOLLOWUP_LIST_HARD_CAP_MS} from '@libs/AgentZeroOptimisticStore';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -464,10 +465,10 @@ describe('usePendingConciergeResponse', () => {
         });
 
         it('clears the flag synchronously on mount when the TTL has already expired (app relaunch beyond the safety window)', async () => {
-            // Given a stale flag from a prior session, well past the 60s TTL
+            // Given a stale flag from a prior session, well past the TTL
             await Onyx.set(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${REPORT_ID}`, {
                 reportActionID: REPORT_ACTION_ID,
-                createdAt: Date.now() - 120_000,
+                createdAt: Date.now() - (PENDING_FOLLOWUP_LIST_HARD_CAP_MS + 60_000),
             });
             await waitForBatchedUpdates();
 
@@ -482,11 +483,11 @@ describe('usePendingConciergeResponse', () => {
         });
 
         it('clears the flag via the TTL timer when no followup-list ever arrives', async () => {
-            // Given a flag created "59.9s ago" — TTL fires ~100ms after mount
+            // Given a flag whose remaining TTL is just `TINY_REMAINING` ms — TTL fires shortly after mount
             const TINY_REMAINING = 100;
             await Onyx.set(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${REPORT_ID}`, {
                 reportActionID: REPORT_ACTION_ID,
-                createdAt: Date.now() - (60_000 - TINY_REMAINING),
+                createdAt: Date.now() - (PENDING_FOLLOWUP_LIST_HARD_CAP_MS - TINY_REMAINING),
             });
             await waitForBatchedUpdates();
 
@@ -513,7 +514,7 @@ describe('usePendingConciergeResponse', () => {
             const TINY_REMAINING = 100;
             await Onyx.set(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${REPORT_ID}`, {
                 reportActionID: REPORT_ACTION_ID,
-                createdAt: Date.now() - (60_000 - TINY_REMAINING),
+                createdAt: Date.now() - (PENDING_FOLLOWUP_LIST_HARD_CAP_MS - TINY_REMAINING),
             });
             await waitForBatchedUpdates();
 
