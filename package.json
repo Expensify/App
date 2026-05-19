@@ -397,22 +397,22 @@
     "pdfjs-dist": "^5.5.207",
     "lightningcss": "1.30.1",
     "@fullstory/react-native": {
-      "expo": "55.0.0"
+      "expo": "55.0.25"
     },
     "@react-native-firebase/app": {
-      "expo": "55.0.0"
+      "expo": "55.0.25"
     },
     "@react-native-firebase/perf": {
-      "expo": "55.0.0"
+      "expo": "55.0.25"
     },
     "@react-native-google-signin/google-signin": {
-      "expo": "55.0.0"
+      "expo": "55.0.25"
     },
     "@rnmapbox/maps": {
-      "expo": "55.0.0"
+      "expo": "55.0.25"
     },
     "@sentry/react-native": {
-      "expo": "55.0.0"
+      "expo": "55.0.25"
     }
   },
   "expo": {
