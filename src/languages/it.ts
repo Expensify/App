@@ -7113,6 +7113,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     }),
                 },
             },
+            merge: {
+                approvalMode: 'Modalità approvazione',
+                finalApprover: 'Approvazione finale',
+            },
             zenefits: {
                 title: 'TriNet',
             },
@@ -8654,6 +8658,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         bookACallTextBottom:
             'Saremmo felici di fare una chiamata con te per capirne il motivo. Puoi prenotare una chiamata con uno dei nostri senior product manager per discutere delle tue esigenze.',
         takeMeToExpensifyClassic: 'Portami a Expensify Classic',
+        goBackJustOnce: 'Torna solo per questa volta',
     },
     listBoundary: {
         errorMessage: 'Si è verificato un errore durante il caricamento di altri messaggi',

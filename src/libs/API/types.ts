@@ -388,6 +388,8 @@ const WRITE_COMMANDS = {
     UPGRADE_TO_CORPORATE: 'UpgradeToCorporate',
     UPDATE_GUSTO_APPROVAL_MODE: 'UpdateGustoApprovalMode',
     UPDATE_GUSTO_FINAL_APPROVER: 'UpdateGustoFinalApprover',
+    UPDATE_MERGE_HR_APPROVAL_MODE: 'UpdateMergeHRApprovalMode',
+    UPDATE_MERGE_HR_FINAL_APPROVER: 'UpdateMergeHRFinalApprover',
     UPDATE_ZENEFITS_APPROVAL_MODE: 'UpdateZenefitsApprovalMode',
     UPDATE_ZENEFITS_FINAL_APPROVER: 'UpdateZenefitsFinalApprover',
     DOWNGRADE_TO_TEAM: 'Policy_DowngradeToTeam',
@@ -1017,6 +1019,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_PROMO_CODE]: Parameters.SetPromoCodeParams;
     [WRITE_COMMANDS.UPDATE_GUSTO_APPROVAL_MODE]: Parameters.UpdateGustoApprovalModeParams;
     [WRITE_COMMANDS.UPDATE_GUSTO_FINAL_APPROVER]: Parameters.UpdateGustoFinalApproverParams;
+    [WRITE_COMMANDS.UPDATE_MERGE_HR_APPROVAL_MODE]: Parameters.UpdateMergeHRApprovalModeParams;
+    [WRITE_COMMANDS.UPDATE_MERGE_HR_FINAL_APPROVER]: Parameters.UpdateMergeHRFinalApproverParams;
     [WRITE_COMMANDS.UPDATE_ZENEFITS_APPROVAL_MODE]: Parameters.UpdateZenefitsApprovalModeParams;
     [WRITE_COMMANDS.UPDATE_ZENEFITS_FINAL_APPROVER]: Parameters.UpdateZenefitsFinalApproverParams;
     [WRITE_COMMANDS.REQUEST_TAX_EXEMPTION]: null;
@@ -1264,6 +1268,8 @@ const READ_COMMANDS = {
     CONNECT_POLICY_TO_XERO: 'ConnectPolicyToXero',
     CONNECT_POLICY_TO_GUSTO: 'ConnectPolicyToGusto',
     CONNECT_POLICY_TO_ZENEFITS: 'ConnectPolicyToZenefits',
+    CONNECT_POLICY_TO_MERGE: 'ConnectPolicyToMerge',
+    SYNC_POLICY_TO_MERGE_HR: 'SyncPolicyToMergeHR',
     SYNC_POLICY_TO_QUICKBOOKS_ONLINE: 'SyncPolicyToQuickbooksOnline',
     SYNC_POLICY_TO_XERO: 'SyncPolicyToXero',
     SYNC_POLICY_TO_NETSUITE: 'SyncPolicyToNetSuite',
@@ -1366,6 +1372,8 @@ type ReadCommandParameters = {
     [READ_COMMANDS.CONNECT_POLICY_TO_XERO]: Parameters.ConnectPolicyToAccountingIntegrationParams;
     [READ_COMMANDS.CONNECT_POLICY_TO_GUSTO]: Parameters.ConnectPolicyToGustoParams;
     [READ_COMMANDS.CONNECT_POLICY_TO_ZENEFITS]: Parameters.ConnectPolicyToZenefitsParams;
+    [READ_COMMANDS.CONNECT_POLICY_TO_MERGE]: Parameters.ConnectPolicyToMergeParams;
+    [READ_COMMANDS.SYNC_POLICY_TO_MERGE_HR]: Parameters.SyncPolicyToMergeHRParams;
     [READ_COMMANDS.CONNECT_POLICY_TO_FINANCIAL_FORCE]: Parameters.ConnectPolicyToFinancialForceParams;
     [READ_COMMANDS.SYNC_POLICY_TO_QUICKBOOKS_ONLINE]: Parameters.SyncPolicyToQuickbooksOnlineParams;
     [READ_COMMANDS.SYNC_POLICY_TO_XERO]: Parameters.SyncPolicyToXeroParams;

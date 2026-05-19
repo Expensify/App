@@ -7084,6 +7084,10 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                     }),
                 },
             },
+            merge: {
+                approvalMode: 'Tryb zatwierdzania',
+                finalApprover: 'Ostateczny zatwierdzający',
+            },
             zenefits: {
                 title: 'TriNet',
             },
@@ -8611,6 +8615,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         bookACallTextBottom:
             'Chętnie umówimy się z Tobą na rozmowę, aby zrozumieć dlaczego. Możesz zarezerwować rozmowę z jednym z naszych starszych menedżerów produktu, aby omówić swoje potrzeby.',
         takeMeToExpensifyClassic: 'Przejdź do Expensify Classic',
+        goBackJustOnce: 'Wróć tylko raz',
     },
     listBoundary: {
         errorMessage: 'Wystąpił błąd podczas wczytywania kolejnych wiadomości',

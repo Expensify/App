@@ -7090,6 +7090,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                     }),
                 },
             },
+            merge: {
+                approvalMode: 'Modo de aprovação',
+                finalApprover: 'Aprovador final',
+            },
             zenefits: {
                 title: 'TriNet',
             },
@@ -8618,6 +8622,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         bookACallTextBottom:
             'Ficaríamos muito animados em fazer uma ligação com você para entender o motivo. Você pode agendar uma chamada com um de nossos gerentes de produto sêniores para discutir suas necessidades.',
         takeMeToExpensifyClassic: 'Leve-me para o Expensify Classic',
+        goBackJustOnce: 'Voltar apenas desta vez',
     },
     listBoundary: {
         errorMessage: 'Ocorreu um erro ao carregar mais mensagens',
