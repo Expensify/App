@@ -1,13 +1,16 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import {getChatByParticipants, getReportOrDraftReport, isDeprecatedGroupDM, isGroupChat, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
+import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 type ResolveChatForSubmitCleanupParams = {
     participant: Participant;
     currentUserAccountID: number;
     report: OnyxEntry<Report>;
     fallbackOptimisticChatReportID: string;
+    action: DeepValueOf<typeof CONST.IOU.ACTION>;
 };
 
 type ResolveChatForSubmitCleanupResult = {
@@ -16,13 +19,22 @@ type ResolveChatForSubmitCleanupResult = {
 };
 
 /** Mirrors the action's chat resolution: keep the source report when the action would, else resolve via policyExpenseChat → 1:1 DM → optimistic fallback. */
-function resolveChatForSubmitCleanup({participant, currentUserAccountID, report, fallbackOptimisticChatReportID}: ResolveChatForSubmitCleanupParams): ResolveChatForSubmitCleanupResult {
+function resolveChatForSubmitCleanup({
+    participant,
+    currentUserAccountID,
+    report,
+    fallbackOptimisticChatReportID,
+    action,
+}: ResolveChatForSubmitCleanupParams): ResolveChatForSubmitCleanupResult {
     if (isMoneyRequestReport(report)) {
         return {report, optimisticChatReportID: fallbackOptimisticChatReportID};
     }
 
+    // Tracked-expense submit writes to the participant's policy/1:1 chat (action passes parentChatReport: undefined), never the self-DM source — so skip the keep-source shortcut below.
+    const isTrackedExpenseSubmit = action === CONST.IOU.ACTION.SUBMIT;
+
     // Keep `report` unless it's a non-special 1:1 chat whose participants don't match the submission target.
-    if (report?.reportID) {
+    if (!isTrackedExpenseSubmit && report?.reportID) {
         const isSpecialChat = !!participant.isPolicyExpenseChat || isPolicyExpenseChat(report) || isSelfDM(report) || isGroupChat(report) || isDeprecatedGroupDM(report);
         if (isSpecialChat) {
             return {report, optimisticChatReportID: fallbackOptimisticChatReportID};

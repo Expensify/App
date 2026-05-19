@@ -159,7 +159,8 @@ describe('MoneyRequest', () => {
             );
 
             // Deferral is channel-driven; the action no longer receives a shouldDeferAPIWrite flag.
-            expect(TrackExpense.trackExpense).not.toHaveBeenLastCalledWith(expect.objectContaining({shouldDeferAPIWrite: expect.anything()}));
+            const lastTrackExpenseParams = jest.mocked(TrackExpense.trackExpense).mock.calls.at(-1)?.at(0);
+            expect(lastTrackExpenseParams && 'shouldDeferAPIWrite' in lastTrackExpenseParams).toBeFalsy();
         });
 
         it('should call requestMoney for non-TRACK (SEND) iouType', () => {
@@ -218,7 +219,8 @@ describe('MoneyRequest', () => {
             });
 
             expect(TrackExpense.trackExpense).toHaveBeenCalledTimes(files.length);
-            expect(TrackExpense.trackExpense).not.toHaveBeenCalledWith(expect.objectContaining({shouldDeferAPIWrite: expect.anything()}));
+            const trackExpenseCallsHaveDeferFlag = jest.mocked(TrackExpense.trackExpense).mock.calls.some(([params]) => !!params && 'shouldDeferAPIWrite' in params);
+            expect(trackExpenseCallsHaveDeferFlag).toBe(false);
         });
 
         it('should default receipt source and state correctly when file is missing', () => {
@@ -500,6 +502,53 @@ describe('MoneyRequest', () => {
                     }),
                 }),
             );
+        });
+
+        it('should resolve and propagate the optimistic chat report ID to both requestMoney and onTransactionsCreated for a global-create scan', () => {
+            const onTransactionsCreated = jest.fn();
+
+            createTransaction({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.REQUEST,
+                report: undefined,
+                participant: {accountID: 222, login: 'test@test.com'},
+                onTransactionsCreated,
+                allTransactionDrafts: {},
+            });
+
+            expect(TrackExpense.requestMoney).toHaveBeenCalledTimes(1);
+            const requestMoneyArg = jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.at(0);
+            expect(typeof requestMoneyArg?.optimisticChatReportID).toBe('string');
+            expect(onTransactionsCreated).toHaveBeenCalledWith(expect.any(String), requestMoneyArg?.optimisticChatReportID, expect.anything());
+        });
+
+        it('should pass the participant policy-expense chat ID to onTransactionsCreated for a workspace scan with no source report', () => {
+            const onTransactionsCreated = jest.fn();
+
+            createTransaction({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.REQUEST,
+                report: undefined,
+                participant: {isPolicyExpenseChat: true, reportID: 'workspace-xyz'},
+                onTransactionsCreated,
+                allTransactionDrafts: {},
+            });
+
+            expect(onTransactionsCreated).toHaveBeenCalledWith(expect.any(String), 'workspace-xyz', expect.anything());
+        });
+
+        it('should navigate to the source report for a TRACK scan (onTransactionsCreated receives report.reportID)', () => {
+            const onTransactionsCreated = jest.fn();
+
+            createTransaction({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.TRACK,
+                onTransactionsCreated,
+                allTransactionDrafts: {},
+            });
+
+            expect(TrackExpense.trackExpense).toHaveBeenCalledTimes(1);
+            expect(onTransactionsCreated).toHaveBeenCalledWith(expect.any(String), fakeReport.reportID, expect.anything());
         });
     });
 
@@ -1157,8 +1206,6 @@ describe('MoneyRequest', () => {
                     isDraftPolicy: false,
                     // Action is nav-free — UI owns navigation; draft + optimistic IDs are threaded in.
                     existingTransaction: baseParams.transaction,
-                    optimisticTransactionID: expect.any(String),
-                    optimisticChatReportID: expect.any(String),
                     transactionParams: expect.objectContaining({
                         amount: 0,
                         distance: 20,
@@ -1169,7 +1216,10 @@ describe('MoneyRequest', () => {
                     currentUserEmailParam: baseParams.currentUserLogin,
                 }),
             );
-            expect(TrackExpense.trackExpense).not.toHaveBeenCalledWith(expect.objectContaining({shouldHandleNavigation: expect.anything()}));
+            const distanceTrackExpenseParams = jest.mocked(TrackExpense.trackExpense).mock.calls.at(-1)?.at(0);
+            expect(typeof distanceTrackExpenseParams?.optimisticTransactionID).toBe('string');
+            expect(typeof distanceTrackExpenseParams?.optimisticChatReportID).toBe('string');
+            expect(distanceTrackExpenseParams && 'shouldHandleNavigation' in distanceTrackExpenseParams).toBeFalsy();
 
             // The function must return after trackExpense and not call createDistanceRequest
             expect(Split.createDistanceRequest).not.toHaveBeenCalled();

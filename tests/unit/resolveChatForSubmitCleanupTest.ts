@@ -1,5 +1,6 @@
 import {getChatByParticipants, getReportOrDraftReport, isDeprecatedGroupDM, isGroupChat, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import resolveChatForSubmitCleanup from '@pages/iou/request/step/confirmation/resolveChatForSubmitCleanup';
+import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 
@@ -35,7 +36,13 @@ describe('resolveChatForSubmitCleanup', () => {
         const report = {reportID: 'iou-report-1'} as Report;
         (isMoneyRequestReport as jest.Mock).mockReturnValue(true);
 
-        const result = resolveChatForSubmitCleanup({participant, currentUserAccountID: CURRENT_USER_ACCOUNT_ID, report, fallbackOptimisticChatReportID: FALLBACK});
+        const result = resolveChatForSubmitCleanup({
+            participant,
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            report,
+            fallbackOptimisticChatReportID: FALLBACK,
+            action: CONST.IOU.ACTION.CREATE,
+        });
 
         expect(isMoneyRequestReport).toHaveBeenCalledWith(report);
         expect(getChatByParticipants).not.toHaveBeenCalled();
@@ -47,7 +54,13 @@ describe('resolveChatForSubmitCleanup', () => {
         const report = {reportID: 'chat-A', participants: {[PARTICIPANT_ACCOUNT_ID]: {}, [CURRENT_USER_ACCOUNT_ID]: {}}} as unknown as Report;
         (getChatByParticipants as jest.Mock).mockReturnValue(undefined);
 
-        const result = resolveChatForSubmitCleanup({participant, currentUserAccountID: CURRENT_USER_ACCOUNT_ID, report, fallbackOptimisticChatReportID: FALLBACK});
+        const result = resolveChatForSubmitCleanup({
+            participant,
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            report,
+            fallbackOptimisticChatReportID: FALLBACK,
+            action: CONST.IOU.ACTION.CREATE,
+        });
 
         expect(result).toEqual({report, optimisticChatReportID: FALLBACK});
     });
@@ -57,7 +70,13 @@ describe('resolveChatForSubmitCleanup', () => {
         const report = {reportID: 'self-dm-1'} as Report;
         (isSelfDM as jest.Mock).mockReturnValue(true);
 
-        const result = resolveChatForSubmitCleanup({participant, currentUserAccountID: CURRENT_USER_ACCOUNT_ID, report, fallbackOptimisticChatReportID: FALLBACK});
+        const result = resolveChatForSubmitCleanup({
+            participant,
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            report,
+            fallbackOptimisticChatReportID: FALLBACK,
+            action: CONST.IOU.ACTION.CREATE,
+        });
 
         expect(result).toEqual({report, optimisticChatReportID: FALLBACK});
     });
@@ -66,7 +85,13 @@ describe('resolveChatForSubmitCleanup', () => {
         const participant: Participant = {isPolicyExpenseChat: true, reportID: 'workspace-1'};
         const report = {reportID: 'some-report'} as Report;
 
-        const result = resolveChatForSubmitCleanup({participant, currentUserAccountID: CURRENT_USER_ACCOUNT_ID, report, fallbackOptimisticChatReportID: FALLBACK});
+        const result = resolveChatForSubmitCleanup({
+            participant,
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            report,
+            fallbackOptimisticChatReportID: FALLBACK,
+            action: CONST.IOU.ACTION.CREATE,
+        });
 
         expect(result).toEqual({report, optimisticChatReportID: FALLBACK});
     });
@@ -74,7 +99,13 @@ describe('resolveChatForSubmitCleanup', () => {
     it('should resolve to participant.reportID when participant is policyExpenseChat and no source report', () => {
         const participant: Participant = {isPolicyExpenseChat: true, reportID: 'workspace-1'};
 
-        const result = resolveChatForSubmitCleanup({participant, currentUserAccountID: CURRENT_USER_ACCOUNT_ID, report: undefined, fallbackOptimisticChatReportID: FALLBACK});
+        const result = resolveChatForSubmitCleanup({
+            participant,
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            report: undefined,
+            fallbackOptimisticChatReportID: FALLBACK,
+            action: CONST.IOU.ACTION.CREATE,
+        });
 
         expect(result).toEqual({report: undefined, optimisticChatReportID: 'workspace-1'});
     });
@@ -83,7 +114,13 @@ describe('resolveChatForSubmitCleanup', () => {
         const participant: Participant = {isPolicyExpenseChat: true, reportID: 'workspace-uncached'};
         (getReportOrDraftReport as jest.Mock).mockReturnValue(undefined);
 
-        const result = resolveChatForSubmitCleanup({participant, currentUserAccountID: CURRENT_USER_ACCOUNT_ID, report: undefined, fallbackOptimisticChatReportID: FALLBACK});
+        const result = resolveChatForSubmitCleanup({
+            participant,
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            report: undefined,
+            fallbackOptimisticChatReportID: FALLBACK,
+            action: CONST.IOU.ACTION.CREATE,
+        });
 
         expect(result).toEqual({report: undefined, optimisticChatReportID: FALLBACK});
     });
@@ -93,7 +130,13 @@ describe('resolveChatForSubmitCleanup', () => {
         const report = {reportID: 'chat-A', participants: {[PARTICIPANT_ACCOUNT_ID]: {}, [CURRENT_USER_ACCOUNT_ID]: {}}} as unknown as Report;
         (getChatByParticipants as jest.Mock).mockReturnValue({reportID: 'chat-B'});
 
-        const result = resolveChatForSubmitCleanup({participant, currentUserAccountID: CURRENT_USER_ACCOUNT_ID, report, fallbackOptimisticChatReportID: FALLBACK});
+        const result = resolveChatForSubmitCleanup({
+            participant,
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            report,
+            fallbackOptimisticChatReportID: FALLBACK,
+            action: CONST.IOU.ACTION.CREATE,
+        });
 
         expect(getChatByParticipants).toHaveBeenCalledWith([OTHER_PARTICIPANT_ACCOUNT_ID, CURRENT_USER_ACCOUNT_ID]);
         expect(result).toEqual({report: undefined, optimisticChatReportID: 'chat-B'});
@@ -104,7 +147,13 @@ describe('resolveChatForSubmitCleanup', () => {
         const report = {reportID: 'chat-A', participants: {[PARTICIPANT_ACCOUNT_ID]: {}, [CURRENT_USER_ACCOUNT_ID]: {}}} as unknown as Report;
         (getChatByParticipants as jest.Mock).mockReturnValue(undefined);
 
-        const result = resolveChatForSubmitCleanup({participant, currentUserAccountID: CURRENT_USER_ACCOUNT_ID, report, fallbackOptimisticChatReportID: FALLBACK});
+        const result = resolveChatForSubmitCleanup({
+            participant,
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            report,
+            fallbackOptimisticChatReportID: FALLBACK,
+            action: CONST.IOU.ACTION.CREATE,
+        });
 
         expect(result).toEqual({report: undefined, optimisticChatReportID: FALLBACK});
     });
@@ -112,8 +161,66 @@ describe('resolveChatForSubmitCleanup', () => {
     it('should fall back to optimisticChatReportID when both report and participant are empty', () => {
         const participant: Participant = {};
 
-        const result = resolveChatForSubmitCleanup({participant, currentUserAccountID: CURRENT_USER_ACCOUNT_ID, report: undefined, fallbackOptimisticChatReportID: FALLBACK});
+        const result = resolveChatForSubmitCleanup({
+            participant,
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            report: undefined,
+            fallbackOptimisticChatReportID: FALLBACK,
+            action: CONST.IOU.ACTION.CREATE,
+        });
 
         expect(result).toEqual({report: undefined, optimisticChatReportID: FALLBACK});
+    });
+
+    describe('tracked-expense submit (action === SUBMIT)', () => {
+        it('should NOT keep the self-DM source — the action writes to the participant 1:1 chat, not back to self-DM', () => {
+            const participant: Participant = {accountID: PARTICIPANT_ACCOUNT_ID};
+            const report = {reportID: 'self-dm-1'} as Report;
+            (isSelfDM as jest.Mock).mockReturnValue(true);
+            (getChatByParticipants as jest.Mock).mockReturnValue({reportID: 'one-on-one-chat'});
+
+            const result = resolveChatForSubmitCleanup({
+                participant,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                report,
+                fallbackOptimisticChatReportID: FALLBACK,
+                action: CONST.IOU.ACTION.SUBMIT,
+            });
+
+            expect(getChatByParticipants).toHaveBeenCalledWith([PARTICIPANT_ACCOUNT_ID, CURRENT_USER_ACCOUNT_ID]);
+            expect(result).toEqual({report: undefined, optimisticChatReportID: 'one-on-one-chat'});
+        });
+
+        it('should resolve to the participant policy-expense chat (not the self-DM source) for a workspace submit', () => {
+            const participant: Participant = {isPolicyExpenseChat: true, reportID: 'workspace-1'};
+            const report = {reportID: 'self-dm-1'} as Report;
+            (isSelfDM as jest.Mock).mockReturnValue(true);
+
+            const result = resolveChatForSubmitCleanup({
+                participant,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                report,
+                fallbackOptimisticChatReportID: FALLBACK,
+                action: CONST.IOU.ACTION.SUBMIT,
+            });
+
+            expect(result).toEqual({report: undefined, optimisticChatReportID: 'workspace-1'});
+        });
+
+        it('should still keep the source when it is a money-request report even for SUBMIT (mirrors action: isMoneyRequestReport ? report.reportID)', () => {
+            const participant: Participant = {accountID: PARTICIPANT_ACCOUNT_ID};
+            const report = {reportID: 'iou-report-1'} as Report;
+            (isMoneyRequestReport as jest.Mock).mockReturnValue(true);
+
+            const result = resolveChatForSubmitCleanup({
+                participant,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                report,
+                fallbackOptimisticChatReportID: FALLBACK,
+                action: CONST.IOU.ACTION.SUBMIT,
+            });
+
+            expect(result).toEqual({report, optimisticChatReportID: FALLBACK});
+        });
     });
 });

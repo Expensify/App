@@ -7,7 +7,14 @@ import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {getGPSRoutes, getGPSWaypoints} from '@libs/GPSDraftDetailsUtils';
-import {calculateDefaultReimbursable, formatCurrentUserToAttendee, getExistingTransactionID, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
+import {
+    calculateDefaultReimbursable,
+    formatCurrentUserToAttendee,
+    getExistingTransactionID,
+    navigateToConfirmationPage,
+    navigateToParticipantPage,
+    resolveOptimisticChatReportID,
+} from '@libs/IOUUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import Log from '@libs/Log';
 // Type-only: the action never invokes this view-layer helper; it's dependency-injected by the UI caller.
@@ -232,6 +239,19 @@ function createTransaction({
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
     let lastOptimisticTransactionID: string | undefined;
 
+    // The UI navigates after this write completes, so it must target the exact chat the action resolves or creates.
+    let scanOptimisticChatReportID: string | undefined;
+    let scanChatReportID: string | undefined;
+    if (iouType === CONST.IOU.TYPE.TRACK && report) {
+        scanChatReportID = report.reportID;
+    } else if (participant?.isPolicyExpenseChat && participant.reportID) {
+        scanChatReportID = participant.reportID;
+    } else {
+        const resolved = resolveOptimisticChatReportID([participant?.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserAccountID], report);
+        scanOptimisticChatReportID = resolved.optimisticChatReportID;
+        scanChatReportID = resolved.chatReportID;
+    }
+
     for (const receiptFile of files) {
         const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
         const receipt: Receipt = receiptFile.file ?? {};
@@ -314,11 +334,12 @@ function createTransaction({
                 existingTransactionDraft,
                 isSelfTourViewed,
                 personalDetails,
+                optimisticChatReportID: scanOptimisticChatReportID,
                 optimisticTransactionID: lastOptimisticTransactionID,
             });
         }
     }
-    onTransactionsCreated?.(lastOptimisticTransactionID, undefined, shouldHandleNav);
+    onTransactionsCreated?.(lastOptimisticTransactionID, scanChatReportID, shouldHandleNav);
 }
 
 function getMoneyRequestParticipantOptions(

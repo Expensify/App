@@ -337,6 +337,7 @@ function IOURequestStepAmount({
                             betas,
                             draftTransactionIDs,
                             isSelfTourViewed,
+                            optimisticChatReportID,
                             optimisticTransactionID,
                         });
                     } else {

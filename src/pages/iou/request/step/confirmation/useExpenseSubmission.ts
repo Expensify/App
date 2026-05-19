@@ -284,6 +284,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             currentUserAccountID: currentUserPersonalDetails.accountID,
             report,
             fallbackOptimisticChatReportID,
+            action,
         });
         cleanupAndNavigateAfterExpenseCreate({
             report: resolvedReport,
