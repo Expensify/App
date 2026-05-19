@@ -58,9 +58,10 @@ function ConnectToCertiniaFlow({policyID}: ConnectToCertiniaFlowProps) {
     ];
 
     useEffect(() => {
-        if (isAuthError || !hasReusablePoliciesConnectedToCertinia) {
-            Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_PREREQUISITES.getRoute(policyID));
+        if (!isAuthError && hasReusablePoliciesConnectedToCertinia) {
+            return;
         }
+        Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_PREREQUISITES.getRoute(policyID));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
