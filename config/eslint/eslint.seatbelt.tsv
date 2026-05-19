@@ -298,7 +298,7 @@
 "../../src/libs/PersonalDetailsUtils.ts"	"rulesdir/no-onyx-connect"	2
 "../../src/libs/Pusher/index.native.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/libs/Pusher/index.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
-"../../src/libs/ReceiptUploadRetryHandler/handleFileRetry.ts"	"no-restricted-syntax"	2
+"../../src/libs/ReceiptUploadRetryHandler/handleFileRetry.ts"	"no-restricted-syntax"	1
 "../../src/libs/ReportActionItemEventHandler/index.android.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/libs/ReportActionsUtils.ts"	"@typescript-eslint/no-deprecated/reportAction.sequenceNumber"	1
 "../../src/libs/ReportActionsUtils.ts"	"@typescript-eslint/no-deprecated/reportAction?.originalMessage"	2
@@ -396,7 +396,7 @@
 "../../src/libs/actions/ReimbursementAccount/resetNonUSDBankAccount.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/ReimbursementAccount/resetUSDBankAccount.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/Report/MarkAllMessageAsRead.tsx"	"no-restricted-syntax"	1
-"../../src/libs/actions/Report/index.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	3
+"../../src/libs/actions/Report/index.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	2
 "../../src/libs/actions/Report/index.ts"	"@typescript-eslint/no-deprecated/buildNextStepNew"	3
 "../../src/libs/actions/Report/index.ts"	"@typescript-eslint/no-deprecated/reportAction.originalMessage"	1
 "../../src/libs/actions/Report/index.ts"	"no-restricted-syntax"	11

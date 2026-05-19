@@ -1018,8 +1018,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         freeTrialSection: {
             title: ({days}: {days: number}) => `Prova gratuita: ${days} ${days === 1 ? 'giorno' : 'giorni'} rimanenti!`,
-            offer50Body: 'Ottieni il 50% di sconto sul tuo primo anno!',
-            offer25Body: 'Ottieni il 25% di sconto sul tuo primo anno!',
+            offer50Body: 'Ottieni il 50% di sconto sul tuo primo anno',
+            offer25Body: 'Ottieni il 25% di sconto sul tuo primo anno',
             addCardBody: 'Non aspettare! Aggiungi subito la tua carta di pagamento.',
             ctaClaim: 'Richiesta',
             ctaAdd: 'Aggiungi carta',
@@ -2472,6 +2472,7 @@ const translations: TranslationDeepObject<typeof en> = {
             expiration: 'Scadenza',
             cvv: 'CVV',
             address: 'Indirizzo',
+            reveal: 'Mostra',
             revealDetails: 'Mostra dettagli',
             revealCvv: 'Mostra CVV',
             copyCardNumber: 'Copia numero carta',
@@ -5982,6 +5983,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 `Stai per creare e condividere ${newWorkspaceName ?? ''} con ${totalMembers ?? 0} membri dello spazio di lavoro originale.`,
             error: 'Si è verificato un errore durante la duplicazione del tuo nuovo workspace. Riprova.',
         },
+        copyPolicySettings: {error: 'Si è verificato un errore durante la copia delle impostazioni dello spazio di lavoro. Riprova.'},
         emptyWorkspace: {
             title: 'Non hai nessuna area di lavoro',
             subtitle: 'Tieni traccia delle ricevute, rimborsa le spese, gestisci i viaggi, invia le fatture e altro ancora.',
