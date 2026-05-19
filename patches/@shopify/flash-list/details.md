@@ -56,3 +56,11 @@
 - Upstream PR/issue: TBD
 - E/App issue: https://github.com/Expensify/App/issues/33725
 - PR introducing patch: TBD
+
+### [@shopify+flash-list+2.3.0+008+increase-timeout.patch](@shopify+flash-list+2.3.0+008+increase-timeout.patch)
+
+- Reason: Fixes an initial-render scroll jump on iOS for inverted lists using `initialScrollIndex`. The existing 100 ms `pauseOffsetCorrection` window in `applyInitialScrollIndex` wasn't long enough — MVCP resumed before the corrective `scrollToOffset` had settled, exposing the jump. Bumped to 500 ms.
+- Files changed: `dist/recyclerview/hooks/useRecyclerViewController.js` only.
+- Upstream PR/issue: TBD
+- E/App issue: https://github.com/Expensify/App/issues/89768
+- PR introducing patch: https://github.com/Expensify/App/pull/90218
