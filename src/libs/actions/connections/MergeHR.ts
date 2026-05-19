@@ -93,14 +93,7 @@ function syncMergeHR(policyID: string) {
         },
     ];
 
-    read(
-        READ_COMMANDS.SYNC_POLICY_TO_MERGE_HR,
-        {
-            policyID,
-            idempotencyKey: policyID,
-        },
-        {optimisticData, failureData},
-    );
+    read(READ_COMMANDS.SYNC_POLICY_TO_MERGE_HR, {policyID}, {optimisticData, failureData});
 }
 
 /**
