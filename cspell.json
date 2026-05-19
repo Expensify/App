@@ -933,7 +933,8 @@
         "Gclid",
         "autocorrection",
         "BambooHr",
-        "HiBob"
+        "HiBob",
+        "overscan"
     ],
     "ignorePaths": [
         ".gitignore",
