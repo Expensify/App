@@ -3276,7 +3276,7 @@ const ROUTES = {
     ONBOARDING_PERSONAL_TRACK_GOAL: {
         route: 'onboarding/personaltrackcase',
 
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- Legacy route generation, consistent with other onboarding routes
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/personaltrackcase`, backTo),
     },
     EXPLANATION_MODAL_ROOT: 'onboarding/explanation',

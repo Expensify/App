@@ -99,6 +99,7 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
                     {isSomethingElseSelected && (
                         <View style={styles.mt4}>
                             <TextInput
+                                autoFocus
                                 accessibilityLabel={translate('onboarding.personalTrackGoal.somethingElsePlaceholder')}
                                 placeholder={translate('onboarding.personalTrackGoal.somethingElsePlaceholder')}
                                 value={somethingElseText}
