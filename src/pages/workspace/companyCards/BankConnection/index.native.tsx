@@ -4,7 +4,6 @@ import type {WebViewNavigation} from 'react-native-webview';
 import {WebView} from 'react-native-webview';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCardFeeds from '@hooks/useCardFeeds';
@@ -76,8 +75,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
     const {updateBrokenConnection, isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
     const isNewFeedHasError = !!(newFeed && cardFeeds?.[newFeed]?.errors);
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
-    const [isConfirmedNewFeed, setIsConfirmedNewFeed] = useState(false);
-    const isDuplicateFeed = isNewFeedConnected && !newFeed && isPlaid && !isConfirmedNewFeed;
+    const isDuplicateFeed = isNewFeedConnected && !newFeed && isPlaid;
 
     const activityReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'BankConnection',
@@ -144,6 +142,9 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
         // Handle add new card flow
         if (isNewFeedConnected) {
             if (isDuplicateFeed) {
+                setAddNewCompanyCardStepAndData({data: {isDuplicateFeedDetected: true}});
+                Navigation.closeRHPFlow();
+                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
                 return;
             }
 
@@ -156,8 +157,6 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
             return;
         }
         if (isPlaid) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect -- marks the feed as new (not duplicate) before importing
-            setIsConfirmedNewFeed(true);
             onImportPlaidAccounts();
         }
     }, [
@@ -183,12 +182,6 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
         setConnectionCompleted(true);
     };
 
-    const handleDuplicateFeedSubmit = () => {
-        setAddNewCompanyCardStepAndData({data: {isDuplicateFeedDetected: true}});
-        Navigation.closeRHPFlow();
-        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
-    };
-
     return (
         <ScreenWrapper
             testID="BankConnection"
@@ -201,17 +194,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
                 onBackButtonPress={handleBackButtonPress}
             />
             <FullPageOfflineBlockingView addBottomSafeAreaPadding>
-                {isDuplicateFeed && (
-                    <ConfirmationPage
-                        heading={translate('workspace.companyCards.addNewCard.duplicateFeedModal.title')}
-                        description={translate('workspace.companyCards.addNewCard.duplicateFeedModal.prompt')}
-                        shouldShowButton
-                        onButtonPress={handleDuplicateFeedSubmit}
-                        buttonText={translate('common.buttonConfirm')}
-                        containerStyle={styles.h100}
-                    />
-                )}
-                {!!url && !isDuplicateFeed && !isConnectionCompleted && !isPlaid && !isNewFeedHasError && !isAllFeedsResultLoading && (!isBlockedToAddNewFeeds || !!feed) && (
+                {!!url && !isConnectionCompleted && !isPlaid && !isNewFeedHasError && !isAllFeedsResultLoading && (!isBlockedToAddNewFeeds || !!feed) && (
                     <WebView
                         ref={webViewRef}
                         source={{
@@ -227,7 +210,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
                         renderLoading={renderLoading}
                     />
                 )}
-                {!isDuplicateFeed && (isAllFeedsResultLoading || (isBlockedToAddNewFeeds && !feed) || isConnectionCompleted || isPlaid) && !isNewFeedHasError && (
+                {(isAllFeedsResultLoading || (isBlockedToAddNewFeeds && !feed) || isConnectionCompleted || isPlaid) && !isNewFeedHasError && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={styles.flex1}

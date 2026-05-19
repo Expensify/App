@@ -1,8 +1,7 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -80,8 +79,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
     const isNewFeedHasError = !!(newFeed && cardFeeds?.[newFeed]?.errors);
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
-    const [isConfirmedNewFeed, setIsConfirmedNewFeed] = useState(false);
-    const isDuplicateFeed = isNewFeedConnected && !newFeed && isPlaid && !isConfirmedNewFeed;
+    const isDuplicateFeed = isNewFeedConnected && !newFeed && isPlaid;
 
     const onOpenBankConnectionFlow = useCallback(() => {
         if (!url) {
@@ -158,6 +156,9 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
             customWindow?.close();
 
             if (isDuplicateFeed) {
+                setAddNewCompanyCardStepAndData({data: {isDuplicateFeedDetected: true}});
+                Navigation.closeRHPFlow();
+                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
                 return;
             }
 
@@ -171,8 +172,6 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
         }
         if (!shouldBlockWindowOpenRef.current) {
             if (isPlaid) {
-                // eslint-disable-next-line react-hooks/set-state-in-effect -- marks the feed as new (not duplicate) before importing
-                setIsConfirmedNewFeed(true);
                 onImportPlaidAccounts();
                 return;
             }
@@ -199,25 +198,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
         isNewFeedHasError,
     ]);
 
-    const handleDuplicateFeedSubmit = () => {
-        setAddNewCompanyCardStepAndData({data: {isDuplicateFeedDetected: true}});
-        Navigation.closeRHPFlow();
-        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
-    };
-
     const getContent = () => {
-        if (isDuplicateFeed) {
-            return (
-                <ConfirmationPage
-                    heading={translate('workspace.companyCards.addNewCard.duplicateFeedModal.title')}
-                    description={translate('workspace.companyCards.addNewCard.duplicateFeedModal.prompt')}
-                    shouldShowButton
-                    onButtonPress={handleDuplicateFeedSubmit}
-                    buttonText={translate('common.buttonConfirm')}
-                    containerStyle={styles.h100}
-                />
-            );
-        }
         if (isNewFeedHasError) {
             return (
                 <WorkspaceCompanyCardsErrorConfirmation
