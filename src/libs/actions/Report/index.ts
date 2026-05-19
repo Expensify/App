@@ -226,6 +226,7 @@ import type {
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
+import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import type {CurrentUserPersonalDetails, Timezone} from '@src/types/onyx/PersonalDetails';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
@@ -475,6 +476,20 @@ Onyx.connect({
         allPersonalDetails = value ?? {};
     },
 });
+
+/**
+ * Builds a partial PersonalDetailsList containing only the records passed in. Skips entries with no accountID.
+ */
+function buildPersonalDetailsList(details: Array<OnyxEntry<PersonalDetails>>): PersonalDetailsList {
+    const result: PersonalDetailsList = {};
+    for (const detail of details) {
+        if (detail?.accountID == null) {
+            continue;
+        }
+        result[detail.accountID] = detail;
+    }
+    return result;
+}
 
 const typingWatchTimers: Record<string, NodeJS.Timeout> = {};
 
@@ -2338,8 +2353,7 @@ function navigateToAndOpenReportWithAccountIDs(
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
     betas: OnyxEntry<Beta[]>,
-    // TODO: personalDetails should be a required field in follow-up PRs https://github.com/Expensify/App/issues/73656
-    personalDetails?: OnyxEntry<PersonalDetailsList>,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
     shouldRevalidateExistingChat = false,
 ) {
     const participants = participantAccountIDs.map((accountID): ParticipantInfo => {
@@ -2366,8 +2380,7 @@ function navigateToAndOpenReportWithAccountIDs(
             newReportObject: fallbackChat,
             parentReportActionID: '0',
             participants,
-            // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
-            personalDetails: personalDetails ?? allPersonalDetails,
+            personalDetails,
             betas,
         });
 
@@ -2425,9 +2438,8 @@ function navigateToAndOpenChildReport(
     currentUserAccountID: number,
     introSelected: OnyxEntry<IntroSelected>,
     betas: OnyxEntry<Beta[]>,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
     isSelfTourViewed: boolean | undefined,
-    // TODO: personalDetails should be a required field in follow-up PRs https://github.com/Expensify/App/issues/73656
-    personalDetails?: OnyxEntry<PersonalDetailsList>,
 ) {
     const report = childReport ?? createChildReport(childReport, parentReportAction, parentReport, currentUserAccountID, introSelected, betas, isSelfTourViewed, personalDetails);
 
@@ -3422,9 +3434,8 @@ function toggleSubscribeToChildReport(
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
     betas: OnyxEntry<Beta[]>,
-    prevNotificationPreference?: NotificationPreference,
-    // TODO: personalDetails should be a required field in follow-up PRs https://github.com/Expensify/App/issues/73656
-    personalDetails?: OnyxEntry<PersonalDetailsList>,
+    prevNotificationPreference: NotificationPreference | undefined,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
 ) {
     if (childReportID) {
         openReport({reportID: childReportID, introSelected, betas, isSelfTourViewed});
@@ -3468,8 +3479,7 @@ function toggleSubscribeToChildReport(
             reportID: newChat.reportID,
             introSelected,
             participants,
-            // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
-            personalDetails: personalDetails ?? allPersonalDetails,
+            personalDetails,
             newReportObject: newChat,
             parentReportActionID: parentReportAction.reportActionID,
             isSelfTourViewed,
@@ -4356,6 +4366,7 @@ function deleteReport(reportID: string | undefined, shouldDeleteChildReports = f
 /**
  * @param reportID The reportID of the policy report (workspace room)
  */
+// eslint-disable-next-line @typescript-eslint/max-params
 function navigateToConciergeChatAndDeleteReport(
     reportID: string | undefined,
     conciergeReportID: string | undefined,
@@ -4363,10 +4374,11 @@ function navigateToConciergeChatAndDeleteReport(
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
     betas: OnyxEntry<Beta[]>,
+    reportOwnerPersonalDetail: OnyxEntry<PersonalDetails>,
+    currentUserPersonalDetail: OnyxEntry<PersonalDetails>,
+    conciergePersonalDetail: OnyxEntry<PersonalDetails>,
     shouldPopToTop = false,
     shouldDeleteChildReports = false,
-    // TODO: personalDetails should be a required field in follow-up PRs https://github.com/Expensify/App/issues/73656
-    personalDetails?: OnyxEntry<PersonalDetailsList>,
 ) {
     // Dismiss the current report screen and replace it with Concierge Chat
     if (shouldPopToTop) {
@@ -4374,8 +4386,9 @@ function navigateToConciergeChatAndDeleteReport(
     } else {
         Navigation.goBack();
     }
-    // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
-    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false, undefined, undefined, undefined, personalDetails ?? allPersonalDetails);
+    const personalDetails = buildPersonalDetailsList([reportOwnerPersonalDetail, currentUserPersonalDetail, conciergePersonalDetail]);
+    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false, undefined, undefined, undefined, personalDetails);
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
         deleteReport(reportID, shouldDeleteChildReports);
     });
@@ -4388,6 +4401,9 @@ function clearCreateChatError(
     currentUserAccountID: number,
     betas: OnyxEntry<Beta[]>,
     isSelfTourViewed: boolean | undefined,
+    reportOwnerPersonalDetail: OnyxEntry<PersonalDetails>,
+    currentUserPersonalDetail: OnyxEntry<PersonalDetails>,
+    conciergePersonalDetail: OnyxEntry<PersonalDetails>,
 ) {
     const metaData = getReportMetadata(report?.reportID);
     const isOptimisticReport = metaData?.isOptimisticReport;
@@ -4396,7 +4412,19 @@ function clearCreateChatError(
         return;
     }
 
-    navigateToConciergeChatAndDeleteReport(report?.reportID, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, betas, undefined, true);
+    navigateToConciergeChatAndDeleteReport(
+        report?.reportID,
+        conciergeReportID,
+        currentUserAccountID,
+        introSelected,
+        isSelfTourViewed,
+        betas,
+        reportOwnerPersonalDetail,
+        currentUserPersonalDetail,
+        conciergePersonalDetail,
+        undefined,
+        true,
+    );
 }
 
 /**
