@@ -3,11 +3,9 @@ import {useEffect, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import Log from '@libs/Log';
-import {getOdometerImageName, getOdometerImageType, getOdometerImageUri} from '@libs/OdometerImageUtils';
-import stitchOdometerImages from '@libs/stitchOdometerImages';
-import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {getOdometerImageUri} from '@libs/OdometerImageUtils';
+import {deriveOdometerReceipt, stitchTask} from '@libs/OdometerReceipt';
 import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
-import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 
@@ -68,68 +66,55 @@ function OdometerReceiptStitcher({
             return;
         }
 
-        if (!odometerStartImage || !odometerEndImage) {
-            const singleImage = odometerStartImage ?? odometerEndImage;
+        const derivation = deriveOdometerReceipt(odometerStartImage, odometerEndImage);
 
-            if (!singleImage) {
-                // Skip the clear on fresh transactions - otherwise we'd write an empty receipt object onto them.
-                if (transaction.receipt?.source) {
-                    setMoneyRequestReceipt(transaction.transactionID, '', '', true, '');
-                }
-                lastStitchedImages.current = {startImage: odometerStartImage, endImage: odometerEndImage};
-                lastWrittenReceiptSource.current = '';
-                return;
+        if (derivation.mode === 'empty') {
+            // Skip the clear on fresh transactions - otherwise we'd write an empty receipt object onto them.
+            if (transaction.receipt?.source) {
+                setMoneyRequestReceipt(transaction.transactionID, '', '', true, '');
             }
-
-            // Fallback name keeps ReceiptFileValidator from failing on an unnamed FileObject.
-            const singleImageName = getOdometerImageName(singleImage) || 'odometer.jpg';
-            const singleImageUri = getOdometerImageUri(singleImage);
-            setMoneyRequestReceipt(transaction.transactionID, singleImageUri, singleImageName, true, getOdometerImageType(singleImage));
             lastStitchedImages.current = {startImage: odometerStartImage, endImage: odometerEndImage};
-            lastWrittenReceiptSource.current = singleImageUri;
+            lastWrittenReceiptSource.current = '';
             return;
         }
 
-        let ignore = false;
+        if (derivation.mode === 'single') {
+            setMoneyRequestReceipt(transaction.transactionID, derivation.uri, derivation.name, true, derivation.type);
+            lastStitchedImages.current = {startImage: odometerStartImage, endImage: odometerEndImage};
+            lastWrittenReceiptSource.current = derivation.uri;
+            return;
+        }
+
+        const controller = new AbortController();
         onStitchingChange(true);
         onStitchError('');
 
-        startSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_STITCH, {
-            name: CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_STITCH,
-            op: CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_STITCH,
-        });
-
-        stitchOdometerImages(odometerStartImage, odometerEndImage)
-            .then((stitchedImage) => {
-                if (ignore || !stitchedImage) {
-                    cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_STITCH);
+        stitchTask({startImage: derivation.startImage, endImage: derivation.endImage, signal: controller.signal})
+            .then((result) => {
+                if (controller.signal.aborted) {
                     return;
                 }
-                const stitchedUri = getOdometerImageUri(stitchedImage);
-                setMoneyRequestReceipt(transaction.transactionID, stitchedUri, getOdometerImageName(stitchedImage), true, getOdometerImageType(stitchedImage));
+                setMoneyRequestReceipt(transaction.transactionID, result.uri, result.name, true, result.type);
                 lastStitchedImages.current = {startImage: odometerStartImage, endImage: odometerEndImage};
-                lastWrittenReceiptSource.current = stitchedUri;
-                endSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_STITCH);
+                lastWrittenReceiptSource.current = result.uri;
             })
             .catch((error: unknown) => {
-                cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_STITCH);
-                if (ignore) {
+                if (controller.signal.aborted) {
                     return;
                 }
                 Log.warn('stitchOdometerImages failed', {error});
                 onStitchError(translate('iou.error.stitchOdometerImagesFailed'));
             })
             .finally(() => {
-                if (ignore) {
+                if (controller.signal.aborted) {
                     return;
                 }
                 onStitchingChange(false);
             });
 
         return () => {
-            ignore = true;
+            controller.abort();
             onStitchingChange(false);
-            cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_STITCH);
         };
     }, [isOdometerDistanceRequest, isFocused, odometerStartImage, odometerEndImage, transaction, hasVerifiedBlobs, translate, onStitchingChange, onStitchError]);
 
