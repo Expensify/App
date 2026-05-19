@@ -23,6 +23,7 @@ type CreateTrackExpenseParams = {
     isRetry?: boolean;
     shouldPlaySound?: boolean;
     shouldHandleNavigation?: boolean;
+    shouldDeferForSearch?: boolean;
     isASAPSubmitBetaEnabled: boolean;
     currentUser: CurrentUser;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;

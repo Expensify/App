@@ -1737,7 +1737,7 @@ describe('actions/Policy', () => {
             });
 
             expect(GoogleTagManager.publishEvent).toHaveBeenCalledTimes(1);
-            expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED, ESH_ACCOUNT_ID);
+            expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED.NAME, ESH_ACCOUNT_ID, ESH_EMAIL);
         });
 
         it('should not publish a workspace created event if this is not their first policy', () => {

@@ -25,7 +25,6 @@ const createCellRendererComponent = <Item,>(CellRendererComponentProp?: CellRend
                 onLayout={props.onLayout}
                 style={CellRendererComponentProp ? undefined : props.style}
             >
-                {/* eslint-disable-next-line react/jsx-props-no-spreading */}
                 {CellRendererComponentProp ? <CellRendererComponentProp {...props}>{props.children}</CellRendererComponentProp> : props.children}
             </Animated.View>
         );
@@ -82,7 +81,6 @@ function FlatListRender<Item = any>(props: AnimatedFlatListWithCellRendererProps
         // @ts-expect-error In its current type state, createAnimatedComponent cannot create generic components.
         <AnimatedFlatList
             ref={ref}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...restProps}
             CellRendererComponent={CellRendererComponent}
         />
