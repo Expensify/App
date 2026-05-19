@@ -84,14 +84,10 @@ function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLo
             if (item.value === CONST.POLICY.ROLE.ADMIN && !canAssignAdminRole) {
                 return false;
             }
-            // Editor only exists on Submit workspaces (and the SUBMIT_2026 beta must be on); surfacing it elsewhere
-            // would let admins assign an unsupported role.
-            if (item.value === CONST.POLICY.ROLE.EDITOR && !isPolicySubmit2026) {
-                return false;
-            }
-            // On Submit workspaces every invited/managed user is an Editor — Member isn't a valid target there
-            // (the backend forces Editor anyway, so showing Member would be misleading UX).
-            if (item.value === CONST.POLICY.ROLE.USER && isPolicySubmit2026) {
+            // Editor and Member are mutually exclusive across plan types: Submit workspaces only allow Editor
+            // (Member would be a misleading no-op since the backend forces Editor), and other plans only allow
+            // Member (Editor doesn't exist there).
+            if ((item.value === CONST.POLICY.ROLE.EDITOR && !isPolicySubmit2026) || (item.value === CONST.POLICY.ROLE.USER && isPolicySubmit2026)) {
                 return false;
             }
             return true;
