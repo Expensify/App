@@ -42,17 +42,17 @@ describe('actions/connections/QuickbooksDesktop', () => {
     });
 
     describe('updateQuickbooksDesktopTravelInvoicingPayableAccount', () => {
-        it('writes the UpdateManyPolicyConnectionConfigs command with the payable account nested under export', () => {
+        it('writes the dedicated payable account command with the selected account', () => {
             updateQuickbooksDesktopTravelInvoicingPayableAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
 
             const {command} = getFirstWriteCall();
-            expect(command).toBe(WRITE_COMMANDS.UPDATE_MANY_POLICY_CONNECTION_CONFIGS);
+            expect(command).toBe(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_TRAVEL_INVOICING_PAYABLE_ACCOUNT);
 
             const call = writeSpy.mock.calls.at(0);
-            const params = call?.[1] as {connectionName: string; configUpdate: string; policyID: string};
+            const params = call?.[1] as {idempotencyKey: string; policyID: string; settingValue: string};
             expect(params.policyID).toBe(MOCK_POLICY_ID);
-            expect(params.connectionName).toBe(CONST.POLICY.CONNECTIONS.NAME.QBD);
-            expect(JSON.parse(params.configUpdate)).toEqual({export: {[CONST.QUICKBOOKS_DESKTOP_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT]: 'account-123'}});
+            expect(params.settingValue).toBe('account-123');
+            expect(params.idempotencyKey).toBe(String(CONST.QUICKBOOKS_DESKTOP_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT));
         });
 
         it('merges the payable account optimistically onto the QBD export config', () => {
