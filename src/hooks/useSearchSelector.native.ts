@@ -1,7 +1,6 @@
 import {useCallback, useMemo} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import useContactImport from './useContactImport';
 import type {ContactState, UseSearchSelectorConfig, UseSearchSelectorReturn} from './useSearchSelector.base';
 import useSearchSelectorBase from './useSearchSelector.base';
@@ -24,7 +23,7 @@ function useSearchSelector(config: UseSearchSelectorConfig): UseSearchSelectorRe
 
     const initiateContactImportAndSetState = useCallback(() => {
         setContactPermissionState(RESULTS.GRANTED);
-        InteractionManager.runAfterInteractions(importAndSaveContacts);
+        TransitionTracker.runAfterTransitions({callback: importAndSaveContacts});
     }, [importAndSaveContacts, setContactPermissionState]);
 
     // Use base hook with contact options

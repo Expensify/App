@@ -30,6 +30,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import goToSettings from '@libs/goToSettings';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {formatSectionsFromSearchTerm, getHeaderMessage, getParticipantsOption, getPolicyExpenseReportOption, isCurrentUser} from '@libs/OptionsListUtils';
 import type {Option} from '@libs/OptionsListUtils';
 import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
@@ -423,10 +424,7 @@ function ParticipantSearchResults({
 
     const initiateContactImportAndSetState = () => {
         setContactPermissionState(RESULTS.GRANTED);
-        // `InteractionManager.runAfterInteractions` is marked deprecated in RN types but remains the
-        // supported primitive for deferring work until native animations/gestures settle. No
-        // replacement exists in the RN API we can migrate to today.
-        InteractionManager.runAfterInteractions(importAndSaveContacts);
+        TransitionTracker.runAfterTransitions({callback: importAndSaveContacts});
     };
 
     const footerContent =
