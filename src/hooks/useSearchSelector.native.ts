@@ -24,6 +24,7 @@ function useSearchSelector(config: UseSearchSelectorConfig): UseSearchSelectorRe
 
     const initiateContactImportAndSetState = useCallback(() => {
         setContactPermissionState(RESULTS.GRANTED);
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- `runAfterInteractions` is marked deprecated in RN types but remains the supported primitive for deferring work until native animations settle.
         InteractionManager.runAfterInteractions(importAndSaveContacts);
     }, [importAndSaveContacts, setContactPermissionState]);
 
