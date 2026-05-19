@@ -505,6 +505,10 @@ function updateSplitTransactions({
             return transactionID === existingTransactionID;
         });
 
+        const linkedTrackedExpenseChildReportExistsInOnyx =
+            !!currentReportAction?.childReportID && !!allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${currentReportAction.childReportID}`]?.reportID;
+        const reverseSplitLinkedTrackedExpenseReportAction = isReverseSplitOperation && linkedTrackedExpenseChildReportExistsInOnyx ? currentReportAction : undefined;
+
         const splitExpenseMerchant = splitExpense.merchant ?? '';
 
         const requestMoneyInformation = {
@@ -574,7 +578,7 @@ function updateSplitTransactions({
                 category: splitExpense.category,
                 tag: splitExpense.tags?.[0],
                 attendees: originalTransactionDetails?.attendees as Attendee[],
-                linkedTrackedExpenseReportAction: currentReportAction,
+                linkedTrackedExpenseReportAction: reverseSplitLinkedTrackedExpenseReportAction,
                 taxCode: originalTransactionDetails?.taxCode,
                 taxAmount: calculateIOUAmount(splitExpenses.length - 1, originalTransactionDetails?.taxAmount ?? 0, originalTransactionDetails?.currency ?? CONST.CURRENCY.USD, false),
                 taxValue: originalTransactionDetails?.taxValue,
