@@ -11538,7 +11538,7 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
-/***/ 3580:
+/***/ 7071:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -11638,7 +11638,7 @@ Built from${appPr ? ` App PR Expensify/App#${appPr}` : ''}${mobileExpensifyPr ? 
 }
 /** Comment on a single PR */
 async function commentPR(REPO, PR, message) {
-    console.log(`Posting test build comment on #${PR}`);
+    console.log(`Posting comment on #${PR}`);
     try {
         await GithubUtils_1.default.createComment(REPO, PR, message);
         console.log(`Comment created on #${PR} (${REPO}) successfully 🎉`);
@@ -11650,10 +11650,37 @@ async function commentPR(REPO, PR, message) {
         }
     }
 }
+async function hidePreviousComment(repo, issueNumber, commentPrefix) {
+    const comments = await GithubUtils_1.default.paginate(GithubUtils_1.default.octokit.issues.listComments, {
+        owner: CONST_1.default.GITHUB_OWNER,
+        repo,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        issue_number: issueNumber,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        per_page: 100,
+    }, (response) => response.data);
+    const previousComment = comments.findLast((comment) => comment.body?.startsWith(commentPrefix));
+    if (!previousComment) {
+        return;
+    }
+    await GithubUtils_1.default.graphql(`
+            mutation MinimizeComment($subjectId: ID!) {
+              minimizeComment(input: {classifier: OUTDATED, subjectId: $subjectId}) {
+                minimizedComment {
+                  minimizedReason
+                }
+              }
+            }
+        `, {
+        subjectId: previousComment.node_id,
+    });
+}
 async function run() {
     const APP_PR_NUMBER = Number(core.getInput('APP_PR_NUMBER', { required: false }));
     const MOBILE_EXPENSIFY_PR_NUMBER = Number(core.getInput('MOBILE_EXPENSIFY_PR_NUMBER', { required: false }));
     const REPO = String(core.getInput('REPO', { required: true }));
+    const COMMENT_BODY = core.getInput('COMMENT_BODY', { required: false });
+    const COMMENT_PREFIX = core.getInput('COMMENT_PREFIX', { required: true });
     if (REPO !== CONST_1.default.APP_REPO && REPO !== CONST_1.default.MOBILE_EXPENSIFY_REPO) {
         core.setFailed(`Invalid repository used to place output comment: ${REPO}`);
         return;
@@ -11663,28 +11690,8 @@ async function run() {
         return;
     }
     const destinationPRNumber = REPO === CONST_1.default.APP_REPO ? APP_PR_NUMBER : MOBILE_EXPENSIFY_PR_NUMBER;
-    const comments = await GithubUtils_1.default.paginate(GithubUtils_1.default.octokit.issues.listComments, {
-        owner: CONST_1.default.GITHUB_OWNER,
-        repo: REPO,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        issue_number: destinationPRNumber,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        per_page: 100,
-    }, (response) => response.data);
-    const testBuildComment = comments.find((comment) => comment.body?.startsWith(':test_tube::test_tube: Use the links below to test this adhoc build'));
-    if (testBuildComment) {
-        console.log('Found previous build comment, hiding it', testBuildComment);
-        await GithubUtils_1.default.graphql(`
-            mutation {
-              minimizeComment(input: {classifier: OUTDATED, subjectId: "${testBuildComment.node_id}"}) {
-                minimizedComment {
-                  minimizedReason
-                }
-              }
-            }
-        `);
-    }
-    await commentPR(REPO, destinationPRNumber, getTestBuildMessage(APP_PR_NUMBER, MOBILE_EXPENSIFY_PR_NUMBER));
+    await hidePreviousComment(REPO, destinationPRNumber, COMMENT_PREFIX);
+    await commentPR(REPO, destinationPRNumber, COMMENT_BODY || getTestBuildMessage(APP_PR_NUMBER, MOBILE_EXPENSIFY_PR_NUMBER));
 }
 if (require.main === require.cache[eval('__filename')]) {
     run();
@@ -12402,7 +12409,7 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nccwpck_require__(3580);
+/******/ 	var __webpack_exports__ = __nccwpck_require__(7071);
 /******/ 	module.exports = __webpack_exports__;
 /******/ 	
 /******/ })()

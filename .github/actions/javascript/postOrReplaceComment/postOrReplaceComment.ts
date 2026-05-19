@@ -68,7 +68,7 @@ Built from${appPr ? ` App PR Expensify/App#${appPr}` : ''}${mobileExpensifyPr ? 
 
 /** Comment on a single PR */
 async function commentPR(REPO: string, PR: number, message: string) {
-    console.log(`Posting test build comment on #${PR}`);
+    console.log(`Posting comment on #${PR}`);
     try {
         await GithubUtils.createComment(REPO, PR, message);
         console.log(`Comment created on #${PR} (${REPO}) successfully 🎉`);
@@ -81,10 +81,47 @@ async function commentPR(REPO: string, PR: number, message: string) {
     }
 }
 
+async function hidePreviousComment(repo: string, issueNumber: number, commentPrefix: string): Promise<void> {
+    const comments = await GithubUtils.paginate(
+        GithubUtils.octokit.issues.listComments,
+        {
+            owner: CONST.GITHUB_OWNER,
+            repo,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            issue_number: issueNumber,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            per_page: 100,
+        },
+        (response) => response.data,
+    );
+    const previousComment = comments.findLast((comment) => comment.body?.startsWith(commentPrefix));
+
+    if (!previousComment) {
+        return;
+    }
+
+    await GithubUtils.graphql(
+        `
+            mutation MinimizeComment($subjectId: ID!) {
+              minimizeComment(input: {classifier: OUTDATED, subjectId: $subjectId}) {
+                minimizedComment {
+                  minimizedReason
+                }
+              }
+            }
+        `,
+        {
+            subjectId: previousComment.node_id,
+        },
+    );
+}
+
 async function run() {
     const APP_PR_NUMBER = Number(core.getInput('APP_PR_NUMBER', {required: false}));
     const MOBILE_EXPENSIFY_PR_NUMBER = Number(core.getInput('MOBILE_EXPENSIFY_PR_NUMBER', {required: false}));
     const REPO = String(core.getInput('REPO', {required: true}));
+    const COMMENT_BODY = core.getInput('COMMENT_BODY', {required: false});
+    const COMMENT_PREFIX = core.getInput('COMMENT_PREFIX', {required: true});
 
     if (REPO !== CONST.APP_REPO && REPO !== CONST.MOBILE_EXPENSIFY_REPO) {
         core.setFailed(`Invalid repository used to place output comment: ${REPO}`);
@@ -97,32 +134,8 @@ async function run() {
     }
 
     const destinationPRNumber = REPO === CONST.APP_REPO ? APP_PR_NUMBER : MOBILE_EXPENSIFY_PR_NUMBER;
-    const comments = await GithubUtils.paginate(
-        GithubUtils.octokit.issues.listComments,
-        {
-            owner: CONST.GITHUB_OWNER,
-            repo: REPO,
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            issue_number: destinationPRNumber,
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            per_page: 100,
-        },
-        (response) => response.data,
-    );
-    const testBuildComment = comments.find((comment) => comment.body?.startsWith(':test_tube::test_tube: Use the links below to test this adhoc build'));
-    if (testBuildComment) {
-        console.log('Found previous build comment, hiding it', testBuildComment);
-        await GithubUtils.graphql(`
-            mutation {
-              minimizeComment(input: {classifier: OUTDATED, subjectId: "${testBuildComment.node_id}"}) {
-                minimizedComment {
-                  minimizedReason
-                }
-              }
-            }
-        `);
-    }
-    await commentPR(REPO, destinationPRNumber, getTestBuildMessage(APP_PR_NUMBER, MOBILE_EXPENSIFY_PR_NUMBER));
+    await hidePreviousComment(REPO, destinationPRNumber, COMMENT_PREFIX);
+    await commentPR(REPO, destinationPRNumber, COMMENT_BODY || getTestBuildMessage(APP_PR_NUMBER, MOBILE_EXPENSIFY_PR_NUMBER));
 }
 
 if (require.main === module) {

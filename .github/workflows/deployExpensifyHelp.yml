@@ -125,8 +125,11 @@ jobs:
           PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
 
       - name: Leave a comment on the PR
-        uses: actions-cool/maintain-one-comment@de04bd2a3750d86b324829a3ff34d47e48e16f4b
+        uses: ./.github/actions/javascript/postOrReplaceComment
         if: ${{ github.event_name == 'pull_request' && env.IS_PR_FROM_FORK != 'true' }}
         with:
-          token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          body: ${{ steps.preview_comment.outputs.BODY }}
+          REPO: App
+          APP_PR_NUMBER: ${{ github.event.pull_request.number }}
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          COMMENT_PREFIX: A preview of your ExpensifyHelp changes have been deployed to
+          COMMENT_BODY: ${{ steps.preview_comment.outputs.BODY }}

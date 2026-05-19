@@ -4,7 +4,7 @@
 import * as core from '@actions/core';
 import type {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types';
 import {when} from 'jest-when';
-import ghAction from '@github/actions/javascript/postTestBuildComment/postTestBuildComment';
+import ghAction from '@github/actions/javascript/postOrReplaceComment/postOrReplaceComment';
 import CONST from '@github/libs/CONST';
 import type {CreateCommentResponse} from '@github/libs/GithubUtils';
 import GithubUtils from '@github/libs/GithubUtils';
@@ -46,6 +46,7 @@ jest.mock('@actions/github', () => ({
 const androidLink = 'https://expensify.app/ANDROID_LINK';
 const iOSLink = 'https://expensify.app/IOS_LINK';
 const webLink = 'https://expensify.app/WEB_LINK';
+const testBuildCommentPrefix = ':test_tube::test_tube: Use the links below to test this adhoc build';
 
 const androidQRCode = `![Android](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${androidLink})`;
 const iOSQRCode = `![iOS](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${iOSLink})`;
@@ -102,7 +103,7 @@ Built from Mobile-Expensify PR Expensify/Mobile-Expensify#13.
 :eyes: [View the workflow run that generated this build](https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/1234) :eyes:
 `;
 
-describe('Post test build comments action tests', () => {
+describe('postOrReplaceComment action tests', () => {
     beforeAll(() => {
         // Mock core module
         asMutable(core).getInput = mockGetInput;
@@ -110,10 +111,30 @@ describe('Post test build comments action tests', () => {
 
     beforeEach(() => jest.clearAllMocks());
 
+    function expectPreviousCommentToBeHidden() {
+        expect(mockGraphql).toHaveBeenCalledTimes(1);
+        expect(mockGraphql).toHaveBeenCalledWith(
+            `
+            mutation MinimizeComment($subjectId: ID!) {
+              minimizeComment(input: {classifier: OUTDATED, subjectId: $subjectId}) {
+                minimizedComment {
+                  minimizedReason
+                }
+              }
+            }
+        `,
+            {
+                subjectId: 'IC_abcd',
+            },
+        );
+    }
+
     test('Test GH action', async () => {
         when(core.getInput).calledWith('REPO', {required: true}).mockReturnValue(CONST.APP_REPO);
         when(core.getInput).calledWith('APP_PR_NUMBER', {required: false}).mockReturnValue('12');
         when(core.getInput).calledWith('MOBILE_EXPENSIFY_PR_NUMBER', {required: false}).mockReturnValue('13');
+        when(core.getInput).calledWith('COMMENT_PREFIX', {required: true}).mockReturnValue(testBuildCommentPrefix);
+        when(core.getInput).calledWith('COMMENT_BODY', {required: false}).mockReturnValue('');
         when(core.getInput).calledWith('ANDROID', {required: false}).mockReturnValue('success');
         when(core.getInput).calledWith('IOS', {required: false}).mockReturnValue('success');
         when(core.getInput).calledWith('WEB', {required: false}).mockReturnValue('success');
@@ -131,16 +152,7 @@ describe('Post test build comments action tests', () => {
             ],
         });
         await ghAction();
-        expect(mockGraphql).toHaveBeenCalledTimes(1);
-        expect(mockGraphql).toHaveBeenCalledWith(`
-            mutation {
-              minimizeComment(input: {classifier: OUTDATED, subjectId: "IC_abcd"}) {
-                minimizedComment {
-                  minimizedReason
-                }
-              }
-            }
-        `);
+        expectPreviousCommentToBeHidden();
         expect(createCommentMock).toHaveBeenCalledTimes(1);
         expect(createCommentMock).toHaveBeenCalledWith(CONST.APP_REPO, 12, message);
     });
@@ -149,6 +161,8 @@ describe('Post test build comments action tests', () => {
         when(core.getInput).calledWith('REPO', {required: true}).mockReturnValue(CONST.APP_REPO);
         when(core.getInput).calledWith('APP_PR_NUMBER', {required: false}).mockReturnValue('12');
         when(core.getInput).calledWith('MOBILE_EXPENSIFY_PR_NUMBER', {required: false}).mockReturnValue('');
+        when(core.getInput).calledWith('COMMENT_PREFIX', {required: true}).mockReturnValue(testBuildCommentPrefix);
+        when(core.getInput).calledWith('COMMENT_BODY', {required: false}).mockReturnValue('');
         when(core.getInput).calledWith('ANDROID', {required: false}).mockReturnValue('success');
         when(core.getInput).calledWith('IOS', {required: false}).mockReturnValue('skipped');
         when(core.getInput).calledWith('WEB', {required: false}).mockReturnValue('skipped');
@@ -164,16 +178,7 @@ describe('Post test build comments action tests', () => {
             ],
         });
         await ghAction();
-        expect(mockGraphql).toHaveBeenCalledTimes(1);
-        expect(mockGraphql).toHaveBeenCalledWith(`
-            mutation {
-              minimizeComment(input: {classifier: OUTDATED, subjectId: "IC_abcd"}) {
-                minimizedComment {
-                  minimizedReason
-                }
-              }
-            }
-        `);
+        expectPreviousCommentToBeHidden();
         expect(createCommentMock).toHaveBeenCalledTimes(1);
         expect(createCommentMock).toHaveBeenCalledWith(CONST.APP_REPO, 12, onlyAppMessage);
     });
@@ -182,6 +187,8 @@ describe('Post test build comments action tests', () => {
         when(core.getInput).calledWith('REPO', {required: true}).mockReturnValue(CONST.MOBILE_EXPENSIFY_REPO);
         when(core.getInput).calledWith('APP_PR_NUMBER', {required: false}).mockReturnValue('');
         when(core.getInput).calledWith('MOBILE_EXPENSIFY_PR_NUMBER', {required: false}).mockReturnValue('13');
+        when(core.getInput).calledWith('COMMENT_PREFIX', {required: true}).mockReturnValue(testBuildCommentPrefix);
+        when(core.getInput).calledWith('COMMENT_BODY', {required: false}).mockReturnValue('');
         when(core.getInput).calledWith('ANDROID', {required: false}).mockReturnValue('success');
         when(core.getInput).calledWith('IOS', {required: false}).mockReturnValue('success');
         when(core.getInput).calledWith('ANDROID_LINK').mockReturnValue(androidLink);
@@ -198,16 +205,7 @@ describe('Post test build comments action tests', () => {
             ],
         });
         await ghAction();
-        expect(mockGraphql).toHaveBeenCalledTimes(1);
-        expect(mockGraphql).toHaveBeenCalledWith(`
-            mutation {
-              minimizeComment(input: {classifier: OUTDATED, subjectId: "IC_abcd"}) {
-                minimizedComment {
-                  minimizedReason
-                }
-              }
-            }
-        `);
+        expectPreviousCommentToBeHidden();
         expect(createCommentMock).toHaveBeenCalledTimes(1);
         expect(createCommentMock).toHaveBeenCalledWith(CONST.MOBILE_EXPENSIFY_REPO, 13, onlyMobileExpensifyMessage);
     });
