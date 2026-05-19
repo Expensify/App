@@ -9,6 +9,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import variables from '@styles/variables';
 import {createTransactionThreadReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -91,6 +92,7 @@ function DuplicateTransactionItem({transaction, isLastItem, isSelected, onSelect
                     shouldShowErrors={false}
                     style={styles.p4}
                     shouldShowRadioButton
+                    radioButtonWrapperStyle={[styles.alignItemsCenter, styles.justifyContentCenter, {width: variables.w44, height: variables.w44}]}
                     onRadioButtonPress={() => onSelectTransaction(transaction.transactionID)}
                 />
             </PressableWithFeedback>

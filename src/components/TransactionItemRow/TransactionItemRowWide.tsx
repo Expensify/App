@@ -76,6 +76,7 @@ function TransactionItemRowWide({
     isInSingleTransactionReport = false,
     shouldShowRadioButton = false,
     onRadioButtonPress = () => {},
+    radioButtonWrapperStyle,
     shouldShowErrors = true,
     isDisabled = false,
     violations,
@@ -598,6 +599,7 @@ function TransactionItemRowWide({
                                 disabled={isDisabled}
                                 onPress={() => onRadioButtonPress?.(transactionItem.transactionID)}
                                 accessibilityLabel={CONST.ROLE.RADIO}
+                                wrapperStyle={radioButtonWrapperStyle}
                             />
                         </View>
                     )}

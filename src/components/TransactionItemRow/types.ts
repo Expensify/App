@@ -73,6 +73,7 @@ type TransactionItemRowProps = {
     isInSingleTransactionReport?: boolean;
     shouldShowRadioButton?: boolean;
     onRadioButtonPress?: (transactionID: string) => void;
+    radioButtonWrapperStyle?: StyleProp<ViewStyle>;
     shouldShowErrors?: boolean;
     shouldHighlightItemWhenSelected?: boolean;
     isDisabled?: boolean;

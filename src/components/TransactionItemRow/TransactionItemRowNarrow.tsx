@@ -30,6 +30,7 @@ type TransactionItemRowNarrowProps = Pick<
     | 'isInSingleTransactionReport'
     | 'shouldShowRadioButton'
     | 'onRadioButtonPress'
+    | 'radioButtonWrapperStyle'
     | 'shouldShowErrors'
     | 'isDisabled'
     | 'violations'
@@ -51,6 +52,7 @@ function TransactionItemRowNarrow({
     isInSingleTransactionReport = false,
     shouldShowRadioButton = false,
     onRadioButtonPress = () => {},
+    radioButtonWrapperStyle,
     shouldShowErrors = true,
     isDisabled = false,
     violations,
@@ -155,6 +157,7 @@ function TransactionItemRowNarrow({
                                 disabled={isDisabled}
                                 onPress={() => onRadioButtonPress?.(transactionItem.transactionID)}
                                 accessibilityLabel={CONST.ROLE.RADIO}
+                                wrapperStyle={radioButtonWrapperStyle}
                             />
                         </View>
                     )}
