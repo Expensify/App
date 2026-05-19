@@ -44,6 +44,7 @@ function BaseSelectionList<TItem extends ListItem>({
     ref,
     ListItem,
     textInputOptions,
+    searchValueForFocusSync,
     initiallyFocusedItemKey,
     onSelectRow,
     onSelectAll,
@@ -203,10 +204,6 @@ function BaseSelectionList<TItem extends ListItem>({
 
     const debouncedScrollToIndex = useDebounce(scrollToIndex, CONST.TIMING.LIST_SCROLLING_DEBOUNCE_TIME, {leading: true, trailing: true});
 
-    const onArrowUpDownCallback = useCallback(() => {
-        setShouldDisableHoverStyle(true);
-    }, [setShouldDisableHoverStyle]);
-
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex,
         maxIndex: data.length - 1,
@@ -225,7 +222,10 @@ function BaseSelectionList<TItem extends ListItem>({
         },
         setHasKeyBeenPressed,
         isFocused,
-        onArrowUpDownCallback,
+        onArrowUpDownCallback: () => {
+            setShouldDisableHoverStyle(true);
+            listRef.current?.announceProgrammaticScroll();
+        },
     });
 
     // Keep the cursor on the restored row so keyboard nav continues from there, but don't scroll to it on the way back.
@@ -243,6 +243,7 @@ function BaseSelectionList<TItem extends ListItem>({
     // Including data.length ensures FlashList resets its layout cache when the list size changes
     // This prevents "index out of bounds" errors when filtering reduces the list size
     const extraData = useMemo(() => [data.length], [data.length]);
+    const syncedSearchValue = searchValueForFocusSync ?? textInputOptions?.value;
 
     const selectRow = useCallback(
         (item: TItem, indexToFocus?: number) => {
@@ -542,7 +543,7 @@ function BaseSelectionList<TItem extends ListItem>({
         initiallyFocusedItemKey,
         isItemSelected,
         focusedIndex,
-        searchValue: textInputOptions?.value,
+        searchValue: syncedSearchValue,
         setFocusedIndex,
     });
 
@@ -551,7 +552,7 @@ function BaseSelectionList<TItem extends ListItem>({
     }, []);
 
     useSearchFocusSync({
-        searchValue: textInputOptions?.value,
+        searchValue: syncedSearchValue,
         data,
         selectedOptionsCount: dataDetails.selectedOptions.length,
         isItemSelected,
