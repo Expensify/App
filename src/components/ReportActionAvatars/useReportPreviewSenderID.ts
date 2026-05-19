@@ -70,50 +70,30 @@ function hasPendingScanStateAndUnknownDirection(transaction: Transaction): boole
     return true;
 }
 
-function hasReceiptBackedUnknownDirection(transaction: Transaction): boolean {
-    return transaction.receipt?.source !== undefined && getTransactionDirectionSign(transaction) === undefined;
-}
-
-function hasNonPendingReceiptBackedUnknownDirection(transaction: Transaction): boolean {
-    return hasReceiptBackedUnknownDirection(transaction) && !hasPendingScanStateAndUnknownDirection(transaction);
-}
-
-function normalizeAccountID(accountID: number | string | undefined): number | undefined {
-    const parsedAccountID = Number(accountID);
-
-    if (!Number.isFinite(parsedAccountID) || parsedAccountID <= 0) {
+function getPendingScanActorAccountID(transaction: Transaction, action: OnyxEntry<ReportAction>, iouReport: OnyxEntry<Report>, chatReport: OnyxEntry<Report>): number | undefined {
+    if (!hasPendingScanStateAndUnknownDirection(transaction)) {
         return undefined;
     }
 
-    return parsedAccountID;
-}
+    const chatLastActorAccountID = Number(chatReport?.lastActorAccountID);
+    const validPendingScanActorAccountIDs = new Set([action?.childOwnerAccountID, action?.childManagerAccountID, iouReport?.ownerAccountID, iouReport?.managerID].filter(Boolean));
 
-function getAttendeeIdentifier(attendee: {accountID?: number; email?: string; login?: string; reportID?: string; displayName?: string; text?: string}): number | string | undefined {
-    if (attendee.accountID !== undefined) {
-        return attendee.accountID;
+    if (
+        Number.isFinite(chatLastActorAccountID) &&
+        chatLastActorAccountID > 0 &&
+        chatLastActorAccountID !== CONST.ACCOUNT_ID.CONCIERGE &&
+        validPendingScanActorAccountIDs.has(chatLastActorAccountID)
+    ) {
+        return chatLastActorAccountID;
     }
 
-    if (attendee.email) {
-        return attendee.email.toLowerCase();
+    const previewLastActorAccountID = Number(action?.childLastActorAccountID);
+
+    if (!Number.isFinite(previewLastActorAccountID) || previewLastActorAccountID <= 0) {
+        return undefined;
     }
 
-    if (attendee.login) {
-        return attendee.login.toLowerCase();
-    }
-
-    if (attendee.reportID) {
-        return attendee.reportID;
-    }
-
-    if (attendee.displayName) {
-        return attendee.displayName.toLowerCase();
-    }
-
-    if (attendee.text) {
-        return attendee.text.toLowerCase();
-    }
-
-    return undefined;
+    return previewLastActorAccountID;
 }
 
 function getAccountIDFromTransactionDirection(transaction: Transaction, action: OnyxEntry<ReportAction>, iouReport: OnyxEntry<Report>): number | undefined {
@@ -123,117 +103,29 @@ function getAccountIDFromTransactionDirection(transaction: Transaction, action: 
         return undefined;
     }
 
-    return directionSign > 0 ? normalizeAccountID(action?.childOwnerAccountID ?? iouReport?.ownerAccountID) : normalizeAccountID(action?.childManagerAccountID ?? iouReport?.managerID);
-}
+    const accountID = Number(directionSign > 0 ? (action?.childOwnerAccountID ?? iouReport?.ownerAccountID) : (action?.childManagerAccountID ?? iouReport?.managerID));
 
-function getLastActorAccountIDForReceiptBackedUnknown(
-    transaction: Transaction,
-    action: OnyxEntry<ReportAction>,
-    chatReport: OnyxEntry<Report>,
-    iouReport: OnyxEntry<Report>,
-    receiptBackedUnknownTransactionCount: number,
-): number | undefined {
-    if (hasPendingScanStateAndUnknownDirection(transaction)) {
-        const previewLastActorAccountID = normalizeAccountID(action?.childLastActorAccountID);
-
-        if (previewLastActorAccountID !== undefined) {
-            return previewLastActorAccountID;
-        }
-
-        const chatLastActorAccountID = normalizeAccountID(chatReport?.lastActorAccountID);
-
-        if (chatLastActorAccountID !== undefined && chatLastActorAccountID !== CONST.ACCOUNT_ID.CONCIERGE) {
-            return chatLastActorAccountID;
-        }
-
-        return normalizeAccountID(iouReport?.lastActorAccountID);
-    }
-
-    if (!hasNonPendingReceiptBackedUnknownDirection(transaction) || receiptBackedUnknownTransactionCount !== 1) {
+    if (!Number.isFinite(accountID) || accountID <= 0) {
         return undefined;
     }
 
-    return normalizeAccountID(action?.childLastActorAccountID ?? iouReport?.lastActorAccountID);
-}
-
-function shouldBackfillReceiptBackedUnknownTransactions(
-    transactions: Transaction[] | undefined,
-    transactionActorAccountIDs: Array<number | undefined> | undefined,
-    fallbackActorAccountID: number | undefined,
-): fallbackActorAccountID is number {
-    if (!transactions || !transactionActorAccountIDs || fallbackActorAccountID === undefined) {
-        return false;
-    }
-
-    const knownActorAccountIDs = transactionActorAccountIDs.filter((accountID): accountID is number => accountID !== undefined);
-    if (knownActorAccountIDs.length === 0 || knownActorAccountIDs.some((accountID) => accountID !== fallbackActorAccountID)) {
-        return false;
-    }
-
-    const transactionsMissingActor = transactions.filter((transaction, index) => transactionActorAccountIDs.at(index) === undefined);
-    return transactionsMissingActor.length > 0 && transactionsMissingActor.every(hasNonPendingReceiptBackedUnknownDirection);
-}
-
-function canInferFromTransactionsDuringPartialHydration(
-    transactions: Transaction[] | undefined,
-    transactionActorAccountIDs: Array<number | undefined> | undefined,
-    fallbackActorAccountID: number | undefined,
-    childRecentReceiptTransactionIDs: Record<string, string> | undefined,
-    missingTransactionCount: number,
-): boolean {
-    if (!transactions || !transactionActorAccountIDs || fallbackActorAccountID === undefined || missingTransactionCount < 1) {
-        return false;
-    }
-
-    const uniqueKnownActorAccountIDs = new Set(transactionActorAccountIDs.filter((accountID): accountID is number => accountID !== undefined));
-
-    if (uniqueKnownActorAccountIDs.size !== 1 || uniqueKnownActorAccountIDs.has(fallbackActorAccountID) === false) {
-        return false;
-    }
-
-    if (transactions.some((transaction, index) => transactionActorAccountIDs.at(index) === undefined && !hasNonPendingReceiptBackedUnknownDirection(transaction))) {
-        return false;
-    }
-
-    return Object.keys(childRecentReceiptTransactionIDs ?? {}).length >= missingTransactionCount;
-}
-
-function shouldPreferFallbackActorForReceiptBackedUnknownTransactions(
-    transactions: Transaction[] | undefined,
-    directionBasedActorAccountIDs: Array<number | undefined> | undefined,
-    fallbackActorAccountID: number | undefined,
-    hasCompleteActionCoverage: boolean,
-): fallbackActorAccountID is number {
-    if (!transactions || !directionBasedActorAccountIDs || fallbackActorAccountID === undefined || hasCompleteActionCoverage) {
-        return false;
-    }
-
-    if (transactions.some(hasPendingScanStateAndUnknownDirection)) {
-        return false;
-    }
-
-    const knownDirectionActorAccountIDs = transactions
-        .map((transaction, index) => ({transaction, actorAccountID: directionBasedActorAccountIDs.at(index)}))
-        .filter(({transaction, actorAccountID}) => !hasReceiptBackedUnknownDirection(transaction) && actorAccountID !== undefined)
-        .map(({actorAccountID}) => actorAccountID);
-
-    return knownDirectionActorAccountIDs.length > 0 && knownDirectionActorAccountIDs.every((accountID) => accountID === fallbackActorAccountID);
+    return accountID;
 }
 
 function isExplicitlyDeletedIOUAction(iouAction: ReportAction): boolean {
     const originalMessage = getOriginalMessage(iouAction) as OriginalMessageIOU | undefined;
 
-    if (iouAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || originalMessage?.deleted || isDeletedParentAction(iouAction)) {
+    if (originalMessage?.deleted || isDeletedParentAction(iouAction)) {
         return true;
     }
 
     const message = iouAction.message;
 
     if (Array.isArray(message)) {
-        return message.length === 0 || message.some((fragment) => !!fragment?.deleted || (fragment?.html === '' && !iouAction.isOptimisticAction));
+        return message.length === 0 || message.some((fragment) => !!fragment?.deleted || fragment?.html === '');
     }
 
-    return !!message?.deleted || (message?.html === '' && !iouAction.isOptimisticAction);
+    return !!message?.deleted || message?.html === '';
 }
 
 type GetReportPreviewSenderIDParams = {
@@ -283,55 +175,23 @@ function getReportPreviewSenderID({
     const hasCompleteActionCoverage = activeMoneyRequestCount > 0 && uniqueIOUActionActorMap.size >= activeMoneyRequestCount;
     const areAllActiveChildRequestsCreatedByOneActor = uniqueIOUActionActorMap.size > 0 && new Set(uniqueIOUActionActorMap.values()).size < 2;
     const canInferFromIOUActionsDuringPartialHydration = loadedTransactionCount > 0 && hasCompleteActionCoverage && activeIOUActions.length > 0 && areAllActiveChildRequestsCreatedByOneActor;
-    const attendeeIdentifierGroups =
-        transactions?.map((transaction) =>
-            convertAttendeesToArray(transaction.comment?.attendees)
-                .map((attendee) =>
-                    transaction.comment?.source === CONST.IOU.TYPE.SPLIT
-                        ? getSplitAuthor(transaction, splits)
-                        : (getPersonalDetailByEmail(attendee.email)?.accountID ?? getAttendeeIdentifier(attendee)),
-                )
-                .filter((identifier): identifier is number | string => !!identifier),
-        ) ?? [];
-    const transactionSigns = transactions?.map((transaction) => getTransactionDirectionSign(transaction)) ?? [];
-    const hasAttendeeIdentifierForEachTransaction =
-        transactions === undefined || (attendeeIdentifierGroups.length === transactions.length && attendeeIdentifierGroups.every((identifiers) => identifiers.length > 0));
-    const receiptBackedUnknownTransactionCount = transactions?.filter(hasReceiptBackedUnknownDirection).length ?? 0;
-    const missingTransactionCount = Math.max(activeMoneyRequestCount - loadedTransactionCount, 0);
-    const receiptBackedUnknownFallbackActorAccountID = normalizeAccountID(action?.childLastActorAccountID ?? iouReport?.lastActorAccountID);
-    const directionBasedActorAccountIDs = transactions?.map((transaction) => getAccountIDFromTransactionDirection(transaction, action, iouReport)) ?? [];
-    const shouldPreferFallbackActorForReceiptBackedUnknown = shouldPreferFallbackActorForReceiptBackedUnknownTransactions(
-        transactions,
-        directionBasedActorAccountIDs,
-        receiptBackedUnknownFallbackActorAccountID,
-        hasCompleteActionCoverage,
-    );
-    const initialTransactionActorAccountIDs =
-        transactions?.map(
-            (transaction, index) =>
-                (shouldPreferFallbackActorForReceiptBackedUnknown && hasReceiptBackedUnknownDirection(transaction)
-                    ? receiptBackedUnknownFallbackActorAccountID
-                    : getIOUActionForTransactionID(activeIOUActions, transaction.transactionID)?.actorAccountID) ??
-                directionBasedActorAccountIDs.at(index) ??
-                getLastActorAccountIDForReceiptBackedUnknown(transaction, action, chatReport, iouReport, receiptBackedUnknownTransactionCount),
-        ) ?? [];
-    const transactionActorAccountIDs = shouldBackfillReceiptBackedUnknownTransactions(transactions, initialTransactionActorAccountIDs, receiptBackedUnknownFallbackActorAccountID)
-        ? initialTransactionActorAccountIDs.map((accountID) => accountID ?? receiptBackedUnknownFallbackActorAccountID)
-        : initialTransactionActorAccountIDs;
-    const hasActorAccountIDForEachTransaction =
-        !!transactionActorAccountIDs && transactionActorAccountIDs.length > 0 && transactionActorAccountIDs.every((accountID) => accountID !== undefined);
-    const canInferFromTransactionDataDuringPartialHydration = canInferFromTransactionsDuringPartialHydration(
-        transactions,
-        transactionActorAccountIDs,
-        receiptBackedUnknownFallbackActorAccountID,
-        action?.childRecentReceiptTransactionIDs,
-        missingTransactionCount,
-    );
-    if (!hasFinishedInitialReportActionsLoad && missingTransactionCount > 0 && !canInferFromIOUActionsDuringPartialHydration && !canInferFromTransactionDataDuringPartialHydration) {
+
+    // After refresh, the preview action can hydrate before all active child transactions.
+    // Avoid collapsing to one avatar unless the available IOU actions already prove the remaining
+    // active requests all belong to the same sender.
+    if (!hasFinishedInitialReportActionsLoad && activeMoneyRequestCount > loadedTransactionCount && !canInferFromIOUActionsDuringPartialHydration) {
         return undefined;
     }
 
-    // 1. Use the transaction creator when it can be inferred for every transaction.
+    const transactionActorAccountIDs = transactions?.map((transaction) => {
+        return getIOUActionForTransactionID(activeIOUActions, transaction.transactionID)?.actorAccountID ?? getPendingScanActorAccountID(transaction, action, iouReport, chatReport);
+    });
+    const transactionSigns = transactions?.map((transaction) => getTransactionDirectionSign(transaction)) ?? [];
+
+    const hasActorAccountIDForEachTransaction =
+        activeIOUActions.length > 0 && !!transactionActorAccountIDs && transactionActorAccountIDs.length > 0 && transactionActorAccountIDs.every((accountID) => accountID !== undefined);
+
+    // 1. Use actorAccountID when it is available for every transaction. Otherwise, fall back to known transaction direction only.
     if (hasActorAccountIDForEachTransaction) {
         const areAllTransactionsCreatedByOneActor = new Set(transactionActorAccountIDs).size < 2;
 
@@ -339,21 +199,29 @@ function getReportPreviewSenderID({
             return undefined;
         }
     } else {
-        // 1. If actor data is unavailable, fall back to transaction direction.
-        // We use amount sign here because there can be cases where actions are not available.
+        // 1. If all amounts have the same sign - either all amounts are positive or all amounts are negative.
+        // We have to do it this way because there can be a case when actions are not available
         // See: https://github.com/Expensify/App/pull/64802#issuecomment-3008944401
         const transactionsWithUnknownDirection = (transactions ?? []).filter((transaction, index) => transactionSigns.at(index) === undefined);
         const hasUnknownDirection = transactionSigns.some((sign) => sign === undefined);
         const unknownDirectionComesOnlyFromPendingScans = transactionsWithUnknownDirection.length > 0 && transactionsWithUnknownDirection.every(hasPendingScanStateAndUnknownDirection);
-        const unknownDirectionComesOnlyFromReceiptBackedTransactions =
-            hasAttendeeIdentifierForEachTransaction && transactionsWithUnknownDirection.length > 0 && transactionsWithUnknownDirection.every(hasReceiptBackedUnknownDirection);
         const hasOnlyUnknownDirections = transactionSigns.length > 0 && transactionSigns.every((sign) => sign === undefined);
         const hasOnlyUnknownNonPendingScanDirections =
-            hasOnlyUnknownDirections &&
-            transactionsWithUnknownDirection.every((transaction) => !hasPendingScanStateAndUnknownDirection(transaction)) &&
-            hasAttendeeIdentifierForEachTransaction;
+            hasOnlyUnknownDirections && transactionsWithUnknownDirection.every((transaction) => !hasPendingScanStateAndUnknownDirection(transaction));
 
-        if (hasUnknownDirection && !unknownDirectionComesOnlyFromPendingScans && !unknownDirectionComesOnlyFromReceiptBackedTransactions && !hasOnlyUnknownNonPendingScanDirections) {
+        if (unknownDirectionComesOnlyFromPendingScans) {
+            const inferredActorAccountIDs = (transactions ?? [])
+                .map((transaction, index) => {
+                    return transactionActorAccountIDs?.at(index) ?? getAccountIDFromTransactionDirection(transaction, action, iouReport);
+                })
+                .filter((accountID): accountID is number => accountID !== undefined);
+
+            if (new Set(inferredActorAccountIDs).size > 1) {
+                return undefined;
+            }
+        }
+
+        if (hasUnknownDirection && !unknownDirectionComesOnlyFromPendingScans && !hasOnlyUnknownNonPendingScanDirections) {
             return undefined;
         }
 
@@ -373,8 +241,16 @@ function getReportPreviewSenderID({
     // 2. If there is only one attendee - we check that by counting unique emails converted to account IDs in the attendees list.
     // This is a fallback added because: https://github.com/Expensify/App/pull/64802#issuecomment-3007906310
 
-    const attendeeIdentifiers = attendeeIdentifierGroups.flatMap((identifiers) => identifiers);
-    const isThereOnlyOneAttendee = new Set(attendeeIdentifiers).size <= 1;
+    const attendeesIDs = transactions
+        // If the transaction is a split, then attendees are not present as a property so we need to use a helper function.
+        ?.flatMap<number | undefined>((tr) =>
+            convertAttendeesToArray(tr.comment?.attendees).map((att) =>
+                tr.comment?.source === CONST.IOU.TYPE.SPLIT ? getSplitAuthor(tr, splits) : getPersonalDetailByEmail(att.email)?.accountID,
+            ),
+        )
+        .filter((accountID) => !!accountID);
+
+    const isThereOnlyOneAttendee = new Set(attendeesIDs).size <= 1;
 
     if (!isThereOnlyOneAttendee) {
         return undefined;
@@ -389,9 +265,8 @@ function getReportPreviewSenderID({
 
     const isSendMoneyFlow = activeIOUActions.length > 0 ? isSendMoneyFlowBasedOnActions : isSendMoneyFlowBasedOnTransactions;
 
-    const singleAvatarAccountID = isSendMoneyFlow
-        ? normalizeAccountID(action?.childManagerAccountID ?? iouReport?.managerID)
-        : normalizeAccountID(action?.childOwnerAccountID ?? iouReport?.ownerAccountID);
+    const singleAvatarAccountID = isSendMoneyFlow ? action?.childManagerAccountID : action?.childOwnerAccountID;
+
     return singleAvatarAccountID;
 }
 
@@ -404,12 +279,13 @@ function useReportPreviewSenderID({iouReport, action, chatReport}: {action: Onyx
     const [iouActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(shouldFetchData ? iouReport?.reportID : undefined)}`, {
         selector: getIOUActionsSelector,
     });
-    const [hasFinishedInitialReportActionsLoad] = useOnyx(
-        `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${getNonEmptyStringOnyxID(shouldFetchData ? action?.childReportID : undefined)}`,
-        {
-            selector: (state) => hasOnceLoadedReportActionsSelector(state) === true || isLoadingInitialReportActionsSelector(state) === false,
-        },
-    );
+    const [hasOnceLoadedReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${getNonEmptyStringOnyxID(shouldFetchData ? action?.childReportID : undefined)}`, {
+        selector: hasOnceLoadedReportActionsSelector,
+    });
+    const [isLoadingInitialReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${getNonEmptyStringOnyxID(shouldFetchData ? action?.childReportID : undefined)}`, {
+        selector: isLoadingInitialReportActionsSelector,
+    });
+    const hasFinishedInitialReportActionsLoad = hasOnceLoadedReportActions === true || isLoadingInitialReportActions === false;
 
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(shouldFetchData ? action?.childReportID : undefined);
     const transactions = useMemo(() => {
@@ -418,8 +294,6 @@ function useReportPreviewSenderID({iouReport, action, chatReport}: {action: Onyx
         }
         const activeMoneyRequestCount = iouReport?.transactionCount ?? action?.childMoneyRequestCount ?? 0;
         const allReportTransactions = Object.values(reportTransactions ?? {}).filter((transaction): transaction is Transaction => !!transaction);
-        // Start with orphan-inclusive filtering so refreshed receipt-backed expenses are not dropped too early,
-        // then fall back to the stricter path only when it does not reduce the active request count too far.
         const nonDeletedTransactionsIncludingOrphans = getAllNonDeletedTransactions(reportTransactions, iouActions ?? [], false, true);
         const filteredTransactions =
             nonDeletedTransactionsIncludingOrphans.length < allReportTransactions.length

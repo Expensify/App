@@ -10689,8 +10689,10 @@ describe('ReportUtils', () => {
             expect(reportPreviewAction.childOwnerAccountID).toBe(iouReport.ownerAccountID);
             expect(reportPreviewAction.childManagerAccountID).toBe(iouReport.managerID);
         });
+    });
 
-        it('should refresh childLastActorAccountID when adding a new expense to an existing preview', () => {
+    describe('updateReportPreview', () => {
+        it('refreshes childLastActorAccountID when a new non-pay expense is added', () => {
             const chatReport: Report = {
                 ...createRandomReport(100, undefined),
                 type: CONST.REPORT.TYPE.CHAT,
@@ -10704,18 +10706,15 @@ describe('ReportUtils', () => {
                 managerID: 2,
             };
 
-            const initialPreview = {
-                ...buildOptimisticReportPreview(chatReport, iouReport),
-                childLastActorAccountID: undefined,
-            };
-
-            const updatedPreview = updateReportPreview(iouReport, initialPreview, false, '', {
-                transactionID: '123',
-                created: '2026-05-11 10:30:00',
-                receipt: {source: 'receipt.png'},
+            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport);
+            const updatedPreviewAction = updateReportPreview(iouReport, reportPreviewAction, false, '', {
+                transactionID: 'transaction-1',
+                amount: 0,
+                created: '2026-05-19 10:00:00',
+                receipt: {source: 'receipt.jpg'},
             } as Transaction);
 
-            expect(updatedPreview.childLastActorAccountID).toBe(currentUserAccountID);
+            expect(updatedPreviewAction.childLastActorAccountID).toBe(currentUserAccountID);
         });
     });
 
