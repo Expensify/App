@@ -1,3 +1,4 @@
+import type {NavigationState} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -33,6 +34,18 @@ import SCREENS from '@src/SCREENS';
 import type {ReimbursementAccount} from '@src/types/onyx';
 import type IndicatorStatus from '@src/types/utils/IndicatorStatus';
 import NAVIGATION_TABS from './NavigationTabBar/NAVIGATION_TABS';
+
+function getActiveTabRoute(rootState: NavigationState | undefined) {
+    if (!rootState) {
+        return undefined;
+    }
+    // Multiple TAB_NAVIGATOR instances can exist in the root stack (e.g. workspace nav from RHP
+    // pushes a new one). Use `findLast` to read state from the most recent tab navigator,
+    // even when the focused root route is a modal — the bar should stay mounted under the RHP
+    // and just be visually covered by it.
+    const tabRoute = rootState.routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
+    return tabRoute?.state?.routes?.[tabRoute.state.index ?? 0];
+}
 
 function getSettingsMessage(status: IndicatorStatus | undefined): TranslationPaths | undefined {
     switch (status) {
@@ -122,24 +135,20 @@ function DebugTabView({selectedTab}: Props) {
     const {orderedReportIDs, chatTabBrickRoad} = useSidebarOrderedReportsState();
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
 
-    const tabRootInfo = useRootNavigationState((rootState) => {
-        if (!rootState) {
-            return undefined;
-        }
-        // Multiple TAB_NAVIGATOR instances can exist in the root stack (e.g. workspace nav from RHP
-        // pushes a new one). Use `findLast` to read state from the most recent tab navigator,
-        // even when the focused root route is a modal — the bar should stay mounted under the RHP
-        // and just be visually covered by it.
-        const tabRoute = rootState.routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
-        const activeRoute = tabRoute?.state?.routes?.[tabRoute.state.index ?? 0];
+    const isAtRoot = useRootNavigationState((rootState) => {
+        const activeRoute = getActiveTabRoute(rootState);
+        return activeRoute ? isTabRouteAtRoot(activeRoute) : false;
+    });
+
+    const isOnFullWidthTabRoot = useRootNavigationState((rootState) => {
+        const activeRoute = getActiveTabRoute(rootState);
         if (!activeRoute) {
-            return undefined;
+            return false;
         }
         const focusedLeaf = getFocusedLeafScreenName(activeRoute.state) ?? activeRoute.name;
-        return {
-            isAtRoot: isTabRouteAtRoot(activeRoute),
-            isOnFullWidthTabRoot: focusedLeaf === SCREENS.WORKSPACES_LIST,
-        };
+        // Scoped to WORKSPACES_LIST — the only full-width tab root among the three tabs
+        // (Inbox/Settings/Workspaces) gated by the tab filter further below.
+        return focusedLeaf === SCREENS.WORKSPACES_LIST;
     });
 
     const message = useMemo((): TranslationPaths | undefined => {
@@ -190,8 +199,7 @@ function DebugTabView({selectedTab}: Props) {
     }, [selectedTab, chatTabBrickRoad, orderedReportIDs, reportAttributes, status, reimbursementAccount, policyIDWithErrors]);
 
     if (
-        !tabRootInfo ||
-        (shouldUseNarrowLayout && !tabRootInfo.isAtRoot) ||
+        (shouldUseNarrowLayout && !isAtRoot) ||
         !([NAVIGATION_TABS.INBOX, NAVIGATION_TABS.SETTINGS, NAVIGATION_TABS.WORKSPACES] as string[]).includes(selectedTab) ||
         !indicator ||
         !message
@@ -201,13 +209,14 @@ function DebugTabView({selectedTab}: Props) {
 
     let positionStyle: {bottom: number; left: number; right?: number; width?: number} | undefined;
     if (!shouldUseNarrowLayout) {
-        positionStyle = tabRootInfo.isOnFullWidthTabRoot
+        positionStyle = isOnFullWidthTabRoot
             ? {bottom: 0, left: variables.navigationTabBarSize, width: windowWidth - variables.navigationTabBarSize}
             : {bottom: 0, left: variables.navigationTabBarSize, width: variables.sideBarWithLHBWidth - variables.cropBorderWidth};
     }
 
     return (
         <View
+            testID="DebugTabViewContainer"
             style={positionStyle !== undefined ? [styles.pAbsolute, positionStyle] : undefined}
             pointerEvents={positionStyle !== undefined ? 'box-none' : undefined}
         >

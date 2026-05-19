@@ -130,6 +130,8 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
         });
     };
 
+    // shouldShowFloatingButtons is false for the swipe-back duplicate tab bar rendered via
+    // bottomContent — gating the debug view on it prevents it from appearing in that copy too.
     const shouldShowDebugTabView = !!isDebugModeEnabled && shouldShowFloatingButtons;
 
     if (!shouldUseNarrowLayout) {
