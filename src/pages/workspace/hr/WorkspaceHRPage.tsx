@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import ConnectToGustoFlow from '@components/ConnectToGustoFlow';
 import ConnectToMergeHRFlow from '@components/ConnectToMergeHRFlow';
@@ -51,7 +51,8 @@ function WorkspaceHRPage({
 
     const [isOtherExpanded, setIsOtherExpanded] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const [connectingCard, setConnectingCard] = useState<HRCardDescriptor | null>(null);
+    const [connectingCard, setConnectingCard] = useState<{card: HRCardDescriptor; key: number} | null>(null);
+    const connectFlowKeyRef = useRef(0);
 
     useWorkspaceDocumentTitle(undefined, 'workspace.common.hr');
 
@@ -85,7 +86,8 @@ function WorkspaceHRPage({
         if (card.connectFlowType === 'none') {
             return;
         }
-        setConnectingCard(card);
+        connectFlowKeyRef.current += 1;
+        setConnectingCard({card, key: connectFlowKeyRef.current});
     };
 
     return (
@@ -174,11 +176,17 @@ function WorkspaceHRPage({
                     </View>
                 </ScrollView>
             </ScreenWrapper>
-            {connectingCard?.connectFlowType === 'gusto' && <ConnectToGustoFlow policyID={policyID} />}
-            {connectingCard?.connectFlowType === 'merge' && !!connectingCard.mergeSlug && (
-                <ConnectToMergeHRFlow
+            {connectingCard?.card.connectFlowType === 'gusto' && (
+                <ConnectToGustoFlow
+                    key={connectingCard.key}
                     policyID={policyID}
-                    integration={connectingCard.mergeSlug}
+                />
+            )}
+            {connectingCard?.card.connectFlowType === 'merge' && !!connectingCard.card.mergeSlug && (
+                <ConnectToMergeHRFlow
+                    key={connectingCard.key}
+                    policyID={policyID}
+                    integration={connectingCard.card.mergeSlug}
                 />
             )}
         </AccessOrNotFoundWrapper>
