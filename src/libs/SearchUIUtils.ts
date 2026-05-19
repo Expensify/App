@@ -4810,7 +4810,7 @@ const FILTER_VIEW_MAP = {
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED]: {
         labelKey: 'search.filters.feed',
-        icon: 'Feed',
+        icon: 'CreditCardMultiple',
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM]: {
         labelKey: 'common.from',

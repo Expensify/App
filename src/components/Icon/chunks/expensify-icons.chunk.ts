@@ -69,6 +69,7 @@ import Copy from '@assets/images/copy.svg';
 import CreditCardExclamation from '@assets/images/credit-card-exclamation.svg';
 import CreditCardHourglass from '@assets/images/credit-card-hourglass.svg';
 import CreditCardLock from '@assets/images/credit-card-lock.svg';
+import CreditCardMultiple from '@assets/images/credit-card-multiple.svg';
 import CreditCardWithPlaneHourglass from '@assets/images/credit-card-with-plane-hourglass.svg';
 import CreditCardWithPlane from '@assets/images/credit-card-with-plane.svg';
 import CreditCard from '@assets/images/creditcard.svg';
@@ -320,6 +321,7 @@ const Expensicons = {
     ConnectionComplete,
     Copy,
     CreditCard,
+    CreditCardMultiple,
     Crop,
     CreditCardHourglass,
     CreditCardExclamation,
