@@ -5264,6 +5264,7 @@ function getTransactionReportName({
     transaction?: OnyxEntry<Transaction>;
     transactions?: Transaction[];
     reports?: Report[];
+    // The optional operator will be removed in next PR once all remaining getTransactionReportName function calls are updated to pass the `transactionReport` parameter.
     transactionReport?: OnyxEntry<Report>;
 }): string {
     if (reportAction && isReversedTransaction(reportAction)) {
