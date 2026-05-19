@@ -1,4 +1,4 @@
-/* eslint-disable no-param-reassign */
+/* eslint-disable no-param-reassign -- The mutable runtime object is intentionally mutated in-place by helper functions to track scroll state without triggering React re-renders */
 import {useEffect, useRef} from 'react';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import type * as OnyxTypes from '@src/types/onyx';
