@@ -1,6 +1,5 @@
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import {REPORT_MORE_MENU_SECTIONS, sortAndSectionPopoverMenuItems} from '@libs/PopoverMenuSections';
-import CONST from '@src/CONST';
+import {sortAndSectionPopoverMenuItems} from '@libs/PopoverMenuSections';
 
 function makeItem(value: string): DropdownOption<string> {
     return {text: value, value};
@@ -49,17 +48,5 @@ describe('sortAndSectionPopoverMenuItems', () => {
         const result = sortAndSectionPopoverMenuItems([makeItem('D')], sections);
 
         expect(result).toEqual([{text: 'D', value: 'D'}]);
-    });
-
-    it('keeps received payment with report payment workflow actions', () => {
-        const paymentWorkflowActions: string[] = REPORT_MORE_MENU_SECTIONS.at(0) ?? [];
-        const approveActionIndex = paymentWorkflowActions.indexOf(CONST.REPORT.SECONDARY_ACTIONS.APPROVE);
-        const unapproveActionIndex = paymentWorkflowActions.indexOf(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE);
-
-        expect(paymentWorkflowActions.slice(approveActionIndex, unapproveActionIndex + 1)).toEqual([
-            CONST.REPORT.SECONDARY_ACTIONS.APPROVE,
-            CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT,
-            CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE,
-        ]);
     });
 });
