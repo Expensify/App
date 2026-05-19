@@ -234,7 +234,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const firstSelectedParticipantReportID = selectedParticipantsForRequest.at(0)?.reportID;
     const [selectedParticipantsReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${firstSelectedParticipantReportID}`);
     const iouReportPolicyID = (moneyRequestReportID ? moneyRequestReport?.policyID : undefined) ?? currentChatReport?.policyID ?? selectedParticipantsReport?.policyID;
-    const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${iouReportPolicyID}`);
+    const [iouReportPolicyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${iouReportPolicyID}`);
 
     // Invoice data
     const receiverParticipant = transaction?.participants?.find((p) => p?.accountID) ?? report?.invoiceReceiver;
@@ -279,12 +279,12 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
     const transactionTaxValue = transaction?.taxValue ?? getTaxValue(policy, transaction, transactionTaxCode) ?? '';
 
-    function requestMoney(selectedParticipantsArg: Participant[], shouldHandleNav: boolean, gpsPoint?: GpsPoint) {
+    function requestMoney(shouldHandleNav: boolean, gpsPoint?: GpsPoint) {
         if (!transactions.length) {
             return;
         }
 
-        const participant = selectedParticipantsArg.at(0);
+        const participant = selectedParticipants.at(0);
         if (!participant) {
             return;
         }
@@ -416,12 +416,12 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         }
     }
 
-    function submitPerDiemExpense(selectedParticipantsArg: Participant[], trimmedComment: string, shouldHandleNav: boolean, policyRecentlyUsedCategoriesParam?: RecentlyUsedCategories) {
+    function submitPerDiemExpense(trimmedComment: string, shouldHandleNav: boolean, policyRecentlyUsedCategoriesParam?: RecentlyUsedCategories) {
         if (!transaction) {
             return;
         }
 
-        const participant = selectedParticipantsArg.at(0);
+        const participant = selectedParticipants.at(0);
         if (!participant || isEmptyObject(transaction.comment) || isEmptyObject(transaction.comment.customUnit)) {
             return;
         }
@@ -512,12 +512,12 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         }
     }
 
-    function trackExpense(selectedParticipantsArg: Participant[], shouldHandleNav: boolean, options?: {gpsPoint?: GpsPoint; shouldDeferForSearch?: boolean}) {
+    function trackExpense(shouldHandleNav: boolean, options?: {gpsPoint?: GpsPoint; shouldDeferForSearch?: boolean}) {
         const {gpsPoint, shouldDeferForSearch} = options ?? {};
         if (!transactions.length) {
             return;
         }
-        const participant = selectedParticipantsArg.at(0);
+        const participant = selectedParticipants.at(0);
         if (!participant) {
             return;
         }
@@ -605,7 +605,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             policyParams: {
                 policy,
                 policyCategories,
-                policyTagList,
+                policyTagList: iouReportPolicyTagList,
                 policyRecentlyUsedCategories,
                 policyRecentlyUsedTags,
             },
@@ -650,7 +650,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     // shouldHandleNavigation is a function parameter, not a closure variable, so it does not
     // need to appear in any dependency array. The handle* functions pass it at call time
     // (e.g. createTransaction(participants, false, false) for fast paths).
-    function createTransaction(selectedParticipantsArg: Participant[], locationPermissionGranted = false, shouldHandleNavigation = true) {
+    function createTransaction(locationPermissionGranted = false, shouldHandleNavigation = true) {
         setIsConfirmed(true);
         const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
 
@@ -690,7 +690,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
                     // If we have a receipt let's start the split expense by creating only the action, the transaction, and the group DM if needed
                     startSplitBill({
-                        participants: selectedParticipantsArg,
+                        participants: selectedParticipants,
                         currentUserLogin,
                         currentUserAccountID: currentUserPersonalDetails.accountID,
                         comment: itemTrimmedComment,
@@ -824,7 +824,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
                 if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && locationPermissionGranted) {
                     if (userLocation) {
-                        trackExpense(selectedParticipantsArg, shouldHandleNavigation, {
+                        trackExpense(shouldHandleNavigation, {
                             gpsPoint: {lat: userLocation.latitude, long: userLocation.longitude},
                             shouldDeferForSearch: shouldDeferTrackForSearch,
                         });
@@ -832,24 +832,22 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                         return;
                     }
 
-                    getCurrentPositionWithGeolocationSpan((gpsCoords) =>
-                        trackExpense(selectedParticipantsArg, shouldHandleNavigation, {gpsPoint: gpsCoords, shouldDeferForSearch: shouldDeferTrackForSearch}),
-                    );
+                    getCurrentPositionWithGeolocationSpan((gpsCoords) => trackExpense(shouldHandleNavigation, {gpsPoint: gpsCoords, shouldDeferForSearch: shouldDeferTrackForSearch}));
                     return;
                 }
 
                 // Otherwise, the money is being requested through the "Manual" flow with an attached image and the GPS coordinates are not needed.
-                trackExpense(selectedParticipantsArg, shouldHandleNavigation, {shouldDeferForSearch: shouldDeferTrackForSearch});
+                trackExpense(shouldHandleNavigation, {shouldDeferForSearch: shouldDeferTrackForSearch});
                 markSubmitExpenseEnd();
                 return;
             }
-            trackExpense(selectedParticipantsArg, shouldHandleNavigation, {shouldDeferForSearch: shouldDeferTrackForSearch});
+            trackExpense(shouldHandleNavigation, {shouldDeferForSearch: shouldDeferTrackForSearch});
             markSubmitExpenseEnd();
             return;
         }
 
         if (isPerDiemRequest) {
-            submitPerDiemExpense(selectedParticipantsArg, trimmedComment, shouldHandleNavigation, policyRecentlyUsedCategories);
+            submitPerDiemExpense(trimmedComment, shouldHandleNavigation, policyRecentlyUsedCategories);
             markSubmitExpenseEnd();
             return;
         }
@@ -861,10 +859,10 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 !isSharingTrackExpense &&
                 !isCategorizingTrackExpense &&
                 locationPermissionGranted &&
-                !selectedParticipantsArg.some((participant) => isSelectedManagerMcTest(participant.login))
+                !selectedParticipants.some((participant) => isSelectedManagerMcTest(participant.login))
             ) {
                 if (userLocation) {
-                    requestMoney(selectedParticipantsArg, shouldHandleNavigation, {
+                    requestMoney(shouldHandleNavigation, {
                         lat: userLocation.latitude,
                         long: userLocation.longitude,
                     });
@@ -872,17 +870,17 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     return;
                 }
 
-                getCurrentPositionWithGeolocationSpan((gpsCoords) => requestMoney(selectedParticipantsArg, shouldHandleNavigation, gpsCoords));
+                getCurrentPositionWithGeolocationSpan((gpsCoords) => requestMoney(shouldHandleNavigation, gpsCoords));
                 return;
             }
 
             // Otherwise, the money is being requested through the "Manual" flow with an attached image and the GPS coordinates are not needed.
-            requestMoney(selectedParticipantsArg, shouldHandleNavigation);
+            requestMoney(shouldHandleNavigation);
             markSubmitExpenseEnd();
             return;
         }
 
-        requestMoney(selectedParticipantsArg, shouldHandleNavigation);
+        requestMoney(shouldHandleNavigation);
         markSubmitExpenseEnd();
     }
 
