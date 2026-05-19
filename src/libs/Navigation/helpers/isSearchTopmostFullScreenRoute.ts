@@ -1,11 +1,15 @@
-import {navigationRef} from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
 import type {RootNavigatorParamList, State} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import getActiveTabName from './getActiveTabName';
 import {isFullScreenName} from './isNavigatorName';
 
 const isSearchTopmostFullScreenRoute = (): boolean => {
-    const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
+    if (!navigationRef.isReady()) {
+        return false;
+    }
+
+    const rootState = navigationRef.getRootState?.() as State<RootNavigatorParamList>;
 
     if (!rootState) {
         return false;
