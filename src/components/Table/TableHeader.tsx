@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {useTableContext} from './TableContext';
-import type {TableColumn} from './types';
+import type {TableColumn, TableData} from './types';
 
 /**
  * Number of times a column can be toggled before sorting is reset.
@@ -22,10 +22,7 @@ const NUMBER_OF_TOGGLES_BEFORE_RESET = 2;
 /**
  * Props for the TableHeader component.
  */
-type TableHeaderProps = ViewProps & {
-    /** Hide table header when search returns no results. */
-    shouldHideHeaderWhenEmptySearch?: boolean;
-};
+type TableHeaderProps = ViewProps;
 
 /**
  * Renders the table header row with sortable column headers.
@@ -50,16 +47,16 @@ type TableHeaderProps = ViewProps & {
  * </Table>
  * ```
  */
-function TableHeader<T, ColumnKey extends string = string>({style, shouldHideHeaderWhenEmptySearch = true, ...props}: TableHeaderProps) {
+function TableHeader<DataType extends TableData, ColumnKey extends string = string>({style, ...props}: TableHeaderProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {columns, isEmptyResult, title, shouldUseNarrowTableLayout, selectionEnabled} = useTableContext<T, ColumnKey>();
+    const {columns, isEmptyResult, title, shouldUseNarrowTableLayout, processedData, selectionEnabled} = useTableContext<DataType, ColumnKey>();
 
     if (shouldUseNarrowTableLayout && !title) {
         return null;
     }
 
-    if (shouldHideHeaderWhenEmptySearch && isEmptyResult) {
+    if (isEmptyResult || !processedData.length) {
         return null;
     }
 
@@ -129,10 +126,10 @@ function TableHeader<T, ColumnKey extends string = string>({style, shouldHideHea
 /**
  * Renders a single sortable column header.
  *
- * @template T - The type of items in the table's data array.
+ * @template DataType - The type of items in the table's data array.
  * @template ColumnKey - A string literal type representing the valid column keys.
  */
-function TableHeaderColumn<T, ColumnKey extends string = string>({column}: {column: TableColumn<ColumnKey>}) {
+function TableHeaderColumn<DataType extends TableData, ColumnKey extends string = string>({column}: {column: TableColumn<ColumnKey>}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong']);
@@ -140,7 +137,7 @@ function TableHeaderColumn<T, ColumnKey extends string = string>({column}: {colu
     const {
         activeSorting,
         tableMethods: {updateSorting, toggleColumnSorting},
-    } = useTableContext<T, ColumnKey>();
+    } = useTableContext<DataType, ColumnKey>();
     const isSortingByColumn = column.key === activeSorting.columnKey;
     const sortIcon = activeSorting.order === 'asc' ? expensifyIcons.ArrowUpLong : expensifyIcons.ArrowDownLong;
 

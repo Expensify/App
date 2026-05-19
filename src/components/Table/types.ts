@@ -3,7 +3,7 @@ import type {PropsWithChildren} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {FilterConfig, FilteringMethods, IsItemInFilterCallback} from './middlewares/filtering';
 import type {IsItemInSearchCallback, SearchingMethods} from './middlewares/searching';
-import {SelectionMethods} from './middlewares/selection';
+import type {SelectionMethods} from './middlewares/selection';
 import type {ActiveSorting, CompareItemsCallback, SortingMethods} from './middlewares/sorting';
 
 type TableData = {
@@ -68,7 +68,11 @@ type TableMethods<ColumnKey extends string = string, FilterKey extends string = 
  * @template ColumnKey - A string literal type representing the valid column keys.
  * @template FilterKey - A string literal type representing the valid filter keys.
  */
-type TableHandle<DataType extends TableData, ColumnKey extends string = string, FilterKey extends string = string> = FlashListRef<DataType> & TableMethods<ColumnKey, FilterKey>;
+type TableHandle<DataType extends TableData, ColumnKey extends string = string, FilterKey extends string = string> = FlashListRef<DataType> &
+    TableMethods<ColumnKey, FilterKey> & {
+        /** Method to get all of the processed data after filtering, searching, and sorting have been applied. */
+        getProcessedData: () => DataType[];
+    };
 
 /**
  * FlashList props with the 'data' prop omitted, as the Table manages data internally.

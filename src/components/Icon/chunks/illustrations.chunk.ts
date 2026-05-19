@@ -61,6 +61,7 @@ import BigVault from '@assets/images/product-illustrations/big-vault.svg';
 import BrokenCompanyCardBankConnection from '@assets/images/product-illustrations/broken-humpty-dumpty.svg';
 import BrokenMagnifyingGlass from '@assets/images/product-illustrations/broken-magnifying-glass.svg';
 import DjBoothReferenceHands from '@assets/images/product-illustrations/dj-booth-reference-hands.svg';
+import EarthWithControls from '@assets/images/product-illustrations/earth-with-controls.svg';
 import EmptyStateExpenses from '@assets/images/product-illustrations/emptystate__expenses.svg';
 import HoldExpense from '@assets/images/product-illustrations/emptystate__holdexpense.svg';
 import ReceiptFairy from '@assets/images/product-illustrations/emptystate__receiptfairy.svg';
@@ -70,6 +71,7 @@ import FolderWithPapersAndWatch from '@assets/images/product-illustrations/folde
 import FolderWithPapers from '@assets/images/product-illustrations/folder-with-papers.svg';
 import Hands from '@assets/images/product-illustrations/home-illustration-hands.svg';
 import CardReplacementSuccess from '@assets/images/product-illustrations/illustration__card-replacement-success.svg';
+import Copilots from '@assets/images/product-illustrations/illustration__copilots.svg';
 import MagicCode from '@assets/images/product-illustrations/magic-code.svg';
 import ModalHoldOrReject from '@assets/images/product-illustrations/modal-hold-or-reject.svg';
 import MushroomTopHat from '@assets/images/product-illustrations/mushroom-top-hat.svg';
@@ -142,6 +144,7 @@ import FolderOpen from '@assets/images/simple-illustrations/simple-illustration_
 import FoodTruck from '@assets/images/simple-illustrations/simple-illustration__foodtruck-tacos.svg';
 import Gears from '@assets/images/simple-illustrations/simple-illustration__gears.svg';
 import HandCard from '@assets/images/simple-illustrations/simple-illustration__handcard.svg';
+import Hashtag from '@assets/images/simple-illustrations/simple-illustration__hashtag.svg';
 import HeadSet from '@assets/images/simple-illustrations/simple-illustration__headset.svg';
 import Hourglass from '@assets/images/simple-illustrations/simple-illustration__hourglass.svg';
 import House from '@assets/images/simple-illustrations/simple-illustration__house.svg';
@@ -185,6 +188,7 @@ import Stopwatch from '@assets/images/simple-illustrations/simple-illustration__
 import SubscriptionAnnual from '@assets/images/simple-illustrations/simple-illustration__subscription-annual.svg';
 import SubscriptionPPU from '@assets/images/simple-illustrations/simple-illustration__subscription-ppu.svg';
 import Sunglasses from '@assets/images/simple-illustrations/simple-illustration__sunglasses.svg';
+import SyncUsers from '@assets/images/simple-illustrations/simple-illustration__syncusers.svg';
 import Tag from '@assets/images/simple-illustrations/simple-illustration__tag.svg';
 import Target from '@assets/images/simple-illustrations/simple-illustration__target.svg';
 import TeachersUnite from '@assets/images/simple-illustrations/simple-illustration__teachers-unite.svg';
@@ -261,11 +265,13 @@ const Illustrations = {
     HoldExpense,
     ReceiptFairy,
     EmptyStateTravel,
+    EarthWithControls,
     Fireworks,
     FolderWithPapersAndWatch,
     FolderWithPapers,
     Hands,
     CardReplacementSuccess,
+    Copilots,
     MagicCode,
     ModalHoldOrReject,
     MushroomTopHat,
@@ -313,6 +319,7 @@ const Illustrations = {
     CreditCardsNew,
     FolderOpen,
     HandCard,
+    Hashtag,
     InvoiceBlue,
     MagnifyingGlassMoney,
     MagnifyingGlassReceipt,
@@ -389,6 +396,7 @@ const Illustrations = {
     LockOpen,
     Mailbox,
     NewUser,
+    SyncUsers,
     ShieldYellow,
     Clock,
     Members,

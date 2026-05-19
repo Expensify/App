@@ -116,6 +116,7 @@ const SCREENS = {
         ROOT: 'Settings_Root',
         SHARE_CODE: 'Settings_Share_Code',
         SECURITY: 'Settings_Security',
+        COPILOT: 'Settings_Copilot',
         ABOUT: 'Settings_About',
         SAVE_THE_WORLD: 'Settings_TeachersUnite',
         APP_DOWNLOAD_LINKS: 'Settings_App_Download_Links',
@@ -161,8 +162,6 @@ const SCREENS = {
             DATE_OF_BIRTH: 'Settings_DateOfBirth',
             PHONE_NUMBER: 'Settings_PhoneNumber',
             ADDRESS: 'Settings_Address',
-            PRIVATE_PERSONAL_DETAILS: 'Settings_PrivatePersonalDetails',
-            PRIVATE_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE: 'Settings_PrivatePersonalDetails_ConfirmMagicCode',
             AVATAR: 'Settings_Avatar',
             DYNAMIC_ADDRESS_COUNTRY: 'Dynamic_Address_Country',
             ADDRESS_STATE: 'Settings_Address_State',
@@ -179,9 +178,11 @@ const SCREENS = {
         AGENTS: {
             ROOT: 'Settings_Agents',
             ADD: 'Settings_Agents_Add',
+            ADD_AVATAR: 'Settings_Agents_Add_Avatar',
             EDIT: 'Settings_Agents_Edit',
             EDIT_NAME: 'Settings_Agents_Edit_Name',
             EDIT_PROMPT: 'Settings_Agents_Edit_Prompt',
+            EDIT_AVATAR: 'Settings_Agents_Edit_Avatar',
         },
 
         RULES: {
@@ -542,6 +543,7 @@ const SCREENS = {
     },
 
     WORKSPACES_LIST: 'Workspaces_List',
+    DOMAINS_LIST: 'Domains_List',
 
     WORKSPACE: {
         ACCOUNTING: {
@@ -704,6 +706,8 @@ const SCREENS = {
         HR_GUSTO_FINAL_APPROVER: 'Workspace_HR_Gusto_Final_Approver',
         HR_ZENEFITS_APPROVAL_MODE: 'Workspace_HR_Zenefits_Approval_Mode',
         HR_ZENEFITS_FINAL_APPROVER: 'Workspace_HR_Zenefits_Final_Approver',
+        HR_MERGE_APPROVAL_MODE: 'Workspace_HR_Merge_Approval_Mode',
+        HR_MERGE_FINAL_APPROVER: 'Workspace_HR_Merge_Final_Approver',
         COMPANY_CARDS: 'Workspace_CompanyCards',
         COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION: 'Workspace_CompanyCards_BrokenCardFeedConnection',
         COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION: 'Workspace_CompanyCards_RefreshCardFeedConnection',
@@ -751,6 +755,7 @@ const SCREENS = {
         INVOICES_COMPANY_NAME: 'Workspace_Invoices_Company_Name',
         INVOICES_COMPANY_WEBSITE: 'Workspace_Invoices_Company_Website',
         MEMBERS: 'Workspace_Members',
+        ROOMS: 'Workspace_Rooms',
         MEMBERS_IMPORT: 'Members_Import',
         MEMBERS_IMPORTED: 'Members_Imported',
         MEMBERS_IMPORTED_CONFIRMATION: 'Members_Imported_Confirmation',
