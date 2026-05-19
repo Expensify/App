@@ -72,7 +72,7 @@ function AddDomainPage() {
         <ScreenWrapper testID="AddDomainPage">
             <HeaderWithBackButton
                 title={translate('domain.addDomain.title')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACES_LIST.getRoute())}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.DOMAINS_LIST.getRoute())}
             />
             <ScrollView
                 contentContainerStyle={[styles.ph5, styles.pt3, styles.flexGrow1, styles.gap5]}

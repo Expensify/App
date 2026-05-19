@@ -4240,6 +4240,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             travelInvoicingPayableAccount: '差旅应付账户',
             hr: '人力资源',
             rooms: '房间',
+            findDomain: '查找域名',
         },
         createdForClient: {
             title: '您已为客户创建了工作区！',
@@ -6934,6 +6935,7 @@ ${reportName}
                 },
             },
         },
+        emptyDomain: {title: '通过域名提升安全性', subtitle: '要求您域中的成员通过单点登录登录、限制工作区创建等。'},
     },
     getAssistancePage: {
         title: '获取帮助',

@@ -4365,6 +4365,7 @@ ${amount} pour ${merchant} - ${date}`,
             travelInvoicingPayableAccount: 'Compte fournisseur déplacements',
             hr: 'RH',
             rooms: 'Salons',
+            findDomain: 'Trouver un domaine',
         },
         createdForClient: {
             title: 'Vous avez créé un espace de travail pour votre client !',
@@ -7166,6 +7167,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     custom: {label: 'Approbation personnalisée', description: 'Je configurerai manuellement les workflows d’approbation dans Expensify.'},
                 },
             },
+        },
+        emptyDomain: {
+            title: 'Renforcez votre sécurité avec des domaines',
+            subtitle: 'Obligez les membres de votre domaine à se connecter via l’authentification unique, restreignez la création d’espaces de travail, et plus encore.',
         },
     },
     getAssistancePage: {

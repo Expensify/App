@@ -4309,6 +4309,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             travelInvoicingPayableAccount: '旅費未払金勘定',
             hr: '人事',
             rooms: 'ルーム',
+            findDomain: 'ドメインを検索',
         },
         createdForClient: {
             title: 'クライアントのワークスペースを作成しました！',
@@ -7051,6 +7052,10 @@ ${reportName}
                     custom: {label: 'カスタム承認', description: 'Expensify で承認ワークフローを手動で設定します。'},
                 },
             },
+        },
+        emptyDomain: {
+            title: 'ドメインでセキュリティを強化しましょう',
+            subtitle: 'ドメインのメンバーにシングルサインオンでのログインを必須にし、ワークスペースの作成を制限するなどの管理ができます。',
         },
     },
     getAssistancePage: {

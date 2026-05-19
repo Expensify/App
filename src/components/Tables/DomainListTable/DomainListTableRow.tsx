@@ -60,6 +60,12 @@ export default function DomainListTableRow({item, rowIndex, shouldUseNarrowTable
 
     const arrowIconSize = shouldUseNarrowTableLayout ? variables.iconSizeSmall : variables.iconSizeNormal;
 
+    const domainDetailsContainerStyles = [
+        !shouldUseNarrowTableLayout && styles.alignItemsCenter,
+        !shouldUseNarrowTableLayout && styles.flexRow,
+        shouldUseNarrowTableLayout ? styles.gap1 : styles.gap2,
+    ];
+
     return (
         <OfflineWithFeedback
             errors={item.errors}
@@ -80,7 +86,7 @@ export default function DomainListTableRow({item, rowIndex, shouldUseNarrowTable
                                 fill={theme.icon}
                                 additionalStyles={[shouldUseNarrowTableLayout ? styles.domainIconCompact : styles.domainIcon]}
                             />
-                            <View style={[styles.alignItemsCenter, !shouldUseNarrowTableLayout && styles.flexRow, shouldUseNarrowTableLayout ? styles.gap1 : styles.gap2]}>
+                            <View style={domainDetailsContainerStyles}>
                                 <TextWithTooltip
                                     text={item.title}
                                     shouldShowTooltip
