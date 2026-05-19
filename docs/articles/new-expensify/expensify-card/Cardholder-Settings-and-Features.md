@@ -79,7 +79,7 @@ A virtual card is a secure, flexible way to manage online spending:
 
 1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Account > Wallet**.
 2. Click your Expensify Card.
-3. Click **Reveal Details** to view the card number, expiration date, CVV, and billing address.
+3. Click **Reveal** to view the card number, expiration date, CVV, and billing address.
 
 ---
 
