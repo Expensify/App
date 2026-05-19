@@ -190,9 +190,7 @@ function ShareCodePage({report, policy, backTo, reportNavigateBackRoute}: ShareC
                         title={translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE}.buttonText`)}
                         icon={icons.Cash}
                         onPress={() => {
-                            const referralBaseRoute = report?.reportID ? createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS_SHARE_CODE.path) : Navigation.getActiveRouteWithoutParams();
-
-                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REFERRAL_DETAILS.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE), referralBaseRoute));
+                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REFERRAL_DETAILS.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE), Navigation.getActiveRoute()));
                         }}
                         shouldShowRightIcon
                     />
