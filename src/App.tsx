@@ -23,6 +23,7 @@ import InitialURLContextProvider from './components/InitialURLContextProvider';
 import {InputBlurContextProvider} from './components/InputBlurContext';
 import KeyboardProvider from './components/KeyboardProvider';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
+import MemoryDebugOverlay from './components/MemoryDebugOverlay';
 import {ModalProvider} from './components/Modal/Global/ModalContext';
 import NavigationBar from './components/NavigationBar';
 import OnyxListItemProvider from './components/OnyxListItemProvider';
@@ -126,6 +127,7 @@ function App() {
                                         </ColorSchemeWrapper>
                                     </ErrorBoundary>
                                     <NavigationBar />
+                                    <MemoryDebugOverlay />
                                 </ComposeProviders>
                             </View>
                         </SafeAreaProvider>
