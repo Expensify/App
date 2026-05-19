@@ -166,7 +166,7 @@ import {
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils';
-import {getMerchantOrDescription, getAmount as getTransactionAmount, getCurrency as getTransactionCurrency, isScanning} from '@libs/TransactionUtils';
+import {getDescription, getAmount as getTransactionAmount, getCurrency as getTransactionCurrency, isScanning} from '@libs/TransactionUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -591,9 +591,9 @@ function getExpenseReportPreviewText(
     }
 
     const formattedAmount = convertToDisplayString(amount, currency);
-    const merchantOrDescription = linkedTransaction ? getMerchantOrDescription(linkedTransaction) : '';
+    const description = linkedTransaction ? getDescription(linkedTransaction) : '';
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const comment = Parser.htmlToText(merchantOrDescription || originalMessage?.comment || '').trim();
+    const comment = Parser.htmlToText(description || originalMessage?.comment || '').trim();
 
     return formatReportLastMessageText(translate('iou.expenseAmount', formattedAmount, comment || undefined));
 }
