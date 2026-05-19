@@ -91,6 +91,29 @@ describe('useVerticallyCenteredInitialContent', () => {
         expect(result.current.shouldShowInitialViewportSkeleton).toBe(true);
     });
 
+    it('hides the initial viewport skeleton after the initial unread-anchor viewport is mounted', () => {
+        const {result} = renderHook((props: HookProps) => useVerticallyCenteredInitialContent(props), {
+            initialProps: createProps({initialScrollKey: '2'}),
+        });
+
+        act(() => {
+            result.current.handleReportActionsListLayout(createLayoutEvent(600));
+        });
+
+        const initialViewportRange = result.current.initialViewportRange;
+        if (!initialViewportRange) {
+            throw new Error('Expected an initial viewport range');
+        }
+
+        act(() => {
+            for (let index = initialViewportRange.first; index <= initialViewportRange.last; index++) {
+                result.current.handleInitialViewportItemMounted(index);
+            }
+        });
+
+        expect(result.current.shouldShowInitialViewportSkeleton).toBe(false);
+    });
+
     it('does not show the initial viewport skeleton when an unread marker appears after the list mounted', () => {
         const {result, rerender} = renderHook((props: HookProps) => useVerticallyCenteredInitialContent(props), {
             initialProps: createProps(),
