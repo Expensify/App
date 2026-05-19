@@ -150,7 +150,7 @@ jobs:
               attachments: [{
                 color: "#DB4545",
                 pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `Expensify Help production <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|deploy> failed.`,
+                text: `Expensify Help <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|deploy> failed. Please fix it!`,
               }]
             }
         env:
