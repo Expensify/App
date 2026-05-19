@@ -33,6 +33,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useReportTransactions from '@hooks/useReportTransactions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -48,6 +49,7 @@ import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getRateFromMerchant} from '@libs/MergeTransactionUtils';
+import {isSingleTransactionReport} from '@libs/MoneyRequestReportUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {
@@ -111,6 +113,7 @@ import {
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isScanning,
     isTimeRequest as isTimeRequestTransactionUtils,
+    isTransactionPendingDelete,
     shouldShowAttendees as shouldShowAttendeesTransactionUtils,
 } from '@libs/TransactionUtils';
 import {isInvalidMerchantValue} from '@libs/ValidationUtils';
@@ -249,6 +252,11 @@ function MoneyRequestView({
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const isP2PDistanceRequest = isCustomUnitRateIDForP2P(transaction);
     const moneyRequestReport = parentReport;
+    const parentReportTransactions = useReportTransactions(moneyRequestReport?.reportID);
+    // Exclude transactions pending deletion so the report is recognized as single-expense immediately after deleting one of its expenses,
+    // instead of waiting for the optimistic delete to be removed from Onyx (https://github.com/Expensify/App/issues/91058).
+    // While offline the deleted expense is still rendered, so keep counting it to stay consistent with the visible transaction list.
+    const visibleParentReportTransactions = parentReportTransactions.filter((t) => isOffline || !isTransactionPendingDelete(t));
     const isApproved = isReportApproved({report: moneyRequestReport});
     const isInvoice = isInvoiceReport(moneyRequestReport);
     const isTrackExpense = !mergeTransactionID && isTrackExpenseReportNew(transactionThreadReport, moneyRequestReport, parentReportAction);
@@ -565,6 +573,10 @@ function MoneyRequestView({
     }
     if (shouldShowConvertedAmount) {
         amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('common.converted')} ${convertToDisplayString(transactionConvertedAmount, moneyRequestReport?.currency)}`;
+    }
+    const isCurrentTransactionReimbursable = updatedTransaction?.reimbursable ?? !!transactionReimbursable;
+    if (!isCurrentTransactionReimbursable && isSingleTransactionReport(moneyRequestReport, visibleParentReportTransactions)) {
+        amountDescription += ` ${CONST.DOT_SEPARATOR} ${Str.UCFirst(translate('iou.nonReimbursable'))}`;
     }
 
     if (isFromMergeTransaction && !rateName) {

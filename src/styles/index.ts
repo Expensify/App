@@ -324,6 +324,14 @@ const staticStyles = (theme: ThemeColors) =>
             fontStyle: FontUtils.fontFamily.platform.EXP_NEUE_ITALIC.fontStyle,
         },
 
+        numberedListItemMarker: {
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.fontSizeNormalHeight,
+            minWidth: 32,
+            textAlign: 'right',
+            paddingHorizontal: 8,
+        },
+
         autoCompleteSuggestionContainer: {
             flexDirection: 'row',
             alignItems: 'center',
