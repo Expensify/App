@@ -984,8 +984,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         freeTrialSection: {
             title: ({days}: {days: number}) => `免费试用：剩余 ${days} ${days === 1 ? '天' : '天'} 天！`,
-            offer50Body: '首年可享受五折优惠！',
-            offer25Body: '首年可享 75 折优惠！',
+            offer50Body: '首年可享受五折优惠',
+            offer25Body: '首年可享 75 折优惠',
             addCardBody: '别再犹豫！现在就添加你的付款卡。',
             ctaClaim: '报销申请',
             ctaAdd: '添加卡片',
