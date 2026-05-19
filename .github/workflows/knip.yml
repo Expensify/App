@@ -24,7 +24,6 @@ concurrency:
 jobs:
   knip-compare:
     name: Compare knip issues against main
-    if: ${{ github.actor != 'OSBotify' }}
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Checkout PR
