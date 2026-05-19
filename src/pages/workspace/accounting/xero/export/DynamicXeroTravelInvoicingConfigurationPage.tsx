@@ -15,7 +15,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 const payableAccountSetting = [CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT];
 
-function XeroTravelInvoicingConfigurationPage({policy}: WithPolicyConnectionsProps) {
+function DynamicXeroTravelInvoicingConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -29,7 +29,7 @@ function XeroTravelInvoicingConfigurationPage({policy}: WithPolicyConnectionsPro
 
     return (
         <ConnectionLayout
-            displayName="XeroTravelInvoicingConfigurationPage"
+            displayName="DynamicXeroTravelInvoicingConfigurationPage"
             headerTitle="workspace.common.travelInvoicing"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
@@ -39,6 +39,13 @@ function XeroTravelInvoicingConfigurationPage({policy}: WithPolicyConnectionsPro
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
             onBackButtonPress={() => Navigation.goBack(backPath)}
         >
+            <MenuItemWithTopDescription
+                title={translate('workspace.xero.bankTransactions')}
+                description={translate('workspace.accounting.exportAs')}
+                helperText={translate('workspace.xero.travelInvoicingDescription')}
+                interactive={false}
+                shouldShowRightIcon={false}
+            />
             <OfflineWithFeedback
                 pendingAction={settingsPendingAction(payableAccountSetting, config?.pendingFields)}
                 errorRowStyles={[styles.ph5]}
@@ -60,4 +67,4 @@ function XeroTravelInvoicingConfigurationPage({policy}: WithPolicyConnectionsPro
     );
 }
 
-export default withPolicyConnections(XeroTravelInvoicingConfigurationPage);
+export default withPolicyConnections(DynamicXeroTravelInvoicingConfigurationPage);

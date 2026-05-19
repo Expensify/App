@@ -30,7 +30,6 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
 
     const {bankAccounts} = policy?.connections?.xero?.data ?? {};
     const exportPath = policyID ? `${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}/${DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.path}` : undefined;
-    const travelPayableAccount = bankAccounts?.find((bank) => bank.id === exportConfiguration?.travelInvoicingPayableAccountID);
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [cardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID));
     const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
@@ -79,7 +78,7 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
         ...(isTravelInvoicingEnabled
             ? [
                   {
-                      title: travelPayableAccount?.name,
+                      title: translate('workspace.xero.bankTransactions'),
                       description: translate('workspace.common.travelInvoicing'),
                       onPress: !exportPath ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_TRAVEL_INVOICING_CONFIGURATION.path, exportPath)),
                       subscribedSettings: [CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT],

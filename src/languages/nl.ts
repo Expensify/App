@@ -4657,6 +4657,7 @@ ${amount} voor ${merchant} - ${date}`,
             exportDeepDiveCompanyCard:
                 'Geëxporteerde uitgaven worden als banktransacties geboekt op de onderstaande Xero-bankrekening, en transactiedata komen overeen met de data op je bankafschrift.',
             bankTransactions: 'Banktransacties',
+            travelInvoicingDescription: 'Travel expenses will export as bank transactions to the Xero account specified below.',
             xeroBankAccount: 'Xero-bankrekening',
             xeroBankAccountDescription: 'Kies waar onkosten als banktransacties worden geboekt.',
             exportExpensesDescription: 'Rapporten worden geëxporteerd als een inkoopfactuur met de datum en status die hieronder zijn geselecteerd.',

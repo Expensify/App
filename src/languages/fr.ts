@@ -4692,6 +4692,7 @@ ${amount} pour ${merchant} - ${date}`,
             exportDeepDiveCompanyCard:
                 'Les dépenses exportées seront enregistrées comme des transactions bancaires sur le compte bancaire Xero ci-dessous, et les dates de transaction correspondront aux dates figurant sur votre relevé bancaire.',
             bankTransactions: 'Transactions bancaires',
+            travelInvoicingDescription: 'Travel expenses will export as bank transactions to the Xero account specified below.',
             xeroBankAccount: 'Compte bancaire Xero',
             xeroBankAccountDescription: 'Choisissez où les dépenses seront enregistrées comme transactions bancaires.',
             exportExpensesDescription: 'Les notes de frais seront exportées sous forme de facture d’achat avec la date et le statut sélectionnés ci-dessous.',
