@@ -72,9 +72,7 @@ function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLo
     ];
 
     const isPolicyControl = isControlPolicy(policy);
-    // The Editor role only exists on Submit workspaces and is itself gated by the SUBMIT_2026 beta —
-    // surfacing it outside that combination would let admins assign an unsupported role.
-    const shouldShowEditorRole = canUseSubmit2026 && isSubmitPolicy(policy);
+    const isPolicySubmit2026 = canUseSubmit2026 && isSubmitPolicy(policy);
     // Only strict admins can assign the ADMIN role. Editors (e.g. Submit workspace owners) can
     // invite/manage members but must not be able to escalate anyone to admin.
     const canAssignAdminRole = isPolicyAdmin(policy, currentUserEmail);
@@ -85,7 +83,14 @@ function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLo
         if (item.value === CONST.POLICY.ROLE.ADMIN && !canAssignAdminRole) {
             return false;
         }
-        if (item.value === CONST.POLICY.ROLE.EDITOR && !shouldShowEditorRole) {
+        // Editor only exists on Submit workspaces (and the SUBMIT_2026 beta must be on); surfacing it elsewhere
+        // would let admins assign an unsupported role.
+        if (item.value === CONST.POLICY.ROLE.EDITOR && !isPolicySubmit2026) {
+            return false;
+        }
+        // On Submit workspaces every invited/managed user is an Editor — Member isn't a valid target there
+        // (the backend forces Editor anyway, so showing Member would be misleading UX).
+        if (item.value === CONST.POLICY.ROLE.USER && isPolicySubmit2026) {
             return false;
         }
         return true;
