@@ -489,7 +489,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: '上一年',
         nextYear: '明年',
         avatar: '头像',
-        editor: '编辑器',
+        editor: '编辑',
     },
     socials: {
         podcast: '在播客上关注我们',
@@ -4208,7 +4208,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                     case CONST.POLICY.ROLE.AUDITOR:
                         return '审计员';
                     case CONST.POLICY.ROLE.EDITOR:
-                        return '编辑器';
+                        return '编辑';
                     case CONST.POLICY.ROLE.USER:
                         return '成员';
                     default:
