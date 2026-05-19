@@ -275,7 +275,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
         onClearSelection: () => setSelectedMembers([]),
         onNavigationCallBack: () => {
             setSearchValue('');
-            Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, ROUTES.REPORT_WITH_ID.getRoute(report.reportID)));
+            Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path));
         },
     });
 
@@ -438,7 +438,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
                 shouldShow={isEmptyObject(report) || isReportArchived || (!isChatThread(report) && ((isUserCreatedPolicyRoom(report) && !isPolicyEmployee) || isDefaultRoom(report)))}
                 subtitleKey={subtitleKey}
                 onBackButtonPress={() => {
-                    Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, ROUTES.REPORT_WITH_ID.getRoute(report.reportID)));
+                    Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path));
                 }}
             >
                 <HeaderWithBackButton
@@ -454,7 +454,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
                         }
 
                         setSearchValue('');
-                        Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, ROUTES.REPORT_WITH_ID.getRoute(report.reportID)));
+                        Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path));
                     }}
                 />
                 <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>

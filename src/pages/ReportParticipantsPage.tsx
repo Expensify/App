@@ -149,7 +149,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
             }
 
             setSearchValue('');
-            Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, ROUTES.REPORT_WITH_ID.getRoute(report.reportID)));
+            Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path));
         },
     });
 
@@ -331,7 +331,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
 
                         if (report) {
                             setSearchValue('');
-                            Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, ROUTES.REPORT_WITH_ID.getRoute(report.reportID)));
+                            Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path));
                         }
                     }}
                     subtitle={StringUtils.lineBreaksToSpaces(getReportName(report, reportAttributes))}
