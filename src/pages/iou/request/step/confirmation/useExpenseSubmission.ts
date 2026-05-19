@@ -202,7 +202,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     // Policy-scoped Onyx data
     const policyID = policy?.id;
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`);
     const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
     const [policyRecentlyUsedCurrenciesOnyx] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
@@ -217,8 +216,25 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
     const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`);
+    const selectedParticipants = participants.filter((participant) => participant.selected);
+    // Filter out participants with an amount equal to O
+    let splitParticipants = selectedParticipants;
+    if (iouType === CONST.IOU.TYPE.SPLIT && transaction?.splitShares) {
+        const participantsWithAmount = new Set(
+            Object.keys(transaction.splitShares ?? {})
+                .filter((accountID: string): boolean => (transaction?.splitShares?.[Number(accountID)]?.amount ?? 0) > 0)
+                .map((accountID) => Number(accountID)),
+        );
+        splitParticipants = selectedParticipants.filter((participant) =>
+            participantsWithAmount.has(participant.isPolicyExpenseChat ? (participant?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID) : (participant.accountID ?? CONST.DEFAULT_NUMBER_ID)),
+        );
+    }
+    const selectedParticipantsForRequest = iouType === CONST.IOU.TYPE.SPLIT ? splitParticipants : selectedParticipants;
+    const firstSelectedParticipantReportID = selectedParticipantsForRequest.at(0)?.reportID;
+    const [selectedParticipantsReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${firstSelectedParticipantReportID}`);
+    const iouReportPolicyID = (moneyRequestReportID ? moneyRequestReport?.policyID : undefined) ?? currentChatReport?.policyID ?? selectedParticipantsReport?.policyID;
+    const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${iouReportPolicyID}`);
 
     // Invoice data
     const receiverParticipant = transaction?.participants?.find((p) => p?.accountID) ?? report?.invoiceReceiver;
@@ -574,20 +590,14 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         }
     }
 
-    function createDistanceRequest(selectedParticipantsArg: Participant[], trimmedComment: string, shouldHandleNav = true, shouldDeferForSearch = false) {
+    function createDistanceRequest(trimmedComment: string, shouldHandleNav = true, shouldDeferForSearch = false) {
         if (!transaction) {
             return;
         }
 
-        const iouReportPolicyID =
-            (moneyRequestReportID ? moneyRequestReport?.policyID : undefined) ??
-            currentChatReport?.policyID ??
-            allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedParticipantsArg.at(0)?.reportID}`]?.policyID;
-        const policyTagList = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${iouReportPolicyID}`];
-
         createDistanceRequestIOUActions({
             report,
-            participants: selectedParticipantsArg,
+            participants: selectedParticipantsForRequest,
             currentUserLogin: currentUserPersonalDetails.login ?? '',
             currentUserAccountID: currentUserPersonalDetails.accountID,
             iouType,
@@ -642,19 +652,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     // (e.g. createTransaction(participants, false, false) for fast paths).
     function createTransaction(selectedParticipantsArg: Participant[], locationPermissionGranted = false, shouldHandleNavigation = true) {
         setIsConfirmed(true);
-        let splitParticipants = selectedParticipantsArg;
-
-        // Filter out participants with an amount equal to O
-        if (iouType === CONST.IOU.TYPE.SPLIT && transaction?.splitShares) {
-            const participantsWithAmount = new Set(
-                Object.keys(transaction.splitShares ?? {})
-                    .filter((accountID: string): boolean => (transaction?.splitShares?.[Number(accountID)]?.amount ?? 0) > 0)
-                    .map((accountID) => Number(accountID)),
-            );
-            splitParticipants = selectedParticipantsArg.filter((participant) =>
-                participantsWithAmount.has(participant.isPolicyExpenseChat ? (participant?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID) : (participant.accountID ?? CONST.DEFAULT_NUMBER_ID)),
-            );
-        }
         const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
 
         // Don't let the form be submitted multiple times while the navigator is waiting to take the user to a different page
@@ -670,7 +667,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         // are started by SubmitExpenseOrchestrator before calling createTransaction.
         if (!isTrackExpense && isDistanceRequest && !isMovingTransactionFromTrackExpense && !isUnreported) {
             const shouldDeferDistanceForSearch = iouType === CONST.IOU.TYPE.SPLIT && isDeferredSearchSubmit;
-            createDistanceRequest(iouType === CONST.IOU.TYPE.SPLIT ? splitParticipants : selectedParticipantsArg, trimmedComment, shouldHandleNavigation, shouldDeferDistanceForSearch);
+            createDistanceRequest(trimmedComment, shouldHandleNavigation, shouldDeferDistanceForSearch);
             markSubmitExpenseEnd();
             return;
         }
