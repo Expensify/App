@@ -2404,6 +2404,7 @@ const translations: TranslationDeepObject<typeof en> = {
             expiration: '到期日期',
             cvv: 'CVV',
             address: '地址',
+            reveal: '显示',
             revealDetails: '显示详细信息',
             revealCvv: '显示 CVV',
             copyCardNumber: '复制卡号',
