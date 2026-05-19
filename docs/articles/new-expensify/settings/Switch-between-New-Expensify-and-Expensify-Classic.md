@@ -1,7 +1,7 @@
 ---
 title: How to switch between New Expensify and Expensify Classic
 description: Learn the key differences between New Expensify and Expensify Classic, and how to switch between them on web or mobile.
-keywords: New Expensify, Expensify Classic, switch views, revert to Classic, try New Expensify, financial collaboration, chat-based app, new app, old app, old version, Classic View, switch back
+keywords: New Expensify, Expensify Classic, switch views, revert to Classic, try New Expensify, financial collaboration, chat-based app, new app, old app, old version, Classic View, switch back, go back just once, switch to classic temporarily
 ---
 
 <div id="new-expensify" markdown="1">
@@ -29,6 +29,9 @@ Any member can switch between views, unless a **Workspace Admin** or **Domain Ad
 1. Tap or click your **profile picture**.
 2. Tap **Troubleshoot**.
 3. Tap **Switch to Expensify Classic**.
+4. You may be asked to provide a reason for switching. If so, you'll see two options:
+   - **Go back just once** — Temporarily visit Expensify Classic without permanently switching. The next time you visit Expensify, you'll return to New Expensify.
+   - **Switch to Classic** — Permanently switch to Expensify Classic. You must enter a reason before selecting this option.
 
 ## From Classic Expensify to New Expensify
 
@@ -55,6 +58,10 @@ If you don’t see the option to **Switch to Expensify Classic**, it may have be
 ## Can I use both New Expensify and Expensify Classic?
 
 Yes! You can switch between them at any time—unless restricted by your admin.
+
+## What is the difference between "Go back just once" and "Switch to Classic"?
+
+**Go back just once** takes you to Expensify Classic temporarily. The next time you visit Expensify, you'll be redirected back to New Expensify automatically. **Switch to Classic** permanently switches you to Expensify Classic until you choose to return to New Expensify.
 
 ## Will Classic Expensify be removed?
 
