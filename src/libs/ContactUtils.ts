@@ -1,10 +1,11 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
-import type {Login, PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+import type {LoginList, PersonalDetails} from '@src/types/onyx';
 import type {DeviceContact, StringHolder} from './ContactImport/types';
-import {getUserToInviteContactOption} from './OptionsListUtils';
 import type {SearchOption} from './OptionsListUtils';
+import {getContactOption} from './PersonalDetailOptionsListUtils';
+import type {OptionData} from './PersonalDetailOptionsListUtils';
 import RandomAvatarUtils from './RandomAvatarUtils';
 
 function sortEmailObjects(emails: StringHolder[], localeCompare: LocaleContextProps['localeCompare']): string[] {
@@ -29,14 +30,13 @@ function sortEmailObjects(emails: StringHolder[], localeCompare: LocaleContextPr
     });
 }
 
-const getContacts = (
+function getContacts(
     deviceContacts: DeviceContact[] | [],
     localeCompare: LocaleContextProps['localeCompare'],
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     countryCode: number,
-    loginList: OnyxEntry<Login>,
-    currentUserEmail: string,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-): Array<SearchOption<PersonalDetails>> => {
+    loginList: OnyxEntry<LoginList>,
+): OptionData[] {
     return deviceContacts
         .map((contact) => {
             const email = sortEmailObjects(contact?.emailAddresses ?? [], localeCompare)?.at(0) ?? '';
@@ -46,9 +46,7 @@ const getContacts = (
             const firstName = contact?.firstName ?? '';
             const lastName = contact?.lastName ?? '';
 
-            return getUserToInviteContactOption({
-                selectedOptions: [],
-                optionsToExclude: [],
+            return getContactOption({
                 searchValue: email || phoneNumber || firstName || '',
                 firstName,
                 lastName,
@@ -56,13 +54,49 @@ const getContacts = (
                 phone: phoneNumber,
                 avatar: avatarSource,
                 countryCode,
+                formatPhoneNumber,
                 loginList,
-                currentUserEmail,
-                personalDetails,
             });
         })
-        .filter((contact): contact is SearchOption<PersonalDetails> => contact !== null);
-};
+        .filter((contact): contact is OptionData => contact !== null);
+}
 
-export default getContacts;
-export {sortEmailObjects};
+function extendPersonalDetailOption(option: OptionData): SearchOption<PersonalDetails> {
+    const userDetails = {
+        accountID: option.accountID,
+        avatar: option.icons?.[0].source,
+        displayName: option.text,
+        login: option.login,
+        pronouns: '',
+        phoneNumber: option.phoneNumber,
+        validated: true,
+    };
+
+    return {
+        ...option,
+        // eslint-disable-next-line rulesdir/no-default-id-values
+        reportID: option.reportID ?? '',
+        item: userDetails,
+        participantsList: [userDetails],
+        isDefaultRoom: false,
+        isPinned: false,
+        isChatRoom: false,
+        shouldShowSubscript: false,
+        isPolicyExpenseChat: false,
+        lastMessageText: '',
+        isBold: true,
+    };
+}
+
+function getContactsExtended(
+    deviceContacts: DeviceContact[] | [],
+    localeCompare: LocaleContextProps['localeCompare'],
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    countryCode: number,
+    loginList: OnyxEntry<LoginList>,
+): Array<SearchOption<PersonalDetails>> {
+    const contactOptions = getContacts(deviceContacts, localeCompare, formatPhoneNumber, countryCode, loginList);
+    return contactOptions.map(extendPersonalDetailOption);
+}
+
+export {getContacts, getContactsExtended, sortEmailObjects};
