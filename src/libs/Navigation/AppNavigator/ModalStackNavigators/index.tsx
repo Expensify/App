@@ -399,14 +399,14 @@ const NewTeachersUniteNavigator = createModalStackNavigator<TeachersUniteNavigat
 });
 
 const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorParamList>({
-    [SCREENS.SETTINGS.DYNAMIC_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/DynamicVerifyAccountPage').default,
-    [SCREENS.SETTINGS.DYNAMIC_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/DynamicAddBankAccountVerifyAccountPage').default,
+    [SCREENS.SETTINGS.DYNAMIC_VERIFY_ACCOUNT]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/DynamicVerifyAccountPage').default),
+    [SCREENS.SETTINGS.DYNAMIC_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Wallet/DynamicAddBankAccountVerifyAccountPage').default),
     [SCREENS.SETTINGS.SHARE_CODE]: () => require<ReactComponentModule>('../../../../pages/ShareCodePage').default,
     [SCREENS.SETTINGS.PROFILE.PRONOUNS]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Profile/PronounsPage').default),
     [SCREENS.SETTINGS.PROFILE.DISPLAY_NAME]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/DisplayNamePage').default,
     [SCREENS.SETTINGS.PROFILE.TIMEZONE]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Profile/TimezoneInitialPage').default),
     [SCREENS.SETTINGS.PROFILE.TIMEZONE_SELECT]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Profile/TimezoneSelectPage').default),
-    [SCREENS.SETTINGS.PROFILE.LEGAL_NAME]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/LegalNamePage').default,
+    [SCREENS.SETTINGS.PROFILE.LEGAL_NAME]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/LegalNamePage').default),
     [SCREENS.SETTINGS.PROFILE.DATE_OF_BIRTH]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/DateOfBirthPage').default),
     [SCREENS.SETTINGS.PROFILE.PHONE_NUMBER]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/PhoneNumberPage').default),
     [SCREENS.SETTINGS.PROFILE.ADDRESS]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/PersonalAddressPage').default),
