@@ -652,6 +652,7 @@ function createExpenseByType({
             const isMoneyRequestReport = isMoneyRequestReportReportUtils(params.report);
             const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(params.report?.chatReportID) : params.report;
             const moneyRequestReportID = isMoneyRequestReport ? params.report?.reportID : '';
+            // Part of the onyx.connect migration, it will be removed in further PRs (https://github.com/Expensify/App/issues/72721).
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             const policyTagList = getMoneyRequestPolicyTags({
                 existingIOUReport: params.existingIOUReport,

@@ -690,6 +690,7 @@ function handleMoneyRequestStepDistanceNavigation({
             const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
             const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
             const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
+            // Part of the onyx.connect migration, it will be removed in further PRs (https://github.com/Expensify/App/issues/72721).
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             const policyTagList = getMoneyRequestPolicyTags({
                 moneyRequestReportID,
