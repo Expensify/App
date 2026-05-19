@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/refs */
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
@@ -1134,7 +1135,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     value: CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE,
                     shouldCloseModalOnSelect: true,
                     onSelected: () => {
-                        if (defaultExpensePolicy && shouldRestrictUserBillableActions(defaultExpensePolicy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+                        if (defaultExpensePolicy && shouldRestrictUserBillableActions(defaultExpensePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
                             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(defaultExpensePolicy.id));
                             return;
                         }
@@ -1483,7 +1484,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE,
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
-                    if (defaultExpensePolicy && shouldRestrictUserBillableActions(defaultExpensePolicy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+                    if (defaultExpensePolicy && shouldRestrictUserBillableActions(defaultExpensePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
                         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(defaultExpensePolicy.id));
                         return;
                     }
