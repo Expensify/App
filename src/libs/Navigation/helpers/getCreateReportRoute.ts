@@ -23,6 +23,17 @@ function navigateToCreateReportWorkspaceSelection(options?: LinkToOptions) {
     });
 }
 
+/**
+ * Opens a newly created report from the Reports page context so back navigation returns to Reports instead of Inbox.
+ */
+function navigateToCreatedReportInReports(reportID: string, options?: LinkToOptions) {
+    const reportsRootRoute = getReportsRootRoute();
+    Navigation.navigate(reportsRootRoute, options);
+    Navigation.setNavigationActionToMicrotaskQueue(() => {
+        Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: reportsRootRoute}));
+    });
+}
+
 function getCreateReportRoute({reportID}: GetCreateReportRouteParams): Route {
     const activeRoute = Navigation.getActiveRoute();
 
@@ -34,4 +45,4 @@ function getCreateReportRoute({reportID}: GetCreateReportRouteParams): Route {
 }
 
 export default getCreateReportRoute;
-export {getReportsRootRoute, navigateToCreateReportWorkspaceSelection};
+export {getReportsRootRoute, navigateToCreatedReportInReports, navigateToCreateReportWorkspaceSelection};
