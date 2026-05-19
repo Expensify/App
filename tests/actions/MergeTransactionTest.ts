@@ -196,6 +196,7 @@ function runCrossReportMergeToSourceReportRequest(fixtures: CrossReportMergeToSo
         currentUserEmailParam: 'existing@example.com',
         isASAPSubmitBetaEnabled: false,
         selfDMReport: undefined,
+        delegateAccountID: undefined,
     });
 }
 
