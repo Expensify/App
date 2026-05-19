@@ -22,11 +22,9 @@ import type {HRCardDescriptor} from './utils';
 type HRProviderCardProps = {
     card: HRCardDescriptor;
     policy: Policy | undefined;
-    isFirst?: boolean;
-    onConnect: () => void;
 };
 
-function HRProviderCard({card, policy, isFirst, onConnect}: HRProviderCardProps) {
+function HRProviderCard({card, policy}: HRProviderCardProps) {
     const {translate, datetimeToRelative} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -84,11 +82,11 @@ function HRProviderCard({card, policy, isFirst, onConnect}: HRProviderCardProps)
     let rightInset;
     if (!card.isConnected) {
         rightInset = (
-                <Button
-                    small
-                    text={translate('workspace.hr.connect')}
-                    onPress={onConnect}
-                />
+            <Button
+                small
+                text={translate('workspace.hr.connect')}
+                onPress={card.onConnect}
+            />
         );
     } else if (card.isSyncInProgress) {
         rightInset = (
@@ -99,14 +97,14 @@ function HRProviderCard({card, policy, isFirst, onConnect}: HRProviderCardProps)
         );
     } else {
         rightInset = (
-                <ThreeDotsMenu
-                    shouldSelfPosition
-                    menuItems={overflowMenu}
-                    anchorAlignment={{
-                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                    }}
-                />
+            <ThreeDotsMenu
+                shouldSelfPosition
+                menuItems={overflowMenu}
+                anchorAlignment={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                }}
+            />
         );
     }
 
@@ -120,7 +118,7 @@ function HRProviderCard({card, policy, isFirst, onConnect}: HRProviderCardProps)
                 title={card.displayName}
                 icon={cardIcon}
                 iconType={card.iconType}
-                wrapperStyle={[styles.ph0, styles.pv2, isFirst && styles.mt4, !!lastSyncErrorMessage && styles.pb0]}
+                wrapperStyle={[styles.ph0, styles.pv2, !!lastSyncErrorMessage && styles.pb0]}
                 interactive={false}
                 description={connectionDescription}
                 errorText={lastSyncErrorMessage}

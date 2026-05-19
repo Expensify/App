@@ -19,10 +19,6 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
-import getGustoSetupLink from '@libs/actions/connections/Gusto';
-import {connectPolicyToMergeHR} from '@libs/actions/connections/MergeHR';
-import getZenefitsSetupLink from '@libs/actions/connections/Zenefits';
-import {openLink} from '@libs/actions/Link';
 import {openPolicyHRPage} from '@libs/actions/PolicyConnections';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -34,6 +30,9 @@ import type SCREENS from '@src/SCREENS';
 import HRProviderCard from './HRProviderCard';
 import type {HRCardDescriptor} from './utils';
 import {getHRCards} from './utils';
+
+const HR_BETAS = [CONST.BETAS.GUSTO, CONST.BETAS.ZENEFITS, CONST.BETAS.MERGE_HR] as const;
+const OTHER_SEARCH_THRESHOLD = 12;
 
 type WorkspaceHRPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.HR>;
 
@@ -73,26 +72,24 @@ function WorkspaceHRPage({
         isBetaEnabled,
         translate,
         policyID,
+        environmentURL,
         gustoIcon: icons.GustoSquare,
         zenefitsIcon: icons.ZenefitsSquare,
     });
 
-    const connectedCards = cards.filter((c) => c.isConnected).sort((a, b) => localeCompare(a.displayName, b.displayName));
-    const disconnectedCards = cards.filter((c) => !c.isConnected).sort((a, b) => localeCompare(a.displayName, b.displayName));
+    const connectedCards: HRCardDescriptor[] = [];
+    const disconnectedCards: HRCardDescriptor[] = [];
+    for (const card of cards) {
+        (card.isConnected ? connectedCards : disconnectedCards).push(card);
+    }
+    const byName = (a: HRCardDescriptor, b: HRCardDescriptor) => localeCompare(a.displayName, b.displayName);
+    connectedCards.sort(byName);
+    disconnectedCards.sort(byName);
 
-    const visibleDisconnectedCards = searchQuery ? disconnectedCards.filter((c) => c.displayName.toLowerCase().includes(searchQuery.toLowerCase())) : disconnectedCards;
+    const lowercaseSearchQuery = searchQuery.toLowerCase();
+    const visibleDisconnectedCards = searchQuery ? disconnectedCards.filter((c) => c.displayName.toLowerCase().includes(lowercaseSearchQuery)) : disconnectedCards;
 
-    const shouldBeBlocked = !isBetaEnabled(CONST.BETAS.GUSTO) && !isBetaEnabled(CONST.BETAS.ZENEFITS) && !isBetaEnabled(CONST.BETAS.MERGE_HR);
-
-    const handleConnect = (card: HRCardDescriptor) => {
-        if (card.connectionName === CONST.POLICY.CONNECTIONS.NAME.GUSTO) {
-            openLink(getGustoSetupLink(policyID), environmentURL);
-        } else if (card.connectionName === CONST.POLICY.CONNECTIONS.NAME.ZENEFITS) {
-            openLink(getZenefitsSetupLink(policyID), environmentURL);
-        } else if (card.connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR && card.mergeSlug) {
-            connectPolicyToMergeHR(policyID, card.mergeSlug);
-        }
-    };
+    const shouldBeBlocked = !HR_BETAS.some(isBetaEnabled);
 
     return (
         <AccessOrNotFoundWrapper
@@ -120,28 +117,26 @@ function WorkspaceHRPage({
                         <Section
                             contentPaddingOnLargeScreens={{padding: 24}}
                             isCentralPane
-                            renderTitle={() => <Text style={[styles.textStrong]}>{translate('workspace.accounting.title')}</Text>}
+                            renderTitle={() => <Text style={[styles.textStrong]}>{translate('workspace.common.hr')}</Text>}
                         >
-                            {connectedCards.map((card, index) => (
-                                <HRProviderCard
-                                    key={card.key}
-                                    card={card}
-                                    policy={policy}
-                                    isFirst={index === 0}
-                                    onConnect={() => handleConnect(card)}
-                                />
-                            ))}
-
-                            {connectedCards.length === 0 &&
-                                disconnectedCards.map((card, index) => (
+                            <View style={styles.mt4}>
+                                {connectedCards.map((card) => (
                                     <HRProviderCard
                                         key={card.key}
                                         card={card}
                                         policy={policy}
-                                        isFirst={index === 0}
-                                        onConnect={() => handleConnect(card)}
                                     />
                                 ))}
+
+                                {connectedCards.length === 0 &&
+                                    disconnectedCards.map((card) => (
+                                        <HRProviderCard
+                                            key={card.key}
+                                            card={card}
+                                            policy={policy}
+                                        />
+                                    ))}
+                            </View>
 
                             {connectedCards.length > 0 && disconnectedCards.length > 0 && (
                                 <>
@@ -155,7 +150,7 @@ function WorkspaceHRPage({
                                     />
                                     {isOtherExpanded && (
                                         <>
-                                            {disconnectedCards.length > 12 && (
+                                            {disconnectedCards.length > OTHER_SEARCH_THRESHOLD && (
                                                 <TextInput
                                                     value={searchQuery}
                                                     onChangeText={setSearchQuery}
@@ -169,7 +164,6 @@ function WorkspaceHRPage({
                                                     key={card.key}
                                                     card={card}
                                                     policy={policy}
-                                                    onConnect={() => handleConnect(card)}
                                                 />
                                             ))}
                                         </>
