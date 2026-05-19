@@ -492,9 +492,6 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Ano anterior',
         nextYear: 'Ano que vem',
         avatar: 'Avatar',
-        cardAdmin: 'Admin. do Cartão',
-        peopleAdmin: 'Administração de pessoas',
-        paymentsAdmin: 'Admin de pagamentos',
     },
     socials: {
         podcast: 'Siga-nos no Podcast',

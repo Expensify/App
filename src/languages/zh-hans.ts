@@ -489,9 +489,6 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: '上一年',
         nextYear: '明年',
         avatar: '头像',
-        cardAdmin: '卡片管理员',
-        peopleAdmin: '人员管理',
-        paymentsAdmin: '付款管理员',
     },
     socials: {
         podcast: '在播客上关注我们',

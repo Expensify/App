@@ -174,7 +174,7 @@ const ROLE_PERMISSION_BUNDLES: Record<string, Partial<Record<PolicyFeature, Poli
     },
 };
 
-function hasPolicyPermission(policy: OnyxInputOrEntry<Policy>, login: string, feature: PolicyFeature, requiredAccess: PolicyFeatureAccess): boolean {
+function hasPolicyFeaturePermission(policy: OnyxInputOrEntry<Policy>, login: string, feature: PolicyFeature, requiredAccess: PolicyFeatureAccess): boolean {
     const role = getPolicyRole(policy, login, false);
     const access = role ? ROLE_PERMISSION_BUNDLES[role]?.[feature] : undefined;
 
@@ -186,11 +186,11 @@ function hasPolicyPermission(policy: OnyxInputOrEntry<Policy>, login: string, fe
 }
 
 function canMemberRead(policy: OnyxInputOrEntry<Policy>, login: string, feature: PolicyFeature): boolean {
-    return hasPolicyPermission(policy, login, feature, CONST.POLICY.POLICY_FEATURE_ACCESS.READ);
+    return hasPolicyFeaturePermission(policy, login, feature, CONST.POLICY.POLICY_FEATURE_ACCESS.READ);
 }
 
 function canMemberWrite(policy: OnyxInputOrEntry<Policy>, login: string, feature: PolicyFeature): boolean {
-    return hasPolicyPermission(policy, login, feature, CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE);
+    return hasPolicyFeaturePermission(policy, login, feature, CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE);
 }
 
 /**

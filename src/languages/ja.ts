@@ -493,9 +493,6 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: '前年',
         nextYear: '来年',
         avatar: 'アバター',
-        cardAdmin: 'カード管理者',
-        peopleAdmin: 'メンバー管理',
-        paymentsAdmin: '支払管理者',
     },
     socials: {
         podcast: 'ポッドキャストでフォロー',

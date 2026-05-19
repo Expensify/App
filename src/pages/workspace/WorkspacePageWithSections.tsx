@@ -60,10 +60,10 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
         shouldShowNonAdmin?: boolean;
 
         /** Policy feature permission needed to show this page */
-        requiredPolicyFeature?: PolicyFeature;
+        policyFeature?: PolicyFeature;
 
         /** Access level needed for the policy feature */
-        requiredPolicyFeatureAccess?: PolicyFeatureAccess;
+        policyFeatureAccess?: PolicyFeatureAccess;
 
         /** Whether to show the not found page */
         shouldShowNotFoundPage?: boolean;
@@ -129,8 +129,8 @@ function WorkspacePageWithSections({
     shouldShowLoading = true,
     shouldShowOfflineIndicatorInWideScreen = false,
     shouldShowNonAdmin = false,
-    requiredPolicyFeature,
-    requiredPolicyFeatureAccess = CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+    policyFeature,
+    policyFeatureAccess = CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
     shouldEnableMaxHeight = true,
     headerContent,
     testID,
@@ -172,11 +172,11 @@ function WorkspacePageWithSections({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     const shouldShowPolicy = useMemo(() => shouldShowPolicyUtil(policy, false, currentUserLogin), [policy, currentUserLogin]);
-    let hasRequiredPolicyPermission: boolean | undefined;
-    if (requiredPolicyFeature) {
-        hasRequiredPolicyPermission = currentUserLogin ? canMemberRead(policy, currentUserLogin, requiredPolicyFeature) : false;
-        if (requiredPolicyFeatureAccess === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE && currentUserLogin) {
-            hasRequiredPolicyPermission = canMemberWrite(policy, currentUserLogin, requiredPolicyFeature);
+    let hasAccessToPolicyFeature: boolean | undefined;
+    if (policyFeature) {
+        hasAccessToPolicyFeature = currentUserLogin ? canMemberRead(policy, currentUserLogin, policyFeature) : false;
+        if (policyFeatureAccess === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE && currentUserLogin) {
+            hasAccessToPolicyFeature = canMemberWrite(policy, currentUserLogin, policyFeature);
         }
     }
     const isPendingDelete = isPendingDeletePolicy(policy);
@@ -195,11 +195,11 @@ function WorkspacePageWithSections({
         }
 
         // We check isPendingDelete and prevIsPendingDelete to prevent the NotFound view from showing right after we delete the workspace
-        const canShowPage = hasRequiredPolicyPermission ?? (canEditWorkspaceSettings(policy, currentUserLogin) || shouldShowNonAdmin);
+        const canShowPage = hasAccessToPolicyFeature ?? (canEditWorkspaceSettings(policy, currentUserLogin) || shouldShowNonAdmin);
 
         return (!isEmptyObject(policy) && !canShowPage) || (!shouldShowPolicy && !(isPendingDelete && !prevIsPendingDelete));
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentUserLogin, hasRequiredPolicyPermission, isFocused, policy, shouldShowNonAdmin, shouldShowPolicy]);
+    }, [currentUserLogin, hasAccessToPolicyFeature, isFocused, policy, shouldShowNonAdmin, shouldShowPolicy]);
 
     const handleOnBackButtonPress = () => {
         if (shouldShow) {

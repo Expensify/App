@@ -446,9 +446,6 @@ const translations: TranslationDeepObject<typeof en> = {
         expensifyLogo: 'Logo de Expensify',
         approver: 'Aprobador',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `introducir dígito ${digitIndex} de ${totalDigits}`,
-        cardAdmin: 'Administrador de tarjeta',
-        peopleAdmin: 'Administrador de personas',
-        paymentsAdmin: 'Administrador de pagos',
     },
     socials: {
         podcast: 'Síguenos en Podcast',

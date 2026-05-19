@@ -103,10 +103,10 @@ type AccessOrNotFoundWrapperProps = {
     featureName?: PolicyFeatureName;
 
     /** Policy feature permission needed to access the page */
-    requiredPolicyFeature?: PolicyFeature;
+    policyFeature?: PolicyFeature;
 
     /** Access level needed for the policy feature */
-    requiredPolicyFeatureAccess?: PolicyFeatureAccess;
+    policyFeatureAccess?: PolicyFeatureAccess;
 
     /** Props for customizing fallback pages */
     fullPageNotFoundViewProps?: FullPageNotFoundViewProps;
@@ -156,8 +156,8 @@ function AccessOrNotFoundWrapper({
     iouType,
     allPolicies,
     featureName,
-    requiredPolicyFeature,
-    requiredPolicyFeatureAccess = CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+    policyFeature,
+    policyFeatureAccess = CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
     ...props
 }: AccessOrNotFoundWrapperProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -197,16 +197,16 @@ function AccessOrNotFoundWrapper({
         }
         return acc && accessFunction(policy, login, report, allPolicies ?? null, betas, iouType, isReportArchived);
     }, true);
-    let hasRequiredPolicyPermission = true;
-    if (requiredPolicyFeature) {
-        hasRequiredPolicyPermission = canMemberRead(policy, login, requiredPolicyFeature);
-        if (requiredPolicyFeatureAccess === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE) {
-            hasRequiredPolicyPermission = canMemberWrite(policy, login, requiredPolicyFeature);
+    let hasAccessToPolicyFeature = true;
+    if (policyFeature) {
+        hasAccessToPolicyFeature = canMemberRead(policy, login, policyFeature);
+        if (policyFeatureAccess === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE) {
+            hasAccessToPolicyFeature = canMemberWrite(policy, login, policyFeature);
         }
     }
 
     const isPolicyNotAccessible = !isPolicyAccessible(policy, login);
-    const shouldShowNotFoundPage = isFocused && ((!isMoneyRequest && !isFromGlobalCreate && isPolicyNotAccessible) || !isPageAccessible || !hasRequiredPolicyPermission || shouldBeBlocked);
+    const shouldShowNotFoundPage = isFocused && ((!isMoneyRequest && !isFromGlobalCreate && isPolicyNotAccessible) || !isPageAccessible || !hasAccessToPolicyFeature || shouldBeBlocked);
     // We only update the feature state if it isn't pending.
     // This is because the feature state changes several times during the creation of a workspace, while we are waiting for a response from the backend.
     // Without this, we can be unexpectedly navigated to the More Features page.
