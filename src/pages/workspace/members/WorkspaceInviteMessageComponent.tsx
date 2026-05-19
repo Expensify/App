@@ -22,13 +22,13 @@ import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {openExternalLink} from '@libs/actions/Link';
-import {addMembersToWorkspace, clearWorkspaceInviteApproverDraft, clearWorkspaceInviteRoleDraft, setWorkspaceInviteRoleDraft} from '@libs/actions/Policy/Member';
+import {addMembersToWorkspace, clearWorkspaceInviteApproverDraft, clearWorkspaceInviteRoleDraft} from '@libs/actions/Policy/Member';
 import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {canAccessSubmitWorkspaceFeatures, getDefaultApprover, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isControlPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
+import {canAccessSubmitWorkspaceFeatures, getDefaultApprover, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isControlPolicy} from '@libs/PolicyUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -150,10 +150,6 @@ function WorkspaceInviteMessageComponent({
 
     const sendInvitation = () => {
         Keyboard.dismiss();
-        if (policy && canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled) && workspaceInviteRoleDraft !== CONST.POLICY.ROLE.USER) {
-            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias, Navigation.getActiveRoute()));
-            return;
-        }
         const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false));
         // Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
         // See https://github.com/Expensify/App/blob/main/README.md#workspace, we set conditions about who can leave the workspace
@@ -211,15 +207,6 @@ function WorkspaceInviteMessageComponent({
             clearWorkspaceInviteApproverDraft(policyID);
         };
     }, [policyID]);
-
-    useEffect(() => {
-        if (!policy || !isSubmitPolicy(policy)) {
-            return;
-        }
-        if (workspaceInviteRoleDraft !== CONST.POLICY.ROLE.USER) {
-            setWorkspaceInviteRoleDraft(policyID, CONST.POLICY.ROLE.USER);
-        }
-    }, [policy, policyID, workspaceInviteRoleDraft]);
 
     return (
         <AccessOrNotFoundWrapper
