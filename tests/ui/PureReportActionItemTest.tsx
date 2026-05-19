@@ -2455,7 +2455,7 @@ describe('PureReportActionItem', () => {
             expect(screen.getByText(/marked as complete/i)).toBeOnTheScreen();
         });
 
-        it('isIOURequestReportAction renders TransactionPreview', async () => {
+        it('isIOURequestReportAction renders TransactionPreview in a SELF_DM chat', async () => {
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}txn123`, {
                     transactionID: 'txn123',
@@ -2463,12 +2463,12 @@ describe('PureReportActionItem', () => {
                     currency: 'USD',
                     merchant: 'TestMerchant',
                     created: '2025-07-12',
-                    reportID: 'iouReport1',
+                    reportID: 'chatReport1',
                 });
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}iouReport1`, {
-                    reportID: 'iouReport1',
-                    type: CONST.REPORT.TYPE.IOU,
-                    chatReportID: 'chatReport1',
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}chatReport1`, {
+                    reportID: 'chatReport1',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
                 });
             });
             await waitForBatchedUpdatesWithAct();
@@ -2478,7 +2478,7 @@ describe('PureReportActionItem', () => {
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                     IOUTransactionID: 'txn123',
                 }),
-                reportID: 'iouReport1',
+                reportID: 'chatReport1',
             } as ReportAction;
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
@@ -2486,7 +2486,7 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    report={{reportID: 'testReport', chatReportID: 'chatReport1'}}
+                                    report={{reportID: 'chatReport1', chatReportID: 'chatReport1', type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM}}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
