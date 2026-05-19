@@ -302,7 +302,7 @@ type SelectionListHandle<TItem extends ListItem> = {
     scrollAndHighlightItem: (items: string[]) => void;
 
     /** Scrolls to the item at the specified index */
-    scrollToIndex: (index: number, animated?: boolean, viewOffset?: number) => void;
+    scrollToIndex: (index: number) => void;
 
     /** Updates the focused index and optionally scrolls to it */
     updateFocusedIndex: (newFocusedIndex: number, shouldScroll?: boolean) => void;
