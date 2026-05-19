@@ -3,24 +3,35 @@ import {View} from 'react-native';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import {TNodeRenderer} from 'react-native-render-html';
 import useThemeStyles from '@hooks/useThemeStyles';
-import BulletItemRenderer from './BulletItemRenderer';
+import NumberedItemRenderer from './NumberedItemRenderer';
 
-/**
- * Bypasses the library's internal ULRenderer (which wraps children in MarkedListItem)
- * and renders <ul> as a plain block container that draws bullet markers around each
- * direct <li> child — matching how <bullet-list>/<bullet-item> render.
- */
-function ULRenderer({tnode, style}: CustomRendererProps<TBlock>) {
+function buildLiIndices(children: CustomRendererProps<TBlock>['tnode']['children']): Map<number, number> {
+    const map = new Map<number, number>();
+    let counter = 0;
+    for (const [i, child] of children.entries()) {
+        if (child.tagName === 'li') {
+            counter += 1;
+            map.set(i, counter);
+        }
+    }
+    return map;
+}
+
+function OLRenderer({tnode, style}: CustomRendererProps<TBlock>) {
     const styles = useThemeStyles();
+    const liIndices = buildLiIndices(tnode.children);
+
     return (
         <View style={[style, styles.gap2]}>
             {tnode.children.map((child, index) => {
                 const key = `${child.tagName ?? 'node'}-${index}`;
-                if (child.tagName === 'li') {
+                const liIndex = liIndices.get(index);
+                if (liIndex !== undefined) {
                     return (
-                        <BulletItemRenderer
+                        <NumberedItemRenderer
                             key={key}
                             tnode={child}
+                            index={liIndex}
                         />
                     );
                 }
@@ -37,4 +48,4 @@ function ULRenderer({tnode, style}: CustomRendererProps<TBlock>) {
     );
 }
 
-export default ULRenderer;
+export default OLRenderer;
