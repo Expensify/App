@@ -1,13 +1,14 @@
 import React, {useCallback, useContext} from 'react';
 import {View} from 'react-native';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useSubStep from '@hooks/useSubStep';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import useSubPage from '@hooks/useSubPage';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addPersonalBankAccount, clearPersonalBankAccount} from '@libs/actions/BankAccounts';
 import {continueSetup} from '@libs/actions/PaymentMethods';
@@ -20,7 +21,13 @@ import SetupMethod from './SetupMethod';
 import Confirmation from './substeps/ConfirmationStep';
 import Plaid from './substeps/PlaidStep';
 
-const plaidSubsteps: Array<React.ComponentType<SubStepProps>> = [Plaid, Confirmation];
+const ADD_BANK_ACCOUNT_PAGE_NAME = CONST.ENABLE_PAYMENTS.PAGE_NAME.ADD_BANK_ACCOUNT;
+
+const plaidPages = [
+    {pageName: ADD_BANK_ACCOUNT_PAGE_NAME.PLAID, component: Plaid},
+    {pageName: ADD_BANK_ACCOUNT_PAGE_NAME.CONFIRMATION, component: Confirmation},
+];
+
 function AddBankAccount() {
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
     const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
@@ -47,8 +54,12 @@ function AddBankAccount() {
 
     const isSetupTypeChosen = personalBankAccountDraft?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated -- will be migrated to useSubPage in the EnablePayments navigation refactor PR
-    const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep({bodyContent: plaidSubsteps, startFrom: 0, onFinished: submit});
+    const {CurrentPage, isEditing, pageIndex, nextPage, prevPage, moveTo, isRedirecting} = useSubPage<SubPageProps>({
+        pages: plaidPages,
+        startFrom: 0,
+        onFinished: submit,
+        buildRoute: (pageName, action) => ROUTES.SETTINGS_ENABLE_PAYMENTS.getRoute(pageName, action),
+    });
 
     const exitFlow = (shouldContinue = false) => {
         const exitReportID = personalBankAccount?.exitReportID;
@@ -70,14 +81,18 @@ function AddBankAccount() {
             exitFlow();
             return;
         }
-        if (screenIndex === 0) {
+        if (pageIndex === 0) {
             clearPersonalBankAccount();
             updateCurrentStep(null);
             Navigation.goBack(ROUTES.SETTINGS_WALLET);
             return;
         }
-        prevScreen();
+        prevPage();
     };
+
+    if (isSetupTypeChosen && isRedirecting) {
+        return <FullScreenLoadingIndicator reasonAttributes={{context: 'EnablePaymentsAddBankAccount', isRedirecting}} />;
+    }
 
     return (
         <ScreenWrapper
@@ -101,9 +116,9 @@ function AddBankAccount() {
                                 stepNames={CONST.WALLET.STEP_NAMES}
                             />
                         </View>
-                        <SubStep
+                        <CurrentPage
                             isEditing={isEditing}
-                            onNext={nextScreen}
+                            onNext={nextPage}
                             onMove={moveTo}
                         />
                     </>

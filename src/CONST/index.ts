@@ -3438,6 +3438,27 @@ const CONST = {
         RECONNECT: 1000,
     },
 
+    ENABLE_PAYMENTS: {
+        PAGE_NAME: {
+            ADD_BANK_ACCOUNT: {
+                PLAID: 'plaid',
+                CONFIRMATION: 'bank-account-confirmation',
+            },
+            PERSONAL_INFO: {
+                LEGAL_NAME: 'legal-name',
+                DATE_OF_BIRTH: 'date-of-birth',
+                ADDRESS: 'address',
+                PHONE_NUMBER: 'phone-number',
+                SSN: 'ssn',
+                CONFIRMATION: 'personal-info-confirmation',
+            },
+            FEES_AND_TERMS: {
+                FEES: 'fees',
+                TERMS: 'terms',
+            },
+        },
+    },
+
     WALLET: {
         TRANSFER_METHOD_TYPE: {
             INSTANT: 'instant',

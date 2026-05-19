@@ -813,7 +813,7 @@ function WalletPage() {
                                             // To allow upgrading to a gold wallet, continue with the KYC flow after adding a bank account
                                             setPersonalBankAccountContinueKYCOnSuccess(ROUTES.SETTINGS_WALLET);
                                         }}
-                                        enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS}
+                                        enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS.getRoute()}
                                         addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
                                         source={hasActivatedWallet ? CONST.KYC_WALL_SOURCE.TRANSFER_BALANCE : CONST.KYC_WALL_SOURCE.ENABLE_WALLET}
                                         shouldIncludeDebitCard={hasActivatedWallet}
@@ -884,7 +884,7 @@ function WalletPage() {
                                                             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
                                                             return;
                                                         }
-                                                        Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS);
+                                                        Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS.getRoute());
                                                     }}
                                                     wrapperStyle={[
                                                         styles.transferBalance,

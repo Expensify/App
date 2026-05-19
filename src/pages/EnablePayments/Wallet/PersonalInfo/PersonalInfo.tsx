@@ -1,9 +1,10 @@
 import React, {useEffect, useMemo} from 'react';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useSubStep from '@hooks/useSubStep';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import useSubPage from '@hooks/useSubPage';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import {clearPersonalBankAccount} from '@libs/actions/BankAccounts';
 import Navigation from '@libs/Navigation/Navigation';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
@@ -23,7 +24,16 @@ import PhoneNumber from './substeps/PhoneNumberStep';
 import SocialSecurityNumber from './substeps/SocialSecurityNumberStep';
 
 const PERSONAL_INFO_STEP_KEYS = INPUT_IDS.PERSONAL_INFO_STEP;
-const bodyContent: Array<React.ComponentType<SubStepProps>> = [LegalName, DateOfBirth, Address, PhoneNumber, SocialSecurityNumber, Confirmation];
+const PERSONAL_INFO_PAGE_NAME = CONST.ENABLE_PAYMENTS.PAGE_NAME.PERSONAL_INFO;
+
+const formPages = [
+    {pageName: PERSONAL_INFO_PAGE_NAME.LEGAL_NAME, component: LegalName},
+    {pageName: PERSONAL_INFO_PAGE_NAME.DATE_OF_BIRTH, component: DateOfBirth},
+    {pageName: PERSONAL_INFO_PAGE_NAME.ADDRESS, component: Address},
+    {pageName: PERSONAL_INFO_PAGE_NAME.PHONE_NUMBER, component: PhoneNumber},
+    {pageName: PERSONAL_INFO_PAGE_NAME.SSN, component: SocialSecurityNumber},
+    {pageName: PERSONAL_INFO_PAGE_NAME.CONFIRMATION, component: Confirmation},
+];
 
 function PersonalInfoPage() {
     const {translate} = useLocalize();
@@ -57,27 +67,19 @@ function PersonalInfoPage() {
 
     const startFrom = useMemo(() => getInitialSubstepForPersonalInfo(values), [values]);
 
-    const {
-        componentToRender: SubStep,
-        isEditing,
-        nextScreen,
-        prevScreen,
-        moveTo,
-        screenIndex,
-        goToTheLastStep,
-        // eslint-disable-next-line @typescript-eslint/no-deprecated -- will be migrated to useSubPage in the EnablePayments navigation refactor PR
-    } = useSubStep({
-        bodyContent,
+    const {CurrentPage, isEditing, nextPage, prevPage, moveTo, pageIndex, isRedirecting} = useSubPage<SubPageProps>({
+        pages: formPages,
         startFrom,
         onFinished: submit,
+        buildRoute: (pageName, action) => ROUTES.SETTINGS_ENABLE_PAYMENTS.getRoute(pageName, action),
     });
 
     const handleBackButtonPress = () => {
         if (isEditing) {
-            goToTheLastStep();
+            moveTo(formPages.length - 1, false);
             return;
         }
-        if (screenIndex === 0) {
+        if (pageIndex === 0) {
             Navigation.goBack(ROUTES.SETTINGS_WALLET);
             return;
         }
@@ -85,8 +87,12 @@ function PersonalInfoPage() {
             setAdditionalDetailsQuestions(null, '');
             return;
         }
-        prevScreen();
+        prevPage();
     };
+
+    if (isRedirecting) {
+        return <FullScreenLoadingIndicator reasonAttributes={{context: 'EnablePaymentsPersonalInfo', isRedirecting}} />;
+    }
 
     return (
         <InteractiveStepWrapper
@@ -102,9 +108,9 @@ function PersonalInfoPage() {
                     idNumber={walletAdditionalDetails?.idNumber ?? ''}
                 />
             ) : (
-                <SubStep
+                <CurrentPage
                     isEditing={isEditing}
-                    onNext={nextScreen}
+                    onNext={nextPage}
                     onMove={moveTo}
                 />
             )}
