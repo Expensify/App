@@ -6,6 +6,7 @@ import {computeInitialViewportRange, findInitialScrollIndex, isInitialViewportCo
 import type {InitialViewportResetSession} from './InitialViewportUtils';
 import useMeasuredLinkedRowScroll from './useMeasuredLinkedRowScroll';
 
+/** The fallback time for the measured scroll. */
 const MEASURED_SCROLL_FALLBACK_MS = 1000;
 
 type UseCenteredInitialScrollKeyListProps = {

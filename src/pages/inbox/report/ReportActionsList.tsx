@@ -113,9 +113,6 @@ type ReportActionsListProps = {
     /** Whether the report has newer actions to load */
     hasNewerActions: boolean;
 
-    /** Whether the report has older actions to load */
-    hasOlderActions: boolean;
-
     /** The oldest unread report action */
     oldestUnreadReportAction?: OnyxEntry<OnyxTypes.ReportAction> | undefined;
 
@@ -174,7 +171,6 @@ function ReportActionsList({
     loadNewerChats,
     loadOlderChats,
     hasNewerActions,
-    hasOlderActions,
     oldestUnreadReportAction,
     sortedAllReportActionsForPagination,
     reportActionPages,
