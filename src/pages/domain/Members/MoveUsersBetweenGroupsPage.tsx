@@ -21,6 +21,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import useDomainGroupMoveValidation from './useDomainGroupMoveValidation';
 
 type SecurityGroupItem = ListItem & {
     value: string;
@@ -32,8 +33,8 @@ function MoveUsersBetweenGroupsPage({route}: MoveUsersBetweenGroupsPageProps) {
     const {domainAccountID} = route.params;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-
     const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>();
+    const {isBlocked, showBlockedModal} = useDomainGroupMoveValidation(domainAccountID, selectedGroupId);
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
     const [securityGroups] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: groupsSelector});
     const [selectedMemberAccountIDs] = useOnyx(ONYXKEYS.DOMAIN_MEMBERS_SELECTED_FOR_MOVE);
@@ -53,6 +54,11 @@ function MoveUsersBetweenGroupsPage({route}: MoveUsersBetweenGroupsPageProps) {
 
     const handleSave = () => {
         if (!selectedGroupId || !selectedMemberAccountIDs?.length || !domainName) {
+            return;
+        }
+
+        if (isBlocked) {
+            showBlockedModal();
             return;
         }
 

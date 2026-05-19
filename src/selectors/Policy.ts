@@ -4,10 +4,15 @@ import {hasSynchronizationErrorMessage, isConnectionUnverified} from '@libs/acti
 import {getDisplayNameForWorkspace} from '@libs/actions/Policy/Policy';
 import {getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyReportField} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type ReusablePolicyConnectionName = typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE | typeof CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT | typeof CONST.POLICY.CONNECTIONS.NAME.QBD;
+type ReusablePolicyConnectionName =
+    | typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE
+    | typeof CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT
+    | typeof CONST.POLICY.CONNECTIONS.NAME.QBD
+    | typeof CONST.POLICY.CONNECTIONS.NAME.CERTINIA;
 
 const activePolicySelector = (policy: OnyxEntry<Policy>) => (policy?.type !== CONST.POLICY.TYPE.PERSONAL ? policy : undefined);
 
@@ -152,6 +157,9 @@ function isAdminPolicyConnectedTo(policy: OnyxEntry<Policy>, connectionName: Reu
 const adminPoliciesConnectedToSageIntacctSelector = (policies: OnyxCollection<Policy>) =>
     Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT));
 
+const adminPoliciesConnectedToCertiniaSelector = (policies: OnyxCollection<Policy>) =>
+    Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.CERTINIA));
+
 const adminPoliciesConnectedToNetSuiteSelector = (policies: OnyxCollection<Policy>) =>
     Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE));
 
@@ -162,6 +170,7 @@ const reusableConnectionAdminSelectors: Record<ReusablePolicyConnectionName, (po
     [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: adminPoliciesConnectedToNetSuiteSelector,
     [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: adminPoliciesConnectedToSageIntacctSelector,
     [CONST.POLICY.CONNECTIONS.NAME.QBD]: adminPoliciesConnectedToQBDSelector,
+    [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: adminPoliciesConnectedToCertiniaSelector,
 };
 
 function isReusablePolicyConnection(policy: Policy, connectionName: ReusablePolicyConnectionName, currentPolicyID?: string) {
@@ -214,6 +223,16 @@ function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy>, email: st
 
 const policyNameSelector = (policy: OnyxEntry<Policy>) => policy?.name;
 
+function isAdminForPolicyByIDSelector(policyID?: string) {
+    return (policies: OnyxCollection<Policy> | null): boolean => {
+        if (!policyID) {
+            return true;
+        }
+        const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+        return !!policy && policy.role === CONST.POLICY.ROLE.ADMIN;
+    };
+}
+
 const createAdminPoliciesSelector =
     (currentPolicyID: string | undefined = undefined) =>
     (policies: OnyxCollection<Policy>) => {
@@ -244,6 +263,7 @@ export {
     iouRequestPolicyCollectionSelector,
     policyMapper,
     adminPoliciesConnectedToSageIntacctSelector,
+    adminPoliciesConnectedToCertiniaSelector,
     adminPoliciesConnectedToNetSuiteSelector,
     adminPoliciesConnectedToQBDSelector,
     reusablePoliciesConnectedToSelector,
@@ -253,5 +273,6 @@ export {
     hasOnlyPersonalPoliciesSelector,
     policyNameSelector,
     createAdminPoliciesSelector,
+    isAdminForPolicyByIDSelector,
 };
 export type {ReusablePolicyConnectionName};
