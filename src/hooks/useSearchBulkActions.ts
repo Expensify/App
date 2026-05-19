@@ -135,8 +135,7 @@ function getAllTransactionsForDuplicate({
     selectedTransactionsKeys,
     selectedTransactions,
     allTransactions,
-    searchData,
-}: Pick<ShouldShowBulkDuplicateParams, 'selectedTransactionsKeys' | 'selectedTransactions' | 'allTransactions' | 'searchData'>): NonNullable<OnyxCollection<Transaction>> {
+}: Pick<ShouldShowBulkDuplicateParams, 'selectedTransactionsKeys' | 'selectedTransactions' | 'allTransactions'>): NonNullable<OnyxCollection<Transaction>> {
     const allTransactionsForDuplicate = {...(allTransactions ?? {})};
 
     for (const id of selectedTransactionsKeys) {
@@ -145,7 +144,7 @@ function getAllTransactionsForDuplicate({
             continue;
         }
 
-        const transaction = selectedTransactions[id]?.transaction ?? (searchData?.[transactionKey] as Transaction | undefined);
+        const transaction = selectedTransactions[id]?.transaction;
         if (transaction) {
             allTransactionsForDuplicate[transactionKey] = transaction;
         }
@@ -181,7 +180,7 @@ function shouldShowBulkDuplicateOption({
               .filter((report): report is Report => report != null && 'reportID' in report)
         : [];
 
-    const allTransactionsForDuplicate = getAllTransactionsForDuplicate({selectedTransactionsKeys, selectedTransactions, allTransactions, searchData});
+    const allTransactionsForDuplicate = getAllTransactionsForDuplicate({selectedTransactionsKeys, selectedTransactions, allTransactions});
 
     return selectedTransactionsKeys.every((id) => {
         const transaction = allTransactionsForDuplicate[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
@@ -913,9 +912,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 selectedTransactionsKeys,
                 selectedTransactions,
                 allTransactions,
-                searchData: currentSearchResults?.data,
             }),
-        [selectedTransactionsKeys, selectedTransactions, allTransactions, currentSearchResults?.data],
+        [selectedTransactionsKeys, selectedTransactions, allTransactions],
     );
 
     const isDuplicateOptionVisible = useMemo(
