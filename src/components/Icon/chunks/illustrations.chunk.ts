@@ -143,6 +143,7 @@ import FolderOpen from '@assets/images/simple-illustrations/simple-illustration_
 import FoodTruck from '@assets/images/simple-illustrations/simple-illustration__foodtruck-tacos.svg';
 import Gears from '@assets/images/simple-illustrations/simple-illustration__gears.svg';
 import HandCard from '@assets/images/simple-illustrations/simple-illustration__handcard.svg';
+import Hashtag from '@assets/images/simple-illustrations/simple-illustration__hashtag.svg';
 import HeadSet from '@assets/images/simple-illustrations/simple-illustration__headset.svg';
 import Hourglass from '@assets/images/simple-illustrations/simple-illustration__hourglass.svg';
 import House from '@assets/images/simple-illustrations/simple-illustration__house.svg';
@@ -316,6 +317,7 @@ const Illustrations = {
     CreditCardsNew,
     FolderOpen,
     HandCard,
+    Hashtag,
     InvoiceBlue,
     MagnifyingGlassMoney,
     MagnifyingGlassReceipt,

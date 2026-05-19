@@ -187,14 +187,15 @@ function MoneyRequestReceiptView({
         }
     }, [isLoading, hoverBind]);
 
-    const prevSource = usePrevious(transaction?.receipt?.source);
+    const displayedReceiptSource = transaction?.receipt?.localSource ?? transaction?.receipt?.source;
+    const prevDisplayedReceiptSource = usePrevious(displayedReceiptSource);
 
     useEffect(() => {
-        if (!transaction?.receipt?.source || prevSource === transaction?.receipt?.source) {
+        if (!displayedReceiptSource || prevDisplayedReceiptSource === displayedReceiptSource) {
             return;
         }
         setIsLoading(true);
-    }, [transaction?.receipt?.source, prevSource]);
+    }, [displayedReceiptSource, prevDisplayedReceiptSource]);
 
     // Flags for allowing or disallowing editing an expense
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
