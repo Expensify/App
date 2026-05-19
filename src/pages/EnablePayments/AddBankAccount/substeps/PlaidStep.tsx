@@ -5,7 +5,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearPersonalBankAccountSetupType, updateAddPersonalBankAccountDraft, validatePlaidSelection} from '@userActions/BankAccounts';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -13,7 +13,7 @@ import INPUT_IDS from '@src/types/form/PersonalBankAccountForm';
 
 const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
 
-function PlaidStep({onNext}: SubStepProps) {
+function PlaidStep({onNext}: SubPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();

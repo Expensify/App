@@ -243,7 +243,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             exact: true,
                         },
                         [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: {
-                            path: ROUTES.SETTINGS_ENABLE_PAYMENTS,
+                            path: ROUTES.SETTINGS_ENABLE_PAYMENTS.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.WALLET.UNSHARE_BANK_ACCOUNT]: {

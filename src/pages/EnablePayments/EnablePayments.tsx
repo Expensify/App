@@ -1,4 +1,5 @@
-import React, {useEffect} from 'react';
+import {useNavigation} from '@react-navigation/native';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -26,6 +27,7 @@ function EnablePaymentsPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const navigation = useNavigation();
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
@@ -40,6 +42,20 @@ function EnablePaymentsPage() {
 
         openEnablePaymentsPage();
     }, [isOffline]);
+
+    // Each child orchestrator (AddBankAccount, PersonalInfo, FeesAndTerms) owns the shared
+    // SETTINGS_ENABLE_PAYMENTS `:subPage` URL slot via useSubPage. The parent switches between
+    // them based on Onyx `userWallet.currentStep`, so when the server advances the step we
+    // clear the stale subPage/action so the newly-mounted orchestrator redirects to its own
+    // startFrom.
+    const prevStepRef = useRef(userWallet?.currentStep);
+    useEffect(() => {
+        if (prevStepRef.current === userWallet?.currentStep) {
+            return;
+        }
+        prevStepRef.current = userWallet?.currentStep;
+        navigation.setParams({subPage: undefined, action: undefined} as Record<string, unknown>);
+    }, [userWallet?.currentStep, navigation]);
 
     const isUserWalletEmpty = isEmptyObject(userWallet);
     if (isUserWalletEmpty || userWallet?.isLoading || (!hasFreshData && !isOffline)) {
