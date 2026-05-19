@@ -904,7 +904,7 @@ describe('useSelectedTransactionsActions', () => {
         expect(initSplitExpense).toHaveBeenCalled();
     });
 
-    it('should show split option for a dissolved split (unreported sibling was deleted)', async () => {
+    it('should show split option after the other split half was deleted', async () => {
         // Given an open expense report the current user owns and belongs to
         const transactionID = '123';
         const report = {
