@@ -1,6 +1,5 @@
 import {BaseNavigationContainer, NavigationIndependentTree} from '@react-navigation/core';
 import {DarkTheme, DefaultTheme} from '@react-navigation/native';
-import {CardStyleInterpolators} from '@react-navigation/stack';
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import React, {useEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
@@ -15,7 +14,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemePreference from '@hooks/useThemePreference';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isSafari} from '@libs/Browser';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
@@ -142,9 +140,14 @@ function MultifactorAuthenticationModalNavigator() {
                                     presentation: Presentation.TRANSPARENT_MODAL,
                                     cardOverlayEnabled: false,
                                     cardStyle: styles.navigationScreenCardStyle,
-                                    // forHorizontalIOS from @react-navigation misbehaves on Safari (same reason as RHP — see useRHPScreenOptions),
-                                    // so we fall back to the Expensify modal interpolator there.
-                                    cardStyleInterpolator: isSafari() ? (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props}) : CardStyleInterpolators.forHorizontalIOS,
+                                    // Always use the Expensify modal interpolator (not just on Safari like RHP does).
+                                    // The MFA navigator pushes the real screen from MFA_INITIAL's onLayout callback,
+                                    // so when push fires the incoming screen's measured width can still be 0.
+                                    // forHorizontalIOS interpolates translateX from layouts.screen.width — if width
+                                    // is 0 at push start, the slide range collapses to 0→0 and the screen appears
+                                    // via opacity only. modalCardStyleInterpolator uses a constant variables.sideBarWidth
+                                    // on wide layout, so the slide range is stable regardless of layout timing.
+                                    cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props}),
                                 },
                             }}
                         >
