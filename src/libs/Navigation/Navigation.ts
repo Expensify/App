@@ -619,7 +619,8 @@ function goBackToHome() {
     const underlyingTabNavIndex = rootState.routes.findLastIndex((route, idx) => idx < topRootIndex && route.name === NAVIGATORS.TAB_NAVIGATOR);
     if (underlyingTabNavIndex !== -1) {
         navigationRef.current?.dispatch({...StackActions.pop(topRootIndex - underlyingTabNavIndex), target: rootState.key});
-        return;
+        // Don't return — fall through to goBack(ROUTES.HOME) so we also switch to the Home tab
+        // instead of staying on whatever tab (e.g. Inbox) was active in the underlying navigator.
     }
 
     const isNarrowLayout = getIsNarrowLayout();
