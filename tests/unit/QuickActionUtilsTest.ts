@@ -15,38 +15,6 @@ const mockedPolicyUtils = PolicyUtils as jest.Mocked<typeof PolicyUtils>;
 
 describe('QuickActionUtils', () => {
     describe('isQuickActionAllowed', () => {
-        describe('Manager McTest restrictions', () => {
-            const requestScanAction = {
-                action: CONST.QUICK_ACTIONS.REQUEST_SCAN,
-                isFirstQuickAction: false,
-            };
-
-            // Given a report with Manager McTest
-            const reportWithManagerMcTest: Report = {
-                reportID: '1',
-                participants: {
-                    [CONST.ACCOUNT_ID.MANAGER_MCTEST]: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
-                },
-            };
-
-            beforeEach(() => {
-                jest.clearAllMocks();
-                mockedPolicyUtils.isControlPolicy.mockReturnValue(true);
-            });
-
-            it('should return false when report contains Manager McTest', () => {
-                mockedPolicyUtils.shouldShowPolicy.mockReturnValue(false);
-
-                // When the report contains Manager McTest
-                const result = isQuickActionAllowed(requestScanAction, reportWithManagerMcTest, undefined, undefined, [CONST.BETAS.ALL]);
-
-                // Then it should return false
-                expect(result).toBe(false);
-            });
-        });
-
         describe('Preferred policy restrictions', () => {
             const requestManualAction = {
                 action: CONST.QUICK_ACTIONS.REQUEST_MANUAL,
