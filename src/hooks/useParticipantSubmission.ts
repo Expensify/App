@@ -9,13 +9,13 @@ import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {findSelfDMReportID, generateReportID, isInvoiceRoomWithID} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isDistanceRequest} from '@libs/TransactionUtils';
-import {setMoneyRequestTag} from '@userActions/IOU';
 import {
     resetDraftTransactionsCustomUnit,
     setCustomUnitRateID,
     setMoneyRequestCategory,
     setMoneyRequestParticipants,
     setMoneyRequestParticipantsFromReport,
+    setMoneyRequestTag,
 } from '@userActions/IOU/MoneyRequest';
 import {setSplitShares} from '@userActions/IOU/Split';
 import {createDraftWorkspace, generateDefaultWorkspaceName} from '@userActions/Policy/Policy';
