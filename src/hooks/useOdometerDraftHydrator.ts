@@ -1,7 +1,7 @@
 import {useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {IOURequestType} from '@userActions/IOU';
 import {hydrateOdometerDraftIntoTransaction, isOdometerDraftPendingHydration} from '@userActions/OdometerTransactionUtils';
+import type {IOURequestType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OdometerDraft, Transaction} from '@src/types/onyx';
