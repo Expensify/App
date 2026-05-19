@@ -1,5 +1,6 @@
 import {findFocusedRoute, useNavigationState} from '@react-navigation/core';
-import React, {PropsWithChildren} from 'react';
+import type {PropsWithChildren} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';

@@ -15,7 +15,7 @@ import {clearDomainErrors} from '@libs/actions/Domain';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import ROUTES from '@src/ROUTES';
-import {DomainRowData} from '.';
+import type {DomainRowData} from '.';
 
 type DomainListTableRowProps = {
     item: DomainRowData;
