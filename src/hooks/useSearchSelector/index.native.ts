@@ -2,9 +2,9 @@ import {useCallback, useMemo} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
-import useContactImport from './useContactImport';
-import type {ContactState, UseSearchSelectorConfig, UseSearchSelectorReturn} from './useSearchSelector.base';
-import useSearchSelectorBase from './useSearchSelector.base';
+import useContactImport from '@hooks/useContactImport';
+import type {ContactState, UseSearchSelectorConfig, UseSearchSelectorReturn} from './base';
+import useSearchSelectorBase from './base';
 
 /**
  * Hook that combines search functionality with selection logic for option lists.
