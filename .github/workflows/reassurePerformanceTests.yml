@@ -14,8 +14,6 @@ jobs:
       - name: Checkout baseline branch
         # v1
         uses: useblacksmith/checkout@41cdeedae8edb2e684ba22896a5fd2a3cb85db6b
-        with:
-          fetch-depth: 0
 
       - name: Checkout baseline branch
         shell: bash
@@ -47,43 +45,13 @@ jobs:
       - name: Checkout
         # v1
         uses: useblacksmith/checkout@41cdeedae8edb2e684ba22896a5fd2a3cb85db6b
-        with:
-          fetch-depth: 0
-
-      - name: Set dummy git credentials
-        run: |
-            git config --global user.email "test@test.com"
-            git config --global user.name "Test"
-
-      - name: Prepare branch for performance tests
-        shell: bash
-        run: |
-          set -e
-          BASELINE_BRANCH=${BASELINE_BRANCH:="main"}
-          PR_SHA=${{ github.event.pull_request.head.sha }}
-          git fetch origin "$BASELINE_BRANCH" --no-tags
-          common_ancestor=$(git merge-base "$PR_SHA" "origin/$BASELINE_BRANCH")
-          DELETED_FILES=$(git diff --name-only --diff-filter=D "$common_ancestor" "$PR_SHA")
-
-          git checkout --force --detach "$PR_SHA" --no-recurse-submodules
-
-          for file in $DELETED_FILES; do
-            if [ -n "$file" ]; then
-              rm -f "$file"
-              echo "Deleted file: $file"
-            fi
-          done
-
-          if ! git merge --no-commit --allow-unrelated-histories "origin/$BASELINE_BRANCH" -X ours; then
-            git checkout --ours .
-          fi
 
       - name: Setup NodeJS
         uses: ./.github/actions/composite/setupNode
 
       - name: Run branch performance tests
         shell: bash
-        run: NODE_OPTIONS=--experimental-vm-modules npx reassure --branch="${{ github.head_ref }}" --no-compare
+        run: NODE_OPTIONS=--experimental-vm-modules npx reassure --branch="${{ github.head_ref }}" --commit-hash="${{ github.event.pull_request.head.sha }}" --no-compare
 
       - name: Upload branch performance results
         # v6
