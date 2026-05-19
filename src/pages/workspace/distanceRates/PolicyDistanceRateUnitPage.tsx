@@ -23,8 +23,7 @@ function PolicyDistanceRateUnitPage({route}: PolicyDistanceRateUnitPageProps) {
     const policyID = route.params.policyID;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const customUnit = getDistanceRateCustomUnit(policy);
+    const [customUnit] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: (policy) => getDistanceRateCustomUnit(policy)});
 
     const onUnitSelected = (unit: UnitItemType) => {
         if (!customUnit) {
