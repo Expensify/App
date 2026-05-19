@@ -11,7 +11,7 @@
  * This module centralizes the telemetry setup + navigation branching so each
  * call site only needs to describe *what* to write and *where* it should land.
  *
- * **View-layer helper (issue #84631).** Must only be invoked from
+ * **View-layer helper.** Must only be invoked from
  * components/hooks, never from `src/libs/actions/`. Action entrypoints that
  * need it receive it by dependency injection from their UI caller.
  *
@@ -32,8 +32,8 @@ import {setFastPath, setPendingSubmitFollowUpAction, startTracking} from '@libs/
 import type {SubmitExpenseContext} from '@libs/telemetry/submitFollowUpAction';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import isSearchTopmostFullScreenRoute from './isSearchTopmostFullScreenRoute';
 import getTopmostReportParams from './getTopmostReportParams';
+import isSearchTopmostFullScreenRoute from './isSearchTopmostFullScreenRoute';
 
 /**
  * Overrides passed into `executeWrite` by the orchestration layer.
