@@ -12,7 +12,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import usePendingConciergeResponse from '@hooks/usePendingConciergeResponse';
-import usePrevious from '@hooks/usePrevious';
 import useReportActionsPagination from '@hooks/useReportActionsPagination';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSidePanelState from '@hooks/useSidePanelState';
@@ -92,7 +91,6 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
 
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
-    const prevReportActionID = usePrevious(reportActionIDFromRoute);
     const reportPreviewAction = useMemo(() => getReportPreviewAction(report?.chatReportID, report?.reportID), [report?.chatReportID, report?.reportID]);
     const [didLayout, setDidLayout] = useState(false);
 
@@ -116,19 +114,10 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
         updateLoadingInitialReportAction(report?.reportID ?? reportID);
     }, [isOffline, report?.reportID, reportID, reportActionIDFromRoute]);
 
-    const previousOldestUnreadReportActionID = usePrevious(oldestUnreadReportAction?.reportActionID);
-    const previousReportID = usePrevious(reportID);
-
-    const oldestUnreadID = oldestUnreadReportAction?.reportActionID;
-    const isCommentLinking = !!(reportActionIDFromRoute ?? prevReportActionID);
-    const isSameReportNavigation = reportID !== undefined && previousReportID !== undefined && reportID === previousReportID;
-
-    const oldestUnreadAnchoringChangedWhileMounted = !isCommentLinking && isSameReportNavigation && didLayout && oldestUnreadID !== previousOldestUnreadReportActionID;
-
     // Remount the list when the deep-linked message or unread anchor changes (scroll positioning), or when the report changes.
     // Bump listID remounts FlashList so `initialScrollIndex` can run again. Do that for comment linking / first unread
     // anchor resolution, but not when the unread anchor changes while staying on the same report (e.g. mark as unread).
-    const listID = [reportID, reportActionIDFromRoute, hasOnceLoadedReportActions ? undefined : oldestUnreadReportAction?.reportActionID, oldestUnreadAnchoringChangedWhileMounted].join(':');
+    const listID = [reportID, reportActionIDFromRoute, hasOnceLoadedReportActions ? undefined : oldestUnreadReportAction?.reportActionID].join(':');
 
     const visibleReportActions = useMemo(
         () =>
