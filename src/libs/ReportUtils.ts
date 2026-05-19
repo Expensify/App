@@ -5260,6 +5260,7 @@ function getTransactionReportName({
 }: {
     translate: LocalizedTranslate;
     reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>;
+    // The optional operator will be removed in next PR once all remaining getTransactionReportName function calls are updated to pass the `transaction` parameter.
     transaction?: OnyxEntry<Transaction>;
     transactions?: Transaction[];
     reports?: Report[];
