@@ -1,4 +1,5 @@
-import React, {useCallback, useEffect} from 'react';
+import {transactionViolationsByIDsSelector} from '@selectors/TransactionViolations';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
@@ -29,7 +30,13 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const {clearSelectedTransactions} = useSearchActionsContext();
     const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+
+    const relevantTransactionIDs = useMemo(
+        () => (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS ? selectedTransactionIDs : Object.keys(selectedTransactions)),
+        [route.name, selectedTransactionIDs, selectedTransactions],
+    );
+    const violationsSelector = useMemo(() => transactionViolationsByIDsSelector(relevantTransactionIDs), [relevantTransactionIDs]);
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: violationsSelector}, [violationsSelector]);
     const {isOffline} = useNetwork();
 
     const selectedTransactionsList = Object.values(selectedTransactions);
