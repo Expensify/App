@@ -36,7 +36,6 @@ function SubmitDraftButton({isDisabled: isDisabledProp = false, icon, label, sen
                 onPress={onPress}
                 sentryLabel={sentryLabel}
                 disabled={isDisabledProp}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...restProps}
             >
                 {({pressed}) => (

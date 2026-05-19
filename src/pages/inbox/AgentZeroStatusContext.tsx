@@ -118,4 +118,4 @@ function useAgentZeroStatusActions(): AgentZeroStatusActions {
 }
 
 export {AgentZeroStatusProvider, useAgentZeroStatus, useAgentZeroStatusActions};
-export type {AgentZeroStatusState, AgentZeroStatusActions, ReasoningEntry};
+export type {ReasoningEntry};

@@ -436,6 +436,7 @@ Flag when ANY of these are true:
 - A component receives a large set of props that collectively configure its appearance and behavior (e.g., dialog with `isOpen`, `title`, `tabs`, `activeTab`, `onTabChange`, `onSave`, `onReset`, `values`)
 - These props could be broken into independent composable blocks: Provider manages state, sub-components render independently
 - The component becomes a "configuration object consumer" rather than a composition of building blocks
+- When counting props for this case, exclude **coordination props** that match the Case 3 carve-out below (state setters or callbacks structurally shared across multiple sibling children). Count only props that configure the component's own appearance or behavior. If the remaining prop count no longer reads as monolithic, do not flag.
 
 **Case 4 — Config-array driven rendering:**
 - Statically-known items (finite, fixed at development time) are encoded as a data array of config objects
@@ -468,6 +469,10 @@ In all cases, the rule applies to: **new components**, **new features added to e
 - The `ReactNode` prop is `children` itself — `children` is the foundation of composition, not configuration
 - The render function is a **list component callback** (`renderItem` on `FlatList`, `DraggableList`) — these are framework requirements
 - The render function receives **per-item runtime data** from a dynamic collection (e.g., `renderSuggestionMenuItem(item, index)`) — this is list-style rendering, not slot configuration
+- **(Case 3 only)** Props exist to **coordinate shared state or callbacks across sibling children** whose state must live in the common parent. This is legitimate state lifting, not configuration. The coordination role must be **structurally detectable** in the diff or surrounding code — apply ONLY when ONE of these is true:
+    - The **same state setter** (e.g., `setSelectedId`) is passed to two or more sibling children, OR
+    - The **same callback** (e.g., `onItemPress`) is consumed by two or more sibling children
+  A prop passed to a single child, or a prop merely described as "shared" without a visible second consumer, does NOT qualify — this qualifier exists to prevent the carve-out from becoming an argument-shaped escape hatch for any prop.
 
 **Search Patterns** (hints for reviewers):
 - **Case 1**: `should\w+`, `can\w+`, `enable`, `disable` (boolean flag prefixes in prop types)

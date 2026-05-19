@@ -412,4 +412,3 @@ function useAgentZeroStatusIndicator(reportID: string, personaAccountID: number 
 }
 
 export default useAgentZeroStatusIndicator;
-export type {AgentZeroStatusState};
