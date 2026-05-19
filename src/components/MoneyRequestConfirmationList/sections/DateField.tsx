@@ -19,13 +19,14 @@ type DateFieldProps = {
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
     reportID: string;
     reportActionID: string | undefined;
+    isEditingSplitBill: boolean;
 };
 
-function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, transactionID, action, iouType, reportID, reportActionID}: DateFieldProps) {
+function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, transactionID, action, iouType, reportID, reportActionID, isEditingSplitBill}: DateFieldProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const dateState = useTransactionSelector(transactionID, dateStateSelector);
+    const dateState = useTransactionSelector(transactionID, dateStateSelector, isEditingSplitBill);
 
     const iouCreated = dateState?.iouCreated ?? '';
     const createdMissing = dateState?.isMissing ?? true;

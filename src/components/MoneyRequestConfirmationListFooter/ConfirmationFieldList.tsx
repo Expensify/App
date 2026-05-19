@@ -357,6 +357,7 @@ function ConfirmationFieldList({
                 formError={formError}
                 isCompactMode={isCompactMode}
                 fieldVisibility={fieldVisibility}
+                isEditingSplitBill={isEditingSplitBill}
             />
 
             <SettingsFields

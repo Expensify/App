@@ -27,6 +27,7 @@ type CategoryFieldProps = {
     formError: string;
     shouldNavigateToUpgradePath: boolean;
     shouldSelectPolicy: boolean;
+    isEditingSplitBill: boolean;
 };
 
 function CategoryField({
@@ -42,12 +43,13 @@ function CategoryField({
     formError,
     shouldNavigateToUpgradePath,
     shouldSelectPolicy,
+    isEditingSplitBill,
 }: CategoryFieldProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles']);
 
-    const categoryState = useTransactionSelector(transactionID, categoryStateSelector);
+    const categoryState = useTransactionSelector(transactionID, categoryStateSelector, isEditingSplitBill);
 
     const shouldDisplayCategoryError = formError === 'violations.categoryOutOfPolicy';
     const iouCategory = categoryState?.category ?? '';

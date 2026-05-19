@@ -44,6 +44,9 @@ type TagFieldRowProps = {
 
     /** Form-level error message */
     formError: string;
+
+    /** Whether we're editing an existing split expense */
+    isEditingSplitBill: boolean;
 };
 
 function TagFieldRow({
@@ -58,6 +61,7 @@ function TagFieldRow({
     reportID,
     reportActionID,
     formError,
+    isEditingSplitBill,
 }: TagFieldRowProps) {
     const policyTagList = policyTagLists.at(index);
     if (!policyTagList) {
@@ -77,6 +81,7 @@ function TagFieldRow({
             reportID={reportID}
             reportActionID={reportActionID}
             formError={formError}
+            isEditingSplitBill={isEditingSplitBill}
         />
     );
 }
@@ -144,6 +149,9 @@ type ClassificationFieldsProps = {
 
     /** Per-field visibility decisions resolved by `computeFieldVisibility` */
     fieldVisibility: Pick<FieldVisibility, 'categoryRequired' | 'categoryOptional' | 'date' | 'tagsRequired' | 'tagsOptional' | 'tax' | 'attendees'>;
+
+    /** Whether we're editing an existing split expense */
+    isEditingSplitBill: boolean;
 };
 
 function ClassificationFields({
@@ -168,6 +176,7 @@ function ClassificationFields({
     formError,
     isCompactMode,
     fieldVisibility,
+    isEditingSplitBill,
 }: ClassificationFieldsProps) {
     const tagRowSharedProps = {
         policyTagLists,
@@ -180,6 +189,7 @@ function ClassificationFields({
         reportID,
         reportActionID,
         formError,
+        isEditingSplitBill,
     };
 
     return (
@@ -198,6 +208,7 @@ function ClassificationFields({
                     formError={formError}
                     shouldNavigateToUpgradePath={shouldNavigateToUpgradePath}
                     shouldSelectPolicy={shouldSelectPolicy}
+                    isEditingSplitBill={isEditingSplitBill}
                 />
             )}
 
@@ -211,6 +222,7 @@ function ClassificationFields({
                     iouType={iouType}
                     reportID={reportID}
                     reportActionID={reportActionID}
+                    isEditingSplitBill={isEditingSplitBill}
                 />
             )}
 
@@ -228,6 +240,7 @@ function ClassificationFields({
                     reportID={tagRowSharedProps.reportID}
                     reportActionID={tagRowSharedProps.reportActionID}
                     formError={tagRowSharedProps.formError}
+                    isEditingSplitBill={tagRowSharedProps.isEditingSplitBill}
                 />
             ))}
 
@@ -246,6 +259,7 @@ function ClassificationFields({
                         reportID={tagRowSharedProps.reportID}
                         reportActionID={tagRowSharedProps.reportActionID}
                         formError={tagRowSharedProps.formError}
+                        isEditingSplitBill={tagRowSharedProps.isEditingSplitBill}
                     />
                 ))}
 
@@ -261,6 +275,7 @@ function ClassificationFields({
                     iouType={iouType}
                     reportID={reportID}
                     formError={formError}
+                    isEditingSplitBill={isEditingSplitBill}
                 />
             )}
 
