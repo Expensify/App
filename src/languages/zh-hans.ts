@@ -2525,9 +2525,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             approverSubtitle: '所有审批人都属于一个现有的工作流。',
             bulkApproverSubtitle: '所选报表中没有符合条件的审批人。',
         },
-        configureViaGusto: '通过 Gusto 配置。',
-        gustoApprovalWorkflowLockedPrompt: '审批由你的 Gusto 集成管理。若要更新审批流程，请前往 Gusto 连接设置。',
-        goToGustoSettings: '前往 Gusto 设置',
+        configureViaHR: ({provider}: {provider: string}) => `通过 ${provider} 配置。`,
+        hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) => `审批由你的 ${provider} 集成管理。若要更新审批流程，请前往 ${provider} 连接设置。`,
+        goToHRSettings: ({provider}: {provider: string}) => `前往 ${provider} 设置`,
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: '提交频率无法更改。请重试或联系支持团队。',
@@ -4239,6 +4239,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             travelInvoicingVendor: '差旅供应商',
             travelInvoicingPayableAccount: '差旅应付账户',
             hr: '人力资源',
+            rooms: '房间',
         },
         createdForClient: {
             title: '您已为客户创建了工作区！',
@@ -6198,7 +6199,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 chooseBankAccount: '选择用于对账 Expensify 卡付款的银行账户。',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `请确保此账户与您的<a href="${settlementAccountUrl}">Expensify 卡结算账户</a>（末尾为 ${lastFourPAN}）一致，以便持续对账功能正常运行。`,
+                chooseTravelInvoicingBankAccount: '选择用于核对差旅开票付款的银行账户。',
+                travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) => `请确保此账户与您的差旅发票结算账户（以 ${lastFourPAN} 结尾）一致，以确保持续对账功能正常运行。`,
             },
+            syncTravelInvoicingSettlements: '同步差旅开票结算',
         },
         export: {
             notReadyHeading: '尚未准备好导出',
@@ -6956,6 +6960,10 @@ ${reportName}
                         other: (count: number) => `${count} 员工`,
                     }),
                 },
+            },
+            merge: {
+                approvalMode: '审批模式',
+                finalApprover: '最终审批人',
             },
             zenefits: {
                 title: 'TriNet',
@@ -8384,7 +8392,22 @@ ${reportName}
             `<muted-text-label>由于银行连接中断，收据暂时待处理。请前往<a href="${workspaceCompanyCardRoute}">公司卡</a>中解决。</muted-text-label>`,
         memberBrokenConnectionError: '由于银行连接中断，收据处于待处理状态。请联系工作区管理员解决。',
         markAsCashToIgnore: '标记为现金以忽略并请求付款。',
-        smartscanFailed: ({canEdit = true}) => `收据扫描失败。${canEdit ? '手动输入详细信息。' : ''}`,
+        smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
+            if (missingFields.length > 0) {
+                const fieldNames: Record<string, string> = {merchant: '商家', date: '日期', amount: '金额'};
+                const translated = missingFields.map((f) => fieldNames[f] ?? f);
+                let fieldList = '';
+                if (translated.length === 1) {
+                    fieldList = translated.at(0) ?? '';
+                } else if (translated.length === 2) {
+                    fieldList = translated.join('和');
+                } else {
+                    fieldList = translated.join('、');
+                }
+                return `收据扫描失败 — 缺少${fieldList}。${canEdit ? '手动输入详细信息。' : ''}`;
+            }
+            return `收据扫描失败。${canEdit ? '手动输入详细信息。' : ''}`;
+        },
         receiptGeneratedWithAI: '可能由 AI 生成的收据',
         someTagLevelsRequired: (tagName?: string) => `缺少 ${tagName ?? '标签'}`,
         tagOutOfPolicy: (tagName?: string) => `${tagName ?? '标签'} 不再有效`,
@@ -8464,6 +8487,7 @@ ${reportName}
         bookACallTextTop: '切换回 Expensify 经典版后，您将无法享受：',
         bookACallTextBottom: '我们非常期待与您通话以了解原因。您可以预约与我们的一位资深产品经理通话，讨论您的需求。',
         takeMeToExpensifyClassic: '带我前往 Expensify 经典版',
+        goBackJustOnce: '仅此一次返回',
     },
     listBoundary: {
         errorMessage: '加载更多消息时出错',
