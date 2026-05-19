@@ -11654,8 +11654,10 @@ async function hidePreviousComment(repo, issueNumber, commentPrefix) {
     const comments = await GithubUtils_1.default.paginate(GithubUtils_1.default.octokit.issues.listComments, {
         owner: CONST_1.default.GITHUB_OWNER,
         repo,
-        ['issue_number']: issueNumber,
-        ['per_page']: 100,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        issue_number: issueNumber,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        per_page: 100,
     }, (response) => response.data);
     const previousComment = comments.findLast((comment) => comment.body?.startsWith(commentPrefix));
     if (!previousComment) {
