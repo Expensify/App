@@ -1,4 +1,6 @@
 import React from 'react';
+import {View} from 'react-native';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {UnitItemType} from '@components/UnitPicker';
@@ -25,6 +27,8 @@ function PolicyDistanceRateUnitPage({route}: PolicyDistanceRateUnitPageProps) {
     const {translate} = useLocalize();
     const [customUnit] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: (policy) => getDistanceRateCustomUnit(policy)});
 
+    const FullPageBlockingView = !customUnit ? FullPageOfflineBlockingView : View;
+
     const onUnitSelected = (unit: UnitItemType) => {
         if (!customUnit) {
             return;
@@ -43,17 +47,20 @@ function PolicyDistanceRateUnitPage({route}: PolicyDistanceRateUnitPageProps) {
             <ScreenWrapper
                 style={styles.pb0}
                 enableEdgeToEdgeBottomSafeAreaPadding
-                shouldEnableKeyboardAvoidingView={false}
                 testID={PolicyDistanceRateUnitPage.displayName}
             >
                 <HeaderWithBackButton
                     title={translate('workspace.distanceRates.unit')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.getRoute(policyID))}
                 />
-                <UnitPicker
-                    defaultValue={customUnit?.attributes?.unit}
-                    onOptionSelected={onUnitSelected}
-                />
+                <FullPageBlockingView style={customUnit ? styles.flexGrow1 : []}>
+                    {!!customUnit && (
+                        <UnitPicker
+                            defaultValue={customUnit.attributes?.unit}
+                            onOptionSelected={onUnitSelected}
+                        />
+                    )}
+                </FullPageBlockingView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
