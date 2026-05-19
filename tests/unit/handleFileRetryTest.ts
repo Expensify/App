@@ -1,9 +1,10 @@
 import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
 import handleFileRetry from '@libs/ReceiptUploadRetryHandler/handleFileRetry';
-import type {ReplaceReceipt, StartSplitBilActionParams} from '@userActions/IOU';
 import type {RequestMoneyInformation} from '@userActions/IOU/MoneyRequestBuilder';
 import {replaceReceipt} from '@userActions/IOU/Receipt';
+import type {ReplaceReceipt} from '@userActions/IOU/Receipt';
 import {startSplitBill} from '@userActions/IOU/Split';
+import type {StartSplitBilActionParams} from '@userActions/IOU/Split';
 import {requestMoney, trackExpense} from '@userActions/IOU/TrackExpense';
 import type {CreateTrackExpenseParams} from '@userActions/IOU/TrackExpense';
 import CONST from '@src/CONST';
@@ -145,7 +146,7 @@ describe('handleFileRetry', () => {
 
     describe('non-expense-creation branches', () => {
         it('should NOT call cleanupAfterExpenseCreate for REPLACE_RECEIPT', () => {
-            const message = {action: CONST.IOU.ACTION_PARAMS.REPLACE_RECEIPT, retryParams: {} as ReplaceReceipt} as ReceiptError;
+            const message = {action: CONST.IOU.ACTION_PARAMS.REPLACE_RECEIPT, retryParams: {} as unknown as ReplaceReceipt} as ReceiptError;
 
             handleFileRetry(message, file, dismissError, setShouldShowErrorModal);
 
@@ -154,7 +155,7 @@ describe('handleFileRetry', () => {
         });
 
         it('should NOT call cleanupAfterExpenseCreate for START_SPLIT_BILL', () => {
-            const message = {action: CONST.IOU.ACTION_PARAMS.START_SPLIT_BILL, retryParams: {} as StartSplitBilActionParams} as ReceiptError;
+            const message = {action: CONST.IOU.ACTION_PARAMS.START_SPLIT_BILL, retryParams: {} as unknown as StartSplitBilActionParams} as ReceiptError;
 
             handleFileRetry(message, file, dismissError, setShouldShowErrorModal);
 
