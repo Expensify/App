@@ -384,7 +384,6 @@ function getTransactionWithPreservedLocalReceiptSource(transaction: OnyxTypes.Tr
 
 function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyRequestParams): OnyxData<BuildOnyxDataForMoneyRequestKeys> {
     const allReports = getAllReports();
-    const deprecatedCurrentUserPersonalDetails = getCurrentUserPersonalDetails();
     const {
         isNewChatReport,
         shouldCreateNewMoneyRequestReport,
@@ -400,7 +399,6 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         currentUserEmailParam,
         hasViolations,
         quickAction,
-        personalDetails,
     } = moneyRequestParams;
     const {policy, policyCategories, policyTagList} = policyParams;
     const {
