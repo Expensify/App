@@ -916,23 +916,23 @@ const CONST = {
         WALLET: 'WALLET',
     },
     COUNTRY: {
-        US: 'US',
-        MX: 'MX',
+        AS: 'AS',
         AU: 'AU',
         CA: 'CA',
+        FI: 'FI',
+        FR: 'FR',
         GB: 'GB',
         GI: 'GI',
-        IT: 'IT',
-        PR: 'PR',
         GU: 'GU',
-        VI: 'VI',
-        AS: 'AS',
-        MP: 'MP',
         IE: 'IE',
-        FR: 'FR',
-        FI: 'FI',
         IL: 'IL',
         IS: 'IS',
+        IT: 'IT',
+        MP: 'MP',
+        MX: 'MX',
+        PR: 'PR',
+        US: 'US',
+        VI: 'VI',
     },
     SWIPE_DIRECTION: {
         DOWN: 'down',
@@ -4130,8 +4130,8 @@ const CONST = {
         NAME: 'expensifyCard',
         BANK: 'Expensify Card',
         ROUTE: 'expensify-card',
-        // Countries where the cardholder must change PIN at an offline ATM
-        // rather than via the in-app online flow.
+        // Countries where the most terminals are "offline," so users must
+        // change their PIN at an ATM rather than via the in-app online flow.
         // - Offline-only: GB, IE
         // - Mostly offline: FR
         // - Many offline terminals: FI, IL, IS

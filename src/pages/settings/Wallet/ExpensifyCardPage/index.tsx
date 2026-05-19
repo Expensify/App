@@ -152,8 +152,9 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
 
     const currency = getCardCurrency(currentCard, cardSettings);
     const shouldShowPIN = currency !== CONST.CURRENCY.USD;
-    const canChangePIN = supportsPINManagementFeatures(currentPhysicalCard) && currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
-    const canRevealPIN = canChangePIN && revealedPIN === undefined;
+    const shouldShowChangePINRow = supportsPINManagementFeatures(currentPhysicalCard) && currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
+    const canRevealPIN = shouldShowChangePINRow && revealedPIN === undefined;
+    const isCardPINBlocked = !!currentPhysicalCard?.nameValuePairs?.isPINBlocked
     const formattedAvailableSpendAmount = convertToDisplayString(currentCard?.availableSpend, currency);
     const {limitTitleKey} = getLimitTypeTranslationKeys(currentCard?.nameValuePairs?.limitType);
     const currentCardLimitTypeTranslationKey = getTranslationKeyForLimitType(currentCard?.nameValuePairs?.limitType);
@@ -363,7 +364,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                 />
                             </CardDetailsActionButtons>
                         )}
-                        {canChangePIN && !!currentPhysicalCard?.nameValuePairs?.isPINBlocked && (
+                        {shouldShowChangePINRow && isCardPINBlocked && (
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.ph5, styles.mb5]}>
                                 <DotIndicatorMessage
                                     style={[styles.flex1, styles.mr3]}
@@ -428,7 +429,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                         }
                                     />
                                 )}
-                                {canChangePIN && !currentPhysicalCard?.nameValuePairs?.isPINBlocked && (
+                                {shouldShowChangePINRow && (
                                     <MenuItem
                                         title={translate('cardPage.changePin')}
                                         icon={expensifyIcons.Key}
