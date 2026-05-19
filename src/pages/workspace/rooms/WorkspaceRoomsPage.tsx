@@ -1,4 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
+import {policyChatRoomsSelector} from '@selectors/Report';
 import {FlashList} from '@shopify/flash-list';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
@@ -25,7 +26,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
-import {getParticipantsAccountIDsForDisplay, isChatRoom, isHiddenForCurrentUser, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {getParticipantsAccountIDsForDisplay, isHiddenForCurrentUser} from '@libs/ReportUtils';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
@@ -38,11 +39,23 @@ import WorkspaceRoomsListItem from './WorkspaceRoomsListItem';
 
 type WorkspaceRoomsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.ROOMS>;
 
+/**
+ * Row data for a single workspace room rendered in the list.
+ */
 type WorkspaceRoomsRow = {
+    /** The underlying report representing the room. */
     report: Report;
+
+    /** Resolved display name of the room. */
     roomName: string;
+
+    /** Personal details of the room owner, if available. */
     ownerDetails: PersonalDetails | undefined;
+
+    /** Display name for the room owner, or empty string when missing. */
     ownerDisplayName: string;
+
+    /** Number of members shown next to the room. */
     memberCount: number;
 };
 
@@ -50,13 +63,41 @@ function RowSeparator() {
     return <View style={{height: 8}} />;
 }
 
+function ListHeader() {
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    const theme = useTheme();
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
+
+    return (
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.p4, styles.gap3]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.flex3]}>
+                <View style={[styles.alignItemsCenter, styles.justifyContentCenter, {width: variables.avatarSizeNormal}]}>
+                    <Icon
+                        src={icons.FallbackAvatar}
+                        width={variables.iconSizeSmall}
+                        height={variables.iconSizeSmall}
+                        fill={theme.icon}
+                    />
+                </View>
+                <Text style={styles.textLabelSupporting}>{translate('common.name')}</Text>
+            </View>
+            <View style={styles.flex2}>
+                <Text style={styles.textLabelSupporting}>{translate('common.createdBy')}</Text>
+            </View>
+            <View style={styles.flex1}>
+                <Text style={styles.textLabelSupporting}>{translate('common.members')}</Text>
+            </View>
+        </View>
+    );
+}
+
 function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBetaEnabled} = usePermissions();
-    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'FallbackAvatar']);
+    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const illustrations = useMemoizedLazyIllustrations(['Hashtag']);
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
@@ -69,19 +110,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const [policyReports] = useOnyx(
         ONYXKEYS.COLLECTION.REPORT,
         {
-            selector: (allReports) => {
-                const list: Report[] = [];
-                for (const report of Object.values(allReports ?? {})) {
-                    if (!report || report.policyID !== policyID) {
-                        continue;
-                    }
-                    if (!isChatRoom(report) && !isPolicyExpenseChat(report)) {
-                        continue;
-                    }
-                    list.push(report);
-                }
-                return list;
-            },
+            selector: policyChatRoomsSelector(policyID),
         },
         [policyID],
     );
@@ -138,27 +167,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                         data={rows}
                         keyExtractor={(row) => row.report.reportID}
                         ItemSeparatorComponent={RowSeparator}
-                        ListHeaderComponent={
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.p4, styles.gap3]}>
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.flex3]}>
-                                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter, {width: variables.avatarSizeNormal}]}>
-                                        <Icon
-                                            src={icons.FallbackAvatar}
-                                            width={variables.iconSizeSmall}
-                                            height={variables.iconSizeSmall}
-                                            fill={theme.icon}
-                                        />
-                                    </View>
-                                    <Text style={styles.textLabelSupporting}>{translate('common.name')}</Text>
-                                </View>
-                                <View style={styles.flex2}>
-                                    <Text style={styles.textLabelSupporting}>{translate('common.createdBy')}</Text>
-                                </View>
-                                <View style={styles.flex1}>
-                                    <Text style={styles.textLabelSupporting}>{translate('common.members')}</Text>
-                                </View>
-                            </View>
-                        }
+                        ListHeaderComponent={ListHeader}
                         renderItem={({item}: ListRenderItemInfo<WorkspaceRoomsRow>) => (
                             <WorkspaceRoomsListItem
                                 report={item.report}

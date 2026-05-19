@@ -1,7 +1,7 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {getOriginalMessage, isClosedAction} from '@libs/ReportActionsUtils';
-import {getPolicyIDsWithEmptyReportsForAccount, isOpenExpenseReport} from '@libs/ReportUtils';
+import {getPolicyIDsWithEmptyReportsForAccount, isChatRoom, isOpenExpenseReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {Report, ReportActions, Transaction} from '@src/types/onyx';
 import {getLastClosedReportAction} from './ReportAction';
@@ -37,6 +37,26 @@ const policyIDsWithEmptyReportsSelector = (accountID: number | undefined, transa
     return getPolicyIDsWithEmptyReportsForAccount(reports, accountID, transactionsByReportID);
 };
 
+const policyChatRoomsSelector =
+    (policyID: string | undefined) =>
+    (reports: OnyxCollection<Report>): Report[] => {
+        if (!policyID || !reports) {
+            return [];
+        }
+
+        const list: Report[] = [];
+        for (const report of Object.values(reports)) {
+            if (!report || report.policyID !== policyID) {
+                continue;
+            }
+            if (!isChatRoom(report) && !isPolicyExpenseChat(report)) {
+                continue;
+            }
+            list.push(report);
+        }
+        return list;
+    };
+
 function openExpenseReportIDsSelector(reports: OnyxCollection<Report>): OpenExpenseReportIDMap {
     if (!reports) {
         return {};
@@ -54,4 +74,4 @@ function openExpenseReportIDsSelector(reports: OnyxCollection<Report>): OpenExpe
     return openExpenseReportIDMap;
 }
 
-export {getArchiveReason, getReportChatType, getReportOwnerAccountID, getReportPolicyID, policyIDsWithEmptyReportsSelector, openExpenseReportIDsSelector};
+export {getArchiveReason, getReportChatType, getReportOwnerAccountID, getReportPolicyID, policyIDsWithEmptyReportsSelector, policyChatRoomsSelector, openExpenseReportIDsSelector};

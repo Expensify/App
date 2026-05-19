@@ -14,11 +14,22 @@ import type {PersonalDetails, Report} from '@src/types/onyx';
 const ROW_MIN_HEIGHT = 64;
 
 type WorkspaceRoomsListItemProps = {
+    /** The underlying report representing the room. */
     report: Report;
+
+    /** Resolved display name of the room. */
     roomName: string;
+
+    /** Personal details of the room owner, if available. */
     ownerDetails: PersonalDetails | undefined;
+
+    /** Display name for the room owner, or empty string when missing. */
     ownerDisplayName: string;
+
+    /** Number of members shown next to the room. */
     memberCount: number;
+
+    /** Callback fired when the row is pressed. */
     onPress: () => void;
 };
 
