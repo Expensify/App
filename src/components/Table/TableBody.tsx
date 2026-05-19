@@ -49,7 +49,7 @@ function TableBody<T>({contentContainerStyle, style, ...props}: TableBodyProps) 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {processedData: filteredAndSortedData, activeSearchString, listProps, hasActiveFilters, hasSearchString, isEmptyResult} = useTableContext<T>();
-    const {ListEmptyComponent, contentContainerStyle: listContentContainerStyle, extraData: listExtraData, ...restListProps} = listProps ?? {};
+    const {ListEmptyComponent, contentContainerStyle: listContentContainerStyle, ...restListProps} = listProps ?? {};
 
     const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: true,
@@ -95,7 +95,6 @@ function TableBody<T>({contentContainerStyle, style, ...props}: TableBodyProps) 
                 ListEmptyComponent={isEmptyResult ? EmptyResultComponent : ListEmptyComponent}
                 contentContainerStyle={[filteredAndSortedData.length === 0 && styles.flex1, listContentContainerStyle, tableBodyContentContainerStyle, contentContainerStyle]}
                 keyboardShouldPersistTaps="handled"
-                extraData={listExtraData}
                 {...restListProps}
             />
         </View>

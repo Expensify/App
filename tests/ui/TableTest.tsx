@@ -52,6 +52,7 @@ jest.mock('@hooks/useThemeStyles', () =>
         textNormal: {},
         colorMuted: {},
         getSelectionListPopoverHeight: jest.fn(() => ({})),
+        searchBarWidth: jest.fn(() => ({})),
         ml3: {marginLeft: 12},
     })),
 );
