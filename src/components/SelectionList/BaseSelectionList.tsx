@@ -18,6 +18,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
+import {isFocusRestoreInProgress} from '@libs/NavigationFocusReturn';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -43,6 +44,7 @@ function BaseSelectionList<TItem extends ListItem>({
     ref,
     ListItem,
     textInputOptions,
+    searchValueForFocusSync,
     initiallyFocusedItemKey,
     onSelectRow,
     onSelectAll,
@@ -82,6 +84,7 @@ function BaseSelectionList<TItem extends ListItem>({
     shouldShowRightCaret = false,
     shouldStopPropagation = false,
     shouldHeaderBeInsideList = false,
+    selectAllAccessibilityLabel,
     shouldScrollToFocusedIndex = true,
     shouldScrollToFocusedIndexOnMount = true,
     shouldHighlightInitiallyFocusedItem = false,
@@ -111,6 +114,7 @@ function BaseSelectionList<TItem extends ListItem>({
     const listRef = useRef<FlashListRef<TItem> | null>(null);
     const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const keyboardListenerRef = useRef<ReturnType<typeof Keyboard.addListener> | null>(null);
+    const suppressNextFocusScrollRef = useRef(false);
 
     const initialFocusedIndex = useMemo(() => data.findIndex((i) => i.keyForList === initiallyFocusedItemKey), [data, initiallyFocusedItemKey]);
     const [itemsToHighlight, setItemsToHighlight] = useState<Set<string> | null>(null);
@@ -210,6 +214,10 @@ function BaseSelectionList<TItem extends ListItem>({
         disabledIndexes: dataDetails.disabledArrowKeyIndexes,
         isActive: isFocused,
         onFocusedIndexChange: (index: number) => {
+            if (suppressNextFocusScrollRef.current) {
+                suppressNextFocusScrollRef.current = false;
+                return;
+            }
             if (!shouldScrollToFocusedIndex) {
                 return;
             }
@@ -221,10 +229,22 @@ function BaseSelectionList<TItem extends ListItem>({
         onArrowUpDownCallback,
     });
 
+    // Keep the cursor on the restored row so keyboard nav continues from there, but don't scroll to it on the way back.
+    const setFocusedIndexFromRowFocus = useCallback(
+        (index: number) => {
+            if (isFocusRestoreInProgress() && index !== focusedIndex) {
+                suppressNextFocusScrollRef.current = true;
+            }
+            setFocusedIndex(index);
+        },
+        [focusedIndex, setFocusedIndex],
+    );
+
     // extraData helps FlashList detect when data changes significantly (e.g., during filtering)
     // Including data.length ensures FlashList resets its layout cache when the list size changes
     // This prevents "index out of bounds" errors when filtering reduces the list size
     const extraData = useMemo(() => [data.length], [data.length]);
+    const syncedSearchValue = searchValueForFocusSync ?? textInputOptions?.value;
 
     const selectRow = useCallback(
         (item: TItem, indexToFocus?: number) => {
@@ -242,6 +262,9 @@ function BaseSelectionList<TItem extends ListItem>({
                 }
             }
             if (shouldUpdateFocusedIndex && typeof indexToFocus === 'number') {
+                if (indexToFocus !== focusedIndex) {
+                    suppressNextFocusScrollRef.current = true;
+                }
                 setFocusedIndex(indexToFocus);
             }
             onSelectRow(item);
@@ -254,6 +277,7 @@ function BaseSelectionList<TItem extends ListItem>({
             isFocused,
             canSelectMultiple,
             shouldUpdateFocusedIndex,
+            focusedIndex,
             onSelectRow,
             shouldShowTextInput,
             shouldClearInputOnSelect,
@@ -363,7 +387,7 @@ function BaseSelectionList<TItem extends ListItem>({
                     isSelected: selected,
                     ...item,
                 }}
-                setFocusedIndex={setFocusedIndex}
+                setFocusedIndex={setFocusedIndexFromRowFocus}
                 index={index}
                 isFocused={isItemFocused}
                 isFocusVisible={isItemVisuallyFocused}
@@ -520,12 +544,16 @@ function BaseSelectionList<TItem extends ListItem>({
         initiallyFocusedItemKey,
         isItemSelected,
         focusedIndex,
-        searchValue: textInputOptions?.value,
+        searchValue: syncedSearchValue,
         setFocusedIndex,
     });
 
+    const suppressNextFocusScroll = useCallback(() => {
+        suppressNextFocusScrollRef.current = true;
+    }, []);
+
     useSearchFocusSync({
-        searchValue: textInputOptions?.value,
+        searchValue: syncedSearchValue,
         data,
         selectedOptionsCount: dataDetails.selectedOptions.length,
         isItemSelected,
@@ -533,6 +561,8 @@ function BaseSelectionList<TItem extends ListItem>({
         shouldUpdateFocusedIndex,
         scrollToIndex,
         setFocusedIndex,
+        focusedIndex,
+        suppressNextFocusScroll,
     });
 
     useEffect(() => {
@@ -567,6 +597,7 @@ function BaseSelectionList<TItem extends ListItem>({
             selectAllTextStyle={style?.listHeaderSelectAllTextStyle}
             shouldShowSelectAllButton={!!onSelectAll}
             shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
+            selectAllAccessibilityLabel={selectAllAccessibilityLabel}
         />
     );
 

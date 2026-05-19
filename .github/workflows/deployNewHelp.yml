@@ -88,12 +88,14 @@ jobs:
 
       # After deploying Cloudflare preview build, share wherever it deployed to in the PR comment.
       - name: Leave a comment on the PR
-        # v3.2.0
-        uses: actions-cool/maintain-one-comment@4b2dbf086015f892dcb5e8c1106f5fccd6c1476b
+        uses: ./.github/actions/javascript/postOrReplaceComment
         if: ${{ github.event_name == 'pull_request' && env.IS_PR_FROM_FORK != 'true' }}
         with:
-          token: ${{ github.token }}
-          body: ${{ format('Your New Help changes have been deployed to {0} :zap:️', steps.cloudflarePagesAction.outputs.alias) }}
+          REPO: App
+          APP_PR_NUMBER: ${{ github.event.pull_request.number }}
+          GITHUB_TOKEN: ${{ github.token }}
+          COMMENT_PREFIX: Your New Help changes have been deployed to
+          COMMENT_BODY: ${{ format('Your New Help changes have been deployed to {0} :zap:️', steps.cloudflarePagesAction.outputs.alias) }}
 
       - name: Get merged pull request
         if: ${{ github.event_name == 'push' }}

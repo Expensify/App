@@ -143,4 +143,4 @@ function getTaxRatesSection({
 }
 
 export {getTaxRatesSection};
-export type {TaxRatesOption, Tax};
+export type {TaxRatesOption};

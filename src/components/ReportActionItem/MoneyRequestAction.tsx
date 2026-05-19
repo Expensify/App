@@ -119,7 +119,14 @@ function MoneyRequestAction({
         const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : CONST.DEFAULT_NUMBER_ID;
 
         if (!action?.childReportID && transactionID && action.reportActionID) {
-            const transactionThreadReport = createTransactionThreadReport(introSelected, currentUserEmail ?? '', currentUserAccountID, betas, iouReport, action);
+            const transactionThreadReport = createTransactionThreadReport({
+                introSelected,
+                currentUserLogin: currentUserEmail ?? '',
+                currentUserAccountID,
+                betas,
+                iouReport,
+                iouReportAction: action,
+            });
             if (shouldOpenReportInRHP) {
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionThreadReport?.reportID, backTo: Navigation.getActiveRoute()}));
                 return;

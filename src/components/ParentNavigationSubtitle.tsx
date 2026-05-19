@@ -66,6 +66,9 @@ type ParentNavigationSubtitleProps = {
 
     /** Display name of the human agent; falls back to a generic label when missing */
     humanAgentName?: string;
+
+    /** Whether to show the "from" prefix */
+    shouldShowFromPrefix?: boolean;
 };
 
 function ParentNavigationSubtitle({
@@ -83,6 +86,7 @@ function ParentNavigationSubtitle({
     subtitleNumberOfLines = 1,
     humanAgentAccountID,
     humanAgentName,
+    shouldShowFromPrefix = true,
 }: ParentNavigationSubtitleProps) {
     const currentRoute = useRoute();
     const styles = useThemeStyles();
@@ -182,21 +186,15 @@ function ParentNavigationSubtitle({
             // avoid stacking RHPs by going back to the search report if it's already there
             const previousRoute = currentFocusedNavigator?.state?.routes.at(-2);
 
-            if (previousRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT && previousRoute.params && 'reportID' in previousRoute.params) {
-                const reportIDFromParams = previousRoute.params.reportID;
+            if (previousRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT && lastRoute?.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT) {
+                if (previousRoute.params && 'reportID' in previousRoute.params) {
+                    const reportIDFromParams = previousRoute.params.reportID;
 
-                if (reportIDFromParams === parentReportID) {
-                    Navigation.goBack();
-                    return;
+                    if (reportIDFromParams === parentReportID) {
+                        Navigation.goBack();
+                        return;
+                    }
                 }
-            }
-
-            // Stay in the Search tab when the parent link is tapped from a SEARCH_REPORT RHP
-            // and the parent isn't already in the stack — otherwise the REPORT_WITH_ID fallback
-            // would yank the user to Inbox.
-            if (isReportInRHP) {
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID, reportActionID: isVisibleAction ? parentReportActionID : undefined}));
-                return;
             }
         }
 
@@ -241,7 +239,7 @@ function ParentNavigationSubtitle({
             >
                 {!!reportName && (
                     <>
-                        <Text style={[styles.optionAlternateText, styles.textLabelSupporting, textStyles]}>{`${translate('threads.from')} `}</Text>
+                        {shouldShowFromPrefix && <Text style={[styles.optionAlternateText, styles.textLabelSupporting, textStyles]}>{`${translate('threads.from')} `}</Text>}
                         {hasAccessToParentReport ? (
                             <TextLink
                                 testID="parent-navigation-subtitle-link"
@@ -253,8 +251,8 @@ function ParentNavigationSubtitle({
                                     pressableStyles,
                                     styles.optionAlternateText,
                                     styles.textLabelSupporting,
-                                    hovered ? StyleUtils.getColorStyle(theme.linkHover) : styles.link,
                                     textStyles,
+                                    hovered ? StyleUtils.getColorStyle(theme.linkHover) : styles.link,
                                 ]}
                                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                             >

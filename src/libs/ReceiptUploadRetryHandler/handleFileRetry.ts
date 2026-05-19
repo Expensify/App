@@ -1,28 +1,34 @@
-import type * as IOU from '@userActions/IOU';
 import type {RequestMoneyInformation} from '@userActions/IOU/MoneyRequestBuilder';
+import type {ReplaceReceipt} from '@userActions/IOU/Receipt';
 import {replaceReceipt} from '@userActions/IOU/Receipt';
+import type {StartSplitBilActionParams} from '@userActions/IOU/Split';
 import {startSplitBill} from '@userActions/IOU/Split';
 import * as TrackExpense from '@userActions/IOU/TrackExpense';
 import CONST from '@src/CONST';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 
 export default function handleFileRetry(message: ReceiptError, file: File, dismissError: () => void, setShouldShowErrorModal: (value: boolean) => void) {
-    const retryParams: IOU.ReplaceReceipt | IOU.StartSplitBilActionParams | TrackExpense.CreateTrackExpenseParams | RequestMoneyInformation =
+    if (!message.action || !message.retryParams) {
+        setShouldShowErrorModal(true);
+        return;
+    }
+
+    const retryParams: ReplaceReceipt | StartSplitBilActionParams | TrackExpense.CreateTrackExpenseParams | RequestMoneyInformation =
         typeof message.retryParams === 'string'
-            ? (JSON.parse(message.retryParams) as IOU.ReplaceReceipt | IOU.StartSplitBilActionParams | TrackExpense.CreateTrackExpenseParams | RequestMoneyInformation)
+            ? (JSON.parse(message.retryParams) as ReplaceReceipt | StartSplitBilActionParams | TrackExpense.CreateTrackExpenseParams | RequestMoneyInformation)
             : message.retryParams;
 
     switch (message.action) {
         case CONST.IOU.ACTION_PARAMS.REPLACE_RECEIPT: {
             dismissError();
-            const replaceReceiptParams = {...retryParams} as IOU.ReplaceReceipt;
+            const replaceReceiptParams = {...retryParams} as ReplaceReceipt;
             replaceReceiptParams.file = file;
             replaceReceipt(replaceReceiptParams);
             break;
         }
         case CONST.IOU.ACTION_PARAMS.START_SPLIT_BILL: {
             dismissError();
-            const startSplitBillParams = {...retryParams} as IOU.StartSplitBilActionParams;
+            const startSplitBillParams = {...retryParams} as StartSplitBilActionParams;
             startSplitBillParams.receipt = file;
             startSplitBillParams.shouldPlaySound = false;
             startSplitBill(startSplitBillParams);
