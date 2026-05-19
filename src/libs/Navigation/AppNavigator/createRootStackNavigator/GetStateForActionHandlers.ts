@@ -396,22 +396,27 @@ function handleReplaceFullscreenUnderRHP(
             if (i !== targetTabIndex) {
                 return r;
             }
-            // Prepend the existing sidebar/root route (e.g. Inbox) to the incoming state when
-            // it starts with a different screen, so back navigation from the new screen
-            // lands on the sidebar. When the existing tab doesn't have nested
-            // routes (e.g. cold-start through a deep link that opens straight into a modal),
-            // fall back to the split navigator's default sidebar route so there is still
-            // something to pop back to.
-            let mergedNestedState = focusedTargetTab.state;
-            const existingNestedRoutes = (r.state as PartialState<NavigationState> | undefined)?.routes;
+            // suppressSidebarSeed: replace the tab with the destination leaf only, so the dismiss
+            // animation doesn't flash a seeded sidebar (e.g. WORKSPACES_LIST after creating a workspace).
+            // Default: prepend the existing sidebar/root (or the split navigator's default if the tab
+            // had no nested routes) so back navigation from the new screen lands there.
             const newNestedRoutes = focusedTargetTab.state?.routes;
-            const existingFirstRoute = existingNestedRoutes?.at(0);
-            const newFirstRoute = newNestedRoutes?.at(0);
-            const defaultSidebarRouteName = r.name in SPLIT_TO_SIDEBAR ? SPLIT_TO_SIDEBAR[r.name as keyof typeof SPLIT_TO_SIDEBAR] : undefined;
-            const sidebarRoute: NavigationPartialRoute | undefined = existingFirstRoute ?? (defaultSidebarRouteName ? {name: defaultSidebarRouteName} : undefined);
-            if (sidebarRoute && newFirstRoute && sidebarRoute.name !== newFirstRoute.name) {
-                const prependedRoutes = [sidebarRoute, ...(newNestedRoutes ?? [])];
-                mergedNestedState = {...focusedTargetTab.state, routes: prependedRoutes, index: prependedRoutes.length - 1};
+            let mergedNestedState = focusedTargetTab.state;
+            if (action.payload.suppressSidebarSeed) {
+                const leafRoute = newNestedRoutes?.at(-1);
+                if (leafRoute && focusedTargetTab.state) {
+                    mergedNestedState = {...focusedTargetTab.state, routes: [leafRoute], index: 0};
+                }
+            } else {
+                const existingNestedRoutes = (r.state as PartialState<NavigationState> | undefined)?.routes;
+                const existingFirstRoute = existingNestedRoutes?.at(0);
+                const newFirstRoute = newNestedRoutes?.at(0);
+                const defaultSidebarRouteName = r.name in SPLIT_TO_SIDEBAR ? SPLIT_TO_SIDEBAR[r.name as keyof typeof SPLIT_TO_SIDEBAR] : undefined;
+                const sidebarRoute: NavigationPartialRoute | undefined = existingFirstRoute ?? (defaultSidebarRouteName ? {name: defaultSidebarRouteName} : undefined);
+                if (sidebarRoute && newFirstRoute && sidebarRoute.name !== newFirstRoute.name) {
+                    const prependedRoutes = [sidebarRoute, ...(newNestedRoutes ?? [])];
+                    mergedNestedState = {...focusedTargetTab.state, routes: prependedRoutes, index: prependedRoutes.length - 1};
+                }
             }
             // Strip any RN deep-link hint chain from `r.params`; otherwise RN would run a
             // follow-up NAVIGATE from it and override the `state` we splice below.

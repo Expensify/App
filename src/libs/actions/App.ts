@@ -643,7 +643,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
                 return;
             }
 
-            Navigation.revealRouteBeforeDismissingModal(routeToNavigate);
+            Navigation.revealRouteBeforeDismissingModal(routeToNavigate, {suppressSidebarSeed: true});
         } else {
             Navigation.navigate(routeToNavigate, {forceReplace: true});
         }
