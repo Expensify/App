@@ -191,4 +191,23 @@ describe('MoneyReportView reimbursable/non-reimbursable breakdown rows', () => {
             expect(screen.queryByText('cardTransactions.companySpend')).not.toBeOnTheScreen();
         });
     });
+
+    it('keeps the breakdown rows while offline because the pending-deleted expense is still rendered', async () => {
+        const transactions = [
+            buildTransaction('t1', 5000, false),
+            {...buildTransaction('t2', 3000, false), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE} as OnyxTypes.Transaction,
+        ];
+        await seedReportAndTransactions(transactions, {nonReimbursableTotal: -5000, unheldNonReimbursableTotal: -5000});
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+        });
+
+        renderMoneyReportView(buildExpenseReport({nonReimbursableTotal: -5000, unheldNonReimbursableTotal: -5000}));
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByText('cardTransactions.outOfPocket')).toBeOnTheScreen();
+            expect(screen.getByText('cardTransactions.companySpend')).toBeOnTheScreen();
+        });
+    });
 });

@@ -366,4 +366,38 @@ describe('MoneyRequestView edit fields', () => {
             expect(screen.getByTestId(/^menu-item-iou\.amount.*iou\.nonReimbursable/i)).toBeOnTheScreen();
         });
     });
+
+    it('should NOT append "Non-reimbursable" while offline because the pending-deleted expense is still rendered', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {reimbursable: false});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}_sibling`, {
+                transactionID: `${transactionID}_sibling`,
+                reportID: expenseReportID,
+                amount: 2500,
+                currency: CONST.CURRENCY.USD,
+                created: '2025-06-02',
+                merchant: 'Sibling',
+                comment: {},
+                reimbursable: false,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            });
+            await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderMoneyRequestView(threadReport);
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByTestId(/^menu-item-iou\.amount/)).toBeOnTheScreen();
+            expect(screen.queryByTestId(/^menu-item-iou\.amount.*iou\.nonReimbursable/i)).not.toBeOnTheScreen();
+        });
+    });
 });

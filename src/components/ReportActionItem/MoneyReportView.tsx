@@ -108,8 +108,9 @@ function MoneyReportView({
     const isTaxEnabled = isPolicyTaxEnabled(policy);
     // Exclude transactions pending deletion so a report being reduced to a single expense (e.g. deleting one of two) is treated as single immediately,
     // instead of waiting for the optimistic delete to be removed from Onyx (https://github.com/Expensify/App/issues/91058).
-    const nonPendingDeleteTransactions = transactions.filter((transaction) => !isTransactionPendingDelete(transaction));
-    const isSingleNonReimbursableExpense = isSingleTransactionReport(report, nonPendingDeleteTransactions) && nonPendingDeleteTransactions.at(0)?.reimbursable === false;
+    // While offline the deleted expense is still rendered, so keep counting it to stay consistent with the visible transaction list.
+    const visibleTransactions = transactions.filter((transaction) => isOffline || !isTransactionPendingDelete(transaction));
+    const isSingleNonReimbursableExpense = isSingleTransactionReport(report, visibleTransactions) && visibleTransactions.at(0)?.reimbursable === false;
     // The reimbursable/non-reimbursable rows duplicate the Total for a single non-reimbursable expense, so suppress only those rows.
     // Billable and tax rows convey distinct information and must still show.
     const shouldShowReimbursabilityBreakdown = !isSingleNonReimbursableExpense && !!nonReimbursableSpend;
