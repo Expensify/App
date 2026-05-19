@@ -1172,7 +1172,7 @@ describe('MoneyRequest', () => {
                 expect.objectContaining({
                     report: baseParams.report,
                     isDraftPolicy: false,
-                    // PR 3: action is nav-free — UI owns navigation; the draft + optimistic IDs are threaded in.
+                    // Action is nav-free — UI owns navigation; draft + optimistic IDs are threaded in.
                     existingTransaction: baseParams.transaction,
                     optimisticTransactionID: expect.any(String),
                     optimisticChatReportID: expect.any(String),

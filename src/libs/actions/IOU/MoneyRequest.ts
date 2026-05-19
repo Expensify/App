@@ -671,7 +671,7 @@ function handleMoneyRequestStepDistanceNavigation({
             const distanceTaxAmount = transaction?.taxAmount ?? 0;
             if (isCreatingTrackExpense && participant) {
                 const distanceOptimisticTransactionID = rand64();
-                // Pre-generate the self-DM ID so UI cleanup can target the same chat the action will write to.
+                // Pre-generate the self-DM ID so UI cleanup targets the chat the action will write to.
                 const distanceOptimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
                 trackExpense({
                     report,

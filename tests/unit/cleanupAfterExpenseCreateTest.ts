@@ -11,7 +11,6 @@ jest.mock('@libs/actions/TransactionEdit', () => ({
 
 jest.mock('react-native', () => ({
     InteractionManager: {
-        // Fire the callback synchronously so we can assert on its effects without waiting.
         runAfterInteractions: (callback: () => void) => {
             callback();
             return {then: (cb: () => void) => cb(), cancel: jest.fn()};

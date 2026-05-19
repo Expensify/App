@@ -57,6 +57,7 @@ import type {Receipt} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import resolveChatForSubmitCleanup from './resolveChatForSubmitCleanup';
 
 // Ends the submit expense span, starts a geolocation child span, then calls getCurrentPosition.
 // The expense callback receives GPS coordinates on success or undefined on error.
@@ -253,6 +254,48 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
     const transactionTaxValue = transaction?.taxValue ?? getTaxValue(policy, transaction, transactionTaxCode) ?? '';
 
+    // resolveChatForSubmitCleanup mirrors the action's chat resolution so cleanup + nav land where the action wrote.
+    function performPostBatchCleanup({
+        participant,
+        shouldHandleNav,
+        allTransactionsCreated,
+        fallbackOptimisticChatReportID,
+        navigateBackToReport,
+        lastOptimisticTransactionID,
+    }: {
+        participant: Participant;
+        shouldHandleNav: boolean;
+        allTransactionsCreated: boolean;
+        fallbackOptimisticChatReportID: string;
+        navigateBackToReport: string | undefined;
+        lastOptimisticTransactionID: string | undefined;
+    }) {
+        const lastTransaction = transactions.at(-1);
+        // Action bailed mid-batch — keep drafts for retry.
+        if (!allTransactionsCreated) {
+            return;
+        }
+        if (!shouldHandleNav) {
+            cleanupAfterExpenseCreate({draftTransactionIDs, linkedTrackedExpenseReportAction: lastTransaction?.linkedTrackedExpenseReportAction});
+            return;
+        }
+        const {report: resolvedReport, optimisticChatReportID} = resolveChatForSubmitCleanup({
+            participant,
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            report,
+            fallbackOptimisticChatReportID,
+        });
+        cleanupAndNavigateAfterExpenseCreate({
+            report: resolvedReport,
+            draftTransactionIDs,
+            transactionID: lastOptimisticTransactionID,
+            isFromGlobalCreate: getIsFromGlobalCreate(lastTransaction),
+            backToReport: navigateBackToReport,
+            optimisticChatReportID,
+            linkedTrackedExpenseReportAction: lastTransaction?.linkedTrackedExpenseReportAction,
+        });
+    }
+
     function requestMoney(selectedParticipantsArg: Participant[], shouldHandleNav: boolean, gpsPoint?: GpsPoint) {
         if (!transactions.length) {
             return;
@@ -262,7 +305,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (!participant) {
             return;
         }
-        // Pre-check: requestMoney bails per-iteration for malformed SUBMIT (move-from-track) too late to stop UI cleanup from dropping drafts.
+        // requestMoney bails per-item on malformed SUBMIT too late for UI cleanup — reject the batch upfront.
         const requiresLinkedTracked = action === CONST.IOU.ACTION.SUBMIT;
         if (requiresLinkedTracked && !transactions.every((item) => item.linkedTrackedExpenseReportAction && item.linkedTrackedExpenseReportID)) {
             return;
@@ -399,22 +442,13 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 allTransactionsCreated = false;
             }
         }
-        // Skip cleanup/nav when the action bailed — drafts must survive for retry.
-        if (!allTransactionsCreated) {
-            return;
-        }
-        if (!shouldHandleNav) {
-            cleanupAfterExpenseCreate({draftTransactionIDs, linkedTrackedExpenseReportAction: transactions.at(-1)?.linkedTrackedExpenseReportAction});
-            return;
-        }
-        cleanupAndNavigateAfterExpenseCreate({
-            report,
-            draftTransactionIDs,
-            transactionID: lastOptimisticTransactionID,
-            isFromGlobalCreate: getIsFromGlobalCreate(transactions.at(-1)),
-            backToReport,
-            optimisticChatReportID,
-            linkedTrackedExpenseReportAction: transactions.at(-1)?.linkedTrackedExpenseReportAction,
+        performPostBatchCleanup({
+            participant,
+            shouldHandleNav,
+            allTransactionsCreated,
+            fallbackOptimisticChatReportID: optimisticChatReportID,
+            navigateBackToReport: backToReport,
+            lastOptimisticTransactionID,
         });
     }
 
@@ -523,7 +557,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (!participant) {
             return;
         }
-        // Pre-check: trackExpense bails per-iteration for malformed CATEGORIZE/SHARE too late to stop UI cleanup from dropping drafts.
+        // trackExpense bails per-item on malformed CATEGORIZE/SHARE too late for UI cleanup — reject the batch upfront.
         const requiresLinkedTracked = action === CONST.IOU.ACTION.CATEGORIZE || action === CONST.IOU.ACTION.SHARE;
         if (requiresLinkedTracked && !transactions.every((item) => item.linkedTrackedExpenseReportAction && item.linkedTrackedExpenseReportID)) {
             return;
@@ -600,17 +634,13 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 previousOdometerDraft: odometerDraft,
             });
         }
-        if (!shouldHandleNav) {
-            cleanupAfterExpenseCreate({draftTransactionIDs, linkedTrackedExpenseReportAction: transactions.at(-1)?.linkedTrackedExpenseReportAction});
-            return;
-        }
-        cleanupAndNavigateAfterExpenseCreate({
-            report,
-            draftTransactionIDs,
-            transactionID: lastOptimisticTransactionID,
-            isFromGlobalCreate: getIsFromGlobalCreate(transactions.at(-1)),
-            optimisticChatReportID: optimisticSelfDMReportID,
-            linkedTrackedExpenseReportAction: transactions.at(-1)?.linkedTrackedExpenseReportAction,
+        performPostBatchCleanup({
+            participant,
+            shouldHandleNav,
+            allTransactionsCreated: true,
+            fallbackOptimisticChatReportID: optimisticSelfDMReportID,
+            navigateBackToReport: undefined,
+            lastOptimisticTransactionID,
         });
     }
 

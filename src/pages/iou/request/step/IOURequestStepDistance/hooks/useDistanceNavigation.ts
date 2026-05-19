@@ -4,7 +4,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import useOnyx from '@hooks/useOnyx';
 import {handleMoneyRequestStepDistanceNavigation} from '@libs/actions/IOU/MoneyRequest';
-import buildPostDistanceTrackCallback from '@libs/Navigation/helpers/buildPostDistanceTrackCallback';
+import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
+import {getIsFromGlobalCreate} from '@libs/TransactionUtils';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -166,7 +167,15 @@ function useDistanceNavigation({
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
             conciergeReportID,
-            onTransactionsCreated: buildPostDistanceTrackCallback({report, draftTransactionIDs, transaction, backToReport}),
+            onTransactionsCreated: (lastTransactionID, optimisticChatReportID) =>
+                cleanupAndNavigateAfterExpenseCreate({
+                    report,
+                    draftTransactionIDs,
+                    transactionID: lastTransactionID,
+                    isFromGlobalCreate: getIsFromGlobalCreate(transaction),
+                    backToReport,
+                    optimisticChatReportID,
+                }),
         });
     };
 }

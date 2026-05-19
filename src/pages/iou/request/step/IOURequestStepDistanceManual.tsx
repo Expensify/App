@@ -27,12 +27,12 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
-import buildPostDistanceTrackCallback from '@libs/Navigation/helpers/buildPostDistanceTrackCallback';
+import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
-import {getDistanceInMeters} from '@libs/TransactionUtils';
+import {getDistanceInMeters, getIsFromGlobalCreate} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -246,12 +246,15 @@ function IOURequestStepDistanceManual({
             ownerBillingGracePeriodEnd,
             conciergeReportID,
             draftTransactionIDs,
-            onTransactionsCreated: buildPostDistanceTrackCallback({
-                report,
-                draftTransactionIDs,
-                transaction,
-                backToReport,
-            }),
+            onTransactionsCreated: (lastTransactionID, optimisticChatReportID) =>
+                cleanupAndNavigateAfterExpenseCreate({
+                    report,
+                    draftTransactionIDs,
+                    transactionID: lastTransactionID,
+                    isFromGlobalCreate: getIsFromGlobalCreate(transaction),
+                    backToReport,
+                    optimisticChatReportID,
+                }),
         });
     };
 

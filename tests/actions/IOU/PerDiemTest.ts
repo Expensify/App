@@ -733,7 +733,6 @@ describe('PerDiem', () => {
         });
 
         it('should use the UI-provided optimisticTransactionID as the created transaction reportID', async () => {
-            // Given a per-diem-capable policy + expense report AND a UI-provided optimistic transaction ID
             const iouReportID = '3';
             const policyID = 'B';
             const optimisticTransactionID = 'ui-provided-per-diem-99';
@@ -750,8 +749,6 @@ describe('PerDiem', () => {
                 type: CONST.POLICY.TYPE.TEAM,
             });
             await waitForBatchedUpdates();
-
-            // When submitting per-diem with the UI-provided reportID
             submitPerDiemExpense({
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
@@ -789,8 +786,6 @@ describe('PerDiem', () => {
             });
 
             await waitForBatchedUpdates();
-
-            // Then the created transaction should be written at the UI-provided ID (so UI cleanup can highlight it on Search)
             const transactions = await new Promise<OnyxCollection<Transaction>>((resolve) => {
                 const connection = Onyx.connectWithoutView({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,

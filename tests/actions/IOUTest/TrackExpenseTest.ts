@@ -1361,17 +1361,13 @@ describe('actions/IOU/TrackExpense', () => {
         });
 
         it('should use optimisticChatReportID as the new self-DM reportID when no self-DM exists', async () => {
-            // Given no selfDM report exists AND the UI pre-generated a reportID
             const optimisticSelfDMReportID = 'optimistic-self-dm-42';
 
-            // When trackExpense is called with undefined report and the pre-generated reportID
             trackExpense({
                 ...getDefaultTrackExpenseParams(undefined, {amount: 3000, merchant: 'Optimistic SelfDM ID Test'}),
                 optimisticChatReportID: optimisticSelfDMReportID,
             });
             await waitForBatchedUpdates();
-
-            // Then the optimistic self-DM report should be created under the provided reportID
             const reports = await new Promise<OnyxCollection<Report>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,

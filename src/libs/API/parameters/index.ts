@@ -410,7 +410,9 @@ export type {default as UpdateCardSettlementAccountParams} from './UpdateCardSet
 export type {default as ConfigureTravelInvoicingForPolicyParams} from './ConfigureTravelInvoicingForPolicyParams';
 export type {default as DeactivateTravelInvoicingParams} from './DeactivateTravelInvoicingParams';
 export type {default as SetTravelInvoicingSettlementAccountParams} from './SetTravelInvoicingSettlementAccountParams';
+export type {default as SetTravelInvoicingReconciliationBankAccountParams} from './SetTravelInvoicingReconciliationBankAccountParams';
 export type {default as PayTravelInvoicingSpendParams} from './PayTravelInvoicingSpendParams';
+export type {default as ToggleTravelInvoicingContinuousReconciliationParams} from './ToggleTravelInvoicingContinuousReconciliationParams';
 export type {default as UpdateTravelInvoicingMonthlyLimitParams} from './UpdateTravelInvoicingMonthlyLimitParams';
 export type {default as UpdateTravelInvoicingSettlementFrequencyParams} from './UpdateTravelInvoicingSettlementFrequencyParams';
 export type {default as RetryTravelCardsProvisioningParams} from './RetryTravelCardsProvisioningParams';

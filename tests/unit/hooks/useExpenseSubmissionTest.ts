@@ -186,7 +186,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
 
             expect(mockRequestMoneyAction).toHaveBeenCalledTimes(1);
             expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledTimes(1);
-            // Composed inside the wrapper mock, so the standalone helper isn't called.
+            // cleanupAndNavigate is mocked here, so it never calls through to the real cleanupAfterExpenseCreate.
             expect(mockCleanupAfterExpenseCreate).not.toHaveBeenCalled();
         });
     });
@@ -252,7 +252,7 @@ describe('useExpenseSubmission action-bailout safety', () => {
     });
 
     it('skips requestMoney entirely (including the action call) when SUBMIT batch is missing linked-track metadata', async () => {
-        // Pre-validation: requestMoney action would bail per-iteration, but UI catches the malformed batch upfront.
+        // UI rejects the malformed batch upfront (the action would only bail per-item).
         const {result} = renderHook(() => useExpenseSubmission(buildParams({action: CONST.IOU.ACTION.SUBMIT})));
         await waitForBatchedUpdatesWithAct();
 
@@ -295,7 +295,7 @@ describe('useExpenseSubmission action-bailout safety', () => {
     });
 
     it('skips trackExpense entirely (including the action call) when CATEGORIZE is missing linked-track metadata', async () => {
-        // Pre-validation: trackExpense action would bail per-iteration, but UI catches the malformed batch upfront.
+        // UI rejects the malformed batch upfront (the action would only bail per-item).
         const {result} = renderHook(() =>
             useExpenseSubmission(
                 buildParams({
