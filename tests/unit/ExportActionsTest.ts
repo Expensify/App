@@ -78,13 +78,15 @@ describe('Export actions', () => {
         expect(value).toEqual(expect.objectContaining({state: 'ready', reportCount: 5}));
     });
 
-    test('clearStaleExportDownloads calls clearExportDownload for each non-null entry', async () => {
+    test('clearStaleExportDownloads clears failed entries but preserves preparing and ready ones', async () => {
         const key1 = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}stale-1` as const;
         const key2 = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}stale-2` as const;
+        const key3 = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}stale-3` as const;
 
         await Onyx.mergeCollection(ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD, {
             [key1]: {state: 'ready'},
             [key2]: {state: 'failed'},
+            [key3]: {state: 'preparing'},
         });
         await waitForBatchedUpdates();
 
@@ -93,7 +95,9 @@ describe('Export actions', () => {
 
         const value1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}stale-1`);
         const value2 = await getOnyxValue(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}stale-2`);
-        expect(value1).toBeUndefined();
+        const value3 = await getOnyxValue(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}stale-3`);
+        expect(value1).toEqual(expect.objectContaining({state: 'ready'}));
         expect(value2).toBeUndefined();
+        expect(value3).toEqual(expect.objectContaining({state: 'preparing'}));
     });
 });
