@@ -1003,6 +1003,13 @@ const staticStyles = (theme: ThemeColors) =>
             ...visibility.visible,
         },
 
+        // Visually invisible but kept in the accessibility tree — opacity:0 (not `visibility:hidden`) so screen-reader linear navigation can still reach it.
+        screenReaderOnlyAnchor: {
+            width: 1,
+            height: 1,
+            opacity: 0,
+        },
+
         loadingVBAAnimation: {
             width: 140,
             height: 140,
