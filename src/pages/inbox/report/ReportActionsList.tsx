@@ -74,10 +74,10 @@ import ReportActionsListInitialViewportCell from './ReportActionsListInitialView
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 import {getUnreadMarkerReportAction} from './shouldDisplayNewMarkerOnReportAction';
 import ShowPreviousMessagesButton from './ShowPreviousMessagesButton';
+import useCenteredInitialScrollKeyList from './useCenteredInitialScrollKeyList';
 import useReportActionsNewActionLiveTail from './useReportActionsNewActionLiveTail';
 import useReportUnreadMessageScrollTracking from './useReportUnreadMessageScrollTracking';
 import useShouldShowComposerForActiveEditDraft from './useShouldShowComposerForActiveEditDraft';
-import useCenteredInitialScrollKeyList from './useVerticallyCenteredListContent';
 
 type ReportActionsListProps = {
     /** The report currently being looked at */
