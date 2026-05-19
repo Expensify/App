@@ -31,7 +31,7 @@ type UseCenteredInitialScrollKeyListProps = {
 };
 
 /** This hook is used to vertically center the linked/unread report action
- * within the list when the report is openend initially.
+ * within the list when the report is opened initially.
  */
 function useCenteredInitialScrollKeyList({
     initialScrollKey,
