@@ -9,7 +9,6 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Connections} from '@src/types/onyx/Policy';
 
 function getMergeHRSetupLink(policyID: string, integration: MergeHRProviderSlug) {
     const params: ConnectPolicyToMergeParams = {policyID, integration};
@@ -185,42 +184,6 @@ function updateMergeHRFinalApprover(policyID: string, finalApprover: string | nu
     );
 }
 
-/**
- * Removes the Merge HR connection from a policy.
- */
-function disconnectMergeHR(policyID: string, currentConnection: Connections[typeof CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                connections: {
-                    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: null,
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`,
-            value: null,
-        },
-    ];
-
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                connections: {
-                    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: currentConnection,
-                },
-            },
-        },
-    ];
-
-    write(WRITE_COMMANDS.REMOVE_POLICY_CONNECTION, {policyID, connectionName: CONST.POLICY.CONNECTIONS.NAME.MERGE_HR}, {optimisticData, failureData});
-}
-
-export {syncMergeHR, updateMergeHRApprovalMode, updateMergeHRFinalApprover, disconnectMergeHR};
+export {syncMergeHR, updateMergeHRApprovalMode, updateMergeHRFinalApprover};
 
 export default getMergeHRSetupLink;
