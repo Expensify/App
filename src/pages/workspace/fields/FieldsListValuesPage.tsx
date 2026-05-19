@@ -406,7 +406,6 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
                         onSelectAll={filteredListValues.length > 0 ? toggleAllValues : undefined}
                         onTurnOnSelectionMode={(item) => item && toggleValue(item)}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                        shouldUseDefaultRightHandSideCheckmark={false}
                         customListHeader={getCustomListHeader()}
                         customListHeaderContent={headerContent}
                         canSelectMultiple={canSelectMultiple}

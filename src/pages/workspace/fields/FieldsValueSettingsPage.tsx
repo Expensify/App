@@ -1,14 +1,15 @@
-import React, {useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -40,9 +41,8 @@ function FieldsValueSettingsPage({policy, policyID, valueIndex, reportFieldID, i
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
+    const {showConfirmModal} = useConfirmModal();
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
-
-    const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = useState(false);
 
     const [currentValueName, currentValueDisabled] = useMemo(() => {
         let reportFieldValue: string;
@@ -80,8 +80,23 @@ function FieldsValueSettingsPage({policy, policyID, valueIndex, reportFieldID, i
                 disabledListValues: formDraft?.disabledListValues ?? [],
             });
         }
-        setIsDeleteTagModalOpen(false);
         Navigation.goBack();
+    };
+
+    const showDeleteModal = () => {
+        showConfirmModal({
+            danger: true,
+            title: translate('workspace.reportFields.deleteValue'),
+            prompt: translate('workspace.reportFields.deleteValuePrompt'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+
+            deleteListValueAndHideModal();
+        });
     };
 
     const updateListValueEnabled = (value: boolean) => {
@@ -116,17 +131,6 @@ function FieldsValueSettingsPage({policy, policyID, valueIndex, reportFieldID, i
                     title={currentValueName ?? oldValueName}
                     shouldSetModalVisibility={false}
                 />
-                <ConfirmModal
-                    title={translate('workspace.reportFields.deleteValue')}
-                    isVisible={isDeleteTagModalOpen && !hasAccountingConnections}
-                    onConfirm={deleteListValueAndHideModal}
-                    onCancel={() => setIsDeleteTagModalOpen(false)}
-                    shouldSetModalVisibility={false}
-                    prompt={translate('workspace.reportFields.deleteValuePrompt')}
-                    confirmText={translate('common.delete')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                />
                 <View style={styles.flexGrow1}>
                     <View style={[styles.mt2, styles.mh5]}>
                         <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
@@ -154,7 +158,7 @@ function FieldsValueSettingsPage({policy, policyID, valueIndex, reportFieldID, i
                         <MenuItem
                             icon={icons.Trashcan}
                             title={translate('common.delete')}
-                            onPress={() => setIsDeleteTagModalOpen(true)}
+                            onPress={showDeleteModal}
                         />
                     )}
                 </View>

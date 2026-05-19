@@ -1,13 +1,14 @@
 import {Str} from 'expensify-common';
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -50,7 +51,7 @@ function FieldsSettingsPage({
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
-    const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
 
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const reportFieldKey = getReportFieldKey(reportFieldID);
@@ -67,8 +68,23 @@ function FieldsSettingsPage({
 
     const deleteReportFieldAndHideModal = () => {
         deleteReportFields({policy, reportFieldsToUpdate: [reportFieldKey]});
-        setIsDeleteModalVisible(false);
         Navigation.goBack();
+    };
+
+    const showDeleteModal = () => {
+        showConfirmModal({
+            danger: true,
+            title: translate(deleteTitleKey),
+            prompt: translate(deletePromptKey),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+
+            deleteReportFieldAndHideModal();
+        });
     };
 
     return (
@@ -85,17 +101,6 @@ function FieldsSettingsPage({
                 <HeaderWithBackButton
                     title={reportField.name}
                     shouldSetModalVisibility={false}
-                />
-                <ConfirmModal
-                    title={translate(deleteTitleKey)}
-                    isVisible={isDeleteModalVisible && !hasAccountingConnections}
-                    onConfirm={deleteReportFieldAndHideModal}
-                    onCancel={() => setIsDeleteModalVisible(false)}
-                    shouldSetModalVisibility={false}
-                    prompt={translate(deletePromptKey)}
-                    confirmText={translate('common.delete')}
-                    cancelText={translate('common.cancel')}
-                    danger
                 />
                 <View style={styles.flexGrow1}>
                     <MenuItemWithTopDescription
@@ -139,7 +144,7 @@ function FieldsSettingsPage({
                             <MenuItem
                                 icon={icons.Trashcan}
                                 title={translate('common.delete')}
-                                onPress={() => setIsDeleteModalVisible(true)}
+                                onPress={showDeleteModal}
                             />
                         </View>
                     )}

@@ -4,7 +4,6 @@ import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import MenuItem from '@components/MenuItem';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -61,7 +60,7 @@ type WorkspaceFieldsSectionProps = {
     enableFields: (policyID: string, enabled: boolean) => void;
     openFieldsPage: (policyID: string) => void;
     syncErrorConnectionNames?: readonly PolicyConnectionName[];
-    titleAccessibilityRole?: ValueOf<typeof CONST.ROLE>;
+    titleAccessibilityRole?: typeof CONST.ROLE.HEADER;
 };
 
 function keyExtractor(item: FieldListItem) {
