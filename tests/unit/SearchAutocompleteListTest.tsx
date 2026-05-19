@@ -1,5 +1,5 @@
 import type * as NativeNavigation from '@react-navigation/native';
-import {act, render, screen, waitFor} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import React, {useMemo} from 'react';
 import Onyx from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -192,5 +192,28 @@ describe('SearchAutocompleteList', () => {
         // Verify the recent search items themselves are also displayed
         expect(screen.getByText('type:expense status:approved')).toBeTruthy();
         expect(screen.getByText('type:chat')).toBeTruthy();
+    });
+
+    it('should display invite row with "Invite" alternateText when typing an unknown email', async () => {
+        // Regression test for #88730: userToInvite row must carry alternateText: translate('common.invite')
+        // so the UI shows "Invite" beneath the unknown email address.
+        await waitForBatchedUpdates();
+        await Onyx.multiSet({
+            ...mockedReports,
+            [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+            [ONYXKEYS.BETAS]: mockedBetas,
+        });
+
+        render(<SearchRouterWrapper />);
+        await flushAllUpdates();
+
+        const input = screen.getByTestId('search-autocomplete-text-input');
+        fireEvent.changeText(input, 'unknown@example.com');
+
+        await flushAllUpdates();
+
+        await waitFor(() => {
+            expect(screen.getByText('Invite')).toBeTruthy();
+        });
     });
 });
