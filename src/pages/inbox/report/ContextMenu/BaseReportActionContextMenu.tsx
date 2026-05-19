@@ -23,6 +23,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -245,6 +246,7 @@ function BaseReportActionContextMenu({
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const personalDetails = usePersonalDetails();
+    const reportAttributes = useReportAttributes();
     const delegateAccountID = useDelegateAccountID();
 
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
@@ -421,6 +423,7 @@ function BaseReportActionContextMenu({
                                 isOffline,
                                 conciergeReportID,
                                 delegateAccountID,
+                                reportAttributes,
                                 originalReportOfUnapprovedTransaction,
                             };
 
