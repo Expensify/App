@@ -38,8 +38,8 @@ import {
     goBackFromInvalidPolicy,
     hasAccountingFeatureConnection,
     hasPolicyCategoriesError,
+    isAnyHRConnected,
     isGroupPolicy,
-    isHRIntegrationConnected,
     isPendingDeletePolicy,
     isTimeTrackingEnabled,
     shouldShowEmployeeListError,
@@ -167,7 +167,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         [CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]: !!policy?.areConnectionsEnabled || hasAccountingFeatureConnection(policy),
         [CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED]:
             (isBetaEnabled(CONST.BETAS.GUSTO) || isBetaEnabled(CONST.BETAS.ZENEFITS)) &&
-            (policy?.isHREnabled === true || isHRIntegrationConnected(policy)) &&
+            (policy?.isHREnabled === true || isAnyHRConnected(policy)) &&
             canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED),
         [CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED]: policy?.areExpensifyCardsEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED]: policy?.areReportFieldsEnabled,

@@ -1,5 +1,6 @@
 import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
+import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -21,6 +22,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
@@ -301,6 +303,7 @@ function Search({
 
     const previousReportActions = usePrevious(reportActions);
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const reportAttributesDerivedValue = useReportAttributes();
     const searchListRef = useRef<SelectionListHandle<SearchListItem> | null>(null);
 
     const savedSearchSelector = useCallback((searches: OnyxEntry<SaveSearch>) => searches?.[hash], [hash]);
@@ -525,6 +528,7 @@ function Search({
             conciergeReportID,
             onyxPersonalDetailsList,
             policyForMovingExpenses,
+            reportAttributesDerivedValue,
             convertToDisplayString,
             optimisticTransactionID: optimisticTrackingState.optimisticWatchKey?.toString().replace(ONYXKEYS.COLLECTION.TRANSACTION, ''),
         });
@@ -560,6 +564,7 @@ function Search({
         conciergeReportID,
         onyxPersonalDetailsList,
         policyForMovingExpenses,
+        reportAttributesDerivedValue,
         convertToDisplayString,
         optimisticTrackingState.optimisticWatchKey,
     ]);
@@ -871,6 +876,14 @@ function Search({
             }
         }
         if (isEmptyObject(newTransactionList) && Object.keys(selectedTransactions).length === 0) {
+            return;
+        }
+
+        // Bail out when the rebuilt selection is deeply equal to the current one. Without this,
+        // a dep that re-derives to a new reference but the same value re-runs this effect, which
+        // calls setSelectedTransactions with an equivalent payload and loops until React aborts
+        // with "Maximum update depth exceeded". See https://github.com/Expensify/App/issues/89588
+        if (deepEqual(newTransactionList, selectedTransactions)) {
             return;
         }
 
