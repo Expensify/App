@@ -11,6 +11,8 @@ You can create a copy of one or more existing reports and all of their non-card 
 
 This is useful when you need to recreate a similar set of expenses such as recurring monthly reports. You can duplicate a single report or select multiple reports and duplicate them all at once.
 
+**Note:** If your primary workspace has an expired billing subscription, you will be prompted to add a payment card before you can duplicate a report.
+
 If you only need to duplicate specific expenses, [learn how to duplicate an expense](/articles/new-expensify/reports-and-expenses/How-to-Duplicate-an-Expense). 
 
 ---
@@ -99,6 +101,10 @@ No. Only non-card expenses are copied. Expenses from company cards or Expensify 
 ## Does the duplicate include receipt images?
 
 No. Receipt images are not copied to the duplicate expenses. You will need to attach new receipts if required.
+
+## Why am I prompted to add a payment card when duplicating a report?
+
+If the workspace where the duplicate report would be created has an expired billing subscription, Expensify will prompt you to add a payment card before proceeding. You must resolve the billing issue to continue with the duplication.
 
 ## Why is the Duplicate report option not showing in the More menu?
 

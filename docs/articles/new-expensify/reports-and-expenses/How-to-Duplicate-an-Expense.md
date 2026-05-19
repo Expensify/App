@@ -11,7 +11,7 @@ You can create a copy of one or more expenses using **Duplicate expense**. This 
 
 This is useful when you need to create similar expenses quickly without re-entering all the details manually. You can duplicate a single expense or select multiple expenses and duplicate them all at once.
 
-**Note:** Card expenses cannot be duplicated. Only cash, distance, and per diem expenses are eligible to be duplicated. 
+**Note:** Card expenses cannot be duplicated. Only cash, distance, and per diem expenses are eligible to be duplicated. If your primary workspace has an expired billing subscription, you will be prompted to add a payment card before you can duplicate an expense.
 
 <!-- LINK:
 Learn about expense types. 
@@ -91,6 +91,10 @@ No. Expenses from company cards or Expensify Cards cannot be duplicated. Only ca
 ## Does the duplicated expense include the receipt image?
 
 No. Receipt images are not copied to the duplicate expense. You will need to attach a new receipt if one is required.
+
+## Why am I prompted to add a payment card when duplicating an expense?
+
+If the workspace where the duplicate expense would be created has an expired billing subscription, Expensify will prompt you to add a payment card before proceeding. You must resolve the billing issue to continue with the duplication.
 
 ## Why is Duplicate not showing in the menu?
 
