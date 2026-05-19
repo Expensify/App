@@ -17,7 +17,6 @@ import CONST from '@src/CONST';
 import type Policy from '@src/types/onyx/Policy';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {HRCardDescriptor} from './utils';
-import {getFallbackHRIcon} from './utils';
 
 type HRProviderCardProps = {
     card: HRCardDescriptor;
@@ -33,7 +32,7 @@ function HRProviderCard({card, policy, isFirst, onConnect}: HRProviderCardProps)
     const icons = useMemoizedLazyExpensifyIcons(['Sync', 'Trashcan', 'Building']);
     const {showConfirmModal} = useConfirmModal();
 
-    const fallbackIcon: IconAsset = icons[getFallbackHRIcon() as 'Building'];
+    const fallbackIcon = icons.Building;
     const cardIcon = typeof card.icon === 'string' && card.icon.startsWith('http') ? card.icon : (card.icon as IconAsset) || fallbackIcon;
 
     let connectionDescription: string | undefined;

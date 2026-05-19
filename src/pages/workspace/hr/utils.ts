@@ -237,9 +237,5 @@ function getHRCards({policy, connectionSyncProgress, isBetaEnabled, getLocalDate
     return cards;
 }
 
-function getFallbackHRIcon(): string {
-    return 'Building';
-}
-
 export type {HRCardDescriptor, ConnectFlowType};
-export {getHRCardState, getHRCards, getApprovalModeLabel, getFallbackHRIcon};
+export {getHRCardState, getHRCards, getApprovalModeLabel};
