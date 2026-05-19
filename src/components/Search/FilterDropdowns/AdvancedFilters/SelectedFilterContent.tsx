@@ -48,7 +48,7 @@ function TextInputFilterContent({filterKey, value: initialValue, onChange}: Text
     const fullscreen = useFullscreenAdvancedFilters();
 
     return (
-        <View style={[styles.flex1, styles.justifyContentBetween, !fullscreen && styles.pv2]}>
+        <View style={[styles.flex1, styles.justifyContentBetween, !fullscreen && styles.pt5]}>
             <FilterComponents
                 value={value}
                 filterKey={filterKey}
@@ -57,7 +57,7 @@ function TextInputFilterContent({filterKey, value: initialValue, onChange}: Text
                 onChange={(v) => setValue(v as string)}
             />
             <Button
-                style={[styles.ph5, styles.pb3]}
+                style={[styles.ph5, styles.pb5]}
                 success
                 medium={!fullscreen}
                 large={fullscreen}
@@ -80,7 +80,7 @@ function CommonContent({filterKey, value: initialValue, policyIDQuery, onChange}
             value={fullscreen ? value : initialValue}
             filterKey={filterKey}
             policyIDQuery={policyIDQuery}
-            selectionListTextInputStyle={!fullscreen && [styles.pb1, styles.pt2]}
+            selectionListTextInputStyle={!fullscreen && [styles.pb1, styles.pt5]}
             selectionListStyle={!fullscreen ? {contentContainerStyle: [styles.pv2]} : undefined}
             autoFocus={fullscreen}
             scrollViewOffset={-styles.pv2.paddingVertical}
