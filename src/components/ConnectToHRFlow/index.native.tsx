@@ -8,12 +8,11 @@ import Modal from '@components/Modal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getMergeHRSetupLink from '@libs/actions/connections/MergeHR';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type ConnectToMergeHRFlowProps from './types';
+import type ConnectToHRFlowProps from './types';
 
-function ConnectToMergeHRFlow({policyID, integration}: ConnectToMergeHRFlowProps) {
+function ConnectToHRFlow({setupLink}: ConnectToHRFlowProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const webViewRef = useRef<WebView>(null);
@@ -24,7 +23,7 @@ function ConnectToMergeHRFlow({policyID, integration}: ConnectToMergeHRFlowProps
         <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
             <ActivityIndicator
                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                reasonAttributes={{context: 'ConnectToMergeHRFlow'}}
+                reasonAttributes={{context: 'ConnectToHRFlow'}}
             />
         </View>
     );
@@ -46,7 +45,7 @@ function ConnectToMergeHRFlow({policyID, integration}: ConnectToMergeHRFlowProps
                 <WebView
                     ref={webViewRef}
                     source={{
-                        uri: getMergeHRSetupLink(policyID, integration),
+                        uri: setupLink,
                         headers: {
                             Cookie: `authToken=${authToken}`,
                         },
@@ -60,4 +59,4 @@ function ConnectToMergeHRFlow({policyID, integration}: ConnectToMergeHRFlowProps
     );
 }
 
-export default ConnectToMergeHRFlow;
+export default ConnectToHRFlow;

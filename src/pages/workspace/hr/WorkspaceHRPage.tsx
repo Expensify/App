@@ -1,8 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import ConnectToGustoFlow from '@components/ConnectToGustoFlow';
-import ConnectToMergeHRFlow from '@components/ConnectToMergeHRFlow';
+import ConnectToHRFlow from '@components/ConnectToHRFlow';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -51,7 +50,7 @@ function WorkspaceHRPage({
 
     const [isOtherExpanded, setIsOtherExpanded] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const [connectingCard, setConnectingCard] = useState<{card: HRCardDescriptor; key: number} | null>(null);
+    const [pendingConnection, setPendingConnection] = useState<{card: HRCardDescriptor; key: number} | null>(null);
     const connectFlowKeyRef = useRef(0);
 
     useWorkspaceDocumentTitle(undefined, 'workspace.common.hr');
@@ -83,11 +82,11 @@ function WorkspaceHRPage({
     const shouldBeBlocked = !isBetaEnabled(CONST.BETAS.GUSTO) && !isBetaEnabled(CONST.BETAS.ZENEFITS) && !isBetaEnabled(CONST.BETAS.MERGE_HR);
 
     const handleConnect = (card: HRCardDescriptor) => {
-        if (card.connectFlowType === 'none') {
+        if (!card.setupLink) {
             return;
         }
         connectFlowKeyRef.current += 1;
-        setConnectingCard({card, key: connectFlowKeyRef.current});
+        setPendingConnection({card, key: connectFlowKeyRef.current});
     };
 
     return (
@@ -104,6 +103,12 @@ function WorkspaceHRPage({
                 shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
             >
+                {!!pendingConnection?.card.setupLink && (
+                    <ConnectToHRFlow
+                        key={pendingConnection.key}
+                        setupLink={pendingConnection.card.setupLink}
+                    />
+                )}
                 <HeaderWithBackButton
                     icon={illustrations.NewUser}
                     title={translate('workspace.common.hr')}
@@ -176,19 +181,6 @@ function WorkspaceHRPage({
                     </View>
                 </ScrollView>
             </ScreenWrapper>
-            {connectingCard?.card.connectFlowType === 'gusto' && (
-                <ConnectToGustoFlow
-                    key={connectingCard.key}
-                    policyID={policyID}
-                />
-            )}
-            {connectingCard?.card.connectFlowType === 'merge' && !!connectingCard.card.mergeSlug && (
-                <ConnectToMergeHRFlow
-                    key={connectingCard.key}
-                    policyID={policyID}
-                    integration={connectingCard.card.mergeSlug}
-                />
-            )}
         </AccessOrNotFoundWrapper>
     );
 }

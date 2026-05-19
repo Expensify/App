@@ -1,6 +1,9 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {hasSynchronizationErrorMessage, isConnectionInProgress} from '@libs/actions/connections';
+import getGustoSetupLink from '@libs/actions/connections/Gusto';
+import getMergeHRSetupLink from '@libs/actions/connections/MergeHR';
+import getZenefitsSetupLink from '@libs/actions/connections/Zenefits';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import type {HRConnectionName} from '@libs/PolicyUtils';
 import {getHRApprovalMode, getIntegrationLastSuccessfulDate, isGustoConnected, isMergeHRConnected, isZenefitsConnected} from '@libs/PolicyUtils';
@@ -14,8 +17,6 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ConnectionName, PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import type IconAsset from '@src/types/utils/IconAsset';
-
-type ConnectFlowType = 'gusto' | 'zenefits' | 'merge' | 'none';
 
 type HRCardConfig = {
     approvalMode?: string;
@@ -35,7 +36,7 @@ type HRCardDescriptor = {
     successfulDate?: string;
     hasError: boolean;
     mergeSlug?: MergeHRProviderSlug;
-    connectFlowType: ConnectFlowType;
+    setupLink?: string;
     approvalModeRoute?: Route;
     finalApproverRoute?: Route;
     config?: HRCardConfig;
@@ -140,19 +141,6 @@ function getFinalApproverRoute(connectionName: HRConnectionName, policyID: strin
     return undefined;
 }
 
-function getConnectFlowType(connectionName: HRConnectionName): ConnectFlowType {
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.GUSTO) {
-        return 'gusto';
-    }
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.ZENEFITS) {
-        return 'zenefits';
-    }
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR) {
-        return 'merge';
-    }
-    return 'none';
-}
-
 type GetHRCardsParams = {
     policy: OnyxEntry<Policy>;
     connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>;
@@ -177,7 +165,7 @@ function getHRCards({policy, connectionSyncProgress, isBetaEnabled, getLocalDate
             displayName: translate('workspace.hr.gusto.title'),
             icon: gustoIcon,
             iconType: CONST.ICON_TYPE_AVATAR,
-            connectFlowType: getConnectFlowType(connectionName),
+            setupLink: getGustoSetupLink(policyID),
             approvalModeRoute: getApprovalModeRoute(connectionName, policyID),
             finalApproverRoute: getFinalApproverRoute(connectionName, policyID),
             config,
@@ -197,7 +185,7 @@ function getHRCards({policy, connectionSyncProgress, isBetaEnabled, getLocalDate
             displayName: translate('workspace.hr.zenefits.title'),
             icon: zenefitsIcon,
             iconType: CONST.ICON_TYPE_AVATAR,
-            connectFlowType: getConnectFlowType(connectionName),
+            setupLink: getZenefitsSetupLink(policyID),
             approvalModeRoute: getApprovalModeRoute(connectionName, policyID),
             finalApproverRoute: getFinalApproverRoute(connectionName, policyID),
             config,
@@ -227,7 +215,7 @@ function getHRCards({policy, connectionSyncProgress, isBetaEnabled, getLocalDate
                 successfulDate: isThisSlugConnected ? state.successfulDate : undefined,
                 hasError: isThisSlugConnected ? state.hasError : false,
                 mergeSlug: slug,
-                connectFlowType: getConnectFlowType(mergeConnectionName),
+                setupLink: getMergeHRSetupLink(policyID, slug),
                 approvalModeRoute: undefined,
                 finalApproverRoute: undefined,
                 config,
@@ -240,5 +228,5 @@ function getHRCards({policy, connectionSyncProgress, isBetaEnabled, getLocalDate
     return cards;
 }
 
-export type {HRCardDescriptor, ConnectFlowType};
+export type {HRCardDescriptor};
 export {getHRCardState, getHRCards, getApprovalModeLabel};
