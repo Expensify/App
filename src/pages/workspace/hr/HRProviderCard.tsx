@@ -1,4 +1,5 @@
 import React from 'react';
+import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import MenuItem from '@components/MenuItem';
@@ -33,14 +34,21 @@ function HRProviderCard({card, policy, isFirst, onConnect}: HRProviderCardProps)
     const {showConfirmModal} = useConfirmModal();
 
     const fallbackIcon = icons.Building;
+    // Some integrations have a hardcoded icon, others are passing icon url.
     const cardIcon = typeof card.icon === 'string' && card.icon.startsWith('http') ? card.icon : (card.icon as IconAsset) || fallbackIcon;
 
     let connectionDescription: string | undefined;
-    if (!card.isSyncInProgress && card.successfulDate && !card.hasError) {
-        connectionDescription = translate('workspace.hr.lastSync', datetimeToRelative(String(card.successfulDate)));
+    if (card.isSyncInProgress && card.syncStageInProgress) {
+        connectionDescription = translate('workspace.hr.syncStageName', {stage: card.syncStageInProgress});
+    } else if (card.successfulDate && !card.hasError) {
+        connectionDescription = translate('workspace.hr.lastSync', datetimeToRelative(card.successfulDate));
     }
 
-    const lastSyncErrorMessage = card.hasError ? translate('workspace.hr.syncError', card.displayName) : undefined;
+    let lastSyncErrorMessage: string | undefined;
+    if (card.hasError) {
+        const genericError = translate('workspace.hr.syncError', card.displayName);
+        lastSyncErrorMessage = card.lastSyncErrorMessage ? `${genericError} ("${card.lastSyncErrorMessage}")` : genericError;
+    }
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = [
         {
@@ -69,37 +77,40 @@ function HRProviderCard({card, policy, isFirst, onConnect}: HRProviderCardProps)
                 });
             },
             shouldCallAfterModalHide: true,
+            disabled: isOffline,
         },
     ];
 
-    let rightComponent;
+    let rightInset;
     if (!card.isConnected) {
-        rightComponent = (
-            <Button
-                small
-                text={translate('workspace.hr.connect')}
-                onPress={onConnect}
-            />
+        rightInset = (
+                <Button
+                    small
+                    text={translate('workspace.hr.connect')}
+                    onPress={onConnect}
+                />
         );
     } else if (card.isSyncInProgress) {
-        rightComponent = (
+        rightInset = (
             <ActivityIndicator
-                style={[styles.popoverMenuIcon]}
+                style={[styles.popoverMenuIcon, styles.alignSelfCenter]}
                 reasonAttributes={{context: `HRProviderCard.${card.key}Sync`}}
             />
         );
     } else {
-        rightComponent = (
-            <ThreeDotsMenu
-                shouldSelfPosition
-                menuItems={overflowMenu}
-                anchorAlignment={{
-                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                }}
-            />
+        rightInset = (
+                <ThreeDotsMenu
+                    shouldSelfPosition
+                    menuItems={overflowMenu}
+                    anchorAlignment={{
+                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                    }}
+                />
         );
     }
+
+    const rightComponent = <View style={styles.alignSelfCenter}>{rightInset}</View>;
 
     const {approvalModeRoute, finalApproverRoute} = card;
 
@@ -113,7 +124,7 @@ function HRProviderCard({card, policy, isFirst, onConnect}: HRProviderCardProps)
                 interactive={false}
                 description={connectionDescription}
                 errorText={lastSyncErrorMessage}
-                errorTextStyle={[styles.mt5]}
+                errorTextStyle={styles.mt5}
                 shouldShowRedDotIndicator
                 shouldShowRightComponent
                 rightComponent={rightComponent}

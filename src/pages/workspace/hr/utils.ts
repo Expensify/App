@@ -11,7 +11,7 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type Beta from '@src/types/onyx/Beta';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {ConnectionName, PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
+import type {ConnectionName, PolicyConnectionSyncProgress, PolicyConnectionSyncStage} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -32,6 +32,8 @@ type HRCardDescriptor = {
     isSyncInProgress: boolean;
     successfulDate?: string;
     hasError: boolean;
+    lastSyncErrorMessage?: string;
+    syncStageInProgress?: PolicyConnectionSyncStage;
     mergeSlug?: MergeHRProviderSlug;
     approvalModeRoute?: Route;
     finalApproverRoute?: Route;
@@ -66,12 +68,16 @@ function getHRCardState({policy, connectionName, connectionSyncProgress, getLoca
     const successfulDate = getIntegrationLastSuccessfulDate(getLocalDateFromDatetime, connection, syncProgress);
 
     const hasError = hasSynchronizationErrorMessage(policy, connectionName, !!isSyncInProgress);
+    const lastSyncErrorMessage = hasError ? (connection?.lastSync?.errorMessage ?? undefined) : undefined;
+    const syncStageInProgress = isSyncInProgress && syncProgress?.stageInProgress ? syncProgress.stageInProgress : undefined;
 
     return {
         isConnected,
         isSyncInProgress: !!isSyncInProgress,
         successfulDate,
         hasError,
+        lastSyncErrorMessage,
+        syncStageInProgress,
     };
 }
 
