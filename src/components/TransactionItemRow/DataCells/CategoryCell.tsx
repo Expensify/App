@@ -2,9 +2,9 @@ import React from 'react';
 import CategoryPickerModal from '@components/CategoryPicker/CategoryPickerModal';
 import TextWithIconCell from '@components/Search/SearchList/ListItem/TextWithIconCell';
 import type {ListItem} from '@components/SelectionList/types';
-import {EditableCell, usePopoverEditState} from '@components/Table/EditableCell';
-import type {EditableProps} from '@components/Table/EditableCell';
 import TextWithTooltip from '@components/TextWithTooltip';
+import {EditableCell, usePopoverEditState} from '@components/TransactionItemRow/EditableCell';
+import type {EditableProps} from '@components/TransactionItemRow/EditableCell';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
@@ -18,7 +18,6 @@ type CategoryCellProps = TransactionDataCellProps &
 function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem, canEdit, onSave, policyID}: CategoryCellProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Folder']);
     const styles = useThemeStyles();
-    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing} = usePopoverEditState({canEdit});
 
     // For display: decoded category name for user-readable text
     const categoryForDisplay = isCategoryMissing(transactionItem?.category) ? '' : getDecodedCategoryName(transactionItem?.category ?? '');
@@ -26,9 +25,14 @@ function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem
     // For picker comparison: raw category name (empty if missing, matches IOURequestStepCategory)
     const categoryForComparison = isCategoryMissing(transactionItem?.category) ? '' : (transactionItem?.category ?? '');
 
+    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing, handleSave} = usePopoverEditState({
+        canEdit,
+        value: categoryForComparison,
+        onSave,
+    });
+
     const handleCategorySelected = (item: ListItem) => {
-        onSave?.(item.keyForList);
-        cancelEditing();
+        handleSave(item.keyForList);
     };
 
     const displayContent = shouldUseNarrowLayout ? (
