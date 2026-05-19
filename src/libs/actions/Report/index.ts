@@ -6785,6 +6785,8 @@ function convertIOUReportToExpenseReport(iouReport: Report, policy: Policy, poli
             ...transaction,
             amount: -transaction.amount,
             modifiedAmount: hasValidModifiedAmount(transaction) ? -Number(transaction.modifiedAmount) : '',
+            ...(transaction.convertedAmount != null && {convertedAmount: -transaction.convertedAmount}),
+            ...(transaction.convertedTaxAmount != null && {convertedTaxAmount: -transaction.convertedTaxAmount}),
         };
 
         transactionFailureData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
