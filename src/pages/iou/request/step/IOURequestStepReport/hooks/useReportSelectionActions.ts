@@ -4,7 +4,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useSearchActionsContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 import useOnyx from '@hooks/useOnyx';
-import {setCustomUnitID, setCustomUnitRateID} from '@libs/actions/IOU';
+import {setCustomUnitID, setCustomUnitRateID} from '@libs/actions/IOU/MoneyRequest';
 import {clearSubrates} from '@libs/actions/IOU/PerDiem';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';

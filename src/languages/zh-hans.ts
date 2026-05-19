@@ -2661,27 +2661,34 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         subtitle: '通过自定义智能体自动化处理任务。',
         newAgent: '新代理人',
         emptyAgents: {title: '尚未创建代理', subtitle: '别再手动处理这些事情了。交给智能代理去执行，为自己节省大量时间。'},
-        error: {genericAdd: '添加此智能体时出现了问题', genericUpdate: '更新此代理时出现问题', updateName: '更新此代理名称时出现问题', updatePrompt: '更新此代理的说明时出现问题'},
+        error: {
+            genericAdd: '添加此智能体时出现了问题',
+            genericUpdate: '更新此代理时出现问题',
+            updateName: '更新此代理名称时出现问题',
+            updatePrompt: '更新此代理的说明时出现问题',
+            updateAvatar: '更新此代理的头像时出现问题',
+        },
     },
     addAgentPage: {
         title: '新代理',
         agentName: '代理名称',
         instructions: '编写自定义说明',
         createAgent: '创建代理',
-        switchAvatar: '切换头像',
+        editAvatar: '切换头像',
         defaultAgentName: (displayName: string) => `${displayName} 的代理人`,
         defaultPrompt:
             '拒绝与赌博、电影或其他明显非商务原因相关的报销。\n\n提醒用户务必附上一张能清楚显示小费金额的收据图片。\n\n如果报销报告与同一用户之前的报告非常相似，则批准该报告。\n\n拒绝包含超过 500 美元差旅费用的报销报告。',
     },
     editAgentPage: {
         title: '编辑代理',
-        agentName: '客服名称',
+        agentName: '代理人姓名',
         instructions: '编写自定义说明',
         deleteAgent: '删除代理',
-        deleteAgentTitle: '删除代理人？',
+        deleteAgentTitle: '删除代理？',
         deleteAgentMessage: '确定要删除此代理吗？此操作无法撤销。',
     },
-    editAgentNamePage: {title: '客服名称'},
+    editAgentAvatarPage: {title: '编辑头像'},
+    editAgentNamePage: {title: '代理人姓名'},
     editAgentPromptPage: {title: '编写自定义说明', error: {emptyPrompt: '请输入给您代理的指示。'}},
     expenseRulesPage: {
         title: '报销规则',
@@ -3213,7 +3220,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         enterPhoneNumber: '你的电话号码是多少？',
         personalDetails: '个人信息',
         privateDataMessage: '这些详细信息将用于出行和付款，绝不会显示在你的公开个人资料中。',
-        basicDetails: '基本信息',
         legalName: '法定姓名',
         legalFirstName: '法定名（名）',
         legalLastName: '法定姓氏',
@@ -4233,6 +4239,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             travelInvoicingVendor: '差旅供应商',
             travelInvoicingPayableAccount: '差旅应付账户',
             hr: '人力资源',
+            rooms: '房间',
         },
         createdForClient: {
             title: '您已为客户创建了工作区！',
@@ -5407,8 +5414,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         subtitle: '恭喜！您已经可以在此工作区预订和管理差旅了。',
                         manageTravelLabel: '管理差旅',
                     },
-                    centralInvoicingSection: {
-                        title: '集中开票',
+                    travelInvoicingSection: {
+                        title: '差旅开票',
                         subtitle: '将所有差旅支出集中到每月发票中，而不是在购买时即时支付。',
                         learnHow: '了解方法。',
                         subsections: {
@@ -5423,7 +5430,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                             monthlySpendLimitDescription: '每位成员每月可用于出差的最高金额。',
                             reduceLimitTitle: '降低出差支出限额？',
                             reduceLimitWarning: '如果您降低限额，已超出该金额的成员将无法进行新的出差预订，直至下个月。',
-                            provisioningError: '我们无法为您工作区中的部分成员开通集中开票功能。请稍后重试或联系 Concierge 获得协助。',
+                            provisioningError: '我们无法为您的工作区中的部分成员开通差旅开票功能。请稍后重试或联系 Concierge 获取帮助。',
                         },
                     },
                     disableModal: {title: '关闭差旅开票？', body: '即将到来的酒店和汽车租赁预订可能需要使用不同的付款方式重新预订，以避免被取消。', confirm: '关闭'},
@@ -5433,7 +5440,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     exportToCSV: '导出为 CSV',
                     selectDateRangeError: '请选择要导出的日期范围',
                     invalidDateRangeError: '开始日期必须早于结束日期',
-                    enabled: '中央开票已启用！',
+                    enabled: '差旅开票已启用！',
                     enabledDescription: '此工作区的所有差旅支出现在将集中在一张月度发票中。',
                 },
                 personalDetailsDescription: '为预订行程，请输入您在政府签发的身份证件上显示的法定姓名。',
@@ -5592,7 +5599,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 subtitle: '为时间跟踪设置可计费的小时费率。',
                 defaultHourlyRate: '默认时薪',
             },
-            hrWarningModal: {disconnectText: '若要禁用人力资源功能，请先将 Gusto 与此工作区断开连接。'},
+            hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `若要禁用人力资源功能，请先将此工作区与 ${integration} 断开连接。`},
         },
         reports: {
             reportsCustomTitleExamples: '示例：',
@@ -6192,7 +6199,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 chooseBankAccount: '选择用于对账 Expensify 卡付款的银行账户。',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `请确保此账户与您的<a href="${settlementAccountUrl}">Expensify 卡结算账户</a>（末尾为 ${lastFourPAN}）一致，以便持续对账功能正常运行。`,
+                chooseTravelInvoicingBankAccount: '选择用于核对差旅开票付款的银行账户。',
+                travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) => `请确保此账户与您的差旅发票结算账户（以 ${lastFourPAN} 结尾）一致，以确保持续对账功能正常运行。`,
             },
+            syncTravelInvoicingSettlements: '同步差旅开票结算',
         },
         export: {
             notReadyHeading: '尚未准备好导出',
@@ -6849,11 +6859,17 @@ ${reportName}
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
                     case 'gustoSyncTitle':
-                        return 'Synchronizing Gusto Employees';
+                        return '同步 Gusto 员工';
                     case 'gustoSyncLoadData':
-                        return 'Loading data from Gusto';
+                        return '正在从 Gusto 加载数据';
                     case 'gustoSyncProvisioning':
-                        return 'Provisioning employees in policy';
+                        return '在政策中为员工开通账号';
+                    case 'zenefitsSyncTitle':
+                        return '正在同步 TriNet 员工';
+                    case 'zenefitsSyncLoadData':
+                        return '正在从 TriNet 加载数据';
+                    case 'zenefitsSyncProvisioning':
+                        return '在政策中为员工开通账号';
                     case 'jobDone':
                         return '正在加载导入的数据';
                     default: {
@@ -6884,6 +6900,45 @@ ${reportName}
                 syncError: '无法连接到 Gusto',
                 disconnectTitle: '断开 Gusto',
                 disconnectPrompt: '确定要断开与 Gusto 的连接吗？',
+                syncResults: {
+                    title: 'Gusto 同步结果',
+                    successTitle: '已成功同步你的 Gusto 连接！',
+                    added: '已添加',
+                    removed: '已移除',
+                    skipped: '已跳过',
+                    employeeCount: () => ({
+                        one: '1 员工',
+                        other: (count: number) => `${count} 员工`,
+                    }),
+                },
+            },
+            merge: {
+                approvalMode: '审批模式',
+                finalApprover: '最终审批人',
+            },
+            zenefits: {
+                title: 'TriNet',
+                connect: '连接',
+                syncNow: '立即同步',
+                disconnect: '断开连接',
+                lastSync: (relativeDate: string) => `上次同步时间：${relativeDate}`,
+                syncError: '无法连接到 TriNet',
+                disconnectTitle: '断开 TriNet 连接',
+                disconnectPrompt: '确定要断开 TriNet 吗？',
+                connectionDescription: '连接 TriNet，将员工审批与你的工作区保持同步。',
+                approvalMode: '审批模式',
+                finalApprover: '最终审批人',
+                notSet: '未设置',
+                approvalModeDescription: '成员和管理者已设置为与 TriNet 同步。',
+                approvalModeWarningTitle: '更改审批模式？',
+                approvalModeWarningPrompt: (helpSiteURL: string) =>
+                    `您确定要更改此工作区的审批模式吗？在我们的<a href="${helpSiteURL}">帮助网站</a>中了解更多关于不同 TriNet 启用的工作流模式的信息。`,
+                approvalModeWarningConfirm: '更改审批模式',
+                approvalModes: {
+                    basic: {label: '基础审批', description: '所有用户都提交给同一个人进行处理和审批。'},
+                    manager: {label: '经理审批', description: '员工会将报销报告提交给在 TriNet 中配置的直属经理。'},
+                    custom: {label: '自定义审批', description: '我会在 Expensify 中手动设置审批流程。'},
+                },
             },
         },
     },
@@ -7572,7 +7627,7 @@ ${reportName}
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `所有 ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `所有导入的 CSV 卡片${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
-                centralInvoicing: '集中开票',
+                travelInvoicing: '差旅开票',
             },
             reportField: (name: string, value: string) => `${name} 为 ${value}`,
             current: '当前',
@@ -7606,7 +7661,7 @@ ${reportName}
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify 卡',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: '报销',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: '集中开票',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: '差旅开票',
             },
             is: '是',
             action: {
@@ -7848,7 +7903,7 @@ ${reportName}
         oooEventSummaryFullDay: (summary: string, dayCount: number, date: string) => `${summary}，共计 ${dayCount} ${dayCount === 1 ? '天' : '天'}，截至 ${date}`,
         oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${summary}，时间范围：${timePeriod}，日期：${date}`,
         startTimer: '开始计时',
-        stopTimer: '停止计时器',
+        stopTimer: (duration: string) => `停止计时器 (${duration})`,
         scheduleOOO: '安排外出办公',
         scheduleOOOTitle: '安排外出办公',
         date: '日期',
@@ -8015,7 +8070,7 @@ ${reportName}
         personalCard: '个人银行卡',
         companyCard: '公司卡',
         expensifyCard: 'Expensify 卡',
-        centralInvoicing: '集中开票',
+        travelInvoicing: '差旅开票',
         travelCard: '旅行卡',
     },
     distance: {
@@ -8368,6 +8423,7 @@ ${reportName}
         bookACallTextTop: '切换回 Expensify 经典版后，您将无法享受：',
         bookACallTextBottom: '我们非常期待与您通话以了解原因。您可以预约与我们的一位资深产品经理通话，讨论您的需求。',
         takeMeToExpensifyClassic: '带我前往 Expensify 经典版',
+        goBackJustOnce: '仅此一次返回',
     },
     listBoundary: {
         errorMessage: '加载更多消息时出错',

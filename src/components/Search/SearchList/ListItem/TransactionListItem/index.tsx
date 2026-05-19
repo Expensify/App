@@ -11,7 +11,7 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import type {TransactionListItemProps, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {ListItem} from '@components/SelectionList/types';
-import {useEditingCellState} from '@components/Table/EditableCell';
+import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
