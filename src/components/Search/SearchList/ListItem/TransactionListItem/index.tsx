@@ -210,46 +210,50 @@ function TransactionListItem<TItem extends ListItem>({
         });
     };
 
+    const sharedProps = {
+        item,
+        transactionItem,
+        isDeletedTransaction,
+        isFocused,
+        showTooltip,
+        isDisabled,
+        canSelectMultiple,
+        onSelectRow,
+        onCheckboxPress: onSelectionButtonPress,
+        onFocus,
+        onLongPressRow,
+        shouldSyncFocus,
+        columns,
+        isLoading,
+        isActionLoading,
+        transactionViolations,
+        handleActionButtonPress,
+        transactionPreviewData,
+        exportedReportActions,
+        nonPersonalAndWorkspaceCards,
+        isAttendeesEnabledForMovingPolicy,
+        shouldDisableHoverStyle,
+        onPressRow: handleOnPress,
+        onMouseDownRow: handleOnMouseDown,
+        onHoverInRow: handleOnHoverIn,
+        onEditDate,
+        onEditMerchant,
+        onEditDescription,
+        onEditCategory,
+        onEditAmount,
+        onEditTag,
+        canEditDate,
+        canEditMerchant,
+        canEditDescription,
+        canEditCategory,
+        canEditAmount,
+        canEditTag,
+    };
+
     if (!isLargeScreenWidth) {
         return (
             <TransactionListItemNarrow
-                item={item}
-                transactionItem={transactionItem}
-                isDeletedTransaction={isDeletedTransaction}
-                isFocused={isFocused}
-                showTooltip={showTooltip}
-                isDisabled={isDisabled}
-                canSelectMultiple={canSelectMultiple}
-                onSelectRow={onSelectRow}
-                onCheckboxPress={onSelectionButtonPress}
-                onFocus={onFocus}
-                onLongPressRow={onLongPressRow}
-                shouldSyncFocus={shouldSyncFocus}
-                columns={columns}
-                isLoading={isLoading}
-                isActionLoading={isActionLoading}
-                transactionViolations={transactionViolations}
-                handleActionButtonPress={handleActionButtonPress}
-                transactionPreviewData={transactionPreviewData}
-                exportedReportActions={exportedReportActions}
-                nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
-                isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
-                shouldDisableHoverStyle={shouldDisableHoverStyle}
-                onPressRow={handleOnPress}
-                onMouseDownRow={handleOnMouseDown}
-                onHoverInRow={handleOnHoverIn}
-                onEditDate={onEditDate}
-                onEditMerchant={onEditMerchant}
-                onEditDescription={onEditDescription}
-                onEditCategory={onEditCategory}
-                onEditAmount={onEditAmount}
-                onEditTag={onEditTag}
-                canEditDate={canEditDate}
-                canEditMerchant={canEditMerchant}
-                canEditDescription={canEditDescription}
-                canEditCategory={canEditCategory}
-                canEditAmount={canEditAmount}
-                canEditTag={canEditTag}
+                {...sharedProps}
                 isLastItem={isLastItem}
                 isFirstItem={isFirstItem}
             />
@@ -258,43 +262,7 @@ function TransactionListItem<TItem extends ListItem>({
 
     return (
         <TransactionListItemWide
-            item={item}
-            transactionItem={transactionItem}
-            isDeletedTransaction={isDeletedTransaction}
-            isFocused={isFocused}
-            showTooltip={showTooltip}
-            isDisabled={isDisabled}
-            canSelectMultiple={canSelectMultiple}
-            onSelectRow={onSelectRow}
-            onCheckboxPress={onSelectionButtonPress}
-            onFocus={onFocus}
-            onLongPressRow={onLongPressRow}
-            shouldSyncFocus={shouldSyncFocus}
-            columns={columns}
-            isLoading={isLoading}
-            isActionLoading={isActionLoading}
-            transactionViolations={transactionViolations}
-            handleActionButtonPress={handleActionButtonPress}
-            transactionPreviewData={transactionPreviewData}
-            exportedReportActions={exportedReportActions}
-            nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
-            isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
-            shouldDisableHoverStyle={shouldDisableHoverStyle}
-            onPressRow={handleOnPress}
-            onMouseDownRow={handleOnMouseDown}
-            onHoverInRow={handleOnHoverIn}
-            onEditDate={onEditDate}
-            onEditMerchant={onEditMerchant}
-            onEditDescription={onEditDescription}
-            onEditCategory={onEditCategory}
-            onEditAmount={onEditAmount}
-            onEditTag={onEditTag}
-            canEditDate={canEditDate}
-            canEditMerchant={canEditMerchant}
-            canEditDescription={canEditDescription}
-            canEditCategory={canEditCategory}
-            canEditAmount={canEditAmount}
-            canEditTag={canEditTag}
+            {...sharedProps}
             isLastItem={isLastItem}
         />
     );

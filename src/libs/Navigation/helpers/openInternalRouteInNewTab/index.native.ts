@@ -1,14 +1,5 @@
 import type {Route} from '@src/ROUTES';
-
-type ModifiedMouseEvent = {
-    preventDefault?: () => void;
-    stopPropagation?: () => void;
-    metaKey?: boolean;
-    ctrlKey?: boolean;
-    button?: number;
-    key?: string;
-    nativeEvent?: unknown;
-};
+import type {ModifiedMouseEvent} from './types';
 
 const isModifiedMousePress: (event?: ModifiedMouseEvent) => boolean = () => false;
 

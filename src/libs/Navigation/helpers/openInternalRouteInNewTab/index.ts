@@ -1,16 +1,5 @@
 import type {Route} from '@src/ROUTES';
-
-type ModifiedMouseEvent = {
-    preventDefault?: () => void;
-    stopPropagation?: () => void;
-    metaKey?: boolean;
-    ctrlKey?: boolean;
-    button?: number;
-    key?: string;
-    nativeEvent?: unknown;
-};
-
-type ModifiedMouseEventSource = Pick<ModifiedMouseEvent, 'metaKey' | 'ctrlKey' | 'button' | 'key'>;
+import type {ModifiedMouseEvent, ModifiedMouseEventSource} from './types';
 
 function getRouteURL(route: Route) {
     return new URL(route.startsWith('/') ? route : `/${route}`, window.location.origin).toString();
