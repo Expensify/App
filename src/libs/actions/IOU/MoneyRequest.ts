@@ -69,6 +69,8 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {GpsPoint, IOURequestType} from './index';
 import {getAllTransactionDrafts} from './index';
 import {createDistanceRequest, resetSplitShares, startSplitBill} from './Split';
+import {submitWithDismissFirst} from './submitWithDismissFirst';
+import type {WriteOverrides} from './submitWithDismissFirst';
 import {requestMoney, trackExpense} from './TrackExpense';
 
 type CreateTransactionParams = {
@@ -95,6 +97,8 @@ type CreateTransactionParams = {
     betas: OnyxEntry<Beta[]>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
+    shouldHandleNavigation?: boolean;
+    shouldDeferForSearch?: boolean;
 };
 
 type InitialTransactionParams = {
@@ -218,6 +222,8 @@ function createTransaction({
     betas,
     personalDetails,
     recentWaypoints,
+    shouldHandleNavigation: shouldHandleNavigationParam,
+    shouldDeferForSearch,
 }: CreateTransactionParams) {
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
 
@@ -230,6 +236,7 @@ function createTransaction({
         const defaultTaxCode = getDefaultTaxCode(policy, transaction);
         const taxCode = (transaction?.taxCode ? transaction.taxCode : defaultTaxCode) ?? '';
         const taxAmount = transaction?.taxAmount ?? 0;
+        const shouldHandleNav = shouldHandleNavigationParam ?? index === files.length - 1;
         if (iouType === CONST.IOU.TYPE.TRACK && report) {
             trackExpense({
                 report,
@@ -251,7 +258,8 @@ function createTransaction({
                     taxAmount,
                 },
                 ...(policyParams ?? {}),
-                shouldHandleNavigation: index === files.length - 1,
+                shouldHandleNavigation: shouldHandleNav,
+                shouldDeferForSearch,
                 isASAPSubmitBetaEnabled,
                 currentUserAccountIDParam: currentUserAccountID,
                 currentUserEmailParam: currentUserEmail ?? '',
@@ -288,7 +296,8 @@ function createTransaction({
                     taxCode,
                     taxAmount,
                 },
-                shouldHandleNavigation: index === files.length - 1,
+                shouldHandleNavigation: shouldHandleNav,
+                shouldDeferForSearch,
                 backToReport,
                 shouldGenerateTransactionThreadReport,
                 isASAPSubmitBetaEnabled,
@@ -406,7 +415,7 @@ function handleMoneyRequestStepScanParticipants({
                 splitReceipt.source = firstReceiptFile.source;
                 splitReceipt.state = CONST.IOU.RECEIPT_STATE.SCAN_READY;
 
-                startSplitBill({
+                const splitBaseParams = {
                     participants,
                     currentUserLogin: currentUserLogin ?? '',
                     currentUserAccountID,
@@ -422,9 +431,25 @@ function handleMoneyRequestStepScanParticipants({
                     taxValue: initialTransaction.taxValue,
                     quickAction,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                    // No need to update recently used tags because no tags are used when the confirmation step is skipped
                     policyRecentlyUsedTags: undefined,
                     participantsPolicyTags,
+                };
+
+                submitWithDismissFirst({
+                    executeWrite: (overrides) =>
+                        startSplitBill({
+                            ...splitBaseParams,
+                            shouldHandleNavigation: overrides?.shouldHandleNavigation,
+                            shouldDeferForSearch: overrides?.shouldDeferForSearch,
+                        }),
+                    destinationReportID: reportID,
+                    telemetryContext: {
+                        scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.SPLIT_RECEIPT,
+                        iouType: CONST.IOU.TYPE.SPLIT,
+                        requestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                        isFromGlobalCreate: !report?.reportID,
+                        hasReceipt: true,
+                    },
                 });
                 return;
             }
@@ -439,71 +464,10 @@ function handleMoneyRequestStepScanParticipants({
                 participant,
                 transactionReportID: initialTransaction?.reportID,
             });
-            if (locationPermissionGranted) {
-                getCurrentPosition(
-                    (successData) => {
-                        const policyParams = {policy};
-                        const gpsPoint = {
-                            lat: successData.coords.latitude,
-                            long: successData.coords.longitude,
-                        };
-                        createTransaction({
-                            transactions,
-                            iouType,
-                            report,
-                            currentUserAccountID,
-                            currentUserEmail: currentUserLogin,
-                            backToReport,
-                            shouldGenerateTransactionThreadReport,
-                            isASAPSubmitBetaEnabled,
-                            transactionViolations,
-                            quickAction,
-                            policyRecentlyUsedCurrencies,
-                            introSelected,
-                            files,
-                            participant,
-                            gpsPoint,
-                            policyParams,
-                            billable: false,
-                            reimbursable: defaultReimbursable,
-                            isSelfTourViewed,
-                            allTransactionDrafts,
-                            betas,
-                            personalDetails,
-                            recentWaypoints,
-                        });
-                    },
-                    (errorData) => {
-                        Log.info('[IOURequestStepScan] getCurrentPosition failed', false, errorData);
-                        // When there is an error, the money can still be requested, it just won't include the GPS coordinates
-                        createTransaction({
-                            transactions,
-                            iouType,
-                            report,
-                            currentUserAccountID,
-                            currentUserEmail: currentUserLogin,
-                            backToReport,
-                            shouldGenerateTransactionThreadReport,
-                            isASAPSubmitBetaEnabled,
-                            transactionViolations,
-                            quickAction,
-                            policyRecentlyUsedCurrencies,
-                            introSelected,
-                            files,
-                            participant,
-                            policyParams: {policy},
-                            reimbursable: defaultReimbursable,
-                            isSelfTourViewed,
-                            allTransactionDrafts,
-                            betas,
-                            personalDetails,
-                            recentWaypoints,
-                        });
-                    },
-                );
-                return;
-            }
-            createTransaction({
+
+            const scanDestinationReportID = iouType === CONST.IOU.TYPE.TRACK ? selfDMReport?.reportID : report?.reportID;
+
+            const baseCreateTransactionParams = {
                 transactions,
                 iouType,
                 report,
@@ -518,13 +482,48 @@ function handleMoneyRequestStepScanParticipants({
                 introSelected,
                 files,
                 participant,
-                policyParams: {policy},
                 reimbursable: defaultReimbursable,
                 isSelfTourViewed,
                 allTransactionDrafts,
                 betas,
                 personalDetails,
                 recentWaypoints,
+            };
+
+            // When locationPermissionGranted is true, getCurrentPosition is async:
+            // the actual createTransaction fires after GPS resolves. The deferred
+            // write channel (reserved by submitWithDismissFirst) has a 5s safety
+            // timeout that should exceed typical GPS resolution time (<2s).
+            // If GPS takes longer the channel flushes early, but the transaction
+            // still executes — it just won't benefit from the Search skeleton.
+            const executeWrite = (overrides: WriteOverrides = {}) => {
+                const runCreate = (gpsPoint?: GpsPoint) => {
+                    createTransaction({...baseCreateTransactionParams, policyParams: {policy}, gpsPoint, ...overrides});
+                };
+
+                if (locationPermissionGranted) {
+                    getCurrentPosition(
+                        (successData) => runCreate({lat: successData.coords.latitude, long: successData.coords.longitude}),
+                        (errorData) => {
+                            Log.info('[IOURequestStepScan] getCurrentPosition failed', false, errorData);
+                            runCreate();
+                        },
+                    );
+                } else {
+                    runCreate();
+                }
+            };
+
+            submitWithDismissFirst({
+                executeWrite,
+                destinationReportID: scanDestinationReportID,
+                telemetryContext: {
+                    scenario: iouType === CONST.IOU.TYPE.TRACK ? CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.TRACK_EXPENSE : CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.REQUEST_MONEY_SCAN,
+                    iouType,
+                    requestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                    isFromGlobalCreate: !report?.reportID,
+                    hasReceipt: true,
+                },
             });
             return;
         }
@@ -686,90 +685,114 @@ function handleMoneyRequestStepDistanceNavigation({
             const distanceDefaultTaxCode = getDefaultTaxCode(policy, transaction);
             const distanceTaxCode = (transaction?.taxCode ? transaction.taxCode : distanceDefaultTaxCode) ?? '';
             const distanceTaxAmount = transaction?.taxAmount ?? 0;
-            if (isCreatingTrackExpense && participant) {
-                trackExpense({
-                    report,
-                    isDraftPolicy: false,
-                    participantParams: {
-                        payeeEmail: currentUserLogin,
-                        payeeAccountID: currentUserAccountID,
-                        participant,
-                    },
-                    policyParams: {
-                        policy: policyForMovingExpenses,
-                    },
-                    transactionParams: {
-                        amount,
-                        distance,
-                        currency: transaction?.currency ?? 'USD',
-                        created: transaction?.created ?? '',
-                        merchant,
-                        receipt: {},
-                        billable: false,
-                        reimbursable: defaultReimbursable,
-                        validWaypoints,
-                        customUnitRateID: DistanceRequestUtils.getCustomUnitRateID({
-                            reportID: report.reportID,
-                            isTrackDistanceExpense: true,
-                            policy: policyForMovingExpenses,
-                            isPolicyExpenseChat: false,
-                        }),
-                        attendees: transaction?.comment?.attendees,
-                        gpsCoordinates,
-                        odometerStart,
-                        odometerEnd,
-                        taxCode: distanceTaxCode,
-                        taxAmount: distanceTaxAmount,
-                    },
-                    isASAPSubmitBetaEnabled,
-                    currentUserAccountIDParam: currentUserAccountID,
-                    currentUserEmailParam: currentUserLogin ?? '',
-                    introSelected,
-                    quickAction,
-                    draftTransactionIDs,
-                    recentWaypoints,
-                    betas,
-                    isSelfTourViewed,
-                    previousOdometerDraft,
-                });
-                return;
-            }
+            const distanceDestinationReportID = isCreatingTrackExpense ? selfDMReport?.reportID : report?.reportID;
 
-            createDistanceRequest({
-                report,
-                participants,
-                currentUserLogin: currentUserLogin ?? '',
-                currentUserAccountID,
-                iouType,
-                existingTransaction: transaction,
-                transactionParams: {
-                    amount,
-                    distance,
-                    comment: '',
-                    created: transaction?.created ?? '',
-                    currency: transaction?.currency ?? 'USD',
-                    merchant,
-                    billable: !!policy?.defaultBillable,
-                    reimbursable: defaultReimbursable,
-                    validWaypoints,
-                    customUnitRateID: DistanceRequestUtils.getCustomUnitRateID({reportID: report.reportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates}),
-                    splitShares: transaction?.splitShares,
-                    attendees: transaction?.comment?.attendees,
-                    gpsCoordinates,
-                    odometerStart,
-                    odometerEnd,
-                    taxCode: distanceTaxCode,
-                    taxAmount: distanceTaxAmount,
+            const executeDistanceWrite = (overrides: WriteOverrides = {}) => {
+                if (isCreatingTrackExpense && participant) {
+                    trackExpense({
+                        report,
+                        isDraftPolicy: false,
+                        participantParams: {
+                            payeeEmail: currentUserLogin,
+                            payeeAccountID: currentUserAccountID,
+                            participant,
+                        },
+                        policyParams: {
+                            policy: policyForMovingExpenses,
+                        },
+                        transactionParams: {
+                            amount,
+                            distance,
+                            currency: transaction?.currency ?? 'USD',
+                            created: transaction?.created ?? '',
+                            merchant,
+                            receipt: {},
+                            billable: false,
+                            reimbursable: defaultReimbursable,
+                            validWaypoints,
+                            customUnitRateID: DistanceRequestUtils.getCustomUnitRateID({
+                                reportID: report.reportID,
+                                isTrackDistanceExpense: true,
+                                policy: policyForMovingExpenses,
+                                isPolicyExpenseChat: false,
+                            }),
+                            attendees: transaction?.comment?.attendees,
+                            gpsCoordinates,
+                            odometerStart,
+                            odometerEnd,
+                            taxCode: distanceTaxCode,
+                            taxAmount: distanceTaxAmount,
+                        },
+                        shouldHandleNavigation: overrides.shouldHandleNavigation,
+                        shouldDeferForSearch: overrides.shouldDeferForSearch,
+                        isASAPSubmitBetaEnabled,
+                        currentUserAccountIDParam: currentUserAccountID,
+                        currentUserEmailParam: currentUserLogin ?? '',
+                        introSelected,
+                        quickAction,
+                        draftTransactionIDs,
+                        recentWaypoints,
+                        betas,
+                        isSelfTourViewed,
+                        previousOdometerDraft,
+                    });
+                } else {
+                    createDistanceRequest({
+                        report,
+                        participants,
+                        currentUserLogin: currentUserLogin ?? '',
+                        currentUserAccountID,
+                        iouType,
+                        existingTransaction: transaction,
+                        transactionParams: {
+                            amount,
+                            distance,
+                            comment: '',
+                            created: transaction?.created ?? '',
+                            currency: transaction?.currency ?? 'USD',
+                            merchant,
+                            billable: !!policy?.defaultBillable,
+                            reimbursable: defaultReimbursable,
+                            validWaypoints,
+                            customUnitRateID: DistanceRequestUtils.getCustomUnitRateID({
+                                reportID: report.reportID,
+                                isPolicyExpenseChat,
+                                policy,
+                                lastSelectedDistanceRates,
+                            }),
+                            splitShares: transaction?.splitShares,
+                            attendees: transaction?.comment?.attendees,
+                            gpsCoordinates,
+                            odometerStart,
+                            odometerEnd,
+                            taxCode: distanceTaxCode,
+                            taxAmount: distanceTaxAmount,
+                        },
+                        shouldHandleNavigation: overrides.shouldHandleNavigation,
+                        shouldDeferForSearch: overrides.shouldDeferForSearch,
+                        backToReport,
+                        isASAPSubmitBetaEnabled,
+                        transactionViolations,
+                        quickAction,
+                        policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                        personalDetails,
+                        recentWaypoints,
+                        betas,
+                        previousOdometerDraft,
+                    });
+                }
+            };
+
+            submitWithDismissFirst({
+                executeWrite: executeDistanceWrite,
+                destinationReportID: distanceDestinationReportID,
+                telemetryContext: {
+                    scenario: isCreatingTrackExpense ? CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.TRACK_EXPENSE : CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.DISTANCE,
+                    iouType,
+                    requestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                    isFromGlobalCreate: !report?.reportID,
+                    hasReceipt: false,
                 },
-                backToReport,
-                isASAPSubmitBetaEnabled,
-                transactionViolations,
-                quickAction,
-                policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                personalDetails,
-                recentWaypoints,
-                betas,
-                previousOdometerDraft,
             });
             return;
         }

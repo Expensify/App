@@ -44,6 +44,8 @@ type StartSplitBilActionParams = {
     taxAmount: number;
     taxValue?: string;
     shouldPlaySound?: boolean;
+    shouldHandleNavigation?: boolean;
+    shouldDeferForSearch?: boolean;
     policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
     policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
