@@ -1433,16 +1433,16 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                                     ? allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${targetTransaction.transactionID}`]
                                     : undefined;
                                 const createdThreadReport = targetTransaction
-                                    ? createTransactionThreadReport(
+                                    ? createTransactionThreadReport({
                                           introSelected,
-                                          currentUserPersonalDetails.login ?? '',
-                                          currentUserPersonalDetails.accountID,
+                                          currentUserLogin: currentUserPersonalDetails.login ?? '',
+                                          currentUserAccountID: currentUserPersonalDetails.accountID,
                                           betas,
-                                          selectedReport,
-                                          selectedReportAction,
-                                          shouldPassTransactionData ? targetTransaction : undefined,
-                                          shouldPassTransactionData ? transactionViolations : undefined,
-                                      )
+                                          iouReport: selectedReport,
+                                          iouReportAction: selectedReportAction,
+                                          transaction: shouldPassTransactionData ? targetTransaction : undefined,
+                                          transactionViolations: shouldPassTransactionData ? transactionViolations : undefined,
+                                      })
                                     : undefined;
                                 targetTransactionThreadReportIDOverride = createdThreadReport?.reportID;
                             }

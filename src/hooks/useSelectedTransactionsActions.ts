@@ -454,16 +454,16 @@ function useSelectedTransactionsActions({
 
                             if (!targetTransactionThreadReportIDOverride) {
                                 const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
-                                const createdThreadReport = createTransactionThreadReport(
+                                const createdThreadReport = createTransactionThreadReport({
                                     introSelected,
-                                    login ?? '',
+                                    currentUserLogin: login ?? '',
                                     currentUserAccountID,
                                     betas,
-                                    report,
+                                    iouReport: report,
                                     iouReportAction,
-                                    selectedTransaction,
+                                    transaction: selectedTransaction,
                                     transactionViolations,
-                                );
+                                });
                                 targetTransactionThreadReportIDOverride = createdThreadReport?.reportID;
                             }
                         }
