@@ -4722,8 +4722,8 @@ function canEditMoneyRequest(
     }
 
     if (reportPolicy?.type === CONST.POLICY.TYPE.CORPORATE && moneyRequestReport && isSubmitted && isCurrentUserSubmitter(moneyRequestReport)) {
-        const hasLivePolicyForwardedManager = getSubmitToAccountID(reportPolicy, moneyRequestReport) !== moneyRequestReport.managerID;
-        return !hasLivePolicyForwardedManager && !hasReportBeenForwardedSinceLastSubmit(moneyRequestReport);
+        const isForwarded = getSubmitToAccountID(reportPolicy, moneyRequestReport) !== moneyRequestReport.managerID || hasReportBeenForwardedSinceLastSubmit(moneyRequestReport);
+        return !isForwarded;
     }
 
     return !isReportApproved({report: moneyRequestReport}) && !isSettled(moneyRequestReport) && !isClosedReport(moneyRequestReport) && isRequestor;
