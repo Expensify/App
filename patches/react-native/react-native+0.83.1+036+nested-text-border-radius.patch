@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextView.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextView.java
-index 906dfbc..0fb3932 100644
+index 906dfbc..3489b6a 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextView.java
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextView.java
 @@ -52,6 +52,7 @@ import com.facebook.react.uimanager.style.BorderRadiusProp;
@@ -13,7 +13,7 @@ index 906dfbc..0fb3932 100644
 @@ -364,6 +365,27 @@ public class ReactTextView extends AppCompatTextView implements ReactCompoundVie
          BackgroundStyleApplicator.clipToPaddingBox(this, canvas);
        }
-
+ 
 +      // Draw custom DrawCommandSpan backgrounds before the text so they appear behind it.
 +      Layout layout = getLayout();
 +      if (spanned != null && layout != null) {
@@ -39,37 +39,56 @@ index 906dfbc..0fb3932 100644
      }
    }
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextAttributeProps.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextAttributeProps.kt
-index 433afa5..b36447c 100644
+index 433afa5..0f1f176 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextAttributeProps.kt
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextAttributeProps.kt
-@@ -68,6 +68,9 @@ public class TextAttributeProps private constructor() {
+@@ -68,6 +68,18 @@ public class TextAttributeProps private constructor() {
    public var isBackgroundColorSet: Boolean = false
      private set
-
-+  public var borderRadius: Float = Float.NaN
+ 
++  public var borderTopLeftRadius: Float = Float.NaN
++    private set
++
++  public var borderTopRightRadius: Float = Float.NaN
++    private set
++
++  public var borderBottomLeftRadius: Float = Float.NaN
++    private set
++
++  public var borderBottomRightRadius: Float = Float.NaN
 +    private set
 +
    public var opacity: Float = Float.NaN
      private set
-
-@@ -376,6 +379,7 @@ public class TextAttributeProps private constructor() {
+ 
+@@ -376,6 +388,10 @@ public class TextAttributeProps private constructor() {
      public const val TA_KEY_ROLE: Int = 26
      public const val TA_KEY_TEXT_TRANSFORM: Int = 27
      public const val TA_KEY_MAX_FONT_SIZE_MULTIPLIER: Int = 29
-+    public const val TA_KEY_BORDER_RADIUS: Int = 30
-
++    public const val TA_KEY_BORDER_TOP_LEFT_RADIUS: Int = 30
++    public const val TA_KEY_BORDER_TOP_RIGHT_RADIUS: Int = 31
++    public const val TA_KEY_BORDER_BOTTOM_LEFT_RADIUS: Int = 32
++    public const val TA_KEY_BORDER_BOTTOM_RIGHT_RADIUS: Int = 33
+ 
      public const val UNSET: Int = -1
-
-@@ -430,6 +434,7 @@ public class TextAttributeProps private constructor() {
+ 
+@@ -430,6 +446,14 @@ public class TextAttributeProps private constructor() {
            TA_KEY_TEXT_TRANSFORM -> result.setTextTransform(entry.stringValue)
            TA_KEY_MAX_FONT_SIZE_MULTIPLIER ->
                result.maxFontSizeMultiplier = entry.doubleValue.toFloat()
-+          TA_KEY_BORDER_RADIUS -> result.borderRadius = entry.doubleValue.toFloat()
++          TA_KEY_BORDER_TOP_LEFT_RADIUS ->
++              result.borderTopLeftRadius = entry.doubleValue.toFloat()
++          TA_KEY_BORDER_TOP_RIGHT_RADIUS ->
++              result.borderTopRightRadius = entry.doubleValue.toFloat()
++          TA_KEY_BORDER_BOTTOM_LEFT_RADIUS ->
++              result.borderBottomLeftRadius = entry.doubleValue.toFloat()
++          TA_KEY_BORDER_BOTTOM_RIGHT_RADIUS ->
++              result.borderBottomRightRadius = entry.doubleValue.toFloat()
          }
        }
-
+ 
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
-index 5a893fd..a8b8961 100644
+index 5a893fd..5e7895c 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
 @@ -40,6 +40,7 @@ import com.facebook.react.views.text.internal.span.CustomLineHeightSpan
@@ -80,14 +99,24 @@ index 5a893fd..a8b8961 100644
  import com.facebook.react.views.text.internal.span.ReactClickableSpan
  import com.facebook.react.views.text.internal.span.ReactForegroundColorSpan
  import com.facebook.react.views.text.internal.span.ReactFragmentIndexSpan
-@@ -269,7 +270,13 @@ internal object TextLayoutManager {
+@@ -269,7 +270,23 @@ internal object TextLayoutManager {
          }
          if (textAttributes.isBackgroundColorSet) {
            textAttributes.backgroundColor
 -              ?.let { ReactBackgroundColorSpan(it) }
 +              ?.let {
-+                if (!textAttributes.borderRadius.isNaN()) {
-+                  ReactBackgroundDrawSpan(it, PixelUtil.toPixelFromDIP(textAttributes.borderRadius))
++                val hasBorderRadius = !textAttributes.borderTopLeftRadius.isNaN() ||
++                    !textAttributes.borderTopRightRadius.isNaN() ||
++                    !textAttributes.borderBottomLeftRadius.isNaN() ||
++                    !textAttributes.borderBottomRightRadius.isNaN()
++                if (hasBorderRadius) {
++                  ReactBackgroundDrawSpan(
++                      it,
++                      PixelUtil.toPixelFromDIP(textAttributes.borderTopLeftRadius.takeIf { r -> !r.isNaN() } ?: 0f),
++                      PixelUtil.toPixelFromDIP(textAttributes.borderTopRightRadius.takeIf { r -> !r.isNaN() } ?: 0f),
++                      PixelUtil.toPixelFromDIP(textAttributes.borderBottomLeftRadius.takeIf { r -> !r.isNaN() } ?: 0f),
++                      PixelUtil.toPixelFromDIP(textAttributes.borderBottomRightRadius.takeIf { r -> !r.isNaN() } ?: 0f),
++                  )
 +                } else {
 +                  ReactBackgroundColorSpan(it)
 +                }
@@ -95,9 +124,9 @@ index 5a893fd..a8b8961 100644
                ?.let { SetSpanOperation(start, end, it) }
                ?.let { ops.add(it) }
          }
-@@ -438,12 +445,16 @@ internal object TextLayoutManager {
+@@ -438,12 +455,25 @@ internal object TextLayoutManager {
          }
-
+ 
          if (fragment.props.isBackgroundColorSet) {
 -          spannable.setSpan(
 -              fragment.props.backgroundColor?.let { ReactBackgroundColorSpan(it) },
@@ -107,20 +136,29 @@ index 5a893fd..a8b8961 100644
 -          )
 +          val bgSpan =
 +              fragment.props.backgroundColor?.let {
-+                if (!fragment.props.borderRadius.isNaN()) {
++                val hasBorderRadius = !fragment.props.borderTopLeftRadius.isNaN() ||
++                    !fragment.props.borderTopRightRadius.isNaN() ||
++                    !fragment.props.borderBottomLeftRadius.isNaN() ||
++                    !fragment.props.borderBottomRightRadius.isNaN()
++                if (hasBorderRadius) {
 +                  ReactBackgroundDrawSpan(
-+                      it, PixelUtil.toPixelFromDIP(fragment.props.borderRadius))
++                      it,
++                      PixelUtil.toPixelFromDIP(fragment.props.borderTopLeftRadius.takeIf { r -> !r.isNaN() } ?: 0f),
++                      PixelUtil.toPixelFromDIP(fragment.props.borderTopRightRadius.takeIf { r -> !r.isNaN() } ?: 0f),
++                      PixelUtil.toPixelFromDIP(fragment.props.borderBottomLeftRadius.takeIf { r -> !r.isNaN() } ?: 0f),
++                      PixelUtil.toPixelFromDIP(fragment.props.borderBottomRightRadius.takeIf { r -> !r.isNaN() } ?: 0f),
++                  )
 +                } else {
 +                  ReactBackgroundColorSpan(it)
 +                }
 +              }
 +          spannable.setSpan(bgSpan, start, end, spanFlags)
          }
-
+ 
          if (!fragment.props.opacity.isNaN()) {
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/DrawCommandSpan.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/DrawCommandSpan.kt
 new file mode 100644
-index 0000000..b9d2591
+index 0000000..20d0f7b
 --- /dev/null
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/DrawCommandSpan.kt
 @@ -0,0 +1,27 @@
@@ -153,10 +191,10 @@ index 0000000..b9d2591
 +}
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt
 new file mode 100644
-index 0000000..000b569
+index 0000000..8194ea7
 --- /dev/null
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt
-@@ -0,0 +1,118 @@
+@@ -0,0 +1,123 @@
 +/* Copyright (c) Meta Platforms, Inc. and affiliates.
 + *
 + * This source code is licensed under the MIT license found in the
@@ -181,7 +219,10 @@ index 0000000..000b569
 + */
 +internal class ReactBackgroundDrawSpan(
 +    @ColorInt private val backgroundColor: Int,
-+    private val borderRadius: Float,
++    private val borderTopLeftRadius: Float,
++    private val borderTopRightRadius: Float,
++    private val borderBottomLeftRadius: Float,
++    private val borderBottomRightRadius: Float,
 +) : DrawCommandSpan() {
 +
 +  private val paint =
@@ -232,7 +273,9 @@ index 0000000..000b569
 +
 +      rectF.set(actualLeft, top, actualRight, bottom)
 +
-+      if (borderRadius == 0f) {
++      val hasAnyRadius = borderTopLeftRadius != 0f || borderTopRightRadius != 0f ||
++          borderBottomLeftRadius != 0f || borderBottomRightRadius != 0f
++      if (!hasAnyRadius) {
 +        canvas.drawRect(rectF, paint)
 +      } else {
 +        val isFirstLine = line == startLine
@@ -250,17 +293,17 @@ index 0000000..000b569
 +      isLastLine: Boolean,
 +      rtl: Boolean,
 +  ) {
-+    // For LTR: first line rounds left corners, last line rounds right corners
-+    // For RTL: first line rounds right corners, last line rounds left corners
++    // For LTR: first line rounds left corners, last line rounds right corners.
++    // For RTL: first line rounds right corners, last line rounds left corners.
 +    val roundStart = isFirstLine
 +    val roundEnd = isLastLine
 +    val roundLeft = if (rtl) roundEnd else roundStart
 +    val roundRight = if (rtl) roundStart else roundEnd
 +
-+    val topLeft = if (roundLeft) borderRadius else 0f
-+    val bottomLeft = if (roundLeft) borderRadius else 0f
-+    val topRight = if (roundRight) borderRadius else 0f
-+    val bottomRight = if (roundRight) borderRadius else 0f
++    val topLeft = if (roundLeft) borderTopLeftRadius else 0f
++    val bottomLeft = if (roundLeft) borderBottomLeftRadius else 0f
++    val topRight = if (roundRight) borderTopRightRadius else 0f
++    val bottomRight = if (roundRight) borderBottomRightRadius else 0f
 +
 +    val radii =
 +        floatArrayOf(
@@ -276,97 +319,163 @@ index 0000000..000b569
 +  }
 +}
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp
-index 9cf89bf..3211ff8 100644
+index 9cf89bf..6eb899f 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp
 +++ b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp
-@@ -27,6 +27,9 @@ void TextAttributes::apply(TextAttributes textAttributes) {
+@@ -27,6 +27,21 @@ void TextAttributes::apply(TextAttributes textAttributes) {
        : backgroundColor;
    opacity =
        !std::isnan(textAttributes.opacity) ? textAttributes.opacity : opacity;
 +  borderRadius = textAttributes.borderRadius.has_value()
 +      ? textAttributes.borderRadius
 +      : borderRadius;
-
++  borderTopLeftRadius = textAttributes.borderTopLeftRadius.has_value()
++      ? textAttributes.borderTopLeftRadius
++      : borderTopLeftRadius;
++  borderTopRightRadius = textAttributes.borderTopRightRadius.has_value()
++      ? textAttributes.borderTopRightRadius
++      : borderTopRightRadius;
++  borderBottomLeftRadius = textAttributes.borderBottomLeftRadius.has_value()
++      ? textAttributes.borderBottomLeftRadius
++      : borderBottomLeftRadius;
++  borderBottomRightRadius = textAttributes.borderBottomRightRadius.has_value()
++      ? textAttributes.borderBottomRightRadius
++      : borderBottomRightRadius;
+ 
    // Font
    fontFamily = !textAttributes.fontFamily.empty() ? textAttributes.fontFamily
-@@ -141,7 +144,8 @@ bool TextAttributes::operator==(const TextAttributes& rhs) const {
+@@ -141,7 +156,12 @@ bool TextAttributes::operator==(const TextAttributes& rhs) const {
               layoutDirection,
               accessibilityRole,
               role,
 -             textTransform) ==
 +             textTransform,
-+             borderRadius) ==
++             borderRadius,
++             borderTopLeftRadius,
++             borderTopRightRadius,
++             borderBottomLeftRadius,
++             borderBottomRightRadius) ==
        std::tie(
               rhs.foregroundColor,
               rhs.backgroundColor,
-@@ -164,7 +168,8 @@ bool TextAttributes::operator==(const TextAttributes& rhs) const {
+@@ -164,7 +184,12 @@ bool TextAttributes::operator==(const TextAttributes& rhs) const {
               rhs.layoutDirection,
               rhs.accessibilityRole,
               rhs.role,
 -             rhs.textTransform) &&
 +             rhs.textTransform,
-+             rhs.borderRadius) &&
++             rhs.borderRadius,
++             rhs.borderTopLeftRadius,
++             rhs.borderTopRightRadius,
++             rhs.borderBottomLeftRadius,
++             rhs.borderBottomRightRadius) &&
        floatEquality(maxFontSizeMultiplier, rhs.maxFontSizeMultiplier) &&
        floatEquality(opacity, rhs.opacity) &&
        floatEquality(fontSize, rhs.fontSize) &&
-@@ -199,6 +204,8 @@ SharedDebugStringConvertibleList TextAttributes::getDebugProps() const {
+@@ -199,6 +224,24 @@ SharedDebugStringConvertibleList TextAttributes::getDebugProps() const {
        debugStringConvertibleItem(
            "foregroundColor", foregroundColor, textAttributes.foregroundColor),
        debugStringConvertibleItem("opacity", opacity, textAttributes.opacity),
 +      debugStringConvertibleItem(
 +          "borderRadius", borderRadius, textAttributes.borderRadius),
-
++      debugStringConvertibleItem(
++          "borderTopLeftRadius",
++          borderTopLeftRadius,
++          textAttributes.borderTopLeftRadius),
++      debugStringConvertibleItem(
++          "borderTopRightRadius",
++          borderTopRightRadius,
++          textAttributes.borderTopRightRadius),
++      debugStringConvertibleItem(
++          "borderBottomLeftRadius",
++          borderBottomLeftRadius,
++          textAttributes.borderBottomLeftRadius),
++      debugStringConvertibleItem(
++          "borderBottomRightRadius",
++          borderBottomRightRadius,
++          textAttributes.borderBottomRightRadius),
+ 
        // Font
        debugStringConvertibleItem(
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.h b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.h
-index b664524..ad40ac0 100644
+index b664524..2eaa3bc 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.h
 +++ b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.h
-@@ -42,6 +42,7 @@ class TextAttributes : public DebugStringConvertible {
+@@ -42,6 +42,11 @@ class TextAttributes : public DebugStringConvertible {
    SharedColor foregroundColor{};
    SharedColor backgroundColor{};
    Float opacity{std::numeric_limits<Float>::quiet_NaN()};
 +  std::optional<Float> borderRadius{};
-
++  std::optional<Float> borderTopLeftRadius{};
++  std::optional<Float> borderTopRightRadius{};
++  std::optional<Float> borderBottomLeftRadius{};
++  std::optional<Float> borderBottomRightRadius{};
+ 
    // Font
    std::string fontFamily{""};
-@@ -138,7 +139,8 @@ struct hash<facebook::react::TextAttributes> {
+@@ -138,7 +143,12 @@ struct hash<facebook::react::TextAttributes> {
          textAttributes.isPressable,
          textAttributes.layoutDirection,
          textAttributes.accessibilityRole,
 -        textAttributes.role);
 +        textAttributes.role,
-+        textAttributes.borderRadius);
++        textAttributes.borderRadius,
++        textAttributes.borderTopLeftRadius,
++        textAttributes.borderTopRightRadius,
++        textAttributes.borderBottomLeftRadius,
++        textAttributes.borderBottomRightRadius);
    }
  };
  } // namespace std
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/conversions.h b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/conversions.h
-index f771236..a62da2e 100644
+index f771236..48c1fe2 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/conversions.h
 +++ b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/conversions.h
-@@ -1027,6 +1027,7 @@ constexpr static MapBuffer::Key TA_KEY_ROLE = 26;
+@@ -1027,6 +1027,10 @@ constexpr static MapBuffer::Key TA_KEY_ROLE = 26;
  constexpr static MapBuffer::Key TA_KEY_TEXT_TRANSFORM = 27;
  constexpr static MapBuffer::Key TA_KEY_ALIGNMENT_VERTICAL = 28;
  constexpr static MapBuffer::Key TA_KEY_MAX_FONT_SIZE_MULTIPLIER = 29;
-+constexpr static MapBuffer::Key TA_KEY_BORDER_RADIUS = 30;
-
++constexpr static MapBuffer::Key TA_KEY_BORDER_TOP_LEFT_RADIUS = 30;
++constexpr static MapBuffer::Key TA_KEY_BORDER_TOP_RIGHT_RADIUS = 31;
++constexpr static MapBuffer::Key TA_KEY_BORDER_BOTTOM_LEFT_RADIUS = 32;
++constexpr static MapBuffer::Key TA_KEY_BORDER_BOTTOM_RIGHT_RADIUS = 33;
+ 
  // constants for ParagraphAttributes serialization
  constexpr static MapBuffer::Key PA_KEY_MAX_NUMBER_OF_LINES = 0;
-@@ -1171,6 +1172,9 @@ inline MapBuffer toMapBuffer(const TextAttributes &textAttributes)
+@@ -1171,6 +1175,28 @@ inline MapBuffer toMapBuffer(const TextAttributes &textAttributes)
    if (textAttributes.role.has_value()) {
      builder.putInt(TA_KEY_ROLE, static_cast<int32_t>(*textAttributes.role));
    }
-+  if (textAttributes.borderRadius.has_value()) {
-+    builder.putDouble(TA_KEY_BORDER_RADIUS, *textAttributes.borderRadius);
++  {
++    const bool hasAny = textAttributes.borderRadius.has_value() ||
++        textAttributes.borderTopLeftRadius.has_value() ||
++        textAttributes.borderTopRightRadius.has_value() ||
++        textAttributes.borderBottomLeftRadius.has_value() ||
++        textAttributes.borderBottomRightRadius.has_value();
++    if (hasAny) {
++      const Float fallback = textAttributes.borderRadius.value_or(0.0f);
++      builder.putDouble(
++          TA_KEY_BORDER_TOP_LEFT_RADIUS,
++          textAttributes.borderTopLeftRadius.value_or(fallback));
++      builder.putDouble(
++          TA_KEY_BORDER_TOP_RIGHT_RADIUS,
++          textAttributes.borderTopRightRadius.value_or(fallback));
++      builder.putDouble(
++          TA_KEY_BORDER_BOTTOM_LEFT_RADIUS,
++          textAttributes.borderBottomLeftRadius.value_or(fallback));
++      builder.putDouble(
++          TA_KEY_BORDER_BOTTOM_RIGHT_RADIUS,
++          textAttributes.borderBottomRightRadius.value_or(fallback));
++    }
 +  }
    return builder.build();
  }
-
+ 
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/text/BaseTextProps.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/text/BaseTextProps.cpp
-index f20cd3c..35f21d1 100644
+index f20cd3c..44ef461 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/components/text/BaseTextProps.cpp
 +++ b/node_modules/react-native/ReactCommon/react/renderer/components/text/BaseTextProps.cpp
-@@ -222,6 +222,12 @@ static TextAttributes convertRawProp(
+@@ -222,6 +222,36 @@ static TextAttributes convertRawProp(
        "backgroundColor",
        sourceTextAttributes.backgroundColor,
        defaultTextAttributes.backgroundColor);
@@ -376,19 +485,51 @@ index f20cd3c..35f21d1 100644
 +      "borderRadius",
 +      sourceTextAttributes.borderRadius,
 +      defaultTextAttributes.borderRadius);
-
++  textAttributes.borderTopLeftRadius = convertRawProp(
++      context,
++      rawProps,
++      "borderTopLeftRadius",
++      sourceTextAttributes.borderTopLeftRadius,
++      defaultTextAttributes.borderTopLeftRadius);
++  textAttributes.borderTopRightRadius = convertRawProp(
++      context,
++      rawProps,
++      "borderTopRightRadius",
++      sourceTextAttributes.borderTopRightRadius,
++      defaultTextAttributes.borderTopRightRadius);
++  textAttributes.borderBottomLeftRadius = convertRawProp(
++      context,
++      rawProps,
++      "borderBottomLeftRadius",
++      sourceTextAttributes.borderBottomLeftRadius,
++      defaultTextAttributes.borderBottomLeftRadius);
++  textAttributes.borderBottomRightRadius = convertRawProp(
++      context,
++      rawProps,
++      "borderBottomRightRadius",
++      sourceTextAttributes.borderBottomRightRadius,
++      defaultTextAttributes.borderBottomRightRadius);
+ 
    return textAttributes;
  }
-@@ -334,6 +340,8 @@ void BaseTextProps::setProp(
+@@ -334,6 +364,16 @@ void BaseTextProps::setProp(
          defaults, value, textAttributes, opacity, "opacity");
      REBUILD_FIELD_SWITCH_CASE(
          defaults, value, textAttributes, backgroundColor, "backgroundColor");
 +    REBUILD_FIELD_SWITCH_CASE(
 +        defaults, value, textAttributes, borderRadius, "borderRadius");
++    REBUILD_FIELD_SWITCH_CASE(
++        defaults, value, textAttributes, borderTopLeftRadius, "borderTopLeftRadius");
++    REBUILD_FIELD_SWITCH_CASE(
++        defaults, value, textAttributes, borderTopRightRadius, "borderTopRightRadius");
++    REBUILD_FIELD_SWITCH_CASE(
++        defaults, value, textAttributes, borderBottomLeftRadius, "borderBottomLeftRadius");
++    REBUILD_FIELD_SWITCH_CASE(
++        defaults, value, textAttributes, borderBottomRightRadius, "borderBottomRightRadius");
    }
  }
-
-@@ -532,6 +540,12 @@ void BaseTextProps::appendTextAttributesProps(
+ 
+@@ -532,6 +572,44 @@ void BaseTextProps::appendTextAttributesProps(
        oldProps->textAttributes.backgroundColor) {
      result["backgroundColor"] = *textAttributes.backgroundColor;
    }
@@ -398,11 +539,58 @@ index f20cd3c..35f21d1 100644
 +        ? textAttributes.borderRadius.value()
 +        : folly::dynamic(nullptr);
 +  }
++
++  if (textAttributes.borderTopLeftRadius !=
++      oldProps->textAttributes.borderTopLeftRadius) {
++    result["borderTopLeftRadius"] =
++        textAttributes.borderTopLeftRadius.has_value()
++        ? textAttributes.borderTopLeftRadius.value()
++        : folly::dynamic(nullptr);
++  }
++
++  if (textAttributes.borderTopRightRadius !=
++      oldProps->textAttributes.borderTopRightRadius) {
++    result["borderTopRightRadius"] =
++        textAttributes.borderTopRightRadius.has_value()
++        ? textAttributes.borderTopRightRadius.value()
++        : folly::dynamic(nullptr);
++  }
++
++  if (textAttributes.borderBottomLeftRadius !=
++      oldProps->textAttributes.borderBottomLeftRadius) {
++    result["borderBottomLeftRadius"] =
++        textAttributes.borderBottomLeftRadius.has_value()
++        ? textAttributes.borderBottomLeftRadius.value()
++        : folly::dynamic(nullptr);
++  }
++
++  if (textAttributes.borderBottomRightRadius !=
++      oldProps->textAttributes.borderBottomRightRadius) {
++    result["borderBottomRightRadius"] =
++        textAttributes.borderBottomRightRadius.has_value()
++        ? textAttributes.borderBottomRightRadius.value()
++        : folly::dynamic(nullptr);
++  }
  }
-
+ 
  #endif
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/consistency/React-rendererconsistency.podspec b/node_modules/react-native/ReactCommon/react/renderer/consistency/React-rendererconsistency.podspec
+index 216fd44..95af4c1 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/consistency/React-rendererconsistency.podspec
++++ b/node_modules/react-native/ReactCommon/react/renderer/consistency/React-rendererconsistency.podspec
+@@ -16,7 +16,9 @@ else
+   source[:tag] = "v#{version}"
+ end
+ 
+-header_search_paths = []
++header_search_paths = [
++  "\"$(PODS_TARGET_SRCROOT)/ReactCommon/react/renderer/consistency\"",
++]
+ 
+ if ENV['USE_FRAMEWORKS']
+   header_search_paths << "\"$(PODS_TARGET_SRCROOT)/../../..\"" # this is needed to allow the rendererconsistency access its own files
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.h b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.h
-index 902912e..26c04e9 100644
+index dac572b..0c84815 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.h
 +++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.h
 @@ -19,6 +19,9 @@ NSString *const RCTAttributedStringEventEmitterKey = @"EventEmitter";
@@ -416,22 +604,35 @@ index 902912e..26c04e9 100644
   * Creates `NSTextAttributes` from given `facebook::react::TextAttributes`
   */
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
-index f96a049..0e2c71d 100644
+index 520a24c..c456084 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
 +++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
-@@ -187,6 +187,10 @@ NSMutableDictionary<NSAttributedStringKey, id> *RCTNSTextAttributesFromTextAttri
+@@ -182,6 +182,23 @@ NSMutableDictionary<NSAttributedStringKey, id> *RCTNSTextAttributesFromTextAttri
      attributes[NSBackgroundColorAttributeName] = RCTEffectiveBackgroundColorFromTextAttributes(textAttributes);
    }
  
-+  if (textAttributes.borderRadius.has_value()) {
-+    attributes[RCTTextBorderRadiusAttributeName] = @(*textAttributes.borderRadius);
++  {
++    const bool hasAny = textAttributes.borderRadius.has_value() ||
++        textAttributes.borderTopLeftRadius.has_value() ||
++        textAttributes.borderTopRightRadius.has_value() ||
++        textAttributes.borderBottomLeftRadius.has_value() ||
++        textAttributes.borderBottomRightRadius.has_value();
++    if (hasAny) {
++      const CGFloat fallback = textAttributes.borderRadius.value_or(0.0f);
++      attributes[RCTTextBorderRadiusAttributeName] = @[
++        @(textAttributes.borderTopLeftRadius.value_or(fallback)),
++        @(textAttributes.borderTopRightRadius.value_or(fallback)),
++        @(textAttributes.borderBottomLeftRadius.value_or(fallback)),
++        @(textAttributes.borderBottomRightRadius.value_or(fallback)),
++      ];
++    }
 +  }
 +
    // Kerning
    if (!isnan(textAttributes.letterSpacing)) {
      attributes[NSKernAttributeName] = @(textAttributes.letterSpacing);
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
-index 5fed44e..f4b7d39 100644
+index ef50487..d82b6a7 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
 +++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
 @@ -8,6 +8,7 @@
@@ -482,10 +683,10 @@ index 0000000..3ca52ac
 +NS_ASSUME_NONNULL_END
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
 new file mode 100644
-index 0000000..402cd30
+index 0000000..e6ec24a
 --- /dev/null
 +++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
-@@ -0,0 +1,67 @@
+@@ -0,0 +1,90 @@
 +/*
 + * Copyright (c) Meta Platforms, Inc. and affiliates.
 + *
@@ -504,16 +705,26 @@ index 0000000..402cd30
 +              forCharacterRange:(NSRange)charRange
 +                          color:(UIColor *)color
 +{
-+  NSNumber *borderRadiusValue = [self.textStorage attribute:RCTTextBorderRadiusAttributeName
-+                                                    atIndex:charRange.location
-+                                             effectiveRange:nil];
++  NSArray<NSNumber *> *radii = [self.textStorage attribute:RCTTextBorderRadiusAttributeName
++                                                   atIndex:charRange.location
++                                            effectiveRange:nil];
 +
-+  if (borderRadiusValue == nil || borderRadiusValue.floatValue == 0) {
++  if (radii == nil) {
 +    [super fillBackgroundRectArray:rectArray count:rectCount forCharacterRange:charRange color:color];
 +    return;
 +  }
 +
-+  CGFloat borderRadius = borderRadiusValue.floatValue;
++  // radii is @[topLeft, topRight, bottomLeft, bottomRight]
++  CGFloat tl = radii[0].floatValue;
++  CGFloat tr = radii[1].floatValue;
++  CGFloat bl = radii[2].floatValue;
++  CGFloat br = radii[3].floatValue;
++
++  BOOL hasAnyRadius = tl > 0 || tr > 0 || bl > 0 || br > 0;
++  if (!hasAnyRadius) {
++    [super fillBackgroundRectArray:rectArray count:rectCount forCharacterRange:charRange color:color];
++    return;
++  }
 +
 +  CGContextRef context = UIGraphicsGetCurrentContext();
 +  if (context == nil) {
@@ -529,24 +740,37 @@ index 0000000..402cd30
 +    BOOL isFirstRect = (i == 0);
 +    BOOL isLastRect = (i == rectCount - 1);
 +
-+    // Round left corners on first rect, right corners on last rect.
-+    // NSLayoutManager provides rects in visual (LTR) order, so this handles
-+    // both LTR and RTL correctly - the first rect is always the start of
-+    // the span and the last rect is always the end.
-+    UIRectCorner corners = 0;
-+    if (isFirstRect) {
-+      corners |= UIRectCornerTopLeft | UIRectCornerBottomLeft;
-+    }
-+    if (isLastRect) {
-+      corners |= UIRectCornerTopRight | UIRectCornerBottomRight;
-+    }
++    // Round left corners on the first rect, right corners on the last rect.
++    // NSLayoutManager provides rects in visual order so this handles LTR and RTL correctly.
++    CGFloat effectiveTL = isFirstRect ? tl : 0;
++    CGFloat effectiveBL = isFirstRect ? bl : 0;
++    CGFloat effectiveTR = isLastRect  ? tr : 0;
++    CGFloat effectiveBR = isLastRect  ? br : 0;
 +
 +    UIBezierPath *path = [UIBezierPath bezierPathWithRoundedRect:rect
-+                                               byRoundingCorners:corners
-+                                                     cornerRadii:CGSizeMake(borderRadius, borderRadius)];
++                                               byRoundingCorners:UIRectCornerAllCorners
++                                                     cornerRadii:CGSizeMake(1, 1)];
++    // bezierPathWithRoundedRect:byRoundingCorners: only supports uniform radii per corner mask.
++    // Use a CGPath with per-corner radii instead.
++    CGMutablePathRef cgPath = CGPathCreateMutable();
++    CGFloat x = CGRectGetMinX(rect);
++    CGFloat y = CGRectGetMinY(rect);
++    CGFloat w = CGRectGetWidth(rect);
++    CGFloat h = CGRectGetHeight(rect);
++    CGPathMoveToPoint(cgPath, NULL, x + effectiveTL, y);
++    CGPathAddLineToPoint(cgPath, NULL, x + w - effectiveTR, y);
++    CGPathAddArcToPoint(cgPath, NULL, x + w, y, x + w, y + effectiveTR, effectiveTR);
++    CGPathAddLineToPoint(cgPath, NULL, x + w, y + h - effectiveBR);
++    CGPathAddArcToPoint(cgPath, NULL, x + w, y + h, x + w - effectiveBR, y + h, effectiveBR);
++    CGPathAddLineToPoint(cgPath, NULL, x + effectiveBL, y + h);
++    CGPathAddArcToPoint(cgPath, NULL, x, y + h, x, y + h - effectiveBL, effectiveBL);
++    CGPathAddLineToPoint(cgPath, NULL, x, y + effectiveTL);
++    CGPathAddArcToPoint(cgPath, NULL, x, y, x + effectiveTL, y, effectiveTL);
++    CGPathCloseSubpath(cgPath);
 +
-+    CGContextAddPath(context, path.CGPath);
++    CGContextAddPath(context, cgPath);
 +    CGContextFillPath(context);
++    CGPathRelease(cgPath);
 +  }
 +
 +  CGContextRestoreGState(context);

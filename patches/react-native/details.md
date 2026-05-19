@@ -265,24 +265,20 @@
 - Upstream PR/issue: [facebook/react-native#51835](https://github.com/facebook/react-native/pull/51835)
 - E/App issue: [#59953](https://github.com/Expensify/App/issues/59953)
 
-### [react-native+0.83.1+036+rounded-inline-code-background.patch](react-native+0.83.1+036+rounded-inline-code-background.patch)
-
-- Reason: Draws inline code block background with rounded corners on iOS when `borderTopLeftRadius` is set.
-- Upstream PR/issue: 🛑
-- E/App issue: https://github.com/Expensify/App/issues/57556
-- PR introducing patch: https://github.com/Expensify/App/pull/79815
-
 ### [react-native+0.83.1+036+nested-text-border-radius.patch](react-native+0.83.1+036+nested-text-border-radius.patch)
 
 - Reason:
 
     ```
-    Adds borderRadius support for nested <Text> backgrounds on iOS and Android.
-    On the C++ side, a std::optional<Float> borderRadius field is added to TextAttributes and wired
-    through BaseTextProps and conversions. On Android, a custom DrawCommandSpan with
-    ReactBackgroundDrawSpan draws rounded-rect backgrounds. On iOS, a custom NSLayoutManager subclass
-    (RCTTextLayoutManagerWithBorderRadius) overrides fillBackgroundRectArray to draw rounded rectangles
-    using UIBezierPath, with per-line corner rounding for multiline spans.
+    Adds borderRadius / per-corner radius support for nested <Text> backgrounds on iOS and Android.
+    On the C++ side, borderRadius + borderTopLeftRadius / borderTopRightRadius /
+    borderBottomLeftRadius / borderBottomRightRadius fields are added to TextAttributes and wired
+    through BaseTextProps and conversions. borderRadius acts as a fallback for unset individual
+    corners; unset corners default to 0 when any radius prop is present. On Android, a custom
+    DrawCommandSpan with ReactBackgroundDrawSpan draws rounded-rect backgrounds using the four
+    effective corner radii. On iOS, a custom NSLayoutManager subclass
+    (RCTTextLayoutManagerWithBorderRadius) overrides fillBackgroundRectArray to draw per-corner
+    rounded rectangles using CGPath, with per-line outer-corner rounding for multiline spans.
     ```
 
 - Upstream PR/issue: 🛑
