@@ -2,7 +2,7 @@ import {Circle, type Color, listFontFamilies, matchFont, Paragraph, type SkFont,
 import JSON5 from 'json5';
 import lodashIsObject from 'lodash/isObject';
 import lodashMerge from 'lodash/merge';
-import React, {ComponentProps, useCallback, useMemo} from 'react';
+import React, {ComponentProps, Fragment, useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ColorValue, TextStyle, ViewStyle} from 'react-native';
 import {type CustomRendererProps, type TBlock, TNode, TNodeChildrenRenderer} from 'react-native-render-html';
@@ -46,6 +46,43 @@ type LabelItem = {
     fontWeight: 'normal' | 'bold';
 };
 
+type LegendItemEntry = {
+    /** Text to draw */
+    text: string;
+
+    /** The color of the text */
+    color: Color;
+
+    /** Font size */
+    fontSize: number;
+
+    /** Font weight */
+    fontWeight: 'normal' | 'bold';
+
+    /** The color of the symbol */
+    symbolColor: Color;
+
+    /** Symbol size */
+    symbolSize: number;
+};
+
+type LegendItem = {
+    /** Position on the X-axis */
+    x: number;
+
+    /** Position on the Y-axis */
+    y: number;
+
+    /** Legend entries */
+    entries: LegendItemEntry[];
+
+    /** Space between entries */
+    gutter: number;
+
+    /** Space between entry's text and symbol */
+    symbolSpacer: number;
+};
+
 /**
  * Get node unique ID based on hierarchy
  */
@@ -69,6 +106,7 @@ function processNode(tnode: TNode, typeface: SkTypeface | null) {
     let xAxis: ComponentProps<typeof CartesianChart<RawData, string, string>>['xAxis'];
     let yAxis: ComponentProps<typeof CartesianChart<RawData, string, string>>['yAxis'];
     const labelItems: LabelItem[] = [];
+    const legendItems: LegendItem[] = [];
 
     if (tnode.tagName === 'victorybar' || tnode.tagName === 'victorychart') {
         const parsedData = parseAttribute(tnode.attributes.data);
@@ -88,6 +126,7 @@ function processNode(tnode: TNode, typeface: SkTypeface | null) {
         const tickValues = parseAttribute(tnode.attributes.tickvalues);
         const orientation = parseAttribute(tnode.attributes.orientation);
         const style = parseAttribute(tnode.attributes.style);
+        // s77rt clean up the `let`s and nested code
         let lineColor: Color | undefined;
         let lineWidth: number | undefined;
         let labelColor: string | undefined;
@@ -162,6 +201,50 @@ function processNode(tnode: TNode, typeface: SkTypeface | null) {
             fontSize,
             fontWeight,
         });
+    } else if (tnode.tagName === 'victorylegend') {
+        const x = parseAttribute(tnode.attributes.x);
+        const y = parseAttribute(tnode.attributes.y);
+        const gutter = parseAttribute(tnode.attributes.gutter);
+        const symbolSpacer = parseAttribute(tnode.attributes.symbolspacer);
+        const data = parseAttribute(tnode.attributes.data);
+        const style = parseAttribute(tnode.attributes.style);
+        let color: Color = 'black';
+        let fontSize: number = 13;
+        let fontWeight: 'normal' | 'bold' = 'normal';
+        if (lodashIsObject(style) && 'labels' in style && lodashIsObject(style.labels)) {
+            if ('fill' in style.labels) {
+                color = style.labels.fill as Color;
+            }
+            if ('fontSize' in style.labels) {
+                fontSize = Number(style.labels.fontSize);
+            }
+            if ('fontWeight' in style.labels && Number(style.labels.fontWeight) === 700) {
+                fontWeight = 'bold';
+            }
+        }
+        const entries: LegendItemEntry[] = [];
+        if (Array.isArray(data)) {
+            (data as Array<Record<string, any>>).forEach((entry) => {
+                const text = entry.name;
+                const symbolColor: Color = entry.symbol?.fill ?? 'black';
+                const symbolSize: number = Number(entry.symbol?.size ?? 6);
+                entries.push({
+                    text,
+                    color,
+                    fontSize,
+                    fontWeight,
+                    symbolColor,
+                    symbolSize,
+                });
+            });
+        }
+        legendItems.push({
+            x,
+            y,
+            entries,
+            gutter,
+            symbolSpacer,
+        });
     }
 
     tnode.children.forEach((child) => {
@@ -178,6 +261,7 @@ function processNode(tnode: TNode, typeface: SkTypeface | null) {
             yAxis.push(...childData.yAxis);
         }
         labelItems.push(...childData.labelItems);
+        legendItems.push(...childData.legendItems);
         lodashMerge(data, childData.data);
     });
 
@@ -188,6 +272,7 @@ function processNode(tnode: TNode, typeface: SkTypeface | null) {
         xAxis,
         yAxis,
         labelItems,
+        legendItems,
     };
 }
 
@@ -304,7 +389,7 @@ function parseStyles(tnode: TNode) {
 function VictoryChartRenderer({tnode}: CustomRendererProps<TBlock>) {
     const styles = useThemeStyles();
     const {regular: regularTypeface, bold: boldTypeface} = useChartDefaultTypeface();
-    const {data, xKey, yKeys, xAxis, yAxis, labelItems} = useMemo(() => processNode(tnode, regularTypeface), [tnode, regularTypeface]);
+    const {data, xKey, yKeys, xAxis, yAxis, labelItems, legendItems} = useMemo(() => processNode(tnode, regularTypeface), [tnode, regularTypeface]);
     const {nodeStyles, parentNodeStyles} = useMemo(() => parseStyles(tnode), [tnode]);
 
     const renderCartesianChartChild = useCallback((tnode: TNode, index: Number, renderArgs: CartesianChartRenderArg<RawData, string>) => {
@@ -362,10 +447,40 @@ function VictoryChartRenderer({tnode}: CustomRendererProps<TBlock>) {
                             />
                         );
                     })}
+                    {legendItems.map(({x: startX, y, entries, gutter, symbolSpacer}, legendIndex) => {
+                        let x = startX;
+                        return entries.map(({text, color, fontSize, fontWeight, symbolColor, symbolSize}) => {
+                            const typeface = fontWeight === 'bold' ? boldTypeface : regularTypeface;
+                            const font = typeface ? Skia.Font(typeface, fontSize) : null;
+                            const fontMetrics = font?.getMetrics();
+                            const lineHeight = fontMetrics ? fontMetrics.ascent + fontMetrics.descent + fontMetrics.leading : 0;
+                            const symbolX = x;
+                            x += symbolSize + symbolSpacer;
+                            const textX = x;
+                            x += (font?.getGlyphWidths(font.getGlyphIDs(text)).reduce((acc, width) => acc + width, 0) ?? 0) + gutter;
+                            return (
+                                <Fragment key={`legend-${legendIndex}-${x}-${y}`}>
+                                    <Circle
+                                        cx={symbolX}
+                                        cy={y}
+                                        r={symbolSize}
+                                        color={symbolColor}
+                                    />
+                                    <SkText
+                                        x={textX}
+                                        y={y - lineHeight / 2}
+                                        text={text}
+                                        font={font}
+                                        color={color}
+                                    />
+                                </Fragment>
+                            );
+                        });
+                    })}
                 </>
             );
         },
-        [labelItems, regularTypeface, boldTypeface],
+        [labelItems, legendItems, regularTypeface, boldTypeface],
     );
 
     return (
