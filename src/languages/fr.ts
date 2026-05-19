@@ -6012,6 +6012,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 `Vous êtes sur le point de créer et de partager ${newWorkspaceName ?? ''} avec ${totalMembers ?? 0} membres de l’espace de travail d’origine.`,
             error: 'Une erreur s’est produite lors de la duplication de votre nouvel espace de travail. Veuillez réessayer.',
         },
+        copyPolicySettings: {error: 'Une erreur s’est produite lors de la copie des paramètres de l’espace de travail. Veuillez réessayer.'},
         emptyWorkspace: {
             title: 'Vous n’avez aucun espace de travail',
             subtitle: 'Suivez les reçus, remboursez les dépenses, gérez les voyages, envoyez des factures, et plus encore.',

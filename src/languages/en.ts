@@ -6013,6 +6013,9 @@ const translations = {
                 `You’re about to create and share ${newWorkspaceName ?? ''} with ${totalMembers ?? 0} members from the original workspace.`,
             error: 'An error occurred while duplicating your new workspace. Please try again.',
         },
+        copyPolicySettings: {
+            error: 'An error occurred while copying workspace settings. Please try again.',
+        },
         emptyWorkspace: {
             title: 'No workspaces yet',
             subtitle: 'Create a workspace to manage your expenses, reimbursements, and company cards.',

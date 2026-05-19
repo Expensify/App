@@ -5827,6 +5827,9 @@ ${amount} para ${merchant} - ${date}`,
                 `Estás a punto de crear y compartir ${newWorkspaceName ?? ''} con ${totalMembers ?? 0} miembros del espacio de trabajo original.`,
             error: 'Se produjo un error al duplicar tu nuevo espacio de trabajo. Inténtalo de nuevo.',
         },
+        copyPolicySettings: {
+            error: 'Se produjo un error al copiar la configuración del espacio de trabajo. Por favor, inténtalo de nuevo.',
+        },
         emptyWorkspace: {
             title: 'Aún no hay espacios de trabajo',
             subtitle: 'Crea un espacio de trabajo para gestionar tus gastos, reembolsos y tarjetas de empresa.',

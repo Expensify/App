@@ -5815,6 +5815,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 `您即将创建并共享 ${newWorkspaceName ?? ''}，其中包含来自原始工作区的 ${totalMembers ?? 0} 位成员。`,
             error: '复制您的新工作区时发生错误。请重试。',
         },
+        copyPolicySettings: {error: '复制工作区设置时发生错误。请重试。'},
         emptyWorkspace: {
             title: '你还没有工作区',
             subtitle: '跟踪收据、报销费用、管理差旅、发送发票等。',
