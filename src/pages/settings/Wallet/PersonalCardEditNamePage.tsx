@@ -36,8 +36,6 @@ function PersonalCardEditNamePage({route}: PersonalCardEditNamePageProps) {
     const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardSelector});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
-    // CSV-imported cards optimistically store the user-entered name in `nameValuePairs.cardTitle` only;
-    // `cardName` is populated later by the backend, so we need the same fallback the wallet list uses.
     const isCSVImportedPersonalCard = !!card && (card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV));
     const defaultValue =
         customCardNames?.[cardID] ??
