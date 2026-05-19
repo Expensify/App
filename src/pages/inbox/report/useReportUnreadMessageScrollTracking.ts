@@ -47,7 +47,6 @@ export default function useReportUnreadMessageScrollTracking({
 }: Args) {
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
     const [isActionBadgeAboveViewport, setIsActionBadgeAboveViewport] = useState(false);
-    const isScrollingToActionBadgeRef = useRef(false);
     const isFocused = useIsFocused();
     const ref = useRef<{
         previousViewableItems: ViewToken[];
@@ -150,19 +149,7 @@ export default function useReportUnreadMessageScrollTracking({
             // In an inverted list, higher indexes are "above" (older messages). The target is above the viewport
             // when its index is greater than the max visible index.
             const isAbove = isInverted ? badgeTargetIndex > maxIndex : badgeTargetIndex < minIndex;
-            const isTargetVisible = badgeTargetIndex >= minIndex && badgeTargetIndex <= maxIndex;
-
-            // When scrolling to the action badge target, suppress showing the pill until the target
-            // is stably visible. This prevents flicker from intermediate onViewableItemsChanged calls
-            // during the scroll animation where maxIndex fluctuates.
-            if (isScrollingToActionBadgeRef.current) {
-                if (isTargetVisible) {
-                    isScrollingToActionBadgeRef.current = false;
-                }
-                setIsActionBadgeAboveViewport(false);
-            } else {
-                setIsActionBadgeAboveViewport(isAbove);
-            }
+            setIsActionBadgeAboveViewport(isAbove);
         } else {
             setIsActionBadgeAboveViewport(false);
         }
@@ -188,16 +175,10 @@ export default function useReportUnreadMessageScrollTracking({
         onViewableItemsChanged({viewableItems: ref.current.previousViewableItems, changed: []});
     }, [onViewableItemsChanged, actionBadgeTargetIndex]);
 
-    const suppressActionBadgeWhileScrolling = useCallback(() => {
-        isScrollingToActionBadgeRef.current = true;
-        setIsActionBadgeAboveViewport(false);
-    }, []);
-
     return {
         isFloatingMessageCounterVisible,
         setIsFloatingMessageCounterVisible,
         isActionBadgeAboveViewport,
-        suppressActionBadgeWhileScrolling,
         trackVerticalScrolling,
         onViewableItemsChanged,
     };

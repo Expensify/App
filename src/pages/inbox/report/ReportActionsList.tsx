@@ -462,29 +462,23 @@ function ReportActionsList({
         return renderedVisibleReportActions.findIndex((action) => action.reportActionID === targetID);
     }, [reportAttributes?.actionTargetReportActionID, renderedVisibleReportActions]);
 
-    const {
-        isFloatingMessageCounterVisible,
-        setIsFloatingMessageCounterVisible,
-        isActionBadgeAboveViewport,
-        suppressActionBadgeWhileScrolling,
-        trackVerticalScrolling,
-        onViewableItemsChanged,
-    } = useReportUnreadMessageScrollTracking({
-        reportID: report.reportID,
-        currentVerticalScrollingOffsetRef: scrollOffsetRef,
-        readActionSkippedRef: readActionSkipped,
-        hasNewerActions,
-        unreadMarkerReportActionIndex,
-        isInverted: true,
-        onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-            const offset = event.nativeEvent.contentOffset.y;
-            scrollOffsetRef.current = offset;
-            setHasScrolledOverThreshold(offset > CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
-            onScroll?.(event);
-        },
-        hasOnceLoadedReportActions: !!reportLoadingState?.hasOnceLoadedReportActions,
-        actionBadgeTargetIndex,
-    });
+    const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, isActionBadgeAboveViewport, trackVerticalScrolling, onViewableItemsChanged} =
+        useReportUnreadMessageScrollTracking({
+            reportID: report.reportID,
+            currentVerticalScrollingOffsetRef: scrollOffsetRef,
+            readActionSkippedRef: readActionSkipped,
+            hasNewerActions,
+            unreadMarkerReportActionIndex,
+            isInverted: true,
+            onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+                const offset = event.nativeEvent.contentOffset.y;
+                scrollOffsetRef.current = offset;
+                setHasScrolledOverThreshold(offset > CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
+                onScroll?.(event);
+            },
+            hasOnceLoadedReportActions: !!reportLoadingState?.hasOnceLoadedReportActions,
+            actionBadgeTargetIndex,
+        });
 
     const {isScrollToBottomEnabled, setIsScrollToBottomEnabled, completeLiveTailPruneAfterScrollToBottom} = useReportActionsNewActionLiveTail({
         reportID: report.reportID,
@@ -726,9 +720,8 @@ function ReportActionsList({
         if (actionBadgeTargetIndex < 0) {
             return;
         }
-        suppressActionBadgeWhileScrolling();
         reportScrollManager.scrollToIndex(actionBadgeTargetIndex);
-    }, [actionBadgeTargetIndex, suppressActionBadgeWhileScrolling, reportScrollManager]);
+    }, [actionBadgeTargetIndex, reportScrollManager]);
 
     /**
      * Thread's divider line should hide when the first chat in the thread is marked as unread.
