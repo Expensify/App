@@ -91,7 +91,7 @@ function makeExistingState(workspaceNavNestedRoutes: TestRoute[], workspaceNavIn
                     name: NAVIGATORS.WORKSPACE_NAVIGATOR,
                     state: {
                         index: workspaceNavIndex,
-                        routes: workspaceNavNestedRoutes,
+                        routes: workspaceNavNestedRoutes as unknown as PartialState<NavigationState>['routes'],
                     },
                 },
             ],

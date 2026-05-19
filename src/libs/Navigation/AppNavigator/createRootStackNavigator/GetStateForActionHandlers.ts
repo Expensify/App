@@ -396,20 +396,22 @@ function handleReplaceFullscreenUnderRHP(
             if (i !== targetTabIndex) {
                 return r;
             }
-            // collapseTabToLeaf: replace the tab's nested stack with a single leaf route.
-            // Used when the caller has just created the destination (e.g. a new workspace) and
-            // wants the dismiss animation to reveal only that leaf — without flashing a seeded
-            // sidebar underneath, and without leaving the prior list in the back stack.
-            // Default: prepend the existing sidebar/root (or the split navigator's default if the tab
-            // had no nested routes) so back navigation from the new screen lands there.
             const newNestedRoutes = focusedTargetTab.state?.routes;
             let mergedNestedState = focusedTargetTab.state;
             if (action.payload.collapseTabToLeaf) {
+                // Replace the tab's nested stack with the leaf only, so the RHP dismiss animation
+                // reveals just the destination — no seeded sidebar flashing underneath.
                 const leafRoute = newNestedRoutes?.at(-1);
                 if (leafRoute && focusedTargetTab.state) {
                     mergedNestedState = {...focusedTargetTab.state, routes: [leafRoute], index: 0};
                 }
             } else {
+                // Prepend the existing sidebar/root route (e.g. Inbox) to the incoming state when
+                // it starts with a different screen, so back navigation from the new screen
+                // lands on the sidebar. When the existing tab doesn't have nested routes
+                // (e.g. cold-start through a deep link that opens straight into a modal), fall
+                // back to the split navigator's default sidebar route so there is still
+                // something to pop back to.
                 const existingNestedRoutes = (r.state as PartialState<NavigationState> | undefined)?.routes;
                 const existingFirstRoute = existingNestedRoutes?.at(0);
                 const newFirstRoute = newNestedRoutes?.at(0);

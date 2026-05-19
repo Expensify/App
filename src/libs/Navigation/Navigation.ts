@@ -993,6 +993,10 @@ function dismissToSuperWideRHP(options: {afterTransition?: () => void} = {}) {
  *             Browser history is NOT touched (the custom history extension preserves the old history array).
  *   Frame 2 - DISMISS_MODAL pops the RHP: [Tab, Tab', RHP] -> [Tab, Tab'].
  *             useLinking syncs browser history to the new top fullscreen route.
+ *
+ * `collapseTabToLeaf` (opt-in): replaces the destination tab's nested stack with the leaf route only,
+ * so no sidebar/list is seeded underneath. Use when the caller has just created the destination
+ * (e.g. a new workspace) and the prior list should not flash through nor stay in the back stack.
  */
 function revealRouteBeforeDismissingModal(route: Route, options?: {afterTransition?: () => void; collapseTabToLeaf?: boolean}) {
     if (!canNavigate('revealRouteBeforeDismissingModal', {route}) || !navigationRef.current) {

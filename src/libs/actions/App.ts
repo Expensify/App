@@ -643,10 +643,8 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
                 return;
             }
 
-            // Collapse the destination tab to the newly created leaf. The only caller that reaches
-            // this branch is WorkspaceConfirmationPage (RHP-on-top + fullscreen destination), and it
-            // wants the dismiss animation to reveal only the new workspace — without flashing the
-            // prior workspaces list or leaving it in the back stack.
+            // Collapse the destination tab to the new leaf so the RHP dismiss animation reveals
+            // only the new workspace, without the prior list briefly flashing underneath.
             Navigation.revealRouteBeforeDismissingModal(routeToNavigate, {collapseTabToLeaf: true});
         } else {
             Navigation.navigate(routeToNavigate, {forceReplace: true});
