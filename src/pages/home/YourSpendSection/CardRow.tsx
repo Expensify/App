@@ -33,7 +33,7 @@ function CardRow({cardRow, wrapperStyle}: CardRowProps) {
     return (
         <View
             testID={`your-spend-card-row-${cardRow.cardID}`}
-            // eslint-disable-next-line react/jsx-props-no-spreading
+            // eslint-disable-next-line react/jsx-props-no-spreading -- useHover's bind returns mouse handlers that must be spread onto the View
             {...bind}
         >
             <MenuItemWithTopDescription
