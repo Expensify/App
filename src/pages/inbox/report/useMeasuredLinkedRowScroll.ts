@@ -74,10 +74,11 @@ function useMeasuredLinkedRowScroll({
                 return;
             }
 
-            requestAnimationFrame(() => {
+            const frameId = requestAnimationFrame(() => {
                 tryApplyMeasuredAnchorScroll(layoutHeight, {isFollowUp: true});
                 scheduleFollowUpScrolls(remainingFrames - 1);
             });
+            runtime.followUpFrameIds.push(frameId);
         };
 
         const retryPrimaryScroll = () => {
@@ -211,6 +212,7 @@ type MeasuredScrollRuntime = {
     hasCommittedScroll: boolean;
     shouldSkipScroll: boolean;
     pendingFrameId: number | undefined;
+    followUpFrameIds: number[];
     retryCount: number;
     rowHeight: number;
 };
@@ -220,18 +222,22 @@ function createMeasuredScrollRuntime(): MeasuredScrollRuntime {
         hasCommittedScroll: false,
         shouldSkipScroll: false,
         pendingFrameId: undefined,
+        followUpFrameIds: [],
         retryCount: 0,
         rowHeight: 0,
     };
 }
 
 function cancelPendingMeasuredScrollFrame(runtime: MeasuredScrollRuntime) {
-    if (runtime.pendingFrameId === undefined) {
-        return;
+    if (runtime.pendingFrameId !== undefined) {
+        cancelAnimationFrame(runtime.pendingFrameId);
+        runtime.pendingFrameId = undefined;
     }
 
-    cancelAnimationFrame(runtime.pendingFrameId);
-    runtime.pendingFrameId = undefined;
+    for (const frameId of runtime.followUpFrameIds) {
+        cancelAnimationFrame(frameId);
+    }
+    runtime.followUpFrameIds = [];
 }
 
 function resetMeasuredScrollRuntime(runtime: MeasuredScrollRuntime) {
