@@ -124,7 +124,7 @@
     "dom-serializer": "^0.2.2",
     "domhandler": "^5.0.3",
     "expensify-common": "2.0.175",
-    "expo": "55.0.0",
+    "expo": "55.0.25",
     "expo-asset": "55.0.2",
     "expo-audio": "55.0.4",
     "expo-font": "14.0.8",
