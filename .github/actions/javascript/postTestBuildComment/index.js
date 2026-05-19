@@ -1,6 +1,7 @@
 /**
  * NOTE: This is a compiled file. DO NOT directly edit this file.
  */
+
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
@@ -11584,6 +11585,7 @@ const core = __importStar(__nccwpck_require__(2186));
 const github_1 = __nccwpck_require__(5438);
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
+const TEST_BUILD_COMMENT_PREFIX = ':test_tube::test_tube: Use the links below to test this adhoc build';
 function getTestBuildMessage(appPr, mobileExpensifyPr) {
     const inputs = ['ANDROID', 'IOS', 'WEB'];
     const names = {
@@ -11638,7 +11640,7 @@ Built from${appPr ? ` App PR Expensify/App#${appPr}` : ''}${mobileExpensifyPr ? 
 }
 /** Comment on a single PR */
 async function commentPR(REPO, PR, message) {
-    console.log(`Posting test build comment on #${PR}`);
+    console.log(`Posting comment on #${PR}`);
     try {
         await GithubUtils_1.default.createComment(REPO, PR, message);
         console.log(`Comment created on #${PR} (${REPO}) successfully 🎉`);
@@ -11650,12 +11652,42 @@ async function commentPR(REPO, PR, message) {
         }
     }
 }
+async function hidePreviousComment(repo, issueNumber, commentPrefix) {
+    const comments = await GithubUtils_1.default.paginate(GithubUtils_1.default.octokit.issues.listComments, {
+        owner: CONST_1.default.GITHUB_OWNER,
+        repo,
+        ['issue_number']: issueNumber,
+        ['per_page']: 100,
+    }, (response) => response.data);
+    const previousComment = comments.findLast((comment) => comment.body?.startsWith(commentPrefix));
+    if (!previousComment) {
+        return;
+    }
+    await GithubUtils_1.default.graphql(`
+            mutation MinimizeComment($subjectId: ID!) {
+              minimizeComment(input: {classifier: OUTDATED, subjectId: $subjectId}) {
+                minimizedComment {
+                  minimizedReason
+                }
+              }
+            }
+        `, {
+        subjectId: previousComment.node_id,
+    });
+}
 async function run() {
     const APP_PR_NUMBER = Number(core.getInput('APP_PR_NUMBER', { required: false }));
     const MOBILE_EXPENSIFY_PR_NUMBER = Number(core.getInput('MOBILE_EXPENSIFY_PR_NUMBER', { required: false }));
     const REPO = String(core.getInput('REPO', { required: true }));
+    const COMMENT_BODY = core.getInput('COMMENT_BODY', { required: false });
+    const COMMENT_PREFIX = core.getInput('COMMENT_PREFIX', { required: false });
+    const isCustomComment = !!COMMENT_BODY || !!COMMENT_PREFIX;
     if (REPO !== CONST_1.default.APP_REPO && REPO !== CONST_1.default.MOBILE_EXPENSIFY_REPO) {
         core.setFailed(`Invalid repository used to place output comment: ${REPO}`);
+        return;
+    }
+    if (isCustomComment && (!COMMENT_BODY || !COMMENT_PREFIX)) {
+        core.setFailed('Both COMMENT_BODY and COMMENT_PREFIX are required when posting a custom comment');
         return;
     }
     if ((REPO === CONST_1.default.APP_REPO && !APP_PR_NUMBER) || (REPO === CONST_1.default.MOBILE_EXPENSIFY_REPO && !MOBILE_EXPENSIFY_PR_NUMBER)) {
@@ -11663,28 +11695,8 @@ async function run() {
         return;
     }
     const destinationPRNumber = REPO === CONST_1.default.APP_REPO ? APP_PR_NUMBER : MOBILE_EXPENSIFY_PR_NUMBER;
-    const comments = await GithubUtils_1.default.paginate(GithubUtils_1.default.octokit.issues.listComments, {
-        owner: CONST_1.default.GITHUB_OWNER,
-        repo: REPO,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        issue_number: destinationPRNumber,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        per_page: 100,
-    }, (response) => response.data);
-    const testBuildComment = comments.find((comment) => comment.body?.startsWith(':test_tube::test_tube: Use the links below to test this adhoc build'));
-    if (testBuildComment) {
-        console.log('Found previous build comment, hiding it', testBuildComment);
-        await GithubUtils_1.default.graphql(`
-            mutation {
-              minimizeComment(input: {classifier: OUTDATED, subjectId: "${testBuildComment.node_id}"}) {
-                minimizedComment {
-                  minimizedReason
-                }
-              }
-            }
-        `);
-    }
-    await commentPR(REPO, destinationPRNumber, getTestBuildMessage(APP_PR_NUMBER, MOBILE_EXPENSIFY_PR_NUMBER));
+    await hidePreviousComment(REPO, destinationPRNumber, COMMENT_PREFIX || TEST_BUILD_COMMENT_PREFIX);
+    await commentPR(REPO, destinationPRNumber, COMMENT_BODY || getTestBuildMessage(APP_PR_NUMBER, MOBILE_EXPENSIFY_PR_NUMBER));
 }
 if (require.main === require.cache[eval('__filename')]) {
     run();

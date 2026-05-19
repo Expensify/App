@@ -1,5 +1,5 @@
-name: "Mark Pull Requests as Deployed"
-description: "Mark pull requests as deployed on production or staging"
+name: "Post Test Build Comment"
+description: "Post a test build or custom pull request comment, hiding the previous matching comment"
 inputs:
     REPO:
         description: "Repository to place a comment. Can be App or Mobile-Expensify"
@@ -30,6 +30,12 @@ inputs:
         required: false
     WEB_LINK:
         description: "Link for the web build"
+        required: false
+    COMMENT_BODY:
+        description: "Custom comment body. When provided with COMMENT_PREFIX, posts this comment instead of the test build message"
+        required: false
+    COMMENT_PREFIX:
+        description: "Prefix used to find and hide the previous custom comment"
         required: false
 runs:
     using: "node24"
