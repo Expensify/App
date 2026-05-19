@@ -505,7 +505,7 @@ function updateXeroTravelInvoicingPayableAccount(policyID: string, accountID: st
         configUpdate: JSON.stringify({[CONST.XERO_CONFIG.EXPORT]: {[CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT]: accountID}}),
         idempotencyKey: CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT,
     };
-    API.write(WRITE_COMMANDS.UPDATE_MANY_POLICY_CONNECTION_CONFIGS, parameters, {optimisticData, failureData, successData});
+    API.write(WRITE_COMMANDS.UPDATE_XERO_TRAVEL_INVOICING_PAYABLE_ACCOUNT, parameters, {optimisticData, failureData, successData});
 }
 
 function updateXeroSyncInvoiceCollectionsAccountID(
