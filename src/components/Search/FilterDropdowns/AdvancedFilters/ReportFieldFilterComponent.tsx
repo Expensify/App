@@ -38,7 +38,7 @@ function ReportFieldFilterComponent({values, onChange}: ReportFieldComponentProp
             />
             {(!!selectedField || fullscreen) && (
                 <Button
-                    style={[styles.ph5, fullscreen ? styles.pb3 : styles.pb5]}
+                    style={[styles.ph5, styles.pb5]}
                     success
                     medium={!fullscreen}
                     large={fullscreen}
