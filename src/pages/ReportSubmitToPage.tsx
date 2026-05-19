@@ -1,23 +1,17 @@
 import {delegateEmailSelector} from '@selectors/Account';
-import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
-import FormHelpMessage from '@components/FormHelpMessage';
+import React, {useCallback, useMemo, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
-import Text from '@components/Text';
-import TextInput from '@components/TextInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
-import useThemeStyles from '@hooks/useThemeStyles';
 import {search} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -39,7 +33,6 @@ type ReportSubmitToPageProps = WithReportOrNotFoundProps & PlatformStackScreenPr
 
 function ReportSubmitToPage({report, policy, isLoadingReportData}: ReportSubmitToPageProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -62,12 +55,8 @@ function ReportSubmitToPage({report, policy, isLoadingReportData}: ReportSubmitT
         return submitsTo ?? getDefaultApprover(policy) ?? '';
     }, [policy, currentUserDetails.login]);
 
-    const [managerEmail, setManagerEmail] = useState('');
-    const [emailError, setEmailError] = useState('');
-
-    useEffect(() => {
-        setManagerEmail(prepopulatedEmail);
-    }, [prepopulatedEmail]);
+    const [userSelectedManagerEmail, setUserSelectedManagerEmail] = useState<string | undefined>();
+    const managerEmail = userSelectedManagerEmail ?? prepopulatedEmail;
 
     const workspaceMembers = useMemo((): WorkspaceMemberItem[] => {
         const employeeList = policy?.employeeList;
@@ -100,15 +89,6 @@ function ReportSubmitToPage({report, policy, isLoadingReportData}: ReportSubmitT
 
     const handleSubmit = useCallback(() => {
         const trimmed = managerEmail.trim();
-        if (!trimmed) {
-            setEmailError(translate('common.error.fieldRequired'));
-            return;
-        }
-        if (!Str.isValidEmail(trimmed)) {
-            setEmailError(translate('messages.errorMessageInvalidEmail'));
-            return;
-        }
-        setEmailError('');
         if (!report) {
             return;
         }
@@ -152,7 +132,6 @@ function ReportSubmitToPage({report, policy, isLoadingReportData}: ReportSubmitT
         amountOwed,
         ownerBillingGracePeriodEnd,
         delegateEmail,
-        translate,
         currentSearchQueryJSON,
         isOffline,
         currentSearchKey,
@@ -160,39 +139,8 @@ function ReportSubmitToPage({report, policy, isLoadingReportData}: ReportSubmitT
         currentSearchResults?.search?.isLoading,
     ]);
 
-    const listHeader = useMemo(
-        () => (
-            <View style={[styles.ph5, styles.pb4]}>
-                <Text style={[styles.textLabelSupporting, styles.mb3]}>{translate('iou.submitReportTo.subtitle')}</Text>
-                <Text style={[styles.textLabel, styles.mb2]}>{translate('iou.submitReportTo.emailLabel')}</Text>
-                <TextInput
-                    value={managerEmail}
-                    onChangeText={(text) => {
-                        setManagerEmail(text);
-                        if (emailError) {
-                            setEmailError('');
-                        }
-                    }}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    keyboardType="email-address"
-                />
-                {!!emailError && (
-                    <FormHelpMessage
-                        isError
-                        style={[styles.mt2]}
-                        message={emailError}
-                    />
-                )}
-                <Text style={[styles.textLabel, styles.mt5, styles.mb2]}>{translate('iou.submitReportTo.workspaceMembers')}</Text>
-            </View>
-        ),
-        [styles.ph5, styles.pb4, styles.textLabelSupporting, styles.mb3, styles.textLabel, styles.mb2, styles.mt5, styles.mt2, translate, managerEmail, emailError],
-    );
-
     const onSelectMember = useCallback((item: WorkspaceMemberItem) => {
-        setManagerEmail(item.email);
-        setEmailError('');
+        setUserSelectedManagerEmail(item.email);
     }, []);
 
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isExpenseReport(report) || isMoneyRequestReportPendingDeletion(report);
@@ -224,10 +172,11 @@ function ReportSubmitToPage({report, policy, isLoadingReportData}: ReportSubmitT
                 data={workspaceMembers}
                 ListItem={SingleSelectListItem}
                 onSelectRow={onSelectMember}
-                customListHeader={listHeader}
                 confirmButtonOptions={confirmButtonOptions}
                 shouldUpdateFocusedIndex
                 initiallyFocusedItemKey={workspaceMembers.find((m) => m.isSelected)?.keyForList}
+                disableMaintainingScrollPosition
+                addBottomSafeAreaPadding
             />
         </ScreenWrapper>
     );
