@@ -13,6 +13,7 @@ import useOnyx from '@hooks/useOnyx';
 import useStableIndexedHandler from '@hooks/useStableIndexedHandler';
 import {isMobileChrome} from '@libs/Browser';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
+import {isFocusRestoreInProgress} from '@libs/NavigationFocusReturn';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Modal} from '@src/types/onyx';
@@ -64,12 +65,19 @@ function BaseSearchList({
         onFocusedIndexChange: (index: number) => {
             scrollToIndex?.(index);
         },
+        onArrowUpDownCallback: () => {
+            ref?.current?.announceProgrammaticScroll();
+        },
         setHasKeyBeenPressed,
         isFocused,
         captureOnInputs: false,
     });
 
     const handleFocusByIndex = (index: number, event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
+        // The focus-return restore shouldn't move the keyboard cursor here, or the row gets highlighted and scrolled into view on back nav. The .focus() still restores DOM focus for screen readers.
+        if (isFocusRestoreInProgress()) {
+            return;
+        }
         // Prevent unexpected scrolling on mobile Chrome after the context menu closes by ignoring programmatic focus not triggered by direct user interaction.
         if (isMobileChrome() && event.nativeEvent) {
             if (!event.nativeEvent.sourceCapabilities) {

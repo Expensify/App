@@ -6199,7 +6199,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 chooseBankAccount: '选择用于对账 Expensify 卡付款的银行账户。',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `请确保此账户与您的<a href="${settlementAccountUrl}">Expensify 卡结算账户</a>（末尾为 ${lastFourPAN}）一致，以便持续对账功能正常运行。`,
+                chooseTravelInvoicingBankAccount: '选择用于核对差旅开票付款的银行账户。',
+                travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) => `请确保此账户与您的差旅发票结算账户（以 ${lastFourPAN} 结尾）一致，以确保持续对账功能正常运行。`,
             },
+            syncTravelInvoicingSettlements: '同步差旅开票结算',
         },
         export: {
             notReadyHeading: '尚未准备好导出',
@@ -6908,6 +6911,10 @@ ${reportName}
                         other: (count: number) => `${count} 员工`,
                     }),
                 },
+            },
+            merge: {
+                approvalMode: '审批模式',
+                finalApprover: '最终审批人',
             },
             zenefits: {
                 title: 'TriNet',
@@ -8422,6 +8429,7 @@ ${reportName}
         bookACallTextTop: '切换回 Expensify 经典版后，您将无法享受：',
         bookACallTextBottom: '我们非常期待与您通话以了解原因。您可以预约与我们的一位资深产品经理通话，讨论您的需求。',
         takeMeToExpensifyClassic: '带我前往 Expensify 经典版',
+        goBackJustOnce: '仅此一次返回',
     },
     listBoundary: {
         errorMessage: '加载更多消息时出错',

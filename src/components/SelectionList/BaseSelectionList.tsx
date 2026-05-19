@@ -18,6 +18,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
+import {isFocusRestoreInProgress} from '@libs/NavigationFocusReturn';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -202,10 +203,6 @@ function BaseSelectionList<TItem extends ListItem>({
 
     const debouncedScrollToIndex = useDebounce(scrollToIndex, CONST.TIMING.LIST_SCROLLING_DEBOUNCE_TIME, {leading: true, trailing: true});
 
-    const onArrowUpDownCallback = useCallback(() => {
-        setShouldDisableHoverStyle(true);
-    }, [setShouldDisableHoverStyle]);
-
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex,
         maxIndex: data.length - 1,
@@ -224,8 +221,22 @@ function BaseSelectionList<TItem extends ListItem>({
         },
         setHasKeyBeenPressed,
         isFocused,
-        onArrowUpDownCallback,
+        onArrowUpDownCallback: () => {
+            setShouldDisableHoverStyle(true);
+            listRef.current?.announceProgrammaticScroll();
+        },
     });
+
+    // Keep the cursor on the restored row so keyboard nav continues from there, but don't scroll to it on the way back.
+    const setFocusedIndexFromRowFocus = useCallback(
+        (index: number) => {
+            if (isFocusRestoreInProgress() && index !== focusedIndex) {
+                suppressNextFocusScrollRef.current = true;
+            }
+            setFocusedIndex(index);
+        },
+        [focusedIndex, setFocusedIndex],
+    );
 
     // extraData helps FlashList detect when data changes significantly (e.g., during filtering)
     // Including data.length ensures FlashList resets its layout cache when the list size changes
@@ -373,7 +384,7 @@ function BaseSelectionList<TItem extends ListItem>({
                     isSelected: selected,
                     ...item,
                 }}
-                setFocusedIndex={setFocusedIndex}
+                setFocusedIndex={setFocusedIndexFromRowFocus}
                 index={index}
                 isFocused={isItemFocused}
                 isFocusVisible={isItemVisuallyFocused}
