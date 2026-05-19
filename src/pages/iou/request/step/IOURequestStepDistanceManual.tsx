@@ -27,7 +27,9 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
+import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
+import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
@@ -209,6 +211,7 @@ function IOURequestStepDistanceManual({
         }
 
         handleMoneyRequestStepDistanceNavigation({
+            submitWithDismissFirst,
             iouType,
             report,
             policy,
@@ -246,15 +249,21 @@ function IOURequestStepDistanceManual({
             ownerBillingGracePeriodEnd,
             conciergeReportID,
             draftTransactionIDs,
-            onTransactionsCreated: (lastTransactionID, optimisticChatReportID) =>
-                cleanupAndNavigateAfterExpenseCreate({
-                    report,
-                    draftTransactionIDs,
-                    transactionID: lastTransactionID,
-                    isFromGlobalCreate: getIsFromGlobalCreate(transaction),
-                    backToReport,
-                    optimisticChatReportID,
-                }),
+            onTransactionsCreated: (lastTransactionID, optimisticChatReportID, shouldHandleNav) => {
+                // submitWithDismissFirst pre-navigates on every branch except the fallback (shouldHandleNav === true).
+                if (shouldHandleNav ?? true) {
+                    cleanupAndNavigateAfterExpenseCreate({
+                        report,
+                        draftTransactionIDs,
+                        transactionID: lastTransactionID,
+                        isFromGlobalCreate: getIsFromGlobalCreate(transaction),
+                        backToReport,
+                        optimisticChatReportID,
+                    });
+                    return;
+                }
+                cleanupAfterExpenseCreate({draftTransactionIDs, linkedTrackedExpenseReportAction: transaction?.linkedTrackedExpenseReportAction});
+            },
         });
     };
 

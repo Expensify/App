@@ -1,4 +1,4 @@
-import type {submitWithDismissFirst as SubmitWithDismissFirstFn} from '@libs/actions/IOU/submitWithDismissFirst';
+import type {submitWithDismissFirst as SubmitWithDismissFirstFn} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import CONST from '@src/CONST';
 
 const mockIsSearchTopmostFullScreenRoute = jest.fn<boolean, []>();
@@ -27,7 +27,7 @@ jest.mock('@libs/telemetry/submitFollowUpAction', () => ({
     setPendingSubmitFollowUpAction: (...args: unknown[]) => mockSetPendingSubmitFollowUpAction(...args) as unknown,
 }));
 
-const submitModule = jest.requireActual<{submitWithDismissFirst: typeof SubmitWithDismissFirstFn}>('@libs/actions/IOU/submitWithDismissFirst');
+const submitModule = jest.requireActual<{submitWithDismissFirst: typeof SubmitWithDismissFirstFn}>('@libs/Navigation/helpers/submitWithDismissFirst');
 const {submitWithDismissFirst} = submitModule;
 
 const TELEMETRY_CONTEXT = {

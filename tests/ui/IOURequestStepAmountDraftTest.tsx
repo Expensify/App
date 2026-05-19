@@ -93,7 +93,11 @@ jest.mock('@libs/Navigation/Navigation', () => {
     };
 });
 
-jest.mock('@libs/actions/IOU/submitWithDismissFirst', () => jest.requireActual('../__mocks__/submitWithDismissFirst'));
+jest.mock('@libs/Navigation/helpers/submitWithDismissFirst', () => jest.requireActual('../__mocks__/submitWithDismissFirst'));
+
+// Action-assertion test: post-create navigation is exercised elsewhere; keep the nav helpers inert here.
+jest.mock('@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate', () => jest.fn());
+jest.mock('@libs/Navigation/helpers/cleanupAfterExpenseCreate', () => jest.fn());
 
 jest.mock('@react-navigation/native', () => {
     const mockRef = {

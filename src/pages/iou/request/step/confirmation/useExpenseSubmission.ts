@@ -318,7 +318,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         let allTransactionsCreated = true;
         let lastOptimisticTransactionID: string | undefined;
 
-        for (const [index, item] of transactions.entries()) {
+        for (const item of transactions) {
             lastOptimisticTransactionID = rand64();
             const receipt = receiptFiles[item.transactionID];
             const isTestReceipt = receipt?.isTestReceipt ?? false;
@@ -422,7 +422,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     isFromGlobalCreate: item?.isFromFloatingActionButton ?? item?.isFromGlobalCreate,
                     ...(isTimeRequest ? {type: CONST.TRANSACTION.TYPE.TIME, count: item.comment?.units?.count, rate: item.comment?.units?.rate, unit: CONST.TIME_TRACKING.UNIT.HOUR} : {}),
                 },
-                shouldDeferAPIWrite: index === transactions.length - 1,
                 optimisticTransactionID: lastOptimisticTransactionID,
                 shouldGenerateTransactionThreadReport,
                 isASAPSubmitBetaEnabled,
@@ -535,7 +534,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 personalDetails,
                 optimisticChatReportID,
                 conciergeReportID,
-                shouldDeferAPIWrite: shouldHandleNav,
             });
             if (shouldHandleNav && result && activeReportID) {
                 navigateAfterExpenseCreate({
@@ -548,7 +546,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         }
     }
 
-    function trackExpense(selectedParticipantsArg: Participant[], shouldHandleNav: boolean, options?: {gpsPoint?: GpsPoint; shouldDeferForSearch?: boolean}) {
+    function trackExpense(selectedParticipantsArg: Participant[], shouldHandleNav: boolean, options?: {gpsPoint?: GpsPoint}) {
         const {gpsPoint} = options ?? {};
         if (!transactions.length) {
             return;
@@ -564,7 +562,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         }
         const optimisticSelfDMReportID = selfDMReport?.reportID ?? generateReportID();
         let lastOptimisticTransactionID: string | undefined;
-        for (const [index, item] of transactions.entries()) {
+        for (const item of transactions) {
             lastOptimisticTransactionID = rand64();
             const isLinkedTrackedExpenseReportArchived =
                 !!item.linkedTrackedExpenseReportID && privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
@@ -617,7 +615,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 accountantParams: {
                     accountant: item.accountant,
                 },
-                shouldDeferAPIWrite: index === transactions.length - 1,
                 optimisticChatReportID: optimisticSelfDMReportID,
                 optimisticTransactionID: lastOptimisticTransactionID,
                 isASAPSubmitBetaEnabled,
@@ -741,7 +738,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
         const currentTransactionReceiptFile = transaction?.transactionID ? receiptFiles[transaction.transactionID] : undefined;
         const shouldDeferSplitForSearch = iouType === CONST.IOU.TYPE.SPLIT && isDeferredSearchSubmit;
-        const shouldDeferTrackForSearch = isTrackExpense && isDeferredSearchSubmit;
 
         // Split flows usually navigate to the destination report internally, but dismiss-first
         // handlers can pass shouldHandleNavigation=false after revealing/dismissing first.
@@ -893,24 +889,21 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     if (userLocation) {
                         trackExpense(selectedParticipantsArg, shouldHandleNavigation, {
                             gpsPoint: {lat: userLocation.latitude, long: userLocation.longitude},
-                            shouldDeferForSearch: shouldDeferTrackForSearch,
                         });
                         markSubmitExpenseEnd();
                         return;
                     }
 
-                    getCurrentPositionWithGeolocationSpan((gpsCoords) =>
-                        trackExpense(selectedParticipantsArg, shouldHandleNavigation, {gpsPoint: gpsCoords, shouldDeferForSearch: shouldDeferTrackForSearch}),
-                    );
+                    getCurrentPositionWithGeolocationSpan((gpsCoords) => trackExpense(selectedParticipantsArg, shouldHandleNavigation, {gpsPoint: gpsCoords}));
                     return;
                 }
 
                 // Otherwise, the money is being requested through the "Manual" flow with an attached image and the GPS coordinates are not needed.
-                trackExpense(selectedParticipantsArg, shouldHandleNavigation, {shouldDeferForSearch: shouldDeferTrackForSearch});
+                trackExpense(selectedParticipantsArg, shouldHandleNavigation);
                 markSubmitExpenseEnd();
                 return;
             }
-            trackExpense(selectedParticipantsArg, shouldHandleNavigation, {shouldDeferForSearch: shouldDeferTrackForSearch});
+            trackExpense(selectedParticipantsArg, shouldHandleNavigation);
             markSubmitExpenseEnd();
             return;
         }

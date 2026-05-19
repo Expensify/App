@@ -18,6 +18,7 @@ import * as Split from '../../../src/libs/actions/IOU/Split';
 import * as TrackExpense from '../../../src/libs/actions/IOU/TrackExpense';
 import DistanceRequestUtils from '../../../src/libs/DistanceRequestUtils';
 import * as ReportUtils from '../../../src/libs/ReportUtils';
+import {submitWithDismissFirst} from '../../__mocks__/submitWithDismissFirst';
 import createRandomPolicy from '../../utils/collections/policies';
 import {createRandomReport, createSelfDM} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
@@ -56,8 +57,8 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
 }));
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-return -- jest.requireActual returns `any` by design
-jest.mock('@libs/actions/IOU/submitWithDismissFirst', () => jest.requireActual('../../__mocks__/submitWithDismissFirst'));
+// submitWithDismissFirst is dependency-injected into the action entrypoints; tests supply the
+// bypass mock via baseParams rather than jest.mock-ing a module.
 
 jest.mock('@libs/getCurrentPosition');
 
@@ -153,12 +154,12 @@ describe('MoneyRequest', () => {
                         reimbursable: true,
                         gpsPoint: undefined,
                     }),
-                    shouldDeferAPIWrite: true,
                     isASAPSubmitBetaEnabled: false,
                 }),
             );
 
-            expect(TrackExpense.trackExpense).toHaveBeenLastCalledWith(expect.objectContaining({shouldDeferAPIWrite: true}));
+            // Deferral is channel-driven; the action no longer receives a shouldDeferAPIWrite flag.
+            expect(TrackExpense.trackExpense).not.toHaveBeenLastCalledWith(expect.objectContaining({shouldDeferAPIWrite: expect.anything()}));
         });
 
         it('should call requestMoney for non-TRACK (SEND) iouType', () => {
@@ -193,7 +194,6 @@ describe('MoneyRequest', () => {
                         billable: undefined,
                         reimbursable: true,
                     }),
-                    shouldDeferAPIWrite: true,
                     shouldGenerateTransactionThreadReport: false,
                     isASAPSubmitBetaEnabled: false,
                     currentUserAccountIDParam: 111,
@@ -203,7 +203,7 @@ describe('MoneyRequest', () => {
             );
         });
 
-        it('should pass shouldDeferAPIWrite as true for last file only', () => {
+        it('should not pass shouldDeferAPIWrite to the action (V2: deferral is channel-driven)', () => {
             const files = [
                 {...fakeReceiptFile, transactionID: '111'},
                 {...fakeReceiptFile, transactionID: '222'},
@@ -218,25 +218,7 @@ describe('MoneyRequest', () => {
             });
 
             expect(TrackExpense.trackExpense).toHaveBeenCalledTimes(files.length);
-
-            expect(TrackExpense.trackExpense).toHaveBeenNthCalledWith(
-                1,
-                expect.objectContaining({
-                    shouldDeferAPIWrite: false,
-                }),
-            );
-            expect(TrackExpense.trackExpense).toHaveBeenNthCalledWith(
-                2,
-                expect.objectContaining({
-                    shouldDeferAPIWrite: false,
-                }),
-            );
-            expect(TrackExpense.trackExpense).toHaveBeenNthCalledWith(
-                3,
-                expect.objectContaining({
-                    shouldDeferAPIWrite: true,
-                }),
-            );
+            expect(TrackExpense.trackExpense).not.toHaveBeenCalledWith(expect.objectContaining({shouldDeferAPIWrite: expect.anything()}));
         });
 
         it('should default receipt source and state correctly when file is missing', () => {
@@ -542,6 +524,7 @@ describe('MoneyRequest', () => {
         const selfDMReport = createSelfDM(Number(SELF_DM_REPORT_ID), TEST_USER_ACCOUNT_ID);
 
         const baseParams: MoneyRequestStepScanParticipantsFlowParams = {
+            submitWithDismissFirst,
             iouType: CONST.IOU.TYPE.CREATE,
             policy: fakePolicy,
             report: fakeReport,
@@ -860,7 +843,6 @@ describe('MoneyRequest', () => {
                     currentUserAccountIDParam: baseParams.currentUserAccountID,
                     currentUserEmailParam: baseParams.currentUserLogin,
                     quickAction: baseParams.quickAction,
-                    shouldDeferAPIWrite: true,
                     recentWaypoints,
                 }),
             );
@@ -1061,6 +1043,7 @@ describe('MoneyRequest', () => {
         const selfDMReport = createSelfDM(Number(SELF_DM_REPORT_ID), TEST_USER_ACCOUNT_ID);
 
         const baseParams = {
+            submitWithDismissFirst,
             iouType: CONST.IOU.TYPE.CREATE,
             report: fakeReport,
             policy: fakePolicy,

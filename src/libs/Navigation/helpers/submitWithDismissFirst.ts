@@ -11,6 +11,10 @@
  * This module centralizes the telemetry setup + navigation branching so each
  * call site only needs to describe *what* to write and *where* it should land.
  *
+ * **View-layer helper (issue #84631).** Must only be invoked from
+ * components/hooks, never from `src/libs/actions/`. Action entrypoints that
+ * need it receive it by dependency injection from their UI caller.
+ *
  * **Relationship with SubmitExpenseOrchestrator:**
  * This is the simplified variant for skip-confirmation paths (QAB amount entry,
  * scan without confirmation, distance without confirmation). It handles a 3-branch
@@ -22,21 +26,21 @@
  */
 import {reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-import getTopmostReportParams from '@libs/Navigation/helpers/getTopmostReportParams';
-import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {setFastPath, setPendingSubmitFollowUpAction, startTracking} from '@libs/telemetry/submitFollowUpAction';
 import type {SubmitExpenseContext} from '@libs/telemetry/submitFollowUpAction';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import isSearchTopmostFullScreenRoute from './isSearchTopmostFullScreenRoute';
+import getTopmostReportParams from './getTopmostReportParams';
 
 /**
  * Overrides passed into `executeWrite` by the orchestration layer.
  *
  * When called by `submitWithDismissFirst`, both fields are always provided
  * with explicit values so callers don't need `?? true` guards. When used
- * directly by action helpers (e.g. MoneyRequest.ts) the fields are optional
+ * via dependency injection by action entrypoints the fields are optional
  * to allow `= {}` defaults.
  */
 type WriteOverrides = {

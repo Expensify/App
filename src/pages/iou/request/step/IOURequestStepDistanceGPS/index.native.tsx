@@ -21,6 +21,7 @@ import {handleMoneyRequestStepDistanceNavigation, setGPSTransactionDraftData} fr
 import {init as initMapboxToken, stop as stopMapboxToken} from '@libs/actions/MapboxToken';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getGPSConvertedDistance, getGpsPoints, getGPSWaypoints, getLastGpsPoint, getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
+import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
@@ -101,6 +102,7 @@ function IOURequestStepDistanceGPS({
         const waypoints = getGPSWaypoints(gpsDraftDetails);
 
         handleMoneyRequestStepDistanceNavigation({
+            submitWithDismissFirst,
             iouType,
             report,
             policy,

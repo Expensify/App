@@ -12,7 +12,6 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {updateIOUOwnerAndTotal} from '@libs/IOUUtils';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {validateAmount} from '@libs/MoneyRequestUtils';
-import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
@@ -234,7 +233,6 @@ type PerDiemExpenseInformation = {
     shouldDeferAutoSubmit?: boolean;
     optimisticChatReportID?: string;
     optimisticTransactionID?: string;
-    shouldDeferAPIWrite?: boolean;
 };
 
 type PerDiemExpenseInformationParams = {
@@ -904,7 +902,6 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         shouldDeferAutoSubmit,
         optimisticChatReportID,
         optimisticTransactionID,
-        shouldDeferAPIWrite = true,
     } = submitPerDiemExpenseInformation;
     const {currency, comment = '', category, tag, created, customUnit, attendees, isFromGlobalCreate} = transactionParams;
 
@@ -1006,7 +1003,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
     };
 
     deferOrExecuteWrite(apiWrite, {
-        shouldDeferForSearch: !!(shouldDeferAPIWrite && isFromGlobalCreate && !isReportTopmostSplitNavigator()),
+        shouldDeferForSearch: false,
         optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
         onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
     });

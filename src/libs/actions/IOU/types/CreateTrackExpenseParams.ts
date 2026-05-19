@@ -21,7 +21,6 @@ type CreateTrackExpenseParams = {
     accountantParams?: TrackExpenseAccountantParams;
     isRetry?: boolean;
     shouldPlaySound?: boolean;
-    shouldDeferAPIWrite?: boolean;
     draftTransactionIDs?: string[];
     optimisticChatReportID?: string;
     optimisticTransactionID?: string;

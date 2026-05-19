@@ -21,7 +21,6 @@ import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpen
 import isFileUploadable from '@libs/isFileUploadable';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
-import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import * as NumberUtils from '@libs/NumberUtils';
@@ -1586,7 +1585,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         gpsPoint,
         action,
         shouldPlaySound = true,
-        shouldDeferAPIWrite = true,
         optimisticChatReportID,
         optimisticCreatedReportActionID,
         optimisticIOUReportID,
@@ -1718,8 +1716,8 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
     // lays out, so that Onyx optimistic updates don't block the JS thread while
     // the skeleton→content transition is in progress. The Search component flushes
     // the registered write from its content onLayout callback.
-    // Only the SUBMIT and default (REQUEST_MONEY) branches wrap the write; the actual
-    // deferral only activates when the UI defers for Search (shouldDeferAPIWrite && !isRetry).
+    // Only the SUBMIT and default (REQUEST_MONEY) branches wrap the write; deferOrExecuteWrite
+    // defers iff the UI reserved a SEARCH/DISMISS_MODAL channel, else writes immediately.
     // CATEGORIZE and SHARE navigate elsewhere and don't benefit from this deferral.
     let deferredAPIWrite: (() => void) | undefined;
 
@@ -1857,7 +1855,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
     // hasDeferredWrite() check on mount always sees the pending channel.
     if (deferredAPIWrite) {
         deferOrExecuteWrite(deferredAPIWrite, {
-            shouldDeferForSearch: shouldDeferAPIWrite && !requestMoneyInformation.isRetry && isFromGlobalCreate && !isReportTopmostSplitNavigator(),
+            shouldDeferForSearch: false,
             isRetry: requestMoneyInformation.isRetry,
             optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
@@ -2277,7 +2275,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
         transactionParams: transactionData,
         accountantParams,
         shouldPlaySound = true,
-        shouldDeferAPIWrite = true,
         optimisticChatReportID,
         optimisticTransactionID,
         isASAPSubmitBetaEnabled,
@@ -2646,7 +2643,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
             };
 
             deferOrExecuteWrite(apiWrite, {
-                shouldDeferForSearch: shouldDeferAPIWrite && !params.isRetry && isFromGlobalCreate && !isReportTopmostSplitNavigator(),
+                shouldDeferForSearch: false,
                 isRetry: params.isRetry,
                 optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`,
                 onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),

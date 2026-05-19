@@ -14,7 +14,9 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import {getMoneyRequestParticipantOptions, handleMoneyRequestStepScanParticipants} from '@libs/actions/IOU/MoneyRequest';
+import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
+import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import {isPolicyExpenseChat} from '@libs/ReportUtils';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue, hasReceipt, shouldReuseInitialTransaction} from '@libs/TransactionUtils';
@@ -109,6 +111,7 @@ function useReceiptScan({
         });
 
         handleMoneyRequestStepScanParticipants({
+            submitWithDismissFirst,
             iouType,
             policy,
             report,
@@ -150,15 +153,21 @@ function useReceiptScan({
             allTransactionDrafts,
             participants,
             participantsPolicyTags,
-            onTransactionsCreated: (lastTransactionID) => {
-                cleanupAndNavigateAfterExpenseCreate({
-                    report,
-                    draftTransactionIDs,
-                    transactionID: lastTransactionID ?? initialTransactionID,
-                    isFromGlobalCreate: getIsFromGlobalCreate(initialTransaction),
-                    backToReport,
-                    linkedTrackedExpenseReportAction: initialTransaction?.linkedTrackedExpenseReportAction,
-                });
+            onTransactionsCreated: (lastTransactionID, optimisticChatReportID, shouldHandleNav) => {
+                // submitWithDismissFirst pre-navigates on every branch except the fallback (shouldHandleNav === true).
+                if (shouldHandleNav ?? true) {
+                    cleanupAndNavigateAfterExpenseCreate({
+                        report,
+                        draftTransactionIDs,
+                        transactionID: lastTransactionID ?? initialTransactionID,
+                        isFromGlobalCreate: getIsFromGlobalCreate(initialTransaction),
+                        backToReport,
+                        optimisticChatReportID,
+                        linkedTrackedExpenseReportAction: initialTransaction?.linkedTrackedExpenseReportAction,
+                    });
+                    return;
+                }
+                cleanupAfterExpenseCreate({draftTransactionIDs, linkedTrackedExpenseReportAction: initialTransaction?.linkedTrackedExpenseReportAction});
             },
             amountOwed,
             userBillingGracePeriodEnds,
