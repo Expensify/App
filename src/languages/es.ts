@@ -2424,10 +2424,10 @@ ${amount} para ${merchant} - ${date}`,
         addApprovalTip: 'Este flujo de trabajo por defecto se aplica a todos los miembros, a menos que exista un flujo de trabajo más específico.',
         approver: 'Aprobador',
         addApprovalsDescription: 'Requiere una aprobación adicional antes de autorizar un pago.',
-        configureViaGusto: 'Configurar mediante Gusto.',
-        gustoApprovalWorkflowLockedPrompt:
-            'Las aprobaciones se gestionan mediante tu integración de Gusto. Para actualizar tu flujo de aprobación, ve a la configuración de conexión de Gusto.',
-        goToGustoSettings: 'Ir a la configuración de Gusto',
+        configureViaHR: ({provider}: {provider: string}) => `Configurar mediante ${provider}.`,
+        hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
+            `Las aprobaciones se gestionan mediante tu integración de ${provider}. Para actualizar tu flujo de aprobación, ve a la configuración de conexión de ${provider}.`,
+        goToHRSettings: ({provider}: {provider: string}) => `Ir a la configuración de ${provider}`,
         makeOrTrackPaymentsTitle: 'Realizar o seguir pagos',
         makeOrTrackPaymentsDescription: 'Añade un pagador autorizado para los pagos realizados en Expensify o realiza un seguimiento de los pagos realizados en otro lugar.',
         customApprovalWorkflowEnabled:
@@ -8773,7 +8773,16 @@ ${amount} para ${merchant} - ${date}`,
             `<muted-text-label>Recibo pendiente debido a una conexión bancaria rota. Por favor, resuélvelo en <a href="${workspaceCompanyCardRoute}">Tarjetas de empresa</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Recibo pendiente debido a una conexión bancaria rota. Por favor, pide a un administrador del espacio de trabajo que lo resuelva.',
         markAsCashToIgnore: 'Márcalo como efectivo para ignorar y solicitar el pago.',
-        smartscanFailed: ({canEdit = true}) => `No se pudo escanear el recibo.${canEdit ? ' Introduce los datos manualmente.' : ''}`,
+        smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
+            if (missingFields.length > 0) {
+                const fieldNames: Record<string, string> = {merchant: 'comerciante', date: 'fecha', amount: 'importe'};
+                const translated = missingFields.map((f) => fieldNames[f] ?? f);
+                const fieldList = translated.join(translated.length > 2 ? ', ' : ' y ');
+                const verb = translated.length === 1 ? 'falta' : 'faltan';
+                return `No se pudo escanear el recibo — ${verb} ${fieldList}.${canEdit ? ' Introduce los datos manualmente.' : ''}`;
+            }
+            return `No se pudo escanear el recibo.${canEdit ? ' Introduce los datos manualmente.' : ''}`;
+        },
         receiptGeneratedWithAI: 'Posible recibo generado por IA',
         someTagLevelsRequired: (tagName) => `Falta ${tagName ?? 'Tag'}`,
         tagOutOfPolicy: (tagName) => `La etiqueta ${tagName ? `${tagName} ` : ''}ya no es válida`,
