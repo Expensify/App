@@ -720,8 +720,8 @@ function ReportActionsList({
         if (actionBadgeTargetIndex < 0) {
             return;
         }
-        reportScrollManager.scrollToIndex(actionBadgeTargetIndex);
-    }, [actionBadgeTargetIndex, reportScrollManager]);
+        reportScrollManager.ref.current?.scrollToIndex({index: actionBadgeTargetIndex, animated: false});
+    }, [actionBadgeTargetIndex, reportScrollManager.ref]);
 
     /**
      * Thread's divider line should hide when the first chat in the thread is marked as unread.
