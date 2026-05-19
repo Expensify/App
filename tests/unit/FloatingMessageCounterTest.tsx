@@ -3,7 +3,7 @@ import React from 'react';
 import FloatingMessageCounter from '@pages/inbox/report/FloatingMessageCounter';
 import CONST from '@src/CONST';
 
-/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/naming-convention -- Translation keys use dot-notation which violates naming conventions */
 const translationMap: Record<string, string> = {
     newMessages: 'New messages',
     latestMessages: 'Latest messages',
