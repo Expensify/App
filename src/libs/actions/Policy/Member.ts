@@ -843,8 +843,7 @@ function buildAddMembersToWorkspaceOnyxData(
     const announceRoomMembers = buildRoomMembersOnyxData(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID, accountIDs);
     // Admins and auditors are always in the #admins room. Editors (Submit workspaces only) join it too so they get
     // visibility into configuration changes — gated on the beta to keep the room membership unchanged for non-beta users.
-    const shouldAddToAdminsRoom =
-        effectiveRole === CONST.POLICY.ROLE.ADMIN || effectiveRole === CONST.POLICY.ROLE.AUDITOR || (shouldForceEditorRole && effectiveRole === CONST.POLICY.ROLE.EDITOR);
+    const shouldAddToAdminsRoom = effectiveRole === CONST.POLICY.ROLE.ADMIN || effectiveRole === CONST.POLICY.ROLE.AUDITOR || shouldForceEditorRole;
     const adminRoomMembers = buildRoomMembersOnyxData(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID, shouldAddToAdminsRoom ? accountIDs : []);
     const optimisticAnnounceChat = ReportUtils.buildOptimisticAnnounceChat(policyID, [...policyMemberAccountIDs, ...accountIDs], currentUserAccountID);
     const announceRoomChat = optimisticAnnounceChat.announceChatData;
@@ -947,7 +946,7 @@ function buildAddMembersToWorkspaceOnyxData(
     ];
     failureData.push(...membersChats.onyxFailureData, ...announceRoomChat.onyxFailureData, ...(announceRoomMembers.failureData ?? []), ...(adminRoomMembers.failureData ?? []));
 
-    return {optimisticData, successData, failureData, optimisticAnnounceChat, membersChats, logins};
+    return {optimisticData, successData, failureData, optimisticAnnounceChat, membersChats, logins, effectiveRole};
 }
 
 /**
@@ -971,16 +970,15 @@ function addMembersToWorkspace(
         Log.warn('addMembersToWorkspace: Policy ID is undefined');
         return;
     }
-    // Submit workspaces only allow the editor role on invite. Override here so the API request and
-    // every call site that funnels through this function get the same role as the optimistic data.
-    // The backend enforces this too (Policy::shareWithEmployees), but normalizing it on the client
-    // avoids a flash of the wrong role in the UI. Gated on the beta so the override is a no-op for users without it.
-    const effectiveRole = canUseSubmit2026 && isSubmitPolicy(policy) ? CONST.POLICY.ROLE.EDITOR : role;
-    const {optimisticData, successData, failureData, optimisticAnnounceChat, membersChats, logins} = buildAddMembersToWorkspaceOnyxData(
+    // Submit workspaces only allow the editor role on invite — `buildAddMembersToWorkspaceOnyxData` handles
+    // the override (and returns the effective role) so the optimistic data and API request stay in sync.
+    // The backend enforces this too (Policy::shareWithEmployees); the FE override is just to avoid a flash
+    // of the caller-provided role in the UI.
+    const {effectiveRole, optimisticData, successData, failureData, optimisticAnnounceChat, membersChats, logins} = buildAddMembersToWorkspaceOnyxData(
         invitedEmailsToAccountIDs,
         policy,
         policyMemberAccountIDs,
-        effectiveRole,
+        role,
         formatPhoneNumber,
         currentUserAccountID,
         approverEmail,
