@@ -22,6 +22,7 @@ type CreateTrackExpenseParams = {
     isRetry?: boolean;
     shouldPlaySound?: boolean;
     shouldHandleNavigation?: boolean;
+    shouldDeferForSearch?: boolean;
     isASAPSubmitBetaEnabled: boolean;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
@@ -33,6 +34,7 @@ type CreateTrackExpenseParams = {
     draftTransactionIDs: string[] | undefined;
     isSelfTourViewed: boolean;
     defaultWorkspaceName?: string;
+    previousOdometerDraft?: OnyxEntry<OnyxTypes.OdometerDraft>;
 };
 
 export type {CreateTrackExpenseParams, TrackExpenseAccountantParams};

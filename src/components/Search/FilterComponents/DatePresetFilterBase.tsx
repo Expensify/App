@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {Ref} from 'react';
+import {View} from 'react-native';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
 import MenuItem from '@components/MenuItem';
 import type {SearchDatePreset} from '@components/Search/types';
@@ -160,6 +161,7 @@ function DatePresetFilterBase({
 
     const [dateValues, setDateValues] = useState<SearchDateValues>(normalizedDefaultDateValues);
     const dateValuesRef = useRef<SearchDateValues>(normalizedDefaultDateValues);
+    const [focusedPresetKey, setFocusedPresetKey] = useState<string | null>(null);
     const updateDateValues = useCallback(
         (updater: SearchDateValues | ((prevDateValues: SearchDateValues) => SearchDateValues), shouldNotify = true) => {
             const nextDateValues = typeof updater === 'function' ? updater(dateValuesRef.current) : updater;
@@ -396,20 +398,26 @@ function DatePresetFilterBase({
     if (!selectedDateModifier) {
         return (
             <>
-                {presets?.map((preset) => (
-                    <SingleSelectListItem
-                        key={preset}
-                        keyForList={preset}
-                        showTooltip
-                        item={{
-                            keyForList: preset,
-                            text: translate(`search.filters.date.presets.${preset}`),
-                            isSelected: dateValues[CONST.SEARCH.DATE_MODIFIERS.ON] === preset,
-                        }}
-                        onSelectRow={() => setExclusiveDateValue(CONST.SEARCH.DATE_MODIFIERS.ON, preset)}
-                        wrapperStyle={styles.flexReset}
-                    />
-                ))}
+                <View onBlur={() => setFocusedPresetKey(null)}>
+                    {presets?.map((preset) => (
+                        <SingleSelectListItem
+                            key={preset}
+                            keyForList={preset}
+                            showTooltip
+                            item={{
+                                keyForList: preset,
+                                text: translate(`search.filters.date.presets.${preset}`),
+                                isSelected: dateValues[CONST.SEARCH.DATE_MODIFIERS.ON] === preset,
+                            }}
+                            onSelectRow={() => setExclusiveDateValue(CONST.SEARCH.DATE_MODIFIERS.ON, preset)}
+                            wrapperStyle={[styles.flexReset, styles.optionRowCompact]}
+                            isFocused={focusedPresetKey === preset}
+                            isFocusVisible={focusedPresetKey === preset}
+                            onFocus={() => setFocusedPresetKey(preset)}
+                            shouldSyncFocus={false}
+                        />
+                    ))}
+                </View>
                 {shouldShowHorizontalRule && (
                     <SpacerView
                         shouldShow

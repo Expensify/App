@@ -1,15 +1,15 @@
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import type {CurrencyListActionsContextType} from '@components/CurrencyListContextProvider';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {LastSelectedDistanceRates, OnyxInputOrEntry, Transaction} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {replaceAllDigits} from './MoneyRequestUtils';
-// This will be fixed as part of https://github.com/Expensify/App/issues/66397
-
-import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, getPersonalPolicy, getUnitRateValue} from './PolicyUtils';
+import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, getUnitRateValue} from './PolicyUtils';
 import {getCurrency, getRateID, isCustomUnitRateIDForP2P, isExpenseUnreported} from './TransactionUtils';
 
 type MileageRate = {
@@ -21,6 +21,15 @@ type MileageRate = {
     enabled?: boolean;
     index?: number;
 };
+
+/** @private Only for getRate function */
+let allPolicies: OnyxCollection<Policy>;
+
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    waitForCollectionCallback: true,
+    callback: (value) => (allPolicies = value),
+});
 
 const METERS_TO_KM = 0.001; // 1 kilometer is 1000 meters
 const METERS_TO_MILES = 0.000621371; // There are approximately 0.000621371 miles in a meter
@@ -396,6 +405,11 @@ function getDistanceUnit(transaction: OnyxEntry<Transaction>, mileageRate: OnyxE
     return transaction?.comment?.customUnit?.distanceUnit ?? mileageRate?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
 }
 
+/** @private This is only for internal use for getRate function */
+function getPersonalPolicy() {
+    return Object.values(allPolicies ?? {}).find((policy) => policy?.type === CONST.POLICY.TYPE.PERSONAL);
+}
+
 /**
  * Get the selected rate for a transaction, from the policy or P2P default rate.
  * Use the distanceUnit stored on the transaction by default to prevent policy changes modifying existing transactions. Otherwise, get the unit from the rate.
@@ -410,6 +424,7 @@ function getRate({
     policyForMovingExpenses,
     isFakeP2PRate,
     isMovingTransactionFromTrackExpense,
+    personalPolicyOutputCurrency,
 }: {
     transaction: OnyxEntry<Transaction>;
     policy: OnyxEntry<Policy>;
@@ -418,15 +433,14 @@ function getRate({
     useTransactionDistanceUnit?: boolean;
     isFakeP2PRate?: boolean;
     isMovingTransactionFromTrackExpense?: boolean;
+    personalPolicyOutputCurrency?: string;
 }): MileageRate {
     let mileageRates = getMileageRates(policy, true, transaction?.comment?.customUnit?.customUnitRateID);
     if (isEmptyObject(mileageRates) && policyDraft) {
         mileageRates = getMileageRates(policyDraft, true, transaction?.comment?.customUnit?.customUnitRateID);
     }
     const mileageRatesForMovingExpenses = getMileageRates(policyForMovingExpenses, true, transaction?.comment?.customUnit?.customUnitRateID);
-    // This will be fixed as part of https://github.com/Expensify/App/issues/66397
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policyCurrency = policy?.outputCurrency ?? getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
+    const policyCurrency = policy?.outputCurrency ?? personalPolicyOutputCurrency ?? getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
     const isUnreportedExpense = isExpenseUnreported(transaction);
     const defaultMileageRate = getDefaultMileageRate(policy);
     const customUnitRateID = getRateID(transaction);
@@ -449,8 +463,18 @@ function getRate({
  * For example, if an expense is '10 mi @ $1.00 / mi' and the rate is updated to '$1.00 / km',
  * then the updated distance unit should be 'km' from the updated rate, not 'mi' from the currently stored transaction distance unit.
  */
-function getUpdatedDistanceUnit({transaction, policy, policyDraft}: {transaction: OnyxEntry<Transaction>; policy: OnyxEntry<Policy>; policyDraft?: OnyxEntry<Policy>}) {
-    return getRate({transaction, policy, policyDraft, useTransactionDistanceUnit: false}).unit;
+function getUpdatedDistanceUnit({
+    transaction,
+    policy,
+    policyDraft,
+    personalPolicyOutputCurrency,
+}: {
+    transaction: OnyxEntry<Transaction>;
+    policy: OnyxEntry<Policy>;
+    policyDraft?: OnyxEntry<Policy>;
+    personalPolicyOutputCurrency?: string;
+}) {
+    return getRate({transaction, policy, policyDraft, useTransactionDistanceUnit: false, personalPolicyOutputCurrency}).unit;
 }
 
 /**

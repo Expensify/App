@@ -11,6 +11,8 @@ import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchFilterKey} from
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -19,7 +21,6 @@ import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import type {WorkspaceListItem} from '@hooks/useWorkspaceList';
 import {createCardFeedKey, getCardFeedKey, getCardFeedNamesWithType, getFeedCountryForDisplay, getWorkspaceCardFeedKey} from '@libs/CardFeedUtils';
 import {getCardDescription} from '@libs/CardUtils';
-import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
 import {getCleanedTagName} from '@libs/PolicyUtils';
@@ -33,7 +34,7 @@ import {
     isSearchDatePreset,
     sortOptionsWithEmptyValue,
 } from '@libs/SearchQueryUtils';
-import {getStatusOptions} from '@libs/SearchUIUtils';
+import {getStatusOptions, getWithdrawalStatusDisplayText} from '@libs/SearchUIUtils';
 import {getExpenseTypeTranslationKey} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -165,6 +166,11 @@ const baseFilterConfig = {
         getTitle: getFilterDisplayTitle,
         description: 'search.withdrawalType' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.WITHDRAWAL_TYPE),
+    },
+    withdrawalStatus: {
+        getTitle: getFilterDisplayTitle,
+        description: 'common.withdrawalStatus' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.WITHDRAWAL_STATUS),
     },
     withdrawalID: {
         getTitle: getFilterDisplayTitle,
@@ -312,6 +318,7 @@ function getFilterDisplayTitle(
     filterKey: SearchFilterKey,
     translate: LocaleContextProps['translate'],
     localeCompare: LocaleContextProps['localeCompare'],
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'],
 ) {
     let key: SearchFilterKey = filterKey;
 
@@ -499,6 +506,10 @@ function getFilterDisplayTitle(
         return filterValue ? translate(`search.filters.withdrawalType.${filterValue}`) : undefined;
     }
 
+    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS) {
+        return getWithdrawalStatusDisplayText(filters[key], translate);
+    }
+
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
         const filterValue = filters[key];
         return filterValue ? filterValue.map((value) => translate(`common.${value}`)).join(', ') : undefined;
@@ -585,6 +596,7 @@ function getFilterInDisplayTitle(
 
 function AdvancedSearchFilters() {
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
@@ -636,7 +648,7 @@ function AdvancedSearchFilters() {
             } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS) {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, currentType, translate);
             } else {
-                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
+                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare, convertToDisplayStringWithoutCurrency);
             }
 
             return {
