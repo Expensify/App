@@ -73,10 +73,7 @@ function PersonalCardDetailsHeaderMenu({
                 <MenuItemWithTopDescription
                     description={translate('workspace.moreFeatures.companyCards.cardName')}
                     title={
-                        customCardNames?.[cardID] ??
-                        (isCSVImportedPersonalCard ? card?.nameValuePairs?.cardTitle : undefined) ??
-                        card?.cardName ??
-                        getDefaultCardName(cardholder?.firstName)
+                        customCardNames?.[cardID] ?? (isCSVImportedPersonalCard ? card?.nameValuePairs?.cardTitle : undefined) ?? card?.cardName ?? getDefaultCardName(cardholder?.firstName)
                     }
                     shouldShowRightIcon
                     brickRoadIndicator={card?.nameValuePairs?.errorFields?.cardTitle ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
