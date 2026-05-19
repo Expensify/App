@@ -717,20 +717,8 @@ function ReportActionsList({
     }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID, backTo, introSelected, reportLoadingState?.hasOnceLoadedReportActions, betas]);
 
     const scrollToActionBadgeTarget = useCallback(() => {
-        if (actionBadgeTargetIndex === -1) {
-            // Target action is not in the current pagination window — navigate to it
-            const targetActionID = reportAttributes?.actionTargetReportActionID;
-            if (!targetActionID) {
-                return;
-            }
-            if (!Navigation.getReportRHPActiveRoute()) {
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, targetActionID, undefined, backTo));
-            }
-            openReport({reportID: report.reportID, reportActionID: targetActionID, introSelected, betas});
-            return;
-        }
         reportScrollManager.scrollToIndex(actionBadgeTargetIndex);
-    }, [actionBadgeTargetIndex, reportScrollManager, reportAttributes?.actionTargetReportActionID, report.reportID, backTo, introSelected, betas]);
+    }, [actionBadgeTargetIndex, reportScrollManager]);
 
     /**
      * Thread's divider line should hide when the first chat in the thread is marked as unread.
