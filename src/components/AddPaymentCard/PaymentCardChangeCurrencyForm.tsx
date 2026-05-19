@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FormProvider from '@components/Form/FormProvider';
@@ -9,14 +9,18 @@ import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {clearDraftValues} from '@libs/actions/FormActions';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
 import {getFieldRequiredErrors, isValidSecurityCode} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/ChangeBillingCurrencyForm';
 import PaymentCardCurrencyHeader from './PaymentCardCurrencyHeader';
-import PaymentCardCurrencyModal from './PaymentCardCurrencyModal';
 
 type PaymentCardFormProps = {
     initialCurrency?: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>;
@@ -31,8 +35,21 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
 
-    const [isCurrencyModalVisible, setIsCurrencyModalVisible] = useState(false);
-    const [currency, setCurrency] = useState<ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>>(initialCurrency ?? CONST.PAYMENT_CARD_CURRENCY.USD);
+    // Only the subscription billing flow (security-code branch) pushes to the currency selector screen,
+    // so only it needs to round-trip the selection through the form draft. The inline picker flow
+    // pops back on selection and must not read or clear the shared draft.
+    const [formDraft] = useOnyx(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM_DRAFT);
+    const draftCurrency = isSecurityCodeRequired ? formDraft?.[INPUT_IDS.CURRENCY] : undefined;
+    const currency = draftCurrency ?? initialCurrency ?? CONST.PAYMENT_CARD_CURRENCY.USD;
+
+    useEffect(() => {
+        if (!isSecurityCodeRequired) {
+            return undefined;
+        }
+        return () => {
+            clearDraftValues(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM);
+        };
+    }, [isSecurityCodeRequired]);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM> => {
         const errors = getFieldRequiredErrors(values, REQUIRED_FIELDS, translate);
@@ -67,18 +84,8 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
         [availableCurrencies, currency],
     );
 
-    const showCurrenciesModal = useCallback(() => {
-        setIsCurrencyModalVisible(true);
-    }, []);
-
-    const changeCurrency = useCallback((selectedCurrency: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>) => {
-        setCurrency(selectedCurrency);
-        setIsCurrencyModalVisible(false);
-    }, []);
-
     const selectCurrency = useCallback(
         (selectedCurrency: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>) => {
-            setCurrency(selectedCurrency);
             changeBillingCurrency(selectedCurrency);
         },
         [changeBillingCurrency],
@@ -103,7 +110,7 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
                             title={currency}
                             descriptionTextStyle={styles.textNormal}
                             description={translate('common.currency')}
-                            onPress={showCurrenciesModal}
+                            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PAYMENT_CARD_CURRENCY_SELECTOR.path))}
                         />
                     </View>
                     <InputWrapper
@@ -117,13 +124,6 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
                         autoComplete="cc-csc"
                     />
                 </>
-                <PaymentCardCurrencyModal
-                    isVisible={isCurrencyModalVisible}
-                    currencies={availableCurrencies}
-                    currentCurrency={currency}
-                    onCurrencyChange={changeCurrency}
-                    onClose={() => setIsCurrencyModalVisible(false)}
-                />
             </FormProvider>
         );
     }

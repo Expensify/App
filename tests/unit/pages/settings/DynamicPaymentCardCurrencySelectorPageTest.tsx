@@ -1,0 +1,148 @@
+import {render} from '@testing-library/react-native';
+import React from 'react';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import {setDraftValues} from '@libs/actions/FormActions';
+import Navigation from '@libs/Navigation/Navigation';
+import DynamicPaymentCardCurrencySelectorPage from '@pages/settings/Subscription/PaymentCard/DynamicPaymentCardCurrencySelectorPage';
+import ONYXKEYS from '@src/ONYXKEYS';
+
+type CurrencyOption = {text: string; value: string; keyForList: string; isSelected: boolean};
+
+let capturedData: CurrencyOption[] = [];
+let capturedOnSelectRow: ((option: CurrencyOption) => void) | undefined;
+
+jest.mock('@hooks/usePermissions', () => jest.fn(() => ({isBetaEnabled: () => false})));
+
+jest.mock('@hooks/useLocalize', () =>
+    jest.fn(() => ({
+        translate: (key: string) => key,
+    })),
+);
+
+jest.mock('@hooks/useThemeStyles', () =>
+    jest.fn(
+        () =>
+            new Proxy(
+                {},
+                {
+                    get: () => ({}),
+                },
+            ),
+    ),
+);
+
+jest.mock('@hooks/useOnyx', () => jest.fn());
+
+jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => 'settings/subscription/change-billing-currency'));
+
+jest.mock('@libs/actions/FormActions', () => ({
+    setDraftValues: jest.fn(),
+}));
+
+jest.mock('@libs/Navigation/Navigation', () => ({
+    goBack: jest.fn(),
+}));
+
+jest.mock('@components/ScreenWrapper', () => {
+    function MockScreenWrapper({children}: {children: React.ReactNode}) {
+        return children;
+    }
+    return MockScreenWrapper;
+});
+
+jest.mock('@components/HeaderWithBackButton', () => {
+    function MockHeader({title}: {title: string}) {
+        return title;
+    }
+    return MockHeader;
+});
+
+jest.mock('@components/SelectionList', () => {
+    function MockSelectionList({data, onSelectRow}: {data: CurrencyOption[]; onSelectRow: (option: CurrencyOption) => void}) {
+        capturedData = data ?? [];
+        capturedOnSelectRow = onSelectRow;
+        return (data ?? []).map((item) => item.text).join(',');
+    }
+    return MockSelectionList;
+});
+
+jest.mock('@components/SelectionList/ListItem/SingleSelectListItem', () => 'SingleSelectListItem');
+
+const mockUsePermissions = jest.mocked(usePermissions);
+const mockUseOnyx = jest.mocked(useOnyx);
+const mockSetDraftValues = jest.mocked(setDraftValues);
+const mockGoBack = jest.mocked(Navigation.goBack);
+
+/**
+ * The page reads two Onyx keys in order: the CHANGE_BILLING_CURRENCY form draft, then the fund list.
+ */
+const mockOnyx = (formDraftCurrency?: string, billingCardCurrency?: string) => {
+    mockUseOnyx.mockImplementation((key: string) => {
+        if (key === ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM_DRAFT) {
+            return [formDraftCurrency ? {currency: formDraftCurrency} : undefined, {status: 'loaded'}] as ReturnType<typeof useOnyx>;
+        }
+        if (key === ONYXKEYS.FUND_LIST) {
+            return [billingCardCurrency ? {card1: {accountData: {additionalData: {isBillingCard: true}, currency: billingCardCurrency}}} : undefined, {status: 'loaded'}] as ReturnType<
+                typeof useOnyx
+            >;
+        }
+        return [undefined, {status: 'loaded'}] as ReturnType<typeof useOnyx>;
+    });
+};
+
+describe('DynamicPaymentCardCurrencySelectorPage', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        capturedData = [];
+        capturedOnSelectRow = undefined;
+        mockUsePermissions.mockReturnValue({isBetaEnabled: () => false});
+        mockOnyx();
+    });
+
+    it('hides EUR when the EUR billing beta is disabled', () => {
+        render(<DynamicPaymentCardCurrencySelectorPage />);
+
+        const currencies = capturedData.map((option) => option.value);
+        expect(currencies).toEqual(['USD', 'AUD', 'GBP', 'NZD']);
+        expect(currencies).not.toContain('EUR');
+    });
+
+    it('shows EUR when the EUR billing beta is enabled', () => {
+        mockUsePermissions.mockReturnValue({isBetaEnabled: () => true});
+
+        render(<DynamicPaymentCardCurrencySelectorPage />);
+
+        expect(capturedData.map((option) => option.value)).toContain('EUR');
+    });
+
+    it('marks the form draft currency as selected', () => {
+        mockOnyx('AUD');
+
+        render(<DynamicPaymentCardCurrencySelectorPage />);
+
+        const selected = capturedData.filter((option) => option.isSelected);
+        expect(selected).toHaveLength(1);
+        expect(selected.at(0)?.value).toBe('AUD');
+    });
+
+    it('falls back to the billing card currency when the draft is empty', () => {
+        mockOnyx(undefined, 'GBP');
+
+        render(<DynamicPaymentCardCurrencySelectorPage />);
+
+        expect(capturedData.find((option) => option.isSelected)?.value).toBe('GBP');
+    });
+
+    it('writes the chosen currency to the form draft and navigates back on select', () => {
+        render(<DynamicPaymentCardCurrencySelectorPage />);
+
+        const aud = capturedData.find((option) => option.value === 'AUD');
+        expect(aud).toBeDefined();
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        capturedOnSelectRow?.(aud!);
+
+        expect(mockSetDraftValues).toHaveBeenCalledWith(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM, {currency: 'AUD'});
+        expect(mockGoBack).toHaveBeenCalledWith('settings/subscription/change-billing-currency');
+    });
+});
