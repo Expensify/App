@@ -118,6 +118,7 @@ jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     getActiveRoute: jest.fn().mockReturnValue(''),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
     dismissModalWithReport: jest.fn(),
     dismissModal: jest.fn(),
     dismissToSuperWideRHP: jest.fn(),
@@ -328,7 +329,17 @@ describe('actions/Report', () => {
 
         return waitForBatchedUpdates()
             .then(() => {
-                Report.clearCreateChatError(REPORT, CONCIERGE_REPORT_ID, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, TEST_USER_ACCOUNT_ID, undefined, false);
+                Report.clearCreateChatError(
+                    REPORT,
+                    CONCIERGE_REPORT_ID,
+                    {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                    TEST_USER_ACCOUNT_ID,
+                    undefined,
+                    false,
+                    undefined,
+                    undefined,
+                    undefined,
+                );
                 return waitForBatchedUpdates();
             })
             .then(
@@ -361,7 +372,7 @@ describe('actions/Report', () => {
 
         return waitForBatchedUpdates()
             .then(() => {
-                Report.clearCreateChatError(REPORT, CONCIERGE_REPORT_ID, INTRO_SELECTED, TEST_USER_ACCOUNT_ID, undefined, false);
+                Report.clearCreateChatError(REPORT, CONCIERGE_REPORT_ID, INTRO_SELECTED, TEST_USER_ACCOUNT_ID, undefined, false, undefined, undefined, undefined);
                 return waitForBatchedUpdates();
             })
             .then(
@@ -393,7 +404,7 @@ describe('actions/Report', () => {
 
         return waitForBatchedUpdates()
             .then(() => {
-                Report.clearCreateChatError(REPORT, CONCIERGE_REPORT_ID, INTRO_SELECTED, TEST_USER_ACCOUNT_ID, undefined, false);
+                Report.clearCreateChatError(REPORT, CONCIERGE_REPORT_ID, INTRO_SELECTED, TEST_USER_ACCOUNT_ID, undefined, false, undefined, undefined, undefined);
                 return waitForBatchedUpdates();
             })
             .then(
@@ -436,7 +447,7 @@ describe('actions/Report', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${REPORT.reportID}`, {isOptimisticReport: true});
         await waitForBatchedUpdates();
 
-        Report.clearCreateChatError(REPORT, undefined, INTRO_SELECTED, TEST_USER_ACCOUNT_ID, betas, false);
+        Report.clearCreateChatError(REPORT, undefined, INTRO_SELECTED, TEST_USER_ACCOUNT_ID, betas, false, undefined, undefined, undefined);
         await waitForBatchedUpdates();
 
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -1157,6 +1168,56 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
 
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+    });
+
+    it('should not optimistically inject default report name when report has no known name', async () => {
+        const REPORT_ID = 'openReport_noKnownName';
+
+        setHasRadio(false);
+        await waitForBatchedUpdates();
+
+        Report.openReport({
+            reportID: REPORT_ID,
+            introSelected: undefined,
+            betas: undefined,
+        });
+        await waitForBatchedUpdates();
+
+        const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
+        expect(report?.reportName).toBeUndefined();
+
+        setHasRadio(true);
+        await waitForBatchedUpdates();
+    });
+
+    it('should keep optimistic new report write on report collection key', async () => {
+        const REPORT_ID = 'openReport_newReportOptimistic';
+
+        setHasRadio(false);
+        await waitForBatchedUpdates();
+
+        Report.openReport({
+            reportID: REPORT_ID,
+            introSelected: undefined,
+            betas: undefined,
+            newReportObject: {
+                reportID: REPORT_ID,
+            },
+        });
+        await waitForBatchedUpdates();
+
+        const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
+        expect(report).toMatchObject({
+            reportID: REPORT_ID,
+            reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
+        });
+
+        const loadingState = await getOnyxValue(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`);
+        expect(loadingState).not.toHaveProperty('reportID');
+        expect(loadingState).not.toHaveProperty('reportName');
+
+        setHasRadio(true);
+        await waitForBatchedUpdates();
     });
 
     it('openReport legacy preview fallback stores action under correct Onyx key and preserves existing actions', async () => {
@@ -4692,7 +4753,7 @@ describe('actions/Report', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, testReport);
             await waitForBatchedUpdates();
 
-            Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined);
+            Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined, undefined, undefined, undefined);
 
             await waitForBatchedUpdates();
 
@@ -4706,7 +4767,19 @@ describe('actions/Report', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, testReport);
             await waitForBatchedUpdates();
 
-            Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined, true);
+            Report.navigateToConciergeChatAndDeleteReport(
+                REPORT_ID,
+                CONCIERGE_REPORT_ID,
+                TEST_USER_ACCOUNT_ID,
+                INTRO_SELECTED,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                true,
+                undefined,
+            );
 
             await waitForBatchedUpdates();
 
@@ -4719,7 +4792,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.navigateToConciergeChatAndDeleteReport(undefined, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined);
+                Report.navigateToConciergeChatAndDeleteReport(undefined, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined, undefined, undefined, undefined);
             }).not.toThrow();
         });
 
@@ -4728,7 +4801,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, undefined, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined);
+                Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, undefined, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined, undefined, undefined, undefined);
             }).not.toThrow();
 
             await waitForBatchedUpdates();
@@ -4742,7 +4815,19 @@ describe('actions/Report', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, testReport);
             await waitForBatchedUpdates();
 
-            Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined, false, true);
+            Report.navigateToConciergeChatAndDeleteReport(
+                REPORT_ID,
+                CONCIERGE_REPORT_ID,
+                TEST_USER_ACCOUNT_ID,
+                INTRO_SELECTED,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                false,
+                true,
+            );
 
             await waitForBatchedUpdates();
 
@@ -4755,7 +4840,19 @@ describe('actions/Report', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, testReport);
             await waitForBatchedUpdates();
 
-            Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined, true, true);
+            Report.navigateToConciergeChatAndDeleteReport(
+                REPORT_ID,
+                CONCIERGE_REPORT_ID,
+                TEST_USER_ACCOUNT_ID,
+                INTRO_SELECTED,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                true,
+                true,
+            );
 
             await waitForBatchedUpdates();
 
@@ -4769,7 +4866,7 @@ describe('actions/Report', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, testReport);
             await waitForBatchedUpdates();
 
-            Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined);
+            Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined, undefined, undefined, undefined);
 
             await waitForBatchedUpdates();
 
@@ -4784,7 +4881,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, undefined, undefined, undefined);
+                Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, undefined, undefined, undefined, undefined, undefined, undefined);
             }).not.toThrow();
 
             await waitForBatchedUpdates();
@@ -4798,7 +4895,7 @@ describe('actions/Report', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, testReport);
             await waitForBatchedUpdates();
 
-            Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, true, undefined);
+            Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, true, undefined, undefined, undefined, undefined);
 
             await waitForBatchedUpdates();
 
@@ -4830,7 +4927,7 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
             await waitForBatchedUpdates();
 
-            Report.navigateToAndOpenChildReport(EXISTING_CHILD_REPORT, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined);
+            Report.navigateToAndOpenChildReport(EXISTING_CHILD_REPORT, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined, undefined);
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(EXISTING_CHILD_REPORT.reportID));
@@ -4849,7 +4946,7 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
             await waitForBatchedUpdates();
 
-            Report.navigateToAndOpenChildReport(undefined, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined);
+            Report.navigateToAndOpenChildReport(undefined, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined, undefined);
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(MOCK_NEW_THREAD_REPORT_ID));
@@ -4864,7 +4961,7 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
             await waitForBatchedUpdates();
 
-            Report.navigateToAndOpenChildReport(EXISTING_CHILD_REPORT, {} as OnyxTypes.ReportAction, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined);
+            Report.navigateToAndOpenChildReport(EXISTING_CHILD_REPORT, {} as OnyxTypes.ReportAction, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined, undefined);
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(EXISTING_CHILD_REPORT.reportID));
@@ -4883,7 +4980,7 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
             await waitForBatchedUpdates();
 
-            Report.navigateToAndOpenChildReport(undefined, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined);
+            Report.navigateToAndOpenChildReport(undefined, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined, undefined);
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(MOCK_NEW_THREAD_REPORT_ID));
@@ -4902,7 +4999,7 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
             await waitForBatchedUpdates();
 
-            Report.navigateToAndOpenChildReport(undefined, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined);
+            Report.navigateToAndOpenChildReport(undefined, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined, undefined);
             await waitForBatchedUpdates();
 
             // Verify navigation happened with the new thread report
@@ -4927,7 +5024,7 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
             await waitForBatchedUpdates();
 
-            Report.navigateToAndOpenChildReport(EXISTING_CHILD_REPORT, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, undefined, undefined, undefined);
+            Report.navigateToAndOpenChildReport(EXISTING_CHILD_REPORT, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, undefined, undefined, undefined, undefined);
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(EXISTING_CHILD_REPORT.reportID));
@@ -4947,7 +5044,7 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
             await waitForBatchedUpdates();
 
-            Report.navigateToAndOpenChildReport(undefined, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, testBetas, undefined);
+            Report.navigateToAndOpenChildReport(undefined, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, testBetas, undefined, undefined);
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -4981,7 +5078,7 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
             await waitForBatchedUpdates();
 
-            Report.navigateToAndOpenChildReport(undefined, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, introSelected, undefined, isSelfTourViewed);
+            Report.navigateToAndOpenChildReport(undefined, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, introSelected, undefined, undefined, isSelfTourViewed);
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -5019,7 +5116,7 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
             await waitForBatchedUpdates();
 
-            Report.navigateToAndOpenChildReport(EXISTING_CHILD_REPORT, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined);
+            Report.navigateToAndOpenChildReport(EXISTING_CHILD_REPORT, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined, undefined);
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(EXISTING_CHILD_REPORT.reportID));
@@ -5350,7 +5447,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.toggleSubscribeToChildReport(CHILD_REPORT_ID, TEST_USER_ACCOUNT_ID, PARENT_REPORT_ACTION, PARENT_REPORT, INTRO_SELECTED, false, undefined, 'hidden');
+                Report.toggleSubscribeToChildReport(CHILD_REPORT_ID, TEST_USER_ACCOUNT_ID, PARENT_REPORT_ACTION, PARENT_REPORT, INTRO_SELECTED, false, undefined, 'hidden', undefined);
             }).not.toThrow();
         });
 
@@ -5368,7 +5465,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.toggleSubscribeToChildReport(undefined, TEST_USER_ACCOUNT_ID, PARENT_REPORT_ACTION, PARENT_REPORT, INTRO_SELECTED, false, undefined);
+                Report.toggleSubscribeToChildReport(undefined, TEST_USER_ACCOUNT_ID, PARENT_REPORT_ACTION, PARENT_REPORT, INTRO_SELECTED, false, undefined, undefined, undefined);
             }).not.toThrow();
         });
 
@@ -5386,7 +5483,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.toggleSubscribeToChildReport(CHILD_REPORT_ID, TEST_USER_ACCOUNT_ID, PARENT_REPORT_ACTION, PARENT_REPORT, undefined, true, undefined, 'hidden');
+                Report.toggleSubscribeToChildReport(CHILD_REPORT_ID, TEST_USER_ACCOUNT_ID, PARENT_REPORT_ACTION, PARENT_REPORT, undefined, true, undefined, 'hidden', undefined);
             }).not.toThrow();
         });
 
@@ -5413,6 +5510,7 @@ describe('actions/Report', () => {
                     true,
                     undefined,
                     CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    undefined,
                 );
             }).not.toThrow();
         });
@@ -5431,7 +5529,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.toggleSubscribeToChildReport(undefined, TEST_USER_ACCOUNT_ID, PARENT_REPORT_ACTION, PARENT_REPORT, INTRO_SELECTED, true, undefined);
+                Report.toggleSubscribeToChildReport(undefined, TEST_USER_ACCOUNT_ID, PARENT_REPORT_ACTION, PARENT_REPORT, INTRO_SELECTED, true, undefined, undefined, undefined);
             }).not.toThrow();
         });
 
@@ -5449,7 +5547,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.toggleSubscribeToChildReport(undefined, TEST_USER_ACCOUNT_ID, PARENT_REPORT_ACTION, PARENT_REPORT, INTRO_SELECTED, false, undefined);
+                Report.toggleSubscribeToChildReport(undefined, TEST_USER_ACCOUNT_ID, PARENT_REPORT_ACTION, PARENT_REPORT, INTRO_SELECTED, false, undefined, undefined, undefined);
             }).not.toThrow();
         });
 
@@ -5467,7 +5565,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.toggleSubscribeToChildReport(CHILD_REPORT_ID, TEST_USER_ACCOUNT_ID, PARENT_REPORT_ACTION, PARENT_REPORT, INTRO_SELECTED, true, undefined, 'hidden');
+                Report.toggleSubscribeToChildReport(CHILD_REPORT_ID, TEST_USER_ACCOUNT_ID, PARENT_REPORT_ACTION, PARENT_REPORT, INTRO_SELECTED, true, undefined, 'hidden', undefined);
             }).not.toThrow();
         });
 
@@ -5485,7 +5583,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.toggleSubscribeToChildReport(CHILD_REPORT_ID, TEST_USER_ACCOUNT_ID, PARENT_REPORT_ACTION, PARENT_REPORT, INTRO_SELECTED, false, undefined);
+                Report.toggleSubscribeToChildReport(CHILD_REPORT_ID, TEST_USER_ACCOUNT_ID, PARENT_REPORT_ACTION, PARENT_REPORT, INTRO_SELECTED, false, undefined, undefined, undefined);
             }).not.toThrow();
         });
 
@@ -5504,7 +5602,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.toggleSubscribeToChildReport(CHILD_REPORT_ID, TEST_USER_ACCOUNT_ID, PARENT_REPORT_ACTION, PARENT_REPORT, INTRO_SELECTED, undefined, testBetas, 'hidden');
+                Report.toggleSubscribeToChildReport(CHILD_REPORT_ID, TEST_USER_ACCOUNT_ID, PARENT_REPORT_ACTION, PARENT_REPORT, INTRO_SELECTED, undefined, testBetas, 'hidden', undefined);
             }).not.toThrow();
         });
 
@@ -5523,7 +5621,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.toggleSubscribeToChildReport(undefined, TEST_USER_ACCOUNT_ID, PARENT_REPORT_ACTION, PARENT_REPORT, INTRO_SELECTED, undefined, testBetas);
+                Report.toggleSubscribeToChildReport(undefined, TEST_USER_ACCOUNT_ID, PARENT_REPORT_ACTION, PARENT_REPORT, INTRO_SELECTED, undefined, testBetas, undefined, undefined);
             }).not.toThrow();
         });
     });
@@ -7084,7 +7182,7 @@ describe('actions/Report', () => {
 
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
 
-            Report.navigateToAndOpenReportWithAccountIDs([PARTICIPANT_ACCOUNT_ID], TEST_USER_ACCOUNT_ID, testIntroSelected, isSelfTourViewed, undefined);
+            Report.navigateToAndOpenReportWithAccountIDs([PARTICIPANT_ACCOUNT_ID], TEST_USER_ACCOUNT_ID, testIntroSelected, isSelfTourViewed, undefined, undefined);
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -7111,7 +7209,7 @@ describe('actions/Report', () => {
 
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
 
-            Report.navigateToAndOpenReportWithAccountIDs([PARTICIPANT_ACCOUNT_ID], TEST_USER_ACCOUNT_ID, testIntroSelected, false, undefined);
+            Report.navigateToAndOpenReportWithAccountIDs([PARTICIPANT_ACCOUNT_ID], TEST_USER_ACCOUNT_ID, testIntroSelected, false, undefined, undefined);
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 0);

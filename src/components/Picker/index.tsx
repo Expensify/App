@@ -17,7 +17,6 @@ function Picker<TPickerValue>({ref, ...props}: BasePickerProps<TPickerValue>) {
 
     return (
         <BasePicker<TPickerValue>
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             // Forward the ref to Picker, as we implement imperative methods there
             ref={ref}
