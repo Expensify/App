@@ -233,7 +233,6 @@
 "../../src/hooks/useSearchBulkActions.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	5
 "../../src/hooks/useSearchBulkActions.ts"	"react-hooks/exhaustive-deps"	1
 "../../src/hooks/useSearchBulkActions.ts"	"react-hooks/preserve-manual-memoization"	2
-"../../src/hooks/useSearchBulkActions.ts"	"react-hooks/refs"	1
 "../../src/hooks/useSearchHighlightAndScroll.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/hooks/useSearchSelector/index.native.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/hooks/useSelectionModeReportActions.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	2

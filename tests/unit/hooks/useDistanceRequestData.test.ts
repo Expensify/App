@@ -6,7 +6,7 @@ import type {Participant} from '@src/types/onyx/IOU';
 const mockSetMoneyRequestAmount = jest.fn();
 const mockSetSplitShares = jest.fn();
 
-jest.mock('@libs/actions/IOU', () => ({
+jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
     setMoneyRequestAmount: (...args: unknown[]) => {
         mockSetMoneyRequestAmount(...args);
     },
