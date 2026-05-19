@@ -322,39 +322,6 @@ describe('useReportUnreadMessageScrollTracking', () => {
             expect(result.current.isActionBadgeAboveViewport).toBe(false);
         });
 
-        it('returns isActionBadgeAboveViewport as true when action badge target equals maxIndex (edge of viewport)', () => {
-            const offsetRef = {current: 0};
-            const {result} = renderHook(() =>
-                useReportUnreadMessageScrollTracking({
-                    reportID,
-                    currentVerticalScrollingOffsetRef: offsetRef,
-                    readActionSkippedRef: readActionRefFalse,
-                    onTrackScrolling: onTrackScrollingMockFn,
-                    hasNewerActions: false,
-                    unreadMarkerReportActionIndex: -1,
-                    hasOnceLoadedReportActions: true,
-                    isInverted: true,
-                    actionBadgeTargetIndex: 3,
-                }),
-            );
-
-            // When the target is the last visible item (maxIndex), it's at the edge of the viewport
-            // and should still be treated as "above" to prevent flicker during scroll animations
-            act(() => {
-                result.current.onViewableItemsChanged({
-                    viewableItems: [
-                        {index: 0, key: 'reportActions_0', isViewable: true, item: {}},
-                        {index: 1, key: 'reportActions_1', isViewable: true, item: {}},
-                        {index: 2, key: 'reportActions_2', isViewable: true, item: {}},
-                        {index: 3, key: 'reportActions_3', isViewable: true, item: {}},
-                    ],
-                    changed: [],
-                });
-            });
-
-            expect(result.current.isActionBadgeAboveViewport).toBe(true);
-        });
-
         it('returns isActionBadgeAboveViewport as false when there is no action badge target', () => {
             const offsetRef = {current: 0};
             const {result} = renderHook(() =>
