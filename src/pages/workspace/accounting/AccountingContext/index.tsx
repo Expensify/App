@@ -9,7 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import {removePolicyConnection} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
-import {canAccessSubmitWorkspaceFeatures, isControlPolicy} from '@libs/PolicyUtils';
+import {canAccessSubmitWorkspaceFeatures, isControlPolicy, tryNavigateToSubmitWorkspaceUpgrade} from '@libs/PolicyUtils';
 import {getAccountingIntegrationData} from '@pages/workspace/accounting/utils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -42,8 +42,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 return;
             }
 
-            if (canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled)) {
-                Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias, ROUTES.POLICY_ACCOUNTING.getRoute(policyID)));
+            if (tryNavigateToSubmitWorkspaceUpgrade(policy, true, CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias, isSubmit2026BetaEnabled)) {
                 return;
             }
 

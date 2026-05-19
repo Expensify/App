@@ -28,7 +28,14 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {canAccessSubmitWorkspaceFeatures, getDefaultApprover, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isControlPolicy} from '@libs/PolicyUtils';
+import {
+    canAccessSubmitWorkspaceFeatures,
+    getDefaultApprover,
+    getMemberAccountIDsForWorkspace,
+    goBackFromInvalidPolicy,
+    isControlPolicy,
+    tryNavigateToSubmitWorkspaceUpgrade,
+} from '@libs/PolicyUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -277,8 +284,7 @@ function WorkspaceInviteMessageComponent({
                                 description={translate('common.role')}
                                 shouldShowRightIcon
                                 onPress={() => {
-                                    if (canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled)) {
-                                        Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias, Navigation.getActiveRoute()));
+                                    if (tryNavigateToSubmitWorkspaceUpgrade(policy, true, CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias, isSubmit2026BetaEnabled)) {
                                         return;
                                     }
                                     Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_INVITE_MESSAGE_ROLE.path));
