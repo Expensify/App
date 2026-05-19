@@ -453,14 +453,14 @@ function ReportActionsList({
     const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, transactionThreadReport);
     const hasNewestReportAction = lastAction?.created === lastVisibleActionCreated || isReportPreviewAction(lastAction);
 
-    // Find the index of the action badge target in the visible actions list
+    // Find the index of the action badge target in the rendered actions list (which is what the FlatList uses as data)
     const actionBadgeTargetIndex = useMemo(() => {
         const targetID = reportAttributes?.actionTargetReportActionID;
         if (!targetID) {
             return -1;
         }
-        return sortedVisibleReportActions.findIndex((action) => action.reportActionID === targetID);
-    }, [reportAttributes?.actionTargetReportActionID, sortedVisibleReportActions]);
+        return renderedVisibleReportActions.findIndex((action) => action.reportActionID === targetID);
+    }, [reportAttributes?.actionTargetReportActionID, renderedVisibleReportActions]);
 
     const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, isActionBadgeAboveViewport, trackVerticalScrolling, onViewableItemsChanged} =
         useReportUnreadMessageScrollTracking({
@@ -718,10 +718,19 @@ function ReportActionsList({
 
     const scrollToActionBadgeTarget = useCallback(() => {
         if (actionBadgeTargetIndex === -1) {
+            // Target action is not in the current pagination window — navigate to it
+            const targetActionID = reportAttributes?.actionTargetReportActionID;
+            if (!targetActionID) {
+                return;
+            }
+            if (!Navigation.getReportRHPActiveRoute()) {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, targetActionID, undefined, backTo));
+            }
+            openReport({reportID: report.reportID, reportActionID: targetActionID, introSelected, betas});
             return;
         }
         reportScrollManager.scrollToIndex(actionBadgeTargetIndex);
-    }, [actionBadgeTargetIndex, reportScrollManager]);
+    }, [actionBadgeTargetIndex, reportScrollManager, reportAttributes?.actionTargetReportActionID, report.reportID, backTo, introSelected, betas]);
 
     /**
      * Thread's divider line should hide when the first chat in the thread is marked as unread.
