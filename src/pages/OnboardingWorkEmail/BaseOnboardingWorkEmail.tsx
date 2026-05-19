@@ -27,7 +27,7 @@ import {addErrorMessage} from '@libs/ErrorUtils';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import Navigation from '@libs/Navigation/Navigation';
 import {AddWorkEmail} from '@userActions/Session';
-import {setOnboardingErrorMessage, setOnboardingMergeAccountStepValue, addWorkEmailFormError, clearWorkEmailFormErrors} from '@userActions/Welcome';
+import {addWorkEmailFormError, clearWorkEmailFormErrors, setOnboardingErrorMessage, setOnboardingMergeAccountStepValue} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import Log from '@src/libs/Log';
@@ -112,12 +112,11 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     }, [onboardingErrorMessageTranslationKey, translate]);
 
     const clearOnboardingErrorMessage = useCallback(() => {
-        if(!onboardingErrorMessageTranslationKey) {
+        if (!onboardingErrorMessageTranslationKey) {
             return;
         }
         setOnboardingErrorMessage(null);
     }, [onboardingErrorMessageTranslationKey]);
-
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
         if (!shouldValidateOnChange) {
@@ -199,7 +198,11 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                         <OfflineWithFeedback
                             shouldDisplayErrorAbove
                             style={styles.mb3}
-                            errors={(onboardingErrorMessageTranslationKey && onboardingErrorMessageTranslationKey !== 'onboarding.workEmail2FAError') ? {addWorkEmailError: translate(onboardingErrorMessageTranslationKey)} : undefined}
+                            errors={
+                                onboardingErrorMessageTranslationKey && onboardingErrorMessageTranslationKey !== 'onboarding.workEmail2FAError'
+                                    ? {addWorkEmailError: translate(onboardingErrorMessageTranslationKey)}
+                                    : undefined
+                            }
                             errorRowStyles={[styles.mt2, styles.textWrap]}
                             onClose={() => setOnboardingErrorMessage(null)}
                         >

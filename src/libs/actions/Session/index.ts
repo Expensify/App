@@ -1488,7 +1488,7 @@ function AddWorkEmail(workEmail: string) {
             value: {
                 isLoading: false,
             },
-        }
+        },
     ];
 
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
