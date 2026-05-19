@@ -4987,6 +4987,70 @@ describe('initSplitExpense', () => {
         expect(splitExpenses?.[1].merchant).toBeTruthy();
         expect(splitExpenses?.[1].merchant).toContain('100');
     });
+
+    it('should start a fresh split when the only sibling split was unreported then deleted (dissolved split)', async () => {
+        const originalTransactionID = 'dissolved-original';
+        const remainingTransactionID = 'dissolved-remaining';
+        const deletedSiblingTransactionID = 'dissolved-deleted-sibling';
+        const expenseReportID = 'dissolved-expense-report';
+
+        // Given an open expense report (an open report previously kept the remaining transaction stuck in the "edit splits" flow)
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {
+            reportID: expenseReportID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        });
+
+        // And the original parent expense transaction still exists, hidden on the split report
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, {
+            transactionID: originalTransactionID,
+            amount: -100,
+            currency: 'USD',
+            merchant: 'Test Merchant',
+            comment: {comment: 'Original expense'},
+            created: DateUtils.getDBTime(),
+            reportID: CONST.REPORT.SPLIT_REPORT_ID,
+        });
+
+        // And the sibling split was unreported and then deleted
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${deletedSiblingTransactionID}`, {
+            transactionID: deletedSiblingTransactionID,
+            amount: -50,
+            currency: 'USD',
+            merchant: 'Test Merchant',
+            comment: {originalTransactionID, source: CONST.IOU.TYPE.SPLIT},
+            created: DateUtils.getDBTime(),
+            reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        });
+
+        // And the remaining split is the only child left and still references the original
+        const remainingTransaction: Transaction = {
+            transactionID: remainingTransactionID,
+            amount: -50,
+            currency: 'USD',
+            merchant: 'Test Merchant',
+            comment: {originalTransactionID, source: CONST.IOU.TYPE.SPLIT},
+            created: DateUtils.getDBTime(),
+            reportID: expenseReportID,
+        };
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${remainingTransactionID}`, remainingTransaction);
+        await waitForBatchedUpdates();
+
+        // When the user initiates a split on the remaining transaction
+        initSplitExpense(remainingTransaction, undefined);
+        await waitForBatchedUpdates();
+
+        // Then a fresh split is started keyed by the remaining transaction (2 new splits)
+        const freshDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${remainingTransactionID}`);
+        expect(freshDraft).toBeTruthy();
+        expect(freshDraft?.comment?.splitExpenses).toHaveLength(2);
+
+        // And the split's edit flow keyed by the original transaction is not re-opened
+        const editDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
+        expect(editDraft).toBeFalsy();
+    });
 });
 
 describe('addSplitExpenseField', () => {
