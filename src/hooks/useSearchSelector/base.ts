@@ -342,7 +342,8 @@ function useSearchSelectorBase({
             (baseOptions.personalDetails?.length ?? 0) +
             (baseOptions.userToInvite ? 1 : 0) +
             (baseOptions.currentUserOption ? 1 : 0) +
-            (baseOptions.workspaceChats?.length ?? 0);
+            (baseOptions.workspaceChats?.length ?? 0) +
+            (baseOptions.selfDMChat ? 1 : 0);
 
         if (itemCounts < maxResults) {
             return;
