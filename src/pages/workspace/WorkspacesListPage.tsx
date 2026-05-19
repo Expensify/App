@@ -12,6 +12,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceListTable, {WorkspaceRowData} from '@components/Tables/WorkspaceListTable';
+import WorkspaceListLayout from '@components/WorkspaceListLayout';
 import WorkspaceTabs from '@components/WorkspacesTabs';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useCardFeeds from '@hooks/useCardFeeds';
@@ -556,42 +557,26 @@ function WorkspacesListPage() {
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
     return (
-        <ScreenWrapper
-            shouldEnablePickerAvoiding={false}
-            shouldEnableMaxHeight
-            shouldShowOfflineIndicatorInWideScreen
-            testID="WorkspacesListPage"
-            enableEdgeToEdgeBottomSafeAreaPadding={false}
-            bottomContent={tabBarContent}
-            bottomContentStyle={styles.overflowVisible}
-        >
-            <View style={styles.flex1}>
-                <TopBarWithLoadingBar
-                    breadcrumbLabel={translate('common.workspaces')}
-                    shouldDisplayHelpButton
-                >
-                    {!shouldDisplayButtonsInSeparateLine && <View style={styles.pr2}>{headerButton}</View>}
-                </TopBarWithLoadingBar>
+        <WorkspaceListLayout headerButton={!shouldDisplayButtonsInSeparateLine && <View style={styles.pr2}>{headerButton}</View>}>
+            {/* <WorkspaceTabs /> */}
 
-                <WorkspaceTabs />
+            {shouldDisplayButtonsInSeparateLine && <View style={[styles.ph5, styles.pt2]}>{headerButton}</View>}
+            {shouldShowLoadingIndicator ? (
+                <View style={[styles.flex1, styles.fullScreenLoading]}>
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        reasonAttributes={
+                            {
+                                context: 'WorkspacesListPage',
+                                isOffline,
+                            } satisfies SkeletonSpanReasonAttributes
+                        }
+                    />
+                </View>
+            ) : (
+                <WorkspaceListTable workspaces={workspaceRows} />
+            )}
 
-                {shouldDisplayButtonsInSeparateLine && <View style={[styles.ph5, styles.pt2]}>{headerButton}</View>}
-                {shouldShowLoadingIndicator ? (
-                    <View style={[styles.flex1, styles.fullScreenLoading]}>
-                        <ActivityIndicator
-                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            reasonAttributes={
-                                {
-                                    context: 'WorkspacesListPage',
-                                    isOffline,
-                                } satisfies SkeletonSpanReasonAttributes
-                            }
-                        />
-                    </View>
-                ) : (
-                    <WorkspaceListTable workspaces={workspaceRows} />
-                )}
-            </View>
             <ConfirmModal
                 title={translate('workspace.common.delete')}
                 isVisible={isDeleteModalOpen}
@@ -633,7 +618,7 @@ function WorkspacesListPage() {
                 success={false}
             />
             {outstandingBalanceModal}
-        </ScreenWrapper>
+        </WorkspaceListLayout>
     );
 }
 

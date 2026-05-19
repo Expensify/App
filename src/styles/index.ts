@@ -1714,7 +1714,7 @@ const staticStyles = (theme: ThemeColors) =>
             marginLeft: variables.sideBarWithLHBWidth,
         },
 
-        searchSidebar: {
+        sidebarContainer: {
             width: variables.sideBarWithLHBWidth,
             height: '100%',
             backgroundColor: theme.sidebar,

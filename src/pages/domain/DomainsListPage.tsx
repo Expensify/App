@@ -8,6 +8,7 @@ import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import TopBarWithLoadingBar from '@components/Navigation/TopBarWithLoadingBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import DomainListTable, {DomainRowData} from '@components/Tables/DomainListTable';
+import WorkspaceListLayout from '@components/WorkspaceListLayout';
 import WorkspaceTabs from '@components/WorkspacesTabs';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
@@ -83,24 +84,9 @@ function DomainsListPage() {
     const headerButton = <DomainListPageHeaderButton shouldShowNewDomainButton={!!domainRows.length} />;
 
     return (
-        <ScreenWrapper
-            shouldEnablePickerAvoiding={false}
-            shouldEnableMaxHeight
-            shouldShowOfflineIndicatorInWideScreen
-            testID="DomainsListPage"
-            enableEdgeToEdgeBottomSafeAreaPadding={false}
-            bottomContent={tabBarContent}
-            bottomContentStyle={styles.overflowVisible}
-        >
+        <WorkspaceListLayout headerButton={!shouldDisplayButtonsInSeparateLine && <View style={[styles.ph5, styles.pt2]}>{headerButton}</View>}>
             <View style={styles.flex1}>
-                <TopBarWithLoadingBar
-                    shouldDisplayHelpButton
-                    breadcrumbLabel={translate('common.domains')}
-                >
-                    {!shouldDisplayButtonsInSeparateLine && <View style={styles.pr2}>{headerButton}</View>}
-                </TopBarWithLoadingBar>
-
-                <WorkspaceTabs />
+                {/* <WorkspaceTabs /> */}
 
                 {shouldDisplayButtonsInSeparateLine && <View style={[styles.ph5, styles.pt2]}>{headerButton}</View>}
 
@@ -115,7 +101,7 @@ function DomainsListPage() {
 
                 {!shouldShowLoadingIndicator && <DomainListTable domains={domainRows} />}
             </View>
-        </ScreenWrapper>
+        </WorkspaceListLayout>
     );
 }
 
