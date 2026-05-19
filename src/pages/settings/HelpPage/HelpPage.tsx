@@ -104,10 +104,10 @@ function HelpPage() {
             icon: illustrations.Chalkboard,
             iconType: CONST.ICON_TYPE_AVATAR,
             iconRight: icons.NewWindow,
-            onPress: () => openExternalLink(CONST.NEWHELP_URL),
+            onPress: () => openExternalLink(CONST.HELP_URL),
             shouldShowRightIcon: true,
             wrapperStyle: [styles.sectionMenuItemTopDescription],
-            link: CONST.NEWHELP_URL,
+            link: CONST.HELP_URL,
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.HELP_DOCS,
         },
     ];
