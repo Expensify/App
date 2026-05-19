@@ -7084,10 +7084,6 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                     }),
                 },
             },
-            merge: {
-                approvalMode: 'Tryb zatwierdzania',
-                finalApprover: 'Ostateczny zatwierdzający',
-            },
             zenefits: {
                 title: 'TriNet',
             },

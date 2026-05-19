@@ -6915,10 +6915,6 @@ ${reportName}
                     }),
                 },
             },
-            merge: {
-                approvalMode: '审批模式',
-                finalApprover: '最终审批人',
-            },
             zenefits: {
                 title: 'TriNet',
             },

@@ -7155,10 +7155,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     }),
                 },
             },
-            merge: {
-                approvalMode: 'Mode d’approbation',
-                finalApprover: 'Approbateur final',
-            },
             zenefits: {
                 title: 'TriNet',
             },

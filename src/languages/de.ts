@@ -7127,10 +7127,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     }),
                 },
             },
-            merge: {
-                approvalMode: 'Genehmigungsmodus',
-                finalApprover: 'Endgültige:r Genehmiger:in',
-            },
             zenefits: {
                 title: 'TriNet',
             },

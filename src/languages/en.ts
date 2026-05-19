@@ -6486,10 +6486,6 @@ const translations = {
                     }),
                 },
             },
-            merge: {
-                approvalMode: 'Approval mode',
-                finalApprover: 'Final approver',
-            },
             zenefits: {
                 title: 'TriNet',
             },

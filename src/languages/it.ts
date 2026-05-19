@@ -7113,10 +7113,6 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     }),
                 },
             },
-            merge: {
-                approvalMode: 'Modalità approvazione',
-                finalApprover: 'Approvazione finale',
-            },
             zenefits: {
                 title: 'TriNet',
             },
