@@ -233,7 +233,6 @@
 "../../src/hooks/useSearchBulkActions.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	5
 "../../src/hooks/useSearchBulkActions.ts"	"react-hooks/exhaustive-deps"	1
 "../../src/hooks/useSearchBulkActions.ts"	"react-hooks/preserve-manual-memoization"	2
-"../../src/hooks/useSearchBulkActions.ts"	"react-hooks/refs"	1
 "../../src/hooks/useSearchHighlightAndScroll.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/hooks/useSearchSelector/index.native.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/hooks/useSelectionModeReportActions.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	2
@@ -299,7 +298,7 @@
 "../../src/libs/PersonalDetailsUtils.ts"	"rulesdir/no-onyx-connect"	2
 "../../src/libs/Pusher/index.native.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/libs/Pusher/index.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
-"../../src/libs/ReceiptUploadRetryHandler/handleFileRetry.ts"	"no-restricted-syntax"	2
+"../../src/libs/ReceiptUploadRetryHandler/handleFileRetry.ts"	"no-restricted-syntax"	1
 "../../src/libs/ReportActionItemEventHandler/index.android.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/libs/ReportActionsUtils.ts"	"@typescript-eslint/no-deprecated/reportAction.sequenceNumber"	1
 "../../src/libs/ReportActionsUtils.ts"	"@typescript-eslint/no-deprecated/reportAction?.originalMessage"	2
