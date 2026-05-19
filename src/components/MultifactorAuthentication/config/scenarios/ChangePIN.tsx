@@ -6,6 +6,7 @@ import type {MultifactorAuthenticationScenarioCustomConfig} from '@components/Mu
 import {useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
 import {changePINForCard} from '@libs/actions/MultifactorAuthentication';
 import CONST from '@src/CONST';
+import variables from '@styles/variables';
 
 /**
  * Payload type for the CHANGE_PIN scenario.
@@ -53,6 +54,8 @@ const PINUnblockedSuccessScreen = createScreenWithDefaults(
         title: 'cardPage.pinChanged',
         subtitle: 'cardPage.pinUnblockedDescription',
         illustration: 'CardReader',
+        iconWidth: variables.cardReaderWidth,
+        iconHeight: variables.cardReaderHeight,
     },
     'PINUnblockedSuccessScreen',
 );
