@@ -13,6 +13,7 @@ import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -129,6 +130,7 @@ function DebugTabView({selectedTab}: Props) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowWidth} = useWindowDimensions();
+    const {paddingBottom: safeAreaPaddingBottom} = useSafeAreaPaddings();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const reportAttributes = useReportAttributes();
     const {status, indicatorColor, policyIDWithErrors} = useIndicatorStatus();
@@ -207,18 +209,23 @@ function DebugTabView({selectedTab}: Props) {
         return null;
     }
 
-    let positionStyle: {bottom: number; left: number; right?: number; width?: number} | undefined;
-    if (!shouldUseNarrowLayout) {
-        positionStyle = isOnFullWidthTabRoot
-            ? {bottom: 0, left: variables.navigationTabBarSize, width: windowWidth - variables.navigationTabBarSize}
-            : {bottom: 0, left: variables.navigationTabBarSize, width: variables.sideBarWithLHBWidth - variables.cropBorderWidth};
+    let positionStyle: {bottom?: number; left: number; right?: number; width?: number};
+    if (shouldUseNarrowLayout) {
+        positionStyle = {bottom: 0, left: 0, right: 0};
+    } else if (isOnFullWidthTabRoot) {
+        positionStyle = {bottom: 0, left: variables.navigationTabBarSize, width: windowWidth - variables.navigationTabBarSize};
+    } else {
+        positionStyle = {bottom: 0, left: variables.navigationTabBarSize, width: variables.sideBarWithLHBWidth - variables.cropBorderWidth};
     }
 
+    // pAbsolute is only applied on wide layouts. On narrow layout the bar is placed by its parent
+    // (above the bottom tab bar), so detaching it with absolute positioning breaks both the FAB
+    // and the DebugTabView's own placement.
     return (
         <View
             testID="DebugTabViewContainer"
-            style={positionStyle !== undefined ? [styles.pAbsolute, positionStyle] : undefined}
-            pointerEvents={positionStyle !== undefined ? 'box-none' : undefined}
+            style={[shouldUseNarrowLayout ? positionStyle : {...styles.pAbsolute, ...positionStyle}]}
+            pointerEvents="box-none"
         >
             <View
                 testID="DebugTabView"
