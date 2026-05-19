@@ -300,8 +300,6 @@ function useVerticallyCenteredInitialContent({
         handleReportActionsListLayout,
         handleInitialViewportItemMounted,
         hasInitialScrollTarget,
-        shouldRenderFlashList,
-        shouldShowInitialViewportSkeleton,
     };
 }
 
