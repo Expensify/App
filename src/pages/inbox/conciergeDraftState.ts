@@ -30,6 +30,10 @@ const INLINE_CODE_DELIMITER = '`';
 const BOLD_DELIMITER = '**';
 const STRIKETHROUGH_DELIMITER = '~~';
 
+function isInAnyRange(position: number, ranges: TextRange[]): boolean {
+    return ranges.some((range) => position >= range.start && position < range.end);
+}
+
 function isEscaped(text: string, index: number): boolean {
     let slashCount = 0;
     let pos = index - 1;
@@ -68,8 +72,7 @@ function getCodeRanges(text: string): {ranges: TextRange[]; unclosedCodeBlockSta
         let openingDelimiterIndex: number | null = null;
 
         for (let pos = lineStart; pos < lineEnd; pos++) {
-            const isInCodeRange = ranges.some((range) => pos >= range.start && pos < range.end);
-            if (text[pos] !== INLINE_CODE_DELIMITER || isEscaped(text, pos) || isInCodeRange) {
+            if (text[pos] !== INLINE_CODE_DELIMITER || isEscaped(text, pos) || isInAnyRange(pos, ranges)) {
                 continue;
             }
 
@@ -96,8 +99,7 @@ function stripUnpairedLastLineDelimiter(text: string, delimiter: string, ignored
     const delimiterIndexes: number[] = [];
 
     for (let pos = lastLineStart; pos <= text.length - delimiter.length; pos++) {
-        const isInIgnoredRange = ignoredRanges.some((range) => pos >= range.start && pos < range.end);
-        if (!text.startsWith(delimiter, pos) || isEscaped(text, pos) || isInIgnoredRange) {
+        if (!text.startsWith(delimiter, pos) || isEscaped(text, pos) || isInAnyRange(pos, ignoredRanges)) {
             continue;
         }
 
@@ -116,8 +118,7 @@ function normalizeDelimiterForExpensiMark(text: string, delimiter: string, repla
     let result = '';
 
     for (let pos = 0; pos < text.length; pos++) {
-        const isInIgnoredRange = ignoredRanges.some((range) => pos >= range.start && pos < range.end);
-        if (text.startsWith(delimiter, pos) && !isEscaped(text, pos) && !isInIgnoredRange) {
+        if (text.startsWith(delimiter, pos) && !isEscaped(text, pos) && !isInAnyRange(pos, ignoredRanges)) {
             result += replacement;
             pos += delimiter.length - 1;
             continue;
@@ -153,8 +154,7 @@ function stripIncompleteMarkdown(markdown: string): string {
 
     codeRanges = getCodeRanges(result).ranges;
     for (let openBracketIndex = result.length - 1; openBracketIndex >= 0; openBracketIndex--) {
-        const isInCodeRange = codeRanges.some((range) => openBracketIndex >= range.start && openBracketIndex < range.end);
-        if (result[openBracketIndex] !== '[' || isEscaped(result, openBracketIndex) || isInCodeRange) {
+        if (result[openBracketIndex] !== '[' || isEscaped(result, openBracketIndex) || isInAnyRange(openBracketIndex, codeRanges)) {
             continue;
         }
 
