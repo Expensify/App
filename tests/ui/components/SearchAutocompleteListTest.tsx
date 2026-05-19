@@ -1,4 +1,4 @@
-import {act, render} from '@testing-library/react-native';
+import {act, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -126,6 +126,67 @@ describe('SearchAutocompleteList', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(mockHtmlToText).not.toHaveBeenCalled();
+    });
+
+    it('should set alternateText to "Invite" on the userToInvite row when autocompleteQueryValue is non-empty', async () => {
+        // Regression test for #88730: when userToInvite is present and the query is non-empty,
+        // recentReportsOptions spreads it with alternateText: translate('common.invite').
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const OptionsListUtils = jest.requireMock('@libs/OptionsListUtils') as {
+            getSearchOptions: jest.Mock;
+            combineOrderingOfReportsAndPersonalDetails: jest.Mock;
+        };
+
+        const inviteOption = {
+            reportID: undefined,
+            keyForList: 'unknown@example.com',
+            login: 'unknown@example.com',
+            text: 'unknown@example.com',
+            alternateText: '',
+        };
+
+        OptionsListUtils.getSearchOptions.mockImplementation(() => ({
+            recentReports: [],
+            personalDetails: [],
+            currentUserOption: null,
+            userToInvite: inviteOption,
+            categoryOptions: [],
+        }));
+        OptionsListUtils.combineOrderingOfReportsAndPersonalDetails.mockImplementation(() => ({recentReports: [], personalDetails: []}));
+
+        render(
+            <OnyxListItemProvider>
+                <LocaleContextProvider>
+                    <SearchAutocompleteList
+                        autocompleteQueryValue="unknown@example.com"
+                        handleSearch={jest.fn()}
+                        onListItemPress={jest.fn()}
+                    />
+                </LocaleContextProvider>
+            </OnyxListItemProvider>,
+        );
+
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText('Invite')).toBeTruthy();
+
+        // Restore default mock so other tests are not affected
+        OptionsListUtils.getSearchOptions.mockImplementation(() => ({
+            recentReports: [
+                {
+                    reportID: '10',
+                    keyForList: '10',
+                    text: 'Test Report',
+                    alternateText: 'alternate text',
+                    lastMessageText: 'last message',
+                },
+            ],
+            personalDetails: [],
+            currentUserOption: null,
+            userToInvite: null,
+            categoryOptions: [],
+        }));
+        OptionsListUtils.combineOrderingOfReportsAndPersonalDetails.mockImplementation(() => ({recentReports: [], personalDetails: []}));
     });
 
     it('should call Parser.htmlToText when parentReportAction is not ADD_COMMENT', async () => {
