@@ -15,7 +15,7 @@ import type {Connections} from '@src/types/onyx/Policy';
  * The actual connection is only established after the user completes the Merge
  * Link flow and the public_token callback is processed by the backend.
  */
-function connectPolicyToMergeHR(policyID: string, providerSlug: MergeHRProviderSlug) {
+function connectPolicyToMergeHR(policyID: string, integration: MergeHRProviderSlug) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.RAM_ONLY_MERGE_HR_LINK_TOKEN>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -73,10 +73,10 @@ function connectPolicyToMergeHR(policyID: string, providerSlug: MergeHRProviderS
     ];
 
     read(
-        READ_COMMANDS.CONNECT_POLICY_TO_MERGE_HR,
+        READ_COMMANDS.CONNECT_POLICY_TO_MERGE,
         {
             policyID,
-            providerSlug,
+            integration,
         },
         {optimisticData, successData, failureData},
     );
