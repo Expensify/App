@@ -554,13 +554,8 @@ function WorkspacesListPage() {
 
     useAndroidBackButtonHandler(onBackButtonPress);
 
-    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
-
     return (
-        <WorkspaceListLayout headerButton={!shouldDisplayButtonsInSeparateLine && <View style={styles.pr2}>{headerButton}</View>}>
-            {/* <WorkspaceTabs /> */}
-
-            {shouldDisplayButtonsInSeparateLine && <View style={[styles.ph5, styles.pt2]}>{headerButton}</View>}
+        <WorkspaceListLayout headerButton={headerButton}>
             {shouldShowLoadingIndicator ? (
                 <View style={[styles.flex1, styles.fullScreenLoading]}>
                     <ActivityIndicator

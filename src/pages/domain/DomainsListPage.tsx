@@ -84,12 +84,8 @@ function DomainsListPage() {
     const headerButton = <DomainListPageHeaderButton shouldShowNewDomainButton={!!domainRows.length} />;
 
     return (
-        <WorkspaceListLayout headerButton={!shouldDisplayButtonsInSeparateLine && <View style={[styles.ph5, styles.pt2]}>{headerButton}</View>}>
+        <WorkspaceListLayout headerButton={headerButton}>
             <View style={styles.flex1}>
-                {/* <WorkspaceTabs /> */}
-
-                {shouldDisplayButtonsInSeparateLine && <View style={[styles.ph5, styles.pt2]}>{headerButton}</View>}
-
                 {shouldShowLoadingIndicator && (
                     <View style={[styles.flex1, styles.fullScreenLoading]}>
                         <ActivityIndicator

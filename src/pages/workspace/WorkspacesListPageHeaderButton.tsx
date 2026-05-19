@@ -2,7 +2,6 @@ import React from 'react';
 import Button from '@components/Button';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
@@ -18,9 +17,6 @@ function WorkspacesListPageHeaderButton({shouldShowNewWorkspaceButton}: Workspac
     const icons = useMemoizedLazyExpensifyIcons(['Building', 'Globe', 'Plus']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
-
-    const buttonStyle = shouldDisplayButtonsInSeparateLine && [styles.flexGrow1, styles.mb3];
 
     if (shouldShowNewWorkspaceButton) {
         return (
@@ -30,7 +26,6 @@ function WorkspacesListPageHeaderButton({shouldShowNewWorkspaceButton}: Workspac
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.NEW_WORKSPACE_BUTTON}
                 onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route)))}
                 icon={icons.Plus}
-                style={buttonStyle}
             />
         );
     }

@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
@@ -14,6 +15,7 @@ import TabBarBottomContent from './Navigation/TabBarBottomContent';
 import TopBarWithLoadingBar from './Navigation/TopBarWithLoadingBar';
 import ScreenWrapper from './ScreenWrapper';
 import ScrollView from './ScrollView';
+import TabSelectorBase from './TabSelector/TabSelectorBase';
 
 type WorkspaceListLayoutProps = PropsWithChildren<{
     headerButton?: React.ReactNode;
@@ -22,28 +24,44 @@ type WorkspaceListLayoutProps = PropsWithChildren<{
 export default function WorkspaceListLayout({children, headerButton}: WorkspaceListLayoutProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Globe', 'Building']);
     const activeRoute = useNavigationState((state) => findFocusedRoute(state)?.name);
-    const isWorkspacesListPage = activeRoute === SCREENS.WORKSPACES_LIST;
+    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
+    const isWorkspacesListPage = activeRoute === SCREENS.WORKSPACES_LIST;
     const activeNarrowLayoutTabKey = isWorkspacesListPage ? 'workspaces' : 'domains';
     const activeTabLabel = isWorkspacesListPage ? translate('common.workspaces') : translate('common.domains');
 
     const navigationOptions = [
         {
+            key: 'workspaces',
             title: translate('common.workspaces'),
             icon: icons.Building,
             route: ROUTES.WORKSPACES_LIST.getRoute(),
             screenName: SCREENS.WORKSPACES_LIST,
         },
         {
+            key: 'domains',
             title: translate('common.domains'),
             icon: icons.Globe,
             route: ROUTES.DOMAINS_LIST.getRoute(),
             screenName: SCREENS.DOMAINS_LIST,
         },
     ];
+
+    const onTabPress = (key: string) => {
+        if (key === 'workspaces') {
+            Navigation.navigate(ROUTES.WORKSPACES_LIST.route);
+            return;
+        }
+
+        if (key === 'domains') {
+            Navigation.navigate(ROUTES.DOMAINS_LIST.route);
+            return;
+        }
+    };
 
     return (
         <ScreenWrapper
@@ -86,8 +104,20 @@ export default function WorkspaceListLayout({children, headerButton}: WorkspaceL
                         shouldDisplayHelpButton
                         breadcrumbLabel={activeTabLabel}
                     >
-                        {headerButton}
+                        <View style={[styles.pr3]}>{!shouldDisplayButtonsInSeparateLine && headerButton}</View>
                     </TopBarWithLoadingBar>
+
+                    {shouldUseNarrowLayout && (
+                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.pr5]}>
+                            <TabSelectorBase
+                                tabs={navigationOptions}
+                                activeTabKey={activeNarrowLayoutTabKey}
+                                onTabPress={onTabPress}
+                            />
+                            {shouldDisplayButtonsInSeparateLine && headerButton}
+                        </View>
+                    )}
+
                     {children}
                 </View>
             </View>
