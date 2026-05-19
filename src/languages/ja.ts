@@ -8568,6 +8568,7 @@ ${reportName}
         bookACallTextTop: 'Expensify Classic に切り替えると、次の機能が利用できなくなります：',
         bookACallTextBottom: 'ぜひお電話で理由をお聞かせください。お客様のニーズについて話し合うために、シニアプロダクトマネージャーとの通話を予約できます。',
         takeMeToExpensifyClassic: 'Expensify Classic に移動',
+        goBackJustOnce: '一度だけ戻る',
     },
     listBoundary: {
         errorMessage: 'さらにメッセージを読み込む際にエラーが発生しました',
