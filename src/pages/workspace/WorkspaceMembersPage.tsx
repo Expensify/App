@@ -34,6 +34,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
@@ -74,6 +75,7 @@ import {
     isExpensifyTeam,
     isPaidGroupPolicy,
     isPolicyApprover,
+    isSubmitPolicy,
 } from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -160,6 +162,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const isPolicyAdmin = canEditWorkspaceSettings(policy);
+    const {isBetaEnabled} = usePermissions();
+    const canUseSubmit2026 = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const isLoading = useMemo(
         () => !isOfflineAndNoMemberDataAvailable && (!isPersonalDetailsReady(personalDetails) || isEmptyObject(policy?.employeeList)),
         [isOfflineAndNoMemberDataAvailable, personalDetails, policy?.employeeList],

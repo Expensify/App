@@ -5,6 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
@@ -35,6 +36,8 @@ type WorkspaceMemberRoleListProps = {
 function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLoading = false, onSelectRole = () => {}}: WorkspaceMemberRoleListProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isBetaEnabled} = usePermissions();
+    const canUseSubmit2026 = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
 
     const workspaceRoles: ListItemType[] = [
@@ -69,8 +72,7 @@ function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLo
     ];
 
     const isPolicyControl = isControlPolicy(policy);
-    // Use policy type directly — beta gates workspace creation, not the behavior of an existing Submit workspace.
-    const isPolicySubmit2026 = isSubmitPolicy(policy);
+    const isPolicySubmit2026 = canUseSubmit2026 && isSubmitPolicy(policy);
     // Only strict admins can assign the ADMIN role. Editors (e.g. Submit workspace owners) can
     // invite/manage members but must not be able to escalate anyone to admin.
     const canAssignAdminRole = isPolicyAdmin(policy, currentUserEmail);
