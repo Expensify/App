@@ -14,9 +14,9 @@ import ROUTES from '@src/ROUTES';
 import type {OnboardingPurpose} from '@src/types/onyx';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type OnboardingRHPVariant from '@src/types/onyx/OnboardingRHPVariant';
-import type {OnboardingCompanySize} from './OnboardingFlow';
 import { getMicroSecondOnyxErrorWithMessage } from '@libs/ErrorUtils';
 import INPUT_IDS from '@src/types/form/OnboardingWorkEmailForm';
+import type {OnboardingCompanySize} from './OnboardingFlow';
 
 let isLoadingReportData = true;
 // Tracks whether we've seen loading start (true) in the current session.
@@ -123,7 +123,7 @@ function completeHybridAppOnboarding() {
     });
 }
 
-function addWorkEmailFormError(error:string, isLoading: boolean = false) {
+function addWorkEmailFormError(error: string, isLoading = false) {
     Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {
         errors: getMicroSecondOnyxErrorWithMessage(error),
         errorFields: {
@@ -132,7 +132,7 @@ function addWorkEmailFormError(error:string, isLoading: boolean = false) {
         isLoading,
     });
 }
-function clearWorkEmailFormErrors(isLoading :boolean = false) {
+function clearWorkEmailFormErrors(isLoading = false) {
     Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {
         errors: null,
         errorFields: null,

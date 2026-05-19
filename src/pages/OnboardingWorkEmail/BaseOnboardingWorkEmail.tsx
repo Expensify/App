@@ -105,15 +105,17 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     useEffect(() => {
         if (!onboardingErrorMessageTranslationKey) {
             clearWorkEmailFormErrors();
-        } else {
-            addWorkEmailFormError(translate(onboardingErrorMessageTranslationKey));
+            return;
         }
-    }, [onboardingErrorMessageTranslationKey]);
+
+        addWorkEmailFormError(translate(onboardingErrorMessageTranslationKey));
+    }, [onboardingErrorMessageTranslationKey, translate]);
 
     const clearOnboardingErrorMessage = useCallback(() => {
-        if (onboardingErrorMessageTranslationKey) {
-            setOnboardingErrorMessage(null);
+        if(!onboardingErrorMessageTranslationKey) {
+            return;
         }
+        setOnboardingErrorMessage(null);
     }, [onboardingErrorMessageTranslationKey]);
 
 

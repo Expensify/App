@@ -1491,6 +1491,7 @@ function AddWorkEmail(workEmail: string) {
         }
     ];
 
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.makeRequestWithSideEffects(
         SIDE_EFFECT_REQUEST_COMMANDS.ADD_WORK_EMAIL,
         {workEmail},
@@ -1500,13 +1501,16 @@ function AddWorkEmail(workEmail: string) {
             failureData,
         },
     ).then((response) => {
-        if (response?.jsonCode === CONST.JSON_CODE.EXP_ERROR) {
-            if (response?.message && response?.message.includes(CONST.MERGE_ACCOUNT_2FA_ERROR)) { 
-                Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, "onboarding.workEmail2FAError");
-            }else{
-                Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergingAccountBlocked: true});
-            }
+        if (response?.jsonCode !== CONST.JSON_CODE.EXP_ERROR) {
+            return;
         }
+
+        if (response?.message?.includes(CONST.MERGE_ACCOUNT_2FA_ERROR)) {
+            Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'onboarding.workEmail2FAError');
+            return;
+        }
+
+        Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergingAccountBlocked: true});
     });
 }
 
