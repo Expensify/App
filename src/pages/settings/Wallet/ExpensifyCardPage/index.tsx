@@ -363,6 +363,22 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                 />
                             </CardDetailsActionButtons>
                         )}
+                        {canChangePIN && !!currentPhysicalCard?.nameValuePairs?.isPINBlocked && (
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.ph5, styles.mb5]}>
+                                <DotIndicatorMessage
+                                    style={[styles.flex1, styles.mr3]}
+                                    messages={{error: translate('cardPage.pinBlocked')}}
+                                    type="error"
+                                />
+                                <Button
+                                    danger
+                                    text={translate('cardPage.unlock')}
+                                    onPress={() => {
+                                        Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN.getRoute(String(currentPhysicalCard?.cardID)));
+                                    }}
+                                />
+                            </View>
+                        )}
                         <MenuItemWithTopDescription
                             description={translate('cardPage.availableSpend')}
                             title={formattedAvailableSpendAmount}
@@ -412,31 +428,20 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                         }
                                     />
                                 )}
-                                {canChangePIN && (
-                                    <>
-                                        <MenuItem
-                                            title={translate('cardPage.changePin')}
-                                            icon={expensifyIcons.Key}
-                                            shouldShowRightIcon
-                                            onPress={() => {
-                                                const physicalCardID = String(currentPhysicalCard?.cardID);
-                                                // When the PIN is blocked, the user must be able to enter the
-                                                // online Change PIN flow regardless of their current market.
-                                                if (isOfflinePINMarket(countryByIp) && !currentPhysicalCard?.nameValuePairs?.isPINBlocked) {
-                                                    Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN_ATM.getRoute(physicalCardID));
-                                                } else {
-                                                    Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN.getRoute(physicalCardID));
-                                                }
-                                            }}
-                                        />
-                                        {!!currentPhysicalCard?.nameValuePairs?.isPINBlocked && (
-                                            <DotIndicatorMessage
-                                                messages={{error: translate('cardPage.pinBlocked')}}
-                                                type="error"
-                                                style={[styles.ph5, styles.mv2]}
-                                            />
-                                        )}
-                                    </>
+                                {canChangePIN && !currentPhysicalCard?.nameValuePairs?.isPINBlocked && (
+                                    <MenuItem
+                                        title={translate('cardPage.changePin')}
+                                        icon={expensifyIcons.Key}
+                                        shouldShowRightIcon
+                                        onPress={() => {
+                                            const physicalCardID = String(currentPhysicalCard?.cardID);
+                                            if (isOfflinePINMarket(countryByIp)) {
+                                                Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN_ATM.getRoute(physicalCardID));
+                                            } else {
+                                                Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN.getRoute(physicalCardID));
+                                            }
+                                        }}
+                                    />
                                 )}
                             </>
                         )}
