@@ -69,6 +69,4 @@ function YourSpendSection() {
     );
 }
 
-YourSpendSection.displayName = 'YourSpendSection';
-
 export default YourSpendSection;

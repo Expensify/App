@@ -84,6 +84,4 @@ function SpendSummaryRow({state, testIDPrefix, description, totals, iconSrc, onP
     );
 }
 
-SpendSummaryRow.displayName = 'SpendSummaryRow';
-
 export default SpendSummaryRow;

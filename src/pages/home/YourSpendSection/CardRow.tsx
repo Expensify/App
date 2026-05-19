@@ -75,6 +75,4 @@ function CardRow({cardRow, wrapperStyle}: CardRowProps) {
     );
 }
 
-CardRow.displayName = 'CardRow';
-
 export default CardRow;
