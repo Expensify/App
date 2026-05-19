@@ -33,7 +33,7 @@ jobs:
     runs-on: blacksmith-12vcpu-macos-latest
     timeout-minutes: 80
     env:
-      AGENT_DEVICE_VERSION: "0.14.7"
+      AGENT_DEVICE_VERSION: "0.14.9"
       LLM_TOKEN_BUDGET: "200000"
       ANTHROPIC_MODEL: "claude-sonnet-4-6"
       PLATFORM: "ios"
