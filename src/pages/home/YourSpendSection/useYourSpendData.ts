@@ -126,6 +126,8 @@ function useYourSpendData(): UseYourSpendDataReturn {
     // observed data to only the snapshots for our displayable cards. useOnyx
     // does a deep equality check on selector output, so unrelated snapshot
     // mutations elsewhere in the app no longer re-render this hook's consumers.
+    // The projection is further narrowed to just {count, total, currency} so the
+    // deep-equal comparison is O(1) per card instead of O(transactions).
     const cardSnapshotKeys = useMemo(
         () =>
             Object.values(cardQueryByCardID)
@@ -134,17 +136,26 @@ function useYourSpendData(): UseYourSpendDataReturn {
                 .map((hash) => `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`),
         [cardQueryByCardID],
     );
+
+    type CardSnapshotSummary = {
+        count: number | undefined;
+        total: number | undefined;
+        currency: string | undefined;
+    };
+
     const cardSnapshotsSelector = useMemo(
-        () => (snapshots: OnyxCollection<SearchResults> | undefined) => {
-            if (!snapshots || cardSnapshotKeys.length === 0) {
-                return undefined;
-            }
-            const filtered: OnyxCollection<SearchResults> = {};
-            for (const key of cardSnapshotKeys) {
-                filtered[key] = snapshots[key];
-            }
-            return filtered;
-        },
+        () =>
+            (snapshots: OnyxCollection<SearchResults> | undefined): Record<string, CardSnapshotSummary | undefined> | undefined => {
+                if (!snapshots || cardSnapshotKeys.length === 0) {
+                    return undefined;
+                }
+                const projected: Record<string, CardSnapshotSummary | undefined> = {};
+                for (const key of cardSnapshotKeys) {
+                    const s = snapshots[key];
+                    projected[key] = s ? {count: s.search.count, total: s.search.total, currency: s.search.currency} : undefined;
+                }
+                return projected;
+            },
         [cardSnapshotKeys],
     );
     const [cardSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT, {selector: cardSnapshotsSelector});
@@ -156,7 +167,7 @@ function useYourSpendData(): UseYourSpendDataReturn {
                 const hash = entry?.queryJSON?.hash;
                 const snapshotKey = hash !== undefined ? `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}` : undefined;
                 const snapshot = snapshotKey ? cardSnapshots?.[snapshotKey] : undefined;
-                if (!entry || !snapshot?.search.count) {
+                if (!entry || !snapshot?.count) {
                     return acc;
                 }
                 const unapprovedExpenseLimit = card.nameValuePairs?.unapprovedExpenseLimit;
@@ -165,8 +176,8 @@ function useYourSpendData(): UseYourSpendDataReturn {
                     cardID: card.cardID,
                     lastFour: card.lastFourPAN ?? '',
                     query: entry.query,
-                    total: snapshot.search.total,
-                    currency: snapshot.search.currency,
+                    total: snapshot.total,
+                    currency: snapshot.currency,
                     spentFraction,
                 });
                 return acc;
