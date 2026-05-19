@@ -58,6 +58,21 @@ type WorkspaceExpensifyCardDetailsPageProps = PlatformStackScreenProps<
     typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS | typeof SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_DETAILS
 >;
 
+type LimitHintTranslationKey = 'cardPage.smartLimit.title' | 'cardPage.monthlyLimit.title' | 'cardPage.fixedLimit.title';
+
+function getLimitHintTranslationKey(limitType?: string): LimitHintTranslationKey | undefined {
+    switch (limitType) {
+        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART:
+            return 'cardPage.smartLimit.title';
+        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY:
+            return 'cardPage.monthlyLimit.title';
+        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED:
+            return 'cardPage.fixedLimit.title';
+        default:
+            return undefined;
+    }
+}
+
 function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetailsPageProps) {
     const {isProduction} = useEnvironment();
     const navigation = useNavigation<NavigationProp<SettingsNavigatorParamList>>();
@@ -98,6 +113,8 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const formattedLimit = convertToDisplayString(card?.nameValuePairs?.unapprovedExpenseLimit, currency);
     const displayName = getDisplayNameOrDefault(cardholder);
     const translationForLimitType = getTranslationKeyForLimitType(card?.nameValuePairs?.limitType);
+    const remainingLimitHintTranslationKey = getLimitHintTranslationKey(card?.nameValuePairs?.limitType);
+    const remainingLimitHint = remainingLimitHintTranslationKey ? translate(remainingLimitHintTranslationKey, formattedAvailableSpendAmount) : undefined;
     const isAdmin = isPolicyAdmin(policy, session?.email);
     const isDeactivated = card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED;
 
@@ -332,7 +349,8 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             description={translate('cardPage.availableSpend')}
                             title={formattedAvailableSpendAmount}
                             interactive={false}
-                            titleStyle={styles.newKansasLarge}
+                            titleStyle={styles.walletCardLimit}
+                            hintText={remainingLimitHint}
                         />
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={card?.nameValuePairs?.pendingFields?.limitType}>
