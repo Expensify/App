@@ -27,14 +27,15 @@ function CardRow({cardRow, wrapperStyle}: CardRowProps) {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const {hovered, bind} = useHover();
+    const {onMouseEnter, onMouseLeave} = bind;
 
     const cardTotal = cardRow.total !== undefined ? convertToDisplayString(cardRow.total, cardRow.currency) : undefined;
 
     return (
         <View
             testID={`your-spend-card-row-${cardRow.cardID}`}
-            // eslint-disable-next-line react/jsx-props-no-spreading -- useHover's bind returns mouse handlers that must be spread onto the View
-            {...bind}
+            onMouseEnter={onMouseEnter}
+            onMouseLeave={onMouseLeave}
         >
             <MenuItemWithTopDescription
                 description={translate('homePage.yourSpend.recentTransactions', {lastFour: cardRow.lastFour})}
