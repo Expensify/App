@@ -25,6 +25,7 @@ import {isZenefitsConnected} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type ApprovalMode = ValueOf<typeof CONST.ZENEFITS.APPROVAL_MODE>;
@@ -92,7 +93,7 @@ function ZenefitsApprovalModePage({
                 return;
             }
             updateZenefitsApprovalMode(policyID, draftApprovalMode, currentApprovalMode, connectionSyncProgress);
-            Navigation.goBack();
+            Navigation.goBack(ROUTES.WORKSPACE_HR.getRoute(policyID));
         });
     };
 
@@ -110,7 +111,7 @@ function ZenefitsApprovalModePage({
             >
                 <HeaderWithBackButton
                     title={translate('workspace.hr.zenefits.approvalMode')}
-                    onBackButtonPress={() => Navigation.goBack()}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_HR.getRoute(policyID))}
                 />
                 <View style={styles.flex1}>
                     <Text style={[styles.textSupporting, styles.ph5, styles.mt3, styles.mb3]}>{translate('workspace.hr.zenefits.approvalModeDescription')}</Text>
