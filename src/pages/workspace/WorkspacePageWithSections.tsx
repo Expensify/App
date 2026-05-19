@@ -19,8 +19,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {openWorkspaceView} from '@libs/actions/BankAccounts';
 import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFromWorkspaceSettingPages';
 import Navigation from '@libs/Navigation/Navigation';
-import {canEditWorkspaceSettings, canMemberRead, canMemberWrite, isPendingDeletePolicy, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
-import type {PolicyFeature, PolicyFeatureAccess} from '@libs/PolicyUtils';
+import {canEditWorkspaceSettings, canMemberRead, isPendingDeletePolicy, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
+import type {PolicyFeature} from '@libs/PolicyUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -61,9 +61,6 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
 
         /** Policy feature permission needed to show this page */
         policyFeature?: PolicyFeature;
-
-        /** Access level needed for the policy feature */
-        policyFeatureAccess?: PolicyFeatureAccess;
 
         /** Whether to show the not found page */
         shouldShowNotFoundPage?: boolean;
@@ -130,7 +127,6 @@ function WorkspacePageWithSections({
     shouldShowOfflineIndicatorInWideScreen = false,
     shouldShowNonAdmin = false,
     policyFeature,
-    policyFeatureAccess = CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
     shouldEnableMaxHeight = true,
     headerContent,
     testID,
@@ -175,9 +171,6 @@ function WorkspacePageWithSections({
     let hasAccessToPolicyFeature: boolean | undefined;
     if (policyFeature) {
         hasAccessToPolicyFeature = currentUserLogin ? canMemberRead(policy, currentUserLogin, policyFeature) : false;
-        if (policyFeatureAccess === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE && currentUserLogin) {
-            hasAccessToPolicyFeature = canMemberWrite(policy, currentUserLogin, policyFeature);
-        }
     }
     const isPendingDelete = isPendingDeletePolicy(policy);
     const prevIsPendingDelete = isPendingDeletePolicy(prevPolicy);

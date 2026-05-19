@@ -17,14 +17,13 @@ import Navigation from '@libs/Navigation/Navigation';
 import {
     canEditWorkspaceSettings,
     canMemberRead,
-    canMemberWrite,
     canSendInvoice,
     isControlPolicy,
     isGroupPolicy,
     isPolicyAccessible,
     isPolicyFeatureEnabled as isPolicyFeatureEnabledUtil,
 } from '@libs/PolicyUtils';
-import type {PolicyFeature, PolicyFeatureAccess} from '@libs/PolicyUtils';
+import type {PolicyFeature} from '@libs/PolicyUtils';
 import {canCreateRequest} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -105,9 +104,6 @@ type AccessOrNotFoundWrapperProps = {
     /** Policy feature permission needed to access the page */
     policyFeature?: PolicyFeature;
 
-    /** Access level needed for the policy feature */
-    policyFeatureAccess?: PolicyFeatureAccess;
-
     /** Props for customizing fallback pages */
     fullPageNotFoundViewProps?: FullPageNotFoundViewProps;
 
@@ -157,7 +153,6 @@ function AccessOrNotFoundWrapper({
     allPolicies,
     featureName,
     policyFeature,
-    policyFeatureAccess = CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
     ...props
 }: AccessOrNotFoundWrapperProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -200,9 +195,6 @@ function AccessOrNotFoundWrapper({
     let hasAccessToPolicyFeature = true;
     if (policyFeature) {
         hasAccessToPolicyFeature = canMemberRead(policy, login, policyFeature);
-        if (policyFeatureAccess === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE) {
-            hasAccessToPolicyFeature = canMemberWrite(policy, login, policyFeature);
-        }
     }
 
     const isPolicyNotAccessible = !isPolicyAccessible(policy, login);
