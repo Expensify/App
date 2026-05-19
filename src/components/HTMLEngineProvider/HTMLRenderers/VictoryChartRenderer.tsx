@@ -1,4 +1,4 @@
-import {type Color, listFontFamilies, matchFont, type SkFont, Skia, SkTypeface, type SkTypefaceFontProvider} from '@shopify/react-native-skia';
+import {Circle, type Color, listFontFamilies, matchFont, Paragraph, type SkFont, Skia, Text as SkText, SkTypeface, type SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import JSON5 from 'json5';
 import lodashIsObject from 'lodash/isObject';
 import lodashMerge from 'lodash/merge';
@@ -26,6 +26,26 @@ const Y_KEY_PREFIX = 'y';
 
 type RawData = Record<string, any>;
 
+type LabelItem = {
+    /** Position on the X-axis */
+    x: number;
+
+    /** Position on the Y-axis */
+    y: number;
+
+    /** Text to draw */
+    text: string;
+
+    /** The color of the text */
+    color: Color;
+
+    /** Font size */
+    fontSize: number;
+
+    /** Font weight */
+    fontWeight: 'normal' | 'bold';
+};
+
 /**
  * Get node unique ID based on hierarchy
  */
@@ -48,6 +68,7 @@ function processNode(tnode: TNode, typeface: SkTypeface | null) {
     const yKeys: string[] = [];
     let xAxis: ComponentProps<typeof CartesianChart<RawData, string, string>>['xAxis'];
     let yAxis: ComponentProps<typeof CartesianChart<RawData, string, string>>['yAxis'];
+    const labelItems: LabelItem[] = [];
 
     if (tnode.tagName === 'victorybar' || tnode.tagName === 'victorychart') {
         const parsedData = parseAttribute(tnode.attributes.data);
@@ -114,6 +135,33 @@ function processNode(tnode: TNode, typeface: SkTypeface | null) {
                 font,
             };
         }
+    } else if (tnode.tagName === 'victorylabel') {
+        const x = parseAttribute(tnode.attributes.x);
+        const y = parseAttribute(tnode.attributes.y);
+        const text = parseAttribute(tnode.attributes.text);
+        const style = parseAttribute(tnode.attributes.style);
+        let color: Color = 'black';
+        let fontSize: number = 16;
+        let fontWeight: 'normal' | 'bold' = 'normal';
+        if (lodashIsObject(style)) {
+            if ('fill' in style) {
+                color = style.fill as Color;
+            }
+            if ('fontSize' in style) {
+                fontSize = Number(style.fontSize);
+            }
+            if ('fontWeight' in style && Number(style.fontWeight) === 700) {
+                fontWeight = 'bold';
+            }
+        }
+        labelItems.push({
+            x,
+            y,
+            text,
+            color,
+            fontSize,
+            fontWeight,
+        });
     }
 
     tnode.children.forEach((child) => {
@@ -129,6 +177,7 @@ function processNode(tnode: TNode, typeface: SkTypeface | null) {
             }
             yAxis.push(...childData.yAxis);
         }
+        labelItems.push(...childData.labelItems);
         lodashMerge(data, childData.data);
     });
 
@@ -138,6 +187,7 @@ function processNode(tnode: TNode, typeface: SkTypeface | null) {
         yKeys,
         xAxis,
         yAxis,
+        labelItems,
     };
 }
 
@@ -254,7 +304,7 @@ function parseStyles(tnode: TNode) {
 function VictoryChartRenderer({tnode}: CustomRendererProps<TBlock>) {
     const styles = useThemeStyles();
     const typeface = useChartDefaultTypeface();
-    const {data, xKey, yKeys, xAxis, yAxis} = useMemo(() => processNode(tnode, typeface), [tnode, typeface]);
+    const {data, xKey, yKeys, xAxis, yAxis, labelItems} = useMemo(() => processNode(tnode, typeface), [tnode, typeface]);
     const {nodeStyles, parentNodeStyles} = useMemo(() => parseStyles(tnode), [tnode]);
 
     const renderCartesianChartChild = useCallback((tnode: TNode, index: Number, renderArgs: CartesianChartRenderArg<RawData, string>) => {
@@ -294,6 +344,29 @@ function VictoryChartRenderer({tnode}: CustomRendererProps<TBlock>) {
         }
     }, []);
 
+    const renderOutside = useCallback(
+        (renderArgs: CartesianChartRenderArg<RawData, string>) => {
+            return (
+                <>
+                    {labelItems.map(({x, y, text, color, fontSize, fontWeight}) => {
+                        const font = typeface ? Skia.Font(typeface, fontSize) : null;
+                        return (
+                            <SkText
+                                key={`text-${x}-${y}`}
+                                x={x}
+                                y={y}
+                                text={text}
+                                font={font}
+                                color={color}
+                            />
+                        );
+                    })}
+                </>
+            );
+        },
+        [labelItems, typeface],
+    );
+
     return (
         <View style={[styles.chartContainer, styles.mw100, parentNodeStyles]}>
             <View style={[styles.chartContent, styles.mw100, nodeStyles]}>
@@ -306,6 +379,7 @@ function VictoryChartRenderer({tnode}: CustomRendererProps<TBlock>) {
                     domain={parseAttribute(tnode.attributes.domain)}
                     domainPadding={parseDomainPadding(tnode.attributes.domainpadding)}
                     padding={parseAttribute(tnode.attributes.padding)}
+                    renderOutside={renderOutside}
                 >
                     {(renderArgs) => tnode.children.map((child, childIndex) => renderCartesianChartChild(child, childIndex, renderArgs))}
                 </CartesianChart>
