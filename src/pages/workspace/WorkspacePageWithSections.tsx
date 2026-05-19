@@ -11,6 +11,7 @@ import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/typ
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
+import useIsWorkspacesTabFocused from '@hooks/useIsWorkspacesTabFocused';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -156,6 +157,7 @@ function WorkspacePageWithSections({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const firstRender = useRef(showLoadingAsFirstRender);
     const isFocused = useIsFocused();
+    const isWorkspacesTabFocused = useIsWorkspacesTabFocused();
     const prevPolicy = usePrevious(policy);
 
     useEffect(() => {
@@ -176,9 +178,10 @@ function WorkspacePageWithSections({
     const prevIsPendingDelete = isPendingDeletePolicy(prevPolicy);
 
     const shouldShow = useMemo(() => {
-        // Don't trigger the not-found view while the screen is in the background — prevents unexpected
-        // navigation when the workspace is deleted from another device while this screen is unfocused.
-        if (!isFocused) {
+        // Suppress the not-found view when the user has moved away from the workspace flow (e.g. switched
+        // to another tab and the workspace was deleted from another device) so the view doesn't bleed
+        // through over the active tab. Stays true when an RHP is open on top of a workspace screen.
+        if (!isWorkspacesTabFocused) {
             return false;
         }
 
@@ -192,7 +195,7 @@ function WorkspacePageWithSections({
 
         return (!isEmptyObject(policy) && !canShowPage) || (!shouldShowPolicy && !(isPendingDelete && !prevIsPendingDelete));
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentUserLogin, hasAccessToPolicyFeature, isFocused, policy, shouldShowNonAdmin, shouldShowPolicy]);
+    }, [currentUserLogin, hasAccessToPolicyFeature, isWorkspacesTabFocused, policy, shouldShowNonAdmin, shouldShowPolicy]);
 
     const handleOnBackButtonPress = () => {
         if (shouldShow) {
