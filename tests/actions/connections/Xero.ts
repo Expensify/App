@@ -46,7 +46,7 @@ describe('actions/connections/Xero', () => {
             updateXeroTravelInvoicingPayableAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
 
             const {command} = getFirstWriteCall();
-            expect(command).toBe(WRITE_COMMANDS.UPDATE_MANY_POLICY_CONNECTION_CONFIGS);
+            expect(command).toBe(WRITE_COMMANDS.UPDATE_XERO_TRAVEL_INVOICING_PAYABLE_ACCOUNT);
 
             const call = writeSpy.mock.calls.at(0);
             const params = call?.[1] as {connectionName: string; configUpdate: string; idempotencyKey: string; policyID: string};
