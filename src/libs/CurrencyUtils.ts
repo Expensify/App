@@ -1,10 +1,10 @@
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
-import Log from '@src/libs/Log';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Locale} from '@src/types/onyx';
+import Log from './Log';
 import {format, formatToParts} from './NumberFormatUtils';
 
 let currencyList: OnyxValues[typeof ONYXKEYS.CURRENCY_LIST] = {};
@@ -21,12 +21,20 @@ Onyx.connect({
 });
 
 /**
- * Validates a currency code and returns it unchanged if it is a valid ISO 4217 code (exactly 3 uppercase ASCII letters).
+ * Returns true when the provided value is a syntactically valid ISO 4217 currency code
+ * (exactly 3 uppercase ASCII letters).
+ */
+function isValidCurrencyCode(currencyCode: string | undefined | null): currencyCode is string {
+    return typeof currencyCode === 'string' && /^[A-Z]{3}$/.test(currencyCode);
+}
+
+/**
+ * Validates a currency code and returns it unchanged if it is a valid ISO 4217 code.
  * Returns CONST.CURRENCY.USD and logs a warning when the code is malformed or missing, to prevent Intl.NumberFormat
  * from throwing a RangeError. See https://github.com/Expensify/App/issues/91113
  */
 function sanitizeCurrencyCode(currencyCode: string): string {
-    if (/^[A-Z]{3}$/.test(currencyCode)) {
+    if (isValidCurrencyCode(currencyCode)) {
         return currencyCode;
     }
     Log.warn('CurrencyUtils: invalid currency code, defaulting to USD', {currencyCode});
@@ -209,6 +217,7 @@ function convertToDisplayStringWithoutCurrency(amountInCents: number, currency: 
 }
 
 export {
+    isValidCurrencyCode,
     sanitizeCurrencyCode,
     getCurrencyDecimals,
     getCurrencyUnit,
