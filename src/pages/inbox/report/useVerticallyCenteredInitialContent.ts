@@ -412,7 +412,14 @@ function useVerticallyCenteredInitialContent({
         hasCommittedMeasuredAnchorScrollRef.current = false;
         measuredAnchorScrollAttemptCountRef.current = 0;
         tryApplyMeasuredAnchorScroll(linkedRowMeasuredHeightRef.current);
-    }, [initialScrollKeyForInitialScroll, linkedReportActionID, listHeight, reportLoadingState?.isLoadingOlderReportActions, sortedVisibleReportActions.length]);
+    }, [
+        initialScrollKeyForInitialScroll,
+        linkedReportActionID,
+        listHeight,
+        reportLoadingState?.isLoadingOlderReportActions,
+        sortedVisibleReportActions.length,
+        tryApplyMeasuredAnchorScroll,
+    ]);
 
     useEffect(() => {
         if (!shouldMeasureInitialScrollTargetPosition || hasAppliedMeasuredAnchorScroll) {
