@@ -7,8 +7,8 @@ import type LocalFileDownload from './types';
  * creates a temporary anchor, just to programmatically click it, so the file
  * is downloaded by the browser.
  */
-const localFileDownload: LocalFileDownload = (fileName, textContent, translate, successMessage, shouldShowSuccessAlert) => {
-    localFileCreate(fileName, textContent).then(({path, newFileName}) => {
+const localFileDownload: LocalFileDownload = (fileName, textContent, translate, successMessage, shouldShowSuccessAlert, appendTimestamp = true) => {
+    localFileCreate(fileName, textContent, appendTimestamp).then(({path, newFileName}) => {
         const link = document.createElement('a');
         link.download = newFileName;
         link.href = path;

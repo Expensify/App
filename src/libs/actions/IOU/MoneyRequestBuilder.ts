@@ -171,6 +171,7 @@ type RequestMoneyInformation = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     shouldDeferAutoSubmit?: boolean;
+    shouldDeferForSearch?: boolean;
 };
 
 type MoneyRequestInformationParams = {
@@ -1617,16 +1618,13 @@ function mergePolicyRecentlyUsedCurrencies(currency: string | undefined, policyR
 export {
     buildMinimalTransactionForFormula,
     buildOnyxDataForMoneyRequest,
-    buildOnyxDataForTestDriveIOU,
     calculateDiffAmount,
     getMoneyRequestInformation,
     getReceiptError,
     getReportPreviewAction,
     getTransactionWithPreservedLocalReceiptSource,
     getUpdatedMoneyRequestReportData,
-    maybeUpdateReportNameForFormulaTitle,
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
-    recalculateOptimisticReportName,
 };
 export type {BuildOnyxDataForMoneyRequestKeys, MoneyRequestInformation, MoneyRequestInformationParams, OneOnOneIOUReport, RequestMoneyInformation};
