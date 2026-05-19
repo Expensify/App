@@ -717,6 +717,9 @@ function ReportActionsList({
     }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID, backTo, introSelected, reportLoadingState?.hasOnceLoadedReportActions, betas]);
 
     const scrollToActionBadgeTarget = useCallback(() => {
+        if (actionBadgeTargetIndex < 0) {
+            return;
+        }
         reportScrollManager.scrollToIndex(actionBadgeTargetIndex);
     }, [actionBadgeTargetIndex, reportScrollManager]);
 

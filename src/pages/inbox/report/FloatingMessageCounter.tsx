@@ -125,7 +125,7 @@ function FloatingMessageCounter({isActive = false, onClick = () => {}, hasNewMes
 
     return (
         <Animated.View
-            accessibilityHint={translate('accessibilityHints.scrollToNewestMessages')}
+            accessibilityHint={translate(shouldShowActionBadgePill ? 'accessibilityHints.scrollToActionBadgeTarget' : 'accessibilityHints.scrollToNewestMessages')}
             style={wrapperStyle}
         >
             <View style={styles.floatingMessageCounter}>
