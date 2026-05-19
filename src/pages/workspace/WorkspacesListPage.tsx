@@ -140,7 +140,8 @@ function WorkspacesListPage() {
         setIsDeleteModalOpen(true);
     };
     const {reportsToArchive, transactionViolations} = useTransactionViolationOfWorkspace(policyIDToDelete);
-    const {setIsDeletingPaidWorkspace}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} = usePayAndDowngrade(continueDeleteWorkspace);
+    const {setIsDeletingPaidWorkspace, isLoadingBill}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} =
+        usePayAndDowngrade(continueDeleteWorkspace);
 
     const [loadingSpinnerIconIndex, setLoadingSpinnerIconIndex] = useState<number | null>(null);
 
@@ -428,6 +429,10 @@ function WorkspacesListPage() {
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID));
     };
 
+    const resetLoadingSpinnerIconIndex = () => {
+        setLoadingSpinnerIconIndex(null);
+    };
+
     const {policiesWithCardFeedErrors} = usePoliciesWithCardFeedErrors();
 
     /**
@@ -488,6 +493,7 @@ function WorkspacesListPage() {
                     title: policyInfo.name,
                     role: CONST.POLICY.ROLE.USER,
                     isDeleted: false,
+                    isLoadingBill: !!isLoadingBill,
                     isJoinRequestPending: true,
                     isDefault: activePolicyID === policyID,
                     ownerAccountID: policyOwnerAccountID,
@@ -498,6 +504,7 @@ function WorkspacesListPage() {
                     icon: policyInfo?.avatar ? policyInfo.avatar : getDefaultWorkspaceAvatar(policy.name),
                     action: () => null,
                     dismissError: () => null,
+                    resetLoadingSpinnerIconIndex,
                 };
 
                 pendingWorkspaceRow.threeDotMenuItems = getThreeDotMenuItems({item: pendingWorkspaceRow, index});
@@ -515,6 +522,7 @@ function WorkspacesListPage() {
                     title: policy.name,
                     role: policy.role,
                     ownerAccountID: policyOwnerAccountID,
+                    isLoadingBill: !!isLoadingBill,
                     isJoinRequestPending: false,
                     isDefault: activePolicyID === policy.id,
                     isDeleted: isPendingDeletePolicy(policy),
@@ -580,7 +588,10 @@ function WorkspacesListPage() {
                     />
                 </View>
             ) : (
-                <WorkspaceListTable workspaces={workspaceRows} />
+                <WorkspaceListTable
+                    ref={tableRef}
+                    workspaces={workspaceRows}
+                />
             )}
 
             <ConfirmModal

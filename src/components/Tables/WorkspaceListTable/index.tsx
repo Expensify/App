@@ -23,6 +23,7 @@ type WorkspaceRowData = {
     disabled: boolean;
     isDefault: boolean;
     isDeleted: boolean;
+    isLoadingBill: boolean;
     isJoinRequestPending: boolean;
     policyID: string;
     ownerAccountID?: number;
@@ -38,6 +39,7 @@ type WorkspaceRowData = {
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
     action: () => void;
     dismissError: () => void;
+    resetLoadingSpinnerIconIndex?: () => void;
 };
 
 type WorkspaceListTableProps = {

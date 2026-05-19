@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/core';
-import React, {useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Badge from '@components/Badge';
@@ -39,10 +39,12 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Building', 'FallbackWorkspaceAvatar', 'DotIndicator', 'Hourglass']);
 
+    const isLoadingBill = item.isLoadingBill;
     const formattedOwnerName = item.ownerName ?? '';
     const formattedWorkspaceType = getUserFriendlyWorkspaceType(item.type, translate);
     const narrowWorkspaceLabel = `${translate('common.owner')}: ${formattedOwnerName} • ${formattedWorkspaceType}`;
     const itemDeletedStyles = item.isDeleted ? [styles.offlineFeedbackDeleted] : [{}];
+    const resetLoadingSpinnerIconIndex = item.resetLoadingSpinnerIconIndex;
 
     const accessibilityLabel = [
         `${translate('workspace.common.workspaceName')}: ${item.title}`,
@@ -91,6 +93,19 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
             </View>
         </Tooltip>
     );
+
+    useEffect(() => {
+        if (isLoadingBill) {
+            return;
+        }
+
+        resetLoadingSpinnerIconIndex?.();
+
+        if (!threeDotsMenuRef.current?.isPopupMenuVisible) {
+            return;
+        }
+        threeDotsMenuRef?.current?.hidePopoverMenu();
+    }, [isLoadingBill, resetLoadingSpinnerIconIndex]);
 
     return (
         <Table.Row
