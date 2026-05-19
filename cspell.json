@@ -910,6 +910,7 @@
         "Monzo",
         "Novobanco",
         "Pekao",
+        "Playroll",
         "Pleo",
         "Polska",
         "Postale",
@@ -931,7 +932,9 @@
         "lintrk",
         "Fbclid",
         "Gclid",
-        "autocorrection"
+        "autocorrection",
+        "BambooHr",
+        "HiBob"
     ],
     "ignorePaths": [
         ".gitignore",
