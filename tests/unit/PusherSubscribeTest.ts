@@ -88,13 +88,13 @@ describe('Pusher.subscribe', () => {
         await jest.runAllTimersAsync();
         await subscribePromise;
 
-        expect(logSpy).toHaveBeenCalledWith('[Pusher] Socket disconnected before subscribe could complete, skipping subscription', false, {
+        expect(logSpy).toHaveBeenCalledWith('[Pusher] Stale subscribe call after disconnect, skipping', false, {
             channelName: 'private-user-456',
             eventName: 'multipleEvents',
         });
     });
 
-    it('should throw in dev when socket is disconnected before subscribe callback runs', async () => {
+    it('should resolve gracefully in dev when socket is disconnected before subscribe callback runs', async () => {
         // Ensure __DEV__ is true (the default in Jest)
         // eslint-disable-next-line no-underscore-dangle
         (global as Record<string, unknown>).__DEV__ = true;
@@ -106,7 +106,9 @@ describe('Pusher.subscribe', () => {
 
         await jest.runAllTimersAsync();
 
-        await expect(subscribePromise).rejects.toThrow('[Pusher] instance not found. Pusher.subscribe() most likely has been called before Pusher.init()');
+        // disconnect() increments pusherGeneration, so the stale-generation check
+        // fires before the !socket check and resolves without throwing
+        await expect(subscribePromise).resolves.toBeUndefined();
     });
 
     it('should subscribe successfully when socket is connected', async () => {
