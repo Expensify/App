@@ -8,6 +8,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useEnvironment from '@hooks/useEnvironment';
 import useGustoSyncResultsModal from '@hooks/useGustoSyncResultsModal';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -18,6 +19,10 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
+import getGustoSetupLink from '@libs/actions/connections/Gusto';
+import {connectPolicyToMergeHR} from '@libs/actions/connections/MergeHR';
+import getZenefitsSetupLink from '@libs/actions/connections/Zenefits';
+import {openLink} from '@libs/actions/Link';
 import {openPolicyHRPage} from '@libs/actions/PolicyConnections';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -27,7 +32,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import HRProviderCard from './HRProviderCard';
-import type {ConnectFlowType} from './utils';
+import type {HRCardDescriptor} from './utils';
 import {getHRCards} from './utils';
 
 type WorkspaceHRPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.HR>;
@@ -38,6 +43,7 @@ function WorkspaceHRPage({
     },
 }: WorkspaceHRPageProps) {
     const {translate, getLocalDateFromDatetime, localeCompare} = useLocalize();
+    const {environmentURL} = useEnvironment();
     const isFocused = useIsFocused();
     const {isBetaEnabled} = usePermissions();
     const styles = useThemeStyles();
@@ -78,13 +84,14 @@ function WorkspaceHRPage({
 
     const shouldBeBlocked = !isBetaEnabled(CONST.BETAS.GUSTO) && !isBetaEnabled(CONST.BETAS.ZENEFITS) && !isBetaEnabled(CONST.BETAS.MERGE_HR);
 
-    // TODO: Replace with actual connect flow invocations per provider
-    const handleConnect = (connectFlowType: ConnectFlowType) => {
-        if (connectFlowType === 'none') {
-            return;
+    const handleConnect = (card: HRCardDescriptor) => {
+        if (card.connectionName === CONST.POLICY.CONNECTIONS.NAME.GUSTO) {
+            openLink(getGustoSetupLink(policyID), environmentURL);
+        } else if (card.connectionName === CONST.POLICY.CONNECTIONS.NAME.ZENEFITS) {
+            openLink(getZenefitsSetupLink(policyID), environmentURL);
+        } else if (card.connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR && card.mergeSlug) {
+            connectPolicyToMergeHR(policyID, card.mergeSlug);
         }
-        // eslint-disable-next-line no-console
-        console.log(`[WorkspaceHRPage] connect flow triggered: ${connectFlowType}`);
     };
 
     return (
@@ -121,7 +128,7 @@ function WorkspaceHRPage({
                                     card={card}
                                     policy={policy}
                                     isFirst={index === 0}
-                                    onConnect={() => handleConnect(card.connectFlowType)}
+                                    onConnect={() => handleConnect(card)}
                                 />
                             ))}
 
@@ -132,7 +139,7 @@ function WorkspaceHRPage({
                                         card={card}
                                         policy={policy}
                                         isFirst={index === 0}
-                                        onConnect={() => handleConnect(card.connectFlowType)}
+                                        onConnect={() => handleConnect(card)}
                                     />
                                 ))}
 
@@ -162,7 +169,7 @@ function WorkspaceHRPage({
                                                     key={card.key}
                                                     card={card}
                                                     policy={policy}
-                                                    onConnect={() => handleConnect(card.connectFlowType)}
+                                                    onConnect={() => handleConnect(card)}
                                                 />
                                             ))}
                                         </>

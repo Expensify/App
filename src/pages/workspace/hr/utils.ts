@@ -15,8 +15,6 @@ import type {ConnectionName, PolicyConnectionSyncProgress} from '@src/types/onyx
 import type Policy from '@src/types/onyx/Policy';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-type ConnectFlowType = 'gusto' | 'zenefits' | 'none';
-
 type HRCardConfig = {
     approvalMode?: string;
     finalApprover?: string;
@@ -35,7 +33,6 @@ type HRCardDescriptor = {
     successfulDate?: string;
     hasError: boolean;
     mergeSlug?: MergeHRProviderSlug;
-    connectFlowType: ConnectFlowType;
     approvalModeRoute?: Route;
     finalApproverRoute?: Route;
     config?: HRCardConfig;
@@ -140,16 +137,6 @@ function getFinalApproverRoute(connectionName: HRConnectionName, policyID: strin
     return undefined;
 }
 
-function getConnectFlowType(connectionName: HRConnectionName): ConnectFlowType {
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.GUSTO) {
-        return 'gusto';
-    }
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.ZENEFITS) {
-        return 'zenefits';
-    }
-    return 'none';
-}
-
 type GetHRCardsParams = {
     policy: OnyxEntry<Policy>;
     connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>;
@@ -174,7 +161,6 @@ function getHRCards({policy, connectionSyncProgress, isBetaEnabled, getLocalDate
             displayName: translate('workspace.hr.gusto.title'),
             icon: gustoIcon,
             iconType: CONST.ICON_TYPE_AVATAR,
-            connectFlowType: getConnectFlowType(connectionName),
             approvalModeRoute: getApprovalModeRoute(connectionName, policyID),
             finalApproverRoute: getFinalApproverRoute(connectionName, policyID),
             config,
@@ -194,7 +180,6 @@ function getHRCards({policy, connectionSyncProgress, isBetaEnabled, getLocalDate
             displayName: translate('workspace.hr.zenefits.title'),
             icon: zenefitsIcon,
             iconType: CONST.ICON_TYPE_AVATAR,
-            connectFlowType: getConnectFlowType(connectionName),
             approvalModeRoute: getApprovalModeRoute(connectionName, policyID),
             finalApproverRoute: getFinalApproverRoute(connectionName, policyID),
             config,
@@ -224,7 +209,6 @@ function getHRCards({policy, connectionSyncProgress, isBetaEnabled, getLocalDate
                 successfulDate: isThisSlugConnected ? state.successfulDate : undefined,
                 hasError: isThisSlugConnected ? state.hasError : false,
                 mergeSlug: slug,
-                connectFlowType: getConnectFlowType(mergeConnectionName),
                 approvalModeRoute: undefined,
                 finalApproverRoute: undefined,
                 config,
@@ -237,5 +221,5 @@ function getHRCards({policy, connectionSyncProgress, isBetaEnabled, getLocalDate
     return cards;
 }
 
-export type {HRCardDescriptor, ConnectFlowType};
+export type {HRCardDescriptor};
 export {getHRCardState, getHRCards, getApprovalModeLabel};
