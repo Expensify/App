@@ -493,6 +493,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Vorig jaar',
         nextYear: 'Volgend jaar',
         avatar: 'Avatar',
+        editor: 'Editor',
     },
     socials: {
         podcast: 'Volg ons op Podcast',
@@ -4299,9 +4300,11 @@ ${amount} voor ${merchant} - ${date}`,
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
-                        return 'Beheerder';
+                        return 'Beheer';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditor';
+                    case CONST.POLICY.ROLE.EDITOR:
+                        return 'Editor';
                     case CONST.POLICY.ROLE.USER:
                         return 'Lid';
                     default:
@@ -4337,6 +4340,7 @@ ${amount} voor ${merchant} - ${date}`,
             travelInvoicingPayableAccount: 'Reiscrediteurenrekening',
             hr: 'HR',
             rooms: 'Kamers',
+            editorAlternateText: 'Configureer werkruimte-instellingen zonder de onkosten van andere leden te zien.',
         },
         createdForClient: {
             title: 'Je hebt een werkruimte voor je klant aangemaakt!',

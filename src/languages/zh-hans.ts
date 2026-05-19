@@ -489,6 +489,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: '上一年',
         nextYear: '明年',
         avatar: '头像',
+        editor: '编辑器',
     },
     socials: {
         podcast: '在播客上关注我们',
@@ -4206,6 +4207,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                         return '管理员';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return '审计员';
+                    case CONST.POLICY.ROLE.EDITOR:
+                        return '编辑器';
                     case CONST.POLICY.ROLE.USER:
                         return '成员';
                     default:
@@ -4240,6 +4243,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             travelInvoicingPayableAccount: '差旅应付账户',
             hr: '人力资源',
             rooms: '房间',
+            editorAlternateText: '在不查看其他成员报销的情况下配置工作区设置。',
         },
         createdForClient: {
             title: '您已为客户创建了工作区！',

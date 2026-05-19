@@ -493,6 +493,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: '前年',
         nextYear: '来年',
         avatar: 'アバター',
+        editor: '編集者',
     },
     socials: {
         podcast: 'ポッドキャストでフォロー',
@@ -4273,7 +4274,9 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                     case CONST.POLICY.ROLE.ADMIN:
                         return '管理者';
                     case CONST.POLICY.ROLE.AUDITOR:
-                        return '監査人';
+                        return '監査担当者';
+                    case CONST.POLICY.ROLE.EDITOR:
+                        return '編集者';
                     case CONST.POLICY.ROLE.USER:
                         return 'メンバー';
                     default:
@@ -4309,6 +4312,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             travelInvoicingPayableAccount: '旅費未払金勘定',
             hr: '人事',
             rooms: 'ルーム',
+            editorAlternateText: '他のメンバーの経費を表示せずに、ワークスペース設定を構成できます。',
         },
         createdForClient: {
             title: 'クライアントのワークスペースを作成しました！',

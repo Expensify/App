@@ -446,6 +446,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expensifyLogo: 'Logo de Expensify',
         approver: 'Aprobador',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `introducir dígito ${digitIndex} de ${totalDigits}`,
+        editor: 'Editor',
     },
     socials: {
         podcast: 'Síguenos en Podcast',
@@ -4199,12 +4200,14 @@ ${amount} para ${merchant} - ${date}`,
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO]: 'Ninguno',
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL]: 'Indirecto',
             },
-            roleName: (role) => {
+            roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
-                        return 'Administrador';
+                        return 'Admin';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditor';
+                    case CONST.POLICY.ROLE.EDITOR:
+                        return 'Editor';
                     case CONST.POLICY.ROLE.USER:
                         return 'Miembro';
                     default:
@@ -4242,6 +4245,7 @@ ${amount} para ${merchant} - ${date}`,
             travelInvoicing: 'Exportar Viajes de Expensify por Pagar a',
             travelInvoicingVendor: 'Proveedor de viajes',
             travelInvoicingPayableAccount: 'Cuenta por pagar de viajes',
+            editorAlternateText: 'Configura los ajustes del espacio de trabajo sin ver los gastos de otros miembros.',
         },
         createdForClient: {
             title: '¡Has creado un espacio de trabajo para tu cliente!',

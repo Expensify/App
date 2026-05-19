@@ -494,6 +494,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Anno precedente',
         nextYear: "L'anno prossimo",
         avatar: 'Avatar',
+        editor: 'Editor',
     },
     socials: {
         podcast: 'Seguici su Podcast',
@@ -4307,6 +4308,8 @@ ${amount} per ${merchant} - ${date}`,
                         return 'Amministrazione';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Revisore';
+                    case CONST.POLICY.ROLE.EDITOR:
+                        return 'Editor';
                     case CONST.POLICY.ROLE.USER:
                         return 'Membro';
                     default:
@@ -4342,6 +4345,7 @@ ${amount} per ${merchant} - ${date}`,
             travelInvoicingPayableAccount: 'Conto debiti per viaggi',
             hr: 'Risorse umane',
             rooms: 'Stanze',
+            editorAlternateText: 'Configura le impostazioni dello spazio di lavoro senza vedere le spese degli altri membri.',
         },
         createdForClient: {
             title: 'Hai creato uno spazio di lavoro per il tuo cliente!',
