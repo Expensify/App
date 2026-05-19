@@ -23,7 +23,9 @@ function useChartFontManager(): SkTypefaceFontProvider | null {
 }
 
 function useChartDefaultTypeface() {
-    return useTypeface(webFont(require('@assets/fonts/web/ExpensifyNeue-Regular.woff2') as string));
+    const regular = useTypeface(webFont(require('@assets/fonts/web/ExpensifyNeue-Regular.woff2') as string));
+    const bold = useTypeface(webFont(require('@assets/fonts/web/ExpensifyNeue-Bold.woff2') as string));
+    return {regular, bold};
 }
 
 export {useChartDefaultTypeface};

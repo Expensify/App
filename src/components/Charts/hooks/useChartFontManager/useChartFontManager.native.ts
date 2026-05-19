@@ -15,7 +15,9 @@ function useChartFontManager(): SkTypefaceFontProvider | null {
 }
 
 function useChartDefaultTypeface() {
-    return useTypeface(require('@assets/fonts/native/ExpensifyNeue-Regular.otf') as DataModule);
+    const regular = useTypeface(require('@assets/fonts/native/ExpensifyNeue-Regular.otf') as DataModule);
+    const bold = useTypeface(require('@assets/fonts/native/ExpensifyNeue-Bold.otf') as DataModule);
+    return {regular, bold};
 }
 
 export {useChartDefaultTypeface};

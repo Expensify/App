@@ -303,8 +303,8 @@ function parseStyles(tnode: TNode) {
 
 function VictoryChartRenderer({tnode}: CustomRendererProps<TBlock>) {
     const styles = useThemeStyles();
-    const typeface = useChartDefaultTypeface();
-    const {data, xKey, yKeys, xAxis, yAxis, labelItems} = useMemo(() => processNode(tnode, typeface), [tnode, typeface]);
+    const {regular: regularTypeface, bold: boldTypeface} = useChartDefaultTypeface();
+    const {data, xKey, yKeys, xAxis, yAxis, labelItems} = useMemo(() => processNode(tnode, regularTypeface), [tnode, regularTypeface]);
     const {nodeStyles, parentNodeStyles} = useMemo(() => parseStyles(tnode), [tnode]);
 
     const renderCartesianChartChild = useCallback((tnode: TNode, index: Number, renderArgs: CartesianChartRenderArg<RawData, string>) => {
@@ -349,6 +349,7 @@ function VictoryChartRenderer({tnode}: CustomRendererProps<TBlock>) {
             return (
                 <>
                     {labelItems.map(({x, y, text, color, fontSize, fontWeight}) => {
+                        const typeface = fontWeight === 'bold' ? boldTypeface : regularTypeface;
                         const font = typeface ? Skia.Font(typeface, fontSize) : null;
                         return (
                             <SkText
@@ -364,7 +365,7 @@ function VictoryChartRenderer({tnode}: CustomRendererProps<TBlock>) {
                 </>
             );
         },
-        [labelItems, typeface],
+        [labelItems, regularTypeface, boldTypeface],
     );
 
     return (
