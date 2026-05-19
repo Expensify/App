@@ -20,5 +20,4 @@ export default {
     SHARE_MODAL_NAVIGATOR: 'ShareModalNavigator',
     TEST_TOOLS_MODAL_NAVIGATOR: 'TestToolsModalNavigator',
     TAB_NAVIGATOR: 'TabNavigator',
-    WORKSPACES_SPLIT_NAVIGATOR: 'WorkspacesSplitNavigator',
 } as const;

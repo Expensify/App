@@ -594,9 +594,9 @@ const ROUTES = {
         route: 'workspaces',
         getRoute: (backTo?: string) => getUrlWithBackToParam('workspaces', backTo),
     },
-    WORKSPACES_DOMAINS: {
-        route: 'workspaces/domains',
-        getRoute: () => 'workspaces/domains' as const,
+    DOMAINS_LIST: {
+        route: 'domains',
+        getRoute: () => 'domains' as const,
     },
     SEARCH_ROUTER: 'search-router',
     SEARCH_ROOT: {

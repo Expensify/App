@@ -25,7 +25,7 @@ import ROUTES from '@src/ROUTES';
 import {isAdminSelector} from '@src/selectors/Domain';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-function WorkspacesListPage() {
+function DomainsListPage() {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -119,4 +119,4 @@ function WorkspacesListPage() {
     );
 }
 
-export default WorkspacesListPage;
+export default DomainsListPage;

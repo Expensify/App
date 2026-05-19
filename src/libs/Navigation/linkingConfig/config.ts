@@ -2309,17 +2309,13 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [NAVIGATORS.WORKSPACE_NAVIGATOR]: {
                     screens: {
-                        [NAVIGATORS.WORKSPACES_SPLIT_NAVIGATOR]: {
-                            screens: {
-                                [SCREENS.WORKSPACES_LIST]: {
-                                    path: ROUTES.WORKSPACES_LIST.route,
-                                    exact: true,
-                                },
-                                [SCREENS.WORKSPACES_DOMAINS]: {
-                                    path: ROUTES.WORKSPACES_DOMAINS.route,
-                                    exact: true,
-                                },
-                            },
+                        [SCREENS.WORKSPACES_LIST]: {
+                            path: ROUTES.WORKSPACES_LIST.route,
+                            exact: true,
+                        },
+                        [SCREENS.DOMAINS_LIST]: {
+                            path: ROUTES.DOMAINS_LIST.route,
+                            exact: true,
                         },
                         [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: {
                             screens: {

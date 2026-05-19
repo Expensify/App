@@ -2941,16 +2941,9 @@ type TestDriveDemoNavigatorParamList = {
     [SCREENS.TEST_DRIVE_DEMO.ROOT]: undefined;
 };
 
-type WorkspacesSplitNavigatorParamList = {
-    [SCREENS.WORKSPACES_INITIAL]: undefined;
-    [SCREENS.WORKSPACES_LIST]: {backTo?: Routes};
-    [SCREENS.WORKSPACES_DOMAINS]: undefined;
-};
-
 type WorkspaceNavigatorParamList = {
     [SCREENS.WORKSPACES_LIST]: {backTo?: Routes};
-    [SCREENS.WORKSPACES_DOMAINS]: undefined;
-    [NAVIGATORS.WORKSPACES_SPLIT_NAVIGATOR]: NavigatorScreenParams<WorkspacesSplitNavigatorParamList>;
+    [SCREENS.DOMAINS_LIST]: undefined;
     [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: NavigatorScreenParams<WorkspaceSplitNavigatorParamList>;
     [NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR]: NavigatorScreenParams<DomainSplitNavigatorParamList>;
 };
@@ -3409,5 +3402,4 @@ export type {
     DomainScreenName,
     SearchColumnsParamList,
     MultifactorAuthenticationParamList,
-    WorkspacesSplitNavigatorParamList,
 };

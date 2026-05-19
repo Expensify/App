@@ -13,7 +13,6 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import DomainSplitNavigator from './DomainSplitNavigator';
 import WorkspaceSplitNavigator from './WorkspaceSplitNavigator';
-import WorkspacesSplitNavigator from './WorkspacesSplitNavigator';
 
 const Stack = createWorkspaceNavigator<WorkspaceNavigatorParamList>();
 
@@ -30,24 +29,14 @@ function WorkspaceNavigator({route}: PlatformStackScreenProps<TabNavigatorParamL
             }}
             parentRoute={route}
         >
-            {shouldUseNarrowLayout ? (
-                <>
-                    <Stack.Screen
-                        name={SCREENS.WORKSPACES_LIST}
-                        component={WorkspacesListPage}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.WORKSPACES_DOMAINS}
-                        component={DomainsListPage}
-                    />
-                </>
-            ) : (
-                <Stack.Screen
-                    name={NAVIGATORS.WORKSPACES_SPLIT_NAVIGATOR}
-                    component={WorkspacesSplitNavigator}
-                />
-            )}
-
+            <Stack.Screen
+                name={SCREENS.WORKSPACES_LIST}
+                component={WorkspacesListPage}
+            />
+            <Stack.Screen
+                name={SCREENS.DOMAINS_LIST}
+                component={DomainsListPage}
+            />
             <Stack.Screen
                 name={NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}
                 options={splitNavigatorOptions}

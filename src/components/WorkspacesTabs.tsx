@@ -23,7 +23,7 @@ export default function WorkspaceTabs({}: WorkspaceTabsProps) {
         }
 
         if (key === 'domains') {
-            Navigation.navigate(ROUTES.WORKSPACES_DOMAINS.route);
+            Navigation.navigate(ROUTES.DOMAINS_LIST.route);
             return;
         }
     };
