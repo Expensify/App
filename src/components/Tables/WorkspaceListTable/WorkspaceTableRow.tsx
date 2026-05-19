@@ -136,7 +136,7 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
                                 fallbackIcon={icons.FallbackWorkspaceAvatar}
                             />
 
-                            <View style={[styles.flexGrow1, styles.gap1]}>
+                            <View style={[styles.flex1, styles.gap1]}>
                                 <TextWithTooltip
                                     shouldShowTooltip
                                     text={item.title}
