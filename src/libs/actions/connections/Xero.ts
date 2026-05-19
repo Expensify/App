@@ -4,7 +4,7 @@ import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
-import type {ConnectPolicyToAccountingIntegrationParams, UpdateManyPolicyConnectionConfigurationsParams, UpdateXeroGenericTypeParams} from '@libs/API/parameters';
+import type {ConnectPolicyToAccountingIntegrationParams, UpdateXeroGenericTypeParams} from '@libs/API/parameters';
 import type UpdateXeroAccountingMethodParams from '@libs/API/parameters/UpdateXeroAccountingMethodParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
@@ -497,13 +497,12 @@ function updateXeroExportNonReimbursableAccount(
     API.write(WRITE_COMMANDS.UPDATE_XERO_EXPORT_NON_REIMBURSABLE_ACCOUNT, parameters, {optimisticData, failureData, successData});
 }
 
-function updateXeroTravelInvoicingPayableAccount(policyID: string, accountID: string, oldAccountID?: string) {
-    const {optimisticData, failureData, successData} = prepareXeroExportOptimisticData(policyID, CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT, accountID, oldAccountID);
-    const parameters: UpdateManyPolicyConnectionConfigurationsParams = {
+function updateXeroTravelInvoicingPayableAccount(policyID: string, settingValue: string, oldSettingValue?: string) {
+    const {optimisticData, failureData, successData} = prepareXeroExportOptimisticData(policyID, CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT, settingValue, oldSettingValue);
+    const parameters: UpdateXeroGenericTypeParams = {
         policyID,
-        connectionName: CONST.POLICY.CONNECTIONS.NAME.XERO,
-        configUpdate: JSON.stringify({[CONST.XERO_CONFIG.EXPORT]: {[CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT]: accountID}}),
-        idempotencyKey: CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT,
+        settingValue,
+        idempotencyKey: String(CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT),
     };
     API.write(WRITE_COMMANDS.UPDATE_XERO_TRAVEL_INVOICING_PAYABLE_ACCOUNT, parameters, {optimisticData, failureData, successData});
 }

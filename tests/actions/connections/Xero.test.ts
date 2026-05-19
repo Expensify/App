@@ -42,18 +42,17 @@ describe('actions/connections/Xero', () => {
     });
 
     describe('updateXeroTravelInvoicingPayableAccount', () => {
-        it('writes the UpdateManyPolicyConnectionConfigs command with travelInvoicingPayableAccountID', () => {
+        it('writes the UpdateXeroTravelInvoicingPayableAccount command with travelInvoicingPayableAccountID', () => {
             updateXeroTravelInvoicingPayableAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
 
             const {command} = getFirstWriteCall();
             expect(command).toBe(WRITE_COMMANDS.UPDATE_XERO_TRAVEL_INVOICING_PAYABLE_ACCOUNT);
 
             const call = writeSpy.mock.calls.at(0);
-            const params = call?.[1] as {connectionName: string; configUpdate: string; idempotencyKey: string; policyID: string};
+            const params = call?.[1] as {idempotencyKey: string; policyID: string; settingValue: string};
             expect(params.policyID).toBe(MOCK_POLICY_ID);
-            expect(params.connectionName).toBe(CONST.POLICY.CONNECTIONS.NAME.XERO);
+            expect(params.settingValue).toBe('account-123');
             expect(params.idempotencyKey).toBe(CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT);
-            expect(JSON.parse(params.configUpdate)).toEqual({[CONST.XERO_CONFIG.EXPORT]: {[CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT]: 'account-123'}});
         });
 
         it('merges travelInvoicingPayableAccountID optimistically onto the Xero config', () => {
