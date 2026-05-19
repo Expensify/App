@@ -9,6 +9,7 @@ import type {SaveSearchParams} from '@libs/API/parameters';
 import type {ReimbursementAccountStepToOpen} from '@libs/ReimbursementAccountUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type {AttachmentModalContainerModalProps} from '@pages/media/AttachmentModalScreen/types';
+import type RECONCILIATION_ACCOUNT_SETTINGS_TYPE from '@pages/workspace/accounting/reconciliation/constants';
 import type CONST from '@src/CONST';
 import type {Country, IOUAction, IOUType, OdometerImageType} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
@@ -1151,6 +1152,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_RECONCILIATION_ACCOUNT_SETTINGS]: {
         policyID: string;
         connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>;
+        reconciliationAccountSettingsType?: ValueOf<typeof RECONCILIATION_ACCOUNT_SETTINGS_TYPE>;
     };
     [SCREENS.TWO_FACTOR_AUTH.DISABLED]: undefined;
     [SCREENS.TWO_FACTOR_AUTH.DISABLE]: undefined;
@@ -1436,6 +1438,12 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.HR_ZENEFITS_FINAL_APPROVER]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.HR_MERGE_APPROVAL_MODE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.HR_MERGE_FINAL_APPROVER]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.RULES_PROHIBITED_DEFAULT]: {
@@ -2774,6 +2782,9 @@ type WorkspaceSplitNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.MEMBERS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ROOMS]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.CATEGORIES]: {

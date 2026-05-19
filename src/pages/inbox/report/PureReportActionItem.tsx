@@ -27,9 +27,10 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {cleanUpMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
+import {isSafari} from '@libs/Browser';
 import {isChronosOOOListAction} from '@libs/ChronosUtils';
 import ControlSelection from '@libs/ControlSelection';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {canUseTouchScreen, hasHoverSupport} from '@libs/DeviceCapabilities';
 import type {OnyxDataWithErrors} from '@libs/ErrorUtils';
 import {getLatestErrorMessageField, isReceiptError} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -536,7 +537,7 @@ function PureReportActionItem({
                         withoutFocusOnSecondaryInteraction
                         accessibilityLabel={accessibilityLabel}
                         accessibilityHint={translate('accessibilityHints.chatMessage')}
-                        accessibilityRole={CONST.ROLE.BUTTON}
+                        accessibilityRole={isSafari() && hasHoverSupport() ? undefined : CONST.ROLE.BUTTON}
                         sentryLabel={CONST.SENTRY_LABEL.REPORT.PURE_REPORT_ACTION_ITEM}
                     >
                         <Hoverable
