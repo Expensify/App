@@ -3,8 +3,10 @@ import {StyleSheet, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
+import LHNCaughtUpLogger from '@components/LHNOptionsList/LHNCaughtUpLogger';
 import LHNEmptyState from '@components/LHNOptionsList/LHNEmptyState';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
+import SidebarOrderedReportsTransitionLogger from '@components/LHNOptionsList/SidebarOrderedReportsTransitionLogger';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -89,9 +91,11 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
 
     return (
         <View style={[styles.flex1, styles.h100]}>
+            <SidebarOrderedReportsTransitionLogger />
             <View style={[styles.pRelative, styles.flex1]}>
                 {shouldShowEmptyLHN ? (
                     <View style={[styles.flex1, styles.emptyLHNWrapper]}>
+                        <LHNCaughtUpLogger />
                         <LHNEmptyState />
                     </View>
                 ) : (
