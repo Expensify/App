@@ -26,13 +26,14 @@ function ConnectToCertiniaFlow({policyID}: ConnectToCertiniaFlowProps) {
     const {translate} = useLocalize();
 
     const hasReusablePoliciesConnectedToCertinia = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.CERTINIA, policyID);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const isAuthError = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.CERTINIA);
+    const shouldShowReuseConnectionsPopover = !isAuthError && hasReusablePoliciesConnectedToCertinia;
 
-    const [isReuseConnectionsPopoverOpen, setIsReuseConnectionsPopoverOpen] = useState(false);
+    const [isReuseConnectionsPopoverOpen, setIsReuseConnectionsPopoverOpen] = useState(shouldShowReuseConnectionsPopover);
     const [reuseConnectionPopoverPosition, setReuseConnectionPopoverPosition] = useState<AnchorPosition | null>(null);
 
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const icons = useMemoizedLazyExpensifyIcons(['Copy', 'LinkCopy']);
-    const isAuthError = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.CERTINIA);
 
     const threeDotsMenuContainerRef = popoverAnchorRefsInitialValue[CONST.POLICY.CONNECTIONS.NAME.CERTINIA];
     const {calculatePopoverPosition} = usePopoverPosition();
@@ -59,9 +60,7 @@ function ConnectToCertiniaFlow({policyID}: ConnectToCertiniaFlowProps) {
     useEffect(() => {
         if (isAuthError || !hasReusablePoliciesConnectedToCertinia) {
             Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_PREREQUISITES.getRoute(policyID));
-            return;
         }
-        setIsReuseConnectionsPopoverOpen(true);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
