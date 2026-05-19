@@ -2606,10 +2606,10 @@ ${amount} pour ${merchant} - ${date}`,
             approverSubtitle: 'Tous les approbateurs appartiennent à un workflow existant.',
             bulkApproverSubtitle: 'Aucun approbateur ne correspond aux critères pour les rapports sélectionnés.',
         },
-        configureViaGusto: 'Configurer via Gusto.',
-        gustoApprovalWorkflowLockedPrompt:
-            'Les validations sont gérées par votre intégration Gusto. Pour mettre à jour votre workflow de validation, accédez aux paramètres de connexion Gusto.',
-        goToGustoSettings: 'Aller aux paramètres Gusto',
+        configureViaHR: ({provider}: {provider: string}) => `Configurer via ${provider}.`,
+        hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
+            `Les validations sont gérées par votre intégration ${provider}. Pour mettre à jour votre workflow de validation, accédez aux paramètres de connexion ${provider}.`,
+        goToHRSettings: ({provider}: {provider: string}) => `Aller aux paramètres ${provider}`,
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: "La fréquence de soumission n'a pas pu être modifiée. Veuillez réessayer ou contacter l'assistance.",
@@ -6407,7 +6407,11 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 chooseBankAccount: 'Choisissez le compte bancaire avec lequel les paiements de votre Carte Expensify seront rapprochés.',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `Assurez-vous que ce compte correspond à votre <a href="${settlementAccountUrl}">compte de règlement Carte Expensify</a> (se terminant par ${lastFourPAN}) afin que la réconciliation continue fonctionne correctement.`,
+                chooseTravelInvoicingBankAccount: 'Choisissez le compte bancaire sur lequel les paiements de facturation de voyage seront rapprochés.',
+                travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
+                    `Assurez-vous que ce compte correspond à votre compte de règlement de facturation de voyage (se terminant par ${lastFourPAN}) afin que le rapprochement continu fonctionne correctement.`,
             },
+            syncTravelInvoicingSettlements: 'Synchroniser les règlements de facturation de voyage',
         },
         export: {
             notReadyHeading: 'Pas prêt à être exporté',
@@ -7141,6 +7145,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                         other: (count: number) => `${count} employés`,
                     }),
                 },
+            },
+            merge: {
+                approvalMode: 'Mode d’approbation',
+                finalApprover: 'Approbateur final',
             },
             zenefits: {
                 title: 'TriNet',
@@ -8699,6 +8707,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         bookACallTextBottom:
             'Nous serions ravis d’organiser un appel avec vous pour comprendre pourquoi. Vous pouvez réserver un appel avec l’un de nos chefs de produit senior pour discuter de vos besoins.',
         takeMeToExpensifyClassic: 'M’emmener vers Expensify Classic',
+        goBackJustOnce: 'Revenir une seule fois',
     },
     listBoundary: {
         errorMessage: 'Une erreur est survenue lors du chargement de messages supplémentaires',

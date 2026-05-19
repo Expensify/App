@@ -2589,10 +2589,10 @@ ${amount} dla ${merchant} - ${date}`,
             approverSubtitle: 'Wszyscy zatwierdzający należą do istniejącego przepływu pracy.',
             bulkApproverSubtitle: 'Żaden akceptujący nie spełnia kryteriów dla wybranych raportów.',
         },
-        configureViaGusto: 'Skonfiguruj przez Gusto.',
-        gustoApprovalWorkflowLockedPrompt:
-            'Zatwierdzanie jest zarządzane przez Twoją integrację z Gusto. Aby zaktualizować swój proces zatwierdzania, przejdź do ustawień połączenia z Gusto.',
-        goToGustoSettings: 'Przejdź do ustawień Gusto',
+        configureViaHR: ({provider}: {provider: string}) => `Skonfiguruj przez ${provider}.`,
+        hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
+            `Zatwierdzanie jest zarządzane przez Twoją integrację z ${provider}. Aby zaktualizować swój proces zatwierdzania, przejdź do ustawień połączenia z ${provider}.`,
+        goToHRSettings: ({provider}: {provider: string}) => `Przejdź do ustawień ${provider}`,
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: 'Nie udało się zmienić częstotliwości wysyłania. Spróbuj ponownie lub skontaktuj się z pomocą techniczną.',
@@ -6346,7 +6346,11 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 chooseBankAccount: 'Wybierz konto bankowe, do którego będą uzgadniane płatności kartą Karta Expensify.',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `Upewnij się, że to konto jest takie samo jak twoje <a href="${settlementAccountUrl}">konto rozliczeniowe Karty Expensify</a> (kończące się na ${lastFourPAN}), aby Ciągłe Uzgadnianie działało poprawnie.`,
+                chooseTravelInvoicingBankAccount: 'Wybierz konto bankowe, z którym będą uzgadniane płatności za faktury podróżne.',
+                travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
+                    `Upewnij się, że to konto jest takie samo jak konto rozliczeniowe do fakturowania podróży (kończące się na ${lastFourPAN}), żeby Ciągłe Uzgadnianie działało poprawnie.`,
             },
+            syncTravelInvoicingSettlements: 'Synchronizuj rozliczenia faktur podróżnych',
         },
         export: {
             notReadyHeading: 'Niegotowe do eksportu',
@@ -7076,6 +7080,10 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                         other: (count: number) => `${count} pracownicy`,
                     }),
                 },
+            },
+            merge: {
+                approvalMode: 'Tryb zatwierdzania',
+                finalApprover: 'Ostateczny zatwierdzający',
             },
             zenefits: {
                 title: 'TriNet',
@@ -8625,6 +8633,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         bookACallTextBottom:
             'Chętnie umówimy się z Tobą na rozmowę, aby zrozumieć dlaczego. Możesz zarezerwować rozmowę z jednym z naszych starszych menedżerów produktu, aby omówić swoje potrzeby.',
         takeMeToExpensifyClassic: 'Przejdź do Expensify Classic',
+        goBackJustOnce: 'Wróć tylko raz',
     },
     listBoundary: {
         errorMessage: 'Wystąpił błąd podczas wczytywania kolejnych wiadomości',

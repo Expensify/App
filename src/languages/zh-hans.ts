@@ -2525,9 +2525,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             approverSubtitle: '所有审批人都属于一个现有的工作流。',
             bulkApproverSubtitle: '所选报表中没有符合条件的审批人。',
         },
-        configureViaGusto: '通过 Gusto 配置。',
-        gustoApprovalWorkflowLockedPrompt: '审批由你的 Gusto 集成管理。若要更新审批流程，请前往 Gusto 连接设置。',
-        goToGustoSettings: '前往 Gusto 设置',
+        configureViaHR: ({provider}: {provider: string}) => `通过 ${provider} 配置。`,
+        hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) => `审批由你的 ${provider} 集成管理。若要更新审批流程，请前往 ${provider} 连接设置。`,
+        goToHRSettings: ({provider}: {provider: string}) => `前往 ${provider} 设置`,
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: '提交频率无法更改。请重试或联系支持团队。',
@@ -6199,7 +6199,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 chooseBankAccount: '选择用于对账 Expensify 卡付款的银行账户。',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `请确保此账户与您的<a href="${settlementAccountUrl}">Expensify 卡结算账户</a>（末尾为 ${lastFourPAN}）一致，以便持续对账功能正常运行。`,
+                chooseTravelInvoicingBankAccount: '选择用于核对差旅开票付款的银行账户。',
+                travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) => `请确保此账户与您的差旅发票结算账户（以 ${lastFourPAN} 结尾）一致，以确保持续对账功能正常运行。`,
             },
+            syncTravelInvoicingSettlements: '同步差旅开票结算',
         },
         export: {
             notReadyHeading: '尚未准备好导出',
@@ -6908,6 +6911,10 @@ ${reportName}
                         other: (count: number) => `${count} 员工`,
                     }),
                 },
+            },
+            merge: {
+                approvalMode: '审批模式',
+                finalApprover: '最终审批人',
             },
             zenefits: {
                 title: 'TriNet',
@@ -8416,6 +8423,7 @@ ${reportName}
         bookACallTextTop: '切换回 Expensify 经典版后，您将无法享受：',
         bookACallTextBottom: '我们非常期待与您通话以了解原因。您可以预约与我们的一位资深产品经理通话，讨论您的需求。',
         takeMeToExpensifyClassic: '带我前往 Expensify 经典版',
+        goBackJustOnce: '仅此一次返回',
     },
     listBoundary: {
         errorMessage: '加载更多消息时出错',
