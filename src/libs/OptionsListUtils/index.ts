@@ -752,7 +752,7 @@ function getLastMessageTextForReport({
         const properSchemaForModifiedExpenseMessage = Parser.htmlToText(properSchemaForModifiedExpenseMessageWithHTML);
         lastMessageTextFromReport = formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
     } else if (isMovedTransactionAction(lastReportAction)) {
-        lastMessageTextFromReport = Parser.htmlToText(getMovedTransactionMessage(translate, lastReportAction, conciergeReportID));
+        lastMessageTextFromReport = Parser.htmlToText(getMovedTransactionMessage(translate, lastReportAction, reportAttributesDerived));
     } else if (isTaskAction(lastReportAction)) {
         lastMessageTextFromReport = formatReportLastMessageText(getTaskReportActionMessage(translate, lastReportAction).text);
     } else if (isCreatedTaskReportAction(lastReportAction)) {
@@ -850,7 +850,7 @@ function getLastMessageTextForReport({
     } else if (isMovedAction(lastReportAction)) {
         lastMessageTextFromReport = Parser.htmlToText(getMovedActionMessage(translate, lastReportAction, report));
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-        lastMessageTextFromReport = Parser.htmlToText(getUnreportedTransactionMessage(translate, lastReportAction, conciergeReportID));
+        lastMessageTextFromReport = Parser.htmlToText(getUnreportedTransactionMessage(translate, lastReportAction, reportAttributesDerived));
     } else if (isActionableMentionWhisper(lastReportAction)) {
         lastMessageTextFromReport = Parser.htmlToText(getActionableMentionWhisperMessage(translate, lastReportAction));
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED)) {
@@ -2004,109 +2004,6 @@ function getUserToInviteOption({
             type: CONST.ICON_TYPE_AVATAR,
         },
     ];
-
-    return userToInvite;
-}
-
-function getUserToInviteContactOption({
-    searchValue = '',
-    optionsToExclude = [],
-    selectedOptions = [],
-    firstName = '',
-    lastName = '',
-    email = '',
-    phone = '',
-    avatar = '',
-    countryCode = CONST.DEFAULT_COUNTRY_CODE,
-    loginList = {},
-    currentUserEmail,
-}: GetUserToInviteConfig): SearchOption<PersonalDetails> | null {
-    // If email is provided, use it as the primary identifier
-
-    const effectiveSearchValue = email || searchValue;
-
-    // Handle phone number parsing for either provided phone or searchValue
-
-    const phoneToCheck = phone || searchValue;
-    const normalizedPhoneNumber = appendCountryCode(Str.removeSMSDomain(phoneToCheck), countryCode);
-    const parsedPhoneNumber = parsePhoneNumber(normalizedPhoneNumber);
-
-    // Validate email (either provided email or searchValue)
-    const isValidEmail = Str.isValidEmail(effectiveSearchValue) && !Str.isDomainEmail(effectiveSearchValue) && !Str.endsWith(effectiveSearchValue, CONST.SMS.DOMAIN);
-
-    const isValidPhoneNumber = parsedPhoneNumber.possible && Str.isValidE164Phone(getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? ''));
-
-    const sanitizedPhoneLogin = isValidPhoneNumber ? addSMSDomainIfPhoneNumber(parsedPhoneNumber.number?.e164 ?? normalizedPhoneNumber) : '';
-    const login = email ? effectiveSearchValue : (sanitizedPhoneLogin ?? searchValue);
-    const normalizedLoginToExclude = addSMSDomainIfPhoneNumber(login).toLowerCase();
-
-    const isCurrentUserLogin = isCurrentUser({login} as PersonalDetails, loginList, currentUserEmail);
-    const isInSelectedOption = selectedOptions.some((option) => 'login' in option && option.login === login);
-
-    const isInOptionToExclude = optionsToExclude.findIndex((optionToExclude) => 'login' in optionToExclude && optionToExclude.login === normalizedLoginToExclude) !== -1;
-
-    if (!effectiveSearchValue || isCurrentUserLogin || isInSelectedOption || (!isValidEmail && !isValidPhoneNumber) || isInOptionToExclude) {
-        return null;
-    }
-
-    // Generates an optimistic account ID for new users not yet saved in Onyx
-    const optimisticAccountID = generateAccountID(login);
-
-    // Construct display name if firstName/lastName are provided
-
-    const displayName = firstName && lastName ? `${firstName} ${lastName}` : firstName || lastName || effectiveSearchValue;
-
-    // Create the base user details that will be used in both item and participantsList
-    const userDetails = {
-        accountID: optimisticAccountID,
-
-        avatar: avatar || FallbackAvatar,
-        firstName: firstName ?? '',
-        lastName: lastName ?? '',
-        displayName,
-        login,
-        pronouns: '',
-        phoneNumber: phone ?? '',
-        validated: true,
-    };
-
-    const userToInvite = {
-        item: userDetails,
-        text: displayName,
-        displayName,
-        firstName,
-        lastName,
-        alternateText: displayName !== login ? login : undefined,
-        brickRoadIndicator: null,
-        icons: [
-            {
-                source: userDetails.avatar,
-                type: CONST.ICON_TYPE_AVATAR,
-                name: login,
-                id: optimisticAccountID,
-            },
-        ],
-        tooltipText: null,
-        participantsList: [userDetails],
-        accountID: optimisticAccountID,
-        login,
-        reportID: '',
-        phoneNumber: phone ?? '',
-        hasDraftComment: false,
-        keyForList: optimisticAccountID.toString(),
-        isDefaultRoom: false,
-        isPinned: false,
-        isWaitingOnBankAccount: false,
-        isIOUReportOwner: false,
-        iouReportAmount: 0,
-        isChatRoom: false,
-        shouldShowSubscript: false,
-        isPolicyExpenseChat: false,
-        isExpenseReport: false,
-        lastMessageText: '',
-        isBold: true,
-        isOptimisticAccount: true,
-    };
 
     return userToInvite;
 }
@@ -3425,7 +3322,6 @@ export {
     getReportOption,
     getSearchOptions,
     getSearchValueForPhoneOrEmail,
-    getUserToInviteContactOption,
     getUserToInviteOption,
     getValidOptions,
     hasEnabledOptions,

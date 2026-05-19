@@ -180,6 +180,7 @@ export type {default as ConnectPolicyToFinancialForceParams} from './ConnectPoli
 export type {default as UpdateFinancialForceGenericTypeParams} from './UpdateFinancialForceGenericTypeParams';
 export type {default as OpenWorkspaceInvitePageParams} from './OpenWorkspaceInvitePageParams';
 export type {default as OpenWorkspaceMembersPageParams} from './OpenWorkspaceMembersPageParams';
+export type {default as OpenWorkspaceRoomsPageParams} from './OpenWorkspaceRoomsPageParams';
 export type {default as OpenPolicyCategoriesPageParams} from './OpenPolicyCategoriesPageParams';
 export type {default as OpenPolicyTagsPageParams} from './OpenPolicyTagsPageParams';
 export type {default as VerifyAddSecondaryLoginCodeParams} from './VerifyAddSecondaryLoginCodeParams';
@@ -409,7 +410,9 @@ export type {default as UpdateCardSettlementAccountParams} from './UpdateCardSet
 export type {default as ConfigureTravelInvoicingForPolicyParams} from './ConfigureTravelInvoicingForPolicyParams';
 export type {default as DeactivateTravelInvoicingParams} from './DeactivateTravelInvoicingParams';
 export type {default as SetTravelInvoicingSettlementAccountParams} from './SetTravelInvoicingSettlementAccountParams';
+export type {default as SetTravelInvoicingReconciliationBankAccountParams} from './SetTravelInvoicingReconciliationBankAccountParams';
 export type {default as PayTravelInvoicingSpendParams} from './PayTravelInvoicingSpendParams';
+export type {default as ToggleTravelInvoicingContinuousReconciliationParams} from './ToggleTravelInvoicingContinuousReconciliationParams';
 export type {default as UpdateTravelInvoicingMonthlyLimitParams} from './UpdateTravelInvoicingMonthlyLimitParams';
 export type {default as UpdateTravelInvoicingSettlementFrequencyParams} from './UpdateTravelInvoicingSettlementFrequencyParams';
 export type {default as RetryTravelCardsProvisioningParams} from './RetryTravelCardsProvisioningParams';
