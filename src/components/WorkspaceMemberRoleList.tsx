@@ -81,7 +81,9 @@ function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLo
             if (item.value === CONST.POLICY.ROLE.AUDITOR && !isPolicyControl) {
                 return false;
             }
-            if (item.value === CONST.POLICY.ROLE.ADMIN && !canAssignAdminRole) {
+            // Admin doesn't exist on Submit workspaces (per design only Editor does), so hide it regardless of who
+            // the current user is — defense-in-depth against an unexpected admin row appearing after a server race.
+            if (item.value === CONST.POLICY.ROLE.ADMIN && (!canAssignAdminRole || isPolicySubmit2026)) {
                 return false;
             }
             // Editor and Member are mutually exclusive across plan types: Submit workspaces only allow Editor
