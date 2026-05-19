@@ -10,7 +10,7 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
 
-const NONE_OPTION_KEY = '__none_option__';
+const NONE_OPTION_KEY = '\x00__none__';
 
 type SearchSingleSelectionPickerItem = {
     name: string;
@@ -151,4 +151,5 @@ function SearchSingleSelectionPicker({
 }
 
 export default SearchSingleSelectionPicker;
+export {NONE_OPTION_KEY};
 export type {SearchSingleSelectionPickerItem};
