@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
+import Animated, {FadeIn} from 'react-native-reanimated';
 import SkeletonRect from '@components/SkeletonRect';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
 import useTheme from '@hooks/useTheme';
@@ -41,7 +41,6 @@ function FollowupListSkeleton() {
     return (
         <Animated.View
             entering={FadeIn}
-            exiting={FadeOut}
         >
             <View style={[styles.gap2, styles.mt2, styles.flexColumn, styles.alignItemsStart]}>
                 {Array.from({length: BAR_COUNT}, (_, index) => (
