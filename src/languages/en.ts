@@ -2577,6 +2577,8 @@ const translations = {
         pinChanged: 'PIN changed!',
         pinChangedHeader: 'PIN changed',
         pinChangedDescription: "You're all set to use your PIN now.",
+        pinUnblockedDescription: 'Finish unlocking your card by inserting it into the reader when you make your next purchase.',
+        pinBlocked: 'Your card was locked due to incorrect PIN entries. Change your PIN to unlock your card.',
         changePin: 'Change PIN',
         changePinAtATM: 'Change your PIN at any ATM',
         changePinAtATMDescription: 'This is required in your region. <concierge-link>Reach out to Concierge</concierge-link> if you have any questions.',

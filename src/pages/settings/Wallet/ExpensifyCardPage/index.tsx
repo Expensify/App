@@ -39,6 +39,7 @@ import {
     getDomainCards,
     getTranslationKeyForLimitType,
     isCardFrozen,
+    isOfflinePINMarket,
     isTravelCard,
     maskCard,
     maskPin,
@@ -93,6 +94,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const {cardID} = route.params;
     const {convertToDisplayString} = useCurrencyListActions();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
     const cardList = useNonPersonalCardList();
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${cardList?.[cardID]?.fundID}`);
     const styles = useThemeStyles();
@@ -503,19 +505,30 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                     />
                                 )}
                                 {canChangePIN && (
-                                    <MenuItem
-                                        title={translate('cardPage.changePin')}
-                                        icon={expensifyIcons.Key}
-                                        shouldShowRightIcon
-                                        onPress={() => {
-                                            const physicalCardID = String(currentPhysicalCard?.cardID);
-                                            if (currentPhysicalCard?.isOfflinePINMarket) {
-                                                Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN_ATM.getRoute(physicalCardID));
-                                            } else {
-                                                Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN.getRoute(physicalCardID));
-                                            }
-                                        }}
-                                    />
+                                    <>
+                                        <MenuItem
+                                            title={translate('cardPage.changePin')}
+                                            icon={expensifyIcons.Key}
+                                            shouldShowRightIcon
+                                            onPress={() => {
+                                                const physicalCardID = String(currentPhysicalCard?.cardID);
+                                                // When the PIN is blocked, the user must be able to enter the
+                                                // online Change PIN flow regardless of their current market.
+                                                if (isOfflinePINMarket(countryByIp) && !currentPhysicalCard?.nameValuePairs?.isPINBlocked) {
+                                                    Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN_ATM.getRoute(physicalCardID));
+                                                } else {
+                                                    Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN.getRoute(physicalCardID));
+                                                }
+                                            }}
+                                        />
+                                        {!!currentPhysicalCard?.nameValuePairs?.isPINBlocked && (
+                                            <DotIndicatorMessage
+                                                messages={{error: translate('cardPage.pinBlocked')}}
+                                                type="error"
+                                                style={[styles.ph5, styles.mv2]}
+                                            />
+                                        )}
+                                    </>
                                 )}
                                 <MenuItem
                                     title={translate('reportCardLostOrDamaged.screenTitle')}

@@ -928,6 +928,11 @@ const CONST = {
         VI: 'VI',
         AS: 'AS',
         MP: 'MP',
+        IE: 'IE',
+        FR: 'FR',
+        FI: 'FI',
+        IL: 'IL',
+        IS: 'IS',
     },
     SWIPE_DIRECTION: {
         DOWN: 'down',
@@ -4124,6 +4129,12 @@ const CONST = {
         NAME: 'expensifyCard',
         BANK: 'Expensify Card',
         ROUTE: 'expensify-card',
+        // Countries where the cardholder must change PIN at an offline ATM
+        // rather than via the in-app online flow.
+        // - Offline-only: GB, IE
+        // - Mostly offline: FR
+        // - Many offline terminals: FI, IL, IS
+        OFFLINE_PIN_MARKETS: ['GB', 'IE', 'FR', 'FI', 'IL', 'IS'] as string[],
         CARD_PROGRAM: {
             CURRENT: 'CURRENT',
         },
