@@ -58,9 +58,7 @@ function validateCreateDistanceRateForm(
     translate: LocalizedTranslate,
     existingRateNames: string[],
 ): FormInputErrors<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM> {
-    const errors: FormInputErrors<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM> = {
-        ...validateRateValue(values, toLocaleDigit, translate),
-    };
+    const errors: FormInputErrors<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM> = {};
     const trimmedName = values.name?.trim() ?? '';
 
     if (!isRequiredFulfilled(trimmedName)) {
@@ -69,6 +67,15 @@ function validateCreateDistanceRateForm(
         errors.name = translate('common.error.characterLimitExceedCounter', [...trimmedName].length, CONST.TAX_RATES.NAME_MAX_LENGTH);
     } else if (existingRateNames.includes(trimmedName)) {
         errors.name = translate('workspace.distanceRates.errors.existingRateName');
+    }
+
+    if (!isRequiredFulfilled(values.rate)) {
+        errors.rate = translate('workspace.distanceRates.errors.amountRequired');
+    } else {
+        const rateErrors = validateRateValue(values, toLocaleDigit, translate);
+        if (rateErrors.rate) {
+            errors.rate = rateErrors.rate;
+        }
     }
 
     if (values.startDate && values.endDate && values.startDate > values.endDate) {

@@ -48,7 +48,7 @@ function CreateDistanceRatePage({
     const customUnit = getDistanceRateCustomUnit(policy);
     const customUnitID = customUnit?.customUnitID;
     const distanceUnit = customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
-    const unitLabel = translate(`common.${distanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'mile' : 'kilometer'}`);
+    const unitLabel = translate(distanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'common.mile' : 'common.kilometer');
     const customUnitRateID = generateCustomUnitID();
     const {inputCallbackRef} = useAutoFocusInput();
     const isDistanceRateUpgrade = transactionID && reportID;
@@ -104,19 +104,19 @@ function CreateDistanceRatePage({
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                style={[styles.defaultModalContainer]}
+                style={styles.defaultModalContainer}
                 testID="CreateDistanceRatePage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton title={isDistanceRateUpgrade ? translate('common.rate') : translate('workspace.distanceRates.addRate')} />
-                <FullPageBlockingView style={[styles.flexGrow1]}>
+                <FullPageBlockingView style={styles.flexGrow1}>
                     <FormProvider
                         formID={ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM}
                         submitButtonText={translate('common.save')}
                         onSubmit={submit}
                         validate={validate}
                         enabledWhenOffline
-                        style={[styles.flexGrow1]}
+                        style={styles.flexGrow1}
                         shouldHideFixErrorsAlert={!isDateBoundMileageRateEnabled}
                         submitFlexEnabled={false}
                         submitButtonStyles={[styles.mh5, styles.mt0]}
@@ -124,7 +124,7 @@ function CreateDistanceRatePage({
                     >
                         {isDateBoundMileageRateEnabled ? (
                             <>
-                                <View style={[styles.mh5]}>
+                                <View style={styles.mh5}>
                                     <InputWrapper
                                         ref={inputCallbackRef}
                                         InputComponent={TextInput}
@@ -152,7 +152,7 @@ function CreateDistanceRatePage({
                                         label={translate('workspace.distanceRates.startDate')}
                                     />
                                 </View>
-                                <View style={[styles.mh5]}>
+                                <View style={styles.mh5}>
                                     <InputWrapper
                                         InputComponent={DatePicker}
                                         inputID={INPUT_IDS.END_DATE}
