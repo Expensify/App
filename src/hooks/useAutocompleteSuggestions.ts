@@ -22,7 +22,7 @@ import {getUserFriendlyKey, getUserFriendlyValue} from '@libs/SearchQueryUtils';
 import {getDatePresets, getHasOptions} from '@libs/SearchUIUtils';
 import CONST, {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, CardFeeds, CardList, PersonalDetailsList, Policy, ReportAction} from '@src/types/onyx';
+import type {Beta, CardFeeds, CardList, PersonalDetailsList, Policy} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {useCurrencyListState} from './useCurrencyList';
