@@ -20,7 +20,7 @@ import {setIsComposerFullSize} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import {useComposerActions, useComposerEditActions, useComposerEditState, useComposerMeta, useComposerSendState, useComposerText} from './ComposerContext';
+import {useComposerActions, useComposerEditActions, useComposerEditState, useComposerMeta, useComposerSendState} from './ComposerContext';
 import useComposerReportData from './useComposerReportData';
 import useSidePanelContext from './useSidePanelContext';
 
@@ -34,11 +34,10 @@ function useComposerSubmit(reportID: string) {
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const delegateAccountID = useDelegateAccountID();
 
-    const {composerRef, attachmentFileRef} = useComposerMeta();
-    const composerText = useComposerText();
+    const {composerRef, attachmentFileRef, textRef} = useComposerMeta();
     const {clearComposer} = useComposerActions();
     const {isSendDisabled, debouncedCommentMaxLengthValidation} = useComposerSendState();
-    const {isEditingInComposer, editingMessage, effectiveDraft, didResetComposerHeightWhileEditing, editingState} = useComposerEditState();
+    const {isEditingInComposer, effectiveDraft, didResetComposerHeightWhileEditing, editingState} = useComposerEditState();
     const {publishDraft, setDidResetComposerHeightWhileEditing} = useComposerEditActions();
     const {scrollOffsetRef} = useContext(ActionListContext);
 
@@ -170,9 +169,12 @@ function useComposerSubmit(reportID: string) {
             editingState === CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING && (isEditingInComposer || didResetComposerHeightWhileEditing) && !attachmentFileRef.current;
 
         if (isFinishingComposerEdit) {
-            const hasNonEmptyEditingMessage = editingMessage !== null && editingMessage !== '';
-            const draftMessageForEdit = hasNonEmptyEditingMessage ? editingMessage : composerText;
-            validateAndSubmitDraft(draftMessageForEdit);
+            // We need to schedule the submission on the next tick to wait for
+            // potential autocorrection to update the text
+            setTimeout(() => {
+                validateAndSubmitDraft(textRef.current ?? '');
+            }, 0);
+
             return;
         }
 
