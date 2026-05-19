@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {isQuickActionAllowed} from '@libs/QuickActionUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
@@ -133,6 +134,7 @@ describe('QuickActionUtils', () => {
                 jest.clearAllMocks();
             });
             it('should allow per diem action when policy has per diem rates', () => {
+                jest.spyOn(ReportUtils, 'canCreateRequest').mockReturnValue(true);
                 const perDiemCustomUnit = {
                     name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
                     customUnitID: 'ABCDEF',
@@ -152,7 +154,7 @@ describe('QuickActionUtils', () => {
                         ABCDEF: perDiemCustomUnit,
                     },
                 } as unknown as Policy;
-                mockedPolicyUtils.isPaidGroupPolicy.mockReturnValue(true);
+                mockedPolicyUtils.isControlPolicy.mockReturnValue(true);
 
                 expect(isQuickActionAllowed(perDiemAction, report, policy, false, [CONST.BETAS.ALL], false)).toBe(true);
             });
@@ -200,6 +202,7 @@ describe('QuickActionUtils', () => {
         describe('Policy with time tracking', () => {
             it('should allow requestTime action when policy has time tracking enabled', () => {
                 mockedPolicyUtils.isTimeTrackingEnabled.mockReturnValue(true);
+                jest.spyOn(ReportUtils, 'canCreateRequest').mockReturnValue(true);
                 expect(
                     isQuickActionAllowed(
                         {action: CONST.QUICK_ACTIONS.REQUEST_TIME},
