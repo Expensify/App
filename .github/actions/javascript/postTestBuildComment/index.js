@@ -11585,7 +11585,6 @@ const core = __importStar(__nccwpck_require__(2186));
 const github_1 = __nccwpck_require__(5438);
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
-const TEST_BUILD_COMMENT_PREFIX = ':test_tube::test_tube: Use the links below to test this adhoc build';
 function getTestBuildMessage(appPr, mobileExpensifyPr) {
     const inputs = ['ANDROID', 'IOS', 'WEB'];
     const names = {
@@ -11680,14 +11679,9 @@ async function run() {
     const MOBILE_EXPENSIFY_PR_NUMBER = Number(core.getInput('MOBILE_EXPENSIFY_PR_NUMBER', { required: false }));
     const REPO = String(core.getInput('REPO', { required: true }));
     const COMMENT_BODY = core.getInput('COMMENT_BODY', { required: false });
-    const COMMENT_PREFIX = core.getInput('COMMENT_PREFIX', { required: false });
-    const isCustomComment = !!COMMENT_BODY || !!COMMENT_PREFIX;
+    const COMMENT_PREFIX = core.getInput('COMMENT_PREFIX', { required: true });
     if (REPO !== CONST_1.default.APP_REPO && REPO !== CONST_1.default.MOBILE_EXPENSIFY_REPO) {
         core.setFailed(`Invalid repository used to place output comment: ${REPO}`);
-        return;
-    }
-    if (isCustomComment && (!COMMENT_BODY || !COMMENT_PREFIX)) {
-        core.setFailed('Both COMMENT_BODY and COMMENT_PREFIX are required when posting a custom comment');
         return;
     }
     if ((REPO === CONST_1.default.APP_REPO && !APP_PR_NUMBER) || (REPO === CONST_1.default.MOBILE_EXPENSIFY_REPO && !MOBILE_EXPENSIFY_PR_NUMBER)) {
@@ -11695,7 +11689,7 @@ async function run() {
         return;
     }
     const destinationPRNumber = REPO === CONST_1.default.APP_REPO ? APP_PR_NUMBER : MOBILE_EXPENSIFY_PR_NUMBER;
-    await hidePreviousComment(REPO, destinationPRNumber, COMMENT_PREFIX || TEST_BUILD_COMMENT_PREFIX);
+    await hidePreviousComment(REPO, destinationPRNumber, COMMENT_PREFIX);
     await commentPR(REPO, destinationPRNumber, COMMENT_BODY || getTestBuildMessage(APP_PR_NUMBER, MOBILE_EXPENSIFY_PR_NUMBER));
 }
 if (require.main === require.cache[eval('__filename')]) {

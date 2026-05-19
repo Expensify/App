@@ -153,6 +153,7 @@ jobs:
           APP_PR_NUMBER: ${{ inputs.APP_PR_NUMBER }}
           MOBILE_EXPENSIFY_PR_NUMBER: ${{ inputs.MOBILE_EXPENSIFY_PR }}
           GITHUB_TOKEN: ${{ github.token }}
+          COMMENT_PREFIX: ':test_tube::test_tube: Use the links below to test this adhoc build'
           ANDROID: ${{ needs.buildAndroid.result }}
           IOS: ${{ needs.buildIOS.result }}
           WEB: ${{ needs.buildWeb.result == 'failure' && 'failure' || needs.deployWebAdHoc.result }}
@@ -167,6 +168,7 @@ jobs:
           REPO: Mobile-Expensify
           MOBILE_EXPENSIFY_PR_NUMBER: ${{ inputs.MOBILE_EXPENSIFY_PR }}
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          COMMENT_PREFIX: ':test_tube::test_tube: Use the links below to test this adhoc build'
           ANDROID: ${{ needs.buildAndroid.result }}
           IOS: ${{ needs.buildIOS.result }}
           ANDROID_LINK: ${{ needs.buildAndroid.outputs.ROCK_ARTIFACT_URL }}

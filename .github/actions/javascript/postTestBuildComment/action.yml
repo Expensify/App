@@ -32,11 +32,11 @@ inputs:
         description: "Link for the web build"
         required: false
     COMMENT_BODY:
-        description: "Custom comment body. When provided with COMMENT_PREFIX, posts this comment instead of the test build message"
+        description: "Custom comment body. When provided, posts this comment instead of the test build message"
         required: false
     COMMENT_PREFIX:
-        description: "Prefix used to find and hide the previous custom comment"
-        required: false
+        description: "Prefix used to find and hide the previous matching comment"
+        required: true
 runs:
     using: "node24"
     main: "./index.js"
