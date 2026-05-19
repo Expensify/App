@@ -4988,7 +4988,7 @@ describe('initSplitExpense', () => {
         expect(splitExpenses?.[1].merchant).toContain('100');
     });
 
-    it('should start a fresh split when the only sibling split was unreported then deleted (dissolved split)', async () => {
+    it('should let you split the expense again after its other split half was deleted', async () => {
         const originalTransactionID = 'dissolved-original';
         const remainingTransactionID = 'dissolved-remaining';
         const deletedSiblingTransactionID = 'dissolved-deleted-sibling';
