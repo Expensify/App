@@ -8207,7 +8207,7 @@ describe('SearchUIUtils', () => {
             expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TAG);
         });
 
-        test('Should include COMMENTS column at the end in expense report view with custom columns', () => {
+        test('Should place COMMENTS right before TOTAL in expense report view with custom columns', () => {
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
             const testTransaction = {
                 ...baseTransaction,
@@ -8216,7 +8216,7 @@ describe('SearchUIUtils', () => {
             };
 
             // Use custom columns to trigger the custom columns path
-            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.TOTAL];
             const columns = SearchUIUtils.getColumnsToShow({
                 currentAccountID: submitterAccountID,
                 data: [testTransaction],
@@ -8226,8 +8226,28 @@ describe('SearchUIUtils', () => {
             });
 
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
-            // COMMENTS should be at the end
-            expect(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.COMMENTS)).toBe(columns.length - 1);
+            // TOTAL should be at the end, with COMMENTS immediately before it
+            expect(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.COMMENTS)).toBe(columns.length - 2);
+            expect(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL)).toBe(columns.length - 1);
+        });
+
+        test('Should place COMMENTS right before TOTAL in default expense report view', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const testTransaction = {
+                ...baseTransaction,
+                transactionID: 'test',
+                merchant: 'Test Merchant',
+            };
+
+            const columns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: submitterAccountID,
+                data: [testTransaction],
+                isExpenseReportView: true,
+                shouldShowCommentsColumn: true,
+            });
+
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
+            expect(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.COMMENTS)).toBe(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL) - 1);
         });
 
         test('Should not duplicate COMMENTS column when already in visible columns', () => {

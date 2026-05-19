@@ -12,6 +12,7 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,6 +23,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {isGustoConnected} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
 type ApprovalMode = ValueOf<typeof CONST.GUSTO.APPROVAL_MODE>;
@@ -39,6 +41,7 @@ function GustoApprovalModePage({
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
     const policy = usePolicy(policyID);
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const currentApprovalMode = policy?.connections?.gusto?.config?.approvalMode ?? undefined;
     const [draftApprovalMode, setDraftApprovalMode] = useState<ApprovalMode | undefined>();
     const [isWarningModalOpen, setIsWarningModalOpen] = useState(false);
@@ -78,7 +81,7 @@ function GustoApprovalModePage({
             return;
         }
 
-        updateGustoApprovalMode(policyID, draftApprovalMode, currentApprovalMode);
+        updateGustoApprovalMode(policyID, draftApprovalMode, currentApprovalMode, connectionSyncProgress);
         setIsWarningModalOpen(false);
         Navigation.goBack();
     };
