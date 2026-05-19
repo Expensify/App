@@ -86,9 +86,7 @@ function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLo
             if (item.value === CONST.POLICY.ROLE.ADMIN && (!canAssignAdminRole || isPolicySubmit2026)) {
                 return false;
             }
-            // Editor and Member are mutually exclusive across plan types: Submit workspaces only allow Editor
-            // (Member would be a misleading no-op since the backend forces Editor), and other plans only allow
-            // Member (Editor doesn't exist there).
+            // Editor and Member are mutually exclusive across plan types.
             if ((item.value === CONST.POLICY.ROLE.EDITOR && !isPolicySubmit2026) || (item.value === CONST.POLICY.ROLE.USER && isPolicySubmit2026)) {
                 return false;
             }

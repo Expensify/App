@@ -836,19 +836,16 @@ function buildAddMembersToWorkspaceOnyxData(
 
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
 
-    // Submit workspaces enforce the editor role for all invited members, regardless of the role the
-    // caller passed. This matches the backend's behavior in Policy::shareWithEmployees so the optimistic
-    // updates don't briefly show the wrong role. Gated on the beta so behavior is a no-op for users without it.
-    const shouldForceEditorRole = canUseSubmit2026 && isSubmitPolicy(policy);
-    const effectiveRole = shouldForceEditorRole ? CONST.POLICY.ROLE.EDITOR : role;
+    // Submit workspaces enforce the editor role — gate on the beta to keep behavior unchanged for non-beta users.
+    const effectiveRole = canUseSubmit2026 && isSubmitPolicy(policy) ? CONST.POLICY.ROLE.EDITOR : role;
 
     const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLogins(logins, accountIDs);
     const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs, formatPhoneNumber);
 
     const announceRoomMembers = buildRoomMembersOnyxData(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID, accountIDs);
-    // Admins and auditors are always in the #admins room. Editors (Submit workspaces only) join it too so they get
-    // visibility into configuration changes — gated on the beta to keep the room membership unchanged for non-beta users.
-    const shouldAddToAdminsRoom = effectiveRole === CONST.POLICY.ROLE.ADMIN || effectiveRole === CONST.POLICY.ROLE.AUDITOR || shouldForceEditorRole;
+    // Admins and auditors are always in the #admins room. Editors (Submit workspaces) join it too for
+    // visibility into configuration changes.
+    const shouldAddToAdminsRoom = effectiveRole === CONST.POLICY.ROLE.ADMIN || effectiveRole === CONST.POLICY.ROLE.AUDITOR || effectiveRole === CONST.POLICY.ROLE.EDITOR;
     const adminRoomMembers = buildRoomMembersOnyxData(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID, shouldAddToAdminsRoom ? accountIDs : []);
     const optimisticAnnounceChat = ReportUtils.buildOptimisticAnnounceChat(policyID, [...policyMemberAccountIDs, ...accountIDs], currentUserAccountID);
     const announceRoomChat = optimisticAnnounceChat.announceChatData;
@@ -975,10 +972,8 @@ function addMembersToWorkspace(
         Log.warn('addMembersToWorkspace: Policy ID is undefined');
         return;
     }
-    // Submit workspaces only allow the editor role on invite — `buildAddMembersToWorkspaceOnyxData` handles
-    // the override (and returns the effective role) so the optimistic data and API request stay in sync.
-    // The backend enforces this too (Policy::shareWithEmployees); the FE override is just to avoid a flash
-    // of the caller-provided role in the UI.
+    // buildAddMembersToWorkspaceOnyxData overrides the role to Editor on Submit workspaces and returns
+    // the effective role so the optimistic data and API params stay in sync.
     const {effectiveRole, optimisticData, successData, failureData, optimisticAnnounceChat, membersChats, logins} = buildAddMembersToWorkspaceOnyxData(
         invitedEmailsToAccountIDs,
         policy,
