@@ -16,6 +16,10 @@ import type {useYourSpendData} from './useYourSpendData';
 
 const SKELETON_ROW_HEIGHT = 56;
 const SKELETON_DESCRIPTION_WIDTH = '50%';
+const SKELETON_NARROW_OFFSET_X = 20;
+const SKELETON_WIDE_OFFSET_X = 32;
+const SKELETON_OFFSET_Y = 20;
+const SKELETON_TEXT_HEIGHT = 12;
 
 type SpendSummaryRowProps = {
     state: ReturnType<typeof useYourSpendData>['approvalRowState'];
@@ -41,9 +45,9 @@ function SpendSummaryRow({state, testIDPrefix, description, totals, iconSrc, onP
                     shouldAnimate
                     renderSkeletonItem={() => (
                         <SkeletonRect
-                            transform={[{translateX: shouldUseNarrowLayout ? 20 : 32}, {translateY: 20}]}
+                            transform={[{translateX: shouldUseNarrowLayout ? SKELETON_NARROW_OFFSET_X : SKELETON_WIDE_OFFSET_X}, {translateY: SKELETON_OFFSET_Y}]}
                             width={SKELETON_DESCRIPTION_WIDTH}
-                            height={12}
+                            height={SKELETON_TEXT_HEIGHT}
                         />
                     )}
                 />
