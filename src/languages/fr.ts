@@ -8625,7 +8625,15 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             `<muted-text-label>Reçu en attente en raison d’une connexion bancaire rompue. Veuillez résoudre le problème dans les <a href="${workspaceCompanyCardRoute}">Cartes d’entreprise</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Reçu en attente en raison d’une connexion bancaire rompue. Veuillez demander à un administrateur de l’espace de travail de résoudre le problème.',
         markAsCashToIgnore: 'Marquer comme paiement en espèces pour l’ignorer et demander un paiement.',
-        smartscanFailed: ({canEdit = true}) => `L’analyse du reçu a échoué.${canEdit ? 'Saisir les détails manuellement.' : ''}`,
+        smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
+            if (missingFields.length > 0) {
+                const fieldNames: Record<string, string> = {merchant: 'commerçant', date: 'date', amount: 'montant'};
+                const translated = missingFields.map((f) => fieldNames[f] ?? f);
+                const fieldList = translated.join(translated.length > 2 ? ', ' : ' et ');
+                return `L’analyse du reçu a échoué — champ(s) manquant(s) : ${fieldList}.${canEdit ? ' Saisir les détails manuellement.' : ''}`;
+            }
+            return `L’analyse du reçu a échoué.${canEdit ? 'Saisir les détails manuellement.' : ''}`;
+        },
         receiptGeneratedWithAI: 'Reçu potentiellement généré par IA',
         someTagLevelsRequired: (tagName?: string) => `${tagName ?? 'Tag'} manquant`,
         tagOutOfPolicy: (tagName?: string) => `${tagName ?? 'Tag'} n’est plus valide`,

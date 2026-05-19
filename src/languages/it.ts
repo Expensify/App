@@ -8594,7 +8594,16 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             `<muted-text-label>Ricevuta in sospeso a causa di un collegamento bancario interrotto. Risolvi il problema in <a href="${workspaceCompanyCardRoute}">Carte aziendali</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Ricevuta in sospeso a causa di un collegamento bancario interrotto. Chiedi a un amministratore dello spazio di lavoro di risolvere il problema.',
         markAsCashToIgnore: 'Segna come contante da ignorare e richiedi il pagamento.',
-        smartscanFailed: ({canEdit = true}) => `Scansione della ricevuta non riuscita.${canEdit ? 'Inserisci i dettagli manualmente.' : ''}`,
+        smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
+            if (missingFields.length > 0) {
+                const fieldNames: Record<string, string> = {merchant: 'esercente', date: 'data', amount: 'importo'};
+                const translated = missingFields.map((f) => fieldNames[f] ?? f);
+                const fieldList = translated.join(translated.length > 2 ? ', ' : ' e ');
+                const verb = translated.length === 1 ? 'mancante' : 'mancanti';
+                return `Scansione della ricevuta non riuscita — ${fieldList} ${verb}.${canEdit ? ' Inserisci i dettagli manualmente.' : ''}`;
+            }
+            return `Scansione della ricevuta non riuscita.${canEdit ? 'Inserisci i dettagli manualmente.' : ''}`;
+        },
         receiptGeneratedWithAI: 'Ricevuta potenzialmente generata dall’IA',
         someTagLevelsRequired: (tagName?: string) => `Manca ${tagName ?? 'Etichetta'}`,
         tagOutOfPolicy: (tagName?: string) => `${tagName ?? 'Etichetta'} non è più valido`,
