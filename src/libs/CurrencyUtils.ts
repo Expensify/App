@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
+import Log from '@src/libs/Log';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Locale} from '@src/types/onyx';
@@ -18,6 +19,19 @@ Onyx.connect({
         currencyList = val;
     },
 });
+
+/**
+ * Validates a currency code and returns it unchanged if it is a valid ISO 4217 code (exactly 3 uppercase ASCII letters).
+ * Returns CONST.CURRENCY.USD and logs a warning when the code is malformed or missing, to prevent Intl.NumberFormat
+ * from throwing a RangeError. See https://github.com/Expensify/App/issues/91113
+ */
+function sanitizeCurrencyCode(currencyCode: string): string {
+    if (/^[A-Z]{3}$/.test(currencyCode)) {
+        return currencyCode;
+    }
+    Log.warn('CurrencyUtils: invalid currency code, defaulting to USD', {currencyCode});
+    return CONST.CURRENCY.USD;
+}
 
 /**
  * Returns the number of digits after the decimal separator for a specific currency.
@@ -47,7 +61,7 @@ function getCurrencyUnit(currency: string = CONST.CURRENCY.USD): number {
 function getLocalizedCurrencySymbol(locale: Locale | undefined, currencyCode: string): string | undefined {
     const parts = formatToParts(locale, 0, {
         style: 'currency',
-        currency: currencyCode,
+        currency: sanitizeCurrencyCode(currencyCode),
     });
     return parts.find((part) => part.type === 'currency')?.value;
 }
@@ -97,15 +111,9 @@ function convertToFrontendAmountAsString(amountAsInt: number | null | undefined,
  * @param currency - IOU currency
  */
 function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURRENCY.USD, shouldUseLocalCurrencySymbol = false): string {
-    const decimals = getCurrencyDecimals(currency);
+    const currencyWithFallback = sanitizeCurrencyCode(currency);
+    const decimals = getCurrencyDecimals(currencyWithFallback);
     const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, decimals);
-    /**
-     * Fallback currency to USD if it empty string or undefined
-     */
-    let currencyWithFallback = currency;
-    if (!currency) {
-        currencyWithFallback = CONST.CURRENCY.USD;
-    }
 
     if (shouldUseLocalCurrencySymbol) {
         const currencySymbol = getCurrencySymbol(currencyWithFallback);
@@ -153,7 +161,7 @@ function convertToShortDisplayString(amountInCents = 0, currency: string = CONST
 
     return format(IntlStore.getCurrentLocale(), convertedAmount, {
         style: 'currency',
-        currency,
+        currency: sanitizeCurrencyCode(currency),
 
         // There will be no decimals displayed (e.g. $9)
         minimumFractionDigits: 0,
@@ -171,7 +179,7 @@ function convertAmountToDisplayString(amount = 0, currency: string = CONST.CURRE
     const convertedAmount = amount / 100.0;
     return format(IntlStore.getCurrentLocale(), convertedAmount, {
         style: 'currency',
-        currency,
+        currency: sanitizeCurrencyCode(currency),
         minimumFractionDigits: CONST.MIN_TAX_RATE_DECIMAL_PLACES,
         maximumFractionDigits: CONST.MAX_TAX_RATE_DECIMAL_PLACES,
     });
@@ -181,11 +189,12 @@ function convertAmountToDisplayString(amount = 0, currency: string = CONST.CURRE
  * Acts the same as `convertAmountToDisplayString` but the result string does not contain currency
  */
 function convertToDisplayStringWithoutCurrency(amountInCents: number, currency: string = CONST.CURRENCY.USD) {
-    const decimals = getCurrencyDecimals(currency);
+    const sanitizedCurrency = sanitizeCurrencyCode(currency);
+    const decimals = getCurrencyDecimals(sanitizedCurrency);
     const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, decimals);
     return formatToParts(IntlStore.getCurrentLocale(), convertedAmount, {
         style: 'currency',
-        currency,
+        currency: sanitizedCurrency,
 
         // We are forcing the number of decimals because we override the default number of decimals in the backend for some currencies
         // See: https://github.com/Expensify/PHP-Libs/pull/834
@@ -200,6 +209,7 @@ function convertToDisplayStringWithoutCurrency(amountInCents: number, currency: 
 }
 
 export {
+    sanitizeCurrencyCode,
     getCurrencyDecimals,
     getCurrencyUnit,
     getLocalizedCurrencySymbol,
