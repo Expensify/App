@@ -101,7 +101,6 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
                 }}
             >
                 <Text
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...defaultRendererProps}
                     style={[
                         styles.link,

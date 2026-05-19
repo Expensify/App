@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {KeyboardTypeOptions, NativeSyntheticEvent} from 'react-native';
+import type {KeyboardTypeOptions, NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -69,6 +69,12 @@ type NumberWithSymbolFormProps = {
     /** Whether to wrap the input in a container */
     shouldWrapInputInContainer?: boolean;
 
+    /** Style applied to the outer ScrollView */
+    scrollViewStyle?: StyleProp<ViewStyle>;
+
+    /** Whether to refocus the input when clicking on the ScrollView empty space */
+    shouldRefocusOnScrollViewClick?: boolean;
+
     /** Whether the amount is negative */
     isNegative?: boolean;
 
@@ -83,6 +89,9 @@ type NumberWithSymbolFormProps = {
 
     /** Whether to allow direct negative input (for split amounts where value is already negative) */
     allowNegativeInput?: boolean;
+
+    /** Style for the negative symbol */
+    negativeSymbolStyle?: StyleProp<TextStyle>;
 
     /** Whether to use dynamic font size for the amount input */
     shouldUseDynamicFontSize?: boolean;
@@ -171,9 +180,12 @@ function NumberWithSymbolForm({
     shouldApplyPaddingToContainer = false,
     shouldUseDefaultLineHeightForPrefix = true,
     shouldWrapInputInContainer = true,
+    scrollViewStyle,
+    shouldRefocusOnScrollViewClick = false,
     isNegative = false,
     allowFlippingAmount = false,
     allowNegativeInput = false,
+    negativeSymbolStyle,
     toggleNegative,
     clearNegative,
     ref,
@@ -569,6 +581,7 @@ function NumberWithSymbolForm({
             prefixContainerStyle={props.prefixContainerStyle}
             touchableInputWrapperStyle={props.touchableInputWrapperStyle}
             isNegative={isNegative}
+            negativeSymbolStyle={negativeSymbolStyle}
             toggleNegative={toggleNegative}
             onFocus={props.onFocus}
             accessibilityLabel={props.accessibilityLabel}
@@ -644,8 +657,20 @@ function NumberWithSymbolForm({
 
     return (
         <ScrollView
-            contentContainerStyle={styles.flexGrow1}
-            style={!shouldWrapInputInContainer && styles.flexGrow0}
+            contentContainerStyle={[styles.flexGrow1, scrollViewStyle]}
+            style={[
+                !shouldWrapInputInContainer && styles.flexGrow0,
+                // Hide pointer cursor when refocus feature is enabled (empty space shouldn't look clickable)
+                shouldRefocusOnScrollViewClick && styles.cursorAuto,
+            ]}
+            onMouseDown={(e) => {
+                if (!shouldRefocusOnScrollViewClick) {
+                    return;
+                }
+                e.preventDefault();
+                e.stopPropagation();
+                textInput.current?.focus();
+            }}
         >
             {shouldWrapInputInContainer ? (
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>

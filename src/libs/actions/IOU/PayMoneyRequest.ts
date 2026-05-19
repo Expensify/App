@@ -38,7 +38,7 @@ import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getAllPersonalDetails, getAllTransactionViolations, getUserAccountID} from '.';
+import {getAllPersonalDetails, getAllTransactionViolations} from '.';
 import {getReportFromHoldRequestsOnyxData} from './Hold';
 import {getReportPreviewAction} from './MoneyRequestBuilder';
 
@@ -497,10 +497,16 @@ function cancelPayment(
     const stateNum: ValueOf<typeof CONST.REPORT.STATE_NUM> = CONST.REPORT.STATE_NUM.APPROVED;
     const statusNum: ValueOf<typeof CONST.REPORT.STATUS_NUM> = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.APPROVED;
 
+    // For OPTIONAL approval mode with a connected bank account, the report status is CLOSED but the next step
+    // should show "waiting to pay", so we use SUBMITTED as the predictedNextStatus which routes through the
+    // correct next step path. Without a bank account, keep CLOSED which shows "no further action required".
+    const hasConnectedBankAccount = !!policy?.achAccount?.accountNumber;
+    const predictedNextStatus = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL && hasConnectedBankAccount ? CONST.REPORT.STATUS_NUM.SUBMITTED : statusNum;
+
     // buildOptimisticNextStep is used in parallel
     const optimisticNextStepDeprecated = buildNextStepNew({
         report: expenseReport,
-        predictedNextStatus: statusNum,
+        predictedNextStatus,
         policy,
         currentUserAccountIDParam,
         currentUserEmailParam,
@@ -509,7 +515,7 @@ function cancelPayment(
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: expenseReport,
-        predictedNextStatus: statusNum,
+        predictedNextStatus,
         policy,
         currentUserAccountIDParam,
         currentUserEmailParam,
@@ -690,18 +696,17 @@ function completePaymentOnboarding(
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
     isSelfTourViewed: boolean | undefined,
     betas: OnyxEntry<OnyxTypes.Beta[]>,
+    currentUserAccountID: number,
     adminsChatReportID?: string,
     onboardingPolicyID?: string,
 ) {
-    const deprecatedUserAccountID = getUserAccountID();
-
     const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
 
     if (isInviteOnboardingComplete || !introSelected?.choice || !introSelected?.inviteType) {
         return;
     }
 
-    const personalDetailsListValues = Object.values(getPersonalDetailsForAccountIDs(deprecatedUserAccountID ? [deprecatedUserAccountID] : [], getAllPersonalDetails()));
+    const personalDetailsListValues = Object.values(getPersonalDetailsForAccountIDs(currentUserAccountID ? [currentUserAccountID] : [], getAllPersonalDetails()));
     const personalDetails = personalDetailsListValues.at(0);
 
     let onboardingPurpose = introSelected?.choice;
@@ -764,7 +769,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
     }
 
     const paymentSelected = paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
-    completePaymentOnboarding(paymentSelected, introSelected, isSelfTourViewed, betas);
+    completePaymentOnboarding(paymentSelected, introSelected, isSelfTourViewed, betas, currentUserAccountID);
 
     const recipient = {accountID: iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {params: payMoneyRequestParams, onyxData} = getPayMoneyRequestParams({
@@ -848,7 +853,7 @@ function payInvoice({
     });
 
     const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
-    completePaymentOnboarding(paymentSelected, introSelected, isSelfTourViewed, betas);
+    completePaymentOnboarding(paymentSelected, introSelected, isSelfTourViewed, betas, currentUserAccountIDParam);
 
     let params: PayInvoiceParams = {
         reportID: invoiceReport?.reportID,
@@ -907,4 +912,3 @@ function savePreferredPaymentMethod(
 }
 
 export {cancelPayment, completePaymentOnboarding, payInvoice, payMoneyRequest, savePreferredPaymentMethod};
-export type {PayInvoiceArgs, PayMoneyRequestData, PayMoneyRequestFunctionParams};
