@@ -43,6 +43,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     ref,
     ListItem,
     textInputOptions,
+    searchValueForFocusSync,
     initiallyFocusedItemKey,
     confirmButtonOptions,
     initialScrollIndex,
@@ -268,6 +269,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
 
     // Disable `Enter` shortcut if the active element is a button, checkbox, or switch
     const disableEnterShortcut = activeElementRole && [CONST.ROLE.BUTTON, CONST.ROLE.CHECKBOX, CONST.ROLE.SWITCH].includes(activeElementRole as InteractiveElementRoles);
+    const syncedSearchValue = searchValueForFocusSync ?? textInputOptions?.value;
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedItem, {
         captureOnInputs: true,
@@ -306,7 +308,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         initiallyFocusedItemKey,
         isItemSelected,
         focusedIndex,
-        searchValue: textInputOptions?.value,
+        searchValue: syncedSearchValue,
         setFocusedIndex,
     });
 
@@ -315,7 +317,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     };
 
     useSearchFocusSync({
-        searchValue: textInputOptions?.value,
+        searchValue: syncedSearchValue,
         data: flattenedData,
         selectedOptionsCount: selectedItems.length,
         isItemSelected,
