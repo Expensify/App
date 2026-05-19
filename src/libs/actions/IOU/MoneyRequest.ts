@@ -106,7 +106,7 @@ type CreateTransactionParams = {
     personalDetails: OnyxEntry<PersonalDetailsList>;
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
     shouldHandleNav?: boolean;
-    onTransactionsCreated?: (lastTransactionID: string | undefined, optimisticChatReportID?: string, shouldHandleNav?: boolean) => void;
+    onTransactionsCreated: (lastTransactionID: string | undefined, optimisticChatReportID?: string, shouldHandleNav?: boolean) => void;
 };
 
 type InitialTransactionParams = {
@@ -157,7 +157,7 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     amountOwed: OnyxEntry<number>;
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
-    onTransactionsCreated?: (lastTransactionID: string | undefined, optimisticChatReportID?: string, shouldHandleNav?: boolean) => void;
+    onTransactionsCreated: (lastTransactionID: string | undefined, optimisticChatReportID?: string, shouldHandleNav?: boolean) => void;
 };
 
 type MoneyRequestStepDistanceNavigationParams = {
@@ -207,7 +207,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
     conciergeReportID: string | undefined;
-    onTransactionsCreated?: (lastTransactionID: string | undefined, optimisticChatReportID?: string, shouldHandleNav?: boolean) => void;
+    onTransactionsCreated: (lastTransactionID: string | undefined, optimisticChatReportID?: string, shouldHandleNav?: boolean) => void;
 };
 
 function createTransaction({
@@ -339,7 +339,7 @@ function createTransaction({
             });
         }
     }
-    onTransactionsCreated?.(lastOptimisticTransactionID, scanChatReportID, shouldHandleNav);
+    onTransactionsCreated(lastOptimisticTransactionID, scanChatReportID, shouldHandleNav);
 }
 
 function getMoneyRequestParticipantOptions(
@@ -762,7 +762,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             optimisticTransactionID: distanceOptimisticTransactionID,
                             optimisticChatReportID: distanceOptimisticChatReportID,
                         });
-                        onTransactionsCreated?.(distanceOptimisticTransactionID, distanceOptimisticChatReportID, overrides?.shouldHandleNavigation ?? true);
+                        onTransactionsCreated(distanceOptimisticTransactionID, distanceOptimisticChatReportID, overrides?.shouldHandleNavigation ?? true);
                     },
                     destinationReportID: selfDMReport?.reportID,
                     telemetryContext: {

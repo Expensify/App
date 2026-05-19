@@ -113,6 +113,7 @@ describe('MoneyRequest', () => {
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
             recentWaypoints: [] as RecentWaypoint[],
+            onTransactionsCreated: jest.fn(),
         };
 
         beforeEach(async () => {
@@ -606,6 +607,7 @@ describe('MoneyRequest', () => {
             isSelfTourViewed: false,
             betas: [],
             recentWaypoints: [] as RecentWaypoint[],
+            onTransactionsCreated: jest.fn(),
             allTransactionDrafts: {},
             participants: [] as Participant[],
             participantsPolicyTags: {} as Record<string, PolicyTagLists>,
@@ -1118,6 +1120,7 @@ describe('MoneyRequest', () => {
             selfDMReport,
             betas: [CONST.BETAS.ALL],
             recentWaypoints: [] as RecentWaypoint[],
+            onTransactionsCreated: jest.fn(),
             isSelfTourViewed: false,
             amountOwed: 0,
             draftTransactionIDs: undefined,
@@ -1223,6 +1226,21 @@ describe('MoneyRequest', () => {
 
             // The function must return after trackExpense and not call createDistanceRequest
             expect(Split.createDistanceRequest).not.toHaveBeenCalled();
+        });
+
+        it('should invoke onTransactionsCreated with the optimistic IDs and shouldHandleNav after the action writes (skip-confirm distance)', async () => {
+            const onTransactionsCreated = jest.fn();
+            handleMoneyRequestStepDistanceNavigation({
+                ...baseParams,
+                manualDistance: 20,
+                shouldSkipConfirmation: true,
+                iouType: CONST.IOU.TYPE.TRACK,
+                draftTransactionIDs: [baseParams.transactionID],
+                onTransactionsCreated,
+            });
+
+            expect(onTransactionsCreated).toHaveBeenCalledTimes(1);
+            expect(onTransactionsCreated).toHaveBeenCalledWith(expect.any(String), expect.any(String), true);
         });
 
         it('should call trackExpense for TRACK iouType with valid waypoints when not from manual distance step and skipping confirmation', async () => {

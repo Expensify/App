@@ -4,7 +4,10 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import useOnyx from '@hooks/useOnyx';
 import {handleMoneyRequestStepDistanceNavigation} from '@libs/actions/IOU/MoneyRequest';
+import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
+import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
+import {getIsFromGlobalCreate} from '@libs/TransactionUtils';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -179,6 +182,20 @@ function useOdometerNavigation({
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
             conciergeReportID,
+            onTransactionsCreated: (lastTransactionID, optimisticChatReportID, shouldHandleNav) => {
+                if (shouldHandleNav ?? true) {
+                    cleanupAndNavigateAfterExpenseCreate({
+                        report,
+                        draftTransactionIDs,
+                        transactionID: lastTransactionID,
+                        isFromGlobalCreate: getIsFromGlobalCreate(transaction),
+                        backToReport,
+                        optimisticChatReportID,
+                    });
+                    return;
+                }
+                cleanupAfterExpenseCreate({draftTransactionIDs, linkedTrackedExpenseReportAction: transaction?.linkedTrackedExpenseReportAction});
+            },
         });
     };
 }
