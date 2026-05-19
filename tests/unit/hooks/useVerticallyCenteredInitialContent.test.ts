@@ -84,6 +84,11 @@ const mockRequestAnimationFrame = () =>
         return 0;
     });
 
+const flushMicrotasks = () =>
+    act(async () => {
+        await Promise.resolve();
+    });
+
 describe('useVerticallyCenteredInitialContent', () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -93,12 +98,13 @@ describe('useVerticallyCenteredInitialContent', () => {
         jest.restoreAllMocks();
     });
 
-    it('shows the initial viewport skeleton on initial render when there is an initial scroll target', () => {
+    it('shows the initial viewport skeleton on initial render when there is an initial scroll target', async () => {
         const {result} = renderHook((props: HookProps) => useVerticallyCenteredInitialContent(props), {
             initialProps: createProps({initialScrollKey: '2'}),
         });
 
         expect(result.current.shouldShowInitialViewportSkeleton).toBe(true);
+        await flushMicrotasks();
     });
 
     it('hides the initial viewport skeleton after the initial unread-anchor viewport is mounted and measured', async () => {
@@ -107,6 +113,7 @@ describe('useVerticallyCenteredInitialContent', () => {
         const {result} = renderHook((props: HookProps) => useVerticallyCenteredInitialContent(props), {
             initialProps: createProps({initialScrollKey: '2'}),
         });
+        await flushMicrotasks();
 
         act(() => {
             result.current.handleReportActionsListLayout(createLayoutEvent(600));
@@ -143,6 +150,7 @@ describe('useVerticallyCenteredInitialContent', () => {
         const {result, rerender} = renderHook((props: HookProps) => useVerticallyCenteredInitialContent(props), {
             initialProps: createProps(),
         });
+        await flushMicrotasks();
 
         expect(result.current.shouldShowInitialViewportSkeleton).toBe(false);
 
@@ -159,7 +167,9 @@ describe('useVerticallyCenteredInitialContent', () => {
             result.current.handleInitialScrollTargetLayout(120);
             await Promise.resolve();
         });
+        await flushMicrotasks();
 
+        expect(result.current.initialScrollKeyForInitialScroll).toBeUndefined();
         expect(mockScrollToIndex).not.toHaveBeenCalled();
         expect(result.current.shouldShowInitialViewportSkeleton).toBe(false);
     });

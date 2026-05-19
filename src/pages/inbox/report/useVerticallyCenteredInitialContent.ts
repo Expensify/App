@@ -58,16 +58,6 @@ function isUnreadMarkerOnlyInitialScrollKeyChange(
     );
 }
 
-function isMatchingInitialViewportResetSession(
-    session: InitialViewportResetSession | undefined,
-    listID: string,
-    reportID: string,
-    linkedReportActionID: string | undefined,
-    initialScrollKey: string | undefined,
-) {
-    return !!session && session.listID === listID && session.reportID === reportID && session.linkedReportActionID === linkedReportActionID && session.initialScrollKey === initialScrollKey;
-}
-
 function isInitialViewportCovered(mountedIndices: Set<number>, range: InitialViewportRange, initialScrollIndex: number) {
     if (mountedIndices.size < range.requiredMountedItems) {
         return false;
@@ -100,10 +90,7 @@ function useVerticallyCenteredInitialContent({
      */
     const initialViewportResetSessionRef = useRef<InitialViewportResetSession | undefined>(undefined);
     const [initialViewportResetSession, setInitialViewportResetSession] = useState<InitialViewportResetSession | undefined>(undefined);
-    const [suppressedInitialScrollSession, setSuppressedInitialScrollSession] = useState<InitialViewportResetSession | undefined>(undefined);
-    const shouldSuppressUnreadMarkerInitialScroll =
-        isUnreadMarkerOnlyInitialScrollKeyChange(initialViewportResetSession, listID, report.reportID, linkedReportActionID, initialScrollKey) ||
-        isMatchingInitialViewportResetSession(suppressedInitialScrollSession, listID, report.reportID, linkedReportActionID, initialScrollKey);
+    const shouldSuppressUnreadMarkerInitialScroll = isUnreadMarkerOnlyInitialScrollKeyChange(initialViewportResetSession, listID, report.reportID, linkedReportActionID, initialScrollKey);
     const initialScrollKeyForInitialScroll = shouldSuppressUnreadMarkerInitialScroll ? undefined : initialScrollKey;
 
     const initialScrollIndex = !initialScrollKeyForInitialScroll ? -1 : sortedVisibleReportActions.findIndex((item) => keyExtractor(item) === initialScrollKeyForInitialScroll);
@@ -220,6 +207,16 @@ function useVerticallyCenteredInitialContent({
     };
 
     useLayoutEffect(() => {
+        let isCancelled = false;
+        const scheduleInitialViewportSessionStateUpdate = (session: InitialViewportResetSession) => {
+            queueMicrotask(() => {
+                if (isCancelled) {
+                    return;
+                }
+                setInitialViewportResetSession(session);
+            });
+        };
+
         const normalizedLinkedReportActionID = linkedReportActionID;
         const normalizedInitialScrollKey = initialScrollKey;
         const previousSession = initialViewportResetSessionRef.current;
@@ -233,10 +230,8 @@ function useVerticallyCenteredInitialContent({
             initialScrollKey: normalizedInitialScrollKey,
         };
         initialViewportResetSessionRef.current = currentSession;
-        setInitialViewportResetSession(currentSession);
 
         if (isUnreadMarkerOnlyChange) {
-            setSuppressedInitialScrollSession(currentSession);
             shouldSkipMeasuredInitialTargetScrollRef.current = true;
             hasCommittedMeasuredAnchorScrollRef.current = false;
             measuredAnchorScrollAttemptCountRef.current = 0;
@@ -245,11 +240,13 @@ function useVerticallyCenteredInitialContent({
                 measuredAnchorScrollFrameRef.current = undefined;
             }
             setHasAppliedMeasuredAnchorScroll(true);
-            return;
+            return () => {
+                isCancelled = true;
+            };
         }
 
         const shouldDeferLinkedOlderReveal = !!(normalizedLinkedReportActionID && hasOlderActions);
-        setSuppressedInitialScrollSession(undefined);
+        scheduleInitialViewportSessionStateUpdate(currentSession);
         setLinkedOlderRevealGateReady(!shouldDeferLinkedOlderReveal);
 
         mountedInitialViewportIndicesRef.current.clear();
@@ -263,6 +260,10 @@ function useVerticallyCenteredInitialContent({
         }
         setHasAppliedMeasuredAnchorScroll(!shouldMeasureInitialScrollTargetPosition);
         setIsInitialViewportLoading(hasInitialScrollTarget);
+
+        return () => {
+            isCancelled = true;
+        };
     }, [hasInitialScrollTarget, hasOlderActions, initialScrollKey, linkedReportActionID, listID, report.reportID, shouldMeasureInitialScrollTargetPosition]);
 
     useEffect(
