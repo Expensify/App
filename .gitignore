@@ -166,6 +166,7 @@ modules/*/lib/
 .playwright-mcp/
 
 # agent-device
+.agent-device/
 agent-device-output/
 
 # cspell cache

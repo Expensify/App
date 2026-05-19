@@ -44,6 +44,7 @@ import {
     buildOptimisticGroupChatReport,
     buildOptimisticInvoiceReport,
     buildOptimisticIOUReportAction,
+    buildOptimisticMoneyRequestEntities,
     buildOptimisticReportPreview,
     buildOptimisticWorkspaceChats,
     buildParticipantsFromAccountIDs,
@@ -84,6 +85,7 @@ import {
     getDeletedTransactionMessage,
     getDisplayNameForParticipant,
     getDisplayNamesWithTooltips,
+    getEffectiveReportErrors,
     getHarvestOriginalReportID,
     getIconsForParticipants,
     getIndicatedMissingPaymentMethod,
@@ -103,7 +105,6 @@ import {
     getReasonAndReportActionThatRequiresAttention,
     getReportActionWithSmartscanError,
     getReportIDFromLink,
-    getReportName as getReportNameDeprecated,
     getReportOrDraftReport,
     getReportPreviewMessage,
     getReportStatusTranslation,
@@ -274,6 +275,7 @@ const computeReportName = (
     personalDetailsList?: PersonalDetailsList,
     reportActions?: OnyxCollection<ReportActions>,
     currentUserID = currentUserAccountID,
+    conciergeReportID?: string,
 ) =>
     computeReportNameOriginal({
         report,
@@ -285,6 +287,7 @@ const computeReportName = (
         reportActions,
         currentUserAccountID: currentUserID,
         currentUserLogin: currentUserEmail,
+        conciergeReportID,
     });
 const participantsPersonalDetails: PersonalDetailsList = {
     '1': {
@@ -1078,12 +1081,12 @@ describe('ReportUtils', () => {
             const participants = getIconsForParticipants([1, 2, 3, 4, 5], participantsPersonalDetails);
             expect(participants).toHaveLength(5);
 
-            expect(participants.at(3)?.source).toBeInstanceOf(Function);
+            expect(typeof participants.at(3)?.source).toBe('string');
             expect(participants.at(3)?.name).toBe('(833) 240-3627');
             expect(participants.at(3)?.id).toBe(4);
             expect(participants.at(3)?.type).toBe('avatar');
 
-            expect(participants.at(1)?.source).toBeInstanceOf(Function);
+            expect(typeof participants.at(1)?.source).toBe('string');
             expect(participants.at(1)?.name).toBe('floki@vikings.net');
             expect(participants.at(1)?.id).toBe(2);
             expect(participants.at(1)?.type).toBe('avatar');
@@ -1128,12 +1131,12 @@ describe('ReportUtils', () => {
             const sortedParticipants = sortIconsByName(participants, participantsPersonalDetails, localeCompare);
             expect(sortedParticipants).toHaveLength(5);
 
-            expect(sortedParticipants.at(0)?.source).toBeInstanceOf(Function);
+            expect(typeof sortedParticipants.at(0)?.source).toBe('string');
             expect(sortedParticipants.at(0)?.name).toBe('(833) 240-3627');
             expect(sortedParticipants.at(0)?.id).toBe(4);
             expect(sortedParticipants.at(0)?.type).toBe('avatar');
 
-            expect(sortedParticipants.at(1)?.source).toBeInstanceOf(Function);
+            expect(typeof sortedParticipants.at(1)?.source).toBe('string');
             expect(sortedParticipants.at(1)?.name).toBe('floki@vikings.net');
             expect(sortedParticipants.at(1)?.id).toBe(2);
             expect(sortedParticipants.at(1)?.type).toBe('avatar');
@@ -1827,26 +1830,30 @@ describe('ReportUtils', () => {
                 const fromReport = {
                     ...LHNTestUtils.getFakeReport(),
                     reportID: '789',
+                    reportName: 'Ragnar',
                 };
 
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fromReport.reportID}`, fromReport);
 
-                const transactionThread = {
-                    ...LHNTestUtils.getFakeReport(),
-                    type: CONST.REPORT.TYPE.CHAT,
-                    reportID: '123',
-                    parentReportID: '456',
-                };
-
                 const unreportedTransactionAction = {
+                    reportActionID: 'unreported-action-id',
                     actionName: CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
                     originalMessage: {
                         fromReportID: '789',
                     },
                 } as ReportAction;
 
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const reportName = getReportNameDeprecated({report: transactionThread, parentReportActionParam: unreportedTransactionAction});
+                const transactionThread = {
+                    ...LHNTestUtils.getFakeReport(),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    reportID: '123',
+                    parentReportID: '456',
+                    parentReportActionID: 'unreported-action-id',
+                };
+
+                const reportName = computeReportName(transactionThread, undefined, undefined, undefined, undefined, undefined, {
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}456`]: {'unreported-action-id': unreportedTransactionAction},
+                });
 
                 // Should NOT contain HTML tags
                 expect(reportName).not.toContain('<a href');
@@ -2050,16 +2057,17 @@ describe('ReportUtils', () => {
                     participants: buildParticipantsFromAccountIDs([currentUserAccountID, CONST.ACCOUNT_ID.CONCIERGE]),
                 };
 
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const reportName = getReportNameDeprecated({
+                const reportName = computeReportName(
                     report,
-                    policy,
-                    personalDetails: participantsPersonalDetails,
-                    transactions: [],
-                    isReportArchived: false,
-                    reports: [],
-                    conciergeReportID: explicitConciergeReportID,
-                });
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    participantsPersonalDetails,
+                    undefined,
+                    currentUserAccountID,
+                    explicitConciergeReportID,
+                );
                 expect(reportName).toBe(CONST.CONCIERGE_DISPLAY_NAME);
             });
 
@@ -2070,16 +2078,17 @@ describe('ReportUtils', () => {
                     participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
                 };
 
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const reportName = getReportNameDeprecated({
+                const reportName = computeReportName(
                     report,
-                    policy,
-                    personalDetails: participantsPersonalDetails,
-                    transactions: [],
-                    isReportArchived: false,
-                    reports: [],
-                    conciergeReportID: explicitConciergeReportID,
-                });
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    participantsPersonalDetails,
+                    undefined,
+                    currentUserAccountID,
+                    explicitConciergeReportID,
+                );
                 expect(reportName).not.toBe(CONST.CONCIERGE_DISPLAY_NAME);
                 // Should generate name from participants instead
                 expect(reportName).toBe('Ragnar Lothbrok');
@@ -2092,8 +2101,7 @@ describe('ReportUtils', () => {
                     participants: buildParticipantsFromAccountIDs([currentUserAccountID, CONST.ACCOUNT_ID.CONCIERGE]),
                 };
 
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const reportName = getReportNameDeprecated({report, policy, personalDetails: participantsPersonalDetails});
+                const reportName = computeReportName(report, undefined, undefined, undefined, undefined, participantsPersonalDetails);
                 expect(reportName).toBe(CONST.CONCIERGE_DISPLAY_NAME);
             });
         });
@@ -4450,7 +4458,7 @@ describe('ReportUtils', () => {
         const reportID = '1';
 
         it('should disable on thread-disabled actions', () => {
-            const reportAction = buildOptimisticCreatedReportAction('email1@test.com');
+            const reportAction = buildOptimisticCreatedReportAction({emailCreatingAction: 'email1@test.com'});
             expect(shouldDisableThread(reportAction, false)).toBeTruthy();
         });
 
@@ -4864,7 +4872,7 @@ describe('ReportUtils', () => {
                 transactionID: expenseTransaction.transactionID,
                 iouReportID: expenseReport.reportID,
             });
-            const transactionThreadReport = buildTransactionThread(expenseCreatedAction, expenseReport);
+            const transactionThreadReport = buildTransactionThread(expenseCreatedAction, expenseReport, currentUserAccountID);
             expenseCreatedAction.childReportID = transactionThreadReport.reportID;
 
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
@@ -5230,7 +5238,7 @@ describe('ReportUtils', () => {
         });
 
         it('should return undefined for non-money-request actions', () => {
-            const action = buildOptimisticCreatedReportAction('user@test.com');
+            const action = buildOptimisticCreatedReportAction({emailCreatingAction: 'user@test.com'});
             const transaction = {
                 ...createRandomTransaction(100),
                 transactionID: 'txn-123',
@@ -6098,7 +6106,7 @@ describe('ReportUtils', () => {
 
                 iouReportID: expenseReport.reportID,
             });
-            const transactionThreadReport = buildTransactionThread(expenseCreatedAction1, expenseReport);
+            const transactionThreadReport = buildTransactionThread(expenseCreatedAction1, expenseReport, currentUserAccountID);
             const currentReportId = '1';
             const isInFocusMode = false;
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
@@ -6403,7 +6411,7 @@ describe('ReportUtils', () => {
 
                 iouReportID: expenseReport.reportID,
             });
-            const transactionThreadReport = buildTransactionThread(expenseCreatedAction, expenseReport);
+            const transactionThreadReport = buildTransactionThread(expenseCreatedAction, expenseReport, currentUserAccountID);
             expenseCreatedAction.childReportID = transactionThreadReport.reportID;
             const currentReportId = '1';
             const isInFocusMode = false;
@@ -6927,7 +6935,7 @@ describe('ReportUtils', () => {
                 iouReportID: expenseReport.reportID,
             });
             const transactionThreadReport: Report = {
-                ...buildTransactionThread(expenseCreatedAction1, expenseReport),
+                ...buildTransactionThread(expenseCreatedAction1, expenseReport, currentUserAccountID),
                 // The settled check uses report.statusNum on the thread report itself
                 statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
             };
@@ -12185,22 +12193,28 @@ describe('ReportUtils', () => {
             expect(result).toEqual(mockOnyxReport);
         });
 
-        test('returns explicit report parameter instead of Onyx state', async () => {
+        test('returns explicit report param instead of Onyx state when 5th param is provided', async () => {
             const explicitReport: Report = {
                 ...createRandomReport(mockReportIDIndex, undefined),
                 reportName: 'Explicit Report',
                 type: CONST.REPORT.TYPE.CHAT,
             };
-            // Set a different report in Onyx to verify the explicit param takes precedence
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
             const result = getReportOrDraftReport(mockReportID, undefined, undefined, undefined, explicitReport);
             expect(result).toEqual(explicitReport);
             expect(result).not.toEqual(mockOnyxReport);
         });
 
-        test('returns undefined when explicit report is undefined and no Onyx state', () => {
+        test('falls back to Onyx state when 5th param is undefined', async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
             const result = getReportOrDraftReport(mockReportID, undefined, undefined, undefined, undefined);
-            expect(result).toBeUndefined();
+            expect(result).toEqual(mockOnyxReport);
+        });
+
+        test('still finds draft report when 5th param is undefined', async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${mockReportID}`, mockDraftReport);
+            const result = getReportOrDraftReport(mockReportID, undefined, undefined, undefined, undefined);
+            expect(result).toEqual(mockDraftReport);
         });
     });
 
@@ -14002,7 +14016,7 @@ describe('ReportUtils', () => {
                 },
             } as unknown as ReportAction;
 
-            const result = getUnreportedTransactionMessage(translateLocal, action, undefined);
+            const result = getUnreportedTransactionMessage(translateLocal, action);
             expect(typeof result).toBe('string');
             expect(result.length).toBeGreaterThan(0);
         });
@@ -14019,7 +14033,7 @@ describe('ReportUtils', () => {
                 },
             } as unknown as ReportAction;
 
-            const result = getUnreportedTransactionMessage(translateLocal, action, undefined);
+            const result = getUnreportedTransactionMessage(translateLocal, action);
             expect(typeof result).toBe('string');
             expect(result.length).toBeGreaterThan(0);
         });
@@ -14036,9 +14050,8 @@ describe('ReportUtils', () => {
                 },
             } as unknown as ReportAction;
 
-            // Should not throw with or without conciergeReportID
-            const result1 = getUnreportedTransactionMessage(translateLocal, action, undefined);
-            const result2 = getUnreportedTransactionMessage(translateLocal, action, '99999');
+            const result1 = getUnreportedTransactionMessage(translateLocal, action);
+            const result2 = getUnreportedTransactionMessage(translateLocal, action);
             expect(typeof result1).toBe('string');
             expect(typeof result2).toBe('string');
         });
@@ -14053,8 +14066,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReport.reportID}`, conciergeReport);
             await Onyx.merge(ONYXKEYS.CONCIERGE_REPORT_ID, conciergeReport.reportID);
 
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const name = getReportNameDeprecated({report: conciergeReport, conciergeReportID: conciergeReport.reportID});
+            const name = computeReportName(conciergeReport, undefined, undefined, undefined, undefined, undefined, undefined, currentUserAccountID, conciergeReport.reportID);
             expect(name).toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
 
@@ -14065,8 +14077,7 @@ describe('ReportUtils', () => {
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${regularReport.reportID}`, regularReport);
 
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const name = getReportNameDeprecated({report: regularReport, conciergeReportID: '999'});
+            const name = computeReportName(regularReport, undefined, undefined, undefined, undefined, undefined, undefined, currentUserAccountID, '999');
             expect(name).not.toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
     });
@@ -17060,7 +17071,7 @@ describe('ReportUtils', () => {
                 },
             } as unknown as ReportAction;
 
-            const result = getMovedTransactionMessage(translateLocal, action, undefined);
+            const result = getMovedTransactionMessage(translateLocal, action);
             expect(typeof result).toBe('string');
             expect(result.length).toBeGreaterThan(0);
         });
@@ -17078,25 +17089,9 @@ describe('ReportUtils', () => {
                 },
             } as unknown as ReportAction;
 
-            const result = getMovedTransactionMessage(translateLocal, action, undefined);
+            const result = getMovedTransactionMessage(translateLocal, action);
             expect(typeof result).toBe('string');
             expect(result.length).toBeGreaterThan(0);
-        });
-
-        it('should handle conciergeReportID parameter', async () => {
-            const toReport = LHNTestUtils.getFakeReport();
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${toReport.reportID}`, toReport);
-
-            const action = {
-                ...LHNTestUtils.getFakeReportAction(),
-                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
-                originalMessage: {
-                    toReportID: toReport.reportID,
-                },
-            } as unknown as ReportAction;
-
-            const result = getMovedTransactionMessage(translateLocal, action, '12345');
-            expect(typeof result).toBe('string');
         });
     });
 
@@ -17390,6 +17385,212 @@ describe('ReportUtils', () => {
 
             expect(isTestTransactionReport(report, mcTestDetail)).toBe(true);
             expect(isTestTransactionReport(report, realUserDetail)).toBe(false);
+        });
+    });
+
+    describe('getEffectiveReportErrors', () => {
+        const childErrors = {
+            error1: 'Some real error',
+        };
+
+        it('returns empty when attributes is undefined', () => {
+            expect(getEffectiveReportErrors(undefined)).toEqual({});
+        });
+
+        it('returns the report errors when not propagating to parent', () => {
+            const attributes = {
+                reportName: 'Report',
+                isEmpty: false,
+                brickRoadStatus: undefined,
+                requiresAttention: false,
+                reportErrors: childErrors,
+                needsParentChatErrorPropagation: false,
+            };
+            expect(getEffectiveReportErrors(attributes)).toEqual(childErrors);
+        });
+
+        it('returns empty when child is propagating to an accessible parent (brickRoadStatus suppressed)', () => {
+            const attributes = {
+                reportName: 'Child expense report',
+                isEmpty: false,
+                brickRoadStatus: undefined,
+                requiresAttention: false,
+                reportErrors: childErrors,
+                needsParentChatErrorPropagation: true,
+            };
+            expect(getEffectiveReportErrors(attributes)).toEqual({});
+        });
+
+        it('returns the report errors when child has its own brickRoadStatus (not propagating)', () => {
+            const attributes = {
+                reportName: 'Child IOU on personal DM',
+                isEmpty: false,
+                brickRoadStatus: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+                requiresAttention: false,
+                reportErrors: childErrors,
+                needsParentChatErrorPropagation: true,
+            };
+            expect(getEffectiveReportErrors(attributes)).toEqual(childErrors);
+        });
+
+        it('returns empty when reportErrors is missing', () => {
+            const attributes = {
+                reportName: 'Report',
+                isEmpty: false,
+                brickRoadStatus: undefined,
+                requiresAttention: false,
+                reportErrors: {},
+                needsParentChatErrorPropagation: false,
+            };
+            expect(getEffectiveReportErrors(attributes)).toEqual({});
+        });
+    });
+
+    describe('buildTransactionThread', () => {
+        const chatReportID = '7001';
+        const expenseReportID = '7002';
+        const actorAccountID = 42;
+
+        const buildIOUAction = (overrides?: Partial<ReportAction>) =>
+            ({
+                ...buildOptimisticIOUReportAction({
+                    type: 'create',
+                    amount: 100,
+                    currency: 'USD',
+                    comment: '',
+                    participants: [],
+                    transactionID: '9001',
+                    iouReportID: expenseReportID,
+                }),
+                actorAccountID,
+                ...overrides,
+            }) as ReportAction;
+
+        const buildExpenseReport = () =>
+            buildOptimisticExpenseReport({
+                chatReportID,
+                policyID: '123',
+                payeeAccountID: actorAccountID,
+                total: 100,
+                currency: 'USD',
+                betas: [CONST.BETAS.ALL],
+            });
+
+        it('uses the passed currentUserAccountID for the thread participants when it differs from the actor', () => {
+            const iouAction = buildIOUAction();
+            const expenseReport = buildExpenseReport();
+
+            const thread = buildTransactionThread(iouAction, expenseReport, currentUserAccountID);
+
+            expect(thread.participants).toEqual({
+                [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN},
+                [actorAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.MEMBER},
+            });
+        });
+
+        it('deduplicates participants when the actor is the same as currentUserAccountID', () => {
+            const iouAction = buildIOUAction({actorAccountID: currentUserAccountID});
+            const expenseReport = buildExpenseReport();
+
+            const thread = buildTransactionThread(iouAction, expenseReport, currentUserAccountID);
+
+            expect(thread.participants).toEqual({
+                [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN},
+            });
+        });
+
+        it('falls back to the actor account ID alone when currentUserAccountID is 0 (filtered by Boolean)', () => {
+            const iouAction = buildIOUAction();
+            const expenseReport = buildExpenseReport();
+
+            const thread = buildTransactionThread(iouAction, expenseReport, 0);
+
+            expect(thread.participants).toEqual({
+                [actorAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.MEMBER},
+            });
+        });
+
+        it('ignores currentUserAccountID and reuses the existing thread when one is provided', async () => {
+            const existingThreadReportID = '7777';
+            const existingThread: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: existingThreadReportID,
+                participants: {
+                    [actorAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN},
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${existingThreadReportID}`, existingThread);
+
+            const iouAction = buildIOUAction();
+            const expenseReport = buildExpenseReport();
+            const thread = buildTransactionThread(iouAction, expenseReport, currentUserAccountID, existingThreadReportID);
+
+            expect(thread.reportID).toBe(existingThreadReportID);
+            expect(thread.participants).toEqual(existingThread.participants);
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${existingThreadReportID}`, null);
+        });
+    });
+
+    describe('buildOptimisticMoneyRequestEntities', () => {
+        it('forwards currentUserAccountID to the optimistic transaction thread participants', () => {
+            const chatReport: Report = {reportID: '8001'};
+            const expenseReport = buildOptimisticExpenseReport({
+                chatReportID: chatReport.reportID,
+                policyID: '123',
+                payeeAccountID: currentUserAccountID,
+                total: 200,
+                currency: 'USD',
+                betas: [CONST.BETAS.ALL],
+            });
+            const otherActorAccountID = 99;
+
+            const [, , iouAction, transactionThread] = buildOptimisticMoneyRequestEntities({
+                iouReport: expenseReport,
+                type: 'create',
+                amount: 200,
+                currency: 'USD',
+                comment: '',
+                payeeEmail: currentUserEmail,
+                participants: [{accountID: otherActorAccountID}],
+                transactionID: '8501',
+                currentUserAccountID,
+            });
+
+            expect(transactionThread).toBeDefined();
+            expect(transactionThread?.participants?.[currentUserAccountID]).toEqual({
+                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                role: CONST.REPORT.ROLE.ADMIN,
+            });
+            expect(iouAction.childReportID).toBe(transactionThread?.reportID);
+        });
+
+        it('skips creating a transaction thread when shouldGenerateTransactionThreadReport is false', () => {
+            const chatReport: Report = {reportID: '8002'};
+            const expenseReport = buildOptimisticExpenseReport({
+                chatReportID: chatReport.reportID,
+                policyID: '123',
+                payeeAccountID: currentUserAccountID,
+                total: 50,
+                currency: 'USD',
+                betas: [CONST.BETAS.ALL],
+            });
+
+            const [, , , transactionThread, createdActionForThread] = buildOptimisticMoneyRequestEntities({
+                iouReport: expenseReport,
+                type: 'create',
+                amount: 50,
+                currency: 'USD',
+                comment: '',
+                payeeEmail: currentUserEmail,
+                participants: [{accountID: 88}],
+                transactionID: '8601',
+                shouldGenerateTransactionThreadReport: false,
+                currentUserAccountID,
+            });
+
+            expect(transactionThread).toBeUndefined();
+            expect(createdActionForThread).toBeNull();
         });
     });
 });

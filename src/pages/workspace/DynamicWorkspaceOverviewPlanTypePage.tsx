@@ -2,13 +2,13 @@ import {format} from 'date-fns';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -17,6 +17,7 @@ import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import OpenWorkspacePlanPage from '@libs/actions/Policy/Plan';
+import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
 import Navigation from '@navigation/Navigation';
 import CardSectionUtils from '@pages/settings/Subscription/CardSection/utils';
@@ -54,8 +55,20 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
         setCurrentPlan(policy?.type);
     }, [policy?.type]);
 
+    const isCurrentPolicySubmit = isSubmitPolicy(policy);
     const workspacePlanTypes = Object.values(CONST.POLICY.TYPE)
-        .filter((type) => type !== CONST.POLICY.TYPE.PERSONAL)
+        .filter((type) => {
+            if (type === CONST.POLICY.TYPE.PERSONAL) {
+                return false;
+            }
+            // Per the design: the Submit row only appears when the current workspace is already
+            // Submit. This hides Submit from Collect/Control workspaces (no downgrade path) while
+            // still surfacing Collect/Control as upgrade options for Submit workspaces.
+            if (type === CONST.POLICY.TYPE.SUBMIT && !isCurrentPolicySubmit) {
+                return false;
+            }
+            return true;
+        })
         .map<WorkspacePlanTypeItem>((policyType) => ({
             value: policyType,
             text: translate(`workspace.planTypePage.planTypes.${policyType as PersonalPolicyTypeExcludedProps}.label`),
@@ -81,6 +94,14 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
         ) : null;
 
     const handleUpdatePlan = () => {
+        // Submit policies don't expose SUBMIT in the option list, but the editor can
+        // still pick Team/Corporate. Route any selection from a Submit policy to the
+        // upgrade screen — the polished Submit-specific upgrade UX ships in #87263.
+        if (policyID && policy?.type === CONST.POLICY.TYPE.SUBMIT && (currentPlan === CONST.POLICY.TYPE.TEAM || currentPlan === CONST.POLICY.TYPE.CORPORATE)) {
+            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID));
+            return;
+        }
+
         if (policyID && policy?.type === CONST.POLICY.TYPE.TEAM && currentPlan === CONST.POLICY.TYPE.CORPORATE) {
             Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID));
             return;
@@ -112,8 +133,11 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
             >
                 <HeaderWithBackButton title={translate('workspace.common.planType')} />
                 {policy?.isLoading ? (
-                    <View style={styles.flex1}>
-                        <FullScreenLoadingIndicator reasonAttributes={{context: 'WorkspaceOverviewPlanTypePage'}} />
+                    <View style={[styles.flex1, styles.fullScreenLoading]}>
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            reasonAttributes={{context: 'WorkspaceOverviewPlanTypePage'}}
+                        />
                     </View>
                 ) : (
                     <>
@@ -137,7 +161,7 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
                         <SelectionList
                             data={workspacePlanTypes}
                             isDisabled={isPlanTypeLocked}
-                            ListItem={RadioListItem}
+                            ListItem={SingleSelectListItem}
                             onSelectRow={(option) => {
                                 setCurrentPlan(option.value);
                             }}
@@ -146,6 +170,7 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
                             shouldSingleExecuteRowSelect
                             shouldIgnoreFocus
                             initiallyFocusedItemKey={workspacePlanTypes.find((mode) => mode.isSelected)?.keyForList}
+                            alternateNumberOfSupportedLines={2}
                             addBottomSafeAreaPadding
                             footerContent={
                                 <Button

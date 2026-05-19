@@ -1,0 +1,12 @@
+---
+description: Never create git commits unless the user explicitly asks to commit
+alwaysApply: true
+---
+
+# No Auto-Commit Rule
+
+**NEVER** run `git commit` unless the user explicitly says "commit" in their message.
+
+- When asked to "stage" or "suggest message", only run `git add` and suggest a commit message in text.
+- When resolving merge conflicts, only stage the resolved files. Do NOT run `git commit` to finalize the merge unless the user explicitly asks.
+- When the user says "stage and suggest message" (or similar), that means: stage files + suggest a message. It does NOT mean commit.

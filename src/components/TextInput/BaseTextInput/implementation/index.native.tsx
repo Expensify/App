@@ -60,6 +60,7 @@ function BaseTextInput({
     hideFocusedState = false,
     maxLength = undefined,
     hint = '',
+    shouldRenderHintAsHTML = false,
     onInputChange = () => {},
     multiline = false,
     autoCorrect = true,
@@ -80,6 +81,7 @@ function BaseTextInput({
     placeholderTextColor,
     onClearInput,
     iconContainerStyle,
+    clearButtonStyle,
     shouldUseDefaultLineHeightForPrefix = true,
     ref,
     sentryLabel,
@@ -452,7 +454,7 @@ function BaseTextInput({
                                         setValue('');
                                         onClearInput?.();
                                     }}
-                                    style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff)]}
+                                    style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), clearButtonStyle]}
                                 />
                             )}
                             {!!inputProps.isLoading && !shouldShowClearButton && (
@@ -503,6 +505,7 @@ function BaseTextInput({
                     <FormHelpMessage
                         isError={!!errorText}
                         message={inputHelpText}
+                        shouldRenderMessageAsHTML={!errorText && shouldRenderHintAsHTML}
                     />
                 )}
             </View>

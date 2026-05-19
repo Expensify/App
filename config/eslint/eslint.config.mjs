@@ -271,6 +271,16 @@ const config = defineConfig([
                 'error',
                 {
                     selector: ['variable', 'property'],
+                    format: null,
+                    // Allow __esModule because it is a well-known interop property injected by bundlers
+                    // (e.g. Babel/Webpack) and sometimes required by library internals (e.g. react-native-skia).
+                    filter: {
+                        regex: '^__esModule$',
+                        match: true,
+                    },
+                },
+                {
+                    selector: ['variable', 'property'],
                     format: ['camelCase', 'UPPER_CASE', 'PascalCase'],
                     // This filter excludes variables and properties that start with "private_" to make them valid.
                     //
@@ -391,11 +401,6 @@ const config = defineConfig([
                 {
                     selector: 'CallExpression[callee.object.name="React"][callee.property.name="forwardRef"]',
                     message: 'forwardRef is deprecated. Please use ref as a prop instead. See: contributingGuides/STYLE.md#forwarding-refs',
-                },
-                {
-                    selector: 'CallExpression[callee.name="getUrlWithBackToParam"]',
-                    message:
-                        'Usage of getUrlWithBackToParam function is prohibited. This is legacy code and no new occurrences should be added. Please look into the `How to remove backTo from URL` section in contributingGuides/NAVIGATION.md. and use alternative routing methods instead.',
                 },
                 {
                     selector: 'ImportNamespaceSpecifier[parent.source.value=/^@libs/]',
@@ -756,6 +761,7 @@ const config = defineConfig([
         'web/snippets/gib.js',
         // Generated language files - excluded from ESLint but still type-checked
         'src/languages/de.ts',
+        'src/languages/es.ts',
         'src/languages/fr.ts',
         'src/languages/it.ts',
         'src/languages/ja.ts',

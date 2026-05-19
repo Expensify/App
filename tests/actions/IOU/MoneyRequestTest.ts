@@ -56,6 +56,9 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
 }));
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-return -- jest.requireActual returns `any` by design
+jest.mock('@libs/actions/IOU/submitWithDismissFirst', () => jest.requireActual('../../__mocks__/submitWithDismissFirst'));
+
 jest.mock('@libs/getCurrentPosition');
 
 describe('MoneyRequest', () => {
@@ -1169,7 +1172,6 @@ describe('MoneyRequest', () => {
             expect(TrackExpense.trackExpense).toHaveBeenCalledWith({
                 report: baseParams.report,
                 isDraftPolicy: false,
-                activePolicyID: undefined,
                 introSelected: undefined,
                 isSelfTourViewed: false,
                 participantParams: {
@@ -1205,6 +1207,8 @@ describe('MoneyRequest', () => {
                     taxCode: '',
                     taxAmount: 0,
                 },
+                shouldHandleNavigation: true,
+                shouldDeferForSearch: false,
                 isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
                 currentUserAccountIDParam: baseParams.currentUserAccountID,
                 currentUserEmailParam: baseParams.currentUserLogin,

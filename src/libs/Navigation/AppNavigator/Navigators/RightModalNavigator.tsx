@@ -53,10 +53,7 @@ const getWideRHPWidth = (windowWidth: number) => variables.sideBarWidth + calcul
 function MissingPersonalDetailsWithPINContext(props: Record<string, unknown>) {
     return (
         <PINContextProvider>
-            <ModalStackNavigators.MissingPersonalDetailsModalStackNavigator
-                /* eslint-disable-next-line react/jsx-props-no-spreading */
-                {...props}
-            />
+            <ModalStackNavigators.MissingPersonalDetailsModalStackNavigator {...props} />
         </PINContextProvider>
     );
 }
@@ -160,7 +157,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                 }
                 // Delay clearing review duplicate data till the RHP is completely closed
                 // to avoid not found showing briefly in confirmation page when RHP is closing
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     abandonReviewDuplicateTransactions();
                 });
@@ -243,7 +239,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                     component={ModalStackNavigators.TwoFactorAuthenticatorStackNavigator}
                                     listeners={{
                                         beforeRemove: () => {
-                                            // eslint-disable-next-line @typescript-eslint/no-deprecated
                                             InteractionManager.runAfterInteractions(() => clearTwoFactorAuthData(true));
                                         },
                                     }}
@@ -331,6 +326,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 <Stack.Screen
                                     name={SCREENS.RIGHT_MODAL.WORKSPACE_DUPLICATE}
                                     component={ModalStackNavigators.WorkspaceDuplicateModalStackNavigator}
+                                />
+                                <Stack.Screen
+                                    name={SCREENS.RIGHT_MODAL.POLICY_COPY_SETTINGS}
+                                    component={ModalStackNavigators.PolicyCopySettingsModalStackNavigator}
                                 />
                                 <Stack.Screen
                                     name={SCREENS.RIGHT_MODAL.NEW_TASK}
