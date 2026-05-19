@@ -4771,10 +4771,6 @@ function canEditReportPolicy(report: OnyxEntry<Report>, reportPolicy: OnyxEntry<
             return isSubmitter || isAdmin;
         }
 
-        if (isSubmitted) {
-            return isManager || isAdmin;
-        }
-
         return isManager || isAdmin;
     }
 
