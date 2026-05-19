@@ -1188,6 +1188,7 @@ describe('MoneyRequest', () => {
                 },
                 policyParams: {
                     policy: undefined,
+                    policyTagList: {},
                 },
                 transactionParams: {
                     amount: 0,
