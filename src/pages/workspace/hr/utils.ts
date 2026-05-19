@@ -171,7 +171,7 @@ function getHRCards({policy, connectionSyncProgress, isBetaEnabled, getLocalDate
         cards.push({
             key: 'gusto',
             connectionName,
-            displayName: 'Gusto',
+            displayName: translate('workspace.hr.gusto.title'),
             icon: gustoIcon,
             iconType: CONST.ICON_TYPE_AVATAR,
             connectFlowType: getConnectFlowType(connectionName),
@@ -191,7 +191,7 @@ function getHRCards({policy, connectionSyncProgress, isBetaEnabled, getLocalDate
         cards.push({
             key: 'zenefits',
             connectionName,
-            displayName: 'TriNet',
+            displayName: translate('workspace.hr.zenefits.title'),
             icon: zenefitsIcon,
             iconType: CONST.ICON_TYPE_AVATAR,
             connectFlowType: getConnectFlowType(connectionName),

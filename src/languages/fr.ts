@@ -7090,7 +7090,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         hr: {
             title: 'RH',
             subtitle: 'Connectez vos outils RH et gardez les approbations des employés synchronisées.',
-            settingsTitle: 'Paramètres Gusto',
             connect: 'Connecter',
             syncNow: 'Synchroniser maintenant',
             disconnect: 'Déconnecter',
@@ -7098,13 +7097,28 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             disconnectPrompt: (providerName: string) => `Êtes-vous sûr de vouloir déconnecter ${providerName} ?`,
             lastSync: (relativeDate: string) => `Dernière synchronisation ${relativeDate}`,
             syncError: (providerName: string) => `Impossible de se connecter à ${providerName}`,
+            connectionDescription: (providerName: string) => `Connectez ${providerName} pour synchroniser les approbations des employés avec votre espace de travail.`,
             approvalMode: "Mode d'approbation",
             finalApprover: 'Approbateur final',
             notSet: 'Non défini',
+            approvalModeDescription: (providerName: string) => `Les membres et les responsables sont configurés pour se synchroniser avec ${providerName}.`,
+            approvalModeWarningTitle: 'Changer le mode d’approbation ?',
+            approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
+                `Êtes-vous sûr·e de vouloir modifier le mode d’approbation de cet espace de travail ? En savoir plus sur les différents modes de workflow compatibles avec ${providerName} sur notre <a href="${helpSiteURL}">site d’aide</a>.`,
+            approvalModeWarningConfirm: 'Modifier le mode d’approbation',
             approvalModes: {
-                basic: {label: 'Approbation basique'},
-                manager: {label: 'Approbation du manager'},
-                custom: {label: 'Approbation personnalisée'},
+                basic: {
+                    label: 'Approbation simple',
+                    description: 'Tous les utilisateurs soumettent à une seule personne pour traitement et approbation.',
+                },
+                manager: {
+                    label: 'Approbation du responsable',
+                    description: (providerName: string) => `Les employé·e·s soumettent leurs rapports à leur responsable direct configuré dans ${providerName}.`,
+                },
+                custom: {
+                    label: 'Approbation personnalisée',
+                    description: 'Je configurerai manuellement les circuits de validation dans Expensify.',
+                },
             },
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
@@ -7129,27 +7143,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             },
             gusto: {
                 title: 'Gusto',
-                approvalMode: 'Mode d’approbation',
-                finalApprover: 'Approbateur final',
-                notSet: 'Non défini',
-                approvalModeDescription: 'Les membres et les responsables sont configurés pour se synchroniser avec Gusto.',
-                approvalModeWarningTitle: 'Changer le mode d’approbation ?',
-                approvalModeWarningPrompt: (helpSiteURL: string) =>
-                    `Êtes-vous sûr·e de vouloir modifier le mode d’approbation de cet espace de travail ? En savoir plus sur les différents modes de workflow compatibles avec Gusto sur notre <a href="${helpSiteURL}">site d’aide</a>.`,
-                approvalModeWarningConfirm: 'Modifier le mode d’approbation',
-                approvalModes: {
-                    basic: {label: 'Approbation simple', description: 'Tous les utilisateurs soumettent à une seule personne pour traitement et approbation.'},
-                    manager: {label: 'Approbation du responsable', description: 'Les employé·e·s soumettent leurs rapports à leur responsable direct configuré dans Gusto.'},
-                    custom: {label: 'Approbation personnalisée', description: 'Je configurerai manuellement les circuits de validation dans Expensify.'},
-                },
-                connect: 'Connect',
-                connectionDescription: 'Connectez Gusto pour synchroniser les validations des employé·e·s avec votre espace de travail.',
-                syncNow: 'Synchroniser maintenant',
-                disconnect: 'Déconnecter',
-                lastSync: (relativeDate: string) => `Dernière synchronisation ${relativeDate}`,
-                syncError: 'Impossible de se connecter à Gusto',
-                disconnectTitle: 'Déconnecter Gusto',
-                disconnectPrompt: 'Voulez-vous vraiment déconnecter Gusto ?',
                 syncResults: {
                     title: 'Résultats de la synchronisation Gusto',
                     successTitle: 'Connexion Gusto synchronisée avec succès !',
@@ -7162,33 +7155,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     }),
                 },
             },
-            merge: {
-                approvalMode: 'Mode d’approbation',
-                finalApprover: 'Approbateur final',
-            },
             zenefits: {
                 title: 'TriNet',
-                connect: 'Connecter',
-                syncNow: 'Synchroniser maintenant',
-                disconnect: 'Déconnecter',
-                lastSync: (relativeDate: string) => `Dernière synchronisation ${relativeDate}`,
-                syncError: 'Impossible de se connecter à TriNet',
-                disconnectTitle: 'Déconnecter TriNet',
-                disconnectPrompt: 'Voulez-vous vraiment déconnecter TriNet ?',
-                connectionDescription: 'Connectez TriNet pour synchroniser les approbations des employés avec votre espace de travail.',
-                approvalMode: 'Mode d’approbation',
-                finalApprover: 'Approbateur final',
-                notSet: 'Non défini',
-                approvalModeDescription: 'Les membres et les responsables sont configurés pour se synchroniser avec TriNet.',
-                approvalModeWarningTitle: 'Changer le mode d’approbation ?',
-                approvalModeWarningPrompt: (helpSiteURL: string) =>
-                    `Voulez-vous vraiment modifier le mode d’approbation de cet espace de travail ? En savoir plus sur les différents modes de workflow compatibles TriNet sur notre <a href="${helpSiteURL}">site d’aide</a>.`,
-                approvalModeWarningConfirm: 'Modifier le mode d’approbation',
-                approvalModes: {
-                    basic: {label: 'Approbation de base', description: 'Tous les utilisateurs soumettent à une seule personne pour traitement et approbation.'},
-                    manager: {label: 'Approbation du responsable', description: 'Les employés soumettent des notes de frais à leur supérieur hiérarchique direct configuré dans TriNet.'},
-                    custom: {label: 'Approbation personnalisée', description: 'Je configurerai manuellement les workflows d’approbation dans Expensify.'},
-                },
             },
         },
     },
