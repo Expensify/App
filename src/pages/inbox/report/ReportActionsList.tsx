@@ -839,9 +839,9 @@ function ReportActionsList({
                 );
             }
 
-            const isMeasuredLinkedAnchorRow = target === 'Cell' && !!linkedReportActionID && reportAction.reportActionID === linkedReportActionID && hasInitialScrollTarget;
+            const isMeasuredInitialScrollTargetRow = target === 'Cell' && !!initialScrollKey && keyExtractor(reportAction) === initialScrollKey && hasInitialScrollTarget;
 
-            if (isMeasuredLinkedAnchorRow) {
+            if (isMeasuredInitialScrollTargetRow) {
                 return (
                     <View
                         collapsable={false}
@@ -863,6 +863,7 @@ function ReportActionsList({
             handleInitialViewportItemMounted,
             hasInitialScrollTarget,
             hasPreviousMessages,
+            initialScrollKey,
             initialViewportRange,
             isInitialViewportLoading,
             isOffline,

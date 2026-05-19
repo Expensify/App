@@ -2,12 +2,12 @@ import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import type {FlashListRefType} from '@pages/inbox/ReportScreenContext';
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 
 const INITIAL_TARGET_REPORT_ACTION_ESTIMATED_HEIGHT = CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT;
 const INITIAL_VIEWPORT_OVERSCAN_ITEMS = 2;
+const MEASURED_ANCHOR_SCROLL_RETRY_LIMIT = 10;
 
 type InitialViewportRange = {
     first: number;
@@ -25,6 +25,10 @@ type UseVerticallyCenteredInitialContentProps = {
     listID: string;
     report: OnyxTypes.Report;
     onLoad: () => void;
+};
+
+type MeasuredAnchorScrollRef = {
+    scrollToIndex: (params: {index: number; animated: boolean; viewOffset: number}) => Promise<void> | void;
 };
 
 function isInitialViewportCovered(mountedIndices: Set<number>, range: InitialViewportRange, initialScrollIndex: number) {
@@ -56,7 +60,7 @@ function useVerticallyCenteredInitialContent({
 
     const initialScrollIndex = !initialScrollKey ? -1 : sortedVisibleReportActions.findIndex((item) => keyExtractor(item) === initialScrollKey);
     const hasInitialScrollTarget = initialScrollIndex >= 0;
-    const shouldMeasureLinkedAnchorScrollPosition = !!linkedReportActionID && hasInitialScrollTarget;
+    const shouldMeasureInitialScrollTargetPosition = !!initialScrollKey && hasInitialScrollTarget;
     const [listHeight, setListHeight] = useState(0);
     const [isInitialViewportLoading, setIsInitialViewportLoading] = useState(true);
     /**
@@ -67,10 +71,12 @@ function useVerticallyCenteredInitialContent({
     const [linkedOlderRevealGateReady, setLinkedOlderRevealGateReady] = useState(() => !(!!linkedReportActionID && hasOlderActions));
     const mountedInitialViewportIndicesRef = useRef(new Set<number>());
     const hasInitialViewportLoadedRef = useRef(!hasInitialScrollTarget);
-    /** Linked deeplink opens need post-layout corrective scroll so the inverted anchor lands correctly; skips unread-only flows (mark unread). */
-    const [hasAppliedMeasuredAnchorScroll, setHasAppliedMeasuredAnchorScroll] = useState(() => !shouldMeasureLinkedAnchorScrollPosition);
+    /** Initial target opens need post-layout corrective scroll so the inverted anchor lands correctly. */
+    const [hasAppliedMeasuredAnchorScroll, setHasAppliedMeasuredAnchorScroll] = useState(() => !shouldMeasureInitialScrollTargetPosition);
     /** Prevents repeated corrective scrollToIndex calls when onLayout repeats. */
     const hasCommittedMeasuredAnchorScrollRef = useRef(false);
+    const measuredAnchorScrollFrameRef = useRef<number | undefined>(undefined);
+    const measuredAnchorScrollAttemptCountRef = useRef(0);
     /**
      * Last scroll/viewport-reset session identifiers. Avoids resetting the initial viewport skeleton + measured-anchor
      * scroll when only the unread marker action ID changes during mark-as-unread (same FlashList/listID).
@@ -105,45 +111,76 @@ function useVerticallyCenteredInitialContent({
     const shouldRenderFlashList = !hasInitialScrollTarget || listHeight > 0;
     const shouldAwaitLinkedOlderRevealWhileGateCold = !!linkedReportActionID && hasOlderActions && (!linkedOlderRevealGateReady || !!reportLoadingState?.isLoadingOlderReportActions);
     const shouldShowInitialViewportSkeleton =
-        hasInitialScrollTarget && (isInitialViewportLoading || (shouldMeasureLinkedAnchorScrollPosition && !hasAppliedMeasuredAnchorScroll) || shouldAwaitLinkedOlderRevealWhileGateCold);
+        hasInitialScrollTarget && (isInitialViewportLoading || (shouldMeasureInitialScrollTargetPosition && !hasAppliedMeasuredAnchorScroll) || shouldAwaitLinkedOlderRevealWhileGateCold);
 
-    const reportScrollManagerRefValue = reportScrollManager.ref as FlashListRefType;
-
-    /** Correct inverted linked-message positioning using the laid-out row height (not needed for unread-anchor-only scroll). */
+    /** Correct inverted initial-target positioning using the laid-out row height. */
     const handleInitialScrollTargetLayout = (layoutHeight: number) => {
-        if (!shouldMeasureLinkedAnchorScrollPosition || layoutHeight <= 0 || listHeight <= 0) {
+        if (!shouldMeasureInitialScrollTargetPosition || layoutHeight <= 0 || listHeight <= 0) {
             return;
         }
 
-        if (hasCommittedMeasuredAnchorScrollRef.current) {
+        if (hasCommittedMeasuredAnchorScrollRef.current || measuredAnchorScrollFrameRef.current !== undefined) {
             return;
         }
 
-        const flashListRef = reportScrollManagerRefValue?.current;
-        if (!flashListRef?.scrollToIndex) {
-            setHasAppliedMeasuredAnchorScroll(true);
-            return;
-        }
-
-        hasCommittedMeasuredAnchorScrollRef.current = true;
-
-        // Why offset shifts by measured height: `initialScrollIndex` + `-listHeight/2` aligns the flipped cell so the opposite vertical edge lands on mid-viewport.
+        // Inverted FlashList initially aligns the target row's bottom edge at mid-viewport.
+        // Shift by the measured row height so the row's top edge lands there instead.
         const viewOffsetAlignedToTopEdge = -listHeight / 2 + layoutHeight;
 
-        requestAnimationFrame(() => {
-            flashListRef
-                .scrollToIndex({
+        function scheduleMeasuredAnchorScroll() {
+            measuredAnchorScrollFrameRef.current = requestAnimationFrame(scrollToMeasuredAnchor);
+        }
+
+        function retryMeasuredAnchorScroll() {
+            measuredAnchorScrollAttemptCountRef.current += 1;
+            if (measuredAnchorScrollAttemptCountRef.current >= MEASURED_ANCHOR_SCROLL_RETRY_LIMIT) {
+                setHasAppliedMeasuredAnchorScroll(true);
+                return;
+            }
+            scheduleMeasuredAnchorScroll();
+        }
+
+        function scrollToMeasuredAnchor() {
+            measuredAnchorScrollFrameRef.current = undefined;
+            if (hasCommittedMeasuredAnchorScrollRef.current) {
+                return;
+            }
+
+            const flashListRef = reportScrollManager.ref?.current as MeasuredAnchorScrollRef | null;
+            if (!flashListRef?.scrollToIndex) {
+                retryMeasuredAnchorScroll();
+                return;
+            }
+
+            hasCommittedMeasuredAnchorScrollRef.current = true;
+
+            let scrollResult: Promise<void> | void;
+            try {
+                scrollResult = flashListRef.scrollToIndex({
                     index: initialScrollIndex,
                     animated: false,
                     viewOffset: viewOffsetAlignedToTopEdge,
+                });
+            } catch {
+                hasCommittedMeasuredAnchorScrollRef.current = false;
+                retryMeasuredAnchorScroll();
+                return;
+            }
+
+            Promise.resolve(scrollResult)
+                .then(() => {
+                    if (!hasCommittedMeasuredAnchorScrollRef.current) {
+                        return;
+                    }
+                    setHasAppliedMeasuredAnchorScroll(true);
                 })
                 .catch(() => {
-                    // Rare failure (e.g. index not yet mapped); dropping the skeleton avoids a stuck overlay.
-                })
-                .finally(() => {
-                    setHasAppliedMeasuredAnchorScroll(true);
+                    hasCommittedMeasuredAnchorScrollRef.current = false;
+                    retryMeasuredAnchorScroll();
                 });
-        });
+        }
+
+        scheduleMeasuredAnchorScroll();
     };
 
     useLayoutEffect(() => {
@@ -168,6 +205,13 @@ function useVerticallyCenteredInitialContent({
         };
 
         if (isUnreadMarkerOnlyChange) {
+            hasCommittedMeasuredAnchorScrollRef.current = false;
+            measuredAnchorScrollAttemptCountRef.current = 0;
+            if (measuredAnchorScrollFrameRef.current !== undefined) {
+                cancelAnimationFrame(measuredAnchorScrollFrameRef.current);
+                measuredAnchorScrollFrameRef.current = undefined;
+            }
+            setHasAppliedMeasuredAnchorScroll(true);
             return;
         }
 
@@ -177,9 +221,24 @@ function useVerticallyCenteredInitialContent({
         mountedInitialViewportIndicesRef.current.clear();
         hasInitialViewportLoadedRef.current = !hasInitialScrollTarget;
         hasCommittedMeasuredAnchorScrollRef.current = false;
-        setHasAppliedMeasuredAnchorScroll(!shouldMeasureLinkedAnchorScrollPosition);
+        measuredAnchorScrollAttemptCountRef.current = 0;
+        if (measuredAnchorScrollFrameRef.current !== undefined) {
+            cancelAnimationFrame(measuredAnchorScrollFrameRef.current);
+            measuredAnchorScrollFrameRef.current = undefined;
+        }
+        setHasAppliedMeasuredAnchorScroll(!shouldMeasureInitialScrollTargetPosition);
         setIsInitialViewportLoading(hasInitialScrollTarget);
-    }, [hasInitialScrollTarget, hasOlderActions, initialScrollKey, linkedReportActionID, listID, report.reportID, shouldMeasureLinkedAnchorScrollPosition]);
+    }, [hasInitialScrollTarget, hasOlderActions, initialScrollKey, linkedReportActionID, listID, report.reportID, shouldMeasureInitialScrollTargetPosition]);
+
+    useEffect(
+        () => () => {
+            if (measuredAnchorScrollFrameRef.current === undefined) {
+                return;
+            }
+            cancelAnimationFrame(measuredAnchorScrollFrameRef.current);
+        },
+        [],
+    );
 
     useEffect(() => {
         let cancelled = false;
@@ -223,10 +282,10 @@ function useVerticallyCenteredInitialContent({
                 clearTimeout(fallbackRevealTimeoutId);
             }
         };
-    }, [hasAppliedMeasuredAnchorScroll, hasOlderActions, isInitialViewportLoading, linkedReportActionID, reportLoadingState?.isLoadingOlderReportActions]);
+    }, [hasAppliedMeasuredAnchorScroll, hasOlderActions, isInitialViewportLoading, linkedReportActionID, listID, report.reportID, reportLoadingState?.isLoadingOlderReportActions]);
 
     useEffect(() => {
-        if (!linkedReportActionID || !hasInitialScrollTarget || hasAppliedMeasuredAnchorScroll) {
+        if (!shouldMeasureInitialScrollTargetPosition || hasAppliedMeasuredAnchorScroll) {
             return undefined;
         }
 
@@ -237,7 +296,7 @@ function useVerticallyCenteredInitialContent({
         return () => {
             clearTimeout(fallbackTimer);
         };
-    }, [hasAppliedMeasuredAnchorScroll, hasInitialScrollTarget, linkedReportActionID]);
+    }, [hasAppliedMeasuredAnchorScroll, listID, report.reportID, shouldMeasureInitialScrollTargetPosition]);
 
     const handleReportActionsListLayout = (event: LayoutChangeEvent) => {
         const nextListHeight = event.nativeEvent.layout.height;

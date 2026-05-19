@@ -78,9 +78,19 @@ const createProps = (overrides: Partial<HookProps> = {}): HookProps => ({
     ...overrides,
 });
 
+const mockRequestAnimationFrame = () =>
+    jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
+        callback(0);
+        return 0;
+    });
+
 describe('useVerticallyCenteredInitialContent', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
     });
 
     it('shows the initial viewport skeleton on initial render when there is an initial scroll target', () => {
@@ -91,7 +101,9 @@ describe('useVerticallyCenteredInitialContent', () => {
         expect(result.current.shouldShowInitialViewportSkeleton).toBe(true);
     });
 
-    it('hides the initial viewport skeleton after the initial unread-anchor viewport is mounted', () => {
+    it('hides the initial viewport skeleton after the initial unread-anchor viewport is mounted and measured', async () => {
+        mockRequestAnimationFrame();
+
         const {result} = renderHook((props: HookProps) => useVerticallyCenteredInitialContent(props), {
             initialProps: createProps({initialScrollKey: '2'}),
         });
@@ -111,10 +123,17 @@ describe('useVerticallyCenteredInitialContent', () => {
             }
         });
 
+        await act(async () => {
+            result.current.handleInitialScrollTargetLayout(120);
+            await Promise.resolve();
+        });
+
         expect(result.current.shouldShowInitialViewportSkeleton).toBe(false);
     });
 
-    it('does not show the initial viewport skeleton when an unread marker appears after the list mounted', () => {
+    it('scrolls to a measured unread anchor without showing the initial viewport skeleton when an unread marker appears after the list mounted', async () => {
+        mockRequestAnimationFrame();
+
         const {result, rerender} = renderHook((props: HookProps) => useVerticallyCenteredInitialContent(props), {
             initialProps: createProps(),
         });
@@ -127,6 +146,18 @@ describe('useVerticallyCenteredInitialContent', () => {
 
         rerender(createProps({initialScrollKey: '2'}));
 
+        expect(result.current.shouldShowInitialViewportSkeleton).toBe(false);
+
+        await act(async () => {
+            result.current.handleInitialScrollTargetLayout(120);
+            await Promise.resolve();
+        });
+
+        expect(mockScrollToIndex).toHaveBeenCalledWith({
+            index: 1,
+            animated: false,
+            viewOffset: -180,
+        });
         expect(result.current.shouldShowInitialViewportSkeleton).toBe(false);
     });
 });
