@@ -4,7 +4,7 @@ import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createS
 import TAB_SCREENS from '@libs/Navigation/AppNavigator/Navigators/TAB_SCREENS';
 import {RHP_TO_DOMAIN, RHP_TO_HOME, RHP_TO_SEARCH, RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE, RHP_TO_WORKSPACES_LIST} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute, RootNavigatorParamList} from '@libs/Navigation/types';
-import {getReportOrDraftReport, isDraftReport} from '@libs/ReportUtils';
+import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {getSearchParamFromPath} from '@libs/Url';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -278,8 +278,8 @@ function getDefaultFullScreenRoute(route?: NavigationPartialRoute) {
     if (route && isRouteWithReportID(route)) {
         const reportID = route.params.reportID;
 
-        // Only allReports should be checked here — draft reports must not influence this guard
-        if (!getReportOrDraftReport(reportID, undefined, undefined, undefined) || isDraftReport(reportID)) {
+        // Only allReports should be checked here — pass {} to skip the draft lookup
+        if (!getReportOrDraftReport(reportID, undefined, undefined, {})) {
             return getTabNavigatorState({name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR});
         }
 

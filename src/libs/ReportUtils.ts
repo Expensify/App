@@ -84,6 +84,7 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {Comment, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {getBankAccountFromID} from './actions/BankAccounts';
 import {getUserAccountID, setMoneyRequestReportID} from './actions/IOU';
@@ -1284,12 +1285,13 @@ function getReportOrDraftReport(
     searchReports?: Array<OnyxEntry<Report>>,
     fallbackReport?: Report,
     // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66414
-    reportDraft?: OnyxEntry<Report>,
+    reportDraft?: OnyxEntry<Report> | EmptyObject,
     report?: OnyxEntry<Report>,
 ): OnyxEntry<Report> {
     const searchReport = searchReports?.find((searchItem) => searchItem?.reportID === reportID);
     const onyxReport = report ?? deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    return searchReport ?? onyxReport ?? reportDraft ?? deprecatedAllReportsDraft?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`] ?? fallbackReport;
+    const resolvedDraft = isEmptyObject(reportDraft) ? undefined : ((reportDraft as OnyxEntry<Report>) ?? deprecatedAllReportsDraft?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`]);
+    return searchReport ?? onyxReport ?? resolvedDraft ?? fallbackReport;
 }
 
 /**
