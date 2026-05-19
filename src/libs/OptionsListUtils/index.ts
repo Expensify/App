@@ -118,7 +118,6 @@ import type {OptionData} from '@libs/ReportUtils';
 import {
     canUserPerformWriteAction,
     formatReportLastMessageText,
-    getChatByParticipants,
     getChatRoomSubtitle,
     getDeletedParentActionMessageForChatReport,
     getDeletedTransactionMessage,
