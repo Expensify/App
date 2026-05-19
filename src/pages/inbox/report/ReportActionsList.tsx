@@ -70,6 +70,7 @@ import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import ReportActionsListHeader from './ReportActionsListHeader';
+import ReportActionsListInitialViewportCell from './ReportActionsListInitialViewportCell';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 import {getUnreadMarkerReportAction} from './shouldDisplayNewMarkerOnReportAction';
 import ShowPreviousMessagesButton from './ShowPreviousMessagesButton';
@@ -161,20 +162,6 @@ function keyExtractor(item: OnyxTypes.ReportAction): string {
         return CONST.REPORT.ACTIONS.TYPE.CREATED;
     }
     return item.reportActionID;
-}
-
-type InitialViewportItemMountObserverProps = {
-    children: React.ReactNode;
-    index: number;
-    onMount?: (index: number) => void;
-};
-
-function InitialViewportItemMountObserver({children, index, onMount}: InitialViewportItemMountObserverProps) {
-    useEffect(() => {
-        onMount?.(index);
-    }, [index, onMount]);
-
-    return children;
 }
 
 function ReportActionsList({
@@ -828,39 +815,21 @@ function ReportActionsList({
                 </>
             );
 
-            let cellInner: React.ReactNode = reportActionListItem;
-
-            const shouldObserveInitialViewportMount =
-                target === 'Cell' && !!initialViewportRange && isInitialViewportLoading && index >= initialViewportRange.first && index <= initialViewportRange.last;
-
-            if (shouldObserveInitialViewportMount) {
-                cellInner = (
-                    <InitialViewportItemMountObserver
-                        index={index}
-                        onMount={handleInitialViewportItemMounted}
-                    >
-                        {reportActionListItem}
-                    </InitialViewportItemMountObserver>
-                );
-            }
-
-            const isMeasuredInitialScrollTargetRow =
-                target === 'Cell' && !!initialScrollKeyForInitialScroll && keyExtractor(reportAction) === initialScrollKeyForInitialScroll && hasInitialScrollTarget;
-
-            if (isMeasuredInitialScrollTargetRow) {
-                return (
-                    <View
-                        collapsable={false}
-                        onLayout={(event) => {
-                            handleInitialScrollTargetLayout(event.nativeEvent.layout.height);
-                        }}
-                    >
-                        {cellInner}
-                    </View>
-                );
-            }
-
-            return cellInner;
+            return (
+                <ReportActionsListInitialViewportCell
+                    flashListIndex={index}
+                    flashListTarget={target}
+                    initialViewportRange={initialViewportRange}
+                    isInitialViewportLoading={isInitialViewportLoading}
+                    initialScrollKeyForInitialScroll={initialScrollKeyForInitialScroll}
+                    reportActionKey={keyExtractor(reportAction)}
+                    hasInitialScrollTarget={hasInitialScrollTarget}
+                    onInitialViewportItemMounted={handleInitialViewportItemMounted}
+                    onInitialScrollTargetLayout={handleInitialScrollTargetLayout}
+                >
+                    {reportActionListItem}
+                </ReportActionsListInitialViewportCell>
+            );
         },
         [
             actionIndexMap,
