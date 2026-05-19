@@ -57,6 +57,7 @@ export default function TableRow({
     const {processedData, columns, shouldUseNarrowTableLayout} = useTableContext();
 
     const rowCount = processedData.length;
+    const isFirstRow = rowIndex === 0;
     const isLastRow = rowIndex === rowCount - 1;
     const isInteractive = interactive && !isLoading;
     const gridTemplateColumns = columns.map((column) => (column.width ? `${column.width}px` : '1fr')).join(' ');
@@ -70,7 +71,8 @@ export default function TableRow({
         shouldUseNarrowTableLayout ? styles.ph4 : styles.ph3,
         shouldUseNarrowTableLayout && !isLoading && styles.pv4,
         !shouldUseNarrowTableLayout && !isLoading && styles.pv2,
-        isLastRow ? styles.tableBottomRadius : styles.borderBottom,
+        !isFirstRow && styles.borderTop,
+        isLastRow && styles.tableBottomRadius,
         shouldUseNarrowTableLayout ? styles.tableRowHeightCompact : styles.tableRowHeight,
     ];
 
