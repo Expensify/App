@@ -118,8 +118,6 @@ export default function useReportUnreadMessageScrollTracking({
         const viewableIndexes = viewableItems.map((viewableItem) => viewableItem.index).filter((value) => typeof value === 'number');
 
         if (viewableIndexes.length === 0) {
-            // Reset action badge visibility when there are no viewable items (e.g., after switching reports)
-            setIsActionBadgeAboveViewport(false);
             return;
         }
 

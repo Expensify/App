@@ -348,7 +348,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
             expect(result.current.isActionBadgeAboveViewport).toBe(false);
         });
 
-        it('resets isActionBadgeAboveViewport when viewable items are empty', () => {
+        it('preserves isActionBadgeAboveViewport when viewable items are briefly empty (FlashList scroll animation)', () => {
             const offsetRef = {current: 0};
             const {result} = renderHook(() =>
                 useReportUnreadMessageScrollTracking({
@@ -373,11 +373,11 @@ describe('useReportUnreadMessageScrollTracking', () => {
             });
             expect(result.current.isActionBadgeAboveViewport).toBe(true);
 
-            // Then, when viewable items are empty, it should reset
+            // When viewable items are briefly empty (FlashList internal behavior during scroll), state should be preserved
             act(() => {
                 result.current.onViewableItemsChanged({viewableItems: [], changed: []});
             });
-            expect(result.current.isActionBadgeAboveViewport).toBe(false);
+            expect(result.current.isActionBadgeAboveViewport).toBe(true);
         });
 
         it('recalculates action badge visibility when actionBadgeTargetIndex changes', () => {
