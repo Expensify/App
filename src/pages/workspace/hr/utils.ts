@@ -36,7 +36,7 @@ type HRCardDescriptor = {
     successfulDate?: string;
     hasError: boolean;
     mergeSlug?: MergeHRProviderSlug;
-    setupLink?: string;
+    setupLink: string;
     approvalModeRoute?: Route;
     finalApproverRoute?: Route;
     config?: HRCardConfig;

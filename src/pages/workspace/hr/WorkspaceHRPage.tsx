@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import ConnectToHRFlow from '@components/ConnectToHRFlow';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -28,7 +28,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import HRProviderCard from './HRProviderCard';
-import type {HRCardDescriptor} from './utils';
 import {getHRCards} from './utils';
 
 type WorkspaceHRPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.HR>;
@@ -50,8 +49,7 @@ function WorkspaceHRPage({
 
     const [isOtherExpanded, setIsOtherExpanded] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const [pendingConnection, setPendingConnection] = useState<{card: HRCardDescriptor; key: number} | null>(null);
-    const connectFlowKeyRef = useRef(0);
+    const [activeHRFlow, setActiveHRFlow] = useState<{setupLink: string; key: number}>();
 
     useWorkspaceDocumentTitle(undefined, 'workspace.common.hr');
 
@@ -81,14 +79,6 @@ function WorkspaceHRPage({
 
     const shouldBeBlocked = !isBetaEnabled(CONST.BETAS.GUSTO) && !isBetaEnabled(CONST.BETAS.ZENEFITS) && !isBetaEnabled(CONST.BETAS.MERGE_HR);
 
-    const handleConnect = (card: HRCardDescriptor) => {
-        if (!card.setupLink) {
-            return;
-        }
-        connectFlowKeyRef.current += 1;
-        setPendingConnection({card, key: connectFlowKeyRef.current});
-    };
-
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
@@ -103,10 +93,10 @@ function WorkspaceHRPage({
                 shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
             >
-                {!!pendingConnection?.card.setupLink && (
+                {!!activeHRFlow && (
                     <ConnectToHRFlow
-                        key={pendingConnection.key}
-                        setupLink={pendingConnection.card.setupLink}
+                        key={activeHRFlow.key}
+                        setupLink={activeHRFlow.setupLink}
                     />
                 )}
                 <HeaderWithBackButton
@@ -129,7 +119,7 @@ function WorkspaceHRPage({
                                     card={card}
                                     policy={policy}
                                     isFirst={index === 0}
-                                    onConnect={() => handleConnect(card)}
+                                    onConnect={() => setActiveHRFlow({setupLink: card.setupLink, key: Math.random()})}
                                 />
                             ))}
 
@@ -140,7 +130,7 @@ function WorkspaceHRPage({
                                         card={card}
                                         policy={policy}
                                         isFirst={index === 0}
-                                        onConnect={() => handleConnect(card)}
+                                        onConnect={() => setActiveHRFlow({setupLink: card.setupLink, key: Math.random()})}
                                     />
                                 ))}
 
@@ -170,7 +160,7 @@ function WorkspaceHRPage({
                                                     key={card.key}
                                                     card={card}
                                                     policy={policy}
-                                                    onConnect={() => handleConnect(card)}
+                                                    onConnect={() => setActiveHRFlow({setupLink: card.setupLink, key: Math.random()})}
                                                 />
                                             ))}
                                         </>
