@@ -52,6 +52,4 @@ function FollowupListSkeleton() {
     );
 }
 
-FollowupListSkeleton.displayName = 'FollowupListSkeleton';
-
 export default FollowupListSkeleton;
