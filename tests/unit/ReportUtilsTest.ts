@@ -17563,13 +17563,13 @@ describe('shouldShowMarkAsDone', () => {
             policyID,
             type: CONST.REPORT.TYPE.EXPENSE,
         } as Report;
-        const policy = {
+        const testPolicy = {
             id: policyID,
             approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
             type: CONST.POLICY.TYPE.TEAM,
         } as Policy;
 
-        expect(shouldShowMarkAsDone({isTrackIntentUser: false, report, policy})).toBe(false);
+        expect(shouldShowMarkAsDone({isTrackIntentUser: false, report, policy: testPolicy})).toBe(false);
     });
 
     it('should return false when policy is not submit-and-close', () => {
@@ -17580,13 +17580,13 @@ describe('shouldShowMarkAsDone', () => {
             policyID,
             type: CONST.REPORT.TYPE.EXPENSE,
         } as Report;
-        const policy = {
+        const testPolicy = {
             id: policyID,
             approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
             type: CONST.POLICY.TYPE.TEAM,
         } as Policy;
 
-        expect(shouldShowMarkAsDone({isTrackIntentUser: true, report, policy})).toBe(false);
+        expect(shouldShowMarkAsDone({isTrackIntentUser: true, report, policy: testPolicy})).toBe(false);
     });
 
     it('should return false when user does not own the report', () => {
@@ -17597,13 +17597,13 @@ describe('shouldShowMarkAsDone', () => {
             policyID,
             type: CONST.REPORT.TYPE.EXPENSE,
         } as Report;
-        const policy = {
+        const testPolicy = {
             id: policyID,
             approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
             type: CONST.POLICY.TYPE.TEAM,
         } as Policy;
 
-        expect(shouldShowMarkAsDone({isTrackIntentUser: true, report, policy})).toBe(false);
+        expect(shouldShowMarkAsDone({isTrackIntentUser: true, report, policy: testPolicy})).toBe(false);
     });
 
     it('should return false when next approver is different from owner', () => {
@@ -17614,13 +17614,13 @@ describe('shouldShowMarkAsDone', () => {
             policyID,
             type: CONST.REPORT.TYPE.EXPENSE,
         } as Report;
-        const policy = {
+        const testPolicy = {
             id: policyID,
             approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
             type: CONST.POLICY.TYPE.TEAM,
         } as Policy;
 
-        expect(shouldShowMarkAsDone({isTrackIntentUser: true, report, policy})).toBe(false);
+        expect(shouldShowMarkAsDone({isTrackIntentUser: true, report, policy: testPolicy})).toBe(false);
     });
 
     it('should return false when isTrackIntentUser is undefined', () => {
@@ -17631,23 +17631,23 @@ describe('shouldShowMarkAsDone', () => {
             policyID,
             type: CONST.REPORT.TYPE.EXPENSE,
         } as Report;
-        const policy = {
+        const testPolicy = {
             id: policyID,
             approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
             type: CONST.POLICY.TYPE.TEAM,
         } as Policy;
 
-        expect(shouldShowMarkAsDone({isTrackIntentUser: undefined, report, policy})).toBe(false);
+        expect(shouldShowMarkAsDone({isTrackIntentUser: undefined, report, policy: testPolicy})).toBe(false);
     });
 
     it('should return false when report is undefined', () => {
-        const policy = {
+        const testPolicy = {
             id: policyID,
             approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
             type: CONST.POLICY.TYPE.TEAM,
         } as Policy;
 
-        expect(shouldShowMarkAsDone({isTrackIntentUser: true, report: undefined, policy})).toBe(false);
+        expect(shouldShowMarkAsDone({isTrackIntentUser: true, report: undefined, policy: testPolicy})).toBe(false);
     });
 
     it('should return false when policy is undefined', () => {
