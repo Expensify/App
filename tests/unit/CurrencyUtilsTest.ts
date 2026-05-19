@@ -189,4 +189,55 @@ describe('CurrencyUtils', () => {
             IntlStore.load(CONST.LOCALES.ES).then(() => expect(CurrencyUtils.convertToShortDisplayString(amount, currency)).toBe(expectedResult)),
         );
     });
+
+    describe('isValidCurrencyCode', () => {
+        test.each([
+            ['USD', true],
+            ['EUR', true],
+            ['JPY', true],
+            ['', false],
+            ['eur', false],
+            [' USD', false],
+            ['US', false],
+            ['USDX', false],
+            ['US1', false],
+            [undefined, false],
+            [null, false],
+        ])('isValidCurrencyCode(%p) → %p', (input, expected) => {
+            expect(CurrencyUtils.isValidCurrencyCode(input)).toBe(expected);
+        });
+    });
+
+    describe('sanitizeCurrencyCode', () => {
+        test('returns the input unchanged for a valid ISO 4217 code', () => {
+            expect(CurrencyUtils.sanitizeCurrencyCode('EUR')).toBe('EUR');
+        });
+
+        test('normalizes whitespace and case before validating', () => {
+            expect(CurrencyUtils.sanitizeCurrencyCode(' usd ')).toBe('USD');
+            expect(CurrencyUtils.sanitizeCurrencyCode('eur')).toBe('EUR');
+        });
+
+        test.each(['', 'XX', 'USDX', 'US1', '???'])('falls back to USD for malformed input %p', (input) => {
+            expect(CurrencyUtils.sanitizeCurrencyCode(input)).toBe(CONST.CURRENCY.USD);
+        });
+    });
+
+    describe('convertToDisplayString with malformed currency', () => {
+        test.each(['', 'XX', 'USDX', '???'])('does not throw and falls back to USD formatting for %p', (input) => {
+            expect(() => CurrencyUtils.convertToDisplayString(2500, input)).not.toThrow();
+            expect(CurrencyUtils.convertToDisplayString(2500, input)).toBe('$25.00');
+        });
+
+        test('normalizes case-only variations to the intended currency instead of USD', () => {
+            expect(CurrencyUtils.convertToDisplayString(2500, 'eur')).toBe(CurrencyUtils.convertToDisplayString(2500, 'EUR'));
+        });
+    });
+
+    describe('getLocalizedCurrencySymbol with malformed currency', () => {
+        test.each(['', 'XX', 'USDX'])('returns the USD symbol without throwing for %p', (input) => {
+            expect(() => CurrencyUtils.getLocalizedCurrencySymbol(CONST.LOCALES.EN, input)).not.toThrow();
+            expect(CurrencyUtils.getLocalizedCurrencySymbol(CONST.LOCALES.EN, input)).toBe(CurrencyUtils.getLocalizedCurrencySymbol(CONST.LOCALES.EN, CONST.CURRENCY.USD));
+        });
+    });
 });

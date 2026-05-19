@@ -13,7 +13,9 @@ function format(locale: Locale | undefined, number: number, options?: Intl.Numbe
     try {
         return new MemoizedNumberFormat(locale ?? CONST.LOCALES.DEFAULT, options).format(number);
     } catch (e) {
-        if (e instanceof RangeError && options?.currency) {
+        // Intl throws RangeError for empty/malformed currency values; check presence of the option (not truthiness)
+        // so we still recover when currency is '' rather than rethrowing and crashing the screen.
+        if (e instanceof RangeError && options && 'currency' in options) {
             Log.warn('NumberFormatUtils: malformed currency code, falling back to USD', {currency: options.currency});
             return new MemoizedNumberFormat(locale ?? CONST.LOCALES.DEFAULT, {...options, currency: CONST.CURRENCY.USD}).format(number);
         }
@@ -25,7 +27,7 @@ function formatToParts(locale: Locale | undefined, number: number, options?: Int
     try {
         return new MemoizedNumberFormat(locale ?? CONST.LOCALES.DEFAULT, options).formatToParts(number);
     } catch (e) {
-        if (e instanceof RangeError && options?.currency) {
+        if (e instanceof RangeError && options && 'currency' in options) {
             Log.warn('NumberFormatUtils: malformed currency code, falling back to USD', {currency: options.currency});
             return new MemoizedNumberFormat(locale ?? CONST.LOCALES.DEFAULT, {...options, currency: CONST.CURRENCY.USD}).formatToParts(number);
         }

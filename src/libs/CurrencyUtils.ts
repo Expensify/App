@@ -24,20 +24,31 @@ Onyx.connect({
  * Returns true when the provided value is a syntactically valid ISO 4217 currency code
  * (exactly 3 uppercase ASCII letters).
  */
-function isValidCurrencyCode(currencyCode: string | undefined | null): currencyCode is string {
+function isValidCurrencyCode(currencyCode: unknown): currencyCode is string {
     return typeof currencyCode === 'string' && /^[A-Z]{3}$/.test(currencyCode);
 }
 
+// Tracks invalid currency codes already warned about so the same bad value doesn't spam the log on every render.
+const warnedInvalidCurrencyCodes = new Set<string>();
+
 /**
  * Validates a currency code and returns it unchanged if it is a valid ISO 4217 code.
- * Returns CONST.CURRENCY.USD and logs a warning when the code is malformed or missing, to prevent Intl.NumberFormat
+ * Whitespace and case-only variations (e.g. " usd ") are normalized rather than discarded.
+ * Returns CONST.CURRENCY.USD and logs a warning at most once per unique malformed value, to prevent Intl.NumberFormat
  * from throwing a RangeError. See https://github.com/Expensify/App/issues/91113
  */
-function sanitizeCurrencyCode(currencyCode: string): string {
+function sanitizeCurrencyCode(currencyCode: unknown): string {
     if (isValidCurrencyCode(currencyCode)) {
         return currencyCode;
     }
-    Log.warn('CurrencyUtils: invalid currency code, defaulting to USD', {currencyCode});
+    const normalized = typeof currencyCode === 'string' ? currencyCode.trim().toUpperCase() : '';
+    if (isValidCurrencyCode(normalized)) {
+        return normalized;
+    }
+    if (!warnedInvalidCurrencyCodes.has(normalized)) {
+        warnedInvalidCurrencyCodes.add(normalized);
+        Log.warn('CurrencyUtils: invalid currency code, defaulting to USD', {currencyCode});
+    }
     return CONST.CURRENCY.USD;
 }
 
