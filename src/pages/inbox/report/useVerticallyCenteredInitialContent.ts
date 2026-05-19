@@ -1,7 +1,7 @@
 import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import useReportScrollManager from '@hooks/useReportScrollManager';
-import usewindowdimensions from '@hooks/useWindowDimensions';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {FlashListRefType} from '@pages/inbox/ReportScreenContext';
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -52,7 +52,7 @@ function useVerticallyCenteredInitialContent({
     onLoad,
 }: UseVerticallyCenteredInitialContentProps) {
     const reportScrollManager = useReportScrollManager();
-    const {windowHeight} = usewindowdimensions();
+    const {windowHeight} = useWindowDimensions();
 
     const initialScrollIndex = !initialScrollKey ? -1 : sortedVisibleReportActions.findIndex((item) => keyExtractor(item) === initialScrollKey);
     const hasInitialScrollTarget = initialScrollIndex >= 0;
