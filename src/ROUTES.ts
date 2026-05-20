@@ -380,11 +380,11 @@ const DYNAMIC_ROUTES = {
         entryScreens: [SCREENS.SETTINGS.PROFILE.ROOT, SCREENS.I_AM_A_TEACHER],
     },
     NEW_CONTACT_METHOD: {
-        path: 'new',
+        path: 'new-contact-method',
         entryScreens: [SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHODS],
     },
     NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE: {
-        path: 'new/confirm-magic-code',
+        path: 'new-contact-method/confirm-magic-code',
         entryScreens: [SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHODS],
     },
     CONTACT_METHOD_DETAILS: {
