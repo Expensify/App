@@ -34,7 +34,7 @@ Shortcuts include:
 - **Needs approval** – Reports awaiting your review
 - **Ready to pay** – Reports ready for reimbursement
 
-Workspace Admins will see additional search shortcuts for reconciliation in the Accounting section. [Learn how to reconcile expenses with Accounting](/articles/new-expensify/reports-and-expenses/Accounting-Search-Shortcuts). 
+Workspace Admins and Auditors will see additional search shortcuts for reconciliation in the Accounting section. [Learn how to reconcile expenses with Accounting](/articles/new-expensify/reports-and-expenses/Accounting-Search-Shortcuts). 
 
 ---
 
