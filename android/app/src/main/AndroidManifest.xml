@@ -31,7 +31,8 @@
             android:exported="false" />
 
         <service
-            android:name=".customairshipextender.GpsTripService"
+            android:name=".GpsTripService"
+            android:foregroundServiceType="location"
             android:stopWithTask="false"
             android:exported="false" />
 
