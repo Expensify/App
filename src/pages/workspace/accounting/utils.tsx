@@ -326,7 +326,8 @@ function getAccountingIntegrationData(
                     backToAfterWorkspaceUpgradeRoute: getBackToAfterWorkspaceUpgradeRouteForQBD(),
                 },
             };
-        case CONST.POLICY.CONNECTIONS.NAME.CERTINIA:
+        case CONST.POLICY.CONNECTIONS.NAME.CERTINIA: {
+            const certiniaConfig = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]?.config;
             return {
                 title: translate('workspace.certinia.title'),
                 icon: expensifyIcons?.CertiniaSquare,
@@ -336,11 +337,27 @@ function getAccountingIntegrationData(
                         key={key}
                     />
                 ),
+                onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_IMPORT.getRoute(policyID)),
+                subscribedImportSettings: [
+                    CONST.CERTINIA_CONFIG.CODING_DIMENSION1,
+                    CONST.CERTINIA_CONFIG.CODING_DIMENSION2,
+                    CONST.CERTINIA_CONFIG.CODING_DIMENSION3,
+                    CONST.CERTINIA_CONFIG.CODING_DIMENSION4,
+                    CONST.CERTINIA_CONFIG.SYNC_TAX,
+                ],
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_EXPORT.getRoute(policyID)),
+                subscribedExportSettings: [],
+                onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_ADVANCED.getRoute(policyID)),
+                subscribedAdvancedSettings: [],
+                onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.ROUTE.CERTINIA)),
+                pendingFields: certiniaConfig?.pendingFields,
+                errorFields: certiniaConfig?.errorFields,
                 workspaceUpgradeNavigationDetails: {
                     integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING[CONST.POLICY.CONNECTIONS.NAME.CERTINIA].alias,
                     backToAfterWorkspaceUpgradeRoute: getBackToAfterWorkspaceUpgradeRouteForCertinia(),
                 },
             } as AccountingIntegration;
+        }
         default:
             return undefined;
     }
