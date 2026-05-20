@@ -503,6 +503,9 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Default vendor of non reimbursable bill */
     nonReimbursableBillDefaultVendor: string;
 
+    /** Default vendor used as a fallback when a non-reimbursable Credit/Debit card expense has no vendor set on the expense itself. */
+    nonReimbursableCreditCardDefaultVendor?: string;
+
     /** ID of the invoice collection account */
     collectionAccountID?: string;
 
@@ -2236,6 +2239,14 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the Tags feature is enabled */
         areTagsEnabled?: boolean;
+
+        /**
+         * Whether the Vendors feature is shown for this workspace. Derived at read time from the QBO
+         * connection config (Credit/Debit card non-reimbursable export) — see PolicyUtils.hasVendorFeature.
+         * Persisted here as the standard MORE_FEATURES key so optimistic-update plumbing and the
+         * pendingFields/errorFields type machinery treat it like any other feature toggle.
+         */
+        areVendorsEnabled?: boolean;
 
         /** Whether the Accounting feature is enabled */
         areAccountingEnabled?: boolean;
