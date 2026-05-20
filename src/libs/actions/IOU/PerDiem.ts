@@ -1015,7 +1015,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         notifyNewAction(activeReportID, undefined, participantParams.payeeAccountID === currentUserAccountIDParam);
     }
 
-    return {iouReport, transactionThreadReportID};
+    return {iouReport, transactionID: transaction.transactionID ?? transactionThreadReportID};
 }
 
 /**
