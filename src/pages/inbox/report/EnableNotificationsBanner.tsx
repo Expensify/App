@@ -20,9 +20,6 @@ const BANNER_VISIBLE_BOTTOM_GAP_PX = 12;
 // Rounded top corners only, flat bottom. paddingBottom = visible gap below text + the
 // overlap that hides behind the composer.
 const containerOverrideStyle = {
-    paddingTop: 12,
-    paddingRight: 12,
-    paddingLeft: 16,
     paddingBottom: BANNER_VISIBLE_BOTTOM_GAP_PX + BANNER_COMPOSER_OVERLAP_PX,
     borderRadius: 0,
     borderTopLeftRadius: variables.componentBorderRadiusLarge,
@@ -50,7 +47,7 @@ function EnableNotificationsBanner() {
             <Banner
                 text={translate('concierge.enableNotifications.prompt')}
                 textStyles={[styles.textNormal]}
-                containerStyles={[containerOverrideStyle]}
+                containerStyles={[styles.pt3, styles.pr3, styles.pl4, containerOverrideStyle]}
                 shouldShowButton
                 shouldUseSmallButtons
                 buttonText={translate('concierge.enableNotifications.cta')}
