@@ -2,6 +2,7 @@ import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import * as CurrencyUtils from '@src/libs/CurrencyUtils';
+import Log from '@src/libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 // This file can get outdated. In that case, you can follow these steps to update it:
@@ -203,6 +204,10 @@ describe('CurrencyUtils', () => {
             ['US1', false],
             [undefined, false],
             [null, false],
+            [42, false],
+            [{}, false],
+            [[], false],
+            [true, false],
         ])('isValidCurrencyCode(%p) → %p', (input, expected) => {
             expect(CurrencyUtils.isValidCurrencyCode(input)).toBe(expected);
         });
@@ -213,13 +218,49 @@ describe('CurrencyUtils', () => {
             expect(CurrencyUtils.sanitizeCurrencyCode('EUR')).toBe('EUR');
         });
 
-        test('normalizes whitespace and case before validating', () => {
-            expect(CurrencyUtils.sanitizeCurrencyCode(' usd ')).toBe('USD');
-            expect(CurrencyUtils.sanitizeCurrencyCode('eur')).toBe('EUR');
+        test.each([
+            [' usd ', 'USD'],
+            ['eur', 'EUR'],
+            ['UsD', 'USD'],
+            ['\tEUR', 'EUR'],
+            ['JPY\n', 'JPY'],
+            ['  GBP  ', 'GBP'],
+        ])('normalizes whitespace and case: %p → %p', (input, expected) => {
+            expect(CurrencyUtils.sanitizeCurrencyCode(input)).toBe(expected);
         });
 
-        test.each(['', 'XX', 'USDD', 'US1', '???'])('falls back to USD for malformed input %p', (input) => {
+        test.each(['', 'XX', 'USDD', 'US1', '???', 'us-d', 'U S D'])('falls back to USD for malformed string %p', (input) => {
             expect(CurrencyUtils.sanitizeCurrencyCode(input)).toBe(CONST.CURRENCY.USD);
+        });
+
+        test.each([undefined, null, 42, true, {}, []])('falls back to USD for non-string input %p', (input) => {
+            expect(CurrencyUtils.sanitizeCurrencyCode(input)).toBe(CONST.CURRENCY.USD);
+        });
+
+        test('logs a warning at most once per unique malformed value', () => {
+            const warnSpy = jest.spyOn(Log, 'warn').mockImplementation(() => undefined);
+            try {
+                // Use unique fixtures so other tests don't already mark these as warned.
+                CurrencyUtils.sanitizeCurrencyCode('TEST_THROTTLE_A');
+                CurrencyUtils.sanitizeCurrencyCode('TEST_THROTTLE_A');
+                CurrencyUtils.sanitizeCurrencyCode('TEST_THROTTLE_A');
+                expect(warnSpy).toHaveBeenCalledTimes(1);
+
+                CurrencyUtils.sanitizeCurrencyCode('TEST_THROTTLE_B');
+                expect(warnSpy).toHaveBeenCalledTimes(2);
+            } finally {
+                warnSpy.mockRestore();
+            }
+        });
+
+        test('does not log a warning when normalization recovers a valid code', () => {
+            const warnSpy = jest.spyOn(Log, 'warn').mockImplementation(() => undefined);
+            try {
+                expect(CurrencyUtils.sanitizeCurrencyCode(' eur ')).toBe('EUR');
+                expect(warnSpy).not.toHaveBeenCalled();
+            } finally {
+                warnSpy.mockRestore();
+            }
         });
     });
 
@@ -231,6 +272,41 @@ describe('CurrencyUtils', () => {
 
         test('normalizes case-only variations to the intended currency instead of USD', () => {
             expect(CurrencyUtils.convertToDisplayString(2500, 'eur')).toBe(CurrencyUtils.convertToDisplayString(2500, 'EUR'));
+        });
+
+        test('falls back to USD when shouldUseLocalCurrencySymbol is true and currency is malformed', () => {
+            expect(() => CurrencyUtils.convertToDisplayString(2500, 'invalid', true)).not.toThrow();
+            // USD has a known local symbol in the currencyList, so the local-symbol branch should produce a $-prefixed result.
+            expect(CurrencyUtils.convertToDisplayString(2500, 'invalid', true)).toMatch(/\$/);
+        });
+
+        test('handles undefined currency via the default parameter', () => {
+            expect(CurrencyUtils.convertToDisplayString(2500, undefined)).toBe('$25.00');
+        });
+    });
+
+    describe('convertToShortDisplayString with malformed currency', () => {
+        test.each(['', 'XX', 'USDD', '???'])('does not throw and falls back to USD formatting for %p', (input) => {
+            expect(() => CurrencyUtils.convertToShortDisplayString(2500, input)).not.toThrow();
+            expect(CurrencyUtils.convertToShortDisplayString(2500, input)).toBe('$25');
+        });
+    });
+
+    describe('convertAmountToDisplayString with malformed currency', () => {
+        test.each(['', 'XX', 'USDD', '???'])('does not throw and falls back to USD formatting for %p', (input) => {
+            expect(() => CurrencyUtils.convertAmountToDisplayString(2500, input)).not.toThrow();
+            // The result should at least include a $ symbol from the USD fallback.
+            expect(CurrencyUtils.convertAmountToDisplayString(2500, input)).toMatch(/\$/);
+        });
+    });
+
+    describe('convertToDisplayStringWithoutCurrency with malformed currency', () => {
+        test.each(['', 'XX', 'USDD', '???'])('does not throw and produces a numeric output for %p', (input) => {
+            expect(() => CurrencyUtils.convertToDisplayStringWithoutCurrency(2500, input)).not.toThrow();
+            // Output should not contain a currency symbol but should contain the numeric portion.
+            const result = CurrencyUtils.convertToDisplayStringWithoutCurrency(2500, input);
+            expect(result).not.toMatch(/\$/);
+            expect(result).toContain('25');
         });
     });
 
