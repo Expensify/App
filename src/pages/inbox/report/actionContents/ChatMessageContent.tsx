@@ -35,18 +35,7 @@ type ChatMessageContentProps = {
     isOnSearch: boolean;
 };
 
-function ChatMessageContent({
-    action,
-    policyID,
-    reportID,
-    originalReportID,
-    displayAsGroup,
-    draftMessage,
-    index,
-    isHidden,
-    updateHiddenState,
-    isOnSearch,
-}: ChatMessageContentProps) {
+function ChatMessageContent({action, policyID, reportID, originalReportID, displayAsGroup, draftMessage, index, isHidden, updateHiddenState, isOnSearch}: ChatMessageContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
