@@ -446,7 +446,7 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
             const isMultiApproverWithRemovedInList = isMultipleApprovers && workflow.approvers.some((item) => item.email === removedApproverEmail);
             if (hasOverLimitToRemovedApprover && !isMultiApproverWithRemovedInList) {
                 const approversWithClearedOverLimit = workflow.approvers.map((item) =>
-                    item.overLimitForwardsTo === removedApproverEmail ? {...item, overLimitForwardsTo: '', approvalLimit: null} : item,
+                    item.overLimitForwardsTo === removedApproverEmail ? {...item, overLimitForwardsTo: '', overLimitForwardsToDisplayName: undefined, approvalLimit: null} : item,
                 );
                 return {
                     ...workflow,
@@ -464,7 +464,9 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
                 if (removedApproverIndex === 0) {
                     const remainingApprovers = workflow.approvers
                         .slice(1)
-                        .map((item) => (item.overLimitForwardsTo === removedApproverEmail ? {...item, overLimitForwardsTo: '', approvalLimit: null} : item));
+                        .map((item) =>
+                            item.overLimitForwardsTo === removedApproverEmail ? {...item, overLimitForwardsTo: '', overLimitForwardsToDisplayName: undefined, approvalLimit: null} : item,
+                        );
                     return {
                         ...workflow,
                         approvers: remainingApprovers,
@@ -475,7 +477,7 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
                 // but still clear overLimitForwardsTo if it points to the removed member
                 if (updateApproversHasOwner) {
                     const approversWithClearedOverLimit = updateApprovers.map((item) =>
-                        item.overLimitForwardsTo === removedApproverEmail ? {...item, overLimitForwardsTo: '', approvalLimit: null} : item,
+                        item.overLimitForwardsTo === removedApproverEmail ? {...item, overLimitForwardsTo: '', overLimitForwardsToDisplayName: undefined, approvalLimit: null} : item,
                     );
                     return {
                         ...workflow,
@@ -490,7 +492,7 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
                         updatedItem = {...updatedItem, forwardsTo: ownerEmail};
                     }
                     if (item.overLimitForwardsTo === removedApproverEmail) {
-                        updatedItem = {...updatedItem, overLimitForwardsTo: '', approvalLimit: null};
+                        updatedItem = {...updatedItem, overLimitForwardsTo: '', overLimitForwardsToDisplayName: undefined, approvalLimit: null};
                     }
                     return updatedItem;
                 });
@@ -564,7 +566,7 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
             // but still clear overLimitForwardsTo if it points to the removed member
             if (updateApproversHasOwner) {
                 const approversWithClearedOverLimit = updateApprovers.map((item) =>
-                    item.overLimitForwardsTo === removedApproverEmail ? {...item, overLimitForwardsTo: '', approvalLimit: null} : item,
+                    item.overLimitForwardsTo === removedApproverEmail ? {...item, overLimitForwardsTo: '', overLimitForwardsToDisplayName: undefined, approvalLimit: null} : item,
                 );
                 return {
                     ...workflow,
@@ -579,7 +581,7 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
                     updatedItem = {...updatedItem, forwardsTo: ownerEmail};
                 }
                 if (item.overLimitForwardsTo === removedApproverEmail) {
-                    updatedItem = {...updatedItem, overLimitForwardsTo: '', approvalLimit: null};
+                    updatedItem = {...updatedItem, overLimitForwardsTo: '', overLimitForwardsToDisplayName: undefined, approvalLimit: null};
                 }
                 return updatedItem;
             });
@@ -602,7 +604,7 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
         const hasOverLimitToRemovedApprover = workflow.approvers.some((item) => item.overLimitForwardsTo === removedApproverEmail);
         if (hasOverLimitToRemovedApprover) {
             const approversWithClearedOverLimit = workflow.approvers.map((item) =>
-                item.overLimitForwardsTo === removedApproverEmail ? {...item, overLimitForwardsTo: '', approvalLimit: null} : item,
+                item.overLimitForwardsTo === removedApproverEmail ? {...item, overLimitForwardsTo: '', overLimitForwardsToDisplayName: undefined, approvalLimit: null} : item,
             );
             return {
                 ...workflow,
