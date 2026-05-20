@@ -7,6 +7,8 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {
     canAccessSubmitWorkspaceFeatures,
+    canMemberRead,
+    canMemberWrite,
     canSendInvoiceFromWorkspace,
     getActivePolicies,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
@@ -240,6 +242,72 @@ describe('PolicyUtils', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
+        });
+    });
+
+    describe('canMemberRead and canMemberWrite', () => {
+        const memberLogin = 'member@test.com';
+        const buildPolicy = (role: Policy['role']): Policy =>
+            ({
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                role,
+                employeeList: {
+                    [memberLogin]: {
+                        role,
+                    },
+                },
+            }) as Policy;
+
+        it('allows write access to satisfy read access', () => {
+            expect(canMemberRead(buildPolicy(CONST.POLICY.ROLE.CARD_ADMIN), memberLogin, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD)).toBe(true);
+        });
+
+        it('denies access when the role does not have the feature', () => {
+            expect(canMemberRead(buildPolicy(CONST.POLICY.ROLE.USER), memberLogin, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD)).toBe(false);
+        });
+
+        it('uses the requested member role when login is provided', () => {
+            const policy = {
+                ...buildPolicy(CONST.POLICY.ROLE.ADMIN),
+                employeeList: {
+                    'member@test.com': {
+                        role: CONST.POLICY.ROLE.USER,
+                    },
+                },
+            };
+
+            expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD)).toBe(false);
+        });
+
+        it('allows admins to write every policy feature', () => {
+            const policy = buildPolicy(CONST.POLICY.ROLE.ADMIN);
+
+            for (const feature of Object.values(CONST.POLICY.POLICY_FEATURE)) {
+                expect(canMemberWrite(policy, memberLogin, feature)).toBe(true);
+            }
+        });
+
+        it('does not allow editors to assign elevated roles', () => {
+            const policy = buildPolicy(CONST.POLICY.ROLE.EDITOR);
+
+            expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.OVERVIEW)).toBe(true);
+            expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES)).toBe(false);
+        });
+
+        it('allows auditors to read but not write every policy feature', () => {
+            const policy = buildPolicy(CONST.POLICY.ROLE.AUDITOR);
+
+            for (const feature of Object.values(CONST.POLICY.POLICY_FEATURE)) {
+                expect(canMemberRead(policy, memberLogin, feature)).toBe(true);
+                expect(canMemberWrite(policy, memberLogin, feature)).toBe(false);
+            }
+        });
+
+        it('limits scoped admins to their assigned write features', () => {
+            expect(canMemberWrite(buildPolicy(CONST.POLICY.ROLE.CARD_ADMIN), memberLogin, CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS)).toBe(true);
+            expect(canMemberWrite(buildPolicy(CONST.POLICY.ROLE.CARD_ADMIN), memberLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS)).toBe(false);
+            expect(canMemberWrite(buildPolicy(CONST.POLICY.ROLE.PEOPLE_ADMIN), memberLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS)).toBe(true);
+            expect(canMemberWrite(buildPolicy(CONST.POLICY.ROLE.PAYMENTS_ADMIN), memberLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS)).toBe(true);
         });
     });
 

@@ -230,8 +230,8 @@ describe('WorkflowUtils', () => {
             const approvers = calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail});
 
             expect(approvers).toEqual([
-                buildApprover(1, {forwardsTo: '2@example.com', approvalLimit: 50000, overLimitForwardsTo: '3@example.com'}),
-                buildApprover(2, {approvalLimit: 100000, overLimitForwardsTo: '3@example.com'}),
+                buildApprover(1, {forwardsTo: '2@example.com', approvalLimit: 50000, overLimitForwardsTo: '3@example.com', overLimitForwardsToDisplayName: '3@example.com User'}),
+                buildApprover(2, {approvalLimit: 100000, overLimitForwardsTo: '3@example.com', overLimitForwardsToDisplayName: '3@example.com User'}),
             ]);
         });
 
@@ -1322,7 +1322,6 @@ describe('WorkflowUtils', () => {
                 currency: 'USD',
                 translate: translateLocal,
                 convertToDisplayString,
-                personalDetailsByEmail: {},
             });
 
             expect(result).toBeUndefined();
@@ -1336,7 +1335,6 @@ describe('WorkflowUtils', () => {
                 currency: 'USD',
                 translate: translateLocal,
                 convertToDisplayString,
-                personalDetailsByEmail: {},
             });
 
             expect(result).toBeUndefined();
@@ -1350,7 +1348,6 @@ describe('WorkflowUtils', () => {
                 currency: 'USD',
                 translate: translateLocal,
                 convertToDisplayString,
-                personalDetailsByEmail: {},
             });
 
             expect(result).toBeUndefined();
@@ -1364,7 +1361,6 @@ describe('WorkflowUtils', () => {
                 currency: 'USD',
                 translate: translateLocal,
                 convertToDisplayString,
-                personalDetailsByEmail: {},
             });
 
             expect(result).toBeUndefined();
@@ -1378,24 +1374,23 @@ describe('WorkflowUtils', () => {
                 currency: 'USD',
                 translate: translateLocal,
                 convertToDisplayString,
-                personalDetailsByEmail: {},
             });
 
             expect(result).toBe('Reports above $500.00 forward to 2@example.com');
         });
 
-        it('Should use display name from personalDetails when available', () => {
-            const approver = buildApprover(1, {approvalLimit: 100000, overLimitForwardsTo: '2@example.com'});
-            const personalDetailsWithEmail: PersonalDetailsList = {
-                '2@example.com': {accountID: 2, displayName: 'John Doe'},
-            };
+        it('Should use overLimitForwardsToDisplayName baked into the approver when available', () => {
+            const approver = buildApprover(1, {
+                approvalLimit: 100000,
+                overLimitForwardsTo: '2@example.com',
+                overLimitForwardsToDisplayName: 'John Doe',
+            });
 
             const result = getApprovalLimitDescription({
                 approver,
                 currency: 'USD',
                 translate: translateLocal,
                 convertToDisplayString,
-                personalDetailsByEmail: personalDetailsWithEmail,
             });
 
             expect(result).toBe('Reports above $1,000.00 forward to John Doe');

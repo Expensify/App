@@ -1020,8 +1020,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         freeTrialSection: {
             title: ({days}: {days: number}) => `Essai gratuit : plus que ${days} ${days === 1 ? 'jour' : 'jours'} !`,
-            offer50Body: 'Profitez de 50 % de réduction sur votre première année !',
-            offer25Body: 'Obtenez 25 % de réduction sur votre première année !',
+            offer50Body: 'Profitez de 50 % de réduction sur votre première année',
+            offer25Body: 'Obtenez 25 % de réduction sur votre première année',
             addCardBody: 'N’attendez pas ! Ajoutez votre carte de paiement maintenant.',
             ctaClaim: 'Demande',
             ctaAdd: 'Ajouter une carte',
@@ -2481,6 +2481,7 @@ const translations: TranslationDeepObject<typeof en> = {
             expiration: 'Expiration',
             cvv: 'Cryptogramme visuel (CVV)',
             address: 'Adresse',
+            reveal: 'Afficher',
             revealDetails: 'Afficher les détails',
             revealCvv: 'Afficher le cryptogramme',
             copyCardNumber: 'Copier le numéro de carte',
@@ -4330,6 +4331,12 @@ ${amount} pour ${merchant} - ${date}`,
                         return 'Administrateur';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditeur';
+                    case CONST.POLICY.ROLE.CARD_ADMIN:
+                        return 'Administrateur de carte';
+                    case CONST.POLICY.ROLE.PEOPLE_ADMIN:
+                        return 'Administration des personnes';
+                    case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
+                        return 'Administrateur des paiements';
                     case CONST.POLICY.ROLE.USER:
                         return 'Membre';
                     default:
@@ -4360,11 +4367,14 @@ ${amount} pour ${merchant} - ${date}`,
             budgetTypeForNotificationMessage: {tag: 'tag', category: 'catégorie'},
             policyExpenseChatName: (displayName: string) => `Dépenses de ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>Les transactions de la Carte Expensify seront automatiquement exportées vers un « compte de passif Carte Expensify » créé avec <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">notre intégration</a>.</muted-text-label>`,
-            travelInvoicing: 'Exporter Expensify Travel à payer vers',
+            travelInvoicing: 'Exporter les frais de facturation de voyages en tant que',
             travelInvoicingVendor: 'Fournisseur de voyages',
             travelInvoicingPayableAccount: 'Compte fournisseur déplacements',
             hr: 'RH',
             rooms: 'Salons',
+            cardAdminAlternateText: 'Gérer les cartes de l’espace de travail.',
+            peopleAdminAlternateText: 'Gérez les membres et les workflows d’approbation.',
+            paymentsAdminAlternateText: 'Gérer les paiements de workflow.',
         },
         createdForClient: {
             title: 'Vous avez créé un espace de travail pour votre client !',
@@ -4692,6 +4702,7 @@ ${amount} pour ${merchant} - ${date}`,
             exportDeepDiveCompanyCard:
                 'Les dépenses exportées seront enregistrées comme des transactions bancaires sur le compte bancaire Xero ci-dessous, et les dates de transaction correspondront aux dates figurant sur votre relevé bancaire.',
             bankTransactions: 'Transactions bancaires',
+            travelInvoicingDescription: 'Les frais de voyage seront exportés sous forme de transactions bancaires vers le compte Xero indiqué ci-dessous.',
             xeroBankAccount: 'Compte bancaire Xero',
             xeroBankAccountDescription: 'Choisissez où les dépenses seront enregistrées comme transactions bancaires.',
             exportExpensesDescription: 'Les notes de frais seront exportées sous forme de facture d’achat avec la date et le statut sélectionnés ci-dessous.',
@@ -6011,6 +6022,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 `Vous êtes sur le point de créer et de partager ${newWorkspaceName ?? ''} avec ${totalMembers ?? 0} membres de l’espace de travail d’origine.`,
             error: 'Une erreur s’est produite lors de la duplication de votre nouvel espace de travail. Veuillez réessayer.',
         },
+        copyPolicySettings: {error: 'Une erreur s’est produite lors de la copie des paramètres de l’espace de travail. Veuillez réessayer.'},
         emptyWorkspace: {
             title: 'Vous n’avez aucun espace de travail',
             subtitle: 'Suivez les reçus, remboursez les dépenses, gérez les voyages, envoyez des factures, et plus encore.',
@@ -7131,8 +7143,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     description: 'Pour les employés souhaitant soumettre des dépenses à leur employeur.',
                 },
             },
-            description: 'Choisissez l’offre qui vous convient. Pour une liste détaillée des fonctionnalités et des tarifs, consultez notre',
-            subscriptionLink: "page d'aide sur les types de forfaits et les tarifs",
+            description: 'Choisissez l’offre qui vous convient.',
+            subscriptionLink: 'En savoir plus',
             lockedPlanDescription: ({count, annualSubscriptionEndDate}: WorkspaceLockedPlanTypeParams) => ({
                 one: `Vous vous êtes engagé à 1 membre actif sur le plan Control jusqu'à la fin de votre abonnement annuel, le ${annualSubscriptionEndDate}. Vous pourrez passer à un abonnement à l’usage et rétrograder vers le plan Collect à partir du ${annualSubscriptionEndDate} en désactivant le renouvellement automatique dans`,
                 other: `Vous vous êtes engagé·e à avoir ${count} membres actifs sur le forfait Control jusqu’à la fin de votre abonnement annuel le ${annualSubscriptionEndDate}. Vous pouvez passer à un abonnement à l’usage et rétrograder vers le forfait Collect à partir du ${annualSubscriptionEndDate} en désactivant le renouvellement automatique dans`,
