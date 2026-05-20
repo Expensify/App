@@ -13,6 +13,7 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
@@ -26,6 +27,7 @@ const personalTrackGoalOptions = Object.values(CONST.ONBOARDING_PERSONAL_TRACK_G
 
 function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnboardingPersonalTrackGoalProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.PERSONAL_TRACK_GOAL);
@@ -56,7 +58,7 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
             iconWidth: variables.menuIconSize,
             iconHeight: variables.menuIconSize,
             iconStyles: [styles.mh3],
-            wrapperStyle: [styles.purposeMenuItem],
+            wrapperStyle: [styles.purposeMenuItem, goal === selectedGoal && {borderWidth: 1, borderColor: theme.success}],
             numberOfLinesTitle: 0,
             isSelected: goal === selectedGoal,
             onPress: () => {
@@ -101,7 +103,7 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
                             <TextInput
                                 autoFocus
                                 accessibilityLabel={translate('onboarding.personalTrackGoal.somethingElsePlaceholder')}
-                                placeholder={translate('onboarding.personalTrackGoal.somethingElsePlaceholder')}
+                                label={translate('onboarding.personalTrackGoal.somethingElsePlaceholder')}
                                 value={somethingElseText}
                                 onChangeText={(text) => {
                                     setSomethingElseText(text);
