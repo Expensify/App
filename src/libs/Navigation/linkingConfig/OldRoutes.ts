@@ -38,8 +38,7 @@ const oldRoutes: Record<string, string> = {
     '/settings/profile/contact-methods/new': '/settings/profile/contact-methods/new-contact-method',
     '/settings/profile/contact-methods/new/confirm-magic-code': '/settings/profile/contact-methods/new-contact-method/confirm-magic-code',
     '/settings/teachersunite/i-am-a-teacher/contact-methods/new': '/settings/teachersunite/i-am-a-teacher/contact-methods/new-contact-method',
-    '/settings/teachersunite/i-am-a-teacher/contact-methods/new/confirm-magic-code':
-        '/settings/teachersunite/i-am-a-teacher/contact-methods/new-contact-method/confirm-magic-code',
+    '/settings/teachersunite/i-am-a-teacher/contact-methods/new/confirm-magic-code': '/settings/teachersunite/i-am-a-teacher/contact-methods/new-contact-method/confirm-magic-code',
     /* eslint-enable @typescript-eslint/naming-convention */
 };
 

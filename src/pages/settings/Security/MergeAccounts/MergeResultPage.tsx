@@ -16,6 +16,7 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -71,7 +72,7 @@ function MergeResultPage() {
                             html={translate(
                                 'mergeAccountsPage.mergeFailureUncreatedAccountDescription',
                                 login,
-                                `${environmentURL}/${ROUTES.SETTINGS_PROFILE.route}/${DYNAMIC_ROUTES.CONTACT_METHODS.path}`,
+                                `${environmentURL}/${createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path, ROUTES.SETTINGS_PROFILE.route)}`,
                             )}
                         />
                     </View>

@@ -8,6 +8,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import CONST from '@src/CONST';
 import {addLeadingForwardSlash} from '@src/libs/Url';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -29,7 +30,7 @@ function ReceiptAlternativeMethods({onLayout}: ReceiptAlternativeMethodsProps) {
     const {hasPhoneNumberLogin, isPhoneNumberLoaded} = useHasPhoneNumberLogin();
 
     const downloadAppHref = `${environmentURL}${addLeadingForwardSlash(ROUTES.SETTINGS_APP_DOWNLOAD_LINKS)}`;
-    const contactMethodsHref = `${environmentURL}${addLeadingForwardSlash(`${ROUTES.SETTINGS_PROFILE.route}/${DYNAMIC_ROUTES.CONTACT_METHODS.path}`)}`;
+    const contactMethodsHref = `${environmentURL}${addLeadingForwardSlash(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path, ROUTES.SETTINGS_PROFILE.route))}`;
 
     if (!isLastMobileAppLoginLoaded || !isPhoneNumberLoaded) {
         return null;
