@@ -15,14 +15,20 @@ import CONST from '@src/CONST';
 import {WorkspaceCategoryTableRowData} from '.';
 
 type WorkspaceCategoriesTableRowProps = {
+    /** Data about the category */
     item: WorkspaceCategoryTableRowData;
 
+    /** The index of the row relative to all other rows */
     rowIndex: number;
 
+    /** Whether to use narrow table row layout */
+    shouldUseNarrowTableLayout: boolean;
+
+    /** Whether the approver column is visible on web screens or not */
     shouldShowApproverColumn: boolean;
 };
 
-export default function WorkspaceCategoriesTableRow({rowIndex, shouldShowApproverColumn, item}: WorkspaceCategoriesTableRowProps) {
+export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTableLayout, shouldShowApproverColumn, item}: WorkspaceCategoriesTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -42,11 +48,13 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldShowApprove
                         <Text>{item.name}</Text>
                     </View>
 
-                    <View style={[styles.flex1, styles.flexRow]}>
-                        <Text>{item.glCode}</Text>
-                    </View>
+                    {!shouldUseNarrowTableLayout && (
+                        <View style={[styles.flex1, styles.flexRow]}>
+                            <Text>{item.glCode}</Text>
+                        </View>
+                    )}
 
-                    {shouldShowApproverColumn && (
+                    {!shouldUseNarrowTableLayout && shouldShowApproverColumn && (
                         <View style={[styles.flex1, styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
                             {item.approverDisplayName && item.approverAccountID && (
                                 <>
@@ -62,23 +70,19 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldShowApprove
                         </View>
                     )}
 
-                    <View style={[styles.flex1, styles.flexRow]}>
-                        <Switch
-                            isOn={item.enabled}
-                            accessibilityLabel={`${translate('workspace.categories.enableCategory')}: ${item.name}`}
-                            onToggle={() => {}}
-                        />
-                    </View>
+                    <Switch
+                        isOn={item.enabled}
+                        accessibilityLabel={`${translate('workspace.categories.enableCategory')}: ${item.name}`}
+                        onToggle={() => {}}
+                    />
 
-                    <View style={[styles.flex1, styles.flexRow]}>
-                        <Icon
-                            src={icons.ArrowRight}
-                            fill={theme.icon}
-                            additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
-                            width={variables.iconSizeNormal}
-                            height={variables.iconSizeNormal}
-                        />
-                    </View>
+                    <Icon
+                        src={icons.ArrowRight}
+                        fill={theme.icon}
+                        additionalStyles={[styles.alignItemsCenter, !hovered && styles.opacitySemiTransparent]}
+                        width={variables.iconSizeNormal}
+                        height={variables.iconSizeNormal}
+                    />
                 </>
             )}
         </Table.Row>

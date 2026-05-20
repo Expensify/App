@@ -2,6 +2,7 @@ import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
 import Table, {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table/';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {AvatarSource} from '@libs/UserAvatarUtils';
 import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import WorkspaceCategoriesTableRow from './WorkspaceCategoriesTableRow';
@@ -29,6 +30,7 @@ type WorkspaceCategoriesTableProps = {
 
 export default function WorkspaceCategoriesTable({categories, shouldShowApproverColumn}: WorkspaceCategoriesTableProps) {
     const {translate, localeCompare} = useLocalize();
+    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
     const categoryTableColumns: Array<TableColumn<WorkspaceCategoryTableColumnKey>> = [
         {
@@ -89,6 +91,7 @@ export default function WorkspaceCategoriesTable({categories, shouldShowApprover
         <WorkspaceCategoriesTableRow
             item={item}
             rowIndex={index}
+            shouldUseNarrowTableLayout={shouldUseNarrowLayout || isMediumScreenWidth}
             shouldShowApproverColumn={shouldShowApproverColumn}
         />
     );

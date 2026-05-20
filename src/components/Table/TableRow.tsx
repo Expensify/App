@@ -9,8 +9,11 @@ import type {PressableWithFeedbackProps} from '@components/Pressable/PressableWi
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
@@ -61,6 +64,8 @@ export default function TableRow({
 
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const isMobileSelectionEnabled = useMobileSelectionMode();
     const {processedData, columns, shouldUseNarrowTableLayout, tableMethods, selectionEnabled} = useTableContext();
 
     const item = processedData[rowIndex];
@@ -69,8 +74,9 @@ export default function TableRow({
     const isLastRow = rowIndex === rowCount - 1;
     const isInteractive = interactive && !isLoading;
     const gridTemplateColumns = columns.map((column) => (column.width ? `${column.width}px` : '1fr'));
+    const isSelectionCheckboxVisible = selectionEnabled && (isMobileSelectionEnabled || !shouldUseNarrowLayout);
 
-    if (selectionEnabled) {
+    if (selectionEnabled && isSelectionCheckboxVisible) {
         gridTemplateColumns.unshift(`${variables.tableCheckboxColumnWidth}px`);
     }
 
@@ -130,6 +136,8 @@ export default function TableRow({
         return children;
     };
 
+    const handleRowPress = () => {};
+
     const handleCheckboxPress = (event?: MouseEvent) => {
         if (event && event.shiftKey) {
             tableMethods.handleMultipleRowSelection(item.keyForList);
@@ -144,7 +152,7 @@ export default function TableRow({
             return;
         }
 
-        tableMethods.setMobileSelectionEnabled(true);
+        turnOnMobileSelectionMode();
     };
 
     return (
@@ -177,7 +185,7 @@ export default function TableRow({
                             </View>
                         ) : (
                             <View style={tableRowContentStyles}>
-                                {selectionEnabled && (
+                                {isSelectionCheckboxVisible && (
                                     <Checkbox
                                         isChecked={!!item.selected}
                                         accessibilityLabel="TEST"
