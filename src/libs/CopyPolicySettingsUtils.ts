@@ -139,7 +139,7 @@ function areAllTargetsAccountingCompatible(source: Policy | undefined, targets: 
 
 /**
  * Whether a copy-settings part should appear on the Select Features step for the source policy.
- * Matches WorkspaceDuplicateSelectFeaturesForm visibility rules.
+ * A part is shown when the source has relevant data or the workspace feature is enabled.
  */
 function isCopyPolicySettingsPartEnabledOnSource(part: Part, context: CopyPolicySettingsSourceFeatureContext): boolean {
     const {policy} = context;
@@ -150,25 +150,25 @@ function isCopyPolicySettingsPartEnabledOnSource(part: Part, context: CopyPolicy
         case 'members':
             return context.memberCount > 1;
         case 'reports':
-            return context.reportFieldsCount > 0;
+            return context.reportFieldsCount > 0 || !!policy?.areReportFieldsEnabled;
         case 'accounting':
-            return context.connectedIntegrationCount > 0;
+            return context.connectedIntegrationCount > 0 || !!policy?.areConnectionsEnabled;
         case 'categories':
-            return context.categoriesCount > 0;
+            return context.categoriesCount > 0 || !!policy?.areCategoriesEnabled;
         case 'tags':
-            return context.totalTags > 0;
+            return context.totalTags > 0 || !!policy?.areTagsEnabled;
         case 'taxes':
-            return context.taxesCount > 0;
+            return context.taxesCount > 0 || !!policy?.tax?.trackingEnabled;
         case 'workflows':
-            return context.hasWorkflowRules;
+            return context.hasWorkflowRules || !!policy?.areWorkflowsEnabled;
         case 'rules':
-            return context.hasWorkspaceRules && !context.isCollectPolicy;
+            return (context.hasWorkspaceRules || !!policy?.areRulesEnabled) && !context.isCollectPolicy;
         case 'distanceRates':
-            return context.distanceRatesCount > 0 && !!policy?.areDistanceRatesEnabled;
+            return context.distanceRatesCount > 0 || !!policy?.areDistanceRatesEnabled;
         case 'perDiem':
-            return context.perDiemCount > 0;
+            return context.perDiemCount > 0 || !!policy?.arePerDiemRatesEnabled;
         case 'invoices':
-            return !!policy?.areInvoicesEnabled && context.hasInvoiceConfiguration;
+            return context.hasInvoiceConfiguration || !!policy?.areInvoicesEnabled;
         case 'travel':
             return !!policy?.isTravelEnabled;
         default:

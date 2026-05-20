@@ -158,13 +158,21 @@ describe('CopyPolicySettingsUtils', () => {
             expect(isCopyPolicySettingsPartEnabledOnSource('members', baseContext)).toBe(true);
         });
 
-        it('shows categories when the source has categories', () => {
+        it('shows categories when the source has categories or categories are enabled', () => {
             expect(isCopyPolicySettingsPartEnabledOnSource('categories', {...baseContext, categoriesCount: 0})).toBe(false);
+
+            const categoriesEnabledPolicy = createRandomPolicy(5);
+            categoriesEnabledPolicy.areCategoriesEnabled = true;
+            expect(isCopyPolicySettingsPartEnabledOnSource('categories', {...baseContext, categoriesCount: 0, policy: categoriesEnabledPolicy})).toBe(true);
             expect(isCopyPolicySettingsPartEnabledOnSource('categories', baseContext)).toBe(true);
         });
 
-        it('shows per diem when rates exist', () => {
+        it('shows per diem when rates exist or per diem is enabled', () => {
             expect(isCopyPolicySettingsPartEnabledOnSource('perDiem', {...baseContext, perDiemCount: 0})).toBe(false);
+
+            const perDiemEnabledPolicy = createRandomPolicy(5);
+            perDiemEnabledPolicy.arePerDiemRatesEnabled = true;
+            expect(isCopyPolicySettingsPartEnabledOnSource('perDiem', {...baseContext, perDiemCount: 0, policy: perDiemEnabledPolicy})).toBe(true);
             expect(isCopyPolicySettingsPartEnabledOnSource('perDiem', baseContext)).toBe(true);
         });
 
@@ -176,12 +184,13 @@ describe('CopyPolicySettingsUtils', () => {
             expect(isCopyPolicySettingsPartEnabledOnSource('travel', {...baseContext, policy: travelPolicy})).toBe(true);
         });
 
-        it('hides distance rates when the feature flag is off even if rates exist', () => {
-            expect(isCopyPolicySettingsPartEnabledOnSource('distanceRates', baseContext)).toBe(false);
+        it('shows distance rates when rates exist or distance rates are enabled', () => {
+            expect(isCopyPolicySettingsPartEnabledOnSource('distanceRates', {...baseContext, distanceRatesCount: 0})).toBe(false);
+            expect(isCopyPolicySettingsPartEnabledOnSource('distanceRates', baseContext)).toBe(true);
 
             const distancePolicy = createRandomPolicy(4);
             distancePolicy.areDistanceRatesEnabled = true;
-            expect(isCopyPolicySettingsPartEnabledOnSource('distanceRates', {...baseContext, policy: distancePolicy})).toBe(true);
+            expect(isCopyPolicySettingsPartEnabledOnSource('distanceRates', {...baseContext, distanceRatesCount: 0, policy: distancePolicy})).toBe(true);
         });
     });
 

@@ -30,17 +30,16 @@ import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 /**
- * Parts that depend on a compatible accounting connection between source and targets.
+ * Parts that require a compatible accounting connection between source and targets.
  * When any selected target has a mismatched (or missing) connection relative to the source,
- * these parts are disabled because the export references would break on the target side.
+ * these parts are disabled because copying them would break on the target side.
  */
-const ACCOUNTING_DEPENDENT_PARTS = ['categories', 'tags', 'reports', 'taxes'] as const satisfies readonly Part[];
+const ACCOUNTING_COMPATIBILITY_REQUIRED_PARTS = ['accounting', 'categories', 'tags', 'reports', 'taxes'] as const satisfies readonly Part[];
 
 /**
- * Selecting "accounting" implies its coding settings must come along, so these parts flip to
- * (selected + disabled) while accounting is on.
+ * Selecting accounting also copies coding settings; these parts are auto-selected with accounting.
  */
-const ACCOUNTING_FORCE_ENABLED_PARTS = ACCOUNTING_DEPENDENT_PARTS;
+const ACCOUNTING_FORCE_ENABLED_PARTS = ['categories', 'tags', 'reports', 'taxes'] as const satisfies readonly Part[];
 
 type FeatureRow = {
     part: Part;
@@ -119,7 +118,15 @@ function CopyPolicySettingsSelectFeaturesPage() {
         isCollectPolicy: isCollectPolicy(sourcePolicy),
     };
 
-    const availableFeatureRows = FEATURE_ROWS.filter((row) => isCopyPolicySettingsPartEnabledOnSource(row.part, sourceFeatureContext));
+    const isPartVisible = (part: Part) => {
+        // When targets have mismatched accounting, show these rows as disabled — do not hide them.
+        if (!isAccountingCompatible && (ACCOUNTING_COMPATIBILITY_REQUIRED_PARTS as readonly Part[]).includes(part)) {
+            return true;
+        }
+        return isCopyPolicySettingsPartEnabledOnSource(part, sourceFeatureContext);
+    };
+
+    const availableFeatureRows = FEATURE_ROWS.filter((row) => isPartVisible(row.part));
     const availablePartSet = new Set(availableFeatureRows.map((row) => row.part));
 
     const [selectedFeatures, setSelectedFeatures] = useState<readonly Part[]>([]);
@@ -136,7 +143,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
         if (isAccountingSelected && (ACCOUNTING_FORCE_ENABLED_PARTS as readonly Part[]).includes(part)) {
             return true;
         }
-        if (!isAccountingCompatible && (ACCOUNTING_DEPENDENT_PARTS as readonly Part[]).includes(part)) {
+        if (!isAccountingCompatible && (ACCOUNTING_COMPATIBILITY_REQUIRED_PARTS as readonly Part[]).includes(part)) {
             return true;
         }
         return false;
