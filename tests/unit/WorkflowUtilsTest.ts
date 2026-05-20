@@ -8,6 +8,7 @@ import {
     convertPolicyEmployeesToApprovalWorkflows,
     getApprovalLimitDescription,
     getOpenConnectedToPolicyBusinessBankAccounts,
+    getOverLimitForwardsToDisplayName,
     mergeWorkflowMembersWithAvailableMembers,
     updateWorkflowDataOnApproverRemoval,
 } from '@src/libs/WorkflowUtils';
@@ -230,8 +231,8 @@ describe('WorkflowUtils', () => {
             const approvers = calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail});
 
             expect(approvers).toEqual([
-                buildApprover(1, {forwardsTo: '2@example.com', approvalLimit: 50000, overLimitForwardsTo: '3@example.com'}),
-                buildApprover(2, {approvalLimit: 100000, overLimitForwardsTo: '3@example.com'}),
+                buildApprover(1, {forwardsTo: '2@example.com', approvalLimit: 50000, overLimitForwardsTo: '3@example.com', overLimitForwardsToDisplayName: '3@example.com User'}),
+                buildApprover(2, {approvalLimit: 100000, overLimitForwardsTo: '3@example.com', overLimitForwardsToDisplayName: '3@example.com User'}),
             ]);
         });
 
@@ -248,6 +249,33 @@ describe('WorkflowUtils', () => {
             const approvers = calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail});
 
             expect(approvers).toEqual([buildApprover(1, {approvalLimit: null, overLimitForwardsTo: ''})]);
+        });
+    });
+
+    describe('getOverLimitForwardsToDisplayName', () => {
+        it('Should return undefined when overLimitForwardsTo is undefined', () => {
+            expect(getOverLimitForwardsToDisplayName(undefined, personalDetailsByEmail)).toBeUndefined();
+        });
+
+        it('Should return undefined when overLimitForwardsTo is an empty string', () => {
+            expect(getOverLimitForwardsToDisplayName('', personalDetailsByEmail)).toBeUndefined();
+        });
+
+        it('Should return the display name from personal details when available', () => {
+            expect(getOverLimitForwardsToDisplayName('2@example.com', personalDetailsByEmail)).toBe('2@example.com User');
+        });
+
+        it('Should fall back to the email when personal details are missing', () => {
+            expect(getOverLimitForwardsToDisplayName('unknown@example.com', personalDetailsByEmail)).toBe('unknown@example.com');
+        });
+
+        it('Should fall back to the email when personal details exist but displayName is missing', () => {
+            const {displayName: omittedDisplayName, ...personalDetailsWithoutDisplayNameEntry} = buildPersonalDetails('custom@example.com', 99);
+            const personalDetailsWithoutDisplayName: PersonalDetailsList = {
+                'custom@example.com': personalDetailsWithoutDisplayNameEntry,
+            };
+
+            expect(getOverLimitForwardsToDisplayName('custom@example.com', personalDetailsWithoutDisplayName)).toBe('custom@example.com');
         });
     });
 
@@ -1322,7 +1350,6 @@ describe('WorkflowUtils', () => {
                 currency: 'USD',
                 translate: translateLocal,
                 convertToDisplayString,
-                personalDetailsByEmail: {},
             });
 
             expect(result).toBeUndefined();
@@ -1336,7 +1363,6 @@ describe('WorkflowUtils', () => {
                 currency: 'USD',
                 translate: translateLocal,
                 convertToDisplayString,
-                personalDetailsByEmail: {},
             });
 
             expect(result).toBeUndefined();
@@ -1350,7 +1376,6 @@ describe('WorkflowUtils', () => {
                 currency: 'USD',
                 translate: translateLocal,
                 convertToDisplayString,
-                personalDetailsByEmail: {},
             });
 
             expect(result).toBeUndefined();
@@ -1364,7 +1389,6 @@ describe('WorkflowUtils', () => {
                 currency: 'USD',
                 translate: translateLocal,
                 convertToDisplayString,
-                personalDetailsByEmail: {},
             });
 
             expect(result).toBeUndefined();
@@ -1378,24 +1402,23 @@ describe('WorkflowUtils', () => {
                 currency: 'USD',
                 translate: translateLocal,
                 convertToDisplayString,
-                personalDetailsByEmail: {},
             });
 
             expect(result).toBe('Reports above $500.00 forward to 2@example.com');
         });
 
-        it('Should use display name from personalDetails when available', () => {
-            const approver = buildApprover(1, {approvalLimit: 100000, overLimitForwardsTo: '2@example.com'});
-            const personalDetailsWithEmail: PersonalDetailsList = {
-                '2@example.com': {accountID: 2, displayName: 'John Doe'},
-            };
+        it('Should use overLimitForwardsToDisplayName baked into the approver when available', () => {
+            const approver = buildApprover(1, {
+                approvalLimit: 100000,
+                overLimitForwardsTo: '2@example.com',
+                overLimitForwardsToDisplayName: 'John Doe',
+            });
 
             const result = getApprovalLimitDescription({
                 approver,
                 currency: 'USD',
                 translate: translateLocal,
                 convertToDisplayString,
-                personalDetailsByEmail: personalDetailsWithEmail,
             });
 
             expect(result).toBe('Reports above $1,000.00 forward to John Doe');
