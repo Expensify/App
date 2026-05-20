@@ -80,6 +80,9 @@ type ConfirmationFieldListProps = {
     /** Whether the amount field should be displayed when smart-scan fields are shown */
     shouldShowAmountField: boolean;
 
+    /** Whether the parent-owned participant picker modal is currently open (new manual expense flow). Drives amount autofocus on picker close. */
+    isParticipantPickerVisible: boolean;
+
     /** Whether the merchant field should be displayed */
     shouldShowMerchant: boolean;
 
@@ -219,6 +222,7 @@ function ConfirmationFieldList({
     isNewManualExpenseFlowEnabled,
     shouldShowSmartScanFields,
     shouldShowAmountField,
+    isParticipantPickerVisible,
     shouldShowMerchant,
     shouldShowCategories,
     shouldShowDate,
@@ -334,6 +338,7 @@ function ConfirmationFieldList({
                 isCompactMode={isCompactMode}
                 fieldVisibility={fieldVisibility}
                 onSubmitForm={onSubmitForm}
+                isParticipantPickerVisible={isParticipantPickerVisible}
             />
 
             <ClassificationFields

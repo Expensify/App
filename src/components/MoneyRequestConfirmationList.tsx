@@ -68,6 +68,9 @@ type MoneyRequestConfirmationListProps = {
     /** When set, used in the new manual expense flow to open the parent-owned participant picker instead of navigating away */
     onOpenParticipantPicker?: () => void;
 
+    /** Whether the parent-owned participant picker modal is currently open (new manual expense flow). Drives amount autofocus on picker close. */
+    isParticipantPickerVisible?: boolean;
+
     /** Callback to parent modal to pay someone */
     onSendMoney?: (paymentMethod: PaymentMethodType | undefined) => void;
 
@@ -169,6 +172,7 @@ function MoneyRequestConfirmationList({
     onSendMoney,
     onConfirm,
     onOpenParticipantPicker,
+    isParticipantPickerVisible = false,
     iouType = CONST.IOU.TYPE.SUBMIT,
     isOdometerDistanceRequest = false,
     isLoadingReceipt = false,
@@ -561,6 +565,7 @@ function MoneyRequestConfirmationList({
                 shouldShowMerchant={shouldShowMerchant}
                 shouldShowSmartScanFields={shouldShowSmartScanFields}
                 shouldShowAmountField={!isPerDiemRequest}
+                isParticipantPickerVisible={isParticipantPickerVisible}
                 shouldShowTax={shouldShowTax}
                 transaction={transaction}
                 transactionID={transactionID}
