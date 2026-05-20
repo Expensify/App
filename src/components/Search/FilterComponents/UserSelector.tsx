@@ -10,7 +10,7 @@ import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelec
 import useThemeStyles from '@hooks/useThemeStyles';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
-import {getExpensifyTeamExclusions} from '@libs/PolicyUtils';
+import {getNonWorkspaceMemberExclusions} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ListFilterWrapper from './ListFilterViewWrapper';
@@ -18,12 +18,9 @@ import ListFilterWrapper from './ListFilterViewWrapper';
 type UserSelectorProps = {
     value: string[] | undefined;
     onChange: (options: string[]) => void;
-
-    /** Whether to soft-exclude Expensify team members (Guides/Account Managers) from suggestions. Used by the From filter so internal staff don't leak into customer suggestions. */
-    shouldExcludeExpensifyTeamMembers?: boolean;
 };
 
-function UserSelector({value = [], onChange, shouldExcludeExpensifyTeamMembers = false}: UserSelectorProps) {
+function UserSelector({value = [], onChange}: UserSelectorProps) {
     const selectionListRef = useRef<SelectionListHandle<ListItem> | null>(null);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -31,6 +28,7 @@ function UserSelector({value = [], onChange, shouldExcludeExpensifyTeamMembers =
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const initialSelectedAccountIDs = value.reduce<Set<string>>((acc, id) => {
         const participant = personalDetails?.[id];
         if (!participant) {
@@ -41,13 +39,14 @@ function UserSelector({value = [], onChange, shouldExcludeExpensifyTeamMembers =
         return acc;
     }, new Set<string>());
 
-    const expensifyTeamExclusions = getExpensifyTeamExclusions(personalDetails, currentUserPersonalDetails.email, shouldExcludeExpensifyTeamMembers);
+    const nonMemberExclusions = getNonWorkspaceMemberExclusions(personalDetails, policies, currentUserPersonalDetails.email);
 
     const {searchTerm, setSearchTerm, availableOptions, totalOptionsCount, toggleSelection, areOptionsInitialized} = usePersonalDetailSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
         initialSelected: initialSelectedAccountIDs,
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-        excludeFromSuggestionsOnly: expensifyTeamExclusions,
+        excludeFromSuggestionsOnly: nonMemberExclusions,
+        includeUserToInvite: true,
         includeCurrentUser: false,
         includeRecentReports: false,
         onSelectionChange: onChange,
