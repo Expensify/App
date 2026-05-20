@@ -201,6 +201,12 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     onCloseError={() => clearQBOErrorField(policyID, item.subscribedSetting)}
                 />
             ))}
+            <TravelInvoicingContinuousReconciliationSection
+                policy={policy}
+                connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
+                isAutoSyncEnabled={!!qboConfig?.autoSync?.enabled}
+                toggleWrapperStyle={styles.mv3}
+            />
             <Accordion
                 isExpanded={isAccordionExpanded}
                 isToggleTriggered={shouldAnimateAccordionSection}
