@@ -451,7 +451,6 @@ function SearchList({
                         personalPolicyID={personalPolicyID}
                         userBillingGracePeriodEnds={userBillingGracePeriodEnds}
                         ownerBillingGracePeriodEnd={ownerBillingGracePeriodEnd}
-                        isOffline={isOffline}
                         nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                         onFocus={onFocus}
                         newTransactionID={newTransactionID}
@@ -477,7 +476,6 @@ function SearchList({
             onCheckboxPress,
             canSelectMultiple,
             columns,
-            isOffline,
             lastPaymentMethod,
             personalPolicyID,
             userBillingGracePeriodEnds,
