@@ -1,8 +1,30 @@
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type {Policy} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import {isAuthenticationError} from './actions/connections';
 import type {Part} from './actions/Policy/CopyPolicySettings';
+
+type FeatureRow = {
+    part: Part;
+    labelKey: TranslationPaths;
+};
+
+const FEATURE_ROWS = [
+    {part: 'overview', labelKey: 'workspace.common.profile'},
+    {part: 'members', labelKey: 'workspace.common.members'},
+    {part: 'reports', labelKey: 'workspace.common.reports'},
+    {part: 'accounting', labelKey: 'workspace.common.accounting'},
+    {part: 'categories', labelKey: 'workspace.common.categories'},
+    {part: 'tags', labelKey: 'workspace.common.tags'},
+    {part: 'taxes', labelKey: 'workspace.common.taxes'},
+    {part: 'workflows', labelKey: 'workspace.common.workflows'},
+    {part: 'rules', labelKey: 'workspace.common.rules'},
+    {part: 'distanceRates', labelKey: 'workspace.common.distanceRates'},
+    {part: 'perDiem', labelKey: 'workspace.common.perDiem'},
+    {part: 'invoices', labelKey: 'workspace.common.invoices'},
+    {part: 'travel', labelKey: 'workspace.common.travel'},
+] as const satisfies readonly FeatureRow[];
 
 type CopyPolicySettingsSourceFeatureContext = {
     policy: Policy | undefined;
@@ -212,5 +234,5 @@ export {
     isTargetCompatibleForAccountingPart,
     areAllTargetsCompatibleForAccountingPart,
     isCopyPolicySettingsPartEnabledOnSource,
-};
-export type {AccountingConnectionIdentity, CopyPolicySettingsSourceFeatureContext};
+, FEATURE_ROWS};
+export type {AccountingConnectionIdentity, CopyPolicySettingsSourceFeatureContext, FeatureRow};
