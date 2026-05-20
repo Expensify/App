@@ -436,6 +436,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                             title={translate('cardPage.changePin')}
                                             icon={expensifyIcons.Key}
                                             shouldShowRightIcon
+                                            style={shouldShowPIN ? styles.mt4 : undefined}
                                             onPress={() => {
                                                 const physicalCardID = String(currentPhysicalCard?.cardID);
                                                 if (isOfflinePINMarket(countryByIp)) {
