@@ -1,6 +1,6 @@
 import {deepEqual} from 'fast-equals';
 import type {ReactNode, RefObject} from 'react';
-import React, {useCallback, useEffect, useLayoutEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import CompactMenuContext from '@components/CompactMenuContext';
@@ -328,6 +328,7 @@ function BasePopoverMenu({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow', 'ReceiptScan', 'MoneyCircle']);
     const prevMenuItems = usePrevious(menuItems);
     const [hasKeyBeenPressed, setHasKeyBeenPressed] = useState(false);
+    const cleanupEscapeKeyUpSuppressorRef = useRef<(() => void) | undefined>(undefined);
 
     const getPreviousSubMenu = () => {
         let currentItems = menuItems;
@@ -507,6 +508,36 @@ function BasePopoverMenu({
             </Text>
         );
     };
+
+    const closeMenuFromEscape = useCallback(() => {
+        setCurrentMenuItems(menuItems);
+        setEnteredSubMenuIndexes(CONST.EMPTY_ARRAY);
+
+        if (isWeb && typeof document !== 'undefined') {
+            cleanupEscapeKeyUpSuppressorRef.current?.();
+
+            const suppressEscapeKeyUp = (event: KeyboardEvent) => {
+                if (event.key !== CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey) {
+                    return;
+                }
+
+                event.stopImmediatePropagation();
+                cleanupEscapeKeyUpSuppressorRef.current?.();
+            };
+
+            document.addEventListener('keyup', suppressEscapeKeyUp, true);
+            cleanupEscapeKeyUpSuppressorRef.current = () => {
+                document.removeEventListener('keyup', suppressEscapeKeyUp, true);
+                cleanupEscapeKeyUpSuppressorRef.current = undefined;
+            };
+        }
+
+        onClose();
+    }, [isWeb, menuItems, onClose]);
+
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, closeMenuFromEscape, {isActive: isVisible, shouldBubble: false});
+
+    useEffect(() => () => cleanupEscapeKeyUpSuppressorRef.current?.(), []);
 
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.ENTER,
