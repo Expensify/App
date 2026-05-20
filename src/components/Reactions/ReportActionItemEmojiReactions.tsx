@@ -8,9 +8,9 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getEmojiReactionDetails} from '@libs/EmojiUtils';
+import {getEmojiReactionDetails, mergeReactionsByEmoji} from '@libs/EmojiUtils';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
-import {toggleEmojiReaction} from '@userActions/Report';
+import {toggleEmojiReaction} from '@userActions/EmojiReactions';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 import CONST from '@src/CONST';
 import {isFullySupportedLocale} from '@src/CONST/LOCALES';
@@ -93,7 +93,7 @@ function ReportActionItemEmojiReactions({reportAction, reportID, isEditingInline
 
     // Each emoji is sorted by the oldest timestamp of user reactions so that they will always appear in the same order for everyone
     const formattedReactions: Array<FormattedReaction | null> = sortBy(
-        Object.entries(emojiReactions ?? {}).map(([emojiName, emojiReaction]) => {
+        Object.entries(mergeReactionsByEmoji(emojiReactions ?? {})).map(([emojiName, emojiReaction]) => {
             const {emoji, emojiCodes, reactionCount, hasUserReacted, userAccountIDs, oldestTimestamp} = getEmojiReactionDetails(emojiName, emojiReaction, currentUserAccountID);
 
             if (reactionCount === 0) {

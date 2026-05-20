@@ -3,6 +3,7 @@ import React from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
@@ -43,6 +44,7 @@ function ReportActionItemThread({report, reportAction, isHovered, onSecondaryInt
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const personalDetails = usePersonalDetails();
 
     const numberOfReplies = reportAction.childVisibleActionCount ?? 0;
     const accountIDs =
@@ -63,7 +65,7 @@ function ReportActionItemThread({report, reportAction, isHovered, onSecondaryInt
             <View style={[styles.chatItemMessage]}>
                 <PressableWithSecondaryInteraction
                     onPress={() => {
-                        navigateToAndOpenChildReport(childReport, reportAction, report, currentUserAccountID, introSelected, betas, isSelfTourViewed);
+                        navigateToAndOpenChildReport(childReport, reportAction, report, currentUserAccountID, introSelected, betas, personalDetails, isSelfTourViewed);
                     }}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={`${numberOfReplies} ${replyText}`}
