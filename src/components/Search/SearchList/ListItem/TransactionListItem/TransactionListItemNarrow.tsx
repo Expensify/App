@@ -3,6 +3,7 @@ import type {View} from 'react-native';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import UserInfoAndActionButtonRow from '@components/Search/SearchList/ListItem/UserInfoAndActionButtonRow';
 import type {ListItem} from '@components/SelectionList/types';
 import TransactionItemRow from '@components/TransactionItemRow';
@@ -16,7 +17,6 @@ import type {TransactionListItemNarrowProps} from './types';
 
 function TransactionListItemNarrow<TItem extends ListItem>({
     item,
-    transactionItem,
     isDeletedTransaction,
     isFocused,
     showTooltip,
@@ -60,6 +60,8 @@ function TransactionListItemNarrow<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<View>(null);
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
+
+    const transactionItem = item as unknown as TransactionListItemType;
 
     const pressableStyle = [
         styles.transactionListItemStyle,
