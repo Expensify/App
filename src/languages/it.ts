@@ -5986,16 +5986,16 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
         copyPolicySettings: {
             error: 'Si è verificato un errore durante la copia delle impostazioni dello spazio di lavoro. Riprova.',
             title: 'Copia impostazioni',
-            selectWorkspaces: 'Seleziona gli spazi di lavoro',
-            description: 'Scegli gli spazi di lavoro a cui vuoi copiare le impostazioni, poi seleziona le impostazioni che desideri copiare.',
-            searchPlaceholder: 'Cerca workspace',
+            selectWorkspaces: 'Seleziona spazi di lavoro',
+            description: 'Scegli gli spazi di lavoro a cui vuoi copiare le impostazioni, poi seleziona le impostazioni che vuoi copiare.',
+            searchPlaceholder: 'Cerca spazi di lavoro',
             selectFeatures: 'Seleziona le funzionalità da copiare',
-            whichFeatures: 'Seleziona le impostazioni da sovrascrivere sui tuoi workspace esistenti.',
+            whichFeatures: 'Seleziona le impostazioni da sovrascrivere nei tuoi workspace esistenti.',
             accountingDisabledTooltip:
-                'Gli spazi di lavoro di origine e di destinazione non sono collegati allo stesso conto contabile, quindi queste impostazioni non possono essere copiate in modo sicuro.',
-            workflowsWithoutMembersTitle: 'Copiare i flussi di lavoro senza membri?',
+                'Gli spazi di lavoro di origine e di destinazione non sono collegati allo stesso conto di contabilità, quindi queste impostazioni non possono essere copiate in modo sicuro.',
+            workflowsWithoutMembersConfirm: 'Continua senza membri',
             workflowsWithoutMembersPrompt:
-                'Stai copiando dei workflow senza membri. Le impostazioni di invio e pagamento verranno copiate, ma i membri dello spazio di lavoro non cambieranno. Continuare?',
+                'Copiare Flussi di lavoro senza Membri non copierà i flussi di lavoro di approvazione. Le impostazioni di invio e pagamento verranno comunque copiate.',
         },
         emptyWorkspace: {
             title: 'Non hai nessuna area di lavoro',

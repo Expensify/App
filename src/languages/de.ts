@@ -5997,14 +5997,15 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             error: 'Beim Kopieren der Arbeitsbereichseinstellungen ist ein Fehler aufgetreten. Bitte versuche es erneut.',
             title: 'Einstellungen kopieren',
             selectWorkspaces: 'Arbeitsbereiche auswählen',
-            description: 'Wählen Sie die Arbeitsbereiche aus, in die Sie Einstellungen kopieren möchten, und wählen Sie dann die Einstellungen aus, die Sie kopieren möchten.',
-            searchPlaceholder: 'Arbeitsbereiche durchsuchen',
-            selectFeatures: 'Funktionen zum Kopieren auswählen',
+            description: 'Wählen Sie die Workspaces, in die Sie Einstellungen kopieren möchten, und wählen Sie dann die Einstellungen aus, die Sie kopieren möchten.',
+            searchPlaceholder: 'Arbeitsbereiche suchen',
+            selectFeatures: 'Zu kopierende Funktionen auswählen',
             whichFeatures: 'Wählen Sie die Einstellungen aus, die in Ihren bestehenden Workspaces überschrieben werden sollen.',
-            accountingDisabledTooltip: 'Die Quell- und Ziel-Workspaces sind nicht mit demselben Buchhaltungskonto verbunden, daher können diese Einstellungen nicht sicher kopiert werden.',
-            workflowsWithoutMembersTitle: 'Workflows ohne Mitglieder kopieren?',
+            accountingDisabledTooltip:
+                'Die Quell- und Ziel-Arbeitsbereiche sind nicht mit demselben Buchhaltungskonto verbunden, daher können diese Einstellungen nicht sicher kopiert werden.',
+            workflowsWithoutMembersConfirm: 'Ohne Mitglieder fortfahren',
             workflowsWithoutMembersPrompt:
-                'Sie kopieren Workflows ohne Mitglieder. Einreichungs- und Zahlungseinstellungen werden kopiert, aber die Workspace-Mitglieder bleiben unverändert. Fortfahren?',
+                'Das Kopieren von Workflows ohne Mitglieder kopiert keine Genehmigungs-Workflows. Einreichungs- und Zahlungseinstellungen werden trotzdem kopiert.',
         },
         emptyWorkspace: {
             title: 'Du hast keine Arbeitsbereiche',
