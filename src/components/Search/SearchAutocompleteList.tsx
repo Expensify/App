@@ -108,7 +108,18 @@ function SearchRouterItem(props: UserListItemProps<AutocompleteListItem> | Searc
     const styles = useThemeStyles();
 
     if (isSearchQueryListItem(props)) {
-        return <SearchQueryListItem {...props} />;
+        const {item, isFocused, showTooltip, onSelectRow, onFocus, shouldSyncFocus, shouldDisableHoverStyle} = props;
+        return (
+            <SearchQueryListItem
+                item={item}
+                isFocused={isFocused}
+                showTooltip={showTooltip}
+                onSelectRow={onSelectRow}
+                onFocus={onFocus}
+                shouldSyncFocus={shouldSyncFocus}
+                shouldDisableHoverStyle={shouldDisableHoverStyle}
+            />
+        );
     }
 
     const {item, isFocused, showTooltip, isDisabled, onSelectRow, onDismissError, shouldPreventEnterKeySubmit, rightHandSideComponent, onFocus, shouldSyncFocus, wrapperStyle} = props;

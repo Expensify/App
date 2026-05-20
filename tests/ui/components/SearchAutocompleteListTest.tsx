@@ -131,11 +131,8 @@ describe('SearchAutocompleteList', () => {
     it('should set alternateText to "Invite" on the userToInvite row when autocompleteQueryValue is non-empty', async () => {
         // Regression test for #88730: when userToInvite is present and the query is non-empty,
         // recentReportsOptions spreads it with alternateText: translate('common.invite').
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const OptionsListUtils = jest.requireMock('@libs/OptionsListUtils') as {
-            getSearchOptions: jest.Mock;
-            combineOrderingOfReportsAndPersonalDetails: jest.Mock;
-        };
+        type OptionsListUtilsMock = {getSearchOptions: jest.Mock; combineOrderingOfReportsAndPersonalDetails: jest.Mock};
+        const OptionsListUtils: OptionsListUtilsMock = jest.requireMock('@libs/OptionsListUtils');
 
         const inviteOption = {
             reportID: undefined,
