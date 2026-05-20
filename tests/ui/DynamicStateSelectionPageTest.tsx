@@ -6,6 +6,7 @@ import SelectionList from '@components/SelectionList';
 import searchOptions from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
 import DynamicStateSelectionPage from '@pages/settings/Profile/PersonalDetails/DynamicStateSelectionPage';
+import SCREENS from '@src/SCREENS';
 
 const mockUseState = React.useState;
 const mockStates = COMMON_CONST.STATES;
@@ -63,7 +64,11 @@ describe('DynamicStateSelectionPage', () => {
     it('pins the saved state to the top on reopen and wires debounced focus sync', () => {
         render(
             <DynamicStateSelectionPage
-                route={{params: {state: 'NY', label: 'State'}}}
+                route={{
+                    key: 'DynamicStateSelectionPage',
+                    name: SCREENS.SETTINGS.PROFILE.DYNAMIC_ADDRESS_STATE,
+                    params: {state: 'NY', label: 'State'},
+                }}
                 navigation={{} as never}
             />,
         );
@@ -83,7 +88,11 @@ describe('DynamicStateSelectionPage', () => {
     it('keeps natural filtered ordering while search is active', () => {
         render(
             <DynamicStateSelectionPage
-                route={{params: {state: 'NY', label: 'State'}}}
+                route={{
+                    key: 'DynamicStateSelectionPage',
+                    name: SCREENS.SETTINGS.PROFILE.DYNAMIC_ADDRESS_STATE,
+                    params: {state: 'NY', label: 'State'},
+                }}
                 navigation={{} as never}
             />,
         );

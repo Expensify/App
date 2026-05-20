@@ -22,10 +22,9 @@ import SCREENS from '@src/SCREENS';
 
 type State = keyof typeof COMMON_CONST.STATES;
 
-type DynamicStateSelectionPageProps = PlatformStackScreenProps<
-    SettingsNavigatorParamList | MoneyRequestNavigatorParamList,
-    typeof SCREENS.SETTINGS.PROFILE.DYNAMIC_ADDRESS_STATE | typeof SCREENS.IOU_SEND.DYNAMIC_ADDRESS_STATE
->;
+type DynamicStateSelectionPageProps =
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.DYNAMIC_ADDRESS_STATE>
+    | PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.IOU_SEND.DYNAMIC_ADDRESS_STATE>;
 
 function DynamicStateSelectionPage({route}: DynamicStateSelectionPageProps) {
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
