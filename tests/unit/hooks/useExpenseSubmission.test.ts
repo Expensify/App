@@ -12,7 +12,7 @@ const mockRequestMoneyAction = jest.fn();
 const mockTrackExpenseAction = jest.fn();
 const mockCleanupAfterExpenseCreate = jest.fn();
 const mockCleanupAndNavigateAfterExpenseCreate = jest.fn();
-const mockResolveChatForSubmitCleanup = jest.fn();
+const mockResolveChatTargetForSubmitCleanup = jest.fn();
 
 jest.mock('@userActions/IOU/TrackExpense', () => ({
     requestMoney: (...args: unknown[]) => mockRequestMoneyAction(...args),
@@ -29,9 +29,8 @@ jest.mock('@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate', () =>
     default: (...args: unknown[]) => mockCleanupAndNavigateAfterExpenseCreate(...args),
 }));
 
-jest.mock('@pages/iou/request/step/confirmation/resolveChatForSubmitCleanup', () => ({
-    __esModule: true,
-    default: (...args: unknown[]) => mockResolveChatForSubmitCleanup(...args),
+jest.mock('@pages/iou/request/step/resolveChatTarget', () => ({
+    resolveChatTargetForSubmitCleanup: (...args: unknown[]) => mockResolveChatTargetForSubmitCleanup(...args),
 }));
 
 jest.mock('@hooks/useLocalize', () => ({
@@ -152,7 +151,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
         jest.clearAllMocks();
         await Onyx.clear();
         mockRequestMoneyAction.mockReturnValue({iouReport: {reportID: 'iou-1'}});
-        mockResolveChatForSubmitCleanup.mockReturnValue({report: {reportID: REPORT_ID}, optimisticChatReportID: 'fallback-id'});
+        mockResolveChatTargetForSubmitCleanup.mockReturnValue({report: {reportID: REPORT_ID}, chatReportID: 'fallback-id', optimisticChatReportID: undefined});
     });
 
     describe('requestMoney path', () => {
@@ -248,7 +247,7 @@ describe('useExpenseSubmission action-bailout safety', () => {
     beforeEach(async () => {
         jest.clearAllMocks();
         await Onyx.clear();
-        mockResolveChatForSubmitCleanup.mockReturnValue({report: {reportID: REPORT_ID}, optimisticChatReportID: 'fallback-id'});
+        mockResolveChatTargetForSubmitCleanup.mockReturnValue({report: {reportID: REPORT_ID}, chatReportID: 'fallback-id', optimisticChatReportID: undefined});
     });
 
     it('skips requestMoney entirely (including the action call) when SUBMIT batch is missing linked-track metadata', async () => {

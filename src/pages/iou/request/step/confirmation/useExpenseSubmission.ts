@@ -41,6 +41,7 @@ import {
     isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
 } from '@libs/TransactionUtils';
+import {resolveChatTargetForSubmitCleanup} from '@pages/iou/request/step/resolveChatTarget';
 import {submitPerDiemExpenseForSelfDM, submitPerDiemExpense as submitPerDiemExpenseIOUActions} from '@userActions/IOU/PerDiem';
 import {getReceiverType, sendInvoice} from '@userActions/IOU/SendInvoice';
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
@@ -57,7 +58,6 @@ import type {Receipt} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import resolveChatForSubmitCleanup from './resolveChatForSubmitCleanup';
 
 function getCurrentPositionWithGeolocationSpan(onPosition: (gpsCoords?: {lat: number; long: number}) => void) {
     const parentSpan = getSpan(CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE);
@@ -275,7 +275,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             cleanupAfterExpenseCreate({draftTransactionIDs, linkedTrackedExpenseReportAction: lastTransaction?.linkedTrackedExpenseReportAction});
             return;
         }
-        const {report: resolvedReport, optimisticChatReportID} = resolveChatForSubmitCleanup({
+        const {report: resolvedReport, chatReportID} = resolveChatTargetForSubmitCleanup({
             participant,
             currentUserAccountID: currentUserPersonalDetails.accountID,
             report,
@@ -289,7 +289,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             transactionID: lastOptimisticTransactionID,
             isFromGlobalCreate: getIsFromGlobalCreate(lastTransaction),
             backToReport: navigateBackToReport,
-            optimisticChatReportID,
+            optimisticChatReportID: chatReportID,
             linkedTrackedExpenseReportAction: lastTransaction?.linkedTrackedExpenseReportAction,
         });
     }

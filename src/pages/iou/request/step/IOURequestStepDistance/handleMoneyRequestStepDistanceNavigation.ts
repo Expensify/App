@@ -1,6 +1,5 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {
-    createTransaction,
     getMoneyRequestParticipantOptions,
     setCustomUnitRateID,
     setMoneyRequestDistance,
@@ -14,7 +13,9 @@ import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {calculateDefaultReimbursable, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
-import submitWithCleanup from '@libs/Navigation/helpers/submitWithCleanup';
+import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
+import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
+import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import type {WriteOverrides} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
@@ -101,11 +102,9 @@ type MoneyRequestStepDistanceNavigationParams = {
 };
 
 /**
- * Decides what to do after the user finished the distance step (manual/odometer/GPS):
- * navigate-only branches just navigate, and skip-confirm branches submit the write + cleanup via `submitWithCleanup`.
- *
- * Lives in the UI layer because every branch either navigates directly or composes
- * `submitWithDismissFirst` with view-layer cleanup — no part of this is reusable from a non-UI caller.
+ * View-layer orchestrator for the distance step (manual / odometer / GPS): routes to navigation-only paths
+ * or composes the write + cleanup inside `submitWithDismissFirst`. Lives in UI because every branch
+ * either navigates or composes view-layer cleanup — not reusable from a non-UI caller.
  */
 function handleMoneyRequestStepDistanceNavigation({
     iouType,
@@ -226,9 +225,9 @@ function handleMoneyRequestStepDistanceNavigation({
             const distanceTaxCode = (transaction?.taxCode ? transaction.taxCode : distanceDefaultTaxCode) ?? '';
             const distanceTaxAmount = transaction?.taxAmount ?? 0;
             if (isCreatingTrackExpense && participant) {
-                submitWithCleanup({
-                    // trackExpense handles its own post-write navigation, so dismiss-first overrides aren't threaded here.
-                    executeWrite: () => {
+                submitWithDismissFirst({
+                    // trackExpense handles its own post-write navigation, so dismiss-first overrides aren't threaded into the write itself.
+                    executeWrite: (overrides) => {
                         trackExpense({
                             report,
                             isDraftPolicy: false,
@@ -278,6 +277,20 @@ function handleMoneyRequestStepDistanceNavigation({
                             optimisticTransactionID,
                             optimisticChatReportID,
                         });
+                        if (overrides.shouldHandleNavigation) {
+                            cleanupAndNavigateAfterExpenseCreate({
+                                report,
+                                action,
+                                draftTransactionIDs,
+                                transactionID: optimisticTransactionID,
+                                isFromGlobalCreate: transactionIsFromGlobalCreate,
+                                backToReport,
+                                optimisticChatReportID,
+                                linkedTrackedExpenseReportAction: transactionLinkedTrackedExpenseReportAction,
+                            });
+                            return;
+                        }
+                        cleanupAfterExpenseCreate({draftTransactionIDs, linkedTrackedExpenseReportAction: transactionLinkedTrackedExpenseReportAction});
                     },
                     destinationReportID: selfDMReport?.reportID,
                     telemetryContext: {
@@ -287,21 +300,13 @@ function handleMoneyRequestStepDistanceNavigation({
                         isFromGlobalCreate: !report?.reportID,
                         hasReceipt: false,
                     },
-                    report,
-                    action,
-                    draftTransactionIDs,
-                    transactionID: optimisticTransactionID,
-                    isFromGlobalCreate: transactionIsFromGlobalCreate,
-                    backToReport,
-                    optimisticChatReportID,
-                    linkedTrackedExpenseReportAction: transactionLinkedTrackedExpenseReportAction,
                 });
                 return;
             }
 
             const distanceDestinationReportID = report?.reportID;
 
-            const executeDistanceWrite = (overrides: WriteOverrides) => {
+            const executeDistanceWrite = (overrides: WriteOverrides): void => {
                 createDistanceRequest({
                     report,
                     participants,
@@ -347,8 +352,24 @@ function handleMoneyRequestStepDistanceNavigation({
                 });
             };
 
-            submitWithCleanup({
-                executeWrite: executeDistanceWrite,
+            submitWithDismissFirst({
+                executeWrite: (overrides) => {
+                    executeDistanceWrite(overrides);
+                    if (overrides.shouldHandleNavigation) {
+                        cleanupAndNavigateAfterExpenseCreate({
+                            report,
+                            action,
+                            draftTransactionIDs,
+                            transactionID: optimisticTransactionID,
+                            isFromGlobalCreate: transactionIsFromGlobalCreate,
+                            backToReport,
+                            optimisticChatReportID,
+                            linkedTrackedExpenseReportAction: transactionLinkedTrackedExpenseReportAction,
+                        });
+                        return;
+                    }
+                    cleanupAfterExpenseCreate({draftTransactionIDs, linkedTrackedExpenseReportAction: transactionLinkedTrackedExpenseReportAction});
+                },
                 destinationReportID: distanceDestinationReportID,
                 telemetryContext: {
                     scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.DISTANCE,
@@ -357,14 +378,6 @@ function handleMoneyRequestStepDistanceNavigation({
                     isFromGlobalCreate: !report?.reportID,
                     hasReceipt: false,
                 },
-                report,
-                action,
-                draftTransactionIDs,
-                transactionID: optimisticTransactionID,
-                isFromGlobalCreate: transactionIsFromGlobalCreate,
-                backToReport,
-                optimisticChatReportID,
-                linkedTrackedExpenseReportAction: transactionLinkedTrackedExpenseReportAction,
             });
             return;
         }

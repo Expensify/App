@@ -17,6 +17,7 @@ type UseOdometerNavigationParams = {
     /** Type of IOU flow (request, split, track, etc.). */
     iouType: IOUType;
 
+    /** IOU action (CREATE / SUBMIT / TRACK / CATEGORIZE / SHARE) — drives post-create nav targeting. */
     action: IOUAction;
 
     /** The chat/expense report that owns this transaction. */

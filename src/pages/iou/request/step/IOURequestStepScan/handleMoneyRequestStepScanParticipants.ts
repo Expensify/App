@@ -1,22 +1,17 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {
-    createTransaction,
-    getMoneyRequestParticipantsFromReport,
-    setMoneyRequestParticipants,
-    setMoneyRequestParticipantsFromReport,
-    setMultipleMoneyRequestParticipantsFromReport,
-} from '@libs/actions/IOU/MoneyRequest';
+import {createTransaction, setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport, setMultipleMoneyRequestParticipantsFromReport} from '@libs/actions/IOU/MoneyRequest';
 import {startSplitBill} from '@libs/actions/IOU/Split';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {calculateDefaultReimbursable, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
 import Log from '@libs/Log';
-import submitWithCleanup from '@libs/Navigation/helpers/submitWithCleanup';
+import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
+import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
+import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import Navigation from '@libs/Navigation/Navigation';
 import {getManagerMcTestParticipant} from '@libs/OptionsListUtils';
 import {generateReportID, getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
-import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import {setTransactionReport} from '@userActions/Transaction';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -38,6 +33,7 @@ import type {
 } from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Receipt} from '@src/types/onyx/Transaction';
+import type {ReceiptFile} from './types';
 
 type InitialTransactionParams = {
     transactionID: string;
@@ -91,23 +87,19 @@ type MoneyRequestStepScanParticipantsFlowParams = {
 
     /** IOU action (CREATE / SUBMIT / TRACK / CATEGORIZE / SHARE) — drives post-create nav targeting. */
     action: IOUAction;
-    /** Resolved chat report ID that cleanup nav should land on (existing report's ID or the optimistic one). */
+    /** Resolved chat report ID that cleanup nav should land on (existing chat or the optimistic one). */
     chatReportID: string | undefined;
-    /** Existing draft transaction IDs to remove on cleanup. */
     draftTransactionIDs: string[];
-    /** Pre-computed `getIsFromGlobalCreate(initialTransaction)` — UI threads it through to avoid widening InitialTransactionParams to a full Transaction. */
+    /** UI pre-computes `getIsFromGlobalCreate(initialTransaction)` so InitialTransactionParams doesn't have to widen to a full Transaction. */
     initialIsFromGlobalCreate: boolean | undefined;
-    /** The original tracked-expense report action this transaction came from (for the move-from-track flow); used by post-create cleanup. */
+    /** Source tracked-expense action when this is a move-from-track submission; used by post-create cleanup. */
     linkedTrackedExpenseReportAction?: OnyxEntry<ReportAction>;
 };
 
 /**
- * Decides what to do after the user selected files on the scan step:
- * navigate-only branches (backTo / global-create / participant page) just navigate,
- * and skip-confirm branches submit the write + cleanup via `submitWithCleanup`.
- *
- * Lives in the UI layer because every branch either navigates or composes
- * `submitWithDismissFirst` with view-layer cleanup — no part of this is reusable from a non-UI caller.
+ * View-layer orchestrator for the scan step: routes to navigation-only paths or composes the write +
+ * cleanup inside `submitWithDismissFirst`. Lives in UI because every branch either navigates or
+ * composes view-layer cleanup — not reusable from a non-UI caller.
  */
 function handleMoneyRequestStepScanParticipants({
     iouType,
@@ -220,13 +212,28 @@ function handleMoneyRequestStepScanParticipants({
                     participantsPolicyTags,
                 };
 
-                submitWithCleanup({
-                    executeWrite: (overrides) =>
+                submitWithDismissFirst({
+                    executeWrite: (overrides) => {
                         startSplitBill({
                             ...splitBaseParams,
                             shouldHandleNavigation: overrides.shouldHandleNavigation,
                             shouldDeferForSearch: overrides.shouldDeferForSearch,
-                        }),
+                        });
+                        if (overrides.shouldHandleNavigation) {
+                            cleanupAndNavigateAfterExpenseCreate({
+                                report,
+                                action,
+                                draftTransactionIDs,
+                                transactionID: lastOptimisticTransactionID,
+                                isFromGlobalCreate: initialIsFromGlobalCreate,
+                                backToReport,
+                                optimisticChatReportID: chatReportID,
+                                linkedTrackedExpenseReportAction,
+                            });
+                            return;
+                        }
+                        cleanupAfterExpenseCreate({draftTransactionIDs, linkedTrackedExpenseReportAction});
+                    },
                     destinationReportID: reportID,
                     telemetryContext: {
                         scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.SPLIT_RECEIPT,
@@ -235,14 +242,6 @@ function handleMoneyRequestStepScanParticipants({
                         isFromGlobalCreate: !report?.reportID,
                         hasReceipt: true,
                     },
-                    report,
-                    action,
-                    draftTransactionIDs,
-                    transactionID: lastOptimisticTransactionID,
-                    isFromGlobalCreate: initialIsFromGlobalCreate,
-                    backToReport,
-                    optimisticChatReportID: chatReportID,
-                    linkedTrackedExpenseReportAction: linkedTrackedExpenseReportAction,
                 });
                 return;
             }
@@ -285,9 +284,12 @@ function handleMoneyRequestStepScanParticipants({
             };
 
             const scanDestinationReportID = iouType === CONST.IOU.TYPE.TRACK ? selfDMReport?.reportID : report?.reportID;
-            submitWithCleanup({
+            submitWithDismissFirst({
                 executeWrite: (overrides) => {
                     const scanCreateParams = {...baseCreateTransactionParams, shouldHandleNav: overrides.shouldHandleNavigation};
+                    // When locationPermissionGranted is true, getCurrentPosition is async: the actual createTransaction fires after GPS resolves.
+                    // The deferred write channel (reserved by submitWithDismissFirst) has a 5s safety timeout that should exceed typical GPS resolution time (<2s).
+                    // If GPS takes longer the channel flushes early, but the transaction still executes — it just won't benefit from the Search skeleton.
                     if (locationPermissionGranted) {
                         getCurrentPosition(
                             (successData) => createTransaction({...scanCreateParams, gpsPoint: {lat: successData.coords.latitude, long: successData.coords.longitude}}),
@@ -297,9 +299,23 @@ function handleMoneyRequestStepScanParticipants({
                                 createTransaction(scanCreateParams);
                             },
                         );
+                    } else {
+                        createTransaction(scanCreateParams);
+                    }
+                    if (overrides.shouldHandleNavigation) {
+                        cleanupAndNavigateAfterExpenseCreate({
+                            report,
+                            action,
+                            draftTransactionIDs,
+                            transactionID: lastOptimisticTransactionID,
+                            isFromGlobalCreate: initialIsFromGlobalCreate,
+                            backToReport,
+                            optimisticChatReportID: chatReportID,
+                            linkedTrackedExpenseReportAction,
+                        });
                         return;
                     }
-                    createTransaction(scanCreateParams);
+                    cleanupAfterExpenseCreate({draftTransactionIDs, linkedTrackedExpenseReportAction});
                 },
                 destinationReportID: scanDestinationReportID,
                 telemetryContext: {
@@ -309,14 +325,6 @@ function handleMoneyRequestStepScanParticipants({
                     isFromGlobalCreate: !report?.reportID,
                     hasReceipt: true,
                 },
-                report,
-                action,
-                draftTransactionIDs,
-                transactionID: lastOptimisticTransactionID,
-                isFromGlobalCreate: initialIsFromGlobalCreate,
-                backToReport,
-                optimisticChatReportID: chatReportID,
-                linkedTrackedExpenseReportAction: linkedTrackedExpenseReportAction,
             });
             return;
         }

@@ -1713,8 +1713,11 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         playSound(SOUNDS.DONE);
     }
 
-    // Wrapped in a closure so deferOrExecuteWrite can register it against the SEARCH/DISMISS_MODAL channel
-    // when the UI reserved one; otherwise it runs synchronously below.
+    // API.write is deferred until the Search screen's actual content (not skeleton) lays out, so Onyx
+    // optimistic updates don't block the JS thread during the skeleton→content transition. The Search
+    // component flushes the registered write from its content onLayout callback. Wrapped in a closure
+    // so `deferOrExecuteWrite` can register it against a SEARCH/DISMISS_MODAL channel when the UI
+    // reserved one; otherwise it runs synchronously below.
     let deferredAPIWrite: (() => void) | undefined;
 
     switch (action) {

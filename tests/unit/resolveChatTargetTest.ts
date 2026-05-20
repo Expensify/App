@@ -1,5 +1,5 @@
 import {getChatByParticipants, getReportOrDraftReport, isDeprecatedGroupDM, isGroupChat, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
-import resolveChatForSubmitCleanup from '@pages/iou/request/step/confirmation/resolveChatForSubmitCleanup';
+import {resolveChatTargetForSubmitCleanup} from '@pages/iou/request/step/resolveChatTarget';
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
@@ -14,12 +14,18 @@ jest.mock('@libs/ReportUtils', () => ({
     isDeprecatedGroupDM: jest.fn(),
 }));
 
+// Stub IOUUtils to avoid pulling its transitive dependency graph into the test bundle;
+// resolveChatTargetForSubmitCleanup never calls into IOUUtils, only resolveChatTargetForScan does.
+jest.mock('@libs/IOUUtils', () => ({
+    resolveOptimisticChatReportID: jest.fn(),
+}));
+
 const CURRENT_USER_ACCOUNT_ID = 1;
 const PARTICIPANT_ACCOUNT_ID = 42;
 const OTHER_PARTICIPANT_ACCOUNT_ID = 99;
 const FALLBACK = 'fallback-optimistic-id';
 
-describe('resolveChatForSubmitCleanup', () => {
+describe('resolveChatTargetForSubmitCleanup', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         (getChatByParticipants as jest.Mock).mockReturnValue(undefined);
@@ -36,7 +42,7 @@ describe('resolveChatForSubmitCleanup', () => {
         const report = {reportID: 'iou-report-1'} as Report;
         (isMoneyRequestReport as jest.Mock).mockReturnValue(true);
 
-        const result = resolveChatForSubmitCleanup({
+        const result = resolveChatTargetForSubmitCleanup({
             participant,
             currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             report,
@@ -46,7 +52,7 @@ describe('resolveChatForSubmitCleanup', () => {
 
         expect(isMoneyRequestReport).toHaveBeenCalledWith(report);
         expect(getChatByParticipants).not.toHaveBeenCalled();
-        expect(result).toEqual({report, optimisticChatReportID: FALLBACK});
+        expect(result).toEqual({report, chatReportID: FALLBACK, optimisticChatReportID: undefined});
     });
 
     it('should keep the source report when participants match (action keeps parentChatReport even if getChatByParticipants returns no match)', () => {
@@ -54,7 +60,7 @@ describe('resolveChatForSubmitCleanup', () => {
         const report = {reportID: 'chat-A', participants: {[PARTICIPANT_ACCOUNT_ID]: {}, [CURRENT_USER_ACCOUNT_ID]: {}}} as unknown as Report;
         (getChatByParticipants as jest.Mock).mockReturnValue(undefined);
 
-        const result = resolveChatForSubmitCleanup({
+        const result = resolveChatTargetForSubmitCleanup({
             participant,
             currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             report,
@@ -62,7 +68,7 @@ describe('resolveChatForSubmitCleanup', () => {
             action: CONST.IOU.ACTION.CREATE,
         });
 
-        expect(result).toEqual({report, optimisticChatReportID: FALLBACK});
+        expect(result).toEqual({report, chatReportID: FALLBACK, optimisticChatReportID: undefined});
     });
 
     it('should keep the source report for special chat types (policyExpenseChat / selfDM / groupChat / deprecatedGroupDM) regardless of participant match', () => {
@@ -70,7 +76,7 @@ describe('resolveChatForSubmitCleanup', () => {
         const report = {reportID: 'self-dm-1'} as Report;
         (isSelfDM as jest.Mock).mockReturnValue(true);
 
-        const result = resolveChatForSubmitCleanup({
+        const result = resolveChatTargetForSubmitCleanup({
             participant,
             currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             report,
@@ -78,14 +84,14 @@ describe('resolveChatForSubmitCleanup', () => {
             action: CONST.IOU.ACTION.CREATE,
         });
 
-        expect(result).toEqual({report, optimisticChatReportID: FALLBACK});
+        expect(result).toEqual({report, chatReportID: FALLBACK, optimisticChatReportID: undefined});
     });
 
     it('should keep the source report when participant.isPolicyExpenseChat=true (action skips participant validation)', () => {
         const participant: Participant = {isPolicyExpenseChat: true, reportID: 'workspace-1'};
         const report = {reportID: 'some-report'} as Report;
 
-        const result = resolveChatForSubmitCleanup({
+        const result = resolveChatTargetForSubmitCleanup({
             participant,
             currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             report,
@@ -93,13 +99,13 @@ describe('resolveChatForSubmitCleanup', () => {
             action: CONST.IOU.ACTION.CREATE,
         });
 
-        expect(result).toEqual({report, optimisticChatReportID: FALLBACK});
+        expect(result).toEqual({report, chatReportID: FALLBACK, optimisticChatReportID: undefined});
     });
 
     it('should resolve to participant.reportID when participant is policyExpenseChat and no source report', () => {
         const participant: Participant = {isPolicyExpenseChat: true, reportID: 'workspace-1'};
 
-        const result = resolveChatForSubmitCleanup({
+        const result = resolveChatTargetForSubmitCleanup({
             participant,
             currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             report: undefined,
@@ -107,14 +113,14 @@ describe('resolveChatForSubmitCleanup', () => {
             action: CONST.IOU.ACTION.CREATE,
         });
 
-        expect(result).toEqual({report: undefined, optimisticChatReportID: 'workspace-1'});
+        expect(result).toEqual({report: undefined, chatReportID: 'workspace-1', optimisticChatReportID: undefined});
     });
 
     it('should fall back to optimisticChatReportID when participant.isPolicyExpenseChat targets a report not present in the Onyx cache (mirrors action behavior)', () => {
         const participant: Participant = {isPolicyExpenseChat: true, reportID: 'workspace-uncached'};
         (getReportOrDraftReport as jest.Mock).mockReturnValue(undefined);
 
-        const result = resolveChatForSubmitCleanup({
+        const result = resolveChatTargetForSubmitCleanup({
             participant,
             currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             report: undefined,
@@ -122,7 +128,7 @@ describe('resolveChatForSubmitCleanup', () => {
             action: CONST.IOU.ACTION.CREATE,
         });
 
-        expect(result).toEqual({report: undefined, optimisticChatReportID: FALLBACK});
+        expect(result).toEqual({report: undefined, chatReportID: FALLBACK, optimisticChatReportID: undefined});
     });
 
     it('should resolve to the existing 1:1 DM via getChatByParticipants when participant differs from source report', () => {
@@ -130,7 +136,7 @@ describe('resolveChatForSubmitCleanup', () => {
         const report = {reportID: 'chat-A', participants: {[PARTICIPANT_ACCOUNT_ID]: {}, [CURRENT_USER_ACCOUNT_ID]: {}}} as unknown as Report;
         (getChatByParticipants as jest.Mock).mockReturnValue({reportID: 'chat-B'});
 
-        const result = resolveChatForSubmitCleanup({
+        const result = resolveChatTargetForSubmitCleanup({
             participant,
             currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             report,
@@ -139,7 +145,7 @@ describe('resolveChatForSubmitCleanup', () => {
         });
 
         expect(getChatByParticipants).toHaveBeenCalledWith([OTHER_PARTICIPANT_ACCOUNT_ID, CURRENT_USER_ACCOUNT_ID]);
-        expect(result).toEqual({report: undefined, optimisticChatReportID: 'chat-B'});
+        expect(result).toEqual({report: undefined, chatReportID: 'chat-B', optimisticChatReportID: undefined});
     });
 
     it('should fall back to optimisticChatReportID and discard report when participant changed to a brand-new contact (no existing chat)', () => {
@@ -147,7 +153,7 @@ describe('resolveChatForSubmitCleanup', () => {
         const report = {reportID: 'chat-A', participants: {[PARTICIPANT_ACCOUNT_ID]: {}, [CURRENT_USER_ACCOUNT_ID]: {}}} as unknown as Report;
         (getChatByParticipants as jest.Mock).mockReturnValue(undefined);
 
-        const result = resolveChatForSubmitCleanup({
+        const result = resolveChatTargetForSubmitCleanup({
             participant,
             currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             report,
@@ -155,13 +161,13 @@ describe('resolveChatForSubmitCleanup', () => {
             action: CONST.IOU.ACTION.CREATE,
         });
 
-        expect(result).toEqual({report: undefined, optimisticChatReportID: FALLBACK});
+        expect(result).toEqual({report: undefined, chatReportID: FALLBACK, optimisticChatReportID: undefined});
     });
 
     it('should fall back to optimisticChatReportID when both report and participant are empty', () => {
         const participant: Participant = {};
 
-        const result = resolveChatForSubmitCleanup({
+        const result = resolveChatTargetForSubmitCleanup({
             participant,
             currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             report: undefined,
@@ -169,7 +175,7 @@ describe('resolveChatForSubmitCleanup', () => {
             action: CONST.IOU.ACTION.CREATE,
         });
 
-        expect(result).toEqual({report: undefined, optimisticChatReportID: FALLBACK});
+        expect(result).toEqual({report: undefined, chatReportID: FALLBACK, optimisticChatReportID: undefined});
     });
 
     describe('tracked-expense submit (action === SUBMIT)', () => {
@@ -179,7 +185,7 @@ describe('resolveChatForSubmitCleanup', () => {
             (isSelfDM as jest.Mock).mockReturnValue(true);
             (getChatByParticipants as jest.Mock).mockReturnValue({reportID: 'one-on-one-chat'});
 
-            const result = resolveChatForSubmitCleanup({
+            const result = resolveChatTargetForSubmitCleanup({
                 participant,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -188,7 +194,7 @@ describe('resolveChatForSubmitCleanup', () => {
             });
 
             expect(getChatByParticipants).toHaveBeenCalledWith([PARTICIPANT_ACCOUNT_ID, CURRENT_USER_ACCOUNT_ID]);
-            expect(result).toEqual({report: undefined, optimisticChatReportID: 'one-on-one-chat'});
+            expect(result).toEqual({report: undefined, chatReportID: 'one-on-one-chat', optimisticChatReportID: undefined});
         });
 
         it('should resolve to the participant policy-expense chat (not the self-DM source) for a workspace submit', () => {
@@ -196,7 +202,7 @@ describe('resolveChatForSubmitCleanup', () => {
             const report = {reportID: 'self-dm-1'} as Report;
             (isSelfDM as jest.Mock).mockReturnValue(true);
 
-            const result = resolveChatForSubmitCleanup({
+            const result = resolveChatTargetForSubmitCleanup({
                 participant,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -204,7 +210,7 @@ describe('resolveChatForSubmitCleanup', () => {
                 action: CONST.IOU.ACTION.SUBMIT,
             });
 
-            expect(result).toEqual({report: undefined, optimisticChatReportID: 'workspace-1'});
+            expect(result).toEqual({report: undefined, chatReportID: 'workspace-1', optimisticChatReportID: undefined});
         });
 
         it('should still keep the source when it is a money-request report even for SUBMIT (mirrors action: isMoneyRequestReport ? report.reportID)', () => {
@@ -212,7 +218,7 @@ describe('resolveChatForSubmitCleanup', () => {
             const report = {reportID: 'iou-report-1'} as Report;
             (isMoneyRequestReport as jest.Mock).mockReturnValue(true);
 
-            const result = resolveChatForSubmitCleanup({
+            const result = resolveChatTargetForSubmitCleanup({
                 participant,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -220,7 +226,7 @@ describe('resolveChatForSubmitCleanup', () => {
                 action: CONST.IOU.ACTION.SUBMIT,
             });
 
-            expect(result).toEqual({report, optimisticChatReportID: FALLBACK});
+            expect(result).toEqual({report, chatReportID: FALLBACK, optimisticChatReportID: undefined});
         });
     });
 });

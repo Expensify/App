@@ -1,3 +1,10 @@
+/**
+ * Dismiss-first submit orchestration for skip-confirmation paths (QAB amount entry, scan/distance without confirmation).
+ *
+ * Related: `SubmitExpenseOrchestrator.tsx` handles confirmation-step flows with a richer decision tree
+ * (pre-inserts, RHP dismiss, search dismiss). Both share the same telemetry primitives
+ * (`startTracking`, `setFastPath`, `setPendingSubmitFollowUpAction`) for consistent span instrumentation.
+ */
 import {reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
@@ -48,7 +55,7 @@ function startDismissFirstTracking(
  *   4. Destination not loaded    -> write immediately, then reveal-and-dismiss
  *   5. Fallback                  -> start tracking with default fast path, write with defaults
  *
- * Must not be called from `src/libs/actions/` — view-layer only. Typically wrapped via {@link submitWithCleanup}, which threads draft/RHP cleanup into every branch.
+ * Must not be called from `src/libs/actions/` — view-layer only. Call sites typically compose this with `cleanupAndNavigateAfterExpenseCreate` / `cleanupAfterExpenseCreate` inline inside `executeWrite`.
  */
 function submitWithDismissFirst({executeWrite, destinationReportID, telemetryContext}: SubmitWithDismissFirstParams): void {
     const shouldStayOnSearch = isSearchTopmostFullScreenRoute();
@@ -87,6 +94,7 @@ function submitWithDismissFirst({executeWrite, destinationReportID, telemetryCon
         return;
     }
 
+    // Fallback: no fast-path nav applies — start tracking so telemetry isn't silently skipped.
     startTracking(telemetryContext, {skipSubmitExpenseSpan: true});
     setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DEFAULT);
     executeWrite({shouldHandleNavigation: true, shouldDeferForSearch: false});
