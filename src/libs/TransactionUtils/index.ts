@@ -46,10 +46,9 @@ import {
     isThread,
 } from '@libs/ReportUtils';
 import {isInvalidMerchantValue} from '@libs/ValidationUtils';
-import type {IOURequestType} from '@userActions/IOU';
 import type {UpdateMoneyRequestDataKeys} from '@userActions/IOU/UpdateMoneyRequest';
+import type {IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
-import type {IOUType} from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -2739,6 +2738,12 @@ const getOriginalTransactionWithSplitInfo = (transaction: OnyxEntry<Transaction>
     return {isBillSplit: !!originalTransaction?.comment?.splits, isExpenseSplit: isExpenseSplit(transaction, originalTransaction), originalTransaction: originalTransaction ?? transaction};
 };
 
+function shouldRedirectDeleteToSplitExpenseEdit(transaction: OnyxEntry<Transaction>, originalTransaction: OnyxEntry<Transaction>): boolean {
+    const {isExpenseSplit: isExpenseSplitTransaction, originalTransaction: sourceTransaction} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
+
+    return isExpenseSplitTransaction && !isExpenseUnreported(transaction ?? undefined) && !isExpenseUnreported(originalTransaction ?? undefined) && isPerDiemRequest(sourceTransaction);
+}
+
 /**
  * Return transactions pending action.
  */
@@ -2987,6 +2992,7 @@ export {
     isScanning,
     isCategoryBeingAnalyzed,
     getOriginalTransactionWithSplitInfo,
+    shouldRedirectDeleteToSplitExpenseEdit,
     getTransactionPendingAction,
     isTransactionPendingDelete,
     getChildTransactions,

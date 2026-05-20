@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/refs */
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
@@ -62,6 +63,7 @@ import {
     isManagedCardTransaction,
     isPerDiemRequest,
     isScanning,
+    shouldRedirectDeleteToSplitExpenseEdit,
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import {initBulkEditDraftTransaction} from '@userActions/IOU/BulkEdit';
@@ -329,6 +331,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const totalFormattedAmount = getTotalFormattedAmount(convertToDisplayString, selectedReports, selectedTransactions, selectedBulkCurrency);
 
     const onlyShowPayElsewhere = useMemo(() => {
+        const selectedCurrencies = [...selectedReports.map((report) => report.currency), ...Object.values(selectedTransactions).map((transaction) => transaction.currency)].filter(Boolean);
+        if (new Set(selectedCurrencies).size > 1) {
+            return true;
+        }
+
         const firstPolicyID = selectedPolicyIDs.at(0);
         const selectedPolicy = firstPolicyID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${firstPolicyID}`] : undefined;
         return (selectedTransactionReportIDs ?? selectedReportIDs).some((reportID) => {
@@ -371,6 +378,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         selectedTransactionReportIDs,
         selectedReportIDs,
         bankAccountList,
+        selectedReports,
+        selectedTransactions,
         currentUserPersonalDetails?.login,
         currentUserPersonalDetails.accountID,
     ]);
@@ -386,7 +395,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     const {status, hash} = queryJSON ?? {};
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
-    const firstTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionsKeys.at(0)}`];
+    const firstTransactionID = selectedTransactionsKeys.at(0);
+    const firstTransaction =
+        (firstTransactionID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransactionID}`] : undefined) ??
+        (firstTransactionID ? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransactionID}`] : undefined);
     const [firstTransactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${firstTransaction?.reportID}`);
     const [firstTransactionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${firstTransactionReport?.policyID}`);
 
@@ -1122,7 +1134,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     icon: expensifyIcons.ExpenseCopy,
                     value: CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE,
                     shouldCloseModalOnSelect: true,
-                    onSelected: invokeDuplicateHandler,
+                    onSelected: () => {
+                        if (defaultExpensePolicy && shouldRestrictUserBillableActions(defaultExpensePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+                            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(defaultExpensePolicy.id));
+                            return;
+                        }
+                        invokeDuplicateHandler();
+                    },
                 });
             }
 
@@ -1267,13 +1285,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 },
             });
         }
-        const {shouldEnableBulkPayOption, isFirstTimePayment} = getPayOption(selectedReports, selectedTransactions, lastPaymentMethods, selectedReportIDs, personalPolicyID);
+        const {shouldEnableBulkPayOption} = getPayOption(selectedReports, selectedTransactions, lastPaymentMethods, selectedReportIDs, personalPolicyID);
 
-        const shouldShowPayOption = !isOffline && !isAnyTransactionOnHold && shouldEnableBulkPayOption;
+        const shouldShowPayOption = !isOffline && !isAnyTransactionOnHold && shouldEnableBulkPayOption && !!bulkPayButtonOptions?.length;
 
         if (shouldShowPayOption) {
-            const hasMultipleBusinessBankAccounts = (businessBankAccountOptions?.length ?? 0) > 1;
-            const shouldShowPaySubmenu = isFirstTimePayment || (shouldShowBusinessBankAccountOptions && hasMultipleBusinessBankAccounts);
+            const shouldShowPaySubmenu = !!bulkPayButtonOptions?.length;
 
             const payButtonOption = {
                 icon: expensifyIcons.MoneyBag,
@@ -1434,11 +1451,19 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         const firstTransactionKey = selectedTransactionsKeys.at(0);
         const firstTransactionMeta = firstTransactionKey ? selectedTransactions[firstTransactionKey] : undefined;
+        const canShowDeleteAction = shouldShowDeleteOption(selectedTransactions, currentSearchResults?.data, selectedReports, queryJSON?.type);
+        const firstOriginalTransactionID = firstTransaction?.comment?.originalTransactionID;
+        const firstOriginalTransaction =
+            (firstOriginalTransactionID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstOriginalTransactionID}`] : undefined) ??
+            (firstOriginalTransactionID ? transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstOriginalTransactionID}`] : undefined) ??
+            (firstOriginalTransactionID ? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstOriginalTransactionID}`] : undefined);
+        const shouldShowEditSplitOnDeleteAction =
+            canShowDeleteAction && selectedTransactionsKeys.length === 1 && shouldRedirectDeleteToSplitExpenseEdit(firstTransaction, firstOriginalTransaction);
 
         const isSplittable = !!firstTransactionMeta?.canSplit;
         const isAlreadySplit = !!firstTransactionMeta?.hasBeenSplit;
 
-        const canSplitTransaction = selectedTransactionsKeys.length === 1 && !isAlreadySplit && isSplittable;
+        const canSplitTransaction = selectedTransactionsKeys.length === 1 && !isAlreadySplit && isSplittable && !shouldShowEditSplitOnDeleteAction;
 
         if (canSplitTransaction) {
             options.push({
@@ -1459,6 +1484,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE,
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
+                    if (defaultExpensePolicy && shouldRestrictUserBillableActions(defaultExpensePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(defaultExpensePolicy.id));
+                        return;
+                    }
                     if (exceedsBulkDuplicateLimit) {
                         showConfirmModal({
                             title: translate('common.duplicateExpense'),
@@ -1482,14 +1511,17 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 onSelected: invokeDuplicateReportHandler,
             });
         }
-
-        if (shouldShowDeleteOption(selectedTransactions, currentSearchResults?.data, selectedReports, queryJSON?.type)) {
+        if (canShowDeleteAction) {
             options.push({
-                icon: expensifyIcons.Trashcan,
-                text: translate('search.bulkActions.delete'),
+                icon: shouldShowEditSplitOnDeleteAction ? expensifyIcons.ArrowSplit : expensifyIcons.Trashcan,
+                text: shouldShowEditSplitOnDeleteAction ? translate('iou.editSplits') : translate('search.bulkActions.delete'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DELETE,
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
+                    if (shouldShowEditSplitOnDeleteAction && firstTransaction) {
+                        initSplitExpense(firstTransaction, firstTransactionPolicy, {navigateToEditSplitExpense: true});
+                        return;
+                    }
                     handleDeleteSelectedTransactions();
                 },
             });
@@ -1541,7 +1573,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         currentUserPersonalDetails?.login,
         bankAccountList,
         styles.integrationIcon,
-        styles.textWrap,
         showConfirmModal,
         clearSelectedTransactions,
         handleBasicExport,
@@ -1567,7 +1598,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         isExpenseReportType,
         handleDeleteSelectedTransactions,
         undeleteTransactions,
-        currentUserPersonalDetails?.email,
         theme.icon,
         styles.colorMuted,
         styles.fontWeightNormal,
@@ -1577,7 +1607,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         getCurrencyDecimals,
         amountOwed,
         allTransactions,
+        transactions,
         isBetaEnabled,
+        defaultExpensePolicy,
     ]);
 
     const handleOfflineModalClose = useCallback(() => {
