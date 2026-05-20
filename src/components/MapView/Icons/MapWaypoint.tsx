@@ -1,6 +1,7 @@
 import React, {useId} from 'react';
-import {Circle, Defs, FeDropShadow, Filter, Svg} from 'react-native-svg';
+import {Circle, Svg} from 'react-native-svg';
 import type {SvgProps} from 'react-native-svg';
+import MapMarkerShadowFilter from './MapMarkerShadowFilter';
 
 function MapWaypoint({width = 40, height = 40}: SvgProps) {
     const filterId = useId();
@@ -11,24 +12,11 @@ function MapWaypoint({width = 40, height = 40}: SvgProps) {
             viewBox="0 0 40 40"
             fill="none"
         >
-            <Defs>
-                <Filter
-                    id={filterId}
-                    x="0"
-                    y="0"
-                    width="40"
-                    height="40"
-                    filterUnits="userSpaceOnUse"
-                >
-                    <FeDropShadow
-                        dx={0}
-                        dy={4}
-                        stdDeviation={6}
-                        floodColor="#021204"
-                        floodOpacity={0.06}
-                    />
-                </Filter>
-            </Defs>
+            <MapMarkerShadowFilter
+                id={filterId}
+                width="40"
+                height="40"
+            />
             <Circle
                 cx="20"
                 cy="16"

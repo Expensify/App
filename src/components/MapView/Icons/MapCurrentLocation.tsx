@@ -1,6 +1,7 @@
 import React, {useId} from 'react';
-import {Defs, FeDropShadow, Filter, G, Path, Svg} from 'react-native-svg';
+import {G, Path, Svg} from 'react-native-svg';
 import type {SvgProps} from 'react-native-svg';
+import MapMarkerShadowFilter from './MapMarkerShadowFilter';
 
 function MapCurrentLocation({width = 48, height = 48}: SvgProps) {
     const filterId = useId();
@@ -11,24 +12,11 @@ function MapCurrentLocation({width = 48, height = 48}: SvgProps) {
             viewBox="0 0 48 48"
             fill="none"
         >
-            <Defs>
-                <Filter
-                    id={filterId}
-                    x="0"
-                    y="0"
-                    width="48"
-                    height="48"
-                    filterUnits="userSpaceOnUse"
-                >
-                    <FeDropShadow
-                        dx={0}
-                        dy={4}
-                        stdDeviation={6}
-                        floodColor="#021204"
-                        floodOpacity={0.06}
-                    />
-                </Filter>
-            </Defs>
+            <MapMarkerShadowFilter
+                id={filterId}
+                width="48"
+                height="48"
+            />
             <G filter={`url(#${filterId})`}>
                 <Path
                     fill="#0185ff"
