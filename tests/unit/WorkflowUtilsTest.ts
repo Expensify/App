@@ -270,12 +270,9 @@ describe('WorkflowUtils', () => {
         });
 
         it('Should fall back to the email when personal details exist but displayName is missing', () => {
+            const {displayName: omittedDisplayName, ...personalDetailsWithoutDisplayNameEntry} = buildPersonalDetails('custom@example.com', 99);
             const personalDetailsWithoutDisplayName: PersonalDetailsList = {
-                'custom@example.com': {
-                    ...personalDetailsByEmail['1@example.com'],
-                    login: 'custom@example.com',
-                    displayName: undefined,
-                },
+                'custom@example.com': personalDetailsWithoutDisplayNameEntry,
             };
 
             expect(getOverLimitForwardsToDisplayName('custom@example.com', personalDetailsWithoutDisplayName)).toBe('custom@example.com');
