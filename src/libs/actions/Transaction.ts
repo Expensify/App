@@ -845,7 +845,7 @@ type ChangeTransactionsReportProps = {
     policyCategories?: OnyxEntry<PolicyCategories>;
     allTransactions: OnyxCollection<Transaction>;
     policyTagList: OnyxEntry<PolicyTagLists>;
-    nonDuplicatedTransactionViolations: TransactionViolation[];
+    transactionViolations: OnyxCollection<TransactionViolation[]>;
 };
 
 function changeTransactionsReport({
@@ -859,7 +859,7 @@ function changeTransactionsReport({
     policyCategories,
     allTransactions,
     policyTagList,
-    nonDuplicatedTransactionViolations,
+    transactionViolations,
 }: ChangeTransactionsReportProps) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -1140,10 +1140,13 @@ function changeTransactionsReport({
             const duplicateTransactionIDs = duplicateViolation?.data?.duplicates;
             if (duplicateTransactionIDs) {
                 for (const id of duplicateTransactionIDs) {
+                    const siblingNonDuplicatedViolations = (transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? []).filter(
+                        (violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                    );
                     optimisticData.push({
                         onyxMethod: Onyx.METHOD.SET,
                         key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
-                        value: nonDuplicatedTransactionViolations,
+                        value: siblingNonDuplicatedViolations,
                     });
                 }
             }

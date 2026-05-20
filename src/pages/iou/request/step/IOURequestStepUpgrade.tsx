@@ -39,7 +39,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetails, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {PersonalDetails, Transaction} from '@src/types/onyx';
 
 type IOURequestStepUpgradeProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_UPGRADE>;
 
@@ -126,10 +126,6 @@ function IOURequestStepUpgrade({
         }
     };
 
-    const nonDuplicatedTransactionViolations = Object.values(transactionViolations ?? {})
-        .flat()
-        .filter((violation): violation is TransactionViolation => violation?.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
-
     const afterUpgradeAcknowledged = useCallback(() => {
         const expenseReportID = policyDataRef.current?.expenseChatReportID ?? reportID;
         const policyID = policyDataRef.current?.policyID;
@@ -155,7 +151,7 @@ function IOURequestStepUpgrade({
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`],
                 allTransactions,
                 policyTagList,
-                nonDuplicatedTransactionViolations,
+                transactionViolations,
             });
 
             clearSelectedTransactions();
@@ -254,7 +250,7 @@ function IOURequestStepUpgrade({
         isTrack,
         allPolicyTags,
         createReportForCurrentUser,
-        nonDuplicatedTransactionViolations,
+        transactionViolations,
     ]);
 
     const participant = transaction?.participants?.[0];

@@ -12,7 +12,7 @@ import {convertBulkTrackedExpensesToIOU} from '@userActions/IOU/TrackExpense';
 import {changeTransactionsReport} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, Report, ReportNextStepDeprecated, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Policy, PolicyCategories, Report, ReportNextStepDeprecated, Transaction} from '@src/types/onyx';
 import Button from './Button';
 import FormHelpMessage from './FormHelpMessage';
 import {usePersonalDetails, useSession} from './OnyxListItemProvider';
@@ -55,9 +55,6 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
               }, {});
     const [selectedTransactions = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {selector: getSelectedTransactions});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const nonDuplicatedTransactionViolations = Object.values(transactionViolations ?? {})
-        .flat()
-        .filter((violation): violation is TransactionViolation => violation?.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -98,7 +95,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
                     policyCategories,
                     allTransactions: selectedTransactions,
                     policyTagList,
-                    nonDuplicatedTransactionViolations,
+                    transactionViolations,
                 });
             }
         });

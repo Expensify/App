@@ -1,7 +1,7 @@
 import {changeTransactionsReport} from '@libs/actions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Transaction} from '@src/types/onyx';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
@@ -14,9 +14,6 @@ function useUndeleteTransactions() {
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`);
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const nonDuplicatedTransactionViolations = Object.values(transactionViolations ?? {})
-        .flat()
-        .filter((violation): violation is TransactionViolation => violation?.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
 
     return (transactions: Transaction[]) => {
         const transactionIDs = transactions.map((transaction) => transaction.transactionID);
@@ -30,7 +27,7 @@ function useUndeleteTransactions() {
             policy,
             allTransactions,
             policyTagList,
-            nonDuplicatedTransactionViolations,
+            transactionViolations,
         });
     };
 }
