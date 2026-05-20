@@ -45,7 +45,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
 
     const iconToDisplay = getIntegrationIcon(connectionName, expensifyIcons);
     const canBeExported = canBeExportedUtil(report);
-    const isExported = isExportedUtil(reportActions);
+    const isExported = isExportedUtil(reportActions, report);
 
     const confirmExport = useCallback(
         (type: ExportType) => {
