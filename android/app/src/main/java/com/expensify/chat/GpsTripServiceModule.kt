@@ -1,4 +1,4 @@
-package com.expensify.chat.customairshipextender
+package com.expensify.chat
 
 import android.content.Intent
 import android.os.Build

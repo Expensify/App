@@ -1,4 +1,4 @@
-package com.expensify.chat.customairshipextender
+package com.expensify.chat
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
