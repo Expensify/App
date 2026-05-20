@@ -57,7 +57,7 @@ import {startSpan} from '@libs/telemetry/activeSpans';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {compareByRBR} from '@libs/TransactionPreviewUtils';
-import {hasPendingUI, isManagedCardTransaction, isPending} from '@libs/TransactionUtils';
+import {hasPendingUI, isPending} from '@libs/TransactionUtils';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -216,7 +216,7 @@ function MoneyRequestReportPreviewContent({
 
     const numberOfRequests = transactions?.length ?? 0;
     const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID);
-    const numberOfPendingRequests = transactionsWithReceipts.filter((transaction) => isPending(transaction) && isManagedCardTransaction(transaction)).length;
+    const numberOfPendingRequests = transactionsWithReceipts.filter((transaction) => isPending(transaction)).length;
 
     const shouldShowRTERViolationMessage = numberOfRequests === 1 && hasPendingUI(lastTransaction, lastTransactionViolations);
 

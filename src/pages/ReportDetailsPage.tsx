@@ -108,7 +108,7 @@ import {
     shouldDisableRename as shouldDisableRenameUtil,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
-import {isDemoTransaction} from '@libs/TransactionUtils';
+import {isDemoTransaction, isPending} from '@libs/TransactionUtils';
 import {getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU/DeleteMoneyRequest';
 import {deleteTrackExpense, getNavigationUrlAfterTrackExpenseDelete} from '@userActions/IOU/TrackExpense';
 import {
@@ -1012,9 +1012,15 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
     }, [requestParentReportAction, route.params.reportID, moneyRequestReport, iouTransactionID, iouReport, chatIOUReport, isChatIOUReportArchived, isSingleTransactionView]);
 
     const showDeleteModal = useCallback(async () => {
+        let deletePrompt = translate('iou.deleteConfirmation', {count: 1});
+        if (caseID === CASES.DEFAULT) {
+            deletePrompt = translate('task.deleteConfirmation');
+        } else if (isPending(iouTransaction)) {
+            deletePrompt = translate('iou.deleteConfirmationPendingBYOC');
+        }
         const {action} = await showConfirmModal({
             title: caseID === CASES.DEFAULT ? translate('task.deleteTask') : translate('iou.deleteExpense', {count: 1}),
-            prompt: caseID === CASES.DEFAULT ? translate('task.deleteConfirmation') : translate('iou.deleteConfirmation', {count: 1}),
+            prompt: deletePrompt,
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
             danger: true,
