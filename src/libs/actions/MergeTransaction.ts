@@ -34,11 +34,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CardList, MergeTransaction, Policy, PolicyCategories, PolicyTagLists, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
 import {getPolicyTagsData} from './IOU';
-import type {UpdateMoneyRequestData} from './IOU';
 import {getCleanUpTransactionThreadReportOnyxData} from './IOU/DeleteMoneyRequest';
 import {getDeleteTrackExpenseInformation} from './IOU/TrackExpense';
+import type {UpdateMoneyRequestData, UpdateMoneyRequestDataKeys} from './IOU/UpdateMoneyRequest';
 import {getUpdateMoneyRequestParams, getUpdateTrackExpenseParams} from './IOU/UpdateMoneyRequest';
-import type {UpdateMoneyRequestDataKeys} from './IOU/UpdateMoneyRequest';
 
 /**
  * Setup merge transaction data for merging flow

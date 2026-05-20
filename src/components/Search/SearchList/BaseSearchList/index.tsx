@@ -65,9 +65,6 @@ function BaseSearchList({
         onFocusedIndexChange: (index: number) => {
             scrollToIndex?.(index);
         },
-        onArrowUpDownCallback: () => {
-            ref?.current?.announceProgrammaticScroll();
-        },
         setHasKeyBeenPressed,
         isFocused,
         captureOnInputs: false,

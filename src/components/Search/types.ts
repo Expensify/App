@@ -182,6 +182,7 @@ type SearchContextData = {
     isOnSearch: boolean;
     shouldTurnOffSelectionMode: boolean;
     shouldResetSearchQuery: boolean;
+    sortedReportIDs: ReadonlyArray<string | undefined>;
     /** True when at least one transaction is selected. */
     hasSelectedTransactions: boolean;
 };
@@ -214,6 +215,7 @@ type SearchActionsContextValue = {
     setShouldShowSelectAllMatchingItems: (shouldShow: boolean) => void;
     selectAllMatchingItems: (on: boolean) => void;
     setShouldResetSearchQuery: (shouldReset: boolean) => void;
+    setSortedReportIDs: (ids: ReadonlyArray<string | undefined>) => void;
 };
 
 type ASTNode = {

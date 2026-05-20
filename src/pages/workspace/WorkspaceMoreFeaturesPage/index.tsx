@@ -27,13 +27,15 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {
     canPolicyAccessFeature,
+    getConnectedHRProvider,
     getDistanceRateCustomUnit,
     getPerDiemCustomUnit,
     hasAccountingConnections,
     hasAccountingFeatureConnection,
+    isAnyHRConnected,
     isControlPolicy,
     isGustoConnected,
-    isHRIntegrationConnected,
+    isMergeHRConnected,
     isTimeTrackingEnabled,
     isZenefitsConnected,
 } from '@libs/PolicyUtils';
@@ -173,7 +175,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     };
 
     const warnDisconnectHRFirst = async () => {
-        if (!isHRIntegrationConnected(policy)) {
+        if (!isAnyHRConnected(policy)) {
             return;
         }
         let integration = '';
@@ -181,6 +183,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             integration = translate('workspace.hr.zenefits.title');
         } else if (isGustoConnected(policy)) {
             integration = translate('workspace.hr.gusto.title');
+        } else if (isMergeHRConnected(policy)) {
+            integration = getConnectedHRProvider(policy)?.displayName ?? '';
         }
         await showConfirmModal({
             title: translate('workspace.distanceRates.oopsNotSoFast'),
@@ -323,11 +327,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 icon={illustrations.Members}
                                 title={translate('workspace.hr.title')}
                                 subtitle={translate('workspace.hr.subtitle')}
-                                isActive={
-                                    ((policy?.isHREnabled === true || isHRIntegrationConnected(policy)) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED)) ?? false
-                                }
+                                isActive={((policy?.isHREnabled === true || isAnyHRConnected(policy)) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED)) ?? false}
                                 pendingAction={policy?.pendingFields?.isHREnabled}
-                                disabled={isHRIntegrationConnected(policy)}
+                                disabled={isAnyHRConnected(policy)}
                                 disabledAction={warnDisconnectHRFirst}
                                 onToggle={(isEnabled) => {
                                     if (!policyID) {
