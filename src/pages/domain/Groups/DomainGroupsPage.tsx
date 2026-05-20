@@ -18,7 +18,9 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
+import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {hasDomainGroupDetailsErrors} from '@libs/DomainUtils';
 import {getLatestError} from '@libs/ErrorUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
@@ -49,6 +51,7 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Members']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
     const [groups = getEmptyArray<DomainSecurityGroupWithID>()] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: groupsSelector});
     const [defaultGroupID] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: defaultSecurityGroupIDSelector});
@@ -65,13 +68,17 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
             groupID: group.id,
             text: group.details.name ?? '',
             errors: groupErrorMessage,
+            brickRoadIndicator:
+                hasDomainGroupDetailsErrors(domainErrors?.[`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${group.id}`]) && !isSecurityGroupPendingDeleteSelector(group.id)(pendingActions)
+                    ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                    : undefined,
             rightElement: (
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                     <Text numberOfLines={1}>{translate('domain.groups.memberCount', {count: Object.keys(group.details.shared).length})}</Text>
                     {isDefault && <Badge text={translate('common.default')} />}
                 </View>
             ),
-            pendingAction: Object.values(groupPendingActions ?? {}).find(Boolean),
+            pendingAction: groupPendingActions?.deleteGroup ?? groupPendingActions?.createGroup ?? Object.values(groupPendingActions ?? {}).find(Boolean),
             isDisabled: isSecurityGroupPendingDeleteSelector(group.id)(pendingActions) || isFailedCreate,
         };
     });
@@ -85,8 +92,8 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
 
     const listHeaderContent = shouldShowSearchBar ? (
         <View style={styles.flexColumn}>
-            <View style={[styles.mh5, styles.gap3, styles.mb5, shouldUseNarrowLayout ? styles.flexColumn : styles.flexRow]}>
-                <View style={[shouldUseNarrowLayout && styles.w100]}>
+            <View style={[styles.mh5, styles.gap3, styles.mb5, shouldDisplayButtonsInSeparateLine ? styles.flexColumn : styles.flexRow]}>
+                <View style={[shouldDisplayButtonsInSeparateLine ? styles.w100 : styles.flex1]}>
                     <SearchBar
                         inputValue={inputValue}
                         onChangeText={setInputValue}
@@ -127,8 +134,8 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
             sentryLabel={CONST.SENTRY_LABEL.DOMAIN.GROUPS.CREATE_GROUP_BUTTON}
             onPress={() => Navigation.navigate(ROUTES.DOMAIN_GROUP_CREATE.getRoute(domainAccountID))}
             icon={icons.Plus}
-            innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
-            style={shouldUseNarrowLayout ? [styles.flexGrow1, styles.mb3] : undefined}
+            innerStyles={[shouldDisplayButtonsInSeparateLine && styles.alignItemsCenter]}
+            style={shouldDisplayButtonsInSeparateLine ? [styles.flexGrow1, styles.mb3] : undefined}
             success
         />
     );
@@ -148,9 +155,9 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldUseHeadlineHeader
                 >
-                    {!shouldUseNarrowLayout && <View style={[styles.flexRow, styles.gap2]}>{createGroupHeaderButton}</View>}
+                    {!shouldDisplayButtonsInSeparateLine && <View style={[styles.flexRow, styles.gap2]}>{createGroupHeaderButton}</View>}
                 </HeaderWithBackButton>
-                {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{createGroupHeaderButton}</View>}
+                {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{createGroupHeaderButton}</View>}
 
                 <SelectionList
                     data={filteredData}
