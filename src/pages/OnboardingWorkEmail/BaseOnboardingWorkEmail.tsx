@@ -119,7 +119,16 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         }
 
         Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
-    }, [account?.validated, account?.isFromPublicDomain, onboardingValues?.shouldValidate, isVsb, isSmb, isFocused, onboardingValues?.isMergeAccountStepCompleted, onboardingValues?.isMergeAccountStepSkipped]);
+    }, [
+        account?.validated,
+        account?.isFromPublicDomain,
+        onboardingValues?.shouldValidate,
+        isVsb,
+        isSmb,
+        isFocused,
+        onboardingValues?.isMergeAccountStepCompleted,
+        onboardingValues?.isMergeAccountStepSkipped,
+    ]);
 
     const submitWorkEmail = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
         AddWorkEmail(values[INPUT_IDS.ONBOARDING_WORK_EMAIL].trim());
