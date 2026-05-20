@@ -53,11 +53,16 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnl
     const {showConfirmModal} = useConfirmModal();
     // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web screen
     const isPopoverBottomMount = shouldUseNarrowLayout;
-    const shouldShowMakeDefaultButton = !paymentMethod.isSelectedPaymentMethodDefault;
     const transferBankAccountID = policy?.invoice?.bankAccount?.transferBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
 
-    const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency).length > 0;
+    const eligibleBusinessBankAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency);
+    const hasValidExistingAccounts = eligibleBusinessBankAccounts.length > 0;
+    const hasMultipleEligibleBankAccounts = eligibleBusinessBankAccounts.length > 1;
+    const hasInvoiceDefaultBankAccount = transferBankAccountID !== CONST.DEFAULT_NUMBER_ID;
+    const isInvoiceDefaultBankAccountMissing =
+        hasInvoiceDefaultBankAccount && !eligibleBusinessBankAccounts.some((account) => account.accountData?.bankAccountID === transferBankAccountID);
+    const shouldShowMakeDefaultButton = !paymentMethod.isSelectedPaymentMethodDefault && (hasMultipleEligibleBankAccounts || isInvoiceDefaultBankAccountMissing);
     const isSupportedGlobalReimbursement = isCurrencySupportedForGlobalReimbursement((policy?.outputCurrency ?? '') as CurrencyType);
 
     const isNonUSDWorkspace = policy?.outputCurrency !== CONST.CURRENCY.USD;
