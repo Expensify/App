@@ -142,7 +142,7 @@ function Banner({
                             <Button
                                 success
                                 small={shouldUseSmallButtons}
-                                style={[styles.ph3]}
+                                style={shouldUseSmallButtons ? undefined : [styles.ph3]}
                                 text={buttonText ?? translate('common.chatNow')}
                                 onPress={onButtonPress}
                             />
