@@ -148,7 +148,6 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
             mergedAccountConciergeReportID,
             introSelected,
             conciergeChatReportID,
-            betas,
             isSelfTourViewed,
         ],
     );
