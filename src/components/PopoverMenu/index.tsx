@@ -516,6 +516,7 @@ function BasePopoverMenu({
         if (isWeb && typeof document !== 'undefined') {
             cleanupEscapeKeyUpSuppressorRef.current?.();
 
+            let timeoutID: ReturnType<typeof setTimeout> | undefined;
             const suppressEscapeKeyUp = (event: KeyboardEvent) => {
                 if (event.key !== CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey) {
                     return;
@@ -528,8 +529,12 @@ function BasePopoverMenu({
             document.addEventListener('keyup', suppressEscapeKeyUp, true);
             cleanupEscapeKeyUpSuppressorRef.current = () => {
                 document.removeEventListener('keyup', suppressEscapeKeyUp, true);
+                if (timeoutID) {
+                    clearTimeout(timeoutID);
+                }
                 cleanupEscapeKeyUpSuppressorRef.current = undefined;
             };
+            timeoutID = setTimeout(() => cleanupEscapeKeyUpSuppressorRef.current?.(), 1000);
         }
 
         onClose();
