@@ -431,22 +431,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                             }
                                         />
                                     )}
-                                    {shouldShowChangePINRow && (
-                                        <MenuItem
-                                            title={translate('cardPage.changePin')}
-                                            icon={expensifyIcons.Key}
-                                            shouldShowRightIcon
-                                            style={shouldShowPIN ? styles.mt4 : undefined}
-                                            onPress={() => {
-                                                const physicalCardID = String(currentPhysicalCard?.cardID);
-                                                if (isOfflinePINMarket(countryByIp)) {
-                                                    Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN_ATM.getRoute(physicalCardID));
-                                                } else {
-                                                    Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN.getRoute(physicalCardID));
-                                                }
-                                            }}
-                                        />
-                                    )}
                                 </>
                             )}
                             {virtualCards.map((card) => (
@@ -547,73 +531,92 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                         )}
                                     </React.Fragment>
                                 ))}
-                            {shouldShowActionRows && (
-                                <>
-                                    {shouldShowReportVirtualCardFraudRows &&
-                                        virtualCards.map((card) => (
-                                            <MenuItemWithTopDescription
-                                                key={`virtual-fraud-${card.cardID}`}
-                                                title={translate('cardPage.reportFraud')}
-                                                titleStyle={styles.walletCardMenuItem}
-                                                icon={expensifyIcons.Flag}
-                                                shouldShowRightIcon
-                                                onPress={() => {
-                                                    if (isAccountLocked) {
-                                                        showLockedAccountModal();
-                                                        return;
-                                                    }
-                                                    if (route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL) {
-                                                        Navigation.navigate(ROUTES.SETTINGS_DOMAIN_CARD_REPORT_FRAUD.getRoute(String(card.cardID)));
-                                                        return;
-                                                    }
-                                                    Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID)));
-                                                }}
-                                            />
-                                        ))}
-                                    {shouldShowReportTravelCardFraudRows &&
-                                        travelCards.map((card) => (
-                                            <MenuItemWithTopDescription
-                                                key={`travel-fraud-${card.cardID}`}
-                                                title={translate('cardPage.reportTravelFraud')}
-                                                titleStyle={styles.walletCardMenuItem}
-                                                icon={expensifyIcons.Flag}
-                                                shouldShowRightIcon
-                                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID)))}
-                                            />
-                                        ))}
-                                    {shouldShowReportLostCardButton && (
+                            {(shouldShowChangePINRow || shouldShowActionRows) && (
+                                <View style={styles.mt4}>
+                                    {shouldShowChangePINRow && (
                                         <MenuItem
-                                            title={translate('reportCardLostOrDamaged.screenTitle')}
-                                            icon={expensifyIcons.Flag}
+                                            title={translate('cardPage.changePin')}
+                                            icon={expensifyIcons.Key}
                                             shouldShowRightIcon
                                             onPress={() => {
-                                                if (isAccountLocked) {
-                                                    showLockedAccountModal();
-                                                    return;
+                                                const physicalCardID = String(currentPhysicalCard?.cardID);
+                                                if (isOfflinePINMarket(countryByIp)) {
+                                                    Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN_ATM.getRoute(physicalCardID));
+                                                } else {
+                                                    Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN.getRoute(physicalCardID));
                                                 }
-                                                Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(String(currentPhysicalCard?.cardID)));
                                             }}
                                         />
                                     )}
+                                    {shouldShowActionRows && (
+                                        <>
+                                            {shouldShowReportVirtualCardFraudRows &&
+                                                virtualCards.map((card) => (
+                                                    <MenuItemWithTopDescription
+                                                        key={`virtual-fraud-${card.cardID}`}
+                                                        title={translate('cardPage.reportFraud')}
+                                                        titleStyle={styles.walletCardMenuItem}
+                                                        icon={expensifyIcons.Flag}
+                                                        shouldShowRightIcon
+                                                        onPress={() => {
+                                                            if (isAccountLocked) {
+                                                                showLockedAccountModal();
+                                                                return;
+                                                            }
+                                                            if (route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL) {
+                                                                Navigation.navigate(ROUTES.SETTINGS_DOMAIN_CARD_REPORT_FRAUD.getRoute(String(card.cardID)));
+                                                                return;
+                                                            }
+                                                            Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID)));
+                                                        }}
+                                                    />
+                                                ))}
+                                            {shouldShowReportTravelCardFraudRows &&
+                                                travelCards.map((card) => (
+                                                    <MenuItemWithTopDescription
+                                                        key={`travel-fraud-${card.cardID}`}
+                                                        title={translate('cardPage.reportTravelFraud')}
+                                                        titleStyle={styles.walletCardMenuItem}
+                                                        icon={expensifyIcons.Flag}
+                                                        shouldShowRightIcon
+                                                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID)))}
+                                                    />
+                                                ))}
+                                            {shouldShowReportLostCardButton && (
+                                                <MenuItem
+                                                    title={translate('reportCardLostOrDamaged.screenTitle')}
+                                                    icon={expensifyIcons.Flag}
+                                                    shouldShowRightIcon
+                                                    onPress={() => {
+                                                        if (isAccountLocked) {
+                                                            showLockedAccountModal();
+                                                            return;
+                                                        }
+                                                        Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(String(currentPhysicalCard?.cardID)));
+                                                    }}
+                                                />
+                                            )}
 
-                                    {shouldShowSpendRulesSummary && (
-                                        <MenuItemWithTopDescription
-                                            description={translate('cardPage.spendRules')}
-                                            descriptionTextStyle={[styles.fontSizeLabel]}
-                                            titleComponent={spendRulesTitleComponent}
-                                            onPress={navigateToSpendRulesPage}
-                                            accessibilityLabel={spendRulesSummary.join('. ')}
-                                        />
-                                    )}
+                                            {shouldShowSpendRulesSummary && (
+                                                <MenuItemWithTopDescription
+                                                    description={translate('cardPage.spendRules')}
+                                                    descriptionTextStyle={[styles.fontSizeLabel]}
+                                                    titleComponent={spendRulesTitleComponent}
+                                                    onPress={navigateToSpendRulesPage}
+                                                    accessibilityLabel={spendRulesSummary.join('. ')}
+                                                />
+                                            )}
 
-                                    {shouldShowEditSpendRules && (
-                                        <MenuItem
-                                            icon={expensifyIcons.CreditCardLock}
-                                            title={translate('cardPage.editSpendRules')}
-                                            onPress={navigateToSpendRulesPage}
-                                        />
+                                            {shouldShowEditSpendRules && (
+                                                <MenuItem
+                                                    icon={expensifyIcons.CreditCardLock}
+                                                    title={translate('cardPage.editSpendRules')}
+                                                    onPress={navigateToSpendRulesPage}
+                                                />
+                                            )}
+                                        </>
                                     )}
-                                </>
+                                </View>
                             )}
                         </View>
                     </>
