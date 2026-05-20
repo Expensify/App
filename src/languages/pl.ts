@@ -1018,8 +1018,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         freeTrialSection: {
             title: ({days}: {days: number}) => `Darmowy okres próbny: pozostało ${days} ${days === 1 ? 'dzień' : 'dni'}!`,
-            offer50Body: 'Zyskaj 50% zniżki na pierwszy rok!',
-            offer25Body: 'Uzyskaj 25% zniżki na pierwszy rok!',
+            offer50Body: 'Zyskaj 50% zniżki na pierwszy rok',
+            offer25Body: 'Uzyskaj 25% zniżki na pierwszy rok',
             addCardBody: 'Nie czekaj! Dodaj teraz swoją kartę płatniczą.',
             ctaClaim: 'Roszczenie',
             ctaAdd: 'Dodaj kartę',
@@ -2467,6 +2467,7 @@ const translations: TranslationDeepObject<typeof en> = {
             expiration: 'Wygaśnięcie',
             cvv: 'CVV',
             address: 'Adres',
+            reveal: 'Pokaż',
             revealDetails: 'Pokaż szczegóły',
             revealCvv: 'Pokaż kod CVV',
             copyCardNumber: 'Skopiuj numer karty',
@@ -4325,7 +4326,7 @@ ${amount} dla ${merchant} - ${date}`,
             budgetTypeForNotificationMessage: {tag: 'znacznik', category: 'kategoria'},
             policyExpenseChatName: (displayName: string) => `Wydatki ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>Transakcje z Karty Expensify będą automatycznie eksportowane do „Konta zobowiązań Karty Expensify” utworzonego dzięki <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">naszej integracji</a>.</muted-text-label>`,
-            travelInvoicing: 'Eksportuj należności z Expensify Travel do',
+            travelInvoicing: 'Eksportuj wydatki z fakturowania podróży jako',
             travelInvoicingVendor: 'Dostawca usług turystycznych',
             travelInvoicingPayableAccount: 'Konto zobowiązań z tytułu podróży',
             hr: 'HR',
@@ -4649,6 +4650,7 @@ ${amount} dla ${merchant} - ${date}`,
             exportDeepDiveCompanyCard:
                 'Wyeksportowane wydatki zostaną zaksięgowane jako transakcje bankowe na poniższym koncie bankowym Xero, a daty transakcji będą zgodne z datami na Twoim wyciągu bankowym.',
             bankTransactions: 'Transakcje bankowe',
+            travelInvoicingDescription: 'Wydatki na podróże zostaną wyeksportowane jako transakcje bankowe na konto Xero wskazane poniżej.',
             xeroBankAccount: 'Konto bankowe Xero',
             xeroBankAccountDescription: 'Wybierz, gdzie wydatki będą księgowane jako transakcje bankowe.',
             exportExpensesDescription: 'Raporty zostaną wyeksportowane jako rachunek zakupu z datą i statusem wybranymi poniżej.',
@@ -5954,6 +5956,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 `Za chwilę utworzysz i udostępnisz ${newWorkspaceName ?? ''} ${totalMembers ?? 0} członkom oryginalnego obszaru roboczego.`,
             error: 'Wystąpił błąd podczas duplikowania Twojego nowego obszaru roboczego. Spróbuj ponownie.',
         },
+        copyPolicySettings: {error: 'Wystąpił błąd podczas kopiowania ustawień przestrzeni roboczej. Spróbuj ponownie.'},
         emptyWorkspace: {
             title: 'Nie masz żadnych przestrzeni roboczych',
             subtitle: 'Śledź paragony, rozliczaj wydatki, zarządzaj podróżami, wysyłaj faktury i wiele więcej.',
@@ -8551,7 +8554,15 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             `<muted-text-label>Oczekuje na rachunek z powodu przerwanego połączenia z bankiem. Rozwiąż problem w sekcji <a href="${workspaceCompanyCardRoute}">Karty firmowe</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Paragon oczekuje z powodu zerwanego połączenia z bankiem. Poproś administratora przestrzeni roboczej o rozwiązanie problemu.',
         markAsCashToIgnore: 'Oznacz jako gotówkę, aby zignorować i poprosić o płatność.',
-        smartscanFailed: ({canEdit = true}) => `Skanowanie paragonu nie powiodło się.${canEdit ? 'Wpisz szczegóły ręcznie.' : ''}`,
+        smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
+            if (missingFields.length > 0) {
+                const fieldNames: Record<string, string> = {merchant: 'sprzedawcy', date: 'daty', amount: 'kwoty'};
+                const translated = missingFields.map((f) => fieldNames[f] ?? f);
+                const fieldList = translated.join(translated.length > 2 ? ', ' : ' i ');
+                return `Skanowanie paragonu nie powiodło się — brak ${fieldList}.${canEdit ? ' Wpisz szczegóły ręcznie.' : ''}`;
+            }
+            return `Skanowanie paragonu nie powiodło się.${canEdit ? 'Wpisz szczegóły ręcznie.' : ''}`;
+        },
         receiptGeneratedWithAI: 'Potencjalny paragon wygenerowany przez AI',
         someTagLevelsRequired: (tagName?: string) => `Brak ${tagName ?? 'Tag'}`,
         tagOutOfPolicy: (tagName?: string) => `${tagName ?? 'Tag'} nie jest już ważny`,

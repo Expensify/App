@@ -1,24 +1,9 @@
-import type {OnyxCollection, OnyxEntry, OnyxKey} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
-import type {UpdateMoneyRequestParams} from '@libs/API/parameters';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
-import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
-import type {OnyxData} from '@src/types/onyx/Request';
-import type {Receipt} from '@src/types/onyx/Transaction';
-import type BaseTransactionParams from './types/BaseTransactionParams';
-import type RequestMoneyParticipantParams from './types/RequestMoneyParticipantParams';
-import type {GPSPoint} from './types/TrackExpenseTransactionParams';
-
-type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
-
-type UpdateMoneyRequestData<TKey extends OnyxKey> = {
-    params: UpdateMoneyRequestParams;
-    onyxData: OnyxData<TKey>;
-};
 
 let allPersonalDetails: OnyxTypes.PersonalDetailsList = {};
 Onyx.connect({
@@ -27,42 +12,6 @@ Onyx.connect({
         allPersonalDetails = value ?? {};
     },
 });
-
-type StartSplitBilActionParams = {
-    participants: Participant[];
-    currentUserLogin: string;
-    currentUserAccountID: number;
-    comment: string;
-    receipt: Receipt;
-    existingSplitChatReportID?: string;
-    billable?: boolean;
-    reimbursable?: boolean;
-    category: string | undefined;
-    tag: string | undefined;
-    currency: string;
-    taxCode: string;
-    taxAmount: number;
-    taxValue?: string;
-    shouldPlaySound?: boolean;
-    shouldHandleNavigation?: boolean;
-    shouldDeferForSearch?: boolean;
-    policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
-    policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
-    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
-    policyRecentlyUsedCurrencies: string[];
-    participantsPolicyTags: Record<string, OnyxTypes.PolicyTagLists>;
-};
-
-type ReplaceReceipt = {
-    transactionID: string;
-    file?: File;
-    source: string;
-    state?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
-    transactionPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
-    transactionPolicy: OnyxEntry<OnyxTypes.Policy>;
-    isSameReceipt?: boolean;
-    transactionPolicyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
-};
 
 let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
 Onyx.connect({
@@ -284,4 +233,3 @@ export {
     getPolicyTags,
     getMoneyRequestPolicyTags,
 };
-export type {GPSPoint as GpsPoint, IOURequestType, StartSplitBilActionParams, ReplaceReceipt, RequestMoneyParticipantParams, UpdateMoneyRequestData, BaseTransactionParams};

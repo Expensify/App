@@ -1016,8 +1016,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         freeTrialSection: {
             title: ({days}: {days: number}) => `Avaliação gratuita: restam ${days} ${days === 1 ? 'dia' : 'dias'}!`,
-            offer50Body: 'Ganhe 50% de desconto no seu primeiro ano!',
-            offer25Body: 'Ganhe 25% de desconto no seu primeiro ano!',
+            offer50Body: 'Ganhe 50% de desconto no seu primeiro ano',
+            offer25Body: 'Ganhe 25% de desconto no seu primeiro ano',
             addCardBody: 'Não espere! Adicione seu cartão de pagamento agora.',
             ctaClaim: 'Solicitação',
             ctaAdd: 'Adicionar cartão',
@@ -2465,6 +2465,7 @@ const translations: TranslationDeepObject<typeof en> = {
             expiration: 'Validade',
             cvv: 'CVV',
             address: 'Endereço',
+            reveal: 'Revelar',
             revealDetails: 'Revelar detalhes',
             revealCvv: 'Revelar código CVV',
             copyCardNumber: 'Copiar número do cartão',
@@ -4327,7 +4328,7 @@ ${amount} para ${merchant} - ${date}`,
             budgetFrequencyUnit: {monthly: 'mês', yearly: 'ano'},
             budgetTypeForNotificationMessage: {tag: 'etiqueta', category: 'categoria'},
             deepDiveExpensifyCard: `<muted-text-label>As transações do Cartão Expensify serão exportadas automaticamente para uma “Conta de Responsabilidade do Cartão Expensify” criada com <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">nossa integração</a>.</muted-text-label>`,
-            travelInvoicing: 'Exportar contas a pagar de viagens do Expensify para',
+            travelInvoicing: 'Exportar despesas de faturamento de viagens como',
             travelInvoicingVendor: 'Fornecedor de viagem',
             travelInvoicingPayableAccount: 'Conta a pagar de viagens',
             hr: 'RH',
@@ -4654,6 +4655,7 @@ ${amount} para ${merchant} - ${date}`,
             exportDeepDiveCompanyCard:
                 'As despesas exportadas serão lançadas como transações bancárias na conta bancária Xero abaixo, e as datas das transações corresponderão às datas no seu extrato bancário.',
             bankTransactions: 'Transações bancárias',
+            travelInvoicingDescription: 'As despesas de viagem serão exportadas como transações bancárias para a conta do Xero especificada abaixo.',
             xeroBankAccount: 'Conta bancária Xero',
             xeroBankAccountDescription: 'Escolha onde as despesas serão lançadas como transações bancárias.',
             exportExpensesDescription: 'Os relatórios serão exportados como uma conta de compra com a data e o status selecionados abaixo.',
@@ -5960,6 +5962,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 `Você está prestes to criar e compartilhar ${newWorkspaceName ?? ''} com ${totalMembers ?? 0} membros do workspace original.`,
             error: 'Ocorreu um erro ao duplicar seu novo espaço de trabalho. Tente novamente.',
         },
+        copyPolicySettings: {error: 'Ocorreu um erro ao copiar as configurações do workspace. Tente novamente.'},
         emptyWorkspace: {
             title: 'Você não tem nenhum workspace',
             subtitle: 'Controle recibos, reembolse despesas, gerencie viagens, envie faturas e muito mais.',
@@ -8558,7 +8561,15 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             `<muted-text-label>Recibo pendente devido a uma conexão bancária interrompida. Resolva em <a href="${workspaceCompanyCardRoute}">Cartões corporativos</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Recibo pendente devido à conexão bancária com problemas. Peça a um administrador do workspace para resolver.',
         markAsCashToIgnore: 'Marcar como dinheiro para ignorar e solicitar pagamento.',
-        smartscanFailed: ({canEdit = true}) => `A digitalização do recibo falhou.${canEdit ? 'Insira os detalhes manualmente.' : ''}`,
+        smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
+            if (missingFields.length > 0) {
+                const fieldNames: Record<string, string> = {merchant: 'estabelecimento', date: 'data', amount: 'valor'};
+                const translated = missingFields.map((f) => fieldNames[f] ?? f);
+                const fieldList = translated.join(translated.length > 2 ? ', ' : ' e ');
+                return `A digitalização do recibo falhou — faltando ${fieldList}.${canEdit ? ' Insira os detalhes manualmente.' : ''}`;
+            }
+            return `A digitalização do recibo falhou.${canEdit ? 'Insira os detalhes manualmente.' : ''}`;
+        },
         receiptGeneratedWithAI: 'Recibo possivelmente gerado por IA',
         someTagLevelsRequired: (tagName?: string) => `Faltando ${tagName ?? 'Etiqueta'}`,
         tagOutOfPolicy: (tagName?: string) => `${tagName ?? 'Etiqueta'} não é mais válido`,
