@@ -190,6 +190,7 @@ describe('OnboardingFlow', () => {
             });
 
             expect(purpose).toBe(CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
+
             // SMB_5_PLUS users still need to choose a specific size on the employees step (5-10, 11-50, etc.).
             expect(companySize).toBeFalsy();
         });
