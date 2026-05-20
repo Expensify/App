@@ -4393,6 +4393,9 @@ const translations = {
             memberAlternateText: 'Submit and approve reports.',
             adminAlternateText: 'Manage reports and workspace settings.',
             auditorAlternateText: 'View and comment on reports.',
+            cardAdminAlternateText: 'Manage workspace cards.',
+            peopleAdminAlternateText: 'Manage members and approval workflows.',
+            paymentsAdminAlternateText: 'Manage workflow payments.',
             reimbursementChoice: {
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES]: 'Direct',
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO]: 'None',
@@ -4404,6 +4407,12 @@ const translations = {
                         return 'Admin';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditor';
+                    case CONST.POLICY.ROLE.CARD_ADMIN:
+                        return 'Card Admin';
+                    case CONST.POLICY.ROLE.PEOPLE_ADMIN:
+                        return 'People Admin';
+                    case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
+                        return 'Payments Admin';
                     case CONST.POLICY.ROLE.USER:
                         return 'Member';
                     default:
@@ -4438,7 +4447,7 @@ const translations = {
             viewTransactions: 'View transactions',
             policyExpenseChatName: (displayName: string) => `${displayName}'s expenses`,
             deepDiveExpensifyCard: `<muted-text-label>Expensify Card transactions will automatically export to an "Expensify Card Liability Account" created with <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">our integration</a>.</muted-text-label>`,
-            travelInvoicing: 'Export Expensify Travel Payable To',
+            travelInvoicing: 'Export travel invoicing expenses as',
             travelInvoicingVendor: 'Travel vendor',
             travelInvoicingPayableAccount: 'Travel payable account',
         },
@@ -4762,6 +4771,7 @@ const translations = {
             purchaseBill: 'Purchase bill',
             exportDeepDiveCompanyCard: 'Exported expenses will post as bank transactions to the Xero bank account below, and transaction dates will match the dates on your bank statement.',
             bankTransactions: 'Bank transactions',
+            travelInvoicingDescription: 'Travel expenses will export as bank transactions to the Xero account specified below.',
             xeroBankAccount: 'Xero bank account',
             xeroBankAccountDescription: 'Choose where expenses will post as bank transactions.',
             exportExpensesDescription: 'Reports will export as a purchase bill with the date and status selected below.',

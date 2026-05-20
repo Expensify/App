@@ -4275,7 +4275,13 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                     case CONST.POLICY.ROLE.ADMIN:
                         return '管理者';
                     case CONST.POLICY.ROLE.AUDITOR:
-                        return '監査人';
+                        return '監査担当者';
+                    case CONST.POLICY.ROLE.CARD_ADMIN:
+                        return 'カード管理者';
+                    case CONST.POLICY.ROLE.PEOPLE_ADMIN:
+                        return 'メンバー管理';
+                    case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
+                        return '支払管理者';
                     case CONST.POLICY.ROLE.USER:
                         return 'メンバー';
                     default:
@@ -4306,11 +4312,14 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             budgetFrequency: {monthly: '毎月', yearly: '年次'},
             budgetFrequencyUnit: {monthly: '月', yearly: '年'},
             budgetTypeForNotificationMessage: {tag: 'タグ', category: 'カテゴリ'},
-            travelInvoicing: 'Expensify Travel 買掛金のエクスポート先',
+            travelInvoicing: '出張請求費用を次の形式でエクスポート',
             travelInvoicingVendor: '出張ベンダー',
             travelInvoicingPayableAccount: '旅費未払金勘定',
             hr: '人事',
             rooms: 'ルーム',
+            cardAdminAlternateText: 'ワークスペースカードを管理します。',
+            peopleAdminAlternateText: 'メンバーと承認ワークフローを管理します。',
+            paymentsAdminAlternateText: 'ワークフローの支払いを管理します。',
         },
         createdForClient: {
             title: 'クライアントのワークスペースを作成しました！',
@@ -4626,6 +4635,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             purchaseBill: '仕入請求書',
             exportDeepDiveCompanyCard: 'エクスポートされた経費は、以下のXero銀行口座に銀行取引として記帳され、取引日付は銀行取引明細書の日付と一致します。',
             bankTransactions: '銀行取引',
+            travelInvoicingDescription: '旅費は、以下で指定したXeroアカウントに銀行取引としてエクスポートされます。',
             xeroBankAccount: 'Xero 銀行口座',
             xeroBankAccountDescription: '経費を銀行取引として計上する先を選択してください。',
             exportExpensesDescription: 'レポートは、以下で選択された日付とステータスで仕入請求書としてエクスポートされます。',

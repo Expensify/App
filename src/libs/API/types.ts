@@ -619,6 +619,8 @@ const WRITE_COMMANDS = {
     UPDATE_AGENT_PROMPT: 'UpdateAgentPrompt',
     UPDATE_AGENT_AVATAR: 'UpdateAgentAvatar',
     DELETE_AGENT: 'DeleteAgent',
+    SEND_EXPORT_FILE_FROM_CONCIERGE: 'SendExportFileFromConcierge',
+    CLEAR_EXPORT_DOWNLOAD: 'ClearExportDownload',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -1260,6 +1262,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_AGENT_PROMPT]: Parameters.UpdateAgentPromptParams;
     [WRITE_COMMANDS.UPDATE_AGENT_AVATAR]: Parameters.UpdateAgentAvatarParams;
     [WRITE_COMMANDS.DELETE_AGENT]: Parameters.DeleteAgentParams;
+    [WRITE_COMMANDS.SEND_EXPORT_FILE_FROM_CONCIERGE]: Parameters.SendExportFileFromConciergeParams;
+    [WRITE_COMMANDS.CLEAR_EXPORT_DOWNLOAD]: Parameters.ClearExportDownloadParams;
 };
 
 const READ_COMMANDS = {

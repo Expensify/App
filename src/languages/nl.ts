@@ -4301,9 +4301,15 @@ ${amount} voor ${merchant} - ${date}`,
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
-                        return 'Beheerder';
+                        return 'Beheer';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditor';
+                    case CONST.POLICY.ROLE.CARD_ADMIN:
+                        return 'Kaartbeheer';
+                    case CONST.POLICY.ROLE.PEOPLE_ADMIN:
+                        return 'Mensenbeheer';
+                    case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
+                        return 'Beheerder betalingen';
                     case CONST.POLICY.ROLE.USER:
                         return 'Lid';
                     default:
@@ -4334,11 +4340,14 @@ ${amount} voor ${merchant} - ${date}`,
             budgetFrequencyUnit: {monthly: 'maand', yearly: 'jaar'},
             budgetTypeForNotificationMessage: {tag: 'tag', category: 'categorie'},
             deepDiveExpensifyCard: `<muted-text-label>Transacties met de Expensify Kaart worden automatisch geëxporteerd naar een "Expensify Kaart Passivarekening" dat wordt aangemaakt via <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">onze integratie</a>.</muted-text-label>`,
-            travelInvoicing: 'Expensify Travel-tegoed exporteren naar',
+            travelInvoicing: 'Reisfacturatiekosten exporteren als',
             travelInvoicingVendor: 'Reisaanbieder',
             travelInvoicingPayableAccount: 'Reiscrediteurenrekening',
             hr: 'HR',
             rooms: 'Kamers',
+            cardAdminAlternateText: 'Werkruimtekaarten beheren.',
+            peopleAdminAlternateText: 'Beheer leden en goedkeuringsworkflows.',
+            paymentsAdminAlternateText: 'Workflowsbetalingen beheren.',
         },
         createdForClient: {
             title: 'Je hebt een werkruimte voor je klant aangemaakt!',
@@ -4659,6 +4668,7 @@ ${amount} voor ${merchant} - ${date}`,
             exportDeepDiveCompanyCard:
                 'Geëxporteerde uitgaven worden als banktransacties geboekt op de onderstaande Xero-bankrekening, en transactiedata komen overeen met de data op je bankafschrift.',
             bankTransactions: 'Banktransacties',
+            travelInvoicingDescription: 'Reiskosten worden als banktransacties geëxporteerd naar het hieronder opgegeven Xero-account.',
             xeroBankAccount: 'Xero-bankrekening',
             xeroBankAccountDescription: 'Kies waar onkosten als banktransacties worden geboekt.',
             exportExpensesDescription: 'Rapporten worden geëxporteerd als een inkoopfactuur met de datum en status die hieronder zijn geselecteerd.',

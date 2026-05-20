@@ -4331,6 +4331,12 @@ ${amount} pour ${merchant} - ${date}`,
                         return 'Administrateur';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditeur';
+                    case CONST.POLICY.ROLE.CARD_ADMIN:
+                        return 'Administrateur de carte';
+                    case CONST.POLICY.ROLE.PEOPLE_ADMIN:
+                        return 'Administration des personnes';
+                    case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
+                        return 'Administrateur des paiements';
                     case CONST.POLICY.ROLE.USER:
                         return 'Membre';
                     default:
@@ -4361,11 +4367,14 @@ ${amount} pour ${merchant} - ${date}`,
             budgetTypeForNotificationMessage: {tag: 'tag', category: 'catégorie'},
             policyExpenseChatName: (displayName: string) => `Dépenses de ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>Les transactions de la Carte Expensify seront automatiquement exportées vers un « compte de passif Carte Expensify » créé avec <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">notre intégration</a>.</muted-text-label>`,
-            travelInvoicing: 'Exporter Expensify Travel à payer vers',
+            travelInvoicing: 'Exporter les frais de facturation de voyages en tant que',
             travelInvoicingVendor: 'Fournisseur de voyages',
             travelInvoicingPayableAccount: 'Compte fournisseur déplacements',
             hr: 'RH',
             rooms: 'Salons',
+            cardAdminAlternateText: 'Gérer les cartes de l’espace de travail.',
+            peopleAdminAlternateText: 'Gérez les membres et les workflows d’approbation.',
+            paymentsAdminAlternateText: 'Gérer les paiements de workflow.',
         },
         createdForClient: {
             title: 'Vous avez créé un espace de travail pour votre client !',
@@ -4693,6 +4702,7 @@ ${amount} pour ${merchant} - ${date}`,
             exportDeepDiveCompanyCard:
                 'Les dépenses exportées seront enregistrées comme des transactions bancaires sur le compte bancaire Xero ci-dessous, et les dates de transaction correspondront aux dates figurant sur votre relevé bancaire.',
             bankTransactions: 'Transactions bancaires',
+            travelInvoicingDescription: 'Les frais de voyage seront exportés sous forme de transactions bancaires vers le compte Xero indiqué ci-dessous.',
             xeroBankAccount: 'Compte bancaire Xero',
             xeroBankAccountDescription: 'Choisissez où les dépenses seront enregistrées comme transactions bancaires.',
             exportExpensesDescription: 'Les notes de frais seront exportées sous forme de facture d’achat avec la date et le statut sélectionnés ci-dessous.',

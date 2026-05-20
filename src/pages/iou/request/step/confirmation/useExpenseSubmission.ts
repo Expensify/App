@@ -3,6 +3,7 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {useEffect, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useActivePolicy from '@hooks/useActivePolicy';
+import useAllPolicyExpenseChatReportActions from '@hooks/useAllPolicyExpenseChatReportActions';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
@@ -202,6 +203,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`);
     const lastWorkspaceNumber = useLastWorkspaceNumber();
     const activePolicy = useActivePolicy();
+    const policyExpenseChatReportActions = useAllPolicyExpenseChatReportActions();
 
     // Reports
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
@@ -558,6 +560,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 isSelfTourViewed,
                 defaultWorkspaceName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
                 previousOdometerDraft: odometerDraft,
+                reportActionsList: policyExpenseChatReportActions,
             });
         }
     }

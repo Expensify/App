@@ -310,6 +310,14 @@ const DYNAMIC_ROUTES = {
         path: 'purchase-bill-date-select',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_EXPORT],
     },
+    POLICY_ACCOUNTING_XERO_TRAVEL_INVOICING_CONFIGURATION: {
+        path: 'xero-travel-invoicing',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_EXPORT],
+    },
+    POLICY_ACCOUNTING_XERO_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT: {
+        path: 'xero-travel-invoicing-payable-account',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_TRAVEL_INVOICING_CONFIGURATION],
+    },
     POLICY_ACCOUNTING_XERO_AUTO_SYNC: {
         path: 'xero-autosync',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.XERO_ADVANCED, SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION],

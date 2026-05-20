@@ -212,6 +212,7 @@ import {
     isModifiedExpenseAction,
     isMoneyRequestAction,
     isMovedAction,
+    isOlderReportAction,
     isPendingRemove,
     isPolicyChangeLogAction,
     isReimbursementQueuedAction,
@@ -4287,18 +4288,25 @@ function getReasonAndReportActionThatRequiresAttention(
     }
 
     if (isInvoiceRoom(optionOrReport)) {
-        const reportAction = Object.values(reportActions).find(
-            (action) =>
-                action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
-                action.childReportID &&
-                hasMissingInvoiceBankAccount(action.childReportID) &&
-                !isSettled(action.childReportID),
-        );
+        let earliestAction: ReportAction | undefined;
+        for (const action of Object.values(reportActions)) {
+            if (
+                action.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW ||
+                !action.childReportID ||
+                !hasMissingInvoiceBankAccount(action.childReportID) ||
+                isSettled(action.childReportID)
+            ) {
+                continue;
+            }
+            if (!earliestAction || isOlderReportAction(action, earliestAction)) {
+                earliestAction = action;
+            }
+        }
 
-        return reportAction
+        return earliestAction
             ? {
                   reason: CONST.REQUIRES_ATTENTION_REASONS.HAS_MISSING_INVOICE_BANK_ACCOUNT,
-                  reportAction,
+                  reportAction: earliestAction,
               }
             : null;
     }
@@ -10826,10 +10834,8 @@ function getAllHeldTransactions(iouReportID?: string): Transaction[] {
  *
  * @warning Use `hasHeldExpensesFromTransactions` instead.
  */
-function hasHeldExpenses(iouReportID?: string, allReportTransactions?: Transaction[]): boolean {
-    const iouReportTransactions = getReportTransactions(iouReportID);
-    const transactions = allReportTransactions ?? iouReportTransactions;
-    return transactions.some((transaction) => isOnHoldTransactionUtils(transaction));
+function hasHeldExpenses(allReportTransactions: Transaction[]): boolean {
+    return allReportTransactions.some((transaction) => isOnHoldTransactionUtils(transaction));
 }
 
 /**
@@ -10842,10 +10848,8 @@ function hasHeldExpensesFromTransactions(allReportTransactions: Transaction[]): 
 /**
  * Check if all expenses in the Report are on hold
  */
-function hasOnlyHeldExpenses(iouReportID?: string, allReportTransactions?: Transaction[]): boolean {
-    const transactionsByIouReportID = getReportTransactions(iouReportID);
-    const reportTransactions = allReportTransactions ?? transactionsByIouReportID;
-    return reportTransactions.length > 0 && !reportTransactions.some((transaction) => !isOnHoldTransactionUtils(transaction));
+function hasOnlyHeldExpenses(allReportTransactions: Transaction[]): boolean {
+    return allReportTransactions.length > 0 && !allReportTransactions.some((transaction) => !isOnHoldTransactionUtils(transaction));
 }
 
 /**
@@ -10869,7 +10873,7 @@ function hasUpdatedTotal(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEn
     const hasPendingTransaction = allReportTransactions.some((transaction) => !!transaction.pendingAction);
     const hasTransactionWithDifferentCurrency = allReportTransactions.some((transaction) => transaction.currency !== report.currency);
     const hasDifferentWorkspaceCurrency = report.pendingFields?.createChat && isExpenseReport(report) && report.currency !== policy?.outputCurrency;
-    const hasOptimisticHeldExpense = hasHeldExpenses(report.reportID) && report?.unheldTotal === undefined;
+    const hasOptimisticHeldExpense = hasHeldExpenses(allReportTransactions) && report?.unheldTotal === undefined;
 
     return !(hasPendingTransaction && (hasTransactionWithDifferentCurrency || hasDifferentWorkspaceCurrency)) && !hasOptimisticHeldExpense && !report.pendingFields?.total;
 }
@@ -10877,7 +10881,7 @@ function hasUpdatedTotal(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEn
 /**
  * Return held and full amount formatted with used currency
  */
-function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>, shouldExcludeNonReimbursables: boolean): NonHeldAndFullAmount {
+function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>, shouldExcludeNonReimbursables: boolean, allReportTransactions: Transaction[]): NonHeldAndFullAmount {
     // if the report is an expense report, the total amount should be negated
     const coefficient = isExpenseReport(iouReport) ? -1 : 1;
 
@@ -10895,7 +10899,7 @@ function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>, shouldExcludeNonR
     // 1. There should be held expenses
     // 2. For expense reports with negative totals, we need to ensure the unheld amount is valid
     //    by checking that the absolute values are meaningful and different
-    const hasHeldExpensesLocal = hasHeldExpenses(iouReport?.reportID);
+    const hasHeldExpensesLocal = hasHeldExpenses(allReportTransactions);
     const hasValidNonHeldAmount =
         hasHeldExpensesLocal &&
         // For normal cases (positive amounts or IOU reports)
