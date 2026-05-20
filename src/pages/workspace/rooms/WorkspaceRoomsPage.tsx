@@ -1,14 +1,16 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {policyChatRoomsSelector} from '@selectors/Report';
-import {FlashList} from '@shopify/flash-list';
-import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
 import {View} from 'react-native';
+import Avatar from '@components/Avatar';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import TableListItem from '@components/SelectionList/ListItem/TableListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -18,6 +20,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
@@ -34,70 +37,21 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetails, Report} from '@src/types/onyx';
-import WorkspaceRoomsListItem from './WorkspaceRoomsListItem';
 
 type WorkspaceRoomsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.ROOMS>;
 
-/**
- * Row data for a single workspace room rendered in the list.
- */
-type WorkspaceRoomsRow = {
-    /** The underlying report representing the room. */
-    report: Report;
-
-    /** Resolved display name of the room. */
-    roomName: string;
-
-    /** Personal details of the room owner, if available. */
-    ownerDetails: PersonalDetails | undefined;
-
-    /** Display name for the room owner, or empty string when missing. */
-    ownerDisplayName: string;
-
-    /** Number of members shown next to the room. */
-    memberCount: number;
+type RoomListItem = ListItem & {
+    reportID: string;
 };
-
-function RowSeparator() {
-    return <View style={{height: 8}} />;
-}
-
-function ListHeader() {
-    const {translate} = useLocalize();
-    const styles = useThemeStyles();
-    const theme = useTheme();
-    const icons = useMemoizedLazyExpensifyIcons(['Profile']);
-
-    return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.p4, styles.gap3]}>
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.flex3]}>
-                <View style={[styles.alignItemsCenter, styles.justifyContentCenter, {width: variables.avatarSizeNormal}]}>
-                    <Icon
-                        src={icons.Profile}
-                        width={variables.iconSizeSmall}
-                        height={variables.iconSizeSmall}
-                        fill={theme.icon}
-                    />
-                </View>
-                <Text style={styles.textLabelSupporting}>{translate('common.name')}</Text>
-            </View>
-            <View style={styles.flex2}>
-                <Text style={styles.textLabelSupporting}>{translate('common.createdBy')}</Text>
-            </View>
-            <View style={styles.flex1}>
-                <Text style={styles.textLabelSupporting}>{translate('common.members')}</Text>
-            </View>
-        </View>
-    );
-}
 
 function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBetaEnabled} = usePermissions();
-    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
+    const headerIcons = useMemoizedLazyExpensifyIcons(['Plus', 'Profile']);
     const illustrations = useMemoizedLazyIllustrations(['Hashtag']);
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
@@ -115,23 +69,72 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
         [policyID],
     );
 
-    const rows: WorkspaceRoomsRow[] = (policyReports ?? [])
+    const data: RoomListItem[] = (policyReports ?? [])
         .filter((report) => !archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`) && !isHiddenForCurrentUser(report))
         .map((report) => {
             const ownerDetails = report.ownerAccountID ? (personalDetails?.[report.ownerAccountID] ?? undefined) : undefined;
+            const ownerDisplayName = ownerDetails ? getDisplayNameOrDefault(ownerDetails) : '';
+            const roomName = getReportName(report, reportAttributes);
+            const memberCount = getParticipantsAccountIDsForDisplay(report, true, false, false, undefined, personalDetails).length;
             return {
-                report,
-                roomName: getReportName(report, reportAttributes),
-                ownerDetails,
-                ownerDisplayName: ownerDetails ? getDisplayNameOrDefault(ownerDetails) : '',
-                memberCount: getParticipantsAccountIDsForDisplay(report, true, false, false, undefined, personalDetails).length,
+                keyForList: report.reportID,
+                text: roomName,
+                reportID: report.reportID,
+                rightElement: (
+                    <>
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.flex2]}>
+                            {!!ownerDetails && (
+                                <>
+                                    <Avatar
+                                        source={ownerDetails.avatar}
+                                        avatarID={ownerDetails.accountID}
+                                        name={ownerDisplayName}
+                                        type={CONST.ICON_TYPE_AVATAR}
+                                        size={CONST.AVATAR_SIZE.SMALLER}
+                                    />
+                                    <Text
+                                        numberOfLines={1}
+                                        style={styles.flexShrink1}
+                                    >
+                                        {ownerDisplayName}
+                                    </Text>
+                                </>
+                            )}
+                        </View>
+                        <View style={styles.flex1}>
+                            <Text>{memberCount}</Text>
+                        </View>
+                    </>
+                ),
             };
         })
-        .sort((a, b) => localeCompare(a.roomName, b.roomName));
+        .sort((a, b) => localeCompare(a.text ?? '', b.text ?? ''));
 
     useFocusEffect(() => {
         openWorkspaceRoomsPage(policyID);
     });
+
+    const customListHeader = (
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mh5, styles.ph4, styles.pv3]}>
+            <View style={[styles.alignItemsCenter, styles.justifyContentCenter, StyleUtils.getAvatarWidthStyle(CONST.AVATAR_SIZE.DEFAULT)]}>
+                <Icon
+                    src={headerIcons.Profile}
+                    width={variables.iconSizeSmall}
+                    height={variables.iconSizeSmall}
+                    fill={theme.icon}
+                />
+            </View>
+            <View style={styles.flex1}>
+                <Text style={styles.textLabelSupporting}>{translate('common.name')}</Text>
+            </View>
+            <View style={styles.flex2}>
+                <Text style={styles.textLabelSupporting}>{translate('common.createdBy')}</Text>
+            </View>
+            <View style={[styles.flex1, styles.mr7]}>
+                <Text style={styles.textLabelSupporting}>{translate('common.members')}</Text>
+            </View>
+        </View>
+    );
 
     return (
         <AccessOrNotFoundWrapper
@@ -157,29 +160,19 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                         success
                         isDisabled
                         onPress={() => {}}
-                        icon={icons.Plus}
+                        icon={headerIcons.Plus}
                         text={translate('common.create')}
                     />
                 </HeaderWithBackButton>
 
-                <View style={[styles.flex1, styles.pv3, styles.ph5]}>
-                    <FlashList
-                        data={rows}
-                        keyExtractor={(row) => row.report.reportID}
-                        ItemSeparatorComponent={RowSeparator}
-                        ListHeaderComponent={ListHeader}
-                        renderItem={({item}: ListRenderItemInfo<WorkspaceRoomsRow>) => (
-                            <WorkspaceRoomsListItem
-                                report={item.report}
-                                roomName={item.roomName}
-                                ownerDetails={item.ownerDetails}
-                                ownerDisplayName={item.ownerDisplayName}
-                                memberCount={item.memberCount}
-                                onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.report.reportID))}
-                            />
-                        )}
-                    />
-                </View>
+                <SelectionList<RoomListItem>
+                    data={data}
+                    ListItem={TableListItem}
+                    onSelectRow={(item) => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.reportID))}
+                    customListHeader={customListHeader}
+                    shouldHeaderBeInsideList
+                    shouldShowRightCaret
+                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

@@ -14,6 +14,7 @@ import type {ListItem, TableListItemProps} from './types';
 /**
  * A pressable row styled as a table entry with animated highlight, optional avatar, and
  * right caret. Used in workspace management lists (e.g. members, categories, tags, taxes).
+ * The avatar is sourced from `item.accountID` (single-user) or `item.reportID` (chat/room).
  * Renders a left-side checkbox when canSelectMultiple is true (multi-select mode) and a
  * plain row with no selection button otherwise.
  */
@@ -52,9 +53,10 @@ function TableListItem<TItem extends ListItem>({
 
     const rowContent = (hovered: boolean) => (
         <>
-            {!!item.accountID && (
+            {(!!item.accountID || !!item.reportID) && (
                 <ReportActionAvatars
-                    accountIDs={[item.accountID]}
+                    accountIDs={item.accountID ? [item.accountID] : undefined}
+                    reportID={item.reportID}
                     fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
                     shouldShowTooltip={showTooltip}
                     secondaryAvatarContainerStyle={[
