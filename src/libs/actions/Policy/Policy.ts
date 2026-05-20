@@ -220,8 +220,8 @@ type BuildPolicyDataOptions = {
     type?: typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE | typeof CONST.POLICY.TYPE.SUBMIT;
     // TODO: Make it required once we complete refactoring the buildPolicyData function to use isSelfTourViewed. Refactor issue: https://github.com/Expensify/App/issues/66424
     isSelfTourViewed?: boolean;
-    betas: OnyxEntry<Beta[]>;
     hasActiveAdminPolicies: boolean | undefined;
+    betas?: OnyxEntry<Beta[]>;
 };
 
 // TODO: Remove this type once we complete refactoring the buildPolicyData function to use isSelfTourViewed. Refactor issue: https://github.com/Expensify/App/issues/66424
@@ -2538,7 +2538,6 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         shouldCreateControlPolicy = false,
         type,
         isSelfTourViewed,
-        betas,
         hasActiveAdminPolicies,
     } = options;
 

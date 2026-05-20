@@ -25,7 +25,7 @@ import type PolicyData from '@hooks/usePolicyData/types';
 import type {PolicyTagList} from '@pages/workspace/tags/types';
 import type {ThemeColors} from '@styles/theme/types';
 import type {IOUAction, IOURequestType, IOUType, OnboardingAccounting} from '@src/CONST';
-import CONST, {TASK_TO_FEATURE} from '@src/CONST';
+import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
 import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -11577,7 +11577,6 @@ type PrepareOnboardingOnyxDataParams = {
     userReportedIntegration?: OnboardingAccounting;
     wasInvited?: boolean;
     companySize: OnboardingCompanySize | undefined;
-    selectedInterestedFeatures?: string[];
     isInvitedAccountant?: boolean;
     onboardingPurposeSelected?: OnboardingPurpose;
     // TODO: isSelfTourViewed will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
@@ -11595,7 +11594,6 @@ function prepareOnboardingOnyxData({
     userReportedIntegration,
     wasInvited,
     companySize,
-    selectedInterestedFeatures,
     isInvitedAccountant,
     onboardingPurposeSelected,
     isSelfTourViewed,

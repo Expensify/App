@@ -58,7 +58,6 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
     const archivedReportsIdSet = useArchivedReportsIdSet();
     const {onboardingMessages} = useOnboardingMessages();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
@@ -183,7 +182,6 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
                   currentUserEmailParam: currentUserPersonalDetails.email ?? '',
                   shouldAddGuideWelcomeMessage: false,
                   onboardingPurposeSelected,
-                  betas,
                   isSelfTourViewed,
                   hasActiveAdminPolicies,
               })
@@ -205,7 +203,6 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
         currentUserPersonalDetails.email,
         introSelected,
         activePolicy,
-        betas,
         isSelfTourViewed,
         hasActiveAdminPolicies,
         completeOnboarding,

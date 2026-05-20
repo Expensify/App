@@ -646,7 +646,6 @@ describe('ReportUtils', () => {
                     tasks: [{type: CONST.ONBOARDING_TASK_TYPE.CONNECT_CORPORATE_CARD, title: () => '', description: () => '', autoCompleted: false}],
                 },
                 adminsChatReportID,
-                selectedInterestedFeatures: ['areCompanyCardsEnabled'],
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
             });
             expect(result?.guidedSetupData).toHaveLength(0);
@@ -669,7 +668,6 @@ describe('ReportUtils', () => {
                     tasks: [{type: CONST.ONBOARDING_TASK_TYPE.CONNECT_CORPORATE_CARD, title: () => '', description: () => '', autoCompleted: false}],
                 },
                 adminsChatReportID,
-                selectedInterestedFeatures: ['areCompanyCardsEnabled'],
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
             });
             expect(result?.guidedSetupData).toHaveLength(0);
@@ -689,7 +687,6 @@ describe('ReportUtils', () => {
                     tasks: [{type: CONST.ONBOARDING_TASK_TYPE.CONNECT_CORPORATE_CARD, title: () => '', description: () => '', autoCompleted: false}],
                 },
                 adminsChatReportID,
-                selectedInterestedFeatures: ['areCompanyCardsEnabled'],
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.LARGE,
             });
             expect(result?.guidedSetupData).toHaveLength(0);
@@ -709,7 +706,6 @@ describe('ReportUtils', () => {
                     tasks: [{type: CONST.ONBOARDING_TASK_TYPE.CONNECT_CORPORATE_CARD, title: () => '', description: () => '', autoCompleted: false}],
                 },
                 adminsChatReportID,
-                selectedInterestedFeatures: ['areCompanyCardsEnabled'],
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL,
             });
             expect(result?.guidedSetupData).toHaveLength(0);
@@ -729,7 +725,6 @@ describe('ReportUtils', () => {
                     tasks: [{type: CONST.ONBOARDING_TASK_TYPE.CONNECT_CORPORATE_CARD, title: () => '', description: () => '', autoCompleted: false}],
                 },
                 adminsChatReportID,
-                selectedInterestedFeatures: ['areCompanyCardsEnabled'],
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MEDIUM,
             });
             expect(result?.guidedSetupData).toHaveLength(0);
@@ -749,7 +744,6 @@ describe('ReportUtils', () => {
                     tasks: [{type: CONST.ONBOARDING_TASK_TYPE.CONNECT_CORPORATE_CARD, title: () => '', description: () => '', autoCompleted: false}],
                 },
                 adminsChatReportID,
-                selectedInterestedFeatures: ['areCompanyCardsEnabled'],
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
                 userReportedIntegration: 'quickbooksOnline',
             });
@@ -769,7 +763,6 @@ describe('ReportUtils', () => {
                     tasks: [{type: CONST.ONBOARDING_TASK_TYPE.CONNECT_CORPORATE_CARD, title: () => '', description: () => '', autoCompleted: false}],
                 },
                 adminsChatReportID,
-                selectedInterestedFeatures: ['areCompanyCardsEnabled'],
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
             });
             // Every MANAGE_TEAM signup uses the bespoke followups path — tasks are never generated
@@ -792,7 +785,6 @@ describe('ReportUtils', () => {
                     tasks: [{type: CONST.ONBOARDING_TASK_TYPE.CONNECT_CORPORATE_CARD, title: () => '', description: () => '', autoCompleted: false}],
                 },
                 adminsChatReportID,
-                selectedInterestedFeatures: ['areCompanyCardsEnabled'],
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
             });
             // Followups path active: no tasks generated; server posts bespoke welcome (no optimistic action).
@@ -811,7 +803,6 @@ describe('ReportUtils', () => {
                     tasks: [{type: CONST.ONBOARDING_TASK_TYPE.CONNECT_CORPORATE_CARD, title: () => '', description: () => '', autoCompleted: false}],
                 },
                 adminsChatReportID: '1',
-                selectedInterestedFeatures: ['categories', 'accounting', 'tags'],
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
             });
 

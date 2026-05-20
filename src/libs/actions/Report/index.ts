@@ -1463,7 +1463,6 @@ function openReport(params: OpenReportActionParams) {
         currentUserAccountID,
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,
-        betas,
     } = params;
     if (!reportID) {
         return;
@@ -5416,7 +5415,6 @@ async function completeOnboarding({
         userReportedIntegration,
         wasInvited,
         companySize,
-        selectedInterestedFeatures,
         isInvitedAccountant,
         onboardingPurposeSelected,
         isSelfTourViewed,
