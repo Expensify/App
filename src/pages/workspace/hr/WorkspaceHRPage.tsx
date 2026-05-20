@@ -1,9 +1,9 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
+import CollapsibleSection from '@components/CollapsibleSection';
 import ConnectToGustoFlow from '@components/ConnectToGustoFlow';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
@@ -46,11 +46,9 @@ function WorkspaceHRPage({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const policy = usePolicy(policyID);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
-    const icons = useMemoizedLazyExpensifyIcons(['GustoSquare', 'ZenefitsSquare', 'DownArrow', 'UpArrow']);
+    const icons = useMemoizedLazyExpensifyIcons(['GustoSquare', 'ZenefitsSquare']);
     const illustrations = useMemoizedLazyIllustrations(['NewUser']);
     const [activeGustoFlowKey, setActiveGustoFlowKey] = useState<number>();
-
-    const [isOtherExpanded, setIsOtherExpanded] = useState(false);
 
     useWorkspaceDocumentTitle(undefined, 'workspace.common.hr');
 
@@ -84,7 +82,7 @@ function WorkspaceHRPage({
 
     const shouldBeBlocked = !HR_BETAS.some(isBetaEnabled);
 
-    const onConnect = (connectionName: string) => {
+    const handleConnect = (connectionName: string) => {
         if (connectionName !== CONST.POLICY.CONNECTIONS.NAME.GUSTO) {
             return;
         }
@@ -114,7 +112,7 @@ function WorkspaceHRPage({
                 )}
                 <HeaderWithBackButton
                     icon={illustrations.NewUser}
-                    title={translate('workspace.accounting.title')}
+                    title={translate('workspace.hr.title')}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldUseHeadlineHeader
                     onBackButtonPress={() => Navigation.goBack()}
@@ -132,40 +130,36 @@ function WorkspaceHRPage({
                                         key={card.key}
                                         card={card}
                                         policy={policy}
-                                        handleConnect={() => onConnect(card.connectionName)}
+                                        handleConnect={() => handleConnect(card.connectionName)}
                                     />
                                 ))}
-
                                 {connectedCards.length === 0 &&
                                     disconnectedCards.map((card) => (
                                         <HRProviderCard
                                             key={card.key}
                                             card={card}
                                             policy={policy}
-                                            handleConnect={() => onConnect(card.connectionName)}
+                                            handleConnect={() => handleConnect(card.connectionName)}
                                         />
                                     ))}
                             </View>
 
                             {connectedCards.length > 0 && disconnectedCards.length > 0 && (
-                                <>
-                                    <MenuItem
-                                        title={translate('common.other')}
-                                        icon={isOtherExpanded ? icons.UpArrow : icons.DownArrow}
-                                        onPress={() => setIsOtherExpanded((prev) => !prev)}
-                                        wrapperStyle={[styles.ph0, styles.pv2, styles.mt4]}
-                                        role={CONST.ROLE.BUTTON}
-                                    />
-                                    {isOtherExpanded &&
-                                        disconnectedCards.map((card) => (
-                                            <HRProviderCard
-                                                key={card.key}
-                                                card={card}
-                                                policy={policy}
-                                                handleConnect={() => onConnect(card.connectionName)}
-                                            />
-                                        ))}
-                                </>
+                                <CollapsibleSection
+                                    title={translate('workspace.accounting.other')}
+                                    wrapperStyle={[styles.pr3, styles.mt5, styles.pv3]}
+                                    titleStyle={[styles.textNormal, styles.colorMuted]}
+                                    textStyle={[styles.flex1, styles.userSelectNone, styles.textNormal, styles.colorMuted]}
+                                >
+                                    {disconnectedCards.map((card) => (
+                                        <HRProviderCard
+                                            key={card.key}
+                                            card={card}
+                                            policy={policy}
+                                            handleConnect={() => handleConnect(card.connectionName)}
+                                        />
+                                    ))}
+                                </CollapsibleSection>
                             )}
                         </Section>
                     </View>
