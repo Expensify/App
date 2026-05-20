@@ -103,6 +103,7 @@ describe('PureReportActionItem', () => {
                         <PortalProvider>
                             <PureReportActionItem
                                 report={undefined}
+                                transactionThreadReport={undefined}
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
@@ -389,6 +390,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -437,6 +439,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -489,6 +492,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -533,6 +537,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -602,6 +607,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={report}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -658,6 +664,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={report}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -741,6 +748,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={report}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -920,6 +928,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={report}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -967,6 +976,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={report}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -1121,6 +1131,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={report}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -1300,6 +1311,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={{reportID: 'testReport', policyID: 'pol123'}}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -1391,6 +1403,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={{reportID: 'testReport'}}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -1427,6 +1440,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -1464,6 +1478,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -1512,6 +1527,7 @@ describe('PureReportActionItem', () => {
                                         parentReportActionID: 'parentAction',
                                         ownerAccountID: 0,
                                     }}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -1548,6 +1564,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -1588,6 +1605,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -1626,6 +1644,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={undefined}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -1663,6 +1682,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={undefined}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -1703,6 +1723,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={undefined}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -1744,6 +1765,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={undefined}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -1869,6 +1891,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={{reportID: 'testReport', type: CONST.REPORT.TYPE.CHAT}}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -1906,6 +1929,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={{reportID: 'testReport', isWaitingOnBankAccount: true}}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -2485,6 +2509,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={{reportID: 'testReport', chatReportID: 'chatReport1'}}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -2573,6 +2598,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={undefined}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -2621,6 +2647,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={undefined}
+                                    transactionThreadReport={undefined}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
