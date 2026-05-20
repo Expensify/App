@@ -50,6 +50,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     const illustrations = useMemoizedLazyIllustrations(['EnvelopeReceipt', 'Gears', 'Profile']);
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [formValue] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM);
     const workEmail = formValue?.[INPUT_IDS.ONBOARDING_WORK_EMAIL];
     const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY);
@@ -69,6 +70,27 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     }, []);
 
     useEffect(() => {
+        // A validated account should never see this screen — the backend command also refuses validated callers.
+        // This catches the case where the user lands here without first calling AddWorkEmail (e.g. signed up,
+        // closed the tab on this screen, signed back in via magic code which validated the account, and onboarding
+        // resumed on this route). Force-replace so the back button can't return here.
+        if (account?.validated) {
+            if (isVsb) {
+                Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(), {forceReplace: true});
+                return;
+            }
+            if (isSmb) {
+                Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(), {forceReplace: true});
+                return;
+            }
+            if (!onboardingValues?.isMergeAccountStepSkipped) {
+                Navigation.navigate(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(), {forceReplace: true});
+                return;
+            }
+            Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
+            return;
+        }
+
         if (onboardingValues?.shouldValidate === undefined && onboardingValues?.isMergeAccountStepCompleted === undefined) {
             return;
         }
@@ -96,7 +118,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         }
 
         Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
-    }, [onboardingValues?.shouldValidate, isVsb, isSmb, isFocused, onboardingValues?.isMergeAccountStepCompleted, onboardingValues?.isMergeAccountStepSkipped]);
+    }, [account?.validated, onboardingValues?.shouldValidate, isVsb, isSmb, isFocused, onboardingValues?.isMergeAccountStepCompleted, onboardingValues?.isMergeAccountStepSkipped]);
 
     const submitWorkEmail = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
         AddWorkEmail(values[INPUT_IDS.ONBOARDING_WORK_EMAIL].trim());

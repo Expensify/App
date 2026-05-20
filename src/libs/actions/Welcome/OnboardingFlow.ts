@@ -29,6 +29,7 @@ type GetOnboardingInitialPathParamsType = {
     currentOnboardingCompanySize: OnyxEntry<OnboardingCompanySize>;
     onboardingInitialPath: OnyxEntry<string>;
     onboardingValues: OnyxEntry<Onboarding>;
+    isAccountValidated?: boolean;
 };
 
 type OnboardingTaskLinks = Partial<{
@@ -107,6 +108,7 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
         currentOnboardingCompanySize,
         onboardingInitialPath = '',
         onboardingValues,
+        isAccountValidated,
     } = getOnboardingInitialPathParams;
     const state = getStateFromPath(onboardingInitialPath, linkingConfig.config);
     const currentOnboardingValues = onboardingValuesParam ?? onboardingValues;
@@ -126,7 +128,9 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
     if (isIndividual) {
         Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, [CONST.ONBOARDING_CHOICES.EMPLOYER, CONST.ONBOARDING_CHOICES.TRACK_BUSINESS, CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]);
     }
-    if (isUserFromPublicDomain && !onboardingValuesParam?.isMergeAccountStepCompleted) {
+    // A validated account has no reason to be on the onboarding "add work email" screen.
+    // The backend command also refuses validated callers, so showing the screen would just lead to an error.
+    if (isUserFromPublicDomain && !onboardingValuesParam?.isMergeAccountStepCompleted && !isAccountValidated) {
         return `/${ROUTES.ONBOARDING_WORK_EMAIL.route}`;
     }
 
