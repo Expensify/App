@@ -44,6 +44,14 @@ jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed
 
 const ACTOR_ACCOUNT_ID = 123456789;
 const actorEmail = 'test@test.com';
+const testPersonalDetailsList = {
+    [ACTOR_ACCOUNT_ID]: {
+        accountID: ACTOR_ACCOUNT_ID,
+        avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_9.png',
+        displayName: actorEmail,
+        login: actorEmail,
+    },
+};
 
 const createReportAction = (actionName: ReportActionName, originalMessageExtras: Partial<OriginalMessage<ReportActionName>>) =>
     ({
@@ -1433,6 +1441,7 @@ describe('PureReportActionItem', () => {
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
+                                    personalDetails={testPersonalDetailsList}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1470,6 +1479,7 @@ describe('PureReportActionItem', () => {
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
+                                    personalDetails={testPersonalDetailsList}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1518,6 +1528,7 @@ describe('PureReportActionItem', () => {
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
+                                    personalDetails={testPersonalDetailsList}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1554,6 +1565,7 @@ describe('PureReportActionItem', () => {
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
+                                    personalDetails={testPersonalDetailsList}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1594,6 +1606,7 @@ describe('PureReportActionItem', () => {
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
+                                    personalDetails={testPersonalDetailsList}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
