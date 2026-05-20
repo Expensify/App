@@ -146,6 +146,10 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     const currentStep = getInitialCurrentStep();
     const prevCurrentStep = usePrevious(currentStep);
     const prevSubStep = usePrevious(achData?.subStep);
+    // Treat the very first effect run as a step transition. usePrevious in this codebase initializes
+    // its ref with the current value, so prev/current would match on mount and stale errors from
+    // a prior session (e.g. after a page reload while on the Plaid sub-step) would not be cleared.
+    const isFirstRenderRef = useRef(true);
     const [USDBankAccountStep, setUSDBankAccountStep] = useState<string | null>(subStepParam ?? null);
     const [isNonUSDSetup, setIsNonUSDSetup] = useState(policy ? isNonUSDWorkspace : achData?.currency !== CONST.CURRENCY.USD || reimbursementAccountDraft?.currency !== CONST.CURRENCY.USD);
 
@@ -316,11 +320,12 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
                 const justEnteredPlaidStep =
                     currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT &&
                     achData?.subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID &&
-                    (prevCurrentStep !== currentStep || prevSubStep !== achData?.subStep);
+                    (isFirstRenderRef.current || prevCurrentStep !== currentStep || prevSubStep !== achData?.subStep);
                 if (justEnteredPlaidStep) {
                     hideBankAccountErrors();
                 }
 
+                isFirstRenderRef.current = false;
                 // The route is showing the correct step, no need to update the route param or clear errors.
                 return;
             }
@@ -343,6 +348,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             if (stepToOpen && !isNonUSDSetup) {
                 navigation.setParams({stepToOpen});
             }
+
+            isFirstRenderRef.current = false;
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [
