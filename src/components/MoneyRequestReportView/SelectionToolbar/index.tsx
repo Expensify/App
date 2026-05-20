@@ -260,7 +260,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                             selectedTransactionsOptions={selectedTransactionsOptions}
                             selectedTransactionIDs={selectedTransactionIDs}
                             kycWallRef={kycWallRef}
-                            popoverUseScrollView={popoverUseScrollView}
+                            shouldPopoverUseScrollView={popoverUseScrollView}
                         />
 
                         <SelectAllCheckbox

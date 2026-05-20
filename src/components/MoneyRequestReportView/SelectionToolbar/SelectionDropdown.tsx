@@ -15,16 +15,26 @@ import type {Report} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 type SelectionDropdownProps = {
-    hasPayInSelectionMode: boolean;
     chatReport: OnyxEntry<Report>;
     report: OnyxEntry<Report>;
-    onSelectionModePaymentSelect: (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => void;
-    selectionModeKYCSuccess: (type?: PaymentMethodType) => void;
     primaryAction: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '';
     selectedTransactionsOptions: Array<DropdownOption<string>>;
     selectedTransactionIDs: string[];
+
+    /** Whether the selection mode is pay-in */
+    hasPayInSelectionMode: boolean;
+
+    /** Callback to select the payment */
+    onSelectionModePaymentSelect: (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => void;
+
+    /** Callback for the end of the onContinue trigger on option selection */
+    selectionModeKYCSuccess: (type?: PaymentMethodType) => void;
+
+    /** Reference to the KYC wall */
     kycWallRef: React.RefObject<KYCWallRef | null>;
-    popoverUseScrollView: boolean;
+
+    /** Whether the popover content should be scrollable */
+    shouldPopoverUseScrollView: boolean;
 };
 
 function SelectionDropdown({
@@ -37,7 +47,7 @@ function SelectionDropdown({
     selectedTransactionsOptions,
     selectedTransactionIDs,
     kycWallRef,
-    popoverUseScrollView,
+    shouldPopoverUseScrollView,
 }: SelectionDropdownProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -70,7 +80,7 @@ function SelectionDropdown({
             })}
             isSplitButton={false}
             shouldAlwaysShowDropdownMenu
-            shouldPopoverUseScrollView={popoverUseScrollView}
+            shouldPopoverUseScrollView={shouldPopoverUseScrollView}
             wrapperStyle={isInLandscapeMode ? undefined : [styles.w100, styles.ph5]}
         />
     );

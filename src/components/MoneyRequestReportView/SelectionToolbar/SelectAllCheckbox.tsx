@@ -9,11 +9,19 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 type SelectAllCheckboxProps = {
+    /** Whether the checkbox is checked/selected */
     isSelectAllChecked: boolean;
+
+    /** Whether the button is in the indeterminate ("mixed") state */
     isIndeterminate: boolean;
+
     /** Whether any transactions are currently selected (used for checkbox toggle logic) */
     hasAnySelected: boolean;
+
+    /** Callback to select all transactions */
     onSelectAll: () => void;
+
+    /** Callback to clear all selected transactions */
     onClearAll: () => void;
 };
 
