@@ -3647,7 +3647,7 @@ const CONST = {
             // Often referred to as "collect" workspaces
             TEAM: 'team',
 
-            // Free "Submit" plan for employees submitting expenses to their employer
+            // Often referred to as "submit" workspaces
             SUBMIT: 'submit2026',
         },
         RULE_CONDITIONS: {
@@ -8644,6 +8644,70 @@ const CONST = {
                 description: 'workspace.upgrade.reports.description' as const,
                 icon: 'ReportReceipt',
             },
+            roles: {
+                id: 'roles' as const,
+                alias: 'roles',
+                name: 'Roles',
+                title: 'workspace.upgrade.roles.title' as const,
+                description: 'workspace.upgrade.roles.description' as const,
+                icon: 'BlueShield',
+            },
+            payments: {
+                id: 'payments' as const,
+                alias: 'payments',
+                name: 'Payments',
+                title: 'workspace.upgrade.payments.title' as const,
+                description: 'workspace.upgrade.payments.description' as const,
+                icon: 'Workflows',
+            },
+            accounting: {
+                id: 'accounting' as const,
+                alias: 'accounting',
+                name: 'Accounting',
+                title: 'workspace.upgrade.accounting.title' as const,
+                description: 'workspace.upgrade.accounting.description' as const,
+                icon: 'Accounting',
+            },
+            expensifyCard: {
+                id: 'expensifyCard' as const,
+                alias: 'expensify-card',
+                name: 'Expensify Card',
+                title: 'workspace.upgrade.expensifyCard.title' as const,
+                description: 'workspace.upgrade.expensifyCard.description' as const,
+                icon: 'HandCard',
+            },
+            invoicing: {
+                id: 'invoicing' as const,
+                alias: 'invoicing',
+                name: 'Invoicing',
+                title: 'workspace.upgrade.invoicing.title' as const,
+                description: 'workspace.upgrade.invoicing.description' as const,
+                icon: 'InvoiceBlue',
+            },
+            companyCardSubmit: {
+                id: 'companyCardSubmit' as const,
+                alias: 'company-card-submit',
+                name: 'Company cards',
+                title: 'workspace.upgrade.companyCardSubmit.title' as const,
+                description: 'workspace.upgrade.companyCardSubmit.description' as const,
+                icon: 'CompanyCard',
+            },
+            travelSubmit: {
+                id: 'travelSubmit' as const,
+                alias: 'travel-submit',
+                name: 'Travel',
+                title: 'workspace.upgrade.travelSubmit.title' as const,
+                description: 'workspace.upgrade.travelSubmit.description' as const,
+                icon: 'Luggage',
+            },
+            approvalSubmit: {
+                id: 'approvalSubmit' as const,
+                alias: 'approval-submit',
+                name: 'Approvals',
+                title: 'workspace.upgrade.approvalSubmit.title' as const,
+                description: 'workspace.upgrade.approvalSubmit.description' as const,
+                icon: 'AdvancedApprovalsSquare',
+            },
         };
     },
     REPORT_FIELD_TYPES: {
@@ -9931,6 +9995,18 @@ const CONST = {
     },
 } as const;
 
+/** Upgrade intro feature ids from UPGRADE_FEATURE_INTRO_MAPPING for Submit workspace */
+const SUBMIT_FEATURE_IDS: ReadonlySet<string> = new Set([
+    CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCardSubmit.id,
+    CONST.UPGRADE_FEATURE_INTRO_MAPPING.travelSubmit.id,
+    CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.id,
+    CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.id,
+    CONST.UPGRADE_FEATURE_INTRO_MAPPING.payments.id,
+    CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.id,
+    CONST.UPGRADE_FEATURE_INTRO_MAPPING.expensifyCard.id,
+    CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoicing.id,
+]);
+
 const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
@@ -9996,6 +10072,6 @@ export type {
     IOUActionParams,
 };
 
-export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS, TASK_TO_FEATURE, FRAUD_PROTECTION_EVENT, COUNTRIES_US_BANK_FLOW};
+export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS, TASK_TO_FEATURE, FRAUD_PROTECTION_EVENT, COUNTRIES_US_BANK_FLOW, SUBMIT_FEATURE_IDS};
 
 export default CONST;
