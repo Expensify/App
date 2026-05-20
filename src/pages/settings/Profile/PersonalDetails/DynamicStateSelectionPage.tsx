@@ -30,8 +30,7 @@ type DynamicStateSelectionPageProps = PlatformStackScreenProps<
 function DynamicStateSelectionPage({route}: DynamicStateSelectionPageProps) {
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {translate} = useLocalize();
-    const currentState = route.params.state;
-    const label = route.params.label;
+    const {state: currentState, label} = route.params ?? {};
     const dynamicStateRoute = route.name === SCREENS.IOU_SEND.DYNAMIC_ADDRESS_STATE ? DYNAMIC_ROUTES.IOU_SEND_ADDRESS_STATE : DYNAMIC_ROUTES.ADDRESS_STATE;
     const backPath = useDynamicBackPath(dynamicStateRoute.path);
     const initialSelectedValue = useInitialSelection(currentState ?? undefined, {resetOnFocus: true});
