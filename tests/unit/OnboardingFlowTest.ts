@@ -132,5 +132,49 @@ describe('OnboardingFlow', () => {
             const path = getOnboardingInitialPath(params);
             expect(path).toBe('/onboarding/work-email');
         });
+
+        it('should skip a private-domain URL for a public-domain validated user', () => {
+            const params: GetOnboardingInitialPathParamsType = {
+                isUserFromPublicDomain: true,
+                hasAccessiblePolicies: true,
+                onboardingValuesParam: {
+                    hasCompletedGuidedSetupFlow: false,
+                    shouldRedirectToClassicAfterMerge: false,
+                    shouldValidate: false,
+                    isMergingAccountBlocked: false,
+                    isMergeAccountStepCompleted: true,
+                    signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL,
+                },
+                currentOnboardingPurposeSelected: CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
+                currentOnboardingCompanySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                onboardingInitialPath: '/onboarding/private-domain',
+                onboardingValues: undefined,
+                isAccountValidated: true,
+            };
+            const path = getOnboardingInitialPath(params);
+            expect(path).toBe('/onboarding/purpose');
+        });
+
+        it('should not redirect away from a work-email-validation URL for a public-domain user', () => {
+            const params: GetOnboardingInitialPathParamsType = {
+                isUserFromPublicDomain: true,
+                hasAccessiblePolicies: true,
+                onboardingValuesParam: {
+                    hasCompletedGuidedSetupFlow: false,
+                    shouldRedirectToClassicAfterMerge: false,
+                    shouldValidate: true,
+                    isMergingAccountBlocked: false,
+                    isMergeAccountStepCompleted: true,
+                    signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL,
+                },
+                currentOnboardingPurposeSelected: CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
+                currentOnboardingCompanySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                onboardingInitialPath: '/onboarding/work-email/validation',
+                onboardingValues: undefined,
+                isAccountValidated: true,
+            };
+            const path = getOnboardingInitialPath(params);
+            expect(path).not.toBe('/onboarding/purpose');
+        });
     });
 });
