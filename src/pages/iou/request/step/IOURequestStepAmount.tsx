@@ -203,7 +203,7 @@ function IOURequestStepAmount({
 
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
-    // `transaction` prop can be a transactionDraft or stored transaction. Here we will make sure to use stored transaction.
+    // Use the stored transaction instead of the draft to preserve existing values, especially for distance requests while create a new request.
     const [storedTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(existingTransactionID)}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
