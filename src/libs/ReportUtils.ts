@@ -5076,7 +5076,7 @@ function canModifyHoldStatus(report: Report, reportAction: ReportAction, current
     }
 
     if (isOpenExpenseReport(report)) {
-        return isActionOwner || isManager;
+        return isActionOwner;
     }
 
     if (isActionOwner && !isAdmin) {

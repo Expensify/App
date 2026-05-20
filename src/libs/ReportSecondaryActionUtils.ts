@@ -58,6 +58,7 @@ import {
     hasOnlyNonReimbursableTransactions,
     hasReportBeenReopened as hasReportBeenReopenedUtils,
     hasReportBeenRetracted as hasReportBeenRetractedUtils,
+    isActionCreator,
     isArchivedReport,
     isAwaitingFirstLevelApproval,
     isClosedReport as isClosedReportUtils,
@@ -68,6 +69,7 @@ import {
     isInvoiceReport as isInvoiceReportUtils,
     isIOUReport as isIOUReportUtils,
     isMoneyRequestReportEligibleForMerge,
+    isOpenExpenseReport,
     isOpenReport as isOpenReportUtils,
     isPayer as isPayerUtils,
     isProcessingReport as isProcessingReportUtils,
@@ -563,6 +565,11 @@ function isHoldActionForTransaction(
     const iouOrExpenseReport = isExpenseReport || isIOUReport;
     const holdReportAction = getReportAction(reportAction?.childReportID, `${reportTransaction?.comment?.hold ?? ''}`);
     const {canHoldRequest} = canHoldUnholdReportAction(report, reportAction, holdReportAction, reportTransaction, policy, currentUserAccountID);
+    const isActionOwner = isActionCreator(reportAction);
+
+    if (isOpenExpenseReport(report)) {
+        return isActionOwner && canHoldRequest;
+    }
 
     if (!iouOrExpenseReport || !canHoldRequest) {
         return false;
