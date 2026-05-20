@@ -325,6 +325,8 @@ describe('OnboardingWorkEmail Page', () => {
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
                 hasCompletedGuidedSetupFlow: false,
             });
+            // AddWorkEmail is gated on an unvalidated caller; signInWithTestUser sets validated:true by default.
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false});
         });
 
         const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, {backTo: ''});
