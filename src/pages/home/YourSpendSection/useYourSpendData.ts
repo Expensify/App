@@ -83,35 +83,39 @@ function useYourSpendData(): UseYourSpendDataReturn {
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
 
-    const awaitingApprovalQuery = useMemo(() => buildAwaitingApprovalQuery(accountID), [accountID]);
-    const repaidLast30DaysQuery = useMemo(() => buildRepaidLast30DaysQuery(accountID), [accountID]);
+    const awaitingApprovalQuery = buildAwaitingApprovalQuery(accountID);
+    const repaidLast30DaysQuery = buildRepaidLast30DaysQuery(accountID);
 
-    const approvalQueryJSON = useMemo(() => buildSearchQueryJSON(awaitingApprovalQuery), [awaitingApprovalQuery]);
-    const paymentQueryJSON = useMemo(() => buildSearchQueryJSON(repaidLast30DaysQuery), [repaidLast30DaysQuery]);
+    const approvalQueryJSON = buildSearchQueryJSON(awaitingApprovalQuery);
+    const paymentQueryJSON = buildSearchQueryJSON(repaidLast30DaysQuery);
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [approvalSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${approvalQueryJSON?.hash}`);
     const [paymentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${paymentQueryJSON?.hash}`);
 
-    const {isApprovalApplicable, isPaymentApplicable} = useMemo(() => getYourSpendApplicability(policies), [policies]);
+    const {isApprovalApplicable, isPaymentApplicable} = getYourSpendApplicability(policies);
 
+    // Anchor for the displayable-cards memoization chain. The compiler chooses
+    // not to extract `getDisplayableExpensifyCards(cardList)` into a cache slot
+    // on its own, so without this `useMemo` every downstream value derived from
+    // `displayableCards` (cardQueryByCardID, cardSnapshotKeys, cardSnapshotsSelector,
+    // cardRows, the useOnyx options object) gets a new identity every render —
+    // which then defeats the compiler's own caches for those values.
     const displayableCards = useMemo(() => getDisplayableExpensifyCards(cardList), [cardList]);
 
     // Stable signature of the displayable card IDs. Used as a dependency for the
     // search-firing effect so it re-runs when cards finish loading after first
     // focus, without re-firing on unrelated cardList updates.
-    const displayableCardIDsKey = useMemo(
-        () =>
-            displayableCards
-                .map((card) => card.cardID)
-                .sort((a, b) => a - b)
-                .join(','),
-        [displayableCards],
-    );
+    const displayableCardIDsKey = displayableCards
+        .map((card) => card.cardID)
+        .sort((a, b) => a - b)
+        .join(',');
 
     // For each displayable card, precompute the query string and its parsed JSON exactly once.
     // Reused below for snapshot lookup, card-row construction, and firing the search.
+    // Kept as `useMemo` (rather than relying on the compiler) because it's a chain
+    // anchor: cardSnapshotKeys/cardSnapshotsSelector/cardRows all depend on this.
     const cardQueryByCardID = useMemo(
         () =>
             displayableCards.reduce<Record<number, {query: string; queryJSON: ReturnType<typeof buildSearchQueryJSON>}>>((acc, card) => {
@@ -128,6 +132,9 @@ function useYourSpendData(): UseYourSpendDataReturn {
     // mutations elsewhere in the app no longer re-render this hook's consumers.
     // The projection is further narrowed to just {count, total, currency} so the
     // deep-equal comparison is O(1) per card instead of O(transactions).
+    // Kept as `useMemo` because `cardSnapshotsSelector` (and therefore the
+    // `{selector}` options object passed to `useOnyx`) depends on this array's
+    // identity.
     const cardSnapshotKeys = useMemo(
         () =>
             Object.values(cardQueryByCardID)
@@ -143,23 +150,22 @@ function useYourSpendData(): UseYourSpendDataReturn {
         currency: string | undefined;
     };
 
-    const cardSnapshotsSelector = useMemo(
-        () =>
-            (snapshots: OnyxCollection<SearchResults> | undefined): Record<string, CardSnapshotSummary | undefined> | undefined => {
-                if (!snapshots || cardSnapshotKeys.length === 0) {
-                    return undefined;
-                }
-                const projected: Record<string, CardSnapshotSummary | undefined> = {};
-                for (const key of cardSnapshotKeys) {
-                    const s = snapshots[key];
-                    projected[key] = s ? {count: s.search.count, total: s.search.total, currency: s.search.currency} : undefined;
-                }
-                return projected;
-            },
-        [cardSnapshotKeys],
-    );
+    const cardSnapshotsSelector = (snapshots: OnyxCollection<SearchResults> | undefined): Record<string, CardSnapshotSummary | undefined> | undefined => {
+        if (!snapshots || cardSnapshotKeys.length === 0) {
+            return undefined;
+        }
+        const projected: Record<string, CardSnapshotSummary | undefined> = {};
+        for (const key of cardSnapshotKeys) {
+            const s = snapshots[key];
+            projected[key] = s ? {count: s.search.count, total: s.search.total, currency: s.search.currency} : undefined;
+        }
+        return projected;
+    };
     const [cardSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT, {selector: cardSnapshotsSelector});
 
+    // Returned to consumers and rendered as a list, so we want a stable identity
+    // when nothing relevant changed. Kept as `useMemo` because the compiler does
+    // not extract this reduce into a cache slot on its own.
     const cardRows: YourSpendCardRow[] = useMemo(
         () =>
             displayableCards.reduce<YourSpendCardRow[]>((acc, card) => {
