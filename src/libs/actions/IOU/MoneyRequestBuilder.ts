@@ -45,6 +45,7 @@ import {
     buildOptimisticTransaction,
     getAmount,
     getCurrency,
+    hasValidModifiedAmount,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
@@ -1365,9 +1366,9 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
 
         // Calculate proportional convertedAmount for the split based on the original conversion rate
 
-        const originalAmount = Number(existingTransaction.modifiedAmount) || existingTransaction.amount;
+        const originalAmount = hasValidModifiedAmount(existingTransaction) ? Number(existingTransaction.modifiedAmount) : existingTransaction.amount;
 
-        const splitAmount = Number(optimisticTransaction.modifiedAmount) || optimisticTransaction.amount;
+        const splitAmount = hasValidModifiedAmount(optimisticTransaction) ? Number(optimisticTransaction.modifiedAmount) : optimisticTransaction.amount;
         if (originalConvertedAmount && originalAmount && splitAmount) {
             optimisticTransaction.convertedAmount = Math.round((originalConvertedAmount * splitAmount) / originalAmount);
         }

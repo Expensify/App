@@ -15,7 +15,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, isMoneyRequestAction as isMoneyRequestActionReportActionsUtils} from '@libs/ReportActionsUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
-import {getExpenseTypeTranslationKey, getOriginalTransactionWithSplitInfo, getTransactionType, removeSettledAndApprovedTransactions} from '@libs/TransactionUtils';
+import {getExpenseTypeTranslationKey, getOriginalTransactionWithSplitInfo, getTransactionType, hasValidModifiedAmount, removeSettledAndApprovedTransactions} from '@libs/TransactionUtils';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@navigation/types';
 import {clearWalletTermsError} from '@userActions/PaymentMethods';
@@ -89,7 +89,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
 
     // See description of `transactionRawAmount` prop for more context
 
-    const transactionRawAmount = (Number(transaction?.modifiedAmount) || transaction?.amount) ?? 0;
+    const transactionRawAmount = hasValidModifiedAmount(transaction) ? Number(transaction?.modifiedAmount) : (transaction?.amount ?? 0);
 
     const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
     const isReviewDuplicateTransactionPage = route.name === SCREENS.TRANSACTION_DUPLICATE.REVIEW;

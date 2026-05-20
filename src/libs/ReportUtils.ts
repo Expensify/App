@@ -12632,7 +12632,7 @@ function doesReportContainRequestsFromMultipleUsers(iouReport: OnyxEntry<Report>
         (transaction) => !shouldExcludeDeletedTransactions || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     );
 
-    return isIOUReport(iouReport) && transactions.some((transaction) => (Number(transaction?.modifiedAmount) || transaction?.amount) <= 0);
+    return isIOUReport(iouReport) && transactions.some((transaction) => (hasValidModifiedAmount(transaction) ? Number(transaction?.modifiedAmount) : transaction?.amount) <= 0);
 }
 
 /**

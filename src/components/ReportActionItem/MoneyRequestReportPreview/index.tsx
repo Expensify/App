@@ -15,6 +15,7 @@ import useTransactionViolations from '@hooks/useTransactionViolations';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getIOUActionForReportID, isSplitBillAction as isSplitBillActionReportActionsUtils, isTrackExpenseAction as isTrackExpenseActionReportActionsUtils} from '@libs/ReportActionsUtils';
 import {isIOUReport} from '@libs/ReportUtils';
+import {hasValidModifiedAmount} from '@libs/TransactionUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import Navigation from '@navigation/Navigation';
 import {contextMenuRef} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
@@ -94,7 +95,7 @@ function MoneyRequestReportPreview({
             return false;
         }
 
-        return transactions.some((transaction) => (Number(transaction?.modifiedAmount) || transaction?.amount) < 0);
+        return transactions.some((transaction) => (hasValidModifiedAmount(transaction) ? Number(transaction?.modifiedAmount) : transaction?.amount) < 0);
     }, [transactions, action.childType, iouReport]);
 
     const openReportFromPreview = useCallback(() => {

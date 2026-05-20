@@ -191,6 +191,7 @@ import {
     getAmount as getTransactionAmount,
     getCreated as getTransactionCreatedDate,
     getMerchant as getTransactionMerchant,
+    hasValidModifiedAmount,
     isDeletedTransaction,
     isPending,
     isScanning,
@@ -1327,7 +1328,7 @@ function isAmountTooLong(amount: number, maxLength = 8): boolean {
 }
 
 function isTransactionAmountTooLong(transactionItem: TransactionListItemType | OnyxTypes.Transaction) {
-    const amount = Math.abs(Number(transactionItem.modifiedAmount) || transactionItem.amount);
+    const amount = Math.abs(hasValidModifiedAmount(transactionItem) ? Number(transactionItem.modifiedAmount) : transactionItem.amount);
     return isAmountTooLong(amount);
 }
 
@@ -1707,7 +1708,7 @@ function getToFieldValueForTransaction(
                     report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID,
                     personalDetailsList,
 
-                    Number(transactionItem.modifiedAmount) || transactionItem.amount,
+                    hasValidModifiedAmount(transactionItem) ? Number(transactionItem.modifiedAmount) : transactionItem.amount,
                 )?.to ?? emptyPersonalDetails
             );
         }

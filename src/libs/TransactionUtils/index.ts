@@ -921,7 +921,7 @@ function getUpdatedTransaction({
         // No locally resolvable rate (e.g. track expense without policy loaded) → scale the previous
         // amount by the distance ratio so the optimistic value isn't 0. `modifiedAmount` is `""` for
         // unedited transactions, so coerce via Number() and fall through to `amount`.
-        const previousAmount = Number(transaction?.modifiedAmount) || transaction?.amount || 0;
+        const previousAmount = hasValidModifiedAmount(transaction) ? Number(transaction?.modifiedAmount) : (transaction?.amount ?? 0);
         const useFallback = !rate && !!previousDistanceInMeters && !!previousAmount && !!distanceInMeters;
         if (useFallback) {
             updatedTransaction.modifiedAmount = Math.round(previousAmount * (distanceInMeters / previousDistanceInMeters));
