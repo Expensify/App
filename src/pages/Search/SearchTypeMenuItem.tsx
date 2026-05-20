@@ -1,6 +1,6 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import Animated, {useAnimatedStyle} from 'react-native-reanimated';
+import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import {collapseProgress, peekProgress, useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
@@ -50,6 +50,25 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
         };
     });
 
+    const collapsedBadgeProgress = useSharedValue(isVisuallyCollapsed ? 1 : 0);
+
+    useEffect(() => {
+        collapsedBadgeProgress.set(
+            withTiming(isVisuallyCollapsed ? 1 : 0, {
+                duration: isVisuallyCollapsed ? 220 : 90,
+                easing: Easing.out(Easing.cubic),
+            }),
+        );
+    }, [isVisuallyCollapsed, collapsedBadgeProgress]);
+
+    const collapsedBadgeAnimatedStyle = useAnimatedStyle(() => {
+        const progress = collapsedBadgeProgress.get();
+        return {
+            opacity: progress,
+            transform: [{scale: 0.5 + 0.5 * progress}],
+        };
+    });
+
     const pressable = (
         <PressableWithoutFeedback
             onPress={onPress}
@@ -75,6 +94,19 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
                                 height={variables.iconSizeNormal}
                                 fill={StyleUtils.getIconFillColor(getButtonState(focused || hovered, pressed, false, false, true), true, true)}
                             />
+                            {!!badgeText && (
+                                <Animated.View
+                                    style={[styles.pAbsolute, {bottom: -6, right: -8}, collapsedBadgeAnimatedStyle]}
+                                    pointerEvents="none"
+                                >
+                                    <Badge
+                                        text={badgeText}
+                                        badgeStyles={[styles.ml0]}
+                                        success
+                                        isCondensed
+                                    />
+                                </Animated.View>
+                            )}
                         </View>
                     )}
                     {!isVisuallyCollapsed && (

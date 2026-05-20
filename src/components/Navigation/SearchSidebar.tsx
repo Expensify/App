@@ -2,7 +2,8 @@ import type {ParamListBase} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle} from 'react-native-reanimated';
-import MenuIcon from '@assets/images/menu.svg';
+import SidebarLeftIcon from '@assets/images/sidebar-left.svg';
+import SidebarRightIcon from '@assets/images/sidebar-right.svg';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
 import {PressableWithoutFeedback} from '@components/Pressable';
@@ -32,7 +33,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
     const {isOffline} = useNetwork();
     const shouldShowLoadingBarForReports = useLoadingBarVisibility();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {collapseProgress, peekProgress, toggleSidebar, startPeek, endPeek} = useSearchSidebarCollapse();
+    const {collapseProgress, peekProgress, isCollapsed, toggleSidebar, startPeek, endPeek} = useSearchSidebarCollapse();
 
     const route = state.routes.at(-1);
     const {lastSearchType, currentSearchResults, currentSearchQueryJSON} = useSearchStateContext();
@@ -72,11 +73,6 @@ function SearchSidebar({state}: SearchSidebarProps) {
         return {transform: [{translateX: -10 * (1 - visualExpansion)}]};
     });
 
-    const chevronAnimatedStyle = useAnimatedStyle(() => {
-        const visualExpansion = 1 - collapseProgress.get() * (1 - peekProgress.get());
-        return {transform: [{rotate: `${(1 - visualExpansion) * 180}deg`}]};
-    });
-
     const breadcrumbAnimatedStyle = useAnimatedStyle(() => {
         const visualExpansion = 1 - collapseProgress.get() * (1 - peekProgress.get());
         return {
@@ -99,14 +95,12 @@ function SearchSidebar({state}: SearchSidebarProps) {
                 sentryLabel={CONST.SENTRY_LABEL.TOP_BAR.CANCEL_BUTTON}
                 style={[styles.p2, styles.br2]}
             >
-                <Animated.View style={chevronAnimatedStyle}>
-                    <Icon
-                        src={MenuIcon}
-                        width={variables.iconSizeSmall}
-                        height={variables.iconSizeSmall}
-                        fill={theme.icon}
-                    />
-                </Animated.View>
+                <Icon
+                    src={isCollapsed ? SidebarRightIcon : SidebarLeftIcon}
+                    width={variables.iconSizeNormal}
+                    height={variables.iconSizeNormal}
+                    fill={theme.icon}
+                />
             </PressableWithoutFeedback>
         </Animated.View>
     );
