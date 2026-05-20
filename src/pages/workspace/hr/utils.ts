@@ -3,7 +3,6 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {hasSynchronizationErrorMessage, isConnectionInProgress} from '@libs/actions/connections';
 import getGustoSetupLink from '@libs/actions/connections/Gusto';
 import getMergeHRSetupLink from '@libs/actions/connections/MergeHR';
-import getZenefitsSetupLink from '@libs/actions/connections/Zenefits';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import type {HRConnectionName} from '@libs/PolicyUtils';
 import {getConnectedHRProvider, getHRApprovalMode, getIntegrationLastSuccessfulDate} from '@libs/PolicyUtils';
@@ -31,6 +30,9 @@ type HRCardDescriptor = {
 
     /** Provider logo — either a remote URL string or a local icon asset. */
     icon: string | IconAsset;
+
+    /** URL to open to start the connection flow for this HR provider. */
+    setupLink?: string;
 
     /** Whether this provider is currently connected to the workspace. */
     isConnected: boolean;
@@ -162,6 +164,7 @@ const STATIC_HR_PROVIDERS = [
         iconParam: 'gustoIcon',
         approvalModeRoute: ROUTES.WORKSPACE_HR_GUSTO_APPROVAL_MODE,
         finalApproverRoute: ROUTES.WORKSPACE_HR_GUSTO_FINAL_APPROVER,
+        getSetupLink: getGustoSetupLink,
     },
     {
         key: 'zenefits',
@@ -171,6 +174,7 @@ const STATIC_HR_PROVIDERS = [
         iconParam: 'zenefitsIcon',
         approvalModeRoute: ROUTES.WORKSPACE_HR_ZENEFITS_APPROVAL_MODE,
         finalApproverRoute: ROUTES.WORKSPACE_HR_ZENEFITS_FINAL_APPROVER,
+        getSetupLink: undefined,
     },
 ] as const;
 
@@ -216,6 +220,7 @@ function getHRCards({policy, connectionSyncProgress, isBetaEnabled, getLocalDate
             connectionName,
             displayName: translate(provider.titleKey),
             icon: iconParams[provider.iconParam],
+            setupLink: provider.getSetupLink?.(policyID),
             approvalModeRoute: provider.approvalModeRoute.getRoute(policyID),
             finalApproverRoute: provider.finalApproverRoute.getRoute(policyID),
             config,
@@ -238,6 +243,7 @@ function getHRCards({policy, connectionSyncProgress, isBetaEnabled, getLocalDate
                 connectionName: mergeConnectionName,
                 displayName: providerEntry.displayName,
                 icon: providerEntry.iconUrl,
+                setupLink: getMergeHRSetupLink(policyID, slug),
                 ...(state.isConnected ? state : disconnectedState),
                 approvalModeRoute: ROUTES.WORKSPACE_HR_MERGE_APPROVAL_MODE.getRoute(policyID),
                 finalApproverRoute: ROUTES.WORKSPACE_HR_MERGE_FINAL_APPROVER.getRoute(policyID),
