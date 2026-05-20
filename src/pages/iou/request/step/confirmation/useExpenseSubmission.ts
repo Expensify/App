@@ -38,12 +38,12 @@ import {
     isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
 } from '@libs/TransactionUtils';
-import type {GpsPoint} from '@userActions/IOU';
 import {submitPerDiemExpenseForSelfDM, submitPerDiemExpense as submitPerDiemExpenseIOUActions} from '@userActions/IOU/PerDiem';
 import {getReceiverType, sendInvoice} from '@userActions/IOU/SendInvoice';
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
 import {createDistanceRequest as createDistanceRequestIOUActions, splitBill, splitBillAndOpenReport, startSplitBill} from '@userActions/IOU/Split';
 import {requestMoney as requestMoneyIOUActions, trackExpense as trackExpenseIOUActions} from '@userActions/IOU/TrackExpense';
+import type {GPSPoint as GpsPoint} from '@userActions/IOU/types/TrackExpenseTransactionParams';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, PolicyCategories, RecentlyUsedCategories, Report} from '@src/types/onyx';
@@ -475,9 +475,10 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             if (shouldHandleNav && result && activeReportID) {
                 navigateAfterExpenseCreate({
                     activeReportID,
-                    transactionID: transaction.transactionID,
+                    transactionID: result.transactionID,
                     isFromGlobalCreate: transaction.isFromFloatingActionButton ?? transaction.isFromGlobalCreate,
                     hasMultipleTransactions: reportTransactions.length > 0,
+                    shouldAddPendingNewTransactionIDs: activeReportID === chatReportID,
                 });
             }
         }
