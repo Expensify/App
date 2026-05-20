@@ -4,18 +4,26 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import AccountUtils from '@libs/AccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {isAgentEmail} from '@libs/SessionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Account} from '@src/types/onyx';
+import type {Account, Session} from '@src/types/onyx';
 import callOrReturn from '@src/types/utils/callOrReturn';
 import FullPageNotFoundView from './BlockingViews/FullPageNotFoundView';
 
+type AccessContext = {
+    account: OnyxEntry<Account>;
+    session: OnyxEntry<Session>;
+};
+
 const DENIED_ACCESS_VARIANTS = {
     // To Restrict All Delegates From Accessing The Page.
-    [CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]: (account: OnyxEntry<Account>) => isDelegate(account),
+    [CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]: ({account}: AccessContext) => isDelegate(account),
     // To Restrict Only Limited Access Delegates From Accessing The Page.
-    [CONST.DELEGATE.DENIED_ACCESS_VARIANTS.SUBMITTER]: (account: OnyxEntry<Account>) => isSubmitter(account),
-} as const satisfies Record<string, (account: OnyxEntry<Account>) => boolean>;
+    [CONST.DELEGATE.DENIED_ACCESS_VARIANTS.SUBMITTER]: ({account}: AccessContext) => isSubmitter(account),
+    // To Restrict Agent Accounts From Accessing The Page.
+    [CONST.DELEGATE.DENIED_ACCESS_VARIANTS.AGENT]: ({session}: AccessContext) => isAgentEmail(session?.email),
+} as const satisfies Record<string, (context: AccessContext) => boolean>;
 
 type AccessDeniedVariants = keyof typeof DENIED_ACCESS_VARIANTS;
 
@@ -38,9 +46,10 @@ function isSubmitter(account: OnyxEntry<Account>) {
 
 function DelegateNoAccessWrapper({accessDeniedVariants = [], shouldForceFullScreen, onBackButtonPress, ...props}: DelegateNoAccessWrapperProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const isPageAccessDenied = accessDeniedVariants.reduce((acc, variant) => {
         const accessDeniedFunction = DENIED_ACCESS_VARIANTS[variant];
-        return acc || accessDeniedFunction(account);
+        return acc || accessDeniedFunction({account, session});
     }, false);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
