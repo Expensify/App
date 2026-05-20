@@ -30,25 +30,20 @@ describe('policyChatRoomsSelector', () => {
         expect(policyChatRoomsSelector(policyID)(reports)).toEqual([]);
     });
 
-    it('includes chat rooms (policy rooms, admins room, invoice room) for the given policy', () => {
+    it('includes chat rooms and policy expense chats for the given policy', () => {
         const reports = {
             [`${R}1`]: policyRoom,
             [`${R}2`]: policyAdmins,
+            [`${R}3`]: policyExpenseChat,
             [`${R}4`]: invoiceRoom,
         };
         const result = policyChatRoomsSelector(policyID)(reports);
-        expect(result).toHaveLength(3);
-        expect(result.map((report) => report.reportID).sort()).toEqual(['1', '2', '4']);
+        expect(result).toHaveLength(4);
+        expect(result.map((report) => report.reportID).sort()).toEqual(['1', '2', '3', '4']);
     });
 
-    it('excludes policy expense chats for the given policy', () => {
-        const reports = {[`${R}3`]: policyExpenseChat};
-        expect(policyChatRoomsSelector(policyID)(reports)).toEqual([]);
-    });
-
-    it('excludes reports that are not chat rooms', () => {
+    it('excludes reports that are not chat rooms or policy expense chats', () => {
         const reports = {
-            [`${R}3`]: policyExpenseChat,
             [`${R}6`]: selfDM,
             [`${R}7`]: groupChat,
             [`${R}8`]: expenseReport,

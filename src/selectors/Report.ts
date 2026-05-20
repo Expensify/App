@@ -1,7 +1,7 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {getOriginalMessage, isClosedAction} from '@libs/ReportActionsUtils';
-import {getPolicyIDsWithEmptyReportsForAccount, isChatRoom, isOpenExpenseReport} from '@libs/ReportUtils';
+import {getPolicyIDsWithEmptyReportsForAccount, isChatRoom, isOpenExpenseReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {Report, ReportActions, Transaction} from '@src/types/onyx';
 import {getLastClosedReportAction} from './ReportAction';
@@ -49,7 +49,7 @@ const policyChatRoomsSelector =
             if (!report || report.policyID !== policyID) {
                 continue;
             }
-            if (!isChatRoom(report)) {
+            if (!isChatRoom(report) && !isPolicyExpenseChat(report)) {
                 continue;
             }
             list.push(report);

@@ -29,7 +29,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
-import {getParticipantsAccountIDsForDisplay, isHiddenForCurrentUser} from '@libs/ReportUtils';
+import {getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
@@ -105,7 +105,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     );
 
     const data: RoomListItem[] = (policyReports ?? [])
-        .filter((report) => !archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`) && !isHiddenForCurrentUser(report))
+        .filter((report) => !archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`))
         .map((report) => ({
             keyForList: report.reportID,
             text: getReportName(report, reportAttributes),
