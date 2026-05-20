@@ -9,7 +9,7 @@ import {getCardDescription, isCard, isCardHiddenFromSearch} from '@libs/CardUtil
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import type {OptionList} from '@libs/OptionsListUtils';
 import {getSearchOptions} from '@libs/OptionsListUtils';
-import {getAllTaxRates, getCleanedTagName, getExpensifyTeamExclusions, shouldShowPolicy} from '@libs/PolicyUtils';
+import {getAllTaxRates, getCleanedTagName, getNonWorkspaceMemberExclusions, shouldShowPolicy} from '@libs/PolicyUtils';
 import {
     getAutocompleteCategories,
     getAutocompleteRecentCategories,
@@ -219,8 +219,8 @@ function useAutocompleteSuggestions({
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER: {
-            // Only the From filter soft-excludes Expensify-team logins so internal staff don't leak into customer suggestions.
-            const fromExclusions = getExpensifyTeamExclusions(personalDetails, currentUserEmail, autocompleteKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM);
+            // Scope user filter suggestions to workspace members. Users can still type any email manually because the search bar accepts free text.
+            const memberExclusions = getNonWorkspaceMemberExclusions(personalDetails, policies, currentUserEmail);
 
             const participants = getSearchOptions({
                 options,
@@ -243,7 +243,7 @@ function useAutocompleteSuggestions({
                 personalDetails,
                 sortedActions,
                 conciergeReportID,
-                excludeFromSuggestionsOnly: fromExclusions,
+                excludeFromSuggestionsOnly: memberExclusions,
             }).personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
 
             return participants.map((participant) => ({
