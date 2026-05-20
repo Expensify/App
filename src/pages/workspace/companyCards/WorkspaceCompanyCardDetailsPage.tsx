@@ -158,7 +158,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             />
                         )}
                         <Text
-                            style={styles.walletCardHolder}
+                            style={styles.companyCardHolder}
                             numberOfLines={1}
                             ellipsizeMode="tail"
                         >
