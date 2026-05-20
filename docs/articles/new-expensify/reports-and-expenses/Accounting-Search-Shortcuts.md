@@ -1,21 +1,21 @@
 ---
 title: Accounting Search Shortcuts
 description: Use the Accounting search shortcuts on the Spend page to review expense status, prepare for export, and reconcile transactions with your accounting records.
-keywords: [New Expensify, accounting expensify, reconcile expenses, awaiting export, cash accruals, card accruals, card statements, bank reconciliation, month-end close, search shortcut, accounting shortcut, aging report]
-internalScope: Audience is Workspace Admins. Covers using the Accounting section to review expense states and support reconciliation workflows. Does not cover exporting or performing reconciliation in detail.
+keywords: [New Expensify, accounting expensify, reconcile expenses, awaiting export, cash accruals, card accruals, card statements, bank reconciliation, month-end close, search shortcut, accounting shortcut]
+internalScope: Audience is Workspace Admins and Auditors. Covers using the Accounting section to review expense states and support reconciliation workflows. Does not cover exporting or performing reconciliation in detail.
 ---
 
 # Accounting Search Shortcuts
 
 The **Accounting** search shortcuts on the **Spend** page bring together the expense views you need to reconcile your records and close your books. It helps you identify what’s ready to export, what still needs attention, and what should be matched against statements or bank data.
 
-Workspace Admins can use these shortcuts to validate totals, track liabilities, and ensure your expenses align with accounting records before and after export.
+Workspace Admins and Auditors can use these shortcuts to validate totals, track liabilities, and ensure your expenses align with accounting records before and after export.
 
 ---
 
 ## Who can use Accounting search shortcuts
 
-Workspace Admins with:
+Workspace Admins and Auditors with:
 - Approvals turned on
 - Either reimbursements enabled or at least one card feed connected
 
