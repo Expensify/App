@@ -4,8 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import MoneyReportView from '@components/ReportActionItem/MoneyReportView';
 import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
-import type {ShowContextMenuActionsContextType, ShowContextMenuStateContextType} from '@components/ShowContextMenuContext';
-import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
+import {ShowContextMenuActionsContext, ShowContextMenuStateContext, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
 import useOnyx from '@hooks/useOnyx';
 import useReportTransactions from '@hooks/useReportTransactions';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -32,12 +31,6 @@ type MoneyReportContentCreatedProps = {
     /** The CREATED report action that this content belongs to */
     action: OnyxEntry<OnyxTypes.ReportAction>;
 
-    /** Context menu actions to forward to nested `MoneyRequestView` */
-    contextMenuActionsValue: ShowContextMenuActionsContextType;
-
-    /** Disabled context-menu state to forward to nested `MoneyRequestView` */
-    disabledStateValue: ShowContextMenuStateContextType;
-
     /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine: boolean;
 
@@ -45,19 +38,12 @@ type MoneyReportContentCreatedProps = {
     threadDivider: React.ReactNode;
 };
 
-function MoneyReportContentCreated({
-    report,
-    policy,
-    transaction,
-    transactionThreadReport,
-    action,
-    contextMenuActionsValue,
-    disabledStateValue,
-    shouldHideThreadDividerLine,
-    threadDivider,
-}: MoneyReportContentCreatedProps) {
+function MoneyReportContentCreated({report, policy, transaction, transactionThreadReport, action, shouldHideThreadDividerLine, threadDivider}: MoneyReportContentCreatedProps) {
     const styles = useThemeStyles();
     const reportTransactions = useReportTransactions(report?.reportID);
+    const contextMenuStateValue = useShowContextMenuState();
+    const contextMenuActionsValue = useShowContextMenuActions();
+    const disabledStateValue = {...contextMenuStateValue, isDisabled: true};
 
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(report?.reportID)}`);
     const resolvedReportCurrency = getResolvedReportCurrency({report, reportMetadata, transaction});
