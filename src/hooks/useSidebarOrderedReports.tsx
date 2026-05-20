@@ -218,20 +218,20 @@ function SidebarOrderedReportsContextProvider({
             });
         } else {
             Log.info('[useSidebarOrderedReports] building reportsToDisplay from scratch');
-            reportsToDisplay = SidebarUtils.getReportsToDisplayInLHN(
-                derivedCurrentReportID,
-                chatReports,
+            reportsToDisplay = SidebarUtils.getReportsToDisplayInLHN({
+                currentReportId: derivedCurrentReportID,
+                reports: chatReports,
                 betas,
                 priorityMode,
-                reportsDrafts,
+                draftComments: reportsDrafts,
                 transactionViolations,
                 transactions,
                 isOffline,
-                currentUserLogin ?? '',
-                accountID,
+                currentUserLogin: currentUserLogin ?? '',
+                currentUserAccountID: accountID,
                 reportNameValuePairs,
                 reportAttributes,
-            );
+            });
         }
 
         return reportsToDisplay;

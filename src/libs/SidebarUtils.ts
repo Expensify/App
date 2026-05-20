@@ -356,20 +356,33 @@ function shouldDisplayReportInLHN({
     return {shouldDisplay};
 }
 
-function getReportsToDisplayInLHN(
-    currentReportId: string | undefined,
-    reports: OnyxCollection<Report>,
-    betas: OnyxEntry<Beta[]>,
-    priorityMode: OnyxEntry<PriorityMode>,
-    draftComments: OnyxCollection<string>,
-    transactionViolations: OnyxCollection<TransactionViolation[]>,
-    transactions: OnyxCollection<Transaction>,
-    isOffline: boolean,
-    currentUserLogin: string,
-    currentUserAccountID: number,
-    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
-    reportAttributes?: ReportAttributesDerivedValue['reports'],
-) {
+function getReportsToDisplayInLHN({
+    currentReportId,
+    reports,
+    betas,
+    priorityMode,
+    draftComments,
+    transactionViolations,
+    transactions,
+    isOffline,
+    currentUserLogin,
+    currentUserAccountID,
+    reportNameValuePairs,
+    reportAttributes,
+}: {
+    currentReportId: string | undefined;
+    reports: OnyxCollection<Report>;
+    betas: OnyxEntry<Beta[]>;
+    priorityMode: OnyxEntry<PriorityMode>;
+    draftComments: OnyxCollection<string>;
+    transactionViolations: OnyxCollection<TransactionViolation[]>;
+    transactions: OnyxCollection<Transaction>;
+    isOffline: boolean;
+    currentUserLogin: string;
+    currentUserAccountID: number;
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
+    reportAttributes?: ReportAttributesDerivedValue['reports'];
+}) {
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const allReportsDictValues = reports ?? {};
     const reportsToDisplay: ReportsToDisplayInLHN = {};
