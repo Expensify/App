@@ -70,13 +70,13 @@ describe('EnableNotificationsBanner', () => {
         expect(dismissForSession).toHaveBeenCalledTimes(1);
     });
 
-    it('does not dismiss when permission is not granted after request', async () => {
+    it('dismisses after request even when permission is denied so the banner does not get stuck', async () => {
         mockRequestResult = 'denied';
         renderBanner();
         await waitForBatchedUpdatesWithAct();
         fireEvent.press(screen.getByText('Notify'));
         await waitForBatchedUpdatesWithAct();
         expect(mockRequest).toHaveBeenCalledTimes(1);
-        expect(dismissForSession).not.toHaveBeenCalled();
+        expect(dismissForSession).toHaveBeenCalledTimes(1);
     });
 });

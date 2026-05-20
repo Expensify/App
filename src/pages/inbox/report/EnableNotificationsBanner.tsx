@@ -19,13 +19,8 @@ const containerOverrideStyle = {
     borderTopRightRadius: variables.componentBorderRadiusLarge,
 };
 
-function requestAndDismissIfGranted() {
-    NotificationPermission.request().then((status) => {
-        if (status !== 'granted') {
-            return;
-        }
-        dismissForSession();
-    });
+function requestAndDismiss() {
+    NotificationPermission.request().then(dismissForSession);
 }
 
 function EnableNotificationsBanner() {
@@ -44,7 +39,7 @@ function EnableNotificationsBanner() {
                 shouldShowButton
                 shouldUseSmallButtons
                 buttonText={translate('concierge.enableNotifications.cta')}
-                onButtonPress={requestAndDismissIfGranted}
+                onButtonPress={requestAndDismiss}
                 shouldShowSecondaryButton
                 secondaryButtonText={translate('common.notNow')}
                 onSecondaryButtonPress={dismissForSession}
