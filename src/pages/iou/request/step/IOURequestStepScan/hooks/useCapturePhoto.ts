@@ -4,7 +4,7 @@ import {Alert} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 import type {Camera, PhotoFile} from 'react-native-vision-camera';
 import useLocalize from '@hooks/useLocalize';
-import {pregenerateThumbnail} from '@hooks/useLocalReceiptThumbnail';
+import {precacheReceiptImage} from '@hooks/useLocalReceiptThumbnail';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import Log from '@libs/Log';
@@ -212,7 +212,7 @@ function useCapturePhoto({
                     parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
                 });
                 Promise.race([
-                    pregenerateThumbnail(source),
+                    precacheReceiptImage(source),
                     new Promise((resolve) => {
                         setTimeout(resolve, CONST.RECEIPT_CAMERA.THUMBNAIL_NAV_TIMEOUT_MS);
                     }),
