@@ -1594,7 +1594,6 @@ type OriginalMessage<T extends ReportActionName> = T extends keyof OriginalMessa
 export default OriginalMessage;
 export type {
     DecisionName,
-    OriginalMessageCardFraudAlert,
     OriginalMessageIOU,
     ChronosOOOEvent,
     PaymentMethodType,
@@ -1603,7 +1602,6 @@ export type {
     PolicyRulesModifiedFields,
     PersonalRulesModifiedFields,
     OriginalMessageChangeLog,
-    OriginalMessagePolicyChangeLog,
     JoinWorkspaceResolution,
     OriginalMessageModifiedExpense,
     OriginalMessageExportIntegration,
@@ -1611,13 +1609,8 @@ export type {
     OriginalMessageChangePolicy,
     OriginalMessageUnreportedTransaction,
     OriginalMessageMovedTransaction,
-    PolicyBudgetFrequencyValues,
     PolicyBudgetFrequency,
     OriginalMessageMarkedReimbursed,
     OriginalMessageReimbursed,
-    OriginalMessageConciergeAutoMapMccGroups,
-    OriginalMessageCompanyCardConnectionBroken,
-    OriginalMessagePlaidBalanceFailure,
-    OriginalMessageReimbursementDirectorInformationRequired,
     OriginalMessageSettlementAccountLocked,
 };

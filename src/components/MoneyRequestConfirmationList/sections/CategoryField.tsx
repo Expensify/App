@@ -4,7 +4,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getDecodedCategoryName} from '@libs/CategoryUtils';
+import {getDecodedLeafCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCategory, willFieldBeAutomaticallyFilled} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -50,7 +50,7 @@ function CategoryField({
 
     const shouldDisplayCategoryError = formError === 'violations.categoryOutOfPolicy';
     const iouCategory = getCategory(transaction);
-    const decodedCategoryName = getDecodedCategoryName(iouCategory);
+    const decodedCategoryName = getDecodedLeafCategoryName(iouCategory);
 
     const getCategoryRightLabelIcon = () => (willFieldBeAutomaticallyFilled(transaction, 'category') ? icons.Sparkles : undefined);
     const getCategoryRightLabel = () => {

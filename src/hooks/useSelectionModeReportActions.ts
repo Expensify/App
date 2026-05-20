@@ -84,7 +84,7 @@ function useSelectionModeReportActions({
     selectedTransactionIDs,
 }: UseSelectionModeReportActionsParams) {
     const {translate, localeCompare} = useLocalize();
-    const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const {accountID: currentUserAccountID, login: currentUserLogin, localCurrencyCode} = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
     const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
@@ -130,7 +130,6 @@ function useSelectionModeReportActions({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Send', 'ThumbsUp', 'Cash', 'ArrowRight', 'Building'] as const);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const isBulkSubmitApprovePayBetaEnabled = isBetaEnabled(CONST.BETAS.BULK_SUBMIT_APPROVE_PAY);
 
     const currentUserEmail = session?.email;
     const hasViolations = hasViolationsReportUtils(report?.reportID, allTransactionViolations, currentUserAccountID, currentUserEmail ?? '');
@@ -171,7 +170,7 @@ function useSelectionModeReportActions({
 
     const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere;
 
-    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(report, shouldShowPayButton);
+    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(report, shouldShowPayButton, transactions);
 
     const shouldShowApproveButton = canApproveIOU(report, policy, reportMetadata, currentUserAccountID, transactions) && !hasOnlyPendingTransactions;
 
@@ -368,6 +367,7 @@ function useSelectionModeReportActions({
                 introSelected,
                 currentUserAccountIDParam: currentUserAccountID,
                 currentUserEmailParam: email,
+                currentUserLocalCurrency: localCurrencyCode ?? CONST.CURRENCY.USD,
                 payAsBusiness,
                 existingB2BInvoiceReport,
                 methodID,
@@ -496,9 +496,6 @@ function useSelectionModeReportActions({
     })();
 
     const selectionModeReportLevelActions = (() => {
-        if (!isBulkSubmitApprovePayBetaEnabled) {
-            return [];
-        }
         const actions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon' | 'subMenuItems'>> = [];
         let idx = 0;
         if (hasSubmitAction && !shouldBlockSubmit) {
@@ -567,7 +564,7 @@ function useSelectionModeReportActions({
         canAllowSettlement,
         isAnyTransactionOnHold,
         isInvoiceReport,
-        hasOnlyHeldExpenses: hasOnlyHeldExpensesReportUtils(report?.reportID, transactions),
+        hasOnlyHeldExpenses: hasOnlyHeldExpensesReportUtils(transactions),
         nonHeldAmount,
         fullAmount,
         hasValidNonHeldAmount,
@@ -583,4 +580,3 @@ function useSelectionModeReportActions({
 }
 
 export default useSelectionModeReportActions;
-export type {UseSelectionModeReportActionsParams};
