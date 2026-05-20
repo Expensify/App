@@ -429,7 +429,8 @@ function PureReportActionItem({
                 },
                 disabledOptions: disabledActions,
             });
-        });    };
+        });
+    };
 
     const contextMenuStateValue: ShowContextMenuStateContextType = {
         anchor: popoverAnchorRef,
