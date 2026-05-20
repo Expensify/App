@@ -90,7 +90,7 @@ function ChangePINPageContent({cardID, wasPINBlocked}: {cardID: string; wasPINBl
     return (
         <ScreenWrapper testID={ChangePINPage.displayName}>
             <HeaderWithBackButton
-                title={translate(wasPINBlocked ? 'cardPage.unlockCard' : 'cardPage.changePin')}
+                title={translate(wasPINBlocked ? 'cardPage.unblockCard' : 'cardPage.changePin')}
                 onBackButtonPress={() => {
                     if (!isConfirmStep) {
                         Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(String(cardID)));

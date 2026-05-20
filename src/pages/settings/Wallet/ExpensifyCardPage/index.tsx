@@ -373,7 +373,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                 />
                                 <Button
                                     danger
-                                    text={translate('cardPage.unlock')}
+                                    text={translate('cardPage.unblock')}
                                     onPress={() => {
                                         Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN.getRoute(String(currentPhysicalCard?.cardID)));
                                     }}

@@ -52,9 +52,9 @@ const ChangePINSuccessScreen = createScreenWithDefaults(
 const PINUnblockedSuccessScreen = createScreenWithDefaults(
     DefaultSuccessScreen,
     {
-        headerTitle: 'cardPage.unlockCard',
-        title: 'cardPage.cardUnlocked',
-        subtitle: 'cardPage.cardUnlockedDescription',
+        headerTitle: 'cardPage.unblockCard',
+        title: 'cardPage.cardUnblocked',
+        subtitle: 'cardPage.cardUnblockedDescription',
         illustration: 'CardReader',
         iconWidth: variables.cardReaderWidth,
         iconHeight: variables.cardReaderHeight,
