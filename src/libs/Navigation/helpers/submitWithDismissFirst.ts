@@ -44,13 +44,13 @@ import isSearchTopmostFullScreenRoute from './isSearchTopmostFullScreenRoute';
  * to allow `= {}` defaults.
  */
 type WriteOverrides = {
-    shouldHandleNavigation?: boolean;
-    shouldDeferForSearch?: boolean;
+    shouldHandleNavigation: boolean;
+    shouldDeferForSearch: boolean;
 };
 
 type DismissFirstSubmitOptions = {
     /** The API write function to execute; receives navigation/defer overrides from the orchestrator. */
-    executeWrite: (overrides?: WriteOverrides) => void;
+    executeWrite: (overrides: WriteOverrides) => void;
     /** Report that will display the expense after submission (used to pick the dismiss target). */
     destinationReportID: string | undefined;
     /** Telemetry metadata for the submit-expense performance span. */

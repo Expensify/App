@@ -556,10 +556,10 @@ function IOURequestStepConfirmation({
             submitWithDismissFirst({
                 executeWrite: (overrides) =>
                     sendMoney(paymentMethod, {
-                        shouldHandleNavigation: overrides?.shouldHandleNavigation,
+                        shouldHandleNavigation: overrides.shouldHandleNavigation,
                         resolvedReportIDs,
                         shouldStartTracking: false,
-                        shouldDeferForSearch: overrides?.shouldDeferForSearch,
+                        shouldDeferForSearch: overrides.shouldDeferForSearch,
                     }),
                 destinationReportID: payDestinationReportID,
                 telemetryContext: {

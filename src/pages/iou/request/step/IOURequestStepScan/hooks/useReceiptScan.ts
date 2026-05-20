@@ -154,8 +154,7 @@ function useReceiptScan({
             participants,
             participantsPolicyTags,
             onTransactionsCreated: (lastTransactionID, optimisticChatReportID, shouldHandleNav) => {
-                // submitWithDismissFirst pre-navigates on every branch except the fallback (shouldHandleNav === true).
-                if (shouldHandleNav ?? true) {
+                if (shouldHandleNav) {
                     cleanupAndNavigateAfterExpenseCreate({
                         report,
                         draftTransactionIDs,

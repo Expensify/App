@@ -145,7 +145,7 @@ function IOURequestStepDistanceGPS({
             ownerBillingGracePeriodEnd,
             conciergeReportID,
             onTransactionsCreated: (lastTransactionID, optimisticChatReportID, shouldHandleNav) => {
-                if (shouldHandleNav ?? true) {
+                if (shouldHandleNav) {
                     cleanupAndNavigateAfterExpenseCreate({
                         report,
                         draftTransactionIDs,

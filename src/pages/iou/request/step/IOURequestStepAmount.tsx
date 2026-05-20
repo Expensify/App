@@ -296,7 +296,7 @@ function IOURequestStepAmount({
                     };
 
                     submitWithDismissFirst({
-                        executeWrite: (overrides) => executeSendMoneyWrite({shouldDeferForSearch: overrides?.shouldDeferForSearch}),
+                        executeWrite: (overrides) => executeSendMoneyWrite({shouldDeferForSearch: overrides.shouldDeferForSearch}),
                         destinationReportID: chatReportID,
                         telemetryContext: {
                             scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.SEND_MONEY,
@@ -315,7 +315,7 @@ function IOURequestStepAmount({
                     return;
                 }
                 const isTrackExpenseSubmit = iouType === CONST.IOU.TYPE.TRACK;
-                const executeExpenseWrite = (overrides?: WriteOverrides) => {
+                const executeExpenseWrite = (overrides: WriteOverrides) => {
                     if (isTrackExpenseSubmit) {
                         trackExpense({
                             report,
@@ -379,8 +379,7 @@ function IOURequestStepAmount({
                             optimisticTransactionID,
                         });
                     }
-                    // submitWithDismissFirst pre-navigates on every branch except the fallback (shouldHandleNavigation === true).
-                    if (overrides?.shouldHandleNavigation ?? true) {
+                    if (overrides.shouldHandleNavigation) {
                         cleanupAndNavigateAfterExpenseCreate({
                             report,
                             draftTransactionIDs,

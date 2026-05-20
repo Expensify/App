@@ -10,7 +10,7 @@
  */
 import type {WriteOverrides} from '@libs/Navigation/helpers/submitWithDismissFirst';
 
-const submitWithDismissFirst = ({executeWrite}: {executeWrite: (overrides?: WriteOverrides) => void}) => {
+const submitWithDismissFirst = ({executeWrite}: {executeWrite: (overrides: WriteOverrides) => void}) => {
     executeWrite({shouldHandleNavigation: true, shouldDeferForSearch: false});
 };
 

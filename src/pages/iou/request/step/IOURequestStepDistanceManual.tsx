@@ -250,8 +250,7 @@ function IOURequestStepDistanceManual({
             conciergeReportID,
             draftTransactionIDs,
             onTransactionsCreated: (lastTransactionID, optimisticChatReportID, shouldHandleNav) => {
-                // submitWithDismissFirst pre-navigates on every branch except the fallback (shouldHandleNav === true).
-                if (shouldHandleNav ?? true) {
+                if (shouldHandleNav) {
                     cleanupAndNavigateAfterExpenseCreate({
                         report,
                         draftTransactionIDs,

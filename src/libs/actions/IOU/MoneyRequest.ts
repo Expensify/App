@@ -106,7 +106,7 @@ type CreateTransactionParams = {
     personalDetails: OnyxEntry<PersonalDetailsList>;
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
     shouldHandleNav?: boolean;
-    onTransactionsCreated: (lastTransactionID: string | undefined, optimisticChatReportID?: string, shouldHandleNav?: boolean) => void;
+    onTransactionsCreated: (lastTransactionID: string | undefined, optimisticChatReportID: string | undefined, shouldHandleNav: boolean) => void;
 };
 
 type InitialTransactionParams = {
@@ -157,7 +157,7 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     amountOwed: OnyxEntry<number>;
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
-    onTransactionsCreated: (lastTransactionID: string | undefined, optimisticChatReportID?: string, shouldHandleNav?: boolean) => void;
+    onTransactionsCreated: (lastTransactionID: string | undefined, optimisticChatReportID: string | undefined, shouldHandleNav: boolean) => void;
 };
 
 type MoneyRequestStepDistanceNavigationParams = {
@@ -207,7 +207,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
     conciergeReportID: string | undefined;
-    onTransactionsCreated: (lastTransactionID: string | undefined, optimisticChatReportID?: string, shouldHandleNav?: boolean) => void;
+    onTransactionsCreated: (lastTransactionID: string | undefined, optimisticChatReportID: string | undefined, shouldHandleNav: boolean) => void;
 };
 
 function createTransaction({
@@ -468,8 +468,8 @@ function handleMoneyRequestStepScanParticipants({
                     executeWrite: (overrides) =>
                         startSplitBill({
                             ...splitBaseParams,
-                            shouldHandleNavigation: overrides?.shouldHandleNavigation,
-                            shouldDeferForSearch: overrides?.shouldDeferForSearch,
+                            shouldHandleNavigation: overrides.shouldHandleNavigation,
+                            shouldDeferForSearch: overrides.shouldDeferForSearch,
                         }),
                     destinationReportID: reportID,
                     telemetryContext: {
@@ -522,7 +522,7 @@ function handleMoneyRequestStepScanParticipants({
             const scanDestinationReportID = iouType === CONST.IOU.TYPE.TRACK ? selfDMReport?.reportID : report?.reportID;
             submitWithDismissFirst({
                 executeWrite: (overrides) => {
-                    const scanCreateParams = {...baseCreateTransactionParams, shouldHandleNav: overrides?.shouldHandleNavigation ?? true};
+                    const scanCreateParams = {...baseCreateTransactionParams, shouldHandleNav: overrides.shouldHandleNavigation};
                     if (locationPermissionGranted) {
                         getCurrentPosition(
                             (successData) => createTransaction({...scanCreateParams, gpsPoint: {lat: successData.coords.latitude, long: successData.coords.longitude}}),
@@ -762,7 +762,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             optimisticTransactionID: distanceOptimisticTransactionID,
                             optimisticChatReportID: distanceOptimisticChatReportID,
                         });
-                        onTransactionsCreated(distanceOptimisticTransactionID, distanceOptimisticChatReportID, overrides?.shouldHandleNavigation ?? true);
+                        onTransactionsCreated(distanceOptimisticTransactionID, distanceOptimisticChatReportID, overrides.shouldHandleNavigation);
                     },
                     destinationReportID: selfDMReport?.reportID,
                     telemetryContext: {
@@ -778,7 +778,7 @@ function handleMoneyRequestStepDistanceNavigation({
 
             const distanceDestinationReportID = report?.reportID;
 
-            const executeDistanceWrite = (overrides: WriteOverrides = {}) => {
+            const executeDistanceWrite = (overrides: WriteOverrides) => {
                 createDistanceRequest({
                     report,
                     participants,
