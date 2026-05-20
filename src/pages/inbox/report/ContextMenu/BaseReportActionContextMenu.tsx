@@ -11,7 +11,7 @@ import CompactMenuContext from '@components/CompactMenuContext';
 import ContextMenuItem from '@components/ContextMenuItem';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
-import {useSession} from '@components/OnyxListItemProvider';
+import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
@@ -22,6 +22,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -243,6 +244,8 @@ function BaseReportActionContextMenu({
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const personalDetails = usePersonalDetails();
+    const reportAttributes = useReportAttributes();
     const delegateAccountID = useDelegateAccountID();
 
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
@@ -388,6 +391,7 @@ function BaseReportActionContextMenu({
                                 interceptAnonymousUser,
                                 openOverflowMenu,
                                 setIsEmojiPickerActive,
+                                personalDetails,
                                 isHarvestReport,
                                 moneyRequestAction,
                                 card,
@@ -414,6 +418,7 @@ function BaseReportActionContextMenu({
                                 isOffline,
                                 conciergeReportID,
                                 delegateAccountID,
+                                reportAttributes,
                                 originalReportOfUnapprovedTransaction,
                             };
 
