@@ -2557,8 +2557,8 @@ ${amount} dla ${merchant} - ${date}`,
         addApprovalTip: 'Domyślny proces pracy ma zastosowanie do wszystkich członków, chyba że istnieje bardziej szczegółowy proces pracy.',
         approver: 'Osoba zatwierdzająca',
         addApprovalsDescription: 'Wymagaj dodatkowej akceptacji przed autoryzacją płatności.',
-        automateApprovalsWithAgentsTitle: 'Automatyzuj akceptacje z agentami',
-        automateApprovalsWithAgentsSubtitle: 'Dodaj agenta do poniższego procesu, aby zautomatyzować akceptacje.',
+        automateApprovalsWithAgentsTitle: 'Automatyzuj zatwierdzanie z agentami',
+        automateApprovalsWithAgentsSubtitle: 'Dodaj agenta poniżej do przepływu pracy, aby zautomatyzować zatwierdzanie.',
         makeOrTrackPaymentsTitle: 'Płatności',
         makeOrTrackPaymentsDescription: 'Dodaj upoważnionego płatnika dla płatności dokonywanych w Expensify lub śledź płatności wykonywane gdzie indziej.',
         customApprovalWorkflowEnabled:
@@ -6935,11 +6935,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Przejdź do [więcej funkcji](${moreFeaturesLink}) i włącz ${featureName}, aby odblokować tę funkcję.`,
             },
-            agentsPromoBanner: {
-                title: 'Nie widzisz potrzebnej reguły? Dodaj agenta',
-                subtitle: 'Dodaj złożone reguły i ogranicz ręczne akceptacje dzięki niestandardowym agentom.',
-                cta: 'Wypróbuj',
-            },
+            agentsPromoBanner: {title: 'Nie widzisz potrzebnej reguły? Dodaj agenta', subtitle: 'Dodaj złożone reguły i ogranicz ręczne akceptacje dzięki własnym agentom.', cta: 'Wypróbuj'},
             merchantRules: {
                 title: 'Sprzedawca',
                 subtitle: 'Skonfiguruj reguły dla sprzedawców, aby wydatki trafiały z prawidłowym kodowaniem i wymagały mniej poprawek.',

@@ -2556,7 +2556,7 @@ ${amount} para ${merchant} - ${date}`,
         approver: 'Aprovador',
         addApprovalsDescription: 'Exigir aprovação adicional antes de autorizar um pagamento.',
         automateApprovalsWithAgentsTitle: 'Automatize aprovações com agentes',
-        automateApprovalsWithAgentsSubtitle: 'Adicione um agente ao fluxo de trabalho abaixo para automatizar as aprovações.',
+        automateApprovalsWithAgentsSubtitle: 'Adicione o agente abaixo ao fluxo de trabalho para automatizar as aprovações.',
         makeOrTrackPaymentsTitle: 'Pagamentos',
         makeOrTrackPaymentsDescription: 'Adicione um pagador autorizado para pagamentos feitos no Expensify ou acompanhe pagamentos feitos em outros lugares.',
         customApprovalWorkflowEnabled:
@@ -6942,7 +6942,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             },
             agentsPromoBanner: {
                 title: 'Não encontrou a regra que precisa? Adicione um agente',
-                subtitle: 'Adicione regras complexas e reduza as aprovações manuais com agentes personalizados.',
+                subtitle: 'Adicione regras complexas e reduza aprovações manuais com agentes personalizados.',
                 cta: 'Experimente',
             },
             merchantRules: {

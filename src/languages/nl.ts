@@ -6942,9 +6942,9 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                     `Ga naar [meer functies](${moreFeaturesLink}) en schakel ${featureName} in om deze functie te ontgrendelen.`,
             },
             agentsPromoBanner: {
-                title: 'Zie je niet de regel die je nodig hebt? Voeg een agent toe',
+                title: 'Zie je de regel die je nodig hebt niet? Voeg een agent toe',
                 subtitle: 'Voeg complexe regels toe en verminder handmatige goedkeuringen met aangepaste agents.',
-                cta: 'Probeer het',
+                cta: 'Probeer het uit',
             },
             merchantRules: {
                 title: 'Handelaar',

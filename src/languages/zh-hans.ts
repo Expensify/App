@@ -2489,7 +2489,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         approver: '审批人',
         addApprovalsDescription: '在付款前需要额外审批。',
         automateApprovalsWithAgentsTitle: '使用代理自动化审批',
-        automateApprovalsWithAgentsSubtitle: '在下面的工作流中添加代理以自动化审批。',
+        automateApprovalsWithAgentsSubtitle: '在下方添加代理到工作流程中以自动化审批。',
         makeOrTrackPaymentsTitle: '付款',
         makeOrTrackPaymentsDescription: '为在 Expensify 中进行的付款添加授权付款人，或跟踪在其他地方进行的付款。',
         customApprovalWorkflowEnabled:
@@ -6756,11 +6756,7 @@ ${reportName}
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `添加 ${featureName} 以解锁此功能。`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) => `前往[更多功能](${moreFeaturesLink})并启用 ${featureName} 以解锁此功能。`,
             },
-            agentsPromoBanner: {
-                title: '没有找到你需要的规则？添加一个代理',
-                subtitle: '使用自定义代理添加复杂规则，并减少人工审批。',
-                cta: '试试看',
-            },
+            agentsPromoBanner: {title: '找不到需要的规则？添加代理人', subtitle: '添加复杂规则，并通过自定义代理减少人工审批。', cta: '试用一下'},
             merchantRules: {
                 title: '商户',
                 subtitle: '设置商户规则，使报销费用自动使用正确的编码，并减少后期清理工作。',

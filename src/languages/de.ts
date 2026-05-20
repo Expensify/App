@@ -2569,7 +2569,7 @@ ${amount} für ${merchant} – ${date}`,
         approver: 'Genehmiger',
         addApprovalsDescription: 'Zusätzliche Genehmigung einholen, bevor eine Zahlung autorisiert wird.',
         automateApprovalsWithAgentsTitle: 'Genehmigungen mit Agenten automatisieren',
-        automateApprovalsWithAgentsSubtitle: 'Füge unten einen Agenten zum Workflow hinzu, um Genehmigungen zu automatisieren.',
+        automateApprovalsWithAgentsSubtitle: 'Fügen Sie die untenstehende Person zum Workflow hinzu, um Genehmigungen zu automatisieren.',
         makeOrTrackPaymentsTitle: 'Zahlungen',
         makeOrTrackPaymentsDescription:
             'Fügen Sie eine bevollmächtigte zahlende Person für in Expensify getätigte Zahlungen hinzu oder verfolgen Sie Zahlungen, die andernorts getätigt wurden.',
@@ -6979,8 +6979,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                     `Gehe zu [weitere Funktionen](${moreFeaturesLink}) und aktiviere ${featureName}, um diese Funktion freizuschalten.`,
             },
             agentsPromoBanner: {
-                title: 'Fehlt die gewünschte Regel? Füge einen Agenten hinzu',
-                subtitle: 'Füge komplexe Regeln hinzu und reduziere manuelle Genehmigungen mit benutzerdefinierten Agenten.',
+                title: 'Sie sehen die benötigte Regel nicht? Fügen Sie eine:n Agent:in hinzu',
+                subtitle: 'Fügen Sie komplexe Regeln hinzu und reduzieren Sie manuelle Genehmigungen mit benutzerdefinierten Agenten.',
                 cta: 'Ausprobieren',
             },
             merchantRules: {
