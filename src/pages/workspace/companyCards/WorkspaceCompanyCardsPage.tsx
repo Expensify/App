@@ -1,9 +1,9 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
+import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import WorkspaceCompanyCardsTable from '@components/Tables/WorkspaceCompanyCardsTable';
 import useAssignCard from '@hooks/useAssignCard';
 import useCompanyCards from '@hooks/useCompanyCards';
-import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -92,20 +92,10 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const {assignCard, isAssigningCardDisabled} = useAssignCard({feedName, policyID, setShouldShowOfflineModal});
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const isDuplicateFeedDetected = !!addNewCard?.data?.isDuplicateFeedDetected;
-    const {showConfirmModal} = useConfirmModal();
 
-    useEffect(() => {
-        if (!isDuplicateFeedDetected) {
-            return;
-        }
+    const closeDuplicateFeedModal = useCallback(() => {
         setAddNewCompanyCardStepAndData({data: {isDuplicateFeedDetected: false}});
-        showConfirmModal({
-            title: translate('workspace.companyCards.addNewCard.duplicateFeedModal.title'),
-            prompt: translate('workspace.companyCards.addNewCard.duplicateFeedModal.prompt'),
-            confirmText: translate('common.buttonConfirm'),
-            shouldShowCancelButton: false,
-        });
-    }, [isDuplicateFeedDetected, showConfirmModal, translate]);
+    }, []);
 
     return (
         <AccessOrNotFoundWrapper
@@ -140,6 +130,16 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
                 secondOptionText={translate('common.buttonConfirm')}
                 isVisible={shouldShowOfflineModal}
                 onClose={() => setShouldShowOfflineModal(false)}
+            />
+
+            <ConfirmModal
+                title={translate('workspace.companyCards.addNewCard.duplicateFeedModal.title')}
+                prompt={translate('workspace.companyCards.addNewCard.duplicateFeedModal.prompt')}
+                confirmText={translate('common.buttonConfirm')}
+                shouldShowCancelButton={false}
+                isVisible={isDuplicateFeedDetected}
+                onConfirm={closeDuplicateFeedModal}
+                onCancel={closeDuplicateFeedModal}
             />
         </AccessOrNotFoundWrapper>
     );
