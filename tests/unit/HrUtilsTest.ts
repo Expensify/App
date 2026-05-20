@@ -1,4 +1,3 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {getApprovalModeLabel, getHRCards, getHRCardState} from '@pages/workspace/hr/utils';
 import CONST from '@src/CONST';
@@ -26,7 +25,9 @@ const POLICY_ID = 'ABC123';
 const ENV_URL = 'https://dev.new.expensify.com:8082';
 const SYNC_TIMEOUT = CONST.POLICY.CONNECTIONS.SYNC_STAGE_TIMEOUT_MINUTES;
 
-function makePolicy(overrides: Partial<Policy> = {}): OnyxEntry<Policy> {
+type GetHRCardsParams = Parameters<typeof getHRCards>[0];
+
+function makePolicy(overrides: Partial<Policy> = {}): Policy {
     return {
         id: POLICY_ID,
         name: 'Test Workspace',
@@ -40,7 +41,7 @@ function makePolicy(overrides: Partial<Policy> = {}): OnyxEntry<Policy> {
     } as Policy;
 }
 
-function makeSyncProgress(connectionName: string, stage: string, minutesAgo = 1): OnyxEntry<PolicyConnectionSyncProgress> {
+function makeSyncProgress(connectionName: string, stage: string, minutesAgo = 1): PolicyConnectionSyncProgress {
     const timestamp = new Date(Date.now() - minutesAgo * 60 * 1000).toISOString();
     return {
         stageInProgress: stage,
@@ -51,13 +52,13 @@ function makeSyncProgress(connectionName: string, stage: string, minutesAgo = 1)
 
 const stubGetLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'] = (datetime) => (datetime ? new Date(datetime) : new Date(0));
 const stubTranslate = ((key: string) => key) as unknown as LocaleContextProps['translate'];
-const allBetasEnabled = () => true;
-const noBetasEnabled = () => false;
+const allBetasEnabled: GetHRCardsParams['isBetaEnabled'] = () => true;
+const noBetasEnabled: GetHRCardsParams['isBetaEnabled'] = () => false;
 
-function makeGetHRCardsParams(overrides: Record<string, unknown> = {}) {
+function makeGetHRCardsParams(overrides: Partial<GetHRCardsParams> = {}): GetHRCardsParams {
     return {
         policy: makePolicy(),
-        connectionSyncProgress: null,
+        connectionSyncProgress: undefined,
         getLocalDateFromDatetime: stubGetLocalDateFromDatetime,
         isBetaEnabled: allBetasEnabled,
         translate: stubTranslate,
@@ -75,7 +76,7 @@ describe('getHRCardState', () => {
             const state = getHRCardState({
                 policy: makePolicy(),
                 connectionName: GUSTO,
-                connectionSyncProgress: null,
+                connectionSyncProgress: undefined,
                 getLocalDateFromDatetime: stubGetLocalDateFromDatetime,
             });
             expect(state.isConnected).toBe(false);
@@ -88,7 +89,7 @@ describe('getHRCardState', () => {
             const state = getHRCardState({
                 policy,
                 connectionName: GUSTO,
-                connectionSyncProgress: null,
+                connectionSyncProgress: undefined,
                 getLocalDateFromDatetime: stubGetLocalDateFromDatetime,
             });
             expect(state.isConnected).toBe(true);
@@ -120,7 +121,7 @@ describe('getHRCardState', () => {
             const state = getHRCardState({
                 policy,
                 connectionName: GUSTO,
-                connectionSyncProgress: null,
+                connectionSyncProgress: undefined,
                 getLocalDateFromDatetime: stubGetLocalDateFromDatetime,
             });
             expect(state.hasError).toBe(true);
@@ -134,7 +135,7 @@ describe('getHRCardState', () => {
             const state = getHRCardState({
                 policy,
                 connectionName: GUSTO,
-                connectionSyncProgress: null,
+                connectionSyncProgress: undefined,
                 getLocalDateFromDatetime: stubGetLocalDateFromDatetime,
             });
             expect(state.hasError).toBe(false);
@@ -172,7 +173,7 @@ describe('getHRCardState', () => {
             const state = getHRCardState({
                 policy,
                 connectionName: ZENEFITS,
-                connectionSyncProgress: null,
+                connectionSyncProgress: undefined,
                 getLocalDateFromDatetime: stubGetLocalDateFromDatetime,
             });
             expect(state.isConnected).toBe(true);
@@ -188,7 +189,7 @@ describe('getHRCardState', () => {
             const bamboo = getHRCardState({
                 policy,
                 connectionName: MERGE_HR,
-                connectionSyncProgress: null,
+                connectionSyncProgress: undefined,
                 getLocalDateFromDatetime: stubGetLocalDateFromDatetime,
                 mergeSlug: 'bamboohr',
             });
@@ -197,7 +198,7 @@ describe('getHRCardState', () => {
             const workday = getHRCardState({
                 policy,
                 connectionName: MERGE_HR,
-                connectionSyncProgress: null,
+                connectionSyncProgress: undefined,
                 getLocalDateFromDatetime: stubGetLocalDateFromDatetime,
                 mergeSlug: 'workday',
             });
@@ -211,7 +212,7 @@ describe('getHRCardState', () => {
             const state = getHRCardState({
                 policy,
                 connectionName: MERGE_HR,
-                connectionSyncProgress: null,
+                connectionSyncProgress: undefined,
                 getLocalDateFromDatetime: stubGetLocalDateFromDatetime,
             });
             expect(state.isConnected).toBe(true);
@@ -293,7 +294,7 @@ describe('getApprovalModeLabel', () => {
     });
 
     it('returns notSet when policy is null', () => {
-        expect(getApprovalModeLabel(null, GUSTO, stubTranslate)).toBe('workspace.hr.notSet');
+        expect(getApprovalModeLabel(undefined, GUSTO, stubTranslate)).toBe('workspace.hr.notSet');
     });
 });
 
@@ -304,7 +305,7 @@ describe('getHRCards', () => {
     });
 
     it('returns Gusto and Zenefits cards when their betas are enabled', () => {
-        const isBetaEnabled = (beta: string) => beta === CONST.BETAS.GUSTO || beta === CONST.BETAS.ZENEFITS;
+        const isBetaEnabled: GetHRCardsParams['isBetaEnabled'] = (beta) => beta === CONST.BETAS.GUSTO || beta === CONST.BETAS.ZENEFITS;
         const cards = getHRCards(makeGetHRCardsParams({isBetaEnabled}));
 
         expect(cards).toHaveLength(2);
@@ -315,7 +316,7 @@ describe('getHRCards', () => {
     });
 
     it('returns all Merge HR provider cards when merge beta is enabled', () => {
-        const isBetaEnabled = (beta: string) => beta === CONST.BETAS.MERGE_HR;
+        const isBetaEnabled: GetHRCardsParams['isBetaEnabled'] = (beta) => beta === CONST.BETAS.MERGE_HR;
         const cards = getHRCards(makeGetHRCardsParams({isBetaEnabled}));
 
         const mergeKeys = Object.keys(MERGE_HR_PROVIDERS);
@@ -326,7 +327,7 @@ describe('getHRCards', () => {
     });
 
     it('sets correct routes for Gusto cards', () => {
-        const isBetaEnabled = (beta: string) => beta === CONST.BETAS.GUSTO;
+        const isBetaEnabled: GetHRCardsParams['isBetaEnabled'] = (beta) => beta === CONST.BETAS.GUSTO;
         const cards = getHRCards(makeGetHRCardsParams({isBetaEnabled}));
 
         expect(cards[0].approvalModeRoute).toBe(ROUTES.WORKSPACE_HR_GUSTO_APPROVAL_MODE.getRoute(POLICY_ID));
@@ -334,7 +335,7 @@ describe('getHRCards', () => {
     });
 
     it('sets correct routes for Zenefits cards', () => {
-        const isBetaEnabled = (beta: string) => beta === CONST.BETAS.ZENEFITS;
+        const isBetaEnabled: GetHRCardsParams['isBetaEnabled'] = (beta) => beta === CONST.BETAS.ZENEFITS;
         const cards = getHRCards(makeGetHRCardsParams({isBetaEnabled}));
 
         expect(cards[0].approvalModeRoute).toBe(ROUTES.WORKSPACE_HR_ZENEFITS_APPROVAL_MODE.getRoute(POLICY_ID));
@@ -342,7 +343,7 @@ describe('getHRCards', () => {
     });
 
     it('sets correct routes for Merge HR cards', () => {
-        const isBetaEnabled = (beta: string) => beta === CONST.BETAS.MERGE_HR;
+        const isBetaEnabled: GetHRCardsParams['isBetaEnabled'] = (beta) => beta === CONST.BETAS.MERGE_HR;
         const cards = getHRCards(makeGetHRCardsParams({isBetaEnabled}));
 
         for (const card of cards) {
@@ -361,7 +362,7 @@ describe('getHRCards', () => {
                 },
             } as unknown as Policy['connections'],
         });
-        const isBetaEnabled = (beta: string) => beta === CONST.BETAS.GUSTO;
+        const isBetaEnabled: GetHRCardsParams['isBetaEnabled'] = (beta) => beta === CONST.BETAS.GUSTO;
         const cards = getHRCards(makeGetHRCardsParams({policy, isBetaEnabled}));
 
         expect(cards[0].isConnected).toBe(true);
@@ -379,7 +380,7 @@ describe('getHRCards', () => {
                 },
             } as unknown as Policy['connections'],
         });
-        const isBetaEnabled = (beta: string) => beta === CONST.BETAS.MERGE_HR;
+        const isBetaEnabled: GetHRCardsParams['isBetaEnabled'] = (beta) => beta === CONST.BETAS.MERGE_HR;
         const cards = getHRCards(makeGetHRCardsParams({policy, isBetaEnabled}));
 
         const bamboo = cards.find((c) => c.key === 'merge_bamboohr');
@@ -407,7 +408,7 @@ describe('getHRCards', () => {
                 },
             } as unknown as Policy['connections'],
         });
-        const isBetaEnabled = (beta: string) => beta === CONST.BETAS.MERGE_HR;
+        const isBetaEnabled: GetHRCardsParams['isBetaEnabled'] = (beta) => beta === CONST.BETAS.MERGE_HR;
         const cards = getHRCards(makeGetHRCardsParams({policy, isBetaEnabled}));
 
         const bamboo = cards.find((c) => c.key === 'merge_bamboohr');
@@ -425,7 +426,7 @@ describe('getHRCards', () => {
                 },
             } as unknown as Policy['connections'],
         });
-        const isBetaEnabled = (beta: string) => beta === CONST.BETAS.MERGE_HR;
+        const isBetaEnabled: GetHRCardsParams['isBetaEnabled'] = (beta) => beta === CONST.BETAS.MERGE_HR;
         const cards = getHRCards(makeGetHRCardsParams({policy, isBetaEnabled}));
 
         const workday = cards.find((c) => c.key === 'merge_workday');
@@ -445,7 +446,7 @@ describe('getHRCards', () => {
             } as unknown as Policy['connections'],
         });
         const syncProgress = makeSyncProgress(MERGE_HR, CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.MERGE_HR_SYNC_TITLE);
-        const isBetaEnabled = (beta: string) => beta === CONST.BETAS.MERGE_HR;
+        const isBetaEnabled: GetHRCardsParams['isBetaEnabled'] = (beta) => beta === CONST.BETAS.MERGE_HR;
         const cards = getHRCards(makeGetHRCardsParams({policy, connectionSyncProgress: syncProgress, isBetaEnabled}));
 
         const bamboo = cards.find((c) => c.key === 'merge_bamboohr');
@@ -463,7 +464,7 @@ describe('getHRCards', () => {
     it('uses provider icons from params for static providers', () => {
         const gustoIcon = {testId: 'gusto'} as unknown as IconAsset;
         const zenefitsIcon = {testId: 'zenefits'} as unknown as IconAsset;
-        const isBetaEnabled = (beta: string) => beta === CONST.BETAS.GUSTO || beta === CONST.BETAS.ZENEFITS;
+        const isBetaEnabled: GetHRCardsParams['isBetaEnabled'] = (beta) => beta === CONST.BETAS.GUSTO || beta === CONST.BETAS.ZENEFITS;
         const cards = getHRCards(makeGetHRCardsParams({gustoIcon, zenefitsIcon, isBetaEnabled}));
 
         expect(cards[0].icon).toBe(gustoIcon);
@@ -471,7 +472,7 @@ describe('getHRCards', () => {
     });
 
     it('uses provider iconUrl for Merge cards', () => {
-        const isBetaEnabled = (beta: string) => beta === CONST.BETAS.MERGE_HR;
+        const isBetaEnabled: GetHRCardsParams['isBetaEnabled'] = (beta) => beta === CONST.BETAS.MERGE_HR;
         const cards = getHRCards(makeGetHRCardsParams({isBetaEnabled}));
 
         for (const card of cards) {

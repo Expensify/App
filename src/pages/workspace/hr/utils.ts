@@ -2,7 +2,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {hasSynchronizationErrorMessage, isConnectionInProgress} from '@libs/actions/connections';
 import getGustoSetupLink from '@libs/actions/connections/Gusto';
-import {connectPolicyToMergeHR} from '@libs/actions/connections/MergeHR';
+import getMergeHRSetupLink from '@libs/actions/connections/MergeHR';
 import getZenefitsSetupLink from '@libs/actions/connections/Zenefits';
 import {openLink} from '@libs/actions/Link';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
@@ -196,6 +196,10 @@ function getHRCards({policy, connectionSyncProgress, isBetaEnabled, getLocalDate
             const state = getHRCardState({policy, connectionName: mergeConnectionName, connectionSyncProgress, getLocalDateFromDatetime, mergeSlug: slug});
             const config = state.isConnected ? getCardConfig(policy, mergeConnectionName) : undefined;
 
+            const connectPolicyToMergeHR = (policyId: string, integration: MergeHRProviderSlug) => {
+                getMergeHRSetupLink(policyId, integration);
+                // TODO finish the flow in the next PR
+            };
             cards.push({
                 key: `merge_${slug}`,
                 connectionName: mergeConnectionName,

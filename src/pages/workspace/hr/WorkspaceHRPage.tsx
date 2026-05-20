@@ -7,7 +7,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import TextInput from '@components/TextInput';
 import useEnvironment from '@hooks/useEnvironment';
 import useGustoSyncResultsModal from '@hooks/useGustoSyncResultsModal';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -32,7 +31,6 @@ import type {HRCardDescriptor} from './utils';
 import {getHRCards} from './utils';
 
 const HR_BETAS = [CONST.BETAS.GUSTO, CONST.BETAS.ZENEFITS, CONST.BETAS.MERGE_HR] as const;
-const OTHER_SEARCH_THRESHOLD = 12;
 
 type WorkspaceHRPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.HR>;
 
@@ -53,7 +51,6 @@ function WorkspaceHRPage({
     const illustrations = useMemoizedLazyIllustrations(['NewUser']);
 
     const [isOtherExpanded, setIsOtherExpanded] = useState(false);
-    const [searchQuery, setSearchQuery] = useState('');
 
     useWorkspaceDocumentTitle(undefined, 'workspace.common.hr');
 
@@ -85,9 +82,6 @@ function WorkspaceHRPage({
     const byName = (a: HRCardDescriptor, b: HRCardDescriptor) => localeCompare(a.displayName, b.displayName);
     connectedCards.sort(byName);
     disconnectedCards.sort(byName);
-
-    const lowercaseSearchQuery = searchQuery.toLowerCase();
-    const visibleDisconnectedCards = searchQuery ? disconnectedCards.filter((c) => c.displayName.toLowerCase().includes(lowercaseSearchQuery)) : disconnectedCards;
 
     const shouldBeBlocked = !HR_BETAS.some(isBetaEnabled);
 
@@ -148,26 +142,14 @@ function WorkspaceHRPage({
                                         wrapperStyle={[styles.ph0, styles.pv2, styles.mt4]}
                                         role={CONST.ROLE.BUTTON}
                                     />
-                                    {isOtherExpanded && (
-                                        <>
-                                            {disconnectedCards.length > OTHER_SEARCH_THRESHOLD && (
-                                                <TextInput
-                                                    value={searchQuery}
-                                                    onChangeText={setSearchQuery}
-                                                    placeholder={translate('common.search')}
-                                                    accessibilityLabel={translate('common.search')}
-                                                    containerStyles={[styles.mb3]}
-                                                />
-                                            )}
-                                            {visibleDisconnectedCards.map((card) => (
-                                                <HRProviderCard
-                                                    key={card.key}
-                                                    card={card}
-                                                    policy={policy}
-                                                />
-                                            ))}
-                                        </>
-                                    )}
+                                    {isOtherExpanded &&
+                                        disconnectedCards.map((card) => (
+                                            <HRProviderCard
+                                                key={card.key}
+                                                card={card}
+                                                policy={policy}
+                                            />
+                                        ))}
                                 </>
                             )}
                         </Section>
