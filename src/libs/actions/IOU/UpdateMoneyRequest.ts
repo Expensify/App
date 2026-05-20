@@ -8,6 +8,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
+import {rand64} from '@libs/NumberUtils';
 import {hasDependentTags, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {
@@ -410,6 +411,57 @@ function updateMoneyRequestAttendees({
     });
     const {params, onyxData} = data;
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_ATTENDEES, params, onyxData);
+}
+
+/**
+ * Update the QBO vendor matched to a non-reimbursable expense. The vendor lives on the transaction's
+ * `comment.vendor` NVP as `{ externalID, isManuallySet }`. `isManuallySet` is hard-coded to `true` here
+ * because this action is only called from user-driven flows (the App vendor picker, etc.); the PHP
+ * fuzzy matcher writes auto-matches directly via `UpdateMoneyRequestVendor` with `isManuallySet=false`.
+ *
+ * Passing `vendorID=''` clears the vendor from the transaction.
+ */
+function updateMoneyRequestVendor(transactionID: string, vendorID: string, transaction?: OnyxEntry<OnyxTypes.Transaction>) {
+    const previousVendor = transaction?.comment?.vendor;
+    const optimisticReportActionID = rand64();
+    const isClearing = !vendorID;
+
+    const newVendorOptimisticValue = isClearing ? null : {externalID: vendorID, isManuallySet: true};
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const,
+            value: {
+                comment: {
+                    vendor: newVendorOptimisticValue,
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const,
+            value: {
+                comment: {
+                    vendor: previousVendor ?? null,
+                },
+            },
+        },
+    ];
+
+    API.write(
+        WRITE_COMMANDS.UPDATE_MONEY_REQUEST_VENDOR,
+        {
+            transactionID,
+            reportActionID: optimisticReportActionID,
+            vendorID,
+            isManuallySet: true,
+        },
+        {optimisticData, failureData},
+    );
 }
 
 type UpdateMoneyRequestTagParams = {
@@ -1884,6 +1936,7 @@ export {
     updateMoneyRequestReimbursable,
     updateMoneyRequestMerchant,
     updateMoneyRequestAttendees,
+    updateMoneyRequestVendor,
     updateMoneyRequestTag,
     updateMoneyRequestTaxAmount,
     updateMoneyRequestTaxRate,
