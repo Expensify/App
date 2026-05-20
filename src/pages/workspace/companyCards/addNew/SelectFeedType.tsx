@@ -23,8 +23,6 @@ function SelectFeedType() {
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const [localTypeSelected, setLocalTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.FEED_TYPE>>();
     const [hasError, setHasError] = useState(false);
-    const {isBetaEnabled} = usePermissions();
-    const isCSVCardImportBetaEnabled = isBetaEnabled(CONST.BETAS.CSV_CARD_IMPORT);
     const doesCountrySupportPlaid = isPlaidSupportedCountry(addNewCard?.data?.selectedCountry);
     const isUSCountry = addNewCard?.data?.selectedCountry === CONST.COUNTRY.US;
     const defaultTypeSelected = addNewCard?.data.selectedFeedType ?? (doesCountrySupportPlaid ? CONST.COMPANY_CARDS.FEED_TYPE.DIRECT : CONST.COMPANY_CARDS.FEED_TYPE.CUSTOM);
@@ -89,8 +87,7 @@ function SelectFeedType() {
         isSelected: typeSelected === CONST.COMPANY_CARDS.FEED_TYPE.FILE_IMPORT,
     };
 
-    const baseItems = doesCountrySupportPlaid ? [directFeedItem, commercialFeedItem] : [commercialFeedItem];
-    const finalData = isCSVCardImportBetaEnabled ? [...baseItems, fileImportItem] : baseItems;
+    const finalData = doesCountrySupportPlaid ? [directFeedItem, commercialFeedItem, fileImportItem] : [commercialFeedItem, fileImportItem];
 
     const confirmButtonOptions = useMemo(
         () => ({
