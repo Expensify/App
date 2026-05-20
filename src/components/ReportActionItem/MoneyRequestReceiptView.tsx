@@ -1,5 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {conciergePersonalDetailSelector, personalDetailByAccountIDSelector} from '@selectors/PersonalDetails';
 import mapValues from 'lodash/mapValues';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -136,6 +137,11 @@ function MoneyRequestReceiptView({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergePersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: conciergePersonalDetailSelector});
+    const reportOwnerSelector = useMemo(() => personalDetailByAccountIDSelector(report?.ownerAccountID), [report?.ownerAccountID]);
+    const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: reportOwnerSelector}, [reportOwnerSelector]);
+    const chatReportOwnerSelector = useMemo(() => personalDetailByAccountIDSelector(chatReport?.ownerAccountID), [chatReport?.ownerAccountID]);
+    const [chatReportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: chatReportOwnerSelector}, [chatReportOwnerSelector]);
     const delegateAccountID = useDelegateAccountID();
 
     const [isLoading, setIsLoading] = useState(true);
@@ -166,7 +172,8 @@ function MoneyRequestReceiptView({
     const didReceiptScanSucceed = hasReceipt && didReceiptScanSucceedTransactionUtils(transaction);
     const isInvoice = isInvoiceReport(moneyRequestReport);
     const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);
-    const {login: currentUserLogin, accountID: currentUserAccountID, timezone: currentUserTimezone} = useCurrentUserPersonalDetails();
+    const currentUserPersonalDetail = useCurrentUserPersonalDetails();
+    const {login: currentUserLogin, accountID: currentUserAccountID, timezone: currentUserTimezone} = currentUserPersonalDetail;
     const theme = useTheme();
     const ancestors = useAncestors(report);
     const {hovered, bind: hoverBind} = useHover();
@@ -189,14 +196,15 @@ function MoneyRequestReceiptView({
         }
     }, [isLoading, hoverBind]);
 
-    const prevSource = usePrevious(transaction?.receipt?.source);
+    const displayedReceiptSource = transaction?.receipt?.localSource ?? transaction?.receipt?.source;
+    const prevDisplayedReceiptSource = usePrevious(displayedReceiptSource);
 
     useEffect(() => {
-        if (!transaction?.receipt?.source || prevSource === transaction?.receipt?.source) {
+        if (!displayedReceiptSource || prevDisplayedReceiptSource === displayedReceiptSource) {
             return;
         }
         setIsLoading(true);
-    }, [transaction?.receipt?.source, prevSource]);
+    }, [displayedReceiptSource, prevDisplayedReceiptSource]);
 
     // Flags for allowing or disallowing editing an expense
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
@@ -395,7 +403,19 @@ function MoneyRequestReceiptView({
         }
         if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             if (chatReport?.reportID && getCreationReportErrors(chatReport)) {
-                navigateToConciergeChatAndDeleteReport(chatReport.reportID, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, betas, true, true);
+                navigateToConciergeChatAndDeleteReport(
+                    chatReport.reportID,
+                    conciergeReportID,
+                    currentUserAccountID,
+                    introSelected,
+                    isSelfTourViewed,
+                    betas,
+                    chatReportOwnerPersonalDetail,
+                    currentUserPersonalDetail,
+                    conciergePersonalDetail,
+                    true,
+                    true,
+                );
                 return;
             }
             if (parentReportAction) {
@@ -435,7 +455,19 @@ function MoneyRequestReceiptView({
             if (isInNarrowPaneModal) {
                 Navigation.goBack();
             }
-            navigateToConciergeChatAndDeleteReport(report.reportID, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, betas, true, true);
+            navigateToConciergeChatAndDeleteReport(
+                report.reportID,
+                conciergeReportID,
+                currentUserAccountID,
+                introSelected,
+                isSelfTourViewed,
+                betas,
+                reportOwnerPersonalDetail,
+                currentUserPersonalDetail,
+                conciergePersonalDetail,
+                true,
+                true,
+            );
         }
     };
 

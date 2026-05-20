@@ -1,4 +1,5 @@
 import React from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -9,16 +10,18 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import Button from './Button';
-import Icon from './Icon';
 import Text from './Text';
 import TextLink from './TextLink';
 
 type FrozenCardHeaderProps = {
     cardPreview: React.ReactNode;
+    children?: React.ReactNode;
+    style?: StyleProp<ViewStyle>;
     onUnfreezePress: () => void;
     onAskToUnfreezePress: () => void;
     canUnfreezeCard: boolean;
@@ -27,7 +30,7 @@ type FrozenCardHeaderProps = {
     frozenDate?: string;
 };
 
-function FrozenCardHeader({cardPreview, onUnfreezePress, onAskToUnfreezePress, canUnfreezeCard, isWorkspaceAdmin, frozenByAccountID, frozenDate}: FrozenCardHeaderProps) {
+function FrozenCardHeader({cardPreview, children, style, onUnfreezePress, onAskToUnfreezePress, canUnfreezeCard, isWorkspaceAdmin, frozenByAccountID, frozenDate}: FrozenCardHeaderProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -42,6 +45,12 @@ function FrozenCardHeader({cardPreview, onUnfreezePress, onAskToUnfreezePress, c
     const adminFrozenTextPrefix = translate('cardPage.frozenByAdminPrefix', {date: formattedDate});
     const frozenNeedsUnfreezePrefix = translate('cardPage.frozenByAdminNeedsUnfreezePrefix');
     const frozenNeedsUnfreezeSuffix = translate('cardPage.frozenByAdminNeedsUnfreezeSuffix');
+    const actionButtons = React.Children.toArray(children);
+    const shouldUseEqualButtonWidths = actionButtons.length > 0;
+    const equalButtonWrapperStyles = shouldUseEqualButtonWidths
+        ? [styles.flexGrow1, styles.flexShrink1, styles.flexBasis0, {minWidth: variables.cardDetailsActionButtonMinWidth}]
+        : undefined;
+    const equalButtonInnerStyles = shouldUseEqualButtonWidths ? styles.ph2 : undefined;
 
     let statusText: React.ReactNode;
 
@@ -81,23 +90,36 @@ function FrozenCardHeader({cardPreview, onUnfreezePress, onAskToUnfreezePress, c
     }
 
     return (
-        <View style={[styles.ph5, styles.pb5]}>
+        <View style={[styles.ph5, styles.pb5, style]}>
             {cardPreview}
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt9]}>
-                <Icon
-                    src={icons.FreezeCard}
-                    fill={theme.icon}
-                    small
-                />
-                <Text style={[styles.textLabel, styles.colorMuted, styles.ml2]}>{statusText}</Text>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.mt2]}>
+                <Text style={[styles.textLabel, styles.colorMuted]}>{statusText}</Text>
             </View>
-            <Button
-                medium
-                text={translate(canUnfreezeCard ? 'cardPage.unfreeze' : 'cardPage.askToUnfreeze')}
-                onPress={canUnfreezeCard ? onUnfreezePress : onAskToUnfreezePress}
-                isDisabled={canUnfreezeCard && isOffline}
-                style={[styles.mt4]}
-            />
+            <View style={[styles.flexRow, styles.flexWrap, styles.alignItemsCenter, styles.justifyContentCenter, styles.gap2, styles.mt6, styles.alignSelfStretch]}>
+                <View style={equalButtonWrapperStyles}>
+                    <Button
+                        medium
+                        text={translate(canUnfreezeCard ? 'cardPage.unfreezeCard' : 'cardPage.askToUnfreeze')}
+                        icon={icons.FreezeCard}
+                        iconFill={theme.icon}
+                        onPress={canUnfreezeCard ? onUnfreezePress : onAskToUnfreezePress}
+                        isDisabled={canUnfreezeCard && isOffline}
+                        innerStyles={equalButtonInnerStyles}
+                        style={shouldUseEqualButtonWidths ? styles.w100 : styles.alignSelfStart}
+                    />
+                </View>
+                {shouldUseEqualButtonWidths
+                    ? actionButtons.map((button, index) => (
+                          <View
+                              // eslint-disable-next-line react/no-array-index-key
+                              key={index}
+                              style={equalButtonWrapperStyles}
+                          >
+                              {button}
+                          </View>
+                      ))
+                    : children}
+            </View>
         </View>
     );
 }

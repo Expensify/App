@@ -1,6 +1,6 @@
 // eslint-disable-next-line you-dont-need-lodash-underscore/union-by
 import lodashUnionBy from 'lodash/unionBy';
-import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {UpdateMoneyRequestParams} from '@libs/API/parameters';
@@ -43,12 +43,17 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
+import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {Routes, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {UpdateMoneyRequestData} from '.';
 import {getAllReports, getAllTransactions, getAllTransactionViolations, getPolicyTagsData, getRecentAttendees} from '.';
 import {getUpdatedMoneyRequestReportData, mergePolicyRecentlyUsedCategories, mergePolicyRecentlyUsedCurrencies} from './MoneyRequestBuilder';
+
+type UpdateMoneyRequestData<TKey extends OnyxKey> = {
+    params: UpdateMoneyRequestParams;
+    onyxData: OnyxData<TKey>;
+};
 
 type UpdateMoneyRequestDateParams = {
     transactionID: string;
@@ -66,6 +71,7 @@ type UpdateMoneyRequestDateParams = {
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     isOffline: boolean;
     hash?: number;
+    delegateAccountID: number | undefined;
 };
 
 type SearchSnapshotOnyxData = {
@@ -150,6 +156,7 @@ function updateMoneyRequestDate({
     parentReportNextStep,
     isOffline,
     hash,
+    delegateAccountID,
 }: UpdateMoneyRequestDateParams) {
     const transactionChanges: TransactionChanges = {
         created: value,
@@ -157,7 +164,7 @@ function updateMoneyRequestDate({
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
 
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy, hash);
+        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy, delegateAccountID, hash);
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID,
@@ -175,6 +182,7 @@ function updateMoneyRequestDate({
             iouReportNextStep: parentReportNextStep,
             isOffline,
             hash,
+            delegateAccountID,
         });
         removeTransactionFromDuplicateTransactionViolation(data.onyxData, transactionID, transactions, transactionViolations);
     }
@@ -196,6 +204,7 @@ function updateMoneyRequestBillable({
     isASAPSubmitBetaEnabled,
     parentReportNextStep,
     isOffline,
+    delegateAccountID,
 }: {
     transactionID: string | undefined;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -209,6 +218,7 @@ function updateMoneyRequestBillable({
     isASAPSubmitBetaEnabled: boolean;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     isOffline: boolean;
+    delegateAccountID: number | undefined;
 }) {
     if (!transactionID || !transactionThreadReport?.reportID) {
         return;
@@ -231,6 +241,7 @@ function updateMoneyRequestBillable({
         isASAPSubmitBetaEnabled,
         iouReportNextStep: parentReportNextStep,
         isOffline,
+        delegateAccountID,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_BILLABLE, params, onyxData);
 }
@@ -247,6 +258,7 @@ function updateMoneyRequestReimbursable({
     currentUserEmailParam,
     isASAPSubmitBetaEnabled,
     parentReportNextStep,
+    delegateAccountID,
 }: {
     transactionID: string | undefined;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -259,6 +271,7 @@ function updateMoneyRequestReimbursable({
     currentUserEmailParam: string;
     isASAPSubmitBetaEnabled: boolean;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
+    delegateAccountID: number | undefined;
 }) {
     if (!transactionID || !transactionThreadReport?.reportID) {
         return;
@@ -280,6 +293,7 @@ function updateMoneyRequestReimbursable({
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
         iouReportNextStep: parentReportNextStep,
+        delegateAccountID,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_REIMBURSABLE, params, onyxData);
 }
@@ -298,6 +312,7 @@ function updateMoneyRequestMerchant({
     isASAPSubmitBetaEnabled,
     parentReportNextStep,
     hash,
+    delegateAccountID,
 }: {
     transactionID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -311,6 +326,7 @@ function updateMoneyRequestMerchant({
     isASAPSubmitBetaEnabled: boolean;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     hash?: number;
+    delegateAccountID: number | undefined;
 }) {
     const transactionChanges: TransactionChanges = {
         merchant: value,
@@ -318,7 +334,7 @@ function updateMoneyRequestMerchant({
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
 
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy, hash);
+        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy, delegateAccountID, hash);
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID,
@@ -335,6 +351,7 @@ function updateMoneyRequestMerchant({
             isASAPSubmitBetaEnabled,
             iouReportNextStep: parentReportNextStep,
             hash,
+            delegateAccountID,
         });
     }
     const {params, onyxData} = data;
@@ -355,6 +372,7 @@ function updateMoneyRequestAttendees({
     currentUserEmailParam,
     isASAPSubmitBetaEnabled,
     parentReportNextStep,
+    delegateAccountID,
 }: {
     transactionID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -368,6 +386,7 @@ function updateMoneyRequestAttendees({
     currentUserEmailParam: string;
     isASAPSubmitBetaEnabled: boolean;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
+    delegateAccountID: number | undefined;
 }) {
     const transactionChanges: TransactionChanges = {
         attendees,
@@ -387,6 +406,7 @@ function updateMoneyRequestAttendees({
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
         iouReportNextStep: parentReportNextStep,
+        delegateAccountID,
     });
     const {params, onyxData} = data;
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_ATTENDEES, params, onyxData);
@@ -406,6 +426,7 @@ type UpdateMoneyRequestTagParams = {
     isASAPSubmitBetaEnabled: boolean;
     hash?: number;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
+    delegateAccountID: number | undefined;
 };
 
 /** Updates the tag of an expense */
@@ -423,6 +444,7 @@ function updateMoneyRequestTag({
     isASAPSubmitBetaEnabled,
     hash,
     parentReportNextStep,
+    delegateAccountID,
 }: UpdateMoneyRequestTagParams) {
     const transactionChanges: TransactionChanges = {
         tag,
@@ -443,6 +465,7 @@ function updateMoneyRequestTag({
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
         iouReportNextStep: parentReportNextStep,
+        delegateAccountID,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAG, params, onyxData);
 }
@@ -460,6 +483,7 @@ function updateMoneyRequestTaxAmount({
     currentUserEmailParam,
     isASAPSubmitBetaEnabled,
     parentReportNextStep,
+    delegateAccountID,
 }: {
     transactionID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -472,6 +496,7 @@ function updateMoneyRequestTaxAmount({
     currentUserEmailParam: string;
     isASAPSubmitBetaEnabled: boolean;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
+    delegateAccountID: number | undefined;
 }) {
     const transactionChanges = {
         taxAmount,
@@ -490,6 +515,7 @@ function updateMoneyRequestTaxAmount({
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
         iouReportNextStep: parentReportNextStep,
+        delegateAccountID,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAX_AMOUNT, params, onyxData);
 }
@@ -508,6 +534,7 @@ type UpdateMoneyRequestTaxRateParams = {
     currentUserEmailParam: string;
     isASAPSubmitBetaEnabled: boolean;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
+    delegateAccountID: number | undefined;
 };
 
 /** Updates the created tax rate of an expense */
@@ -525,6 +552,7 @@ function updateMoneyRequestTaxRate({
     currentUserEmailParam,
     isASAPSubmitBetaEnabled,
     parentReportNextStep,
+    delegateAccountID,
 }: UpdateMoneyRequestTaxRateParams) {
     const transactionChanges = {
         taxCode,
@@ -545,6 +573,7 @@ function updateMoneyRequestTaxRate({
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
         iouReportNextStep: parentReportNextStep,
+        delegateAccountID,
     });
 
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAX_RATE, params, onyxData);
@@ -569,6 +598,7 @@ type UpdateMoneyRequestDistanceParams = {
     odometerEnd?: number;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     distanceOriginalPolicy?: OnyxEntry<OnyxTypes.Policy>;
+    delegateAccountID: number | undefined;
 };
 
 /** Updates the waypoints of a distance expense */
@@ -591,6 +621,7 @@ function updateMoneyRequestDistance({
     odometerEnd,
     parentReportNextStep,
     distanceOriginalPolicy,
+    delegateAccountID,
 }: UpdateMoneyRequestDistanceParams) {
     const transactionChanges: TransactionChanges = {
         // Don't sanitize waypoints here - keep all fields for Onyx optimistic data (e.g., keyForList)
@@ -607,7 +638,16 @@ function updateMoneyRequestDistance({
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys | typeof ONYXKEYS.NVP_RECENT_WAYPOINTS>;
 
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transaction?.transactionID, transactionThreadReport?.reportID, transactionChanges, policy, undefined, undefined, distanceOriginalPolicy);
+        data = getUpdateTrackExpenseParams(
+            transaction?.transactionID,
+            transactionThreadReport?.reportID,
+            transactionChanges,
+            policy,
+            delegateAccountID,
+            undefined,
+            undefined,
+            distanceOriginalPolicy,
+        );
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID: transaction?.transactionID,
@@ -623,6 +663,7 @@ function updateMoneyRequestDistance({
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
             iouReportNextStep: parentReportNextStep,
+            delegateAccountID,
         });
     }
     const {params, onyxData} = data;
@@ -692,6 +733,7 @@ function updateMoneyRequestCategory({
     isASAPSubmitBetaEnabled,
     hash,
     parentReportNextStep,
+    delegateAccountID,
 }: {
     transactionID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -706,6 +748,7 @@ function updateMoneyRequestCategory({
     isASAPSubmitBetaEnabled: boolean;
     hash?: number;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
+    delegateAccountID: number | undefined;
 }) {
     const transactionChanges: TransactionChanges = {
         category,
@@ -727,6 +770,7 @@ function updateMoneyRequestCategory({
         isASAPSubmitBetaEnabled,
         hash,
         iouReportNextStep: parentReportNextStep,
+        delegateAccountID,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_CATEGORY, params, onyxData);
 }
@@ -745,6 +789,7 @@ function updateMoneyRequestDescription({
     isASAPSubmitBetaEnabled,
     parentReportNextStep,
     hash,
+    delegateAccountID,
 }: {
     transactionID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -758,6 +803,7 @@ function updateMoneyRequestDescription({
     isASAPSubmitBetaEnabled: boolean;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     hash?: number;
+    delegateAccountID: number | undefined;
 }) {
     const parsedComment = getParsedComment(comment);
     const transactionChanges: TransactionChanges = {
@@ -766,7 +812,7 @@ function updateMoneyRequestDescription({
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
 
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy, hash);
+        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy, delegateAccountID, hash);
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID,
@@ -783,6 +829,7 @@ function updateMoneyRequestDescription({
             isASAPSubmitBetaEnabled,
             iouReportNextStep: parentReportNextStep,
             hash,
+            delegateAccountID,
         });
     }
     const {params, onyxData} = data;
@@ -806,6 +853,7 @@ function updateMoneyRequestDistanceRate({
     updatedTaxCode,
     updatedTaxValue,
     parentReportNextStep,
+    delegateAccountID,
 }: {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -821,6 +869,7 @@ function updateMoneyRequestDistanceRate({
     updatedTaxCode?: string;
     updatedTaxValue?: string;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
+    delegateAccountID: number | undefined;
 }) {
     const transactionChanges: TransactionChanges = {
         customUnitRateID: rateID,
@@ -845,7 +894,7 @@ function updateMoneyRequestDistanceRate({
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
 
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transaction?.transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
+        data = getUpdateTrackExpenseParams(transaction?.transactionID, transactionThreadReport?.reportID, transactionChanges, policy, delegateAccountID);
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID: transaction?.transactionID,
@@ -861,6 +910,7 @@ function updateMoneyRequestDistanceRate({
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
             iouReportNextStep: parentReportNextStep,
+            delegateAccountID,
         });
     }
     const {params, onyxData} = data;
@@ -890,6 +940,7 @@ type UpdateMoneyRequestAmountAndCurrencyParams = {
     policyRecentlyUsedCurrencies: string[];
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     hash?: number;
+    delegateAccountID: number | undefined;
 };
 
 /** Updates the amount and currency fields of an expense */
@@ -914,6 +965,7 @@ function updateMoneyRequestAmountAndCurrency({
     policyRecentlyUsedCurrencies,
     parentReportNextStep,
     hash,
+    delegateAccountID,
 }: UpdateMoneyRequestAmountAndCurrencyParams) {
     const transactionChanges = {
         amount,
@@ -926,7 +978,7 @@ function updateMoneyRequestAmountAndCurrency({
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
 
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy, hash);
+        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy, delegateAccountID, hash);
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID,
@@ -945,6 +997,7 @@ function updateMoneyRequestAmountAndCurrency({
             policyRecentlyUsedCurrencies,
             iouReportNextStep: parentReportNextStep,
             hash,
+            delegateAccountID,
         });
         removeTransactionFromDuplicateTransactionViolation(data.onyxData, transactionID, transactions, transactionViolations);
     }
@@ -976,6 +1029,7 @@ type GetUpdateMoneyRequestParamsType = {
     isSplitTransaction?: boolean;
     // TODO: This will be required eventually. Ref: https://github.com/Expensify/App/issues/66407
     isOffline?: boolean;
+    delegateAccountID: number | undefined;
 };
 
 type UpdateMoneyRequestDataKeys =
@@ -1015,6 +1069,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         iouReportNextStep,
         isSplitTransaction,
         isOffline,
+        delegateAccountID,
     } = params;
     const optimisticData: Array<
         OnyxUpdate<
@@ -1168,7 +1223,16 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     // For split transactions, the merchant and amount are already available in transactionChanges,
     // so we can build the optimistic report action even when waypoints are pending.
     const updatedReportAction = shouldBuildOptimisticModifiedExpenseReportAction
-        ? buildOptimisticModifiedExpenseReportAction(transactionThreadReport, transaction, transactionChanges, isFromExpenseReport, policy, updatedTransaction, allowNegative)
+        ? buildOptimisticModifiedExpenseReportAction(
+              transactionThreadReport,
+              transaction,
+              transactionChanges,
+              isFromExpenseReport,
+              policy,
+              delegateAccountID,
+              updatedTransaction,
+              allowNegative,
+          )
         : null;
     if (
         (!hasPendingWaypoints || hasSplitDistanceMessageFields || hasDistanceWithWaypoints) &&
@@ -1609,6 +1673,7 @@ function getUpdateTrackExpenseParams(
     transactionThreadReportID: string | undefined,
     transactionChanges: TransactionChanges,
     policy: OnyxEntry<OnyxTypes.Policy>,
+    delegateAccountID: number | undefined,
     hash?: number,
     shouldBuildOptimisticModifiedExpenseReportAction = true,
     distanceOriginalPolicy?: OnyxEntry<OnyxTypes.Policy>,
@@ -1699,7 +1764,7 @@ function getUpdateTrackExpenseParams(
     // and the report action is created on the server with the distance-related response from the MapBox API
     const allowNegative = shouldEnableNegative(transactionThread ?? undefined);
     const updatedReportAction = shouldBuildOptimisticModifiedExpenseReportAction
-        ? buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, false, policy, updatedTransaction, allowNegative)
+        ? buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, false, policy, delegateAccountID, updatedTransaction, allowNegative)
         : null;
     if (!hasPendingWaypoints && !(hasModifiedDistanceRate && isFetchingWaypointsFromServer(transaction)) && updatedReportAction) {
         apiParams.reportActionID = updatedReportAction.reportActionID;
@@ -1828,4 +1893,4 @@ export {
     updateMoneyRequestDistanceRate,
     updateMoneyRequestAmountAndCurrency,
 };
-export type {UpdateMoneyRequestDataKeys};
+export type {UpdateMoneyRequestData, UpdateMoneyRequestDataKeys};

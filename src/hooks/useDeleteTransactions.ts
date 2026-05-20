@@ -7,13 +7,21 @@ import {getIOUActionForTransactions} from '@libs/actions/IOU/Duplicate';
 import {getIOURequestPolicyID} from '@libs/actions/IOU/MoneyRequest';
 import {initSplitExpenseItemData} from '@libs/actions/IOU/SplitExpenseItems';
 import {updateSplitTransactions} from '@libs/actions/IOU/SplitTransactionUpdate';
+import initSplitExpense from '@libs/actions/SplitExpenses';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {calculateAmount as calculateIOUAmount} from '@libs/IOUUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getActiveGroupSearchHashes} from '@libs/SearchUIUtils';
-import {getChildTransactions, getOriginalTransactionWithSplitInfo} from '@libs/TransactionUtils';
+import {
+    getChildTransactions,
+    getOriginalTransactionWithSplitInfo,
+    isPerDiemRequest as isPerDiemRequestTransactionUtils,
+    shouldRedirectDeleteToSplitExpenseEdit,
+} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {SplitExpense} from '@src/types/onyx/IOU';
 import useArchivedReportsIdSet from './useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useNetwork from './useNetwork';
@@ -28,6 +36,24 @@ type UseDeleteTransactionsParams = {
     /** Policy object (optional) */
     policy?: Policy;
 };
+
+type DeleteTransactionsResult =
+    | {
+          action: 'redirected';
+      }
+    | {
+          action: 'deleted';
+          deletedTransactionThreadReportIDs: string[];
+      };
+
+function redistributeRemainingPerDiemSplitExpenses(splitExpenses: SplitExpense[], total: number, currency: string): SplitExpense[] {
+    const lastSplitIndex = splitExpenses.length - 1;
+
+    return splitExpenses.map((splitExpense, index) => ({
+        ...splitExpense,
+        amount: calculateIOUAmount(lastSplitIndex, total, currency, index === lastSplitIndex, true),
+    }));
+}
 
 /**
  * Pure hook for deleting transactions
@@ -53,15 +79,41 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const {isOffline} = useNetwork();
 
+    const getSplitExpenseEditTransactionOnDelete = useCallback(
+        (transactionIDs: string[]): Transaction | undefined => {
+            if (transactionIDs.length !== 1) {
+                return undefined;
+            }
+
+            const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDs.at(0)}`];
+
+            if (!transaction) {
+                return undefined;
+            }
+
+            const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.comment?.originalTransactionID}`];
+            if (!shouldRedirectDeleteToSplitExpenseEdit(transaction, originalTransaction)) {
+                return undefined;
+            }
+
+            return transaction;
+        },
+        [allTransactions],
+    );
+
+    const shouldOpenSplitExpenseEditFlowOnDelete = useCallback(
+        (transactionIDs: string[]): boolean => !!getSplitExpenseEditTransactionOnDelete(transactionIDs),
+        [getSplitExpenseEditTransactionOnDelete],
+    );
+
     /**
      * Delete transactions by IDs
      * @param transactionIDs - Array of transaction IDs to delete
      * @param duplicateTransactions - Collection of duplicate transactions
      * @param duplicateTransactionViolations - Collection of duplicate transaction violations
      * @param currentSearchHash - Current search hash for updating split transactions
-     * @param onClearSelection - Optional callback to clear selection after deletion
      * @param isSingleTransactionView - Optional flag indicating if the deletion is from a single transaction view
-     * @returns Array of deleted transaction thread report IDs for navigation handling
+     * @returns Result describing whether the delete redirected or deleted transaction threads
      */
     const deleteTransactions = useCallback(
         (
@@ -70,9 +122,21 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             duplicateTransactionViolations: OnyxCollection<TransactionViolations>,
             currentSearchHash?: number,
             isSingleTransactionView?: boolean,
-        ): string[] => {
+        ): DeleteTransactionsResult => {
             if (!transactionIDs.length) {
-                return [];
+                return {
+                    action: 'deleted',
+                    deletedTransactionThreadReportIDs: [],
+                };
+            }
+
+            const splitExpenseEditTransaction = getSplitExpenseEditTransactionOnDelete(transactionIDs);
+
+            if (splitExpenseEditTransaction) {
+                initSplitExpense(splitExpenseEditTransaction, policy, {navigateToEditSplitExpense: true});
+                return {
+                    action: 'redirected',
+                };
             }
 
             const iouActions = reportActions.filter((action) => isMoneyRequestAction(action));
@@ -122,6 +186,10 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 const originalTransactionIouActions = getIOUActionForTransactions([transactionID], report?.reportID);
                 const iouReportID = isMoneyRequestAction(originalTransactionIouActions.at(0)) ? getOriginalMessage(originalTransactionIouActions.at(0))?.IOUReportID : undefined;
                 const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
+                const splitExpensesTotal = allChildTransactions.reduce((total, childTransaction) => {
+                    const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childTransaction?.reportID}`];
+                    return total + initSplitExpenseItemData(childTransaction, transactionReport).amount;
+                }, 0);
                 const policyRecentlyUsedCategories =
                     allPolicyRecentlyUsedCategories?.[
                         `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getNonEmptyStringOnyxID(getIOURequestPolicyID(originalTransaction, report))}`
@@ -141,6 +209,11 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childTransaction?.reportID}`];
                     return initSplitExpenseItemData(childTransaction, transactionReport);
                 });
+                const remainingSplitExpensesTotal = remainingSplitExpenses.reduce((total, splitExpense) => total + splitExpense.amount, 0);
+                const updatedRemainingSplitExpenses =
+                    originalTransaction && isPerDiemRequestTransactionUtils(originalTransaction) && remainingSplitExpenses.length > 0 && remainingSplitExpensesTotal !== splitExpensesTotal
+                        ? redistributeRemainingPerDiemSplitExpenses(remainingSplitExpenses, splitExpensesTotal, originalTransaction.currency ?? CONST.CURRENCY.USD)
+                        : remainingSplitExpenses;
 
                 const parentTransactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
                 const expenseReport = report?.type === CONST.REPORT.TYPE.EXPENSE ? report : parentTransactionReport;
@@ -156,11 +229,8 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     transactionData: {
                         reportID: report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
                         originalTransactionID: transactionID,
-                        splitExpenses: remainingSplitExpenses,
-                        splitExpensesTotal: allChildTransactions.reduce((total, childTransaction) => {
-                            const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childTransaction?.reportID}`];
-                            return total + initSplitExpenseItemData(childTransaction, transactionReport).amount;
-                        }, 0),
+                        splitExpenses: updatedRemainingSplitExpenses,
+                        splitExpensesTotal,
                     },
                     searchContext: {
                         currentSearchHash,
@@ -218,7 +288,10 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 }
             }
 
-            return Array.from(deletedTransactionThreadReportIDs);
+            return {
+                action: 'deleted',
+                deletedTransactionThreadReportIDs: Array.from(deletedTransactionThreadReportIDs),
+            };
         },
         [
             allPolicyRecentlyUsedCategories,
@@ -242,12 +315,14 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             betas,
             allPolicyTags,
             personalDetails,
+            getSplitExpenseEditTransactionOnDelete,
             isOffline,
         ],
     );
 
     return {
         deleteTransactions,
+        shouldOpenSplitExpenseEditFlowOnDelete,
     };
 }
 
