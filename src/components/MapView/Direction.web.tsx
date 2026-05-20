@@ -25,38 +25,39 @@ function Direction({coordinates}: DirectionProps) {
 
         return (
             <View>
-                {validSegments.map((segmentCoordinates, index) => (
-                    <Source
-                        // Using index as key is safe because we are not reordering the routes
-                        // eslint-disable-next-line react/no-array-index-key
-                        key={`${CONST.MAP_VIEW_LAYERS.ROUTE_SOURCE}-segment-${index}`}
-                        id={`${CONST.MAP_VIEW_LAYERS.ROUTE_SOURCE}-segment-${index}`}
-                        type="geojson"
-                        data={{
-                            type: 'Feature',
-                            properties: {},
-                            geometry: {
-                                type: 'LineString',
-                                coordinates: segmentCoordinates,
-                            },
-                        }}
-                    >
-                        <Layer
-                            id={`${CONST.MAP_VIEW_LAYERS.ROUTE_BORDER}-segment-${index}`}
-                            type="line"
-                            source={`${CONST.MAP_VIEW_LAYERS.ROUTE_SOURCE}-segment-${index}`}
-                            paint={layerBorderPointStyle}
-                            layout={layerBorderLayoutStyle}
-                        />
-                        <Layer
-                            id={`${CONST.MAP_VIEW_LAYERS.ROUTE_FILL}-segment-${index}`}
-                            type="line"
-                            source={`${CONST.MAP_VIEW_LAYERS.ROUTE_SOURCE}-segment-${index}`}
-                            paint={layerPointStyle}
-                            layout={layerLayoutStyle}
-                        />
-                    </Source>
-                ))}
+                {validSegments.map((segmentCoordinates, index) => {
+                    const sourceId = `${CONST.MAP_VIEW_LAYERS.ROUTE_SOURCE}-segment-${index}`;
+                    return (
+                        <Source
+                            key={sourceId}
+                            id={sourceId}
+                            type="geojson"
+                            data={{
+                                type: 'Feature',
+                                properties: {},
+                                geometry: {
+                                    type: 'LineString',
+                                    coordinates: segmentCoordinates,
+                                },
+                            }}
+                        >
+                            <Layer
+                                id={`${CONST.MAP_VIEW_LAYERS.ROUTE_BORDER}-segment-${index}`}
+                                type="line"
+                                source={sourceId}
+                                paint={layerBorderPointStyle}
+                                layout={layerBorderLayoutStyle}
+                            />
+                            <Layer
+                                id={`${CONST.MAP_VIEW_LAYERS.ROUTE_FILL}-segment-${index}`}
+                                type="line"
+                                source={sourceId}
+                                paint={layerPointStyle}
+                                layout={layerLayoutStyle}
+                            />
+                        </Source>
+                    );
+                })}
             </View>
         );
     }
