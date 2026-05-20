@@ -33,8 +33,12 @@ jest.mock('@hooks/useFilesValidation', () => ({
 }));
 
 jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
-    handleMoneyRequestStepScanParticipants: (...args: unknown[]) => mockHandleMoneyRequestStepScanParticipants(...args),
     getMoneyRequestParticipantOptions: (...args: unknown[]) => mockGetMoneyRequestParticipantOptions(...args),
+}));
+
+jest.mock('@pages/iou/request/step/IOURequestStepScan/handleMoneyRequestStepScanParticipants', () => ({
+    __esModule: true,
+    default: (...args: unknown[]) => mockHandleMoneyRequestStepScanParticipants(...args),
 }));
 
 jest.mock('@userActions/TransactionEdit', () => ({
@@ -478,30 +482,19 @@ describe('useReceiptScan', () => {
             );
         });
 
-        it('should pass isFromGlobalCreate=true to cleanup when the initial transaction was started from the FAB (isFromFloatingActionButton)', async () => {
+        it('should pass the FAB-started initial transaction through to the handler', async () => {
             params.initialTransaction = {...params.initialTransaction, isFromFloatingActionButton: true} as Transaction;
-            mockHandleMoneyRequestStepScanParticipants.mockImplementationOnce((actionParams: {dispatchEnvelope: (envelope: unknown) => void}) =>
-                actionParams.dispatchEnvelope({
-                    executeWrite: jest.fn(),
-                    destinationReportID: undefined,
-                    telemetryContext: {
-                        scenario: 'request-money-scan',
-                        iouType: 'request',
-                        requestType: 'scan',
-                        isFromGlobalCreate: true,
-                        hasReceipt: true,
-                    },
-                }),
-            );
             const {result} = renderHook(() => useReceiptScan(params));
             await waitForBatchedUpdatesWithAct();
             const files = [{file: {uri: 'receipt.jpg'}, source: 'file://receipt.jpg', transactionID: INITIAL_TRANSACTION_ID}];
             await act(async () => {
                 result.current.navigateToConfirmationStep(files, false, false);
             });
-            expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledWith(
+            expect(mockHandleMoneyRequestStepScanParticipants).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    isFromGlobalCreate: true,
+                    initialTransaction: expect.objectContaining({
+                        transactionID: INITIAL_TRANSACTION_ID,
+                    }),
                 }),
             );
         });

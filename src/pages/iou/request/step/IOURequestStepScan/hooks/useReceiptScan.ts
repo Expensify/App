@@ -13,13 +13,13 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSelfDMReport from '@hooks/useSelfDMReport';
-import {getMoneyRequestParticipantOptions, handleMoneyRequestStepScanParticipants} from '@libs/actions/IOU/MoneyRequest';
+import {getMoneyRequestParticipantOptions} from '@libs/actions/IOU/MoneyRequest';
 import {resolveOptimisticChatReportID} from '@libs/IOUUtils';
-import submitEnvelopeWithCleanup from '@libs/Navigation/helpers/submitEnvelopeWithCleanup';
 import {rand64} from '@libs/NumberUtils';
 import {isPolicyExpenseChat} from '@libs/ReportUtils';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue, hasReceipt, shouldReuseInitialTransaction} from '@libs/TransactionUtils';
+import handleMoneyRequestStepScanParticipants from '@pages/iou/request/step/IOURequestStepScan/handleMoneyRequestStepScanParticipants';
 import type {ReceiptFile, UseReceiptScanParams} from '@pages/iou/request/step/IOURequestStepScan/types';
 import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
@@ -172,18 +172,11 @@ function useReceiptScan({
             amountOwed,
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
-            dispatchEnvelope: (envelope) =>
-                submitEnvelopeWithCleanup({
-                    envelope,
-                    report,
-                    action,
-                    draftTransactionIDs,
-                    transactionID: optimisticTransactionIDs.at(-1) ?? initialTransactionID,
-                    isFromGlobalCreate: getIsFromGlobalCreate(initialTransaction),
-                    backToReport,
-                    optimisticChatReportID: chatReportID,
-                    linkedTrackedExpenseReportAction: initialTransaction?.linkedTrackedExpenseReportAction,
-                }),
+            action,
+            chatReportID,
+            draftTransactionIDs,
+            initialIsFromGlobalCreate: getIsFromGlobalCreate(initialTransaction),
+            linkedTrackedExpenseReportAction: initialTransaction?.linkedTrackedExpenseReportAction,
         });
     }
 

@@ -1,13 +1,21 @@
 import type {OnyxEntry} from 'react-native-onyx';
+import type {SubmitExpenseContext} from '@libs/telemetry/submitFollowUpAction';
 import type {IOUAction} from '@src/CONST';
 import type {Report, ReportAction} from '@src/types/onyx';
 import cleanupAfterExpenseCreate from './cleanupAfterExpenseCreate';
 import cleanupAndNavigateAfterExpenseCreate from './cleanupAndNavigateAfterExpenseCreate';
-import type {SubmitEnvelope} from './submitWithDismissFirst';
+import type {WriteOverrides} from './submitWithDismissFirst';
 import {submitWithDismissFirst} from './submitWithDismissFirst';
 
-type SubmitEnvelopeWithCleanupParams = {
-    envelope: SubmitEnvelope;
+type SubmitWithCleanupParams = {
+    /** The pure write (e.g., createTransaction / trackExpense / createDistanceRequest) wrapped so the orchestrator's overrides reach it. */
+    executeWrite: (overrides: WriteOverrides) => void;
+    /** Report the orchestrator will reveal/dismiss to before the write fires. */
+    destinationReportID: string | undefined;
+    /** Telemetry metadata for the submit-expense performance span. */
+    telemetryContext: SubmitExpenseContext;
+
+    // Cleanup args — passed verbatim to cleanupAndNavigateAfterExpenseCreate (full-nav branch) or cleanupAfterExpenseCreate (fast-path branch).
     report: OnyxEntry<Report>;
     action: IOUAction;
     draftTransactionIDs: string[] | undefined;
@@ -19,9 +27,11 @@ type SubmitEnvelopeWithCleanupParams = {
     isInvoice?: boolean;
 };
 
-/** Dispatches an action envelope via dismiss-first nav and wires draft/RHP cleanup into every branch. */
-function submitEnvelopeWithCleanup({
-    envelope,
+/** Wraps `submitWithDismissFirst` and threads draft/RHP cleanup into every nav branch so write + cleanup land at the same async moment. */
+function submitWithCleanup({
+    executeWrite,
+    destinationReportID,
+    telemetryContext,
     report,
     action,
     draftTransactionIDs,
@@ -31,10 +41,10 @@ function submitEnvelopeWithCleanup({
     optimisticChatReportID,
     linkedTrackedExpenseReportAction,
     isInvoice,
-}: SubmitEnvelopeWithCleanupParams): void {
+}: SubmitWithCleanupParams): void {
     submitWithDismissFirst({
         executeWrite: (overrides) => {
-            envelope.executeWrite(overrides);
+            executeWrite(overrides);
             if (overrides.shouldHandleNavigation) {
                 cleanupAndNavigateAfterExpenseCreate({
                     report,
@@ -51,9 +61,9 @@ function submitEnvelopeWithCleanup({
             }
             cleanupAfterExpenseCreate({draftTransactionIDs, linkedTrackedExpenseReportAction});
         },
-        destinationReportID: envelope.destinationReportID,
-        telemetryContext: envelope.telemetryContext,
+        destinationReportID,
+        telemetryContext,
     });
 }
 
-export default submitEnvelopeWithCleanup;
+export default submitWithCleanup;

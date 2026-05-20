@@ -17,16 +17,15 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {handleMoneyRequestStepDistanceNavigation, setGPSTransactionDraftData} from '@libs/actions/IOU/MoneyRequest';
+import {setGPSTransactionDraftData} from '@libs/actions/IOU/MoneyRequest';
 import {init as initMapboxToken, stop as stopMapboxToken} from '@libs/actions/MapboxToken';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getGPSConvertedDistance, getGpsPoints, getGPSWaypoints, getLastGpsPoint, getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
-import submitEnvelopeWithCleanup from '@libs/Navigation/helpers/submitEnvelopeWithCleanup';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {generateReportID, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
-import {getIsFromGlobalCreate} from '@libs/TransactionUtils';
+import handleMoneyRequestStepDistanceNavigation from '@pages/iou/request/step/IOURequestStepDistance/handleMoneyRequestStepDistanceNavigation';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
@@ -107,6 +106,7 @@ function IOURequestStepDistanceGPS({
 
         handleMoneyRequestStepDistanceNavigation({
             iouType,
+            action,
             report,
             policy,
             transaction,
@@ -145,18 +145,6 @@ function IOURequestStepDistanceGPS({
             conciergeReportID,
             optimisticTransactionID,
             optimisticChatReportID,
-            dispatchEnvelope: (envelope) =>
-                submitEnvelopeWithCleanup({
-                    envelope,
-                    report,
-                    action,
-                    draftTransactionIDs,
-                    transactionID: optimisticTransactionID,
-                    isFromGlobalCreate: getIsFromGlobalCreate(transaction),
-                    backToReport,
-                    optimisticChatReportID,
-                    linkedTrackedExpenseReportAction: transaction?.linkedTrackedExpenseReportAction,
-                }),
         });
     };
 

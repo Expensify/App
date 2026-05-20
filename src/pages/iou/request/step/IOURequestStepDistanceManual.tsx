@@ -20,19 +20,18 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {handleMoneyRequestStepDistanceNavigation, setMoneyRequestDistance} from '@libs/actions/IOU/MoneyRequest';
+import {setMoneyRequestDistance} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestDistance} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
-import submitEnvelopeWithCleanup from '@libs/Navigation/helpers/submitEnvelopeWithCleanup';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {generateReportID, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
-import {getDistanceInMeters, getIsFromGlobalCreate} from '@libs/TransactionUtils';
+import {getDistanceInMeters} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,6 +39,7 @@ import type SCREENS from '@src/SCREENS';
 import {hasSeenTourSelector} from '@src/selectors/Onboarding';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type Transaction from '@src/types/onyx/Transaction';
+import handleMoneyRequestStepDistanceNavigation from './IOURequestStepDistance/handleMoneyRequestStepDistanceNavigation';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -213,6 +213,7 @@ function IOURequestStepDistanceManual({
 
         handleMoneyRequestStepDistanceNavigation({
             iouType,
+            action,
             report,
             policy,
             transaction,
@@ -250,18 +251,6 @@ function IOURequestStepDistanceManual({
             draftTransactionIDs,
             optimisticTransactionID,
             optimisticChatReportID,
-            dispatchEnvelope: (envelope) =>
-                submitEnvelopeWithCleanup({
-                    envelope,
-                    report,
-                    action,
-                    draftTransactionIDs,
-                    transactionID: optimisticTransactionID,
-                    isFromGlobalCreate: getIsFromGlobalCreate(transaction),
-                    backToReport,
-                    optimisticChatReportID,
-                    linkedTrackedExpenseReportAction: transaction?.linkedTrackedExpenseReportAction,
-                }),
         });
     };
 

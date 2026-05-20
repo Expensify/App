@@ -1,12 +1,13 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {MoneyRequestStepScanParticipantsFlowParams} from '@libs/actions/IOU/MoneyRequest';
-import {createTransaction, getMoneyRequestParticipantOptions, handleMoneyRequestStepDistanceNavigation, handleMoneyRequestStepScanParticipants} from '@libs/actions/IOU/MoneyRequest';
+import {createTransaction, getMoneyRequestParticipantOptions} from '@libs/actions/IOU/MoneyRequest';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {GeolocationErrorCode} from '@libs/getCurrentPosition/getCurrentPosition.types';
-import type {SubmitEnvelope, SubmitEnvelopeDispatcher} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import Navigation from '@libs/Navigation/Navigation';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
+import handleMoneyRequestStepDistanceNavigation from '@pages/iou/request/step/IOURequestStepDistance/handleMoneyRequestStepDistanceNavigation';
+import handleMoneyRequestStepScanParticipants from '@pages/iou/request/step/IOURequestStepScan/handleMoneyRequestStepScanParticipants';
+import type {MoneyRequestStepScanParticipantsFlowParams} from '@pages/iou/request/step/IOURequestStepScan/handleMoneyRequestStepScanParticipants';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,6 +20,7 @@ import * as Split from '../../../src/libs/actions/IOU/Split';
 import * as TrackExpense from '../../../src/libs/actions/IOU/TrackExpense';
 import DistanceRequestUtils from '../../../src/libs/DistanceRequestUtils';
 import * as ReportUtils from '../../../src/libs/ReportUtils';
+import type * as SubmitWithDismissFirstMock from '../../__mocks__/submitWithDismissFirst';
 import createRandomPolicy from '../../utils/collections/policies';
 import {createRandomReport, createSelfDM} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
@@ -59,8 +61,11 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 
 jest.mock('@libs/getCurrentPosition');
 
-/** Test dispatcher that fires the write synchronously with fallback overrides (mirrors the real fallback branch of submitWithDismissFirst). */
-const fireEnvelope: SubmitEnvelopeDispatcher = (envelope) => envelope.executeWrite({shouldHandleNavigation: true, shouldDeferForSearch: false});
+// Bypass submitWithDismissFirst's nav orchestration in tests — fire executeWrite synchronously so downstream writes can be asserted.
+jest.mock('@libs/Navigation/helpers/submitWithDismissFirst', () => jest.requireActual<typeof SubmitWithDismissFirstMock>('../../__mocks__/submitWithDismissFirst'));
+// Cleanup helpers are no-ops here — these tests focus on the underlying write, not the post-write nav side effects.
+jest.mock('@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate', () => ({__esModule: true, default: jest.fn()}));
+jest.mock('@libs/Navigation/helpers/cleanupAfterExpenseCreate', () => ({__esModule: true, default: jest.fn()}));
 
 describe('MoneyRequest', () => {
     const currentUserAccountID = 111;
@@ -592,7 +597,10 @@ describe('MoneyRequest', () => {
             participantsPolicyTags: {} as Record<string, PolicyTagLists>,
             amountOwed: 0,
             userBillingGracePeriodEnds: undefined,
-            dispatchEnvelope: jest.fn<void, [SubmitEnvelope]>(),
+            action: CONST.IOU.ACTION.CREATE,
+            chatReportID: undefined,
+            draftTransactionIDs: [],
+            initialIsFromGlobalCreate: undefined,
         };
 
         beforeEach(async () => {
@@ -697,7 +705,6 @@ describe('MoneyRequest', () => {
                     isFromGlobalCreate: false,
                 },
                 allTransactionDrafts: {},
-                dispatchEnvelope: fireEnvelope,
             });
 
             await waitForBatchedUpdates();
@@ -789,7 +796,6 @@ describe('MoneyRequest', () => {
                     isFromGlobalCreate: false,
                 },
                 locationPermissionGranted: true,
-                dispatchEnvelope: fireEnvelope,
             });
 
             expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
@@ -823,7 +829,6 @@ describe('MoneyRequest', () => {
                     isFromGlobalCreate: false,
                 },
                 locationPermissionGranted: true,
-                dispatchEnvelope: fireEnvelope,
             });
 
             expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
@@ -844,7 +849,6 @@ describe('MoneyRequest', () => {
                     ...baseParams.initialTransaction,
                     isFromGlobalCreate: false,
                 },
-                dispatchEnvelope: fireEnvelope,
             });
 
             await waitForBatchedUpdates();
@@ -1110,7 +1114,7 @@ describe('MoneyRequest', () => {
             draftTransactionIDs: undefined,
             userBillingGracePeriodEnds: undefined,
             conciergeReportID: undefined,
-            dispatchEnvelope: jest.fn<void, [SubmitEnvelope]>(),
+            action: CONST.IOU.ACTION.CREATE,
         };
         const splitShares: SplitShares = {
             [firstSplitParticipantID]: {
@@ -1184,7 +1188,6 @@ describe('MoneyRequest', () => {
                 shouldSkipConfirmation: true,
                 iouType: CONST.IOU.TYPE.TRACK,
                 draftTransactionIDs: [baseParams.transactionID],
-                dispatchEnvelope: fireEnvelope,
             });
 
             expect(Split.resetSplitShares).not.toHaveBeenCalled();
@@ -1212,25 +1215,6 @@ describe('MoneyRequest', () => {
 
             // The function must return after trackExpense and not call createDistanceRequest
             expect(Split.createDistanceRequest).not.toHaveBeenCalled();
-        });
-
-        it('should dispatch a submit envelope (executeWrite + destinationReportID + telemetryContext) for the UI to fire via submitWithDismissFirst', async () => {
-            let envelope: SubmitEnvelope | undefined;
-            handleMoneyRequestStepDistanceNavigation({
-                ...baseParams,
-                manualDistance: 20,
-                shouldSkipConfirmation: true,
-                iouType: CONST.IOU.TYPE.TRACK,
-                draftTransactionIDs: [baseParams.transactionID],
-                dispatchEnvelope: (e) => {
-                    envelope = e;
-                },
-            });
-
-            expect(typeof envelope?.executeWrite).toBe('function');
-            expect(envelope?.destinationReportID).toBeDefined();
-            expect(envelope?.telemetryContext.iouType).toBe(CONST.IOU.TYPE.TRACK);
-            expect(envelope?.telemetryContext.requestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
         });
 
         it('should call trackExpense for TRACK iouType with valid waypoints when not from manual distance step and skipping confirmation', async () => {
@@ -1266,7 +1250,6 @@ describe('MoneyRequest', () => {
                 shouldSkipConfirmation: true,
                 iouType: CONST.IOU.TYPE.TRACK,
                 draftTransactionIDs: [baseParams.transactionID],
-                dispatchEnvelope: fireEnvelope,
             });
 
             await waitForBatchedUpdates();
@@ -1333,7 +1316,6 @@ describe('MoneyRequest', () => {
                 manualDistance: 20,
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 draftTransactionIDs: [baseParams.transactionID],
-                dispatchEnvelope: fireEnvelope,
             });
 
             expect(Split.createDistanceRequest).toHaveBeenCalledWith(
@@ -1373,7 +1355,6 @@ describe('MoneyRequest', () => {
                 manualDistance: undefined,
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 draftTransactionIDs: [baseParams.transactionID],
-                dispatchEnvelope: fireEnvelope,
             });
 
             expect(Split.createDistanceRequest).toHaveBeenCalledWith(

@@ -14,18 +14,14 @@ type WriteOverrides = {
     shouldDeferForSearch: boolean;
 };
 
-/** Action result the orchestrator dispatches: the write to fire plus the metadata it needs to pick a nav strategy. */
-type SubmitEnvelope = {
+type SubmitWithDismissFirstParams = {
+    /** The pure write to fire when the orchestrator decides the modal/route timing is right. */
     executeWrite: (overrides: WriteOverrides) => void;
+    /** Report the orchestrator will reveal/dismiss to before the write fires. */
     destinationReportID: string | undefined;
+    /** Telemetry metadata for the submit-expense performance span. */
     telemetryContext: SubmitExpenseContext;
 };
-
-/**
- * Required `dispatchEnvelope` param on envelope-producing actions. Forces the caller to consume the envelope —
- * a missing dispatcher is a type error, not a silent no-op. Typically wired to {@link submitEnvelopeWithCleanup}.
- */
-type SubmitEnvelopeDispatcher = (envelope: SubmitEnvelope) => void;
 
 function startDismissFirstTracking(
     telemetryContext: SubmitExpenseContext,
@@ -52,9 +48,9 @@ function startDismissFirstTracking(
  *   4. Destination not loaded    -> write immediately, then reveal-and-dismiss
  *   5. Fallback                  -> start tracking with default fast path, write with defaults
  *
- * Must not be called from `src/libs/actions/`; action entrypoints return a `SubmitEnvelope` for the UI to dispatch.
+ * Must not be called from `src/libs/actions/` — view-layer only. Typically wrapped via {@link submitWithCleanup}, which threads draft/RHP cleanup into every branch.
  */
-function submitWithDismissFirst({executeWrite, destinationReportID, telemetryContext}: SubmitEnvelope): void {
+function submitWithDismissFirst({executeWrite, destinationReportID, telemetryContext}: SubmitWithDismissFirstParams): void {
     const shouldStayOnSearch = isSearchTopmostFullScreenRoute();
 
     if (shouldStayOnSearch) {
@@ -97,4 +93,4 @@ function submitWithDismissFirst({executeWrite, destinationReportID, telemetryCon
 }
 
 export {submitWithDismissFirst};
-export type {SubmitEnvelope, SubmitEnvelopeDispatcher, WriteOverrides};
+export type {WriteOverrides};

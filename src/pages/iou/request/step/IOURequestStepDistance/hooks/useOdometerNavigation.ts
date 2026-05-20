@@ -3,11 +3,9 @@ import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import useOnyx from '@hooks/useOnyx';
-import {handleMoneyRequestStepDistanceNavigation} from '@libs/actions/IOU/MoneyRequest';
-import submitEnvelopeWithCleanup from '@libs/Navigation/helpers/submitEnvelopeWithCleanup';
 import {rand64} from '@libs/NumberUtils';
 import {generateReportID} from '@libs/ReportUtils';
-import {getIsFromGlobalCreate} from '@libs/TransactionUtils';
+import handleMoneyRequestStepDistanceNavigation from '@pages/iou/request/step/IOURequestStepDistance/handleMoneyRequestStepDistanceNavigation';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -148,6 +146,7 @@ function useOdometerNavigation({
 
         handleMoneyRequestStepDistanceNavigation({
             iouType,
+            action,
             report,
             policy,
             transaction,
@@ -188,18 +187,6 @@ function useOdometerNavigation({
             conciergeReportID,
             optimisticTransactionID,
             optimisticChatReportID,
-            dispatchEnvelope: (envelope) =>
-                submitEnvelopeWithCleanup({
-                    envelope,
-                    report,
-                    action,
-                    draftTransactionIDs,
-                    transactionID: optimisticTransactionID,
-                    isFromGlobalCreate: getIsFromGlobalCreate(transaction),
-                    backToReport,
-                    optimisticChatReportID,
-                    linkedTrackedExpenseReportAction: transaction?.linkedTrackedExpenseReportAction,
-                }),
         });
     };
 }
