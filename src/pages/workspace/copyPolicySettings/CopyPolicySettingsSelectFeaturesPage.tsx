@@ -161,12 +161,14 @@ function CopyPolicySettingsSelectFeaturesPage() {
 
     const listItems: ListItem[] = FEATURE_ROWS.map((row) => {
         const alternateText = getFeatureAlternateText(row.part);
+        const isSelected = effectiveSelectedFeatures.includes(row.part);
+        const isDisabled = isFeatureDisabled(row.part);
         return {
             text: translate(row.labelKey),
             keyForList: row.part,
-            isSelected: effectiveSelectedFeatures.includes(row.part),
-            isDisabled: isFeatureDisabled(row.part),
-            isDisabledCheckbox: isFeatureDisabled(row.part),
+            isSelected,
+            isDisabled,
+            isDisabledCheckbox: isDisabled && !isSelected,
             alternateText: alternateText?.trim().replace(/,\s*$/, ''),
         };
     });
