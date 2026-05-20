@@ -278,7 +278,7 @@ function getDefaultFullScreenRoute(route?: NavigationPartialRoute) {
     if (route && isRouteWithReportID(route)) {
         const reportID = route.params.reportID;
 
-        // Only allReports should be checked here — pass {} to skip the draft lookup
+        // Only allReports should be checked here — TODO: Passing undefined in follow-up PRs of https://github.com/Expensify/App/issues/66414
         if (!getReportOrDraftReport(reportID, undefined, undefined, {})) {
             return getTabNavigatorState({name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR});
         }
