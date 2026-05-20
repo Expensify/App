@@ -66,6 +66,21 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         Navigation.goBack(routeToNavigate);
     }, [route.params?.backTo, onboardingValues]);
 
+    const navigateToNextOnboardingStep = useCallback(
+        (backTo: string | undefined, options?: {forceReplace?: boolean}) => {
+            if (isVsb) {
+                Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(backTo), options);
+                return;
+            }
+            if (isSmb) {
+                Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(backTo), options);
+                return;
+            }
+            Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(backTo), options);
+        },
+        [isVsb, isSmb],
+    );
+
     useEffect(() => {
         if (account?.isFromPublicDomain) {
             return;
@@ -79,15 +94,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     useEffect(() => {
         // Public-domain accounts shouldn't be on this screen — the "people you may know" copy assumes a private domain.
         if (account?.isFromPublicDomain) {
-            if (isVsb) {
-                Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()), {forceReplace: true});
-                return;
-            }
-            if (isSmb) {
-                Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()), {forceReplace: true});
-                return;
-            }
-            Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()), {forceReplace: true});
+            navigateToNextOnboardingStep(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), {forceReplace: true});
             return;
         }
 
@@ -103,17 +110,9 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         // When validation succeeded but there are no joinable workspaces and the API call has completed,
         // navigate to the next onboarding step (same as the skip button behavior).
         if (getAccessiblePoliciesAction?.loading === false) {
-            if (isVsb) {
-                Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()), {forceReplace: true});
-                return;
-            }
-            if (isSmb) {
-                Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()), {forceReplace: true});
-                return;
-            }
-            Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()), {forceReplace: true});
+            navigateToNextOnboardingStep(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), {forceReplace: true});
         }
-    }, [isValidated, joinablePoliciesLength, getAccessiblePoliciesAction?.loading, isVsb, isSmb, account?.isFromPublicDomain]);
+    }, [isValidated, joinablePoliciesLength, getAccessiblePoliciesAction?.loading, account?.isFromPublicDomain, navigateToNextOnboardingStep]);
 
     // Render nothing for public-domain accounts; the redirect useEffect above will navigate away.
     if (account?.isFromPublicDomain) {
@@ -161,18 +160,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                         validateError={getAccessiblePoliciesAction?.errors}
                         hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                         shouldShowSkipButton
-                        handleSkipButtonPress={() => {
-                            if (isVsb) {
-                                Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
-                                return;
-                            }
-
-                            if (isSmb) {
-                                Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(route.params?.backTo));
-                                return;
-                            }
-                            Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));
-                        }}
+                        handleSkipButtonPress={() => navigateToNextOnboardingStep(route.params?.backTo)}
                         buttonStyles={[styles.flex2, styles.justifyContentEnd]}
                         isLoading={getAccessiblePoliciesAction?.loading}
                     />

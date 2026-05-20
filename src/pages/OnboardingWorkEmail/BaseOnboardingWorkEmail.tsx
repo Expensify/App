@@ -70,8 +70,9 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     }, []);
 
     useEffect(() => {
-        // A validated account has no reason to be on the onboarding "add work email" screen.
-        if (account?.validated) {
+        // PRIVATE_DOMAIN ("People you may know are already here") only makes sense for users on a private domain.
+        const shouldShowPrivateDomainStep = !onboardingValues?.isMergeAccountStepSkipped && !account?.isFromPublicDomain;
+        const navigateToNextStep = () => {
             if (isVsb) {
                 Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(), {forceReplace: true});
                 return;
@@ -80,12 +81,16 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                 Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(), {forceReplace: true});
                 return;
             }
-            // PRIVATE_DOMAIN ("People you may know are already here") only makes sense for users on a private domain.
-            if (!onboardingValues?.isMergeAccountStepSkipped && !account?.isFromPublicDomain) {
+            if (shouldShowPrivateDomainStep) {
                 Navigation.navigate(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(), {forceReplace: true});
                 return;
             }
             Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
+        };
+
+        // A validated account has no reason to be on the onboarding "add work email" screen.
+        if (account?.validated) {
+            navigateToNextStep();
             return;
         }
 
@@ -99,24 +104,8 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
             Navigation.navigate(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute());
             return;
         }
-        // Once we verify that shouldValidate is false, we need to force replace the screen
-        // so that we don't navigate back on back button press
-        if (isVsb) {
-            Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(), {forceReplace: true});
-            return;
-        }
 
-        if (isSmb) {
-            Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(), {forceReplace: true});
-            return;
-        }
-
-        if (!onboardingValues?.isMergeAccountStepSkipped) {
-            Navigation.navigate(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(), {forceReplace: true});
-            return;
-        }
-
-        Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
+        navigateToNextStep();
     }, [
         account?.validated,
         account?.isFromPublicDomain,
