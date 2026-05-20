@@ -242,8 +242,9 @@ function CopyPolicySettingsSelectFeaturesPage() {
     const onConfirm = () => {
         const isWorkflowsSelected = effectiveSelectedFeatures.includes('workflows');
         const isMembersSelected = effectiveSelectedFeatures.includes('members');
+        const hasMembersToCopy = availablePartSet.has('members');
 
-        if (!isWorkflowsSelected || isMembersSelected) {
+        if (!isWorkflowsSelected || isMembersSelected || !hasMembersToCopy) {
             saveAndNavigate();
             return;
         }
