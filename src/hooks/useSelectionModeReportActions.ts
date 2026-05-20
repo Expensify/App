@@ -114,6 +114,7 @@ function useSelectionModeReportActions({
     const {isOffline} = useNetwork();
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const activePolicy = usePolicy(activePolicyID);
     const chatReportPolicy = usePolicy(chatReport?.policyID);
     const [invoiceReceiverPolicy] = useOnyx(
@@ -129,7 +130,6 @@ function useSelectionModeReportActions({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Send', 'ThumbsUp', 'Cash', 'ArrowRight', 'Building'] as const);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const isBulkSubmitApprovePayBetaEnabled = isBetaEnabled(CONST.BETAS.BULK_SUBMIT_APPROVE_PAY);
 
     const currentUserEmail = session?.email;
     const hasViolations = hasViolationsReportUtils(report?.reportID, allTransactionViolations, currentUserAccountID, currentUserEmail ?? '');
@@ -396,6 +396,7 @@ function useSelectionModeReportActions({
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+                conciergeReportID,
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({
@@ -494,9 +495,6 @@ function useSelectionModeReportActions({
     })();
 
     const selectionModeReportLevelActions = (() => {
-        if (!isBulkSubmitApprovePayBetaEnabled) {
-            return [];
-        }
         const actions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon' | 'subMenuItems'>> = [];
         let idx = 0;
         if (hasSubmitAction && !shouldBlockSubmit) {
@@ -581,4 +579,3 @@ function useSelectionModeReportActions({
 }
 
 export default useSelectionModeReportActions;
-export type {UseSelectionModeReportActionsParams};

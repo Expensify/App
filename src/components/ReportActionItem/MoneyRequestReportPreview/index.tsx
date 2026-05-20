@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/core';
 import type {ListRenderItem} from '@shopify/flash-list';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
@@ -20,7 +21,7 @@ import {contextMenuRef} from '@pages/inbox/report/ContextMenu/ReportActionContex
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {hasOnceLoadedReportActionsSelector} from '@src/selectors/ReportMetaData';
+import {hasOnceLoadedReportActionsSelector, pendingNewTransactionIDsSelector} from '@src/selectors/ReportMetaData';
 import type {Transaction} from '@src/types/onyx';
 import MoneyRequestReportPreviewContent from './MoneyRequestReportPreviewContent';
 import type {MoneyRequestReportPreviewProps} from './types';
@@ -120,7 +121,11 @@ function MoneyRequestReportPreview({
     const [hasOnceLoadedReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${chatReportID}`, {
         selector: hasOnceLoadedReportActionsSelector,
     });
-    const newTransactions = useNewTransactions(hasOnceLoadedReportActions, transactions);
+    const [pendingNewTransactionIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`, {
+        selector: pendingNewTransactionIDsSelector,
+    });
+    const isFocused = useIsFocused();
+    const newTransactions = useNewTransactions(hasOnceLoadedReportActions, transactions, pendingNewTransactionIDs, chatReportID, isFocused);
     const newTransactionIDs = new Set(newTransactions.map((transaction) => transaction.transactionID));
 
     const transactionPreviewContainerStyles = [styles.h100, reportPreviewStyles.transactionPreviewCarouselStyle];
