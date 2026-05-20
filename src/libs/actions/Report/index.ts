@@ -2227,7 +2227,10 @@ function navigateToReport(reportID: string | undefined, options?: {shouldDismiss
     }
     // In some cases when RHP modal gets hidden and then we navigate to report Composer focus breaks, wrapping navigation in setTimeout fixes this
     setTimeout(() => {
-        Navigation.isNavigationReady().then(() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID)));
+        Navigation.isNavigationReady().then(() => {
+            const navigateOptions = shouldDismissModal ? undefined : {afterTransition: options?.afterTransition};
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID), navigateOptions);
+        });
     }, 0);
 }
 
@@ -2376,7 +2379,7 @@ function navigateToAndOpenReportWithAccountIDs(
             betas,
         });
 
-        navigateToReport(fallbackChat.reportID, false);
+        navigateToReport(fallbackChat.reportID, {shouldDismissModal: false});
     };
 
     if (!chat || isReportNotFound(chat)) {
@@ -2385,7 +2388,7 @@ function navigateToAndOpenReportWithAccountIDs(
     }
 
     if (!shouldRevalidateExistingChat) {
-        navigateToReport(chat.reportID, false);
+        navigateToReport(chat.reportID, {shouldDismissModal: false});
         return;
     }
 
@@ -2411,7 +2414,7 @@ function navigateToAndOpenReportWithAccountIDs(
 
     // Re-open existing chats to re-validate server-side access and refresh stale local state.
     openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, betas});
-    navigateToReport(chat.reportID, false);
+    navigateToReport(chat.reportID, {shouldDismissModal: false});
 }
 
 /**
@@ -3905,13 +3908,14 @@ function navigateToConciergeChat(
                 isSelfTourViewed,
                 betas,
                 shouldDismissModal,
+                false,
                 linkToOptions,
             );
         });
     } else if (shouldDismissModal) {
-        Navigation.dismissModalWithReport({reportID: conciergeReportID, reportActionID}, undefined, {...linkToOptions});
+        Navigation.dismissModalWithReport({reportID: conciergeReportID, reportActionID}, undefined, linkToOptions);
     } else {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID), {...linkToOptions});
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID), linkToOptions);
     }
 }
 
