@@ -270,6 +270,7 @@ const translations = {
         // @context Status or button indicating that an action or process has been completed. Should reflect completion.
         done: 'Done',
         more: 'More',
+        other: 'Other',
         debitCard: 'Debit card',
         bankAccount: 'Bank account',
         personalBankAccount: 'Personal bank account',
@@ -6443,8 +6444,32 @@ const translations = {
         },
         hr: {
             title: 'HR',
+            connections: 'Connections',
             subtitle: 'Connect HR tools and keep employee approvals in sync.',
-            settingsTitle: 'Gusto settings',
+            connect: 'Connect',
+            syncNow: 'Sync now',
+            disconnect: 'Disconnect',
+            disconnectTitle: (providerName: string) => `Disconnect ${providerName}`,
+            disconnectPrompt: (providerName: string) => `Are you sure you want to disconnect ${providerName}?`,
+            lastSync: (relativeDate: string) => `Last synced ${relativeDate}`,
+            syncError: (providerName: string) => `Can't connect to ${providerName}`,
+            connectionDescription: (providerName: string) => `Connect ${providerName} to keep employee approvals in sync with your workspace.`,
+            approvalMode: 'Approval mode',
+            finalApprover: 'Final approver',
+            notSet: 'Not set',
+            approvalModeDescription: (providerName: string) => `Members and managers are set up to sync with ${providerName}.`,
+            approvalModeWarningTitle: 'Change approval mode?',
+            approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
+                `Are you sure you would like to change the approval mode for this workspace? Learn more about the different ${providerName}-enabled workflow modes in our <a href="${helpSiteURL}">help site</a>.`,
+            approvalModeWarningConfirm: 'Change approval mode',
+            approvalModes: {
+                basic: {label: 'Basic approval', description: 'All users submit to a single person for processing and approval.'},
+                manager: {
+                    label: 'Manager approval',
+                    description: (providerName: string) => `Employees submit reports to their direct manager configured in ${providerName}.`,
+                },
+                custom: {label: 'Custom approval', description: "I'll manually setup approval workflows in Expensify."},
+            },
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
                     case 'gustoSyncTitle':
@@ -6459,6 +6484,8 @@ const translations = {
                         return 'Loading data from TriNet';
                     case 'zenefitsSyncProvisioning':
                         return 'Provisioning employees in policy';
+                    case 'mergeHRSyncTitle':
+                        return 'Synchronizing HR Employees';
                     case 'jobDone':
                         return 'Waiting for imported data to load';
                     default: {
@@ -6468,36 +6495,6 @@ const translations = {
             },
             gusto: {
                 title: 'Gusto',
-                connect: 'Connect',
-                syncNow: 'Sync now',
-                disconnect: 'Disconnect',
-                lastSync: (relativeDate: string) => `Last synced ${relativeDate}`,
-                syncError: "Can't connect to Gusto",
-                disconnectTitle: 'Disconnect Gusto',
-                disconnectPrompt: 'Are you sure you want to disconnect Gusto?',
-                connectionDescription: 'Connect Gusto to keep employee approvals in sync with your workspace.',
-                approvalMode: 'Approval mode',
-                finalApprover: 'Final approver',
-                notSet: 'Not set',
-                approvalModeDescription: 'Members and managers are set up to sync with Gusto.',
-                approvalModeWarningTitle: 'Change approval mode?',
-                approvalModeWarningPrompt: (helpSiteURL: string) =>
-                    `Are you sure you would like to change the approval mode for this workspace? Learn more about the different Gusto-enabled workflow modes in our <a href="${helpSiteURL}">help site</a>.`,
-                approvalModeWarningConfirm: 'Change approval mode',
-                approvalModes: {
-                    basic: {
-                        label: 'Basic approval',
-                        description: 'All users submit to a single person for processing and approval.',
-                    },
-                    manager: {
-                        label: 'Manager approval',
-                        description: 'Employees submit reports to their direct manager configured in Gusto.',
-                    },
-                    custom: {
-                        label: 'Custom approval',
-                        description: 'I’ll manually setup approval workflows in Expensify.',
-                    },
-                },
                 syncResults: {
                     title: 'Gusto sync results',
                     successTitle: 'Successfully synced your Gusto connection!',
@@ -6510,42 +6507,8 @@ const translations = {
                     }),
                 },
             },
-            merge: {
-                approvalMode: 'Approval mode',
-                finalApprover: 'Final approver',
-            },
             zenefits: {
                 title: 'TriNet',
-                connect: 'Connect',
-                syncNow: 'Sync now',
-                disconnect: 'Disconnect',
-                lastSync: (relativeDate: string) => `Last synced ${relativeDate}`,
-                syncError: "Can't connect to TriNet",
-                disconnectTitle: 'Disconnect TriNet',
-                disconnectPrompt: 'Are you sure you want to disconnect TriNet?',
-                connectionDescription: 'Connect TriNet to keep employee approvals in sync with your workspace.',
-                approvalMode: 'Approval mode',
-                finalApprover: 'Final approver',
-                notSet: 'Not set',
-                approvalModeDescription: 'Members and managers are set up to sync with TriNet.',
-                approvalModeWarningTitle: 'Change approval mode?',
-                approvalModeWarningPrompt: (helpSiteURL: string) =>
-                    `Are you sure you would like to change the approval mode for this workspace? Learn more about the different TriNet-enabled workflow modes in our <a href="${helpSiteURL}">help site</a>.`,
-                approvalModeWarningConfirm: 'Change approval mode',
-                approvalModes: {
-                    basic: {
-                        label: 'Basic approval',
-                        description: 'All users submit to a single person for processing and approval.',
-                    },
-                    manager: {
-                        label: 'Manager approval',
-                        description: 'Employees submit reports to their direct manager configured in TriNet.',
-                    },
-                    custom: {
-                        label: 'Custom approval',
-                        description: "I'll manually setup approval workflows in Expensify.",
-                    },
-                },
             },
         },
         export: {
