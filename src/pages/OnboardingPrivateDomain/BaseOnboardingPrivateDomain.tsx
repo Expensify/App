@@ -81,19 +81,22 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         [isVsb, isSmb],
     );
 
+    // Only validated public-domain users are blocked from this screen — for them the "people on YOUR domain" copy would reference gmail.com.
+    // An unvalidated public-domain user who just submitted a work email may land here before isFromPublicDomain updates; that's the staging happy path.
+    const shouldBlockPublicDomain = !!account?.validated && !!account?.isFromPublicDomain;
+
     useEffect(() => {
-        if (account?.isFromPublicDomain) {
+        if (shouldBlockPublicDomain) {
             return;
         }
         if (isValidated) {
             return;
         }
         sendValidateCode();
-    }, [sendValidateCode, isValidated, account?.isFromPublicDomain]);
+    }, [sendValidateCode, isValidated, shouldBlockPublicDomain]);
 
     useEffect(() => {
-        // Public-domain accounts shouldn't be on this screen — the "people you may know" copy assumes a private domain.
-        if (account?.isFromPublicDomain) {
+        if (shouldBlockPublicDomain) {
             navigateToNextOnboardingStep(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), {forceReplace: true});
             return;
         }
@@ -112,10 +115,9 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         if (getAccessiblePoliciesAction?.loading === false) {
             navigateToNextOnboardingStep(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), {forceReplace: true});
         }
-    }, [isValidated, joinablePoliciesLength, getAccessiblePoliciesAction?.loading, account?.isFromPublicDomain, navigateToNextOnboardingStep]);
+    }, [isValidated, joinablePoliciesLength, getAccessiblePoliciesAction?.loading, shouldBlockPublicDomain, navigateToNextOnboardingStep]);
 
-    // Render nothing for public-domain accounts; the redirect useEffect above will navigate away.
-    if (account?.isFromPublicDomain) {
+    if (shouldBlockPublicDomain) {
         return null;
     }
 

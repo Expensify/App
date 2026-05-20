@@ -70,9 +70,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     }, []);
 
     useEffect(() => {
-        // PRIVATE_DOMAIN ("People you may know are already here") only makes sense for users on a private domain.
-        const shouldShowPrivateDomainStep = !onboardingValues?.isMergeAccountStepSkipped && !account?.isFromPublicDomain;
-        const navigateToNextStep = () => {
+        const navigateToNextStep = (shouldSkipPrivateDomain = false) => {
             if (isVsb) {
                 Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(), {forceReplace: true});
                 return;
@@ -81,16 +79,17 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                 Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(), {forceReplace: true});
                 return;
             }
-            if (shouldShowPrivateDomainStep) {
+            if (!shouldSkipPrivateDomain && !onboardingValues?.isMergeAccountStepSkipped) {
                 Navigation.navigate(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(), {forceReplace: true});
                 return;
             }
             Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
         };
 
-        // A validated account has no reason to be on the onboarding "add work email" screen.
+        // A validated account has no reason to be on the onboarding "add work email" screen. For a public-domain primary the
+        // PRIVATE_DOMAIN screen would reference gmail.com (etc.) so skip it.
         if (account?.validated) {
-            navigateToNextStep();
+            navigateToNextStep(account?.isFromPublicDomain);
             return;
         }
 
