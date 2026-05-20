@@ -387,6 +387,7 @@ function WorkspaceCompanyCardsTable({
 
                     {!isLoading && isFeedPending && (
                         <View style={styles.flex1}>
+                            {shouldUseNarrowTableLayout && headerButtonsComponent}
                             <WorkspaceCompanyCardsFeedPendingPage />
                         </View>
                     )}

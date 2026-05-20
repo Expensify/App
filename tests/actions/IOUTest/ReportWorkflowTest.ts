@@ -145,6 +145,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                         introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                         currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                         currentUserEmailParam: CARLOS_EMAIL,
+                        currency: undefined,
                         isSelfTourViewed: false,
                         betas: undefined,
                         hasActiveAdminPolicies: false,
@@ -295,6 +296,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                         introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                         currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                         currentUserEmailParam: CARLOS_EMAIL,
+                        currency: undefined,
                         isSelfTourViewed: false,
                         betas: undefined,
                         hasActiveAdminPolicies: false,
@@ -378,6 +380,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                             currentUserEmailParam: CARLOS_EMAIL,
+                            currency: undefined,
                             isSelfTourViewed: false,
                             betas: undefined,
                             hasActiveAdminPolicies: false,
@@ -653,6 +656,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                             currentUserEmailParam: CARLOS_EMAIL,
+                            currency: undefined,
                             isSelfTourViewed: false,
                             betas: undefined,
                             hasActiveAdminPolicies: false,
@@ -875,6 +879,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 introSelected: undefined,
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
+                currency: undefined,
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
@@ -1107,6 +1112,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
+                currency: undefined,
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
@@ -3498,6 +3504,96 @@ describe('actions/IOU/ReportWorkflow', () => {
             const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID);
             expect(result.reportAction).toBeUndefined();
             expect(result.actionBadge).toBeUndefined();
+        });
+
+        it('should return the oldest matching report action when multiple actions have badges', async () => {
+            const chatReportID = '500';
+            const olderIouReportID = '501';
+            const newerIouReportID = '502';
+            const policyID = '503';
+
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            };
+
+            const fakeChatReport: Report = {
+                ...createRandomReport(Number(chatReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: chatReportID,
+                policyID,
+            };
+
+            // Two submitted expense reports — both will produce APPROVE badges
+            const olderIouReport: Report = {
+                ...createRandomReport(Number(olderIouReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: olderIouReportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: RORY_ACCOUNT_ID,
+            };
+
+            const newerIouReport: Report = {
+                ...createRandomReport(Number(newerIouReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: newerIouReportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: RORY_ACCOUNT_ID,
+            };
+
+            const olderTransaction: Transaction = {
+                ...createRandomTransaction(0),
+                reportID: olderIouReportID,
+                amount: 100,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                bank: '',
+            };
+
+            const newerTransaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: newerIouReportID,
+                amount: 200,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                bank: '',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, fakeChatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${olderIouReportID}`, olderIouReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${newerIouReportID}`, newerIouReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${olderTransaction.transactionID}`, olderTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${newerTransaction.transactionID}`, newerTransaction);
+
+            const olderReportPreview = {
+                reportActionID: 'older-preview',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                created: '2024-08-08 18:00:00.000',
+                childReportID: olderIouReportID,
+                message: [{type: 'TEXT', text: 'Older report preview'}],
+            };
+
+            const newerReportPreview = {
+                reportActionID: 'newer-preview',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                created: '2024-08-08 20:00:00.000',
+                childReportID: newerIouReportID,
+                message: [{type: 'TEXT', text: 'Newer report preview'}],
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
+                [newerReportPreview.reportActionID]: newerReportPreview,
+                [olderReportPreview.reportActionID]: olderReportPreview,
+            });
+            await waitForBatchedUpdates();
+
+            const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID);
+            expect(result.reportAction).toMatchObject(olderReportPreview);
+            expect(result.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.APPROVE);
         });
 
         it('should return undefined actionBadge when report is settled', async () => {
