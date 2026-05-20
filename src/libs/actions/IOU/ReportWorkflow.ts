@@ -365,8 +365,9 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         return;
     }
 
+    const reportTransactions = getReportTransactions(expenseReport.reportID);
     let total = expenseReport.total ?? 0;
-    const hasHeldExpenses = hasHeldExpensesReportUtils(expenseReport.reportID);
+    const hasHeldExpenses = hasHeldExpensesReportUtils(reportTransactions);
     const hasDuplicates = hasDuplicateTransactions(currentUserEmailParam, currentUserAccountIDParam, expenseReport, policy, getAllTransactionViolations());
     if (hasHeldExpenses && !full && !!expenseReport.unheldTotal) {
         total = expenseReport.unheldTotal;
