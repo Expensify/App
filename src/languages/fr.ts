@@ -3025,6 +3025,8 @@ ${amount} pour ${merchant} - ${date}`,
             title: 'Impossible d’ajouter l’adresse e-mail professionnelle',
             subtitle: (workEmail: string | undefined) =>
                 `Nous n’avons pas pu ajouter ${workEmail}. Veuillez réessayer plus tard dans les Paramètres ou discuter avec Concierge pour obtenir de l’aide.`,
+            workAccountClosedSubtitle:
+                'Le compte professionnel associé à cet e-mail est fermé. Veuillez contacter l’administrateur de votre entreprise pour le réactiver, ou inscrivez-vous avec un autre e-mail.',
         },
         tasks: {
             testDriveAdminTask: {

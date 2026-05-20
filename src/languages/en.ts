@@ -3081,6 +3081,7 @@ const translations = {
         mergeBlockScreen: {
             title: 'Couldn’t add work email',
             subtitle: (workEmail: string | undefined) => `We couldn’t add ${workEmail}. Please try again later in Settings or chat with Concierge for guidance.`,
+            workAccountClosedSubtitle: 'The work account associated with this email is closed. Please contact your company admin to reactivate it, or sign up with a different email.',
         },
         tasks: {
             testDriveAdminTask: {

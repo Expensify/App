@@ -3009,6 +3009,8 @@ ${amount} voor ${merchant} - ${date}`,
         mergeBlockScreen: {
             title: 'Werkmail kon niet worden toegevoegd',
             subtitle: (workEmail: string | undefined) => `We konden ${workEmail} niet toevoegen. Probeer het later opnieuw in Instellingen of chat met Concierge voor hulp.`,
+            workAccountClosedSubtitle:
+                'De zakelijke account die aan dit e-mailadres is gekoppeld, is gesloten. Neem contact op met de beheerder van je bedrijf om het opnieuw te activeren, of meld je aan met een ander e-mailadres.',
         },
         tasks: {
             testDriveAdminTask: {

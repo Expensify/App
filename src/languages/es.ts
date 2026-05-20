@@ -2889,6 +2889,8 @@ ${amount} para ${merchant} - ${date}`,
         mergeBlockScreen: {
             title: 'No se pudo añadir el correo electrónico de trabajo',
             subtitle: (workEmail) => `No pudimos añadir ${workEmail}. Por favor, inténtalo de nuevo más tarde en Configuración o chatea con Concierge para obtener ayuda.`,
+            workAccountClosedSubtitle:
+                'La cuenta de trabajo asociada a este correo electrónico está cerrada. Ponte en contacto con el administrador de tu empresa para reactivarla o regístrate con un correo electrónico diferente.',
         },
         tasks: {
             testDriveAdminTask: {
