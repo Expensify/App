@@ -54,6 +54,8 @@ class GpsTripService : Service() {
             }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to start foreground", e)
+            stopSelf()
+            return START_NOT_STICKY
         }
 
         return START_STICKY
