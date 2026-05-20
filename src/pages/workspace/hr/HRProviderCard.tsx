@@ -4,6 +4,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
@@ -72,14 +73,13 @@ function HRProviderCard({card, policy, handleConnect}: HRProviderCardProps) {
                     cancelText: translate('common.cancel'),
                     danger: true,
                 }).then((result) => {
-                    if (!result || !policy) {
+                    if (result?.action !== ModalActions.CONFIRM || !policy) {
                         return;
                     }
                     removePolicyConnection(policy, card.connectionName);
                 });
             },
             shouldCallAfterModalHide: true,
-            disabled: isOffline,
         },
     ];
 
