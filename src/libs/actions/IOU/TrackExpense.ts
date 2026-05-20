@@ -1883,12 +1883,13 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
 
     if (!requestMoneyInformation.isRetry) {
         highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transaction.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
-
         if (shouldHandleNavigation) {
+            const navigationReportID = backToReport ?? activeReportID;
             handleNavigateAfterExpenseCreate({
-                activeReportID: backToReport ?? activeReportID,
+                activeReportID: navigationReportID,
                 transactionID: transaction.transactionID,
                 isFromGlobalCreate,
+                shouldAddPendingNewTransactionIDs: navigationReportID === chatReport.reportID,
             });
         }
     }
@@ -2689,6 +2690,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 activeReportID,
                 transactionID: transaction?.transactionID,
                 isFromGlobalCreate,
+                shouldAddPendingNewTransactionIDs: action === CONST.IOU.ACTION.CATEGORIZE || action === CONST.IOU.ACTION.SHARE,
             });
         }
     }
@@ -2765,10 +2767,14 @@ function deleteTrackExpense({
 
     // STEP 1: Get all collections we're updating
     if (!isSelfDM(chatReport)) {
+        const allReports = getAllReports();
+        const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`];
+
         deleteMoneyRequest({
             transactionID,
             reportAction,
             transactions,
+            transactionThreadReport,
             violations,
             iouReport,
             chatReport: chatIOUReport,
