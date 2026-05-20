@@ -1017,8 +1017,12 @@ const translations = {
                 other: (pluralCount: number) => `Time remaining: ${pluralCount} days`,
             }),
         },
-        assignedCards: 'Your Expensify Cards',
-        assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} remaining`,
+        yourSpend: {
+            title: 'Your spend',
+            awaitingApproval: 'Awaiting approval',
+            repaidLast30Days: 'Repaid in the last 30 days',
+            recentTransactions: ({lastFour}: {lastFour: string}) => `Recent transactions • ${lastFour}`,
+        },
         announcements: 'Announcements',
         discoverSection: {
             title: 'Discover',

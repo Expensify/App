@@ -924,8 +924,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 personalSubtitle: '钱包',
             },
         },
-        assignedCards: '你的 Expensify 卡',
-        assignedCardsRemaining: ({amount}: {amount: string}) => `剩余 ${amount}`,
         announcements: '公告',
         discoverSection: {
             title: '发现',
@@ -1005,6 +1003,7 @@ const translations: TranslationDeepObject<typeof en> = {
             setupRules: '设置消费规则',
             inviteAccountant: '邀请你的会计',
         },
+        yourSpend: {title: '您的支出', awaitingApproval: '等待审批', repaidLast30Days: '过去30天内已偿还', recentTransactions: ({lastFour}: {lastFour: string}) => `最近交易 • ${lastFour}`},
     },
     allSettingsScreen: {
         subscription: '订阅',

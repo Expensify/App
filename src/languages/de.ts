@@ -957,8 +957,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 personalSubtitle: 'Geldbörse',
             },
         },
-        assignedCards: 'Ihre Expensify Karten',
-        assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} verbleibend`,
         announcements: 'Ankündigungen',
         discoverSection: {
             title: 'Entdecken',
@@ -1037,6 +1035,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 one: 'Verbleibende Zeit: 1 Tag',
                 other: (pluralCount: number) => `Verbleibende Zeit: ${pluralCount} Tage`,
             }),
+        },
+        yourSpend: {
+            title: 'Ihre Ausgaben',
+            awaitingApproval: 'Ausstehende Genehmigung',
+            repaidLast30Days: 'In den letzten 30 Tagen zurückgezahlt',
+            recentTransactions: ({lastFour}: {lastFour: string}) => `Aktuelle Transaktionen • ${lastFour}`,
         },
     },
     allSettingsScreen: {

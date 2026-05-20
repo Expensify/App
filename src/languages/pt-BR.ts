@@ -956,8 +956,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 personalSubtitle: 'Carteira',
             },
         },
-        assignedCards: 'Seus Cartões Expensify',
-        assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} restante`,
         announcements: 'Comunicados',
         discoverSection: {
             title: 'Descobrir',
@@ -1036,6 +1034,12 @@ const translations: TranslationDeepObject<typeof en> = {
             linkCompanyCards: 'Vincular cartões corporativos',
             setupRules: 'Configurar regras de gasto',
             inviteAccountant: 'Convide seu contador',
+        },
+        yourSpend: {
+            title: 'Seus gastos',
+            awaitingApproval: 'Aguardando aprovação',
+            repaidLast30Days: 'Reembolsado nos últimos 30 dias',
+            recentTransactions: ({lastFour}: {lastFour: string}) => `Transações recentes • ${lastFour}`,
         },
     },
     allSettingsScreen: {

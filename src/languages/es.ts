@@ -931,8 +931,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 other: (pluralCount: number) => `Tiempo restante: ${pluralCount} días`,
             }),
         },
-        assignedCards: 'Tus tarjetas Expensify',
-        assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} restantes`,
+        yourSpend: {
+            title: 'Tu gasto',
+            awaitingApproval: 'Pendiente de aprobación',
+            repaidLast30Days: 'Reembolsado en los últimos 30 días',
+            recentTransactions: ({lastFour}: {lastFour: string}) => `Transacciones recientes • ${lastFour}`,
+        },
         announcements: 'Anuncios',
         discoverSection: {
             title: 'Descubrir',

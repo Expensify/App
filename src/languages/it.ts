@@ -958,8 +958,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 personalSubtitle: 'Portafoglio',
             },
         },
-        assignedCards: 'Le tue Carte Expensify',
-        assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} rimanenti`,
         announcements: 'Annunci',
         discoverSection: {
             title: 'Scopri',
@@ -1038,6 +1036,12 @@ const translations: TranslationDeepObject<typeof en> = {
             linkCompanyCards: 'Collega carte aziendali',
             setupRules: 'Configura le regole di spesa',
             inviteAccountant: 'Invita il tuo commercialista',
+        },
+        yourSpend: {
+            title: 'Le tue spese',
+            awaitingApproval: 'In attesa di approvazione',
+            repaidLast30Days: 'Rimborsato negli ultimi 30 giorni',
+            recentTransactions: ({lastFour}: {lastFour: string}) => `Transazioni recenti • ${lastFour}`,
         },
     },
     allSettingsScreen: {

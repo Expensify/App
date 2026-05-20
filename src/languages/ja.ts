@@ -941,8 +941,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 personalSubtitle: 'ウォレット',
             },
         },
-        assignedCards: 'お客様の Expensify カード',
-        assignedCardsRemaining: ({amount}: {amount: string}) => `残額：${amount}`,
         announcements: 'お知らせ',
         discoverSection: {
             title: '発見',
@@ -1021,6 +1019,12 @@ const translations: TranslationDeepObject<typeof en> = {
             linkCompanyCards: '会社カードを連携',
             setupRules: '支出ルールを設定',
             inviteAccountant: '会計士を招待',
+        },
+        yourSpend: {
+            title: 'あなたの支出',
+            awaitingApproval: '承認待ち',
+            repaidLast30Days: '過去30日間に返済済み',
+            recentTransactions: ({lastFour}: {lastFour: string}) => `最近の取引 • ${lastFour}`,
         },
     },
     allSettingsScreen: {
