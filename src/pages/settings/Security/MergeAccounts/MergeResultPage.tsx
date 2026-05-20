@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import {emailSelector} from '@selectors/Session';
-import React, {useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -21,6 +21,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
+import {addLeadingForwardSlash} from '@libs/Url';
 import {closeReactNativeApp} from '@userActions/HybridApp';
 import {openOldDotLink} from '@userActions/Link';
 import CONFIG from '@src/CONFIG';
@@ -43,6 +44,14 @@ function MergeResultPage() {
     const lazyIllustrations = useMemoizedLazyIllustrations(['RunningTurtle', 'LockClosedOrange']);
     const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
     const isClassicRedirectBlocked = shouldHideOldAppRedirect(tryNewDot, isLoadingTryNewDot, CONFIG.IS_HYBRID_APP);
+
+    const contactMethodsRoute = useMemo(() => createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path, ROUTES.SETTINGS_PROFILE.route), []);
+
+    const contactMethodsHref = useMemo(() => `${environmentURL}${addLeadingForwardSlash(contactMethodsRoute)}`, [environmentURL, contactMethodsRoute]);
+
+    const navigateToContactMethods = useCallback(() => {
+        Navigation.navigate(contactMethodsRoute);
+    }, [contactMethodsRoute]);
 
     const defaultResult = {
         heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
@@ -69,11 +78,8 @@ function MergeResultPage() {
                 descriptionComponent: (
                     <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
                         <RenderHTML
-                            html={translate(
-                                'mergeAccountsPage.mergeFailureUncreatedAccountDescription',
-                                login,
-                                `${environmentURL}/${createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path, ROUTES.SETTINGS_PROFILE.route)}`,
-                            )}
+                            html={translate('mergeAccountsPage.mergeFailureUncreatedAccountDescription', login, contactMethodsHref)}
+                            onLinkPress={navigateToContactMethods}
                         />
                     </View>
                 ),
@@ -193,7 +199,18 @@ function MergeResultPage() {
                 illustration: lazyIllustrations.LockClosedOrange,
             },
         };
-    }, [login, translate, userEmailOrPhone, styles, isTrackingGPS, environmentURL, lazyIllustrations.LockClosedOrange, lazyIllustrations.RunningTurtle, isClassicRedirectBlocked]);
+    }, [
+        login,
+        translate,
+        userEmailOrPhone,
+        styles,
+        isTrackingGPS,
+        contactMethodsHref,
+        navigateToContactMethods,
+        lazyIllustrations.LockClosedOrange,
+        lazyIllustrations.RunningTurtle,
+        isClassicRedirectBlocked,
+    ]);
 
     useEffect(() => {
         /**

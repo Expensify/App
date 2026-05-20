@@ -35,6 +35,7 @@ const oldRoutes: Record<string, string> = {
         '/workspaces/$1/accounting/quickbooks-desktop/export/qbd-out-of-pocket-expense/qbd-entity-select',
     '/flag/*/*': '/r/$1/flag/$1/$2',
     '/home-page': '/home',
+    '/settings/security/merge-accounts/*/result/*/contact-methods': '/settings/profile/contact-methods',
     '/settings/profile/contact-methods/new': '/settings/profile/contact-methods/new-contact-method',
     '/settings/profile/contact-methods/new/confirm-magic-code': '/settings/profile/contact-methods/new-contact-method/confirm-magic-code',
     '/settings/teachersunite/i-am-a-teacher/contact-methods/new': '/settings/teachersunite/i-am-a-teacher/contact-methods/new-contact-method',
