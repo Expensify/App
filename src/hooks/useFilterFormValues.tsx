@@ -11,6 +11,7 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {Policy, PolicyCategories, PolicyTagLists, Report} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import {useCurrencyListState} from './useCurrencyList';
+import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useExportedToFilterOptions from './useExportedToFilterOptions';
 import useOnyx from './useOnyx';
 
@@ -84,6 +85,7 @@ function policyTagsSelector(tags: OnyxCollection<PolicyTagLists>): OnyxCollectio
 
 const useFilterFormValues = (queryJSON?: SearchQueryJSON) => {
     const personalDetails = usePersonalDetails();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {currencyList} = useCurrencyListState();
 
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
@@ -99,7 +101,18 @@ const useFilterFormValues = (queryJSON?: SearchQueryJSON) => {
     const {exportedToFilterOptions} = useExportedToFilterOptions();
 
     const formValues = queryJSON
-        ? buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, allReports, taxRates, exportedToFilterOptions)
+        ? buildFilterFormValuesFromQuery(
+              queryJSON,
+              policyCategories,
+              policyTagsLists,
+              currencyList,
+              personalDetails,
+              allCards,
+              allReports,
+              taxRates,
+              exportedToFilterOptions,
+              currentUserPersonalDetails.accountID,
+          )
         : getEmptyObject<Partial<SearchAdvancedFiltersForm>>();
 
     return formValues;

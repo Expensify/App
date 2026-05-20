@@ -6,6 +6,7 @@ import FS from '@libs/Fullstory';
 import type {OptionData} from '@libs/ReportUtils';
 
 type DescriptiveTextProps = {
+    /** Option data for the row. Renders `optionItem.descriptiveText` when present; component returns null otherwise. */
     optionItem: OptionData;
 };
 
