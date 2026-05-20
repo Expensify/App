@@ -157,7 +157,7 @@ function TransactionItemRowNarrow({
                                 disabled={isDisabled}
                                 onPress={() => onRadioButtonPress?.(transactionItem.transactionID)}
                                 accessibilityLabel={CONST.ROLE.RADIO}
-                                wrapperStyle={radioButtonWrapperStyle}
+                                style={radioButtonWrapperStyle}
                             />
                         </View>
                     )}

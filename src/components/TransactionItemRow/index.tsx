@@ -193,7 +193,6 @@ function TransactionItemRow({
         isInSingleTransactionReport,
         shouldShowRadioButton,
         onRadioButtonPress,
-        radioButtonWrapperStyle,
         shouldShowErrors,
         shouldHighlightItemWhenSelected,
         isDisabled,
