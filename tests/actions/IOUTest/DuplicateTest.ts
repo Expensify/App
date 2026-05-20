@@ -776,6 +776,10 @@ describe('actions/Duplicate', () => {
                 tag: 'UpdatedProject',
                 receiptID: 123,
                 reportID,
+                transactionThreadReportIDMap: {
+                    [duplicate1ID]: childReportID1,
+                    [duplicate2ID]: childReportID2,
+                },
             };
 
             // When: Call resolveDuplicates
@@ -867,6 +871,7 @@ describe('actions/Duplicate', () => {
                 tag: 'UpdatedProject',
                 receiptID: 123,
                 reportID: 'report123',
+                transactionThreadReportIDMap: {},
             };
 
             // When: Call resolveDuplicates with undefined transactionID
@@ -909,6 +914,7 @@ describe('actions/Duplicate', () => {
                 tag: 'UpdatedProject',
                 receiptID: 123,
                 reportID,
+                transactionThreadReportIDMap: {},
             };
 
             // When: Call resolveDuplicates with empty duplicate list
@@ -965,6 +971,7 @@ describe('actions/Duplicate', () => {
                 tag: 'UpdatedProject',
                 receiptID: 123,
                 reportID,
+                transactionThreadReportIDMap: {},
             };
 
             // When: Call resolveDuplicates without IOU actions
@@ -1041,6 +1048,9 @@ describe('actions/Duplicate', () => {
                 tag: 'UpdatedProject',
                 receiptID: 123,
                 reportID: reportA,
+                transactionThreadReportIDMap: {
+                    [crossReportDuplicateID]: childReportIDCross,
+                },
             };
 
             // When: Call resolveDuplicates with cross-report duplicates
@@ -1854,6 +1864,9 @@ describe('actions/Duplicate', () => {
                         reimbursable: true,
                         tag: '',
                         transactionIDList: [transaction2.transactionID],
+                        transactionThreadReportIDMap: {
+                            [transaction2.transactionID]: 'transactionThread-2',
+                        },
                     });
                     return waitForBatchedUpdates();
                 })
