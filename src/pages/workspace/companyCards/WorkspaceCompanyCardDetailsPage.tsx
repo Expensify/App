@@ -25,7 +25,17 @@ import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isUsingStagingApi} from '@libs/ApiUtils';
 import navigateToCardTransactions from '@libs/CardNavigationUtils';
-import {getCardFeedIcon, getCompanyCardFeed, getCompanyFeeds, getDefaultCardName, getDomainOrWorkspaceAccountID, getPlaidInstitutionIconUrl, maskCardNumber} from '@libs/CardUtils';
+import {
+    getCardFeedBackgroundColor,
+    getCardFeedIcon,
+    getCardHolderTextColor,
+    getCompanyCardFeed,
+    getCompanyFeeds,
+    getDefaultCardName,
+    getDomainOrWorkspaceAccountID,
+    getPlaidInstitutionIconUrl,
+    maskCardNumber,
+} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -158,7 +168,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             />
                         )}
                         <Text
-                            style={styles.companyCardHolder}
+                            style={[styles.walletCardHolder, {color: getCardHolderTextColor(getCardFeedBackgroundColor(feedName))}]}
                             numberOfLines={1}
                             ellipsizeMode="tail"
                         >

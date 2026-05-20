@@ -5083,17 +5083,6 @@ const staticStyles = (theme: ThemeColors) =>
             left: 16,
             bottom: 16,
             width: variables.cardNameWidth,
-            color: colors.white,
-            fontSize: variables.fontSizeSmall,
-            lineHeight: variables.lineHeightLarge,
-        },
-
-        companyCardHolder: {
-            position: 'absolute',
-            left: 16,
-            bottom: 16,
-            width: variables.cardNameWidth,
-            color: colors.productLight900,
             fontSize: variables.fontSizeSmall,
             lineHeight: variables.lineHeightLarge,
         },
