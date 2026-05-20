@@ -15,7 +15,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
@@ -54,7 +53,6 @@ function IOURequestStepScan({
     const {translate} = useLocalize();
     const isInLandscapeMode = useIsInLandscapeMode();
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
-    const {windowWidth, windowHeight} = useWindowDimensions();
 
     // Ref bridging resetCapturingState (from useCapturePhoto) into onFocusStart (used by useNativeCamera).
     // Both hooks depend on each other's outputs, so we use a ref to break the initialization cycle.
@@ -85,14 +83,14 @@ function IOURequestStepScan({
         },
     });
 
-    // Prioritize photoResolution over videoResolution so the format selector picks a 4032x3024
-    // format instead of the 5712x4284 (24.5MP) format that videoResolution:'max' would select.
-    // This cuts capture time roughly in half while maintaining the same output photo resolution.
-    // Use screen dimensions for video resolution since we only need enough for the preview.
+    // Prioritize photoResolution over videoResolution so the format selector picks the configured
+    // PHOTO_WIDTH/PHOTO_HEIGHT format. videoResolution targets the same dimensions because iOS
+    // `takeSnapshot` grabs from the video pipeline — setting it any smaller (e.g. screen dimensions)
+    // would degrade the snapshot capture quality on iOS.
     const format = useCameraFormat(device, [
         {photoAspectRatio: CONST.RECEIPT_CAMERA.PHOTO_ASPECT_RATIO},
         {photoResolution: {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT}},
-        {videoResolution: {width: windowHeight, height: windowWidth}},
+        {videoResolution: {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT}},
     ]);
 
     // Format dimensions are in landscape orientation, so height/width gives portrait aspect ratio
