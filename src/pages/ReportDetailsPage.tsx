@@ -397,6 +397,19 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
             return items;
         }
 
+        if (shouldShowGoToRoom) {
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.GO_TO_ROOM,
+                translationKey: 'workspace.common.goToRoom',
+                icon: expensifyIcons.Hashtag,
+                action: () => {
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+                },
+                isAnonymousAction: false,
+                shouldShowRightIcon: true,
+            });
+        }
+
         // The Members page is only shown when:
         // - The report is a thread in a chat report
         // - The report is not a user created room with participants to show i.e. DM, Group Chat, etc
@@ -562,19 +575,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
                     }),
                 });
             }
-        }
-
-        if (shouldShowGoToRoom) {
-            items.push({
-                key: CONST.REPORT_DETAILS_MENU_ITEM.GO_TO_ROOM,
-                translationKey: 'workspace.common.goToRoom',
-                icon: expensifyIcons.Hashtag,
-                action: () => {
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
-                },
-                isAnonymousAction: false,
-                shouldShowRightIcon: true,
-            });
         }
 
         if (shouldShowGoToWorkspace) {
