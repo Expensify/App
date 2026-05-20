@@ -105,7 +105,6 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
 
     return (
         <BaseModal
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
             onModalHide={hideModal}
             onModalShow={showModal}

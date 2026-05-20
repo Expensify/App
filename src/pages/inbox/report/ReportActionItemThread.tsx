@@ -3,6 +3,7 @@ import React from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
@@ -49,6 +50,7 @@ function ReportActionItemThread({numberOfReplies, accountIDs, mostRecentReply, r
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const personalDetails = usePersonalDetails();
 
     const numberOfRepliesText = numberOfReplies > CONST.MAX_THREAD_REPLIES_PREVIEW ? `${CONST.MAX_THREAD_REPLIES_PREVIEW}+` : `${numberOfReplies}`;
     const replyText = numberOfReplies === 1 ? translate('threads.reply') : translate('threads.replies');
@@ -59,7 +61,7 @@ function ReportActionItemThread({numberOfReplies, accountIDs, mostRecentReply, r
         <View style={[styles.chatItemMessage]}>
             <PressableWithSecondaryInteraction
                 onPress={() => {
-                    navigateToAndOpenChildReport(childReport, reportAction, report, currentUserAccountID, introSelected, betas, isSelfTourViewed);
+                    navigateToAndOpenChildReport(childReport, reportAction, report, currentUserAccountID, introSelected, betas, personalDetails, isSelfTourViewed);
                 }}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={`${numberOfReplies} ${replyText}`}

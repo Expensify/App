@@ -1016,8 +1016,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         freeTrialSection: {
             title: ({days}: {days: number}) => `Proefperiode: nog ${days} ${days === 1 ? 'dag' : 'dagen'}!`,
-            offer50Body: 'Krijg 50% korting op je eerste jaar!',
-            offer25Body: 'Krijg 25% korting op je eerste jaar!',
+            offer50Body: 'Krijg 50% korting op je eerste jaar',
+            offer25Body: 'Krijg 25% korting op je eerste jaar',
             addCardBody: 'Wacht niet! Voeg nu je betaalkaart toe.',
             ctaClaim: 'Declareren',
             ctaAdd: 'Kaart toevoegen',
@@ -1226,9 +1226,12 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteReceipt: 'Bon verwijderen',
         findExpense: 'Uitgave zoeken',
         deletedTransaction: (amount: string, merchant: string) => `heeft een uitgave verwijderd (${amount} voor ${merchant})`,
-        movedFromReport: (reportName: string) => `heeft een uitgave verplaatst${reportName ? `van ${reportName}` : ''}`,
-        movedTransactionTo: (reportUrl: string, reportName?: string) => `heeft deze uitgave verplaatst${reportName ? `naar <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        movedTransactionFrom: (reportUrl: string, reportName?: string) => `heeft deze uitgave verplaatst${reportName ? `van <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedFromReport: (reportName: string) => `heeft een uitgave verplaatst uit ${reportName}`,
+        movedFromReportNoName: 'heeft een uitgave verplaatst',
+        movedTransactionTo: (reportUrl: string, reportName: string) => `heeft deze uitgave verplaatst naar <a href="${reportUrl}">${reportName}</a>`,
+        movedTransactionToAnotherReport: 'heeft deze uitgave naar een ander rapport verplaatst',
+        movedTransactionFrom: (reportUrl: string, reportName: string) => `heeft deze uitgave verplaatst van <a href="${reportUrl}">${reportName}</a>`,
+        movedTransactionFromAnotherReport: 'heeft deze uitgave van een ander rapport verplaatst',
         unreportedTransaction: (reportUrl: string) => `heeft deze uitgave verplaatst naar je <a href="${reportUrl}">persoonlijke ruimte</a>`,
         movedAction: (shouldHideMovedReportUrl: boolean, movedReportUrl: string, newParentReportUrl: string, toPolicyName: string) => {
             if (shouldHideMovedReportUrl) {
@@ -1438,6 +1441,8 @@ const translations: TranslationDeepObject<typeof en> = {
             receiptDeleteFailureError: 'Onverwachte fout bij het verwijderen van deze bon. Probeer het later opnieuw.',
             receiptFailureMessage: '<rbr>Er is een fout opgetreden bij het uploaden van je bon. <a href="download">Sla de bon op</a> en <a href="retry">probeer het later opnieuw</a>.</rbr>',
             receiptFailureMessageShort: 'Er is een fout opgetreden bij het uploaden van je bon.',
+            receiptUploadFailedMessage: 'Uploaden van bon mislukt. Sla de bon op of verwijder de uitgave en verlies hem.',
+            saveReceipt: 'Bon opslaan',
             genericDeleteFailureMessage: 'Onverwachte fout bij het verwijderen van deze uitgave. Probeer het later opnieuw.',
             genericEditFailureMessage: 'Onverwachte fout bij het bewerken van deze uitgave. Probeer het later opnieuw.',
             genericSmartscanFailureMessage: 'Transactie mist velden',
@@ -2464,9 +2469,11 @@ const translations: TranslationDeepObject<typeof en> = {
             expiration: 'Vervaldatum',
             cvv: 'CVV',
             address: 'Adres',
+            reveal: 'Weergeven',
             revealDetails: 'Details weergeven',
             revealCvv: 'CVV weergeven',
             copyCardNumber: 'Kaartnummer kopiëren',
+            copyCvv: 'CVV kopiëren',
             updateAddress: 'Adres bijwerken',
         },
         cardAddedToWallet: ({platform}: {platform: 'Google' | 'Apple'}) => `Toegevoegd aan ${platform}-wallet`,
@@ -2587,9 +2594,10 @@ ${amount} voor ${merchant} - ${date}`,
             approverSubtitle: 'Alle fiatteurs behoren tot een bestaand workflow.',
             bulkApproverSubtitle: 'Geen goedkeurders komen overeen met de criteria voor de geselecteerde rapporten.',
         },
-        configureViaGusto: 'Configureren via Gusto.',
-        gustoApprovalWorkflowLockedPrompt: 'Goedkeuringen worden beheerd door je Gusto-integratie. Ga naar je Gusto-verbindingsinstellingen om je goedkeuringsworkflow bij te werken.',
-        goToGustoSettings: 'Ga naar Gusto-instellingen',
+        configureViaHR: ({provider}: {provider: string}) => `Configureren via ${provider}.`,
+        hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
+            `Goedkeuringen worden beheerd door je ${provider}-integratie. Ga naar je ${provider}-verbindingsinstellingen om je goedkeuringsworkflow bij te werken.`,
+        goToHRSettings: ({provider}: {provider: string}) => `Ga naar ${provider}-instellingen`,
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: 'Indienfrequentie kon niet worden gewijzigd. Probeer het opnieuw of neem contact op met support.',
@@ -2731,6 +2739,10 @@ ${amount} voor ${merchant} - ${date}`,
         emptyAgents: {title: 'Geen agents aangemaakt', subtitle: 'Stop met dingen handmatig doen. Geef in plaats daarvan een opdracht aan een agent en bespaar jezelf veel tijd.'},
         error: {
             genericAdd: 'Er was een probleem bij het toevoegen van deze agent',
+            genericUpdate: 'Er is een probleem opgetreden bij het bijwerken van deze agent',
+            updateName: 'Er is een probleem opgetreden bij het bijwerken van de naam van deze agent',
+            updatePrompt: 'Er is een probleem opgetreden bij het bijwerken van de instructies van deze agent',
+            updateAvatar: 'Er is een probleem opgetreden bij het bijwerken van de avatar van deze agent',
         },
     },
     addAgentPage: {
@@ -2738,11 +2750,22 @@ ${amount} voor ${merchant} - ${date}`,
         agentName: 'Naam medewerker',
         instructions: 'Schrijf aangepaste instructies',
         createAgent: 'Agent aanmaken',
-        switchAvatar: 'Profielavatar wisselen',
+        editAvatar: 'Profielavatar wisselen',
         defaultAgentName: (displayName: string) => `Agent van ${displayName}`,
         defaultPrompt:
             'Wijs declaraties af die zijn voor gokken, films of andere duidelijk niet-zakelijke redenen.\n\nHerinner de gebruiker eraan altijd een bonafbeelding toe te voegen waarop de fooi duidelijk is.\n\nKeur het verslag goed als het sterk lijkt op eerdere verslagen van dezelfde gebruiker.\n\nWijs verslagen af met meer dan $500 aan reiskosten.',
     },
+    editAgentPage: {
+        title: 'Agent bewerken',
+        agentName: 'Naam medewerker',
+        instructions: 'Aangepaste instructies schrijven',
+        deleteAgent: 'Agent verwijderen',
+        deleteAgentTitle: 'Agent verwijderen?',
+        deleteAgentMessage: 'Weet je zeker dat je deze agent wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.',
+    },
+    editAgentAvatarPage: {title: 'Avatar bewerken'},
+    editAgentNamePage: {title: 'Naam medewerker'},
+    editAgentPromptPage: {title: 'Aangepaste instructies schrijven', error: {emptyPrompt: 'Voer instructies in voor je medewerker.'}},
     expenseRulesPage: {
         title: 'Declaratieregels',
         findRule: 'Regel zoeken',
@@ -4311,10 +4334,11 @@ ${amount} voor ${merchant} - ${date}`,
             budgetFrequencyUnit: {monthly: 'maand', yearly: 'jaar'},
             budgetTypeForNotificationMessage: {tag: 'tag', category: 'categorie'},
             deepDiveExpensifyCard: `<muted-text-label>Transacties met de Expensify Kaart worden automatisch geëxporteerd naar een "Expensify Kaart Passivarekening" dat wordt aangemaakt via <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">onze integratie</a>.</muted-text-label>`,
-            travelInvoicing: 'Expensify Travel-tegoed exporteren naar',
+            travelInvoicing: 'Reisfacturatiekosten exporteren als',
             travelInvoicingVendor: 'Reisaanbieder',
             travelInvoicingPayableAccount: 'Reiscrediteurenrekening',
             hr: 'HR',
+            rooms: 'Kamers',
         },
         createdForClient: {
             title: 'Je hebt een werkruimte voor je klant aangemaakt!',
@@ -4539,6 +4563,7 @@ ${amount} voor ${merchant} - ${date}`,
             notConfigured: 'Niet geconfigureerd',
             bankAccountDescription: 'Kies vanaf waar cheques worden verzonden.',
             creditCardAccount: 'Creditcardrekening',
+            travelInvoicingDescription: 'Reiskosten worden als creditcardkosten geëxporteerd naar het hieronder opgegeven QuickBooks Online-account.',
             companyCardsLocationEnabledDescription:
                 'QuickBooks Online ondersteunt geen locaties bij het exporteren van leveranciersfacturen. Omdat je locaties hebt ingeschakeld in je workspace, is deze exportoptie niet beschikbaar.',
             outOfPocketTaxEnabledDescription:
@@ -4634,6 +4659,7 @@ ${amount} voor ${merchant} - ${date}`,
             exportDeepDiveCompanyCard:
                 'Geëxporteerde uitgaven worden als banktransacties geboekt op de onderstaande Xero-bankrekening, en transactiedata komen overeen met de data op je bankafschrift.',
             bankTransactions: 'Banktransacties',
+            travelInvoicingDescription: 'Reiskosten worden als banktransacties geëxporteerd naar het hieronder opgegeven Xero-account.',
             xeroBankAccount: 'Xero-bankrekening',
             xeroBankAccountDescription: 'Kies waar onkosten als banktransacties worden geboekt.',
             exportExpensesDescription: 'Rapporten worden geëxporteerd als een inkoopfactuur met de datum en status die hieronder zijn geselecteerd.',
@@ -5168,6 +5194,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             free: 'Gratis',
             control: 'Beheer',
             collect: 'Incasseren',
+            submit: 'Indienen',
         },
         companyCards: {
             addCards: 'Kaarten toevoegen',
@@ -5525,8 +5552,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                         subtitle: 'Gefeliciteerd! Je bent helemaal klaar om reizen in deze workspace te boeken en te beheren.',
                         manageTravelLabel: 'Reizen beheren',
                     },
-                    centralInvoicingSection: {
-                        title: 'Gecentraliseerde facturatie',
+                    travelInvoicingSection: {
+                        title: 'Reisfacturatie',
                         subtitle: 'Centraliseer alle reiskosten op één maandelijkse factuur in plaats van bij aankoop te betalen.',
                         learnHow: 'Kom meer te weten.',
                         subsections: {
@@ -5542,7 +5569,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                             reduceLimitTitle: 'Reisbestedingslimiet verlagen?',
                             reduceLimitWarning: 'Als u het limiet verlaagt, kunnen leden die dit bedrag al hebben overschreden geen nieuwe reisboekingen maken tot volgende maand.',
                             provisioningError:
-                                'We konden sommige leden van je workspace niet instellen voor centrale facturatie. Probeer het later opnieuw of neem contact op met Concierge voor hulp.',
+                                'We konden voor sommige leden van je workspace geen toegang voor reisfacturatie instellen. Probeer het later opnieuw of neem contact op met Concierge voor hulp.',
                         },
                     },
                     disableModal: {
@@ -5559,7 +5586,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                     exportToCSV: 'Exporteren naar CSV',
                     selectDateRangeError: 'Selecteer een datumbereik om te exporteren',
                     invalidDateRangeError: 'De begindatum moet vóór de einddatum liggen',
-                    enabled: 'Centraal factureren ingeschakeld!',
+                    enabled: 'Facturatie voor reizen ingeschakeld!',
                     enabledDescription: 'Alle reiskosten in deze workspace worden nu gebundeld op één maandelijkse factuur.',
                 },
                 personalDetailsDescription: 'Om een reis te boeken, voer je wettelijke naam in zoals deze op je door de overheid uitgegeven identiteitsbewijs staat.',
@@ -5720,7 +5747,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 subtitle: 'Stel een factureerbaar uurtarief in voor tijdregistratie.',
                 defaultHourlyRate: 'Standaard uurtarief',
             },
-            hrWarningModal: {disconnectText: 'Om HR uit te schakelen, verbreek eerst de verbinding van Gusto met deze workspace.'},
+            hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Om HR uit te schakelen, koppel eerst ${integration} los van deze workspace.`},
         },
         reports: {
             reportsCustomTitleExamples: 'Voorbeelden:',
@@ -5935,6 +5962,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 `Je staat op het punt ${newWorkspaceName ?? ''} te maken en te delen met ${totalMembers ?? 0} leden van de oorspronkelijke werkruimte.`,
             error: 'Er is een fout opgetreden bij het dupliceren van je nieuwe werkruimte. Probeer het opnieuw.',
         },
+        copyPolicySettings: {error: 'Er is een fout opgetreden bij het kopiëren van de werkruimtainstellingen. Probeer het opnieuw.'},
         emptyWorkspace: {
             title: 'Je hebt geen werkruimtes',
             subtitle: 'Volg bonnen, vergoed uitgaven, beheer reizen, verstuur facturen en meer.',
@@ -6329,7 +6357,11 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 chooseBankAccount: 'Kies de bankrekening waarop de betalingen met je Expensify Kaart worden afgestemd.',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `Zorg ervoor dat deze rekening overeenkomt met je <a href="${settlementAccountUrl}">Expensify Kaart-afwikkelingsrekening</a> (eindigend op ${lastFourPAN}), zodat Continue Afstemming goed werkt.`,
+                chooseTravelInvoicingBankAccount: 'Kies de bankrekening waarop de betalingen van je reiskostenfacturen worden afgeletterd.',
+                travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
+                    `Zorg ervoor dat deze rekening overeenkomt met je afwikkelingsrekening voor reiskostenfacturatie (die eindigt op ${lastFourPAN}), zodat Continue Afstemming goed werkt.`,
             },
+            syncTravelInvoicingSettlements: 'Reisfactureringsafrekeningen synchroniseren',
         },
         export: {
             notReadyHeading: 'Niet klaar om te exporteren',
@@ -6880,10 +6912,10 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                     title: 'Expensify Kaarten bieden altijd ingebouwde bescherming',
                     description: `Expensify weigert deze uitgaven altijd:
 
-  • Services voor volwassenen  
-  • Geldautomaten (ATM's)  
-  • Gokken  
-  • Geldoverschrijvingen  
+  • Services voor volwassenen
+  • Geldautomaten (ATM's)
+  • Gokken
+  • Geldoverschrijvingen
 er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 },
                 addSpendRule: 'Uitgaveregel toevoegen',
@@ -7005,13 +7037,19 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
                     case 'gustoSyncTitle':
-                        return 'Synchronizing Gusto Employees';
+                        return 'Gusto-medewerkers synchroniseren';
                     case 'gustoSyncLoadData':
-                        return 'Loading data from Gusto';
+                        return 'Gegevens laden van Gusto';
                     case 'gustoSyncProvisioning':
-                        return 'Provisioning employees in policy';
+                        return 'Medewerkers toewijzen in beleid';
+                    case 'zenefitsSyncTitle':
+                        return 'TriNet-medewerkers synchroniseren';
+                    case 'zenefitsSyncLoadData':
+                        return 'Gegevens laden van TriNet';
+                    case 'zenefitsSyncProvisioning':
+                        return 'Medewerkers toewijzen in beleid';
                     case 'jobDone':
-                        return 'Wachten tot geïmporteerde gegevens zijn geladen';
+                        return 'Wachten tot geïmporteerde gegevens worden geladen';
                     default: {
                         return `Vertaling ontbreekt voor fase: ${stage}`;
                     }
@@ -7040,6 +7078,45 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 syncError: 'Kan geen verbinding maken met Gusto',
                 disconnectTitle: 'Verbinding met Gusto verbreken',
                 disconnectPrompt: 'Weet je zeker dat je de verbinding met Gusto wilt verbreken?',
+                syncResults: {
+                    title: 'Gusto-synchronisatieresultaten',
+                    successTitle: 'Je Gusto-verbinding is succesvol gesynchroniseerd!',
+                    added: 'Toegevoegd',
+                    removed: 'Verwijderd',
+                    skipped: 'Overgeslagen',
+                    employeeCount: () => ({
+                        one: '1 werknemer',
+                        other: (count: number) => `${count} medewerkers`,
+                    }),
+                },
+            },
+            merge: {
+                approvalMode: 'Goedkeuringsmodus',
+                finalApprover: 'Laatste fiatteur',
+            },
+            zenefits: {
+                title: 'TriNet',
+                connect: 'Verbinden',
+                syncNow: 'Nu synchroniseren',
+                disconnect: 'Verbinding verbreken',
+                lastSync: (relativeDate: string) => `Laatst gesynchroniseerd ${relativeDate}`,
+                syncError: 'Kan geen verbinding maken met TriNet',
+                disconnectTitle: 'Koppeling met TriNet verbreken',
+                disconnectPrompt: 'Weet je zeker dat je TriNet wilt loskoppelen?',
+                connectionDescription: 'Verbind TriNet om goedkeuringen van medewerkers synchroon te houden met je werkruimte.',
+                approvalMode: 'Goedkeuringsmodus',
+                finalApprover: 'Laatste fiatteur',
+                notSet: 'Niet ingesteld',
+                approvalModeDescription: 'Leden en managers zijn ingesteld om te synchroniseren met TriNet.',
+                approvalModeWarningTitle: 'Goedkeuringsmodus wijzigen?',
+                approvalModeWarningPrompt: (helpSiteURL: string) =>
+                    `Weet je zeker dat je de goedkeuringsmodus voor deze workspace wilt wijzigen? Lees meer over de verschillende TriNet-ondersteunde workflowmodi op onze <a href="${helpSiteURL}">help-pagina</a>.`,
+                approvalModeWarningConfirm: 'Goedkeuringsmodus wijzigen',
+                approvalModes: {
+                    basic: {label: 'Eenvoudige goedkeuring', description: 'Alle gebruikers dienen in bij één persoon voor verwerking en goedkeuring.'},
+                    manager: {label: 'Goedkeuring door manager', description: 'Werknemers dienen rapporten in bij hun direct leidinggevende die is ingesteld in TriNet.'},
+                    custom: {label: 'Aangepaste goedkeuring', description: 'Ik stel handmatig goedkeuringsworkflows in Expensify in.'},
+                },
             },
         },
     },
@@ -7750,7 +7827,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `Alle ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `Alle geïmporteerde CSV-kaarten${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
-                centralInvoicing: 'Gecentraliseerde facturatie',
+                travelInvoicing: 'Reisfacturatie',
             },
             reportField: (name: string, value: string) => `${name} is ${value}`,
             current: 'Huidig',
@@ -7782,9 +7859,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             },
             feed: 'Feed',
             withdrawalType: {
-                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Kaart',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Terugbetaling',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Centrale facturatie',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Reisfacturatie',
             },
             is: 'Is',
             action: {
@@ -8038,7 +8115,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         oooEventSummaryFullDay: (summary: string, dayCount: number, date: string) => `${summary} voor ${dayCount} ${dayCount === 1 ? 'dag' : 'dagen'} tot ${date}`,
         oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${summary} van ${timePeriod} op ${date}`,
         startTimer: 'Timer starten',
-        stopTimer: 'Timer stoppen',
+        stopTimer: (duration: string) => `Timer stoppen (${duration})`,
         scheduleOOO: 'Afwezigheid plannen',
         scheduleOOOTitle: 'Afwezigheid plannen',
         date: 'Datum',
@@ -8207,7 +8284,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         personalCard: 'Persoonlijke kaart',
         companyCard: 'Bedrijfskaart',
         expensifyCard: 'Expensify Kaart',
-        centralInvoicing: 'Gecentraliseerde facturatie',
+        travelInvoicing: 'Reisfacturatie',
         travelCard: 'Reiskaart',
     },
     distance: {
@@ -8491,7 +8568,16 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             `<muted-text-label>Bon in behandeling vanwege een verbroken bankverbinding. Los dit op in <a href="${workspaceCompanyCardRoute}">Bedrijfspassen</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Bon wordt vastgehouden vanwege een verbroken bankkoppeling. Vraag een werkruimtebeheerder om dit op te lossen.',
         markAsCashToIgnore: 'Markeren als contant om te negeren en betaling aan te vragen.',
-        smartscanFailed: ({canEdit = true}) => `Bon scannen mislukt.${canEdit ? 'Voer gegevens handmatig in.' : ''}`,
+        smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
+            if (missingFields.length > 0) {
+                const fieldNames: Record<string, string> = {merchant: 'handelaar', date: 'datum', amount: 'bedrag'};
+                const translated = missingFields.map((f) => fieldNames[f] ?? f);
+                const fieldList = translated.join(translated.length > 2 ? ', ' : ' en ');
+                const verb = translated.length === 1 ? 'ontbreekt' : 'ontbreken';
+                return `Bon scannen mislukt — ${fieldList} ${verb}.${canEdit ? ' Voer gegevens handmatig in.' : ''}`;
+            }
+            return `Bon scannen mislukt.${canEdit ? 'Voer gegevens handmatig in.' : ''}`;
+        },
         receiptGeneratedWithAI: 'Mogelijke AI-gegenereerde bon',
         someTagLevelsRequired: (tagName?: string) => `Ontbreekt ${tagName ?? 'Label'}`,
         tagOutOfPolicy: (tagName?: string) => `${tagName ?? 'Label'} niet meer geldig`,
@@ -8572,6 +8658,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         bookACallTextTop: 'Als je overschakelt naar Expensify Classic, loop je het volgende mis:',
         bookACallTextBottom: 'We spreken graag met je om te begrijpen waarom. Je kunt een gesprek inplannen met een van onze senior productmanagers om je behoeften te bespreken.',
         takeMeToExpensifyClassic: 'Breng me naar Expensify Classic',
+        goBackJustOnce: 'Eenmalig teruggaan',
     },
     listBoundary: {
         errorMessage: 'Er is een fout opgetreden bij het laden van meer berichten',
@@ -8834,12 +8921,14 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
     },
     delegate: {
         switchAccount: 'Van account wisselen:',
+        switch: 'Wisselen',
+        copilot: 'Copilot',
         copilotDelegatedAccess: 'Copilot: Gedelegeerde toegang',
         copilotDelegatedAccessDescription: 'Sta andere leden toe toegang te krijgen tot je account.',
         learnMoreAboutDelegatedAccess: 'Meer informatie over gedelegeerde toegang',
         addCopilot: 'Copiloot toevoegen',
         membersCanAccessYourAccount: 'Deze leden hebben toegang tot je account:',
-        youCanAccessTheseAccounts: 'Je hebt toegang tot deze accounts via de accountwisselaar:',
+        youCanAccessTheseAccounts: 'Je hebt toegang tot deze accounts:',
         role: ({role}: OptionalParam<DelegateRoleParams> = {}) => {
             switch (role) {
                 case CONST.DELEGATE_ROLE.ALL:
@@ -9240,8 +9329,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             noWorkspacesMessage: 'Er zijn geen werkruimtes op dit domein. Een werkruimte is vereist om deze beperking in te schakelen.',
             restrictDefaultLoginSelection: 'Standaard login-selectie beperken',
             restrictDefaultLoginSelectionDescription: 'Voorkomt dat leden hun login-e-mail wijzigen naar een adres buiten het bedrijfsdomein om beleidsbeperkingen te omzeilen.',
-            expensifyCardPreferredWorkspaceDisabledMessage:
-                'Om deze instelling te gebruiken, moet de voorkeurswerkruimte zijn ingeschakeld en moet voor het domein een Expensify Card zijn ingesteld.',
+            expensifyCardPreferredWorkspaceDisabledMessage: 'Om deze instelling in te schakelen, schakelt u eerst een voorkeurswerkruimte in en stelt u Expensify Cards in op uw domein.',
             findGroup: 'Groep zoeken',
         },
     },

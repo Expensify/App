@@ -42,6 +42,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     default: {
         isActiveRoute: jest.fn(() => false),
         navigate: jest.fn(),
+        getActiveRouteWithoutParams: jest.fn(() => ''),
         isNavigationReady: jest.fn(() => Promise.resolve()),
         setNavigationActionToMicrotaskQueue: jest.fn(() => Promise.resolve()),
     },

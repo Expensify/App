@@ -5,6 +5,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {FullPageNotFoundViewProps} from '@components/BlockingViews/FullPageNotFoundView';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsWorkspacesTabFocused from '@hooks/useIsWorkspacesTabFocused';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
@@ -32,7 +33,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 const ACCESS_VARIANTS = {
     [CONST.POLICY.ACCESS_VARIANTS.PAID]: (policy: OnyxEntry<Policy>) => isGroupPolicy(policy),
     [CONST.POLICY.ACCESS_VARIANTS.CONTROL]: (policy: OnyxEntry<Policy>) => isControlPolicy(policy),
-    [CONST.POLICY.ACCESS_VARIANTS.ADMIN]: (policy: OnyxEntry<Policy>) => canEditWorkspaceSettings(policy),
+    [CONST.POLICY.ACCESS_VARIANTS.ADMIN]: (policy: OnyxEntry<Policy>, login: string) => canEditWorkspaceSettings(policy, login),
     [CONST.IOU.ACCESS_VARIANTS.CREATE]: (
         policy: OnyxEntry<Policy>,
         login: string,
@@ -124,7 +125,6 @@ function PageNotFoundFallback({policyID, fullPageNotFoundViewProps, isFeatureEna
                 }
                 Navigation.goBack(policyID && !isMoneyRequest ? ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID) : undefined);
             }}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...fullPageNotFoundViewProps}
             shouldShowBackButton={fullPageNotFoundViewProps?.shouldShowBackButton ?? (!shouldShowFullScreenFallback ? shouldUseNarrowLayout : undefined)}
         />
@@ -153,6 +153,7 @@ function AccessOrNotFoundWrapper({
     const isFromGlobalCreate = !!reportID && isEmptyObject(report?.reportID);
     const pendingField = featureName ? policy?.pendingFields?.[featureName] : undefined;
     const isFocused = useIsFocused();
+    const isWorkspacesTabFocused = useIsWorkspacesTabFocused();
 
     useEffect(() => {
         if (!isPolicyIDInRoute || !isEmptyObject(policy)) {
@@ -181,7 +182,10 @@ function AccessOrNotFoundWrapper({
     }, true);
 
     const isPolicyNotAccessible = !isPolicyAccessible(policy, login);
-    const shouldShowNotFoundPage = (!isMoneyRequest && !isFromGlobalCreate && isPolicyNotAccessible) || !isPageAccessible || shouldBeBlocked;
+    // Gate on `isFocused || isWorkspacesTabFocused` so the fallback renders for both
+    //  - non-workspace consumers of this wrapper (IOU create routes, etc.) where `isFocused` is the meaningful signal, and
+    //  - workspace central-pane usages where an RHP overlay makes `isFocused` false but the Workspaces tab is still active.
+    const shouldShowNotFoundPage = (isFocused || isWorkspacesTabFocused) && ((!isMoneyRequest && !isFromGlobalCreate && isPolicyNotAccessible) || !isPageAccessible || shouldBeBlocked);
     // We only update the feature state if it isn't pending.
     // This is because the feature state changes several times during the creation of a workspace, while we are waiting for a response from the backend.
     // Without this, we can be unexpectedly navigated to the More Features page.
@@ -213,7 +217,6 @@ function AccessOrNotFoundWrapper({
         };
         return <FullscreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
-
     if (shouldShowNotFoundPage) {
         return (
             <PageNotFoundFallback
