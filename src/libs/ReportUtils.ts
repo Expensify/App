@@ -4463,7 +4463,11 @@ function isReportFieldDisabledForUser(report: OnyxEntry<Report>, reportField: On
  * - the report belongs to a paid group policy.
  */
 function canEditReportTitle(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, currentUserAccountID: number | undefined): boolean {
-    const titleField = getAvailableReportFields(report, Object.values(policy?.fieldList ?? {})).find((reportField) => isReportFieldOfTypeTitle(reportField));
+    const titleField =
+        getAvailableReportFields(report, Object.values(policy?.fieldList ?? {})).find((reportField) => isReportFieldOfTypeTitle(reportField)) ?? getTitleFieldWithFallback(policy);
+    if (!titleField) {
+        return false;
+    }
     const isFieldDisabled = isReportFieldDisabled(report, titleField, policy);
 
     return !isFieldDisabled && isAdminOwnerApproverOrReportOwner(report, policy, currentUserAccountID) && isExpenseReport(report) && isPaidGroupPolicyPolicyUtils(policy);
@@ -4485,11 +4489,7 @@ function getTitleFieldWithFallback(policy: OnyxEntry<Policy>): PolicyReportField
         return policyTitleField;
     }
 
-    if (isPolicyFieldListEmpty(policy)) {
-        return FALLBACK_TITLE_FIELD;
-    }
-
-    return undefined;
+    return FALLBACK_TITLE_FIELD;
 }
 
 /**
