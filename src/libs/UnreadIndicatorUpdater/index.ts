@@ -12,7 +12,7 @@ import type {Report, ReportActions, ReportNameValuePairs, Session} from '@src/ty
 import updateUnread from './updateUnread';
 
 let allReports: OnyxCollection<Report> = {};
-let currentUserAccountID = CONST.DEFAULT_NUMBER_ID;
+let currentUserAccountID: number = CONST.DEFAULT_NUMBER_ID;
 let currentUserLogin = '';
 
 Onyx.connectWithoutView({

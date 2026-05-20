@@ -86,7 +86,7 @@ function SidebarOrderedReportsContextProvider({
     const [currentReportsToDisplay, setCurrentReportsToDisplay] = useState<ReportsToDisplayInLHN>({});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
-    const {accountID} = useCurrentUserPersonalDetails();
+    const {accountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue;
     const prevDerivedCurrentReportID = usePrevious(derivedCurrentReportID);
@@ -213,6 +213,8 @@ function SidebarOrderedReportsContextProvider({
                 draftComments: reportsDrafts,
                 transactions,
                 isOffline,
+                currentUserLogin: currentUserLogin ?? '',
+                currentUserAccountID: accountID,
             });
         } else {
             Log.info('[useSidebarOrderedReports] building reportsToDisplay from scratch');
@@ -225,6 +227,8 @@ function SidebarOrderedReportsContextProvider({
                 transactionViolations,
                 transactions,
                 isOffline,
+                currentUserLogin ?? '',
+                accountID,
                 reportNameValuePairs,
                 reportAttributes,
             );
@@ -245,6 +249,8 @@ function SidebarOrderedReportsContextProvider({
         reportsDrafts,
         isOffline,
         clearCacheDummyCounter,
+        currentUserLogin,
+        accountID,
     ]);
 
     // Derive a stable boolean map indicating which reports have drafts.
