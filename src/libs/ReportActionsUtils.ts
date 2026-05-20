@@ -24,6 +24,7 @@ import type {
     PersonalDetailsList,
     Policy,
     PrivatePersonalDetails,
+    ReportAttributesDerivedValue,
     ReportMetadata,
     ReportNameValuePairs,
     VisibleReportActionsDerivedValue,
@@ -60,7 +61,8 @@ import {getIsOffline, subscribe as subscribeNetworkState} from './NetworkState';
 import Parser from './Parser';
 import {arePersonalDetailsMissing, createPersonalDetailsLookupByAccountID, getEffectiveDisplayName, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowupListFromHtml';
-import type {getReportName, OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
+import type {getReportName} from './ReportNameUtils';
+import type {OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {getReportFieldTypeTranslationKey} from './WorkspaceReportFieldUtils';
 import {getWorkspaceAddressStreetLines} from './WorkspacesSettingsUtils';
@@ -1963,6 +1965,7 @@ function getMemberChangeMessageElements(
     translate: LocalizedTranslate,
     reportAction: OnyxEntry<ReportAction>,
     getReportNameCallback: typeof getReportName,
+    reportAttributes?: ReportAttributesDerivedValue['reports'],
 ): readonly MemberChangeMessageElement[] {
     const isInviteAction = isInviteMemberAction(reportAction);
     const isLeaveAction = isLeavePolicyAction(reportAction);
@@ -1998,7 +2001,7 @@ function getMemberChangeMessageElements(
     });
 
     const buildRoomElements = (): readonly MemberChangeMessageElement[] => {
-        const roomName = getReportNameCallback({report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalMessage?.reportID}`]}) || originalMessage?.roomName;
+        const roomName = getReportNameCallback(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalMessage?.reportID}`], reportAttributes) || originalMessage?.roomName;
         if (roomName && originalMessage) {
             const preposition = isInviteAction ? ` ${translate('workspace.invite.to')} ` : ` ${translate('workspace.invite.from')} `;
 
@@ -2303,8 +2306,13 @@ function getDynamicExternalWorkflowApproveFailedActionMessage(translate: Localiz
     return failedApproveReason;
 }
 
-function getMemberChangeMessageFragment(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>, getReportNameCallback: typeof getReportName): Message {
-    const messageElements: readonly MemberChangeMessageElement[] = getMemberChangeMessageElements(translate, reportAction, getReportNameCallback);
+function getMemberChangeMessageFragment(
+    translate: LocalizedTranslate,
+    reportAction: OnyxEntry<ReportAction>,
+    getReportNameCallback: typeof getReportName,
+    reportAttributes?: ReportAttributesDerivedValue['reports'],
+): Message {
+    const messageElements: readonly MemberChangeMessageElement[] = getMemberChangeMessageElements(translate, reportAction, getReportNameCallback, reportAttributes);
     const html = messageElements
         .map((messageElement) => {
             switch (messageElement.kind) {
@@ -2719,7 +2727,7 @@ function getExportIntegrationActionFragments(translate: LocalizedTranslate, repo
                     url = NETSUITE_NON_REIMBURSABLE_EXPENSES_URL_PREFIX;
                     url += wasExportedAfterBase62 ? base62ReportID : reportID;
                     break;
-                case CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.financialForce:
+                case CONST.EXPORT_LABELS.CERTINIA:
                     // The first three characters in a Salesforce ID is the expense type
                     url = nonReimbursableUrls.at(0)?.substring(0, SALESFORCE_EXPENSES_URL_PREFIX.length + 3) ?? '';
                     break;

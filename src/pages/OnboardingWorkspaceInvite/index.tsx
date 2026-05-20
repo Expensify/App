@@ -8,7 +8,6 @@ function OnboardingWorkspaceInvite({...rest}: OnboardingWorkspaceInviteProps) {
         <OnboardingWrapper>
             <BaseOnboardingWorkspaceInvite
                 shouldUseNativeStyles={false}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
             />
         </OnboardingWrapper>

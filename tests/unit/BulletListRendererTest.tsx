@@ -2,6 +2,8 @@ import {render, screen} from '@testing-library/react-native';
 import React from 'react';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import BulletItemRenderer from '@components/HTMLEngineProvider/HTMLRenderers/BulletItemRenderer';
+import NumberedItemRenderer from '@components/HTMLEngineProvider/HTMLRenderers/NumberedItemRenderer';
+import OLRenderer from '@components/HTMLEngineProvider/HTMLRenderers/OLRenderer';
 import ULRenderer from '@components/HTMLEngineProvider/HTMLRenderers/ULRenderer';
 import RenderHTML from '@components/RenderHTML';
 import CONST from '@src/CONST';
@@ -82,6 +84,50 @@ describe('Bullet list rendering', () => {
         });
     });
 
+    describe('OLRenderer', () => {
+        it('wraps each <li> child with a numbered marker', () => {
+            render(
+                // @ts-expect-error — only the props read by the renderer are needed for this test
+                <OLRenderer
+                    tnode={buildULTNode([
+                        {tagName: 'li', text: 'First'},
+                        {tagName: 'li', text: 'Second'},
+                    ])}
+                    style={{}}
+                />,
+            );
+            expect(screen.getByText('1.')).toBeTruthy();
+            expect(screen.getByText('2.')).toBeTruthy();
+            expect(screen.getByText('First')).toBeTruthy();
+            expect(screen.getByText('Second')).toBeTruthy();
+        });
+
+        it('renders non-<li> children with the default node renderer', () => {
+            render(
+                // @ts-expect-error — only the props read by the renderer are needed for this test
+                <OLRenderer
+                    tnode={buildULTNode([{tagName: 'span', text: 'stray child'}])}
+                    style={{}}
+                />,
+            );
+            expect(screen.queryByText('1.')).toBeNull();
+            expect(screen.getByText('stray child')).toBeTruthy();
+        });
+    });
+
+    describe('NumberedItemRenderer', () => {
+        it('renders a numbered marker next to the item content', () => {
+            render(
+                <NumberedItemRenderer
+                    tnode={buildTNode('First item')}
+                    index={1}
+                />,
+            );
+            expect(screen.getByText('1.')).toBeTruthy();
+            expect(screen.getByText('First item')).toBeTruthy();
+        });
+    });
+
     describe('RenderHTML strips orphaned <br/> tags inside <ul>', () => {
         it('strips <br/> immediately before </ul>', () => {
             render(<RenderHTML html="<ul><li>One</li><li>Two</li><br/></ul>" />);
@@ -103,6 +149,16 @@ describe('Bullet list rendering', () => {
             expect(capturedSource.html).toBe('<ul><li>One</li><li>Two</li></ul>');
         });
 
+        it('strips multiple consecutive <br/> before </ul>', () => {
+            render(<RenderHTML html="<ul><li>One</li><br/><br/><br/></ul>" />);
+            expect(capturedSource.html).toBe('<ul><li>One</li></ul>');
+        });
+
+        it('strips multiple consecutive <br/> between </li> and <li>', () => {
+            render(<RenderHTML html="<ul><li>One</li><br/><br/><li>Two</li></ul>" />);
+            expect(capturedSource.html).toBe('<ul><li>One</li><li>Two</li></ul>');
+        });
+
         it('does not strip <br/> outside of <ul> lists', () => {
             render(<RenderHTML html="<p>line1<br/>line2</p>" />);
             expect(capturedSource.html).toBe('<p>line1<br/>line2</p>');
@@ -111,6 +167,43 @@ describe('Bullet list rendering', () => {
         it('preserves <br/> that lives inside <li> as an in-bullet line break', () => {
             render(<RenderHTML html="<ul><li>One<br/>still one</li><li>Two</li></ul>" />);
             expect(capturedSource.html).toBe('<ul><li>One<br/>still one</li><li>Two</li></ul>');
+        });
+    });
+
+    describe('RenderHTML strips orphaned <br/> tags inside <ol>', () => {
+        it('strips <br/> immediately before </ol>', () => {
+            render(<RenderHTML html="<ol><li>One</li><li>Two</li><br/></ol>" />);
+            expect(capturedSource.html).toBe('<ol><li>One</li><li>Two</li></ol>');
+        });
+
+        it('strips <br> (no slash) immediately before </ol>', () => {
+            render(<RenderHTML html="<ol><li>One</li><li>Two</li><br></ol>" />);
+            expect(capturedSource.html).toBe('<ol><li>One</li><li>Two</li></ol>');
+        });
+
+        it('strips <br/> appearing between </li> and the next <li> inside <ol>', () => {
+            render(<RenderHTML html="<ol><li>One</li><br/><li>Two</li></ol>" />);
+            expect(capturedSource.html).toBe('<ol><li>One</li><li>Two</li></ol>');
+        });
+
+        it('leaves a valid <ol>/<li> list untouched', () => {
+            render(<RenderHTML html="<ol><li>One</li><li>Two</li></ol>" />);
+            expect(capturedSource.html).toBe('<ol><li>One</li><li>Two</li></ol>');
+        });
+
+        it('strips multiple consecutive <br/> before </ol>', () => {
+            render(<RenderHTML html="<ol><li>One</li><br/><br/><br/></ol>" />);
+            expect(capturedSource.html).toBe('<ol><li>One</li></ol>');
+        });
+
+        it('strips multiple consecutive <br/> between </li> and <li> inside <ol>', () => {
+            render(<RenderHTML html="<ol><li>One</li><br/><br/><li>Two</li></ol>" />);
+            expect(capturedSource.html).toBe('<ol><li>One</li><li>Two</li></ol>');
+        });
+
+        it('preserves <br/> that lives inside <li> as an in-item line break', () => {
+            render(<RenderHTML html="<ol><li>One<br/>still one</li><li>Two</li></ol>" />);
+            expect(capturedSource.html).toBe('<ol><li>One<br/>still one</li><li>Two</li></ol>');
         });
     });
 });
