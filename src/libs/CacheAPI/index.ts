@@ -56,7 +56,9 @@ function remove(cacheName: CacheNameType, key: string) {
         return;
     }
 
-    return caches.open(cacheName).then((cache) => cache.delete(key));
+    const cacheKey = `${environmentURL}/${key}`;
+
+    return caches.open(cacheName).then((cache) => cache.delete(cacheKey));
 }
 
 function clear(cacheName?: CacheNameType) {

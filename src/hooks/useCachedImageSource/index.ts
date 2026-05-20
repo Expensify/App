@@ -6,10 +6,11 @@ import useOnyx from '@hooks/useOnyx';
 import {getCachedAttachment} from '@libs/actions/Attachment';
 import Log from '@libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 function useCachedImageSource(source: ImageSource | undefined): ImageSource | null | undefined {
     const uri = typeof source === 'object' ? source.uri : undefined;
-    const hasHeaders = typeof source === 'object' && !!source.headers;
+    const hasHeaders = typeof source === 'object' && !isEmptyObject(source.headers);
     const {attachmentID} = useContext(AttachmentIDContext);
     const [hasError, setHasError] = useState(false);
     const [cachedUri, setCachedUri] = useState<string | null>(null);
@@ -19,19 +20,11 @@ function useCachedImageSource(source: ImageSource | undefined): ImageSource | nu
     const navigation = useNavigation();
 
     useEffect(() => {
-        const unsubscribeFocus = navigation.addListener('blur', () => {
+        const unsubscribeFocus = navigation.addListener('focus', () => {
             isUnmounted.current = false;
         });
         const unsubscribeBlur = navigation.addListener('blur', () => {
             isUnmounted.current = true;
-
-            if ((!hasHeaders && !attachmentID) || !uri) {
-                return;
-            }
-
-            if (objectURL.current) {
-                URL.revokeObjectURL(objectURL.current);
-            }
         });
         return () => {
             unsubscribeFocus();
@@ -51,7 +44,7 @@ function useCachedImageSource(source: ImageSource | undefined): ImageSource | nu
             return;
         }
 
-        getCachedAttachment({attachmentID, attachment, source})
+        getCachedAttachment({uri, attachmentID, attachment, sourceHeaders: source?.headers})
             .then((cachedSource) => {
                 if (!cachedSource) {
                     if (!isUnmounted.current) {
@@ -62,7 +55,7 @@ function useCachedImageSource(source: ImageSource | undefined): ImageSource | nu
                 if (objectURL.current) {
                     URL.revokeObjectURL(objectURL.current);
                 }
-
+                console.log('setCachedUri', {cachedSource, isUnmounted: isUnmounted.current});
                 objectURL.current = cachedSource;
                 if (!isUnmounted.current) {
                     setCachedUri(objectURL.current);
@@ -80,7 +73,15 @@ function useCachedImageSource(source: ImageSource | undefined): ImageSource | nu
                 }
                 Log.hmmm('[AttachmentCache] Failed to get cached attachment', {message: (error as Error).message});
             });
-    }, [uri, hasHeaders, attachment, attachmentMetadata.status, attachmentID, source]);
+
+        return () => {
+            if (objectURL.current) {
+                URL.revokeObjectURL(objectURL.current);
+                console.log('revoked url');
+                objectURL.current = null;
+            }
+        };
+    }, [uri, hasHeaders, attachment, attachmentMetadata.status, attachmentID, source?.headers]);
 
     // Skip if there's no attachmentID and headers
     if (!hasHeaders && !attachmentID) {

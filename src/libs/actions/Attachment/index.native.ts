@@ -11,12 +11,11 @@ import type {CacheAttachmentProps, GetCachedAttachmentProps, RemoveCachedAttachm
 
 const ATTACHMENT_DIR = `${RNFS.DocumentDirectoryPath}/attachments`;
 
-async function cacheAttachment({attachmentID, source, fileType}: CacheAttachmentProps): Promise<string | undefined> {
-    const uri = source.uri;
-    const isAuthRemoteAttachment = !isEmptyObject(source.headers);
-    const isMarkdownAttachment = isEmptyObject(source.headers) && !isLocalFile(uri);
+async function cacheAttachment({uri, attachmentID, sourceHeaders, fileType}: CacheAttachmentProps): Promise<string | undefined> {
+    const isAuthRemoteAttachment = !isEmptyObject(sourceHeaders);
+    const isMarkdownAttachment = isEmptyObject(sourceHeaders) && !isLocalFile(uri);
 
-    // Cache native-file-upload only to prevent flash bug, because remote/external attachments are automatically being cached by expo-image
+    // Cache file-upload only to prevent flash bug, because remote/external attachments are automatically cached by expo-image
     const shouldSkipCaching = isAuthRemoteAttachment || isMarkdownAttachment;
 
     if (!uri || shouldSkipCaching || !attachmentID) {
@@ -88,8 +87,8 @@ async function cacheAttachment({attachmentID, source, fileType}: CacheAttachment
     }
 }
 
-async function getCachedAttachment({attachment, source}: GetCachedAttachmentProps) {
-    if (isEmptyObject(source) || !source.uri) {
+async function getCachedAttachment({uri, attachment}: GetCachedAttachmentProps) {
+    if (!uri) {
         return;
     }
     const cachedSource = attachment?.source;

@@ -1,19 +1,20 @@
-import type {ImageSource} from 'expo-image';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {Attachment} from '@src/types/onyx';
 
 type CacheAttachmentProps = {
+    uri: string;
     /** Attachment ID based on the data-attachment-id attribute (only required for non-auth remote attachments) */
     attachmentID?: string;
 
     /** URI of the given attachment either external or local source */
-    source: ImageSource;
+    sourceHeaders?: Record<string, string>;
 
     /** MIME type of the given attachment (native-only) */
     fileType?: string;
 };
 
 type GetCachedAttachmentProps = {
+    uri: string;
     /** Attachment ID based on the data-attachment-id attribute */
     attachmentID?: string;
 
@@ -21,7 +22,7 @@ type GetCachedAttachmentProps = {
     attachment: OnyxEntry<Attachment>;
 
     /** Current source of the attachment */
-    source: ImageSource | undefined;
+    sourceHeaders?: Record<string, string>;
 };
 
 type RemoveCachedAttachmentProps = {

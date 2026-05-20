@@ -30,7 +30,7 @@ function useCachedImageSource(source: ImageSource | undefined): ImageSource | nu
 
         let revoked = false;
 
-        getCachedAttachment({attachmentID, attachment, source})
+        getCachedAttachment({uri, attachmentID, attachment, sourceHeaders: source?.headers})
             .then((cachedSource) => {
                 if (!cachedSource) {
                     if (!revoked) {
@@ -52,7 +52,7 @@ function useCachedImageSource(source: ImageSource | undefined): ImageSource | nu
         return () => {
             revoked = true;
         };
-    }, [uri, hasHeaders, attachmentID, attachment, attachmentMetadata.status, source]);
+    }, [uri, hasHeaders, attachmentID, attachment, attachmentMetadata.status, source?.headers]);
 
     // Skip if there's no attachmentID, because expo-image
     // already handle remote attachments natively

@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import image from '@components/Image';
 import {getImageCacheFileExtension} from '@libs/AttachmentUtils';
 import CacheAPI from '@libs/CacheAPI';
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
@@ -43,14 +44,14 @@ async function fetchExternalAttachment(source: string): Promise<string> {
     return URL.createObjectURL(blob);
 }
 
-async function cacheAttachment({attachmentID, source}: CacheAttachmentProps): Promise<string | undefined> {
-    let uri = source.uri;
-    if (!uri) {
+async function cacheAttachment({uri, attachmentID, sourceHeaders}: CacheAttachmentProps): Promise<string | undefined> {
+    let imageSource = uri;
+    if (!imageSource) {
         return;
     }
 
-    const isAuthRemoteAttachment = !isEmptyObject(source.headers) && !attachmentID;
-    const isMarkdownAttachment = isEmptyObject(source.headers) && !isLocalFile(source.uri);
+    const isAuthRemoteAttachment = !isEmptyObject(sourceHeaders) && !attachmentID;
+    const isMarkdownAttachment = isEmptyObject(sourceHeaders) && !isLocalFile(imageSource);
 
     // If both are empty, then return early
     if (!isAuthRemoteAttachment && !attachmentID) {
@@ -68,10 +69,15 @@ async function cacheAttachment({attachmentID, source}: CacheAttachmentProps): Pr
     const cachingPromise = (async () => {
         try {
             if (isMarkdownAttachment) {
-                uri = await fetchExternalAttachment(uri);
+                imageSource = await fetchExternalAttachment(uri);
             }
 
-            const response = await fetch(uri, !isEmptyObject(source.headers) ? {headers: source.headers} : {});
+            const response = await fetch(imageSource, !isEmptyObject(sourceHeaders) ? {headers: sourceHeaders} : {});
+
+            if (isMarkdownAttachment) {
+                URL.revokeObjectURL(imageSource);
+            }
+
             if (!response.ok) {
                 throw new Error('[AttachmentCache] Failed to fetch attachment');
             }
@@ -89,12 +95,10 @@ async function cacheAttachment({attachmentID, source}: CacheAttachmentProps): Pr
             const cachedAttachment = response.clone();
 
             await CacheAPI.put(isAuthRemoteAttachment ? CONST.CACHE_NAME.AUTH_IMAGES : CONST.CACHE_NAME.ATTACHMENTS, cacheKey, cachedAttachment);
-            if (isAuthRemoteAttachment) {
-                await Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
-                    attachmentID,
-                    remoteSource: isMarkdownAttachment ? source.uri : undefined,
-                });
-            }
+            await Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
+                attachmentID,
+                remoteSource: isMarkdownAttachment ? uri : undefined,
+            });
 
             const cachedBlob = await response.blob();
             const cachedSource = URL.createObjectURL(cachedBlob);
@@ -116,42 +120,43 @@ async function cacheAttachment({attachmentID, source}: CacheAttachmentProps): Pr
     return cachingPromise;
 }
 
-async function getCachedAttachment({attachmentID, attachment, source}: GetCachedAttachmentProps): Promise<string | undefined> {
-    if (isEmptyObject(source) || !source.uri) {
+async function getCachedAttachment({uri, attachmentID, attachment, sourceHeaders}: GetCachedAttachmentProps): Promise<string | undefined> {
+    if (!uri) {
         return;
     }
 
-    const imageSource = source.uri;
+    const imageSource = uri;
+    const isAuthRemoteAttachment = !isEmptyObject(sourceHeaders) && !attachmentID;
+    const isMarkdownAttachment = isEmptyObject(sourceHeaders) && !isLocalFile(imageSource);
 
     // If this URL is currently being cached, wait for it to finish
-    const cachePromise = pendingCaches.get(imageSource);
+    const cacheKey = !isAuthRemoteAttachment && attachmentID ? attachmentID : imageSource;
+    const cachePromise = pendingCaches.get(cacheKey);
     if (cachePromise) {
         console.log('caching is in progress');
         return cachePromise.catch(() => imageSource);
     }
 
-    const isAuthRemoteAttachment = !isEmptyObject(source.headers) && !attachmentID;
-    const isMarkdownAttachment = isEmptyObject(source.headers) && !isLocalFile(imageSource);
     // For markdown attachments, check if the cached source is stale and re-cache if needed
     if (isMarkdownAttachment && attachment?.remoteSource) {
         const isStale = attachment.remoteSource !== imageSource;
         if (isStale) {
-            const cachedUri = await cacheAttachment({attachmentID, source: {uri: imageSource}}).catch((error) => {
+            const cachedUri = await cacheAttachment({uri: imageSource, attachmentID}).catch((error) => {
                 Log.hmmm('[AttachmentCache] Failed to re-cache markdown attachment', {message: (error as Error).message});
+                return undefined;
             });
-            return cachedUri ? cachedUri : undefined;
+            return cachedUri;
         }
     }
 
     const cacheName = isAuthRemoteAttachment ? CONST.CACHE_NAME.AUTH_IMAGES : CONST.CACHE_NAME.ATTACHMENTS;
-    const cacheKey = isAuthRemoteAttachment ? imageSource : attachmentID;
     if (!cacheKey) {
         return;
     }
     const cachedAttachment = await CacheAPI.get(cacheName, cacheKey);
     const isUncached = !cachedAttachment;
     if (isUncached) {
-        const cachedUri = await cacheAttachment({attachmentID, source});
+        const cachedUri = await cacheAttachment({uri, attachmentID, sourceHeaders});
         return cachedUri;
     }
 
