@@ -580,7 +580,7 @@ describe('ReportUtils', () => {
             prepareOnboardingOnyxData({
                 introSelected: undefined,
                 betas: undefined,
-                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
                 onboardingMessage: {
                     message: 'This is a test',
                     tasks: [
@@ -593,7 +593,6 @@ describe('ReportUtils', () => {
                     ],
                 },
                 adminsChatReportID: '1',
-                // SMALL keeps this in the tasks path; MICRO routes through Phase 1 followups (no tasks generated).
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
             });
 
@@ -611,7 +610,7 @@ describe('ReportUtils', () => {
             prepareOnboardingOnyxData({
                 introSelected: undefined,
                 betas: undefined,
-                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
                 onboardingMessage: {
                     message: 'This is a test',
                     tasks: [
@@ -624,7 +623,6 @@ describe('ReportUtils', () => {
                     ],
                 },
                 adminsChatReportID: '1',
-                // SMALL keeps this in the tasks path; MICRO routes through Phase 1 followups (no tasks generated).
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
             });
 
@@ -763,14 +761,12 @@ describe('ReportUtils', () => {
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
                 userReportedIntegration: 'quickbooksOnline',
             });
-            // Message content is now generated server-side; client only generates the dedup ID.
+            // Message content is now generated server-side; client only generates the deduplication ID.
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
         });
 
-        it('should add guidedSetupData when posting into admin room WITHOUT suggestedFollowups beta', async () => {
+        it('should use followups for MANAGE_TEAM regardless of betas or company size', async () => {
             const adminsChatReportID = '1';
-            // Not having `+` in the email allows for `isPostingTasksInAdminsRoom` flow
-            await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
@@ -785,21 +781,9 @@ describe('ReportUtils', () => {
                 selectedInterestedFeatures: ['areCompanyCardsEnabled'],
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
             });
-            // Without the beta, tasks SHOULD be generated (old behavior) — uses SMALL (not MICRO)
-            // because MICRO + MANAGE_TEAM users bypass the beta gate and get followups directly
-            expect(result?.guidedSetupData).toHaveLength(3);
-            const taskReportIDs =
-                result?.guidedSetupData.reduce<string[]>((acc, item) => {
-                    if (item.type === 'task' && typeof item.taskReportID === 'string') {
-                        acc.push(item.taskReportID);
-                    }
-                    return acc;
-                }, []) ?? [];
-            expect(taskReportIDs.length).toBeGreaterThan(0);
-            for (const taskReportID of taskReportIDs) {
-                const taskReportUpdate = result?.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`);
-                expect((taskReportUpdate?.value as Report | undefined)?.chatType).toBe(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS);
-            }
+            // Every MANAGE_TEAM signup uses the bespoke followups path — tasks are never generated
+            expect(result?.guidedSetupData.filter((data) => data.type === 'task')).toHaveLength(0);
+            expect(result?.optimisticConciergeReportActionID).toBeDefined();
         });
 
         it('should generate followups (not tasks) for `+` email users in the MANAGE_TEAM + MICRO Phase 1 cohort', async () => {
@@ -885,7 +869,7 @@ describe('ReportUtils', () => {
             prepareOnboardingOnyxData({
                 introSelected: undefined,
                 betas: undefined,
-                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
                 onboardingMessage: {
                     message: 'This is a test',
                     tasks: [
@@ -898,7 +882,6 @@ describe('ReportUtils', () => {
                     ],
                 },
                 adminsChatReportID: '1',
-                // SMALL keeps the tasks path active; MICRO routes through Phase 1 followups (no tasks generated).
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
             });
 
@@ -977,7 +960,7 @@ describe('ReportUtils', () => {
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
                 betas: undefined,
-                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
                 onboardingMessage: {
                     message: 'This is a test',
                     tasks: [
@@ -990,7 +973,6 @@ describe('ReportUtils', () => {
                     ],
                 },
                 adminsChatReportID: '1',
-                // SMALL keeps the tasks path active; MANAGE_TEAM + MICRO routes through Phase 1 followups.
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
                 isSelfTourViewed: true,
             });
@@ -1006,7 +988,7 @@ describe('ReportUtils', () => {
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
                 betas: undefined,
-                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
                 onboardingMessage: {
                     message: 'This is a test',
                     tasks: [
@@ -1019,7 +1001,6 @@ describe('ReportUtils', () => {
                     ],
                 },
                 adminsChatReportID: '1',
-                // SMALL keeps the tasks path active; MANAGE_TEAM + MICRO routes through Phase 1 followups.
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
                 isSelfTourViewed: false,
             });
@@ -1038,7 +1019,7 @@ describe('ReportUtils', () => {
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
                 betas: undefined,
-                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
                 onboardingMessage: {
                     message: 'This is a test',
                     tasks: [
@@ -1051,7 +1032,6 @@ describe('ReportUtils', () => {
                     ],
                 },
                 adminsChatReportID: '1',
-                // SMALL keeps the tasks path active; MANAGE_TEAM + MICRO routes through Phase 1 followups.
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
                 isSelfTourViewed: undefined,
             });

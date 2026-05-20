@@ -11690,7 +11690,7 @@ function prepareOnboardingOnyxData({
         reportComment: textComment.commentText,
     };
 
-    // Generate a dedup ID for the server-side bespoke welcome. The server posts directly using
+    // Generate a deduplication ID for the server-side bespoke welcome. The server posts directly using
     // this ID via addComment (idempotent on reportActionID), so we never add an optimistic action
     // here — the real message arrives from the server without a flash.
     const optimisticConciergeReportActionID: string | undefined = shouldUseFollowupsInsteadOfTasks ? rand64() : undefined;
