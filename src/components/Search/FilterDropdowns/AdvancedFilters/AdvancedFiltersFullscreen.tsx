@@ -63,7 +63,7 @@ function AdvancedFiltersFullscreen({queryJSON, closeOverlay}: AdvancedFiltersFul
                 />
             </Activity>
             {!!selectedFilter && (
-                <View style={[styles.filterContentContainer, styles.pv0]}>
+                <View style={[styles.filterContentContainer]}>
                     <SelectedFilterContent
                         values={values}
                         filterKey={selectedFilter}
