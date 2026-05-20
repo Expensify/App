@@ -38,6 +38,7 @@ import {
     isMergeHRConnected,
     isTimeTrackingEnabled,
     isZenefitsConnected,
+    tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -77,6 +78,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
+    const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {showConfirmModal} = useConfirmModal();
     const illustrations = useMemoizedLazyIllustrations([
@@ -276,6 +278,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             disabledAction={warnDisconnectAccountingFirst}
                             onToggle={(isEnabled) => {
                                 if (!policyID) {
+                                    return;
+                                }
+                                if (tryNavigateToSubmitWorkspaceUpgrade(policy, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias, isSubmit2026BetaEnabled)) {
                                     return;
                                 }
                                 enablePolicyConnections(policyID, isEnabled);
@@ -499,6 +504,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 if (!policyID) {
                                     return;
                                 }
+                                if (tryNavigateToSubmitWorkspaceUpgrade(policy, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.travelSubmit.alias, isSubmit2026BetaEnabled)) {
+                                    return;
+                                }
                                 enablePolicyTravel(policyID, isEnabled);
                             }}
                             onPress={() => {
@@ -520,6 +528,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 if (!policyID) {
                                     return;
                                 }
+                                if (tryNavigateToSubmitWorkspaceUpgrade(policy, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.expensifyCard.alias, isSubmit2026BetaEnabled)) {
+                                    return;
+                                }
                                 enableExpensifyCard(policyID, isEnabled);
                             }}
                             onPress={() => {
@@ -539,6 +550,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             disabledAction={promptDisableCompanyCardsViaConcierge}
                             onToggle={(isEnabled) => {
                                 if (!policyID) {
+                                    return;
+                                }
+                                if (tryNavigateToSubmitWorkspaceUpgrade(policy, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCardSubmit.alias, isSubmit2026BetaEnabled)) {
                                     return;
                                 }
                                 enableCompanyCards(policyID, isEnabled, true);
@@ -605,6 +619,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             pendingAction={policy?.pendingFields?.areInvoicesEnabled}
                             onToggle={(isEnabled) => {
                                 if (!policyID) {
+                                    return;
+                                }
+                                if (tryNavigateToSubmitWorkspaceUpgrade(policy, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoicing.alias, isSubmit2026BetaEnabled)) {
                                     return;
                                 }
                                 enablePolicyInvoicing(policyID, isEnabled);
