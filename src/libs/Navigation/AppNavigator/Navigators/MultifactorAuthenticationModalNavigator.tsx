@@ -23,6 +23,8 @@ import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
+type Phase = 'open' | 'closing' | 'closed';
+
 const Stack = createPlatformStackNavigator<MultifactorAuthenticationModalNavigatorInternalParamList>();
 
 const loadValidateCodePage = () => require<ReactComponentModule>('../../../../pages/MultifactorAuthentication/ValidateCodePage').default;
@@ -52,20 +54,17 @@ function MultifactorAuthenticationModalNavigator() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [prevIsModalOpen, setPrevIsModalOpen] = useState(isModalOpen);
-    const [isClosing, setIsClosing] = useState(false);
+    const [phase, setPhase] = useState<Phase>(isModalOpen ? 'open' : 'closed');
     const backdropProgress = useSharedValue(0);
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
     const CancelConfirmModal = scenario?.modals.cancelConfirmation ?? DefaultCancelConfirmModal;
 
-    // Mirror isModalOpen transitions during render so the slide-out animation can
-    // outlast isModalOpen=false. Cleared by the close-animation completion callback.
-    if (prevIsModalOpen !== isModalOpen) {
-        setPrevIsModalOpen(isModalOpen);
-        setIsClosing(!isModalOpen);
+    // 'closing' outlives isModalOpen=false so the slide-out animation can play.
+    if (isModalOpen && phase !== 'open') {
+        setPhase('open');
+    } else if (!isModalOpen && phase === 'open') {
+        setPhase('closing');
     }
-
-    const isVisible = isModalOpen || isClosing;
 
     const navigationThemeBase = themePreference === CONST.THEME.DARK ? DarkTheme : DefaultTheme;
     const navigationTheme = {
@@ -77,11 +76,11 @@ function MultifactorAuthenticationModalNavigator() {
     };
 
     useEffect(() => {
-        if (isModalOpen) {
+        if (phase === 'open') {
             backdropProgress.set(withTiming(1, {duration: CONST.ANIMATED_TRANSITION}));
             return;
         }
-        if (!isClosing) {
+        if (phase !== 'closing') {
             return;
         }
         // Pop the current screen so the Stack plays its slide-out animation,
@@ -92,17 +91,17 @@ function MultifactorAuthenticationModalNavigator() {
         backdropProgress.set(withTiming(0, {duration: CONST.ANIMATED_TRANSITION}));
         const cleanupTimer = setTimeout(() => {
             resetMfaNavigation();
-            setIsClosing(false);
+            setPhase('closed');
             dispatch({type: 'RESET'});
         }, CONST.ANIMATED_TRANSITION);
         return () => clearTimeout(cleanupTimer);
-    }, [isModalOpen, isClosing, backdropProgress, dispatch]);
+    }, [phase, backdropProgress, dispatch]);
 
     const backdropAnimatedStyle = useAnimatedStyle(() => ({
         opacity: backdropProgress.get() * variables.overlayOpacity,
     }));
 
-    if (!isVisible) {
+    if (phase === 'closed') {
         return null;
     }
 
