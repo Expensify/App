@@ -3,9 +3,8 @@ import type {IOUType} from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 
 /**
- * Finite state machine for the stitcher's lifecycle. Verification states (verifying / hydrating /
- * invalidated) are NOT part of this FSM — those live inside the composed `useRestartOnOdometerImagesFailure`
- * hook. The stitcher only owns derivation + stitching.
+ * Finite state machine for the stitcher's lifecycle. Verification states are handled upstream;
+ * this FSM only covers derivation + stitching.
  *
  * Transitions:
  *   idle      --(verifier ready + URIs known)--> stitching | ready (single/empty derived synchronously)
@@ -24,18 +23,18 @@ type UseOdometerReceiptStitcherArgs = {
     /** Whether this transaction is in the DISTANCE_ODOMETER request type. When false, the hook stays idle. */
     isOdometerDistanceRequest: boolean;
 
-    /** Forwarded to the composed verifier for its invalidated-recovery navigation. */
+    /** Used for the invalidated-recovery navigation target. */
     reportID: string;
 
-    /** Forwarded to the composed verifier for its invalidated-recovery navigation. */
+    /** Used for the invalidated-recovery navigation target. */
     iouType: IOUType;
 
-    /** Forwarded to the composed verifier for its invalidated-recovery navigation. */
+    /** Used for the invalidated-recovery navigation target. */
     backToReport: string | undefined;
 
     /**
-     * Forwarded to the composed verifier. Fires BEFORE clear+navigate so the host's backup hook can
-     * mark itself as already-handled. The stitcher does not invoke this directly — the verifier does.
+     * Fires BEFORE clear+navigate so a host backup mechanism can mark itself as already-handled.
+     * Race-critical ordering: this callback runs before any state reset.
      */
     onBackupHandled?: (args: {shouldResetLocalState: boolean}) => void;
 };
@@ -53,10 +52,7 @@ type UseOdometerReceiptStitcherResult = {
     /** Translated error message when the stitch fails; null otherwise. */
     error: string | null;
 
-    /**
-     * Forwarded verbatim from the composed verifier. Confirmation-step consumers may read this directly
-     * if they need to know whether source-blob verification has completed (without caring about stitching).
-     */
+    /** True once source-blob verification has completed (regardless of stitching state). */
     hasVerifiedBlobs: boolean;
 };
 

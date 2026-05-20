@@ -32,18 +32,9 @@ function makeDerivationKey(startImage: FileObject | string | null | undefined, e
 }
 
 /**
- * Composes the existing `useRestartOnOdometerImagesFailure` verifier and layers receipt derivation
- * + stitching on top. The verifier owns blob-liveness verification, hydrate-from-draft, and the
- * clear+navigate recovery path; this hook only kicks in once the verifier reports the blobs are
- * verified (or there were no blobs to verify), and then it derives the receipt from the source
- * images (single / stitch / empty) and writes it to `transaction.receipt`.
- *
- * Used **only** by the confirmation step. The edit step, capture step, and attachment-modal route
- * keep calling `useRestartOnOdometerImagesFailure` directly — they need verification + recovery
- * without any receipt writes.
- *
- * NOTE: Phase 2 (this commit) introduces the hook but does NOT wire it into any caller. Phase 3
- * wires the confirmation step.
+ * Composes `useRestartOnOdometerImagesFailure` and layers receipt derivation + stitching on top.
+ * Kicks in once the verifier reports the source blobs are verified, then derives the receipt
+ * (single / stitch / empty) and writes it to `transaction.receipt`.
  */
 function useOdometerReceiptStitcher({
     transaction,
@@ -53,22 +44,20 @@ function useOdometerReceiptStitcher({
     backToReport,
     onBackupHandled,
 }: UseOdometerReceiptStitcherArgs): UseOdometerReceiptStitcherResult {
-    // Compose the existing verifier — no duplicated verification logic lives in this hook.
-    // We pass undefined when the flow isn't odometer so the verifier bails (matches its contract).
+    // Pass undefined when the flow isn't odometer so the verifier bails per its contract.
     const {hasVerifiedBlobs} = useRestartOnOdometerImagesFailure(isOdometerDistanceRequest ? transaction : undefined, reportID, iouType, backToReport, onBackupHandled);
 
     const [state, dispatch] = useReducer(reducer, {kind: 'idle'} as OdometerReceiptState);
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
 
-    // Compiler-safe ref-update-in-effect pattern (HI2). The one-render lag is benign — async .then()
+    // Compiler-safe ref-update-in-effect pattern. The one-render lag is benign — async .then()
     // callbacks read the latest transaction here.
     const transactionRef = useRef(transaction);
     useEffect(() => {
         transactionRef.current = transaction;
     }, [transaction]);
 
-    // In-flight stitch abort handle. Replaces the legacy `ignore` flag pattern.
     const abortRef = useRef<AbortController | null>(null);
 
     // Tracks the derivation key currently owned by this hook instance. Drives the dedupe so re-renders
@@ -77,7 +66,7 @@ function useOdometerReceiptStitcher({
     // the derivation effect (which would cancel its own in-flight stitch via the cleanup function).
     const lastDerivedKeyRef = useRef<string | null>(null);
 
-    // Deactivation: if the flow leaves odometer (or transaction goes away), abort and reset to idle.
+    // Deactivation: abort and reset to idle.
     useEffect(() => {
         if (isOdometerDistanceRequest && transaction) {
             return;
@@ -87,15 +76,10 @@ function useOdometerReceiptStitcher({
         dispatch({type: 'reset'});
     }, [isOdometerDistanceRequest, transaction]);
 
-    // Derivation effect: when the verifier reports OK and source-image URIs change, derive the
-    // receipt. Synchronous derivations (single, empty) write the receipt and dispatch markReady
-    // in one render. Stitch mode kicks off the async canvas op via `stitchTask`.
-    //
     // Deliberately does NOT include `state` in deps and does NOT return a cleanup function. The
     // dispatches below would otherwise cause this effect to re-run and abort its own in-flight stitch
     // (the cleanup of the previous run cancels the controller of the current run). Abort on URI change
-    // happens explicitly inline (line below); abort on unmount happens in the separate unmount-cleanup
-    // effect at the bottom.
+    // happens explicitly inline; abort on unmount happens in the separate unmount-cleanup effect.
     useEffect(() => {
         if (!isOdometerDistanceRequest || !hasVerifiedBlobs || !isFocused || !transaction) {
             return;
@@ -105,8 +89,8 @@ function useOdometerReceiptStitcher({
         const endImage = transaction.comment?.odometerEndImage;
         const newKey = makeDerivationKey(startImage, endImage);
 
-        // URI-equality dedupe (HI4): skip when source URIs haven't changed since the last derivation
-        // owned by this instance. Covers both "ready, same URIs" and "error, same URIs" — error state
+        // URI-equality dedupe: skip when source URIs haven't changed since the last derivation owned
+        // by this instance. Covers both "ready, same URIs" and "error, same URIs" — error state
         // doesn't retry because the ref already matches.
         if (lastDerivedKeyRef.current === newKey) {
             return;
@@ -120,7 +104,7 @@ function useOdometerReceiptStitcher({
         const derivation = deriveOdometerReceipt(startImage, endImage);
 
         if (derivation.mode === 'empty') {
-            // Don't write an empty receipt onto fresh transactions that never had one (HI10).
+            // Don't write an empty receipt onto fresh transactions that never had one.
             if (transaction.receipt?.source) {
                 setMoneyRequestReceipt(transaction.transactionID, '', '', true, '');
             }
@@ -134,7 +118,6 @@ function useOdometerReceiptStitcher({
             return;
         }
 
-        // Stitch mode.
         dispatch({type: 'beginStitch', derivationKey: newKey});
         stitchTask({startImage: derivation.startImage, endImage: derivation.endImage, signal: controller.signal})
             .then((result) => {
@@ -157,7 +140,6 @@ function useOdometerReceiptStitcher({
             });
     }, [isOdometerDistanceRequest, hasVerifiedBlobs, isFocused, transaction, translate]);
 
-    // Unmount cleanup: abort any in-flight stitch.
     useEffect(
         () => () => {
             abortRef.current?.abort();
