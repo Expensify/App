@@ -5960,8 +5960,14 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             error: 'Wystąpił błąd podczas kopiowania ustawień przestrzeni roboczej. Spróbuj ponownie.',
             title: 'Skopiuj ustawienia',
             selectWorkspaces: 'Wybierz przestrzenie robocze',
-            description: 'Wybierz przestrzenie robocze, do których chcesz skopiować ustawienia, a potem zaznacz ustawienia, które chcesz skopiować.',
+            description: 'Wybierz przestrzenie robocze, do których chcesz skopiować ustawienia, a następnie zaznacz ustawienia, które chcesz skopiować.',
             searchPlaceholder: 'Szukaj przestrzeni roboczych',
+            selectFeatures: 'Wybierz funkcje do skopiowania',
+            whichFeatures: 'Wybierz ustawienia, które chcesz nadpisać w swoich istniejących przestrzeniach roboczych.',
+            accountingDisabledTooltip: 'Workspace źródłowy i docelowy nie są połączone z tym samym kontem księgowym, więc tych ustawień nie można bezpiecznie skopiować.',
+            workflowsWithoutMembersTitle: 'Skopiować przepływy pracy bez członków?',
+            workflowsWithoutMembersPrompt:
+                'Kopiujesz procesy bez członków. Ustawienia przesyłania i płatności zostaną skopiowane, ale członkowie przestrzeni roboczej się nie zmienią. Kontynuować?',
         },
         emptyWorkspace: {
             title: 'Nie masz żadnych przestrzeni roboczych',

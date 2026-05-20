@@ -5830,10 +5830,16 @@ ${amount} para ${merchant} - ${date}`,
         },
         copyPolicySettings: {
             error: 'Se produjo un error al copiar la configuración del espacio de trabajo. Por favor, inténtalo de nuevo.',
-            title: 'Copiar configuración',
+            title: 'Copiar ajustes',
             selectWorkspaces: 'Selecciona espacios de trabajo',
             description: 'Elige los espacios de trabajo a los que quieres copiar la configuración y luego selecciona los ajustes que quieras copiar.',
             searchPlaceholder: 'Buscar espacios de trabajo',
+            selectFeatures: 'Selecciona las funciones que quieres copiar',
+            whichFeatures: 'Selecciona los ajustes que se sobrescribirán en tus espacios de trabajo existentes.',
+            accountingDisabledTooltip: 'Los espacios de trabajo de origen y destino no están conectados a la misma cuenta contable, por lo que no es seguro copiar estos ajustes.',
+            workflowsWithoutMembersTitle: '¿Copiar flujos de trabajo sin miembros?',
+            workflowsWithoutMembersPrompt:
+                'Estás copiando flujos de trabajo sin miembros. Se copiarán los ajustes de envío y pago, pero los miembros del espacio de trabajo no cambiarán. ¿Continuar?',
         },
         emptyWorkspace: {
             title: 'Aún no hay espacios de trabajo',

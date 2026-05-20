@@ -6017,8 +6017,15 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             error: 'Une erreur s’est produite lors de la copie des paramètres de l’espace de travail. Veuillez réessayer.',
             title: 'Copier les paramètres',
             selectWorkspaces: 'Sélectionner des espaces de travail',
-            description: 'Choisissez les espaces de travail vers lesquels vous souhaitez copier les paramètres, puis sélectionnez les paramètres que vous souhaitez copier.',
+            description: 'Choisissez les espaces de travail vers lesquels vous souhaitez copier les paramètres, puis sélectionnez les paramètres que vous voulez copier.',
             searchPlaceholder: 'Rechercher des espaces de travail',
+            selectFeatures: 'Sélectionnez les fonctionnalités à copier',
+            whichFeatures: 'Sélectionnez les paramètres à écraser sur vos espaces de travail existants.',
+            accountingDisabledTooltip:
+                'Les espaces de travail source et cible ne sont pas connectés au même compte de comptabilité, ces paramètres ne peuvent donc pas être copiés en toute sécurité.',
+            workflowsWithoutMembersTitle: 'Copier les workflows sans les membres ?',
+            workflowsWithoutMembersPrompt:
+                'Vous copiez des workflows sans membres. Les paramètres de soumission et de paiement seront copiés, mais les membres de l’espace de travail ne changeront pas. Continuer ?',
         },
         emptyWorkspace: {
             title: 'Vous n’avez aucun espace de travail',

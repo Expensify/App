@@ -5966,8 +5966,15 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             error: 'Ocorreu um erro ao copiar as configurações do workspace. Tente novamente.',
             title: 'Copiar configurações',
             selectWorkspaces: 'Selecionar espaços de trabalho',
-            description: 'Escolha os espaços de trabalho para os quais você quer copiar as configurações e, em seguida, selecione quais configurações deseja copiar.',
+            description: 'Escolha os espaços de trabalho para os quais você quer copiar as configurações e, em seguida, selecione as configurações que você gostaria de copiar.',
             searchPlaceholder: 'Buscar espaços de trabalho',
+            selectFeatures: 'Selecione os recursos para copiar',
+            whichFeatures: 'Selecione as configurações que deseja sobrescrever nos seus espaços de trabalho existentes.',
+            accountingDisabledTooltip:
+                'Os espaços de trabalho de origem e destino não estão conectados à mesma conta contábil, então essas configurações não podem ser copiadas com segurança.',
+            workflowsWithoutMembersTitle: 'Copiar fluxos de trabalho sem membros?',
+            workflowsWithoutMembersPrompt:
+                'Você está copiando fluxos de trabalho sem membros. As configurações de envio e pagamento serão copiadas, mas os membros do workspace não serão alterados. Continuar?',
         },
         emptyWorkspace: {
             title: 'Você não tem nenhum workspace',

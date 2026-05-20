@@ -5965,9 +5965,14 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
         copyPolicySettings: {
             error: 'Er is een fout opgetreden bij het kopiëren van de werkruimtainstellingen. Probeer het opnieuw.',
             title: 'Instellingen kopiëren',
-            selectWorkspaces: 'Selecteer werkruimtes',
-            description: 'Kies de werkruimtes waarnaar je instellingen wilt kopiëren en selecteer daarna de instellingen die je wilt kopiëren.',
+            selectWorkspaces: 'Werkruimtes selecteren',
+            description: 'Kies de werkruimtes waarnaar je de instellingen wilt kopiëren en selecteer vervolgens de instellingen die je wilt kopiëren.',
             searchPlaceholder: 'Werkruimtes zoeken',
+            selectFeatures: 'Selecteer functies om te kopiëren',
+            whichFeatures: 'Selecteer de instellingen die je wilt overschrijven in je bestaande werkruimtes.',
+            accountingDisabledTooltip: 'De bron- en doelwerkruimtes zijn niet verbonden met dezelfde boekhoudrekening, waardoor deze instellingen niet veilig kunnen worden gekopieerd.',
+            workflowsWithoutMembersTitle: 'Workflows kopiëren zonder leden?',
+            workflowsWithoutMembersPrompt: 'Je kopieert workflows zonder leden. Instellingen voor indienen en betalen worden gekopieerd, maar de werkruimteleden veranderen niet. Doorgaan?',
         },
         emptyWorkspace: {
             title: 'Je hebt geen werkruimtes',

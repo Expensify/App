@@ -5998,7 +5998,13 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             title: 'Einstellungen kopieren',
             selectWorkspaces: 'Arbeitsbereiche auswählen',
             description: 'Wählen Sie die Arbeitsbereiche aus, in die Sie Einstellungen kopieren möchten, und wählen Sie dann die Einstellungen aus, die Sie kopieren möchten.',
-            searchPlaceholder: 'Workspaces durchsuchen',
+            searchPlaceholder: 'Arbeitsbereiche durchsuchen',
+            selectFeatures: 'Funktionen zum Kopieren auswählen',
+            whichFeatures: 'Wählen Sie die Einstellungen aus, die in Ihren bestehenden Workspaces überschrieben werden sollen.',
+            accountingDisabledTooltip: 'Die Quell- und Ziel-Workspaces sind nicht mit demselben Buchhaltungskonto verbunden, daher können diese Einstellungen nicht sicher kopiert werden.',
+            workflowsWithoutMembersTitle: 'Workflows ohne Mitglieder kopieren?',
+            workflowsWithoutMembersPrompt:
+                'Sie kopieren Workflows ohne Mitglieder. Einreichungs- und Zahlungseinstellungen werden kopiert, aber die Workspace-Mitglieder bleiben unverändert. Fortfahren?',
         },
         emptyWorkspace: {
             title: 'Du hast keine Arbeitsbereiche',
