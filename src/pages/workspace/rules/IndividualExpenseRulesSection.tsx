@@ -131,6 +131,10 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
             prohibitedExpensesList.push(translate('workspace.rules.individualExpenseRules.handwrittenReceipt'));
         }
 
+        if (policy?.prohibitedExpenses?.giftCard) {
+            prohibitedExpensesList.push(translate('workspace.rules.individualExpenseRules.giftCard'));
+        }
+
         // If no expenses are prohibited, return empty string
         if (!prohibitedExpensesList.length) {
             return '';

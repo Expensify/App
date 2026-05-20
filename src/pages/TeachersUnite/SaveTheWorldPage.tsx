@@ -157,7 +157,6 @@ function SaveTheWorldPage() {
                         illustrationBackgroundColor={theme.PAGE_THEMES[SCREENS.SAVE_THE_WORLD.ROOT].backgroundColor}
                         titleStyles={styles.accountSettingsSectionTitle}
                         childrenStyles={styles.pt5}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...saveTheWorldIllustration}
                     >
                         <MenuItemList

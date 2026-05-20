@@ -26,6 +26,8 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     goBack: jest.fn(),
     getActiveRoute: jest.fn(() => ''),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -164,6 +166,70 @@ const renderPageWithNavigation = (initialRouteName: typeof SCREENS.SETTINGS.PROF
         </ComposeProviders>,
     );
 };
+
+describe('ProfilePage - agent account', () => {
+    beforeAll(async () => {
+        Onyx.init({
+            keys: ONYXKEYS,
+        });
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'en' as const);
+        });
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    afterEach(async () => {
+        await Onyx.clear();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    async function setupUser(email: string) {
+        const accountID = 123;
+        await TestHelper.signInWithTestUser(accountID, email);
+
+        const personalDetails: PersonalDetailsList = {
+            [accountID]: {
+                accountID,
+                login: email,
+                displayName: email,
+                avatar: 'https://example.com/avatar.png',
+                avatarThumbnail: 'https://example.com/avatar.png',
+            } as PersonalDetails,
+        };
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+        });
+
+        await waitForBatchedUpdatesWithAct();
+    }
+
+    it('hides contact methods, pronouns, timezone and private section for agent account', async () => {
+        await setupUser('agent_123@expensify.ai');
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryByTestId('contact-method-menu-item')).toBeNull();
+        expect(screen.queryByTestId('pronouns-menu-item')).toBeNull();
+        expect(screen.queryByTestId('timezone-menu-item')).toBeNull();
+        expect(screen.queryByText('Private')).toBeNull();
+    });
+
+    it('shows contact methods, pronouns, timezone and private section for non-agent account', async () => {
+        await setupUser('user@expensify.com');
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId('contact-method-menu-item')).toBeDefined();
+        expect(screen.getByTestId('pronouns-menu-item')).toBeDefined();
+        expect(screen.getByTestId('timezone-menu-item')).toBeDefined();
+        expect(screen.getByText('Private')).toBeDefined();
+    });
+});
 
 describe('ProfilePage - SMS domain handling', () => {
     beforeAll(async () => {

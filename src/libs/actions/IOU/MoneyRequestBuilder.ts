@@ -64,8 +64,10 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getAllPersonalDetails, getAllReportActionsFromIOU, getAllReportNameValuePairs, getAllReports, getCurrentUserPersonalDetails, getSearchOnyxUpdate, getUserAccountID} from './index';
-import type {ReplaceReceipt, StartSplitBilActionParams} from './index';
+import {getAllPersonalDetails, getAllReportActionsFromIOU, getAllReportNameValuePairs, getAllReports, getCurrentUserPersonalDetails, getUserAccountID} from './index';
+import type {ReplaceReceipt} from './Receipt';
+import {getSearchOnyxUpdate} from './SearchUpdate';
+import type {StartSplitBilActionParams} from './Split';
 import type BasePolicyParams from './types/BasePolicyParams';
 import type BaseTransactionParams from './types/BaseTransactionParams';
 import type {CreateTrackExpenseParams} from './types/CreateTrackExpenseParams';
@@ -170,6 +172,7 @@ type RequestMoneyInformation = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     shouldDeferAutoSubmit?: boolean;
+    shouldDeferForSearch?: boolean;
 };
 
 type MoneyRequestInformationParams = {
@@ -780,10 +783,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             value: {
                 pendingAction: null,
                 pendingFields: clearedPendingFields,
-                // The routes contains the distance in meters. Clearing the routes ensures we use the distance
-                // in the correct unit stored under the transaction customUnit once the request is created.
-                // The route is also not saved in the backend, so we can't rely on it.
-                routes: null,
+                // Keep `routes`: the BE never returns it, so it's the only source `ConfirmedRoute`/the preview can draw the map from (GH #90057).
             },
         },
 
@@ -1228,7 +1228,9 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         }),
     });
 
-    const shouldCreateNewMoneyRequestReport = isSplitExpense ? false : shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, isScanRequest, betas, action);
+    const shouldCreateNewMoneyRequestReport = isSplitExpense
+        ? false
+        : shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, isScanRequest, betas, action, !!moneyRequestReportID);
 
     // Generate IDs upfront so we can pass them to buildOptimisticExpenseReport for formula computation
     const optimisticTransactionID = existingTransactionID ?? rand64();
@@ -1617,16 +1619,13 @@ function mergePolicyRecentlyUsedCurrencies(currency: string | undefined, policyR
 export {
     buildMinimalTransactionForFormula,
     buildOnyxDataForMoneyRequest,
-    buildOnyxDataForTestDriveIOU,
     calculateDiffAmount,
     getMoneyRequestInformation,
     getReceiptError,
     getReportPreviewAction,
     getTransactionWithPreservedLocalReceiptSource,
     getUpdatedMoneyRequestReportData,
-    maybeUpdateReportNameForFormulaTitle,
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
-    recalculateOptimisticReportName,
 };
 export type {BuildOnyxDataForMoneyRequestKeys, MoneyRequestInformation, MoneyRequestInformationParams, OneOnOneIOUReport, RequestMoneyInformation};

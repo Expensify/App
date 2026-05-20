@@ -551,5 +551,166 @@ describe('CardFeedErrors Derived Value', () => {
                 expect(result.all.shouldShowRBR).toBe(false);
             });
         });
+
+        describe('feed selector RBR - per-feed granularity for multi-feed workspaces', () => {
+            const SHARED_WORKSPACE_ACCOUNT_ID = 77777777;
+            const AMEX_FEED = {
+                workspaceAccountID: SHARED_WORKSPACE_ACCOUNT_ID,
+                feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT,
+                feedNameWithDomainID: getCardFeedWithDomainID(CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT, SHARED_WORKSPACE_ACCOUNT_ID),
+            };
+            const CHASE_FEED = {
+                workspaceAccountID: SHARED_WORKSPACE_ACCOUNT_ID,
+                feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+                feedNameWithDomainID: getCardFeedWithDomainID(CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE, SHARED_WORKSPACE_ACCOUNT_ID),
+            };
+
+            it('should mark only the broken feed when another feed in the same workspace is healthy', () => {
+                const brokenCard = createCard({
+                    cardID: CARD_IDS.card1,
+                    bank: CHASE_FEED.feedName,
+                    fundID: String(SHARED_WORKSPACE_ACCOUNT_ID),
+                    lastScrapeResult: 403,
+                });
+                const healthyCard = createCard({
+                    cardID: CARD_IDS.card2,
+                    bank: AMEX_FEED.feedName,
+                    fundID: String(SHARED_WORKSPACE_ACCOUNT_ID),
+                    lastScrapeResult: 200,
+                });
+
+                const globalCardList: CardList = {
+                    [CARD_IDS.card1]: brokenCard,
+                    [CARD_IDS.card2]: healthyCard,
+                };
+
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}], DERIVED_VALUE_CONTEXT);
+
+                expect(result.shouldShowRbrForFeedNameWithDomainID[CHASE_FEED.feedNameWithDomainID]).toBe(true);
+                expect(result.shouldShowRbrForFeedNameWithDomainID[AMEX_FEED.feedNameWithDomainID]).toBe(false);
+            });
+
+            it('should clear RBR for a fixed feed while keeping it for other broken feeds', () => {
+                const brokenMockCard = createCard({
+                    cardID: CARD_IDS.card1,
+                    bank: CHASE_FEED.feedName,
+                    fundID: String(SHARED_WORKSPACE_ACCOUNT_ID),
+                    lastScrapeResult: 403,
+                });
+                const fixedAmexCard = createCard({
+                    cardID: CARD_IDS.card2,
+                    bank: AMEX_FEED.feedName,
+                    fundID: String(SHARED_WORKSPACE_ACCOUNT_ID),
+                    lastScrapeResult: 200,
+                });
+
+                const globalCardList: CardList = {
+                    [CARD_IDS.card1]: brokenMockCard,
+                    [CARD_IDS.card2]: fixedAmexCard,
+                };
+
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}], DERIVED_VALUE_CONTEXT);
+
+                expect(result.shouldShowRbrForFeedNameWithDomainID[CHASE_FEED.feedNameWithDomainID]).toBe(true);
+                expect(result.shouldShowRbrForFeedNameWithDomainID[AMEX_FEED.feedNameWithDomainID]).toBe(false);
+                expect(result.shouldShowRbrForWorkspaceAccountID[SHARED_WORKSPACE_ACCOUNT_ID]).toBe(true);
+            });
+
+            it('should clear all RBR when all feeds in a workspace are healthy', () => {
+                const healthyChaseCard = createCard({
+                    cardID: CARD_IDS.card1,
+                    bank: CHASE_FEED.feedName,
+                    fundID: String(SHARED_WORKSPACE_ACCOUNT_ID),
+                    lastScrapeResult: 200,
+                });
+                const healthyAmexCard = createCard({
+                    cardID: CARD_IDS.card2,
+                    bank: AMEX_FEED.feedName,
+                    fundID: String(SHARED_WORKSPACE_ACCOUNT_ID),
+                    lastScrapeResult: 200,
+                });
+
+                const globalCardList: CardList = {
+                    [CARD_IDS.card1]: healthyChaseCard,
+                    [CARD_IDS.card2]: healthyAmexCard,
+                };
+
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}], DERIVED_VALUE_CONTEXT);
+
+                expect(result.shouldShowRbrForFeedNameWithDomainID[CHASE_FEED.feedNameWithDomainID]).toBe(false);
+                expect(result.shouldShowRbrForFeedNameWithDomainID[AMEX_FEED.feedNameWithDomainID]).toBe(false);
+                expect(result.shouldShowRbrForWorkspaceAccountID[SHARED_WORKSPACE_ACCOUNT_ID]).toBe(false);
+            });
+
+            it('should show RBR on both feeds when both have broken connections', () => {
+                const brokenChaseCard = createCard({
+                    cardID: CARD_IDS.card1,
+                    bank: CHASE_FEED.feedName,
+                    fundID: String(SHARED_WORKSPACE_ACCOUNT_ID),
+                    lastScrapeResult: 403,
+                });
+                const brokenAmexCard = createCard({
+                    cardID: CARD_IDS.card2,
+                    bank: AMEX_FEED.feedName,
+                    fundID: String(SHARED_WORKSPACE_ACCOUNT_ID),
+                    lastScrapeResult: 401,
+                });
+
+                const globalCardList: CardList = {
+                    [CARD_IDS.card1]: brokenChaseCard,
+                    [CARD_IDS.card2]: brokenAmexCard,
+                };
+
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}], DERIVED_VALUE_CONTEXT);
+
+                expect(result.shouldShowRbrForFeedNameWithDomainID[CHASE_FEED.feedNameWithDomainID]).toBe(true);
+                expect(result.shouldShowRbrForFeedNameWithDomainID[AMEX_FEED.feedNameWithDomainID]).toBe(true);
+            });
+
+            it('should only mark the feed with errors when mixed feed-level error and broken connection', () => {
+                const healthyChaseCard = createCard({
+                    cardID: CARD_IDS.card1,
+                    bank: CHASE_FEED.feedName,
+                    fundID: String(SHARED_WORKSPACE_ACCOUNT_ID),
+                    lastScrapeResult: 200,
+                });
+                const healthyAmexCard = createCard({
+                    cardID: CARD_IDS.card2,
+                    bank: AMEX_FEED.feedName,
+                    fundID: String(SHARED_WORKSPACE_ACCOUNT_ID),
+                    lastScrapeResult: 200,
+                });
+
+                const globalCardList: CardList = {
+                    [CARD_IDS.card1]: healthyChaseCard,
+                    [CARD_IDS.card2]: healthyAmexCard,
+                };
+
+                const cardFeeds: OnyxCollection<CardFeeds> = {
+                    [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${SHARED_WORKSPACE_ACCOUNT_ID}`]: {
+                        settings: {
+                            companyCards: {
+                                [AMEX_FEED.feedName]: {
+                                    pending: false,
+                                    errors: {feedError: 'Connection expired'},
+                                },
+                                [CHASE_FEED.feedName]: {
+                                    pending: false,
+                                },
+                            },
+                            oAuthAccountDetails: {
+                                [AMEX_FEED.feedName]: {accountList: ['CREDIT CARD...1234'], credentials: 'xxxxx', expiration: 1730998958},
+                                [CHASE_FEED.feedName]: {accountList: ['CREDIT CARD...5678'], credentials: 'xxxxx', expiration: 1730998958},
+                            },
+                        },
+                    },
+                };
+
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, cardFeeds], DERIVED_VALUE_CONTEXT);
+
+                expect(result.shouldShowRbrForFeedNameWithDomainID[AMEX_FEED.feedNameWithDomainID]).toBe(true);
+                expect(result.shouldShowRbrForFeedNameWithDomainID[CHASE_FEED.feedNameWithDomainID]).toBe(false);
+            });
+        });
     });
 });

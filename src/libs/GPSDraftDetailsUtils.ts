@@ -134,7 +134,7 @@ async function stopGpsTrip(isOffline: boolean, gpsPoints: GPSPoint[][], skipLast
         return;
     }
 
-    if (isLastSegmentEmptyOrHasOnlyOnePoint(lastSegment)) {
+    if (isLastSegmentEmptyOrHasOnlyOnePoint(lastSegment) && gpsPoints.length > 1) {
         removeLastSegment(gpsPoints);
         return;
     }
@@ -172,10 +172,6 @@ async function stopGpsTrip(isOffline: boolean, gpsPoints: GPSPoint[][], skipLast
 
 function getTotalGpsTripPoints(gpsDraftDetails: GpsDraftDetails | undefined): number {
     return gpsDraftDetails?.gpsPoints?.flat().length ?? 0;
-}
-
-function getTotalGpsTripSegments(gpsDraftDetails: GpsDraftDetails | undefined): number {
-    return gpsDraftDetails?.gpsPoints?.length ?? 0;
 }
 
 function getTotalGpsTripPointsInLastSegment(gpsPoints: GPSPoint[][]): number {
@@ -261,10 +257,8 @@ export {
     getStringifiedGPSCoordinates,
     addressFromGpsPoint,
     coordinatesToString,
-    calculateGPSDistance,
     isTripStopped,
     getTotalGpsTripPoints,
-    getTotalGpsTripSegments,
     getTotalGpsTripPointsInLastSegment,
     getGpsPoints,
     getFirstGpsPoint,
