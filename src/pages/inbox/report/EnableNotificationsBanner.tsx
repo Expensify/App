@@ -8,17 +8,10 @@ import NotificationPermission from '@libs/Notification/notificationPermission';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
-// Vertical overlap (px) between the bottom of the cream banner and the top of the composer.
-// ReportFooter applies marginTop: -BANNER_COMPOSER_OVERLAP_PX to the composer so this many
-// pixels of cream sit behind the composer, exposing only its rounded-corner curves above the
-// banner edge. Must be at least the composer's corner radius; the extra 8px is visual headroom.
+// Composer overlaps this banner; the overlap must be ≥ the composer's corner radius.
 const BANNER_COMPOSER_OVERLAP_PX = variables.componentBorderRadiusRounded + 8;
-
-// Visible cream below the text, matching the pt3 top padding for symmetry around the prompt.
 const BANNER_VISIBLE_BOTTOM_GAP_PX = 12;
 
-// Rounded top corners only, flat bottom. paddingBottom = visible gap below text + the
-// overlap that hides behind the composer.
 const containerOverrideStyle = {
     paddingBottom: BANNER_VISIBLE_BOTTOM_GAP_PX + BANNER_COMPOSER_OVERLAP_PX,
     borderRadius: 0,
