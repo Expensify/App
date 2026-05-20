@@ -2438,5 +2438,7 @@ export type {
     NetSuiteConnectionData,
     HRConnectionConfigBase,
     MergeHRConnectionConfig,
+    GustoConnectionConfig,
+    ZenefitsConnectionConfig,
     MergeHRConnectionData,
 };

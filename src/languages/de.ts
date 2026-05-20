@@ -7067,6 +7067,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         },
         hr: {
             title: 'Personalwesen',
+            connections: 'Verbindungen',
             subtitle: 'HR-Tools verbinden und Mitarbeitergenehmigungen synchron halten.',
             connect: 'Verbinden',
             syncNow: 'Jetzt synchronisieren',

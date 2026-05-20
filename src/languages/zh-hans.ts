@@ -6855,6 +6855,7 @@ ${reportName}
         },
         hr: {
             title: '人力资源',
+            connections: '连接',
             subtitle: '连接人力资源工具，保持员工审批同步。',
             connect: '连接',
             syncNow: '立即同步',

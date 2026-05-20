@@ -114,7 +114,7 @@ function WorkspaceHRPage({
                 )}
                 <HeaderWithBackButton
                     icon={illustrations.NewUser}
-                    title={translate('workspace.common.hr')}
+                    title={translate('workspace.accounting.title')}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldUseHeadlineHeader
                     onBackButtonPress={() => Navigation.goBack()}
@@ -124,7 +124,7 @@ function WorkspaceHRPage({
                         <Section
                             contentPaddingOnLargeScreens={{padding: 24}}
                             isCentralPane
-                            renderTitle={() => <Text style={[styles.textStrong]}>{translate('workspace.common.hr')}</Text>}
+                            renderTitle={() => <Text style={[styles.textStrong]}>{translate('workspace.hr.connections')}</Text>}
                         >
                             <View style={styles.mt4}>
                                 {connectedCards.map((card) => (
@@ -132,7 +132,7 @@ function WorkspaceHRPage({
                                         key={card.key}
                                         card={card}
                                         policy={policy}
-                                        onConnect={() => onConnect(card.connectionName)}
+                                        handleConnect={() => onConnect(card.connectionName)}
                                     />
                                 ))}
 
@@ -142,7 +142,7 @@ function WorkspaceHRPage({
                                             key={card.key}
                                             card={card}
                                             policy={policy}
-                                            onConnect={() => onConnect(card.connectionName)}
+                                            handleConnect={() => onConnect(card.connectionName)}
                                         />
                                     ))}
                             </View>
@@ -162,7 +162,7 @@ function WorkspaceHRPage({
                                                 key={card.key}
                                                 card={card}
                                                 policy={policy}
-                                                onConnect={() => onConnect(card.connectionName)}
+                                                handleConnect={() => onConnect(card.connectionName)}
                                             />
                                         ))}
                                 </>

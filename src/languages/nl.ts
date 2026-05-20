@@ -7030,6 +7030,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         },
         hr: {
             title: 'HR',
+            connections: 'Verbindingen',
             subtitle: 'Koppel HR-tools en houd goedkeuringen van medewerkers gesynchroniseerd.',
             connect: 'Verbinden',
             syncNow: 'Nu synchroniseren',

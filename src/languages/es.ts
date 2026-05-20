@@ -6232,6 +6232,7 @@ ${amount} para ${merchant} - ${date}`,
         },
         hr: {
             title: 'HR',
+            connections: 'Conexiones',
             subtitle: 'Conecta herramientas de HR y mantén sincronizadas las aprobaciones de empleados.',
             connect: 'Conectar',
             syncNow: 'Sincronizar ahora',
@@ -6273,10 +6274,6 @@ ${amount} para ${merchant} - ${date}`,
                         return 'Aprovisionar empleados en la política';
                     case 'mergeHRSyncTitle':
                         return 'Sincronización de empleados de HR';
-                    case 'mergeHRSyncLoadData':
-                        return 'Cargando datos del proveedor de HR';
-                    case 'mergeHRSyncProvisioning':
-                        return 'Aprovisionar empleados en la política';
                     case 'jobDone':
                         return 'Esperando a que se carguen los datos importados';
                     default: {

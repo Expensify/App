@@ -7053,6 +7053,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         },
         hr: {
             title: 'Risorse umane',
+            connections: 'Connessioni',
             subtitle: 'Collega gli strumenti HR e mantieni sincronizzate le approvazioni dei dipendenti.',
             connect: 'Connetti',
             syncNow: 'Sincronizza ora',

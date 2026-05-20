@@ -20,12 +20,17 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type {HRCardDescriptor} from './utils';
 
 type HRProviderCardProps = {
+    /** Descriptor object containing the HR provider's display info, connection state, and sync status. */
     card: HRCardDescriptor;
+
+    /** The workspace policy that owns this HR integration. */
     policy: Policy | undefined;
-    onConnect: () => void;
+
+    /** Callback invoked when the user taps the "Connect" button for an unconnected provider. */
+    handleConnect: () => void;
 };
 
-function HRProviderCard({card, policy, onConnect}: HRProviderCardProps) {
+function HRProviderCard({card, policy, handleConnect}: HRProviderCardProps) {
     const {translate, datetimeToRelative} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -67,12 +72,10 @@ function HRProviderCard({card, policy, onConnect}: HRProviderCardProps) {
                     cancelText: translate('common.cancel'),
                     danger: true,
                 }).then((result) => {
-                    if (!result) {
+                    if (!result || !policy) {
                         return;
                     }
-                    if (policy) {
-                        removePolicyConnection(policy, card.connectionName);
-                    }
+                    removePolicyConnection(policy, card.connectionName);
                 });
             },
             shouldCallAfterModalHide: true,
@@ -86,7 +89,7 @@ function HRProviderCard({card, policy, onConnect}: HRProviderCardProps) {
             <Button
                 small
                 text={translate('workspace.hr.connect')}
-                onPress={onConnect}
+                onPress={handleConnect}
             />
         );
     } else if (card.isSyncInProgress) {
@@ -118,7 +121,7 @@ function HRProviderCard({card, policy, onConnect}: HRProviderCardProps) {
             <MenuItem
                 title={card.displayName}
                 icon={cardIcon}
-                iconType={card.iconType}
+                iconType={CONST.ICON_TYPE_AVATAR}
                 wrapperStyle={[styles.ph0, styles.pv2, !!lastSyncErrorMessage && styles.pb0]}
                 interactive={false}
                 description={connectionDescription}

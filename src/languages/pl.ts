@@ -7024,6 +7024,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         },
         hr: {
             title: 'HR',
+            connections: 'Połączenia',
             subtitle: 'Połącz narzędzia HR i utrzymuj zgody pracowników w synchronizacji.',
             connect: 'Połącz',
             syncNow: 'Synchronizuj teraz',

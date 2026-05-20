@@ -6420,6 +6420,7 @@ const translations = {
         },
         hr: {
             title: 'HR',
+            connections: 'Connections',
             subtitle: 'Connect HR tools and keep employee approvals in sync.',
             connect: 'Connect',
             syncNow: 'Sync now',
@@ -6461,10 +6462,6 @@ const translations = {
                         return 'Provisioning employees in policy';
                     case 'mergeHRSyncTitle':
                         return 'Synchronizing HR Employees';
-                    case 'mergeHRSyncLoadData':
-                        return 'Loading data from HR provider';
-                    case 'mergeHRSyncProvisioning':
-                        return 'Provisioning employees in policy';
                     case 'jobDone':
                         return 'Waiting for imported data to load';
                     default: {

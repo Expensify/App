@@ -6975,6 +6975,7 @@ ${reportName}
         },
         hr: {
             title: '人事',
+            connections: '接続',
             subtitle: '人事ツールを連携して、従業員の承認を常に同期させます。',
             connect: '接続',
             syncNow: '今すぐ同期',

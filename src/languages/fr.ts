@@ -7089,6 +7089,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         hr: {
             title: 'RH',
+            connections: 'Connexions',
             subtitle: 'Connectez vos outils RH et gardez les approbations des employés synchronisées.',
             connect: 'Connecter',
             syncNow: 'Synchroniser maintenant',

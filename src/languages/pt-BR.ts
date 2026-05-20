@@ -7030,6 +7030,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         },
         hr: {
             title: 'RH',
+            connections: 'Conexões',
             subtitle: 'Conecte ferramentas de RH e mantenha as aprovações de funcionários em sincronia.',
             connect: 'Conectar',
             syncNow: 'Sincronizar agora',
