@@ -51,7 +51,9 @@ export default {
     allowedAuthenticationMethods: [CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS_HSM, CONST.MULTIFACTOR_AUTHENTICATION.TYPE.PASSKEYS],
     action: changePINForCard,
     callback: async () => {
-        Navigation.closeRHPFlow();
+        // ChangePINPage is in the RHP and the outcome screen renders in the sibling MFA modal navigator.
+        // Pop it first so closing the modal returns to card details instead of the stale set-PIN screen.
+        Navigation.goBack();
         return CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN;
     },
     successScreen: <ChangePINSuccessScreen />,
