@@ -154,6 +154,14 @@ function isAccountData(data: unknown): data is AccountData {
 }
 
 /**
+ * Returns whether a payment method's bank currency matches the given currency.
+ * When no currency is provided, all methods are considered a match.
+ */
+function matchesCurrency(method: PaymentMethod, currency?: string): boolean {
+    return !currency || ('bankCurrency' in method && method.bankCurrency === currency);
+}
+
+/**
  * Returns all valid business bank accounts for the pay menu.
  * Allows admins to pay with any business bank account they have access to, not only the workspace-linked one.
  */
@@ -170,7 +178,7 @@ function getBusinessBankAccountOptions(formattedPaymentMethods: PaymentMethod[],
                 (accountData.state === CONST.BANK_ACCOUNT.STATE.OPEN || accountData.state === CONST.BANK_ACCOUNT.STATE.LOCKED) &&
                 method?.methodID != null &&
                 !isPartiallySetup &&
-                (!currency || ('bankCurrency' in method && method.bankCurrency === currency))
+                matchesCurrency(method, currency)
             );
         })
         .map((formattedPaymentMethod) => ({
@@ -362,6 +370,7 @@ export {
     getPaymentMethodDescription,
     formatPaymentMethods,
     getBusinessBankAccountOptions,
+    matchesCurrency,
     calculateWalletTransferBalanceFee,
     handleUnvalidatedAccount,
     selectPaymentType,

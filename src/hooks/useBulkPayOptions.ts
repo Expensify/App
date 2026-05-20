@@ -5,7 +5,7 @@ import type {BankAccountMenuItem} from '@components/Search/types';
 import {isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {formatPaymentMethods, getBusinessBankAccountOptions} from '@libs/PaymentUtils';
+import {formatPaymentMethods, getBusinessBankAccountOptions, matchesCurrency} from '@libs/PaymentUtils';
 import {sortPoliciesByName} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {
@@ -89,7 +89,7 @@ function useBulkPayOptions({
             .filter((method) => {
                 const accountData = method?.accountData as AccountData;
                 const isPartiallySetup = isBankAccountPartiallySetup(accountData?.state);
-                return accountData?.type === requiredAccountType && !isPartiallySetup && (!currency || ('bankCurrency' in method && method.bankCurrency === currency));
+                return accountData?.type === requiredAccountType && !isPartiallySetup && matchesCurrency(method, currency);
             })
             .map((formattedPaymentMethod) => ({
                 text: formattedPaymentMethod?.title ?? '',

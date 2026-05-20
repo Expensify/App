@@ -31,7 +31,7 @@ import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import {getLastPolicyBankAccountID, getLastPolicyPaymentMethod} from '@libs/actions/Search';
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {formatPaymentMethods, getActivePaymentType, getBusinessBankAccountOptions} from '@libs/PaymentUtils';
+import {formatPaymentMethods, getActivePaymentType, getBusinessBankAccountOptions, matchesCurrency} from '@libs/PaymentUtils';
 import {getPolicyEmployeeAccountIDs, isPaidGroupPolicy, isPolicyAdmin, sortPoliciesByName} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {
@@ -387,7 +387,7 @@ function SettlementButton({
                     .filter((method) => {
                         const accountData = method?.accountData as AccountData;
                         const isPartiallySetup = isBankAccountPartiallySetup(accountData?.state);
-                        return accountData?.type === requiredAccountType && !isPartiallySetup && (!currency || ('bankCurrency' in method && method.bankCurrency === currency));
+                        return accountData?.type === requiredAccountType && !isPartiallySetup && matchesCurrency(method, currency);
                     })
                     .map((formattedPaymentMethod) => ({
                         text: formattedPaymentMethod?.title ?? '',
