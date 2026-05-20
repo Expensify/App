@@ -480,7 +480,7 @@ function getEligibleBankAccountsForUkEuCard(bankAccountsList: OnyxEntry<BankAcco
 }
 
 function getCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, policyMembersAccountIDs: number[]): Card[] {
-    const {cardList, ...cards} = cardsList ?? {};
+    const {cardList, cardListByEncrypted, ...cards} = cardsList ?? {};
     return Object.values(cards).filter((card: Card) => card.accountID && policyMembersAccountIDs.includes(card.accountID));
 }
 
@@ -980,7 +980,8 @@ function getFilteredCardList(
         if (!workspaceCards) {
             continue;
         }
-        const {cardList, cardListByEncrypted: _cardListByEncrypted, ...workspaceCardItems} = workspaceCards;
+        // eslint-disable-next-line @typescript-eslint/no-shadow
+        const {cardList, cardListByEncrypted, ...workspaceCardItems} = workspaceCards;
         for (const card of Object.values(workspaceCardItems)) {
             if (card?.cardName) {
                 allWorkspaceAssignedCardNames.add(card.cardName);
@@ -1580,7 +1581,7 @@ function isCardAlreadyAssigned(cardNumberToCheck: string, workspaceCardFeeds: On
             return false;
         }
 
-        const {cardList, ...assignedCards} = workspaceCards;
+        const {cardList, cardListByEncrypted, ...assignedCards} = workspaceCards;
         return Object.values(assignedCards).some(
             (card) => card && card.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isMatchingCard(card, cardNumberToCheck, cardNumberToCheck),
         );
