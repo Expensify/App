@@ -614,6 +614,8 @@ const SCREENS = {
             XERO_MAP_TRACKING_CATEGORY: 'Policy_Accounting_Xero_Map_Tracking_Category',
             DYNAMIC_XERO_EXPORT: 'Dynamic_Policy_Accounting_Xero_Export',
             DYNAMIC_XERO_EXPORT_PURCHASE_BILL_DATE_SELECT: 'Dynamic_Policy_Accounting_Xero_Export_Purchase_Bill_Date_Select',
+            DYNAMIC_XERO_TRAVEL_INVOICING_CONFIGURATION: 'Dynamic_Policy_Accounting_Xero_Travel_Invoicing_Configuration',
+            DYNAMIC_XERO_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT: 'Dynamic_Policy_Accounting_Xero_Travel_Invoicing_Payable_Account_Select',
             XERO_ADVANCED: 'Policy_Accounting_Xero_Advanced',
             DYNAMIC_XERO_AUTO_SYNC: 'Dynamic_Policy_Accounting_Xero_Auto_Sync',
             DYNAMIC_XERO_ACCOUNTING_METHOD: 'Dynamic_Policy_Accounting_Xero_Accounting_Method',
