@@ -40,8 +40,13 @@ import {getPolicyExpenseChat, getTransactionDetails, isMoneyRequestReport, isPol
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getRequestType, getTaxValue, hasReceipt, isDistanceRequest, isExpenseUnreported} from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
-import {setMoneyRequestAmount} from '@userActions/IOU';
-import {getMoneyRequestParticipantsFromReport, setMoneyRequestParticipantsFromReport, setMoneyRequestTaxAmount, setMoneyRequestTaxRate} from '@userActions/IOU/MoneyRequest';
+import {
+    getMoneyRequestParticipantsFromReport,
+    setMoneyRequestAmount,
+    setMoneyRequestParticipantsFromReport,
+    setMoneyRequestTaxAmount,
+    setMoneyRequestTaxRate,
+} from '@userActions/IOU/MoneyRequest';
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
 import {resetSplitShares, setDraftSplitTransaction, setSplitShares} from '@userActions/IOU/Split';
 import {trackExpense} from '@userActions/IOU/TrackExpense';
@@ -387,7 +392,7 @@ function IOURequestStepAmount({
             }
             if (isSplitBill && !report.isOwnPolicyExpenseChat && report.participants) {
                 const participantAccountIDs = Object.keys(report.participants).map((accountID) => Number(accountID));
-                setSplitShares(transaction, amountInSmallestCurrencyUnits, selectedCurrency || CONST.CURRENCY.USD, participantAccountIDs);
+                setSplitShares(transaction, amountInSmallestCurrencyUnits, selectedCurrency || CONST.CURRENCY.USD, participantAccountIDs, currentUserAccountIDParam);
             }
             setMoneyRequestParticipantsFromReport(transactionID, report, currentUserPersonalDetails.accountID).then(() => {
                 navigateToConfirmationPage(iouType, transactionID, reportID, backToReport);

@@ -1,4 +1,4 @@
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {CurrentUser} from '@userActions/Policy/Policy';
 import type {IOUAction} from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -35,6 +35,8 @@ type CreateTrackExpenseParams = {
     isSelfTourViewed: boolean;
     defaultWorkspaceName?: string;
     previousOdometerDraft?: OnyxEntry<OnyxTypes.OdometerDraft>;
+    // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66578
+    reportActionsList?: OnyxCollection<OnyxTypes.ReportActions>;
 };
 
 export type {CreateTrackExpenseParams, TrackExpenseAccountantParams};
