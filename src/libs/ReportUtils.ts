@@ -11701,7 +11701,7 @@ function prepareOnboardingOnyxData({
         Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
             [assignedGuideAccountID]: {
                 accountID: assignedGuideAccountID,
-                isOptimisticPersonalDetail: !assignedGuidePersonalDetail,
+                isOptimisticPersonalDetail: isOptimisticAssignedGuide,
                 login: assignedGuideEmail,
                 displayName: assignedGuideEmail,
                 avatar: getDefaultAvatarURL({accountID: assignedGuideAccountID}),
