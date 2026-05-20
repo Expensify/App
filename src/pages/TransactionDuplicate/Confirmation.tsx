@@ -1,16 +1,27 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
+import SnapshotViolationsProvider from '@components/MoneyRequestView/contexts/SnapshotViolationsProvider';
+import MoneyRequestViewPreview from '@components/MoneyRequestView/MoneyRequestViewPreview';
+import AmountRowSnapshot from '@components/MoneyRequestView/rows/AmountRowSnapshot';
+import AttendeesRowSnapshot from '@components/MoneyRequestView/rows/AttendeesRowSnapshot';
+import BillableRowSnapshot from '@components/MoneyRequestView/rows/BillableRowSnapshot';
+import CategoryRowSnapshot from '@components/MoneyRequestView/rows/CategoryRowSnapshot';
+import DateRowSnapshot from '@components/MoneyRequestView/rows/DateRowSnapshot';
+import DescriptionRowSnapshot from '@components/MoneyRequestView/rows/DescriptionRowSnapshot';
+import MerchantOrDistanceRowSnapshot from '@components/MoneyRequestView/rows/MerchantOrDistanceRowSnapshot';
+import ReceiptCardSnapshot from '@components/MoneyRequestView/rows/ReceiptCardSnapshot';
+import ReimbursableRowSnapshot from '@components/MoneyRequestView/rows/ReimbursableRowSnapshot';
+import TagRowsSnapshot from '@components/MoneyRequestView/rows/TagRowsSnapshot';
+import TaxRowSnapshot from '@components/MoneyRequestView/rows/TaxRowSnapshot';
+import TransactionViolationsBlockSnapshot from '@components/MoneyRequestView/rows/TransactionViolationsBlockSnapshot';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -19,6 +30,7 @@ import useOnyx from '@hooks/useOnyx';
 import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsByID from '@hooks/useTransactionsByID';
+import useTransactionViolations from '@hooks/useTransactionViolations';
 import {mergeDuplicates, resolveDuplicates} from '@libs/actions/IOU/Duplicate';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
@@ -66,6 +78,7 @@ function Confirmation() {
     const reportAction = Object.values(reportActions ?? {}).find(
         (action) => ReportActionsUtils.isMoneyRequestAction(action) && ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID === reviewDuplicates?.transactionID,
     );
+    const mergedCandidateViolations = useTransactionViolations(newTransaction?.transactionID);
     const {superWideRHPRouteKeys} = useWideRHPState();
     const isSuperWideRHPDisplayed = superWideRHPRouteKeys.length > 0;
 
@@ -113,25 +126,6 @@ function Confirmation() {
         Navigation.dismissToSuperWideRHP();
     }, [transactionsMergeParams, taxData]);
 
-    const contextMenuStateValue = useMemo(
-        () => ({
-            transactionThreadReport: report,
-            action: reportAction,
-            report,
-            anchor: null,
-            isDisabled: false,
-        }),
-        [report, reportAction],
-    );
-
-    const contextMenuActionsValue = useMemo(
-        () => ({
-            checkIfContextMenuActive: () => {},
-            onShowContextMenu: () => {},
-        }),
-        [],
-    );
-
     const doesTransactionBelongToReport = reviewDuplicates?.transactionID === transactionID || (transactionID && reviewDuplicates?.duplicates.includes(transactionID));
 
     const isDismissingRef = useRef(false);
@@ -174,20 +168,25 @@ function Confirmation() {
                             </Text>
                             <Text>{translate('violations.confirmDuplicatesInfo')}</Text>
                         </View>
-                        {/* We need that provider here because MoneyRequestView component requires that */}
-                        <ShowContextMenuStateContext.Provider value={contextMenuStateValue}>
-                            <ShowContextMenuActionsContext.Provider value={contextMenuActionsValue}>
-                                <MoneyRequestView
-                                    transactionThreadReport={report}
-                                    parentReportID={report?.parentReportID}
-                                    expensePolicy={policy}
-                                    shouldShowAnimatedBackground={false}
-                                    readonly
-                                    updatedTransaction={newTransaction as OnyxEntry<Transaction>}
-                                    isFromReviewDuplicates
-                                />
-                            </ShowContextMenuActionsContext.Provider>
-                        </ShowContextMenuStateContext.Provider>
+                        <SnapshotViolationsProvider violations={mergedCandidateViolations}>
+                            <MoneyRequestViewPreview
+                                source={newTransaction as Transaction}
+                                policyID={policy?.id}
+                            >
+                                <ReceiptCardSnapshot />
+                                <AmountRowSnapshot />
+                                <DescriptionRowSnapshot />
+                                <MerchantOrDistanceRowSnapshot />
+                                <DateRowSnapshot />
+                                <CategoryRowSnapshot />
+                                <TagRowsSnapshot />
+                                <TaxRowSnapshot />
+                                <AttendeesRowSnapshot />
+                                <BillableRowSnapshot />
+                                <ReimbursableRowSnapshot />
+                                <TransactionViolationsBlockSnapshot />
+                            </MoneyRequestViewPreview>
+                        </SnapshotViolationsProvider>
                     </ScrollView>
                     <FixedFooter style={styles.mtAuto}>
                         <Button
