@@ -377,6 +377,33 @@ describe('OnboardingWorkEmail Page', () => {
         unmount();
         await waitForBatchedUpdatesWithAct();
     });
+
+    it('should still navigate to Onboarding work email validation page when caller is on a public domain', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+            });
+            // Public-domain users with a merge target must still reach WORK_EMAIL_VALIDATION so MergeIntoAccountAndLogIn can run.
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false, isFromPublicDomain: true});
+        });
+
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        AddWorkEmailShouldValidate();
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute());
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
 });
 
 describe('OnboardingWorkEmailValidation Page', () => {
