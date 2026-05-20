@@ -259,7 +259,7 @@ function ReportFieldBase({ref, values: initialValues = {}, selectedField, style,
 
     if (selectedField) {
         return (
-            <View style={[styles.gap2, styles.flexShrink1, style]}>
+            <>
                 {!selectedDateModifier && (
                     <HeaderWithBackButton
                         style={[styles.h10]}
@@ -282,7 +282,7 @@ function ReportFieldBase({ref, values: initialValues = {}, selectedField, style,
                         value={getValue(selectedField.name)}
                     />
                 )}
-            </View>
+            </>
         );
     }
 

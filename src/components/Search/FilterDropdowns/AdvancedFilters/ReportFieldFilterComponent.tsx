@@ -22,23 +22,25 @@ function ReportFieldFilterComponent({values, onChange}: ReportFieldComponentProp
     const [selectedField, setSelectedField] = useState<PolicyReportField | null>(null);
     const reportFieldRef = useRef<ReportFieldHandle>(null);
 
+    let wrapperStyle: ViewStyle | undefined;
     let reportFieldStyle: ViewStyle | undefined;
     if (!fullscreen) {
-        reportFieldStyle = selectedField ? styles.pt2 : styles.pv2;
+        reportFieldStyle = styles.pv2;
+        wrapperStyle = selectedField ? styles.pt2 : undefined;
     }
 
     return (
-        <View style={[styles.flex1]}>
+        <View style={[styles.flex1, wrapperStyle]}>
             <ReportFieldBase
                 ref={reportFieldRef}
                 values={values}
                 selectedField={selectedField}
                 onFieldSelected={setSelectedField}
-                style={[reportFieldStyle, styles.flex1]}
+                style={reportFieldStyle}
             />
             {(!!selectedField || fullscreen) && (
                 <Button
-                    style={[styles.ph5, styles.pb5]}
+                    style={[styles.ph5, styles.pb5, styles.mtAuto]}
                     success
                     medium={!fullscreen}
                     large={fullscreen}

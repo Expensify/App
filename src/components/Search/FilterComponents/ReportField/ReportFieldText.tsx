@@ -20,7 +20,7 @@ function ReportFieldText({field, value, onChange}: ReportFieldTextProps) {
             onChangeText={onChange}
             accessibilityLabel={field.name}
             role={CONST.ROLE.PRESENTATION}
-            containerStyles={[styles.ph5, styles.mb2]}
+            containerStyles={[styles.ph5, styles.pv2]}
         />
     );
 }
