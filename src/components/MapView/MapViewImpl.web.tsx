@@ -77,7 +77,7 @@ function MapViewImpl({
     // false if user has already started dragging the map or
     // if there are one or more waypoints present.
     const shouldPanMapToCurrentPosition = useCallback(
-        () => !userInteractedWithMap && !shouldDisplayCurrentLocation && (!waypoints || waypoints.length === 0),
+        () => !userInteractedWithMap && shouldDisplayCurrentLocation && (!waypoints || waypoints.length === 0),
         [userInteractedWithMap, waypoints, shouldDisplayCurrentLocation],
     );
 
