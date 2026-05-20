@@ -644,29 +644,6 @@ function getGuideAndAccountManagerInfo(
 }
 
 /**
- * Build a soft-exclusion map of every Expensify-team login (Guides, Account Managers, support staff)
- * present in personalDetails. Used by the Reports From filter so internal staff don't leak into
- * suggestions for customer accounts. Returns empty when the current user is themselves Expensify
- * team, so they still see their colleagues. The `shouldExclude` flag lets call sites opt out without
- * an extra ternary, since most filters don't apply this soft exclusion.
- */
-function getExpensifyTeamExclusions(personalDetails: OnyxEntry<PersonalDetailsList>, currentUserLogin: string | undefined, shouldExclude: boolean): Record<string, boolean> {
-    if (!shouldExclude || !currentUserLogin || isExpensifyTeam(currentUserLogin)) {
-        return {};
-    }
-
-    const exclusions: Record<string, boolean> = {};
-    for (const details of Object.values(personalDetails ?? {})) {
-        const login = details?.login?.toLowerCase();
-        if (!login || !isExpensifyTeam(login)) {
-            continue;
-        }
-        exclusions[login] = true;
-    }
-    return exclusions;
-}
-
-/**
  * Build a soft-exclusion map of every hydrated personal-details login that is NOT a member of
  * any of the user's policies' employeeList. Used by the search filters so the picker shows only
  * workspace members. Free-text input via `includeUserToInvite: true` still lets users type any
@@ -2266,7 +2243,6 @@ export {
     getMemberAccountIDsForWorkspace,
     getGuideAndAccountManagerInfo,
     getSoftExclusionsForGuideAndAccountManager,
-    getExpensifyTeamExclusions,
     getNonWorkspaceMemberExclusions,
     filterGuideAndAccountManager,
     isMultiLevelTags,
