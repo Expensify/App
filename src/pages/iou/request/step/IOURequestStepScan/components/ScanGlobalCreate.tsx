@@ -17,11 +17,11 @@ import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import buildReceiptFiles from '@pages/iou/request/step/IOURequestStepScan/utils/buildReceiptFiles';
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
+import resetStaleScanDrafts from '@pages/iou/request/step/IOURequestStepScan/utils/resetStaleScanDrafts';
 import startScanProcessSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startScanProcessSpan';
 import useScanFileReadabilityCheck from '@pages/iou/request/step/IOURequestStepScan/utils/useScanFileReadabilityCheck';
 import {setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
 import {setTransactionReport} from '@userActions/Transaction';
-import {removeDraftTransactionsByIDs, removeTransactionReceipt} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -99,13 +99,7 @@ function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backTo
         if (files.length === 0) {
             return;
         }
-
-        // Wipe any leftover drafts and the initial transaction's receipt before starting a fresh batch.
-        // Skipped when multi-scan is on, since multi-scan within a single session accumulates drafts on purpose.
-        if (!isMultiScanEnabled && draftTransactionIDs && draftTransactionIDs.length > 0) {
-            removeDraftTransactionsByIDs(draftTransactionIDs, true);
-            removeTransactionReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
-        }
+        resetStaleScanDrafts(isMultiScanEnabled, draftTransactionIDs);
 
         const receiptFiles = buildReceiptFiles({
             files,
