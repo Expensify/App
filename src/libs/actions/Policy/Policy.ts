@@ -3011,7 +3011,6 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
             onboardingPurposeSelected,
             companySize: companySize ?? (introSelected?.companySize as OnboardingCompanySize),
             isSelfTourViewed,
-            betas,
         });
         if (!onboardingData) {
             return {successData, optimisticData, failureData, params};

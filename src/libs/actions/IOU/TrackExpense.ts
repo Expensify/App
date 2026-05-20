@@ -1801,7 +1801,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                       onboardingMessage: getOnboardingMessages().onboardingMessages[CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER],
                       companySize: undefined,
                       isSelfTourViewed,
-                      betas,
                   })?.guidedSetupData
                 : undefined;
 

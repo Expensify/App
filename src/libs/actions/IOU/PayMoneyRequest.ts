@@ -731,7 +731,6 @@ function completePaymentOnboarding(
         companySize: introSelected?.companySize as OnboardingCompanySize,
         introSelected,
         isSelfTourViewed,
-        betas,
     });
 }
 

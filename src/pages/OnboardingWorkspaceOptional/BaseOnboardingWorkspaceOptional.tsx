@@ -119,7 +119,6 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
                 adminsChatReportID: resolvedAdminsChatReportID,
                 onboardingPolicyID: resolvedPolicyID,
                 introSelected,
-                betas,
                 isSelfTourViewed,
             });
 

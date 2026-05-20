@@ -1376,7 +1376,6 @@ function buildParticipantInfoFromLogins(logins: string[], accountIDs?: number[])
  */
 function getGuidedSetupDataForOpenReport(
     introSelected: OnyxEntry<IntroSelected>,
-    betas: OnyxEntry<Beta[]>,
     // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
     isSelfTourViewed?: boolean,
     // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
@@ -1417,7 +1416,6 @@ function getGuidedSetupDataForOpenReport(
         companySize: introSelected?.companySize as OnboardingCompanySize,
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,
-        betas,
     });
 
     if (!onboardingData) {
@@ -1695,7 +1693,7 @@ function openReport(params: OpenReportActionParams) {
         });
     }
 
-    const guidedSetup = getGuidedSetupDataForOpenReport(introSelected, betas, isSelfTourViewed, hasCompletedGuidedSetupFlow);
+    const guidedSetup = getGuidedSetupDataForOpenReport(introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow);
     if (guidedSetup) {
         optimisticData.push(...guidedSetup.optimisticData);
         successData.push(...guidedSetup.successData);
@@ -2056,7 +2054,7 @@ function createGroupChat(
     }
 
     // Preserve guided setup data when creating group chats
-    const guidedSetup = getGuidedSetupDataForOpenReport(introSelected, betas, isSelfTourViewed);
+    const guidedSetup = getGuidedSetupDataForOpenReport(introSelected, isSelfTourViewed);
     if (guidedSetup) {
         optimisticData.push(...guidedSetup.optimisticData);
         successData.push(...guidedSetup.successData);
@@ -5389,7 +5387,6 @@ type CompleteOnboardingProps = {
     shouldWaitForRHPVariantInitialization?: boolean;
     introSelected: OnyxEntry<IntroSelected>;
     isSelfTourViewed: boolean | undefined;
-    betas: OnyxEntry<Beta[]>;
 };
 
 async function completeOnboarding({
@@ -5409,7 +5406,6 @@ async function completeOnboarding({
     shouldWaitForRHPVariantInitialization = false,
     introSelected,
     isSelfTourViewed,
-    betas,
 }: CompleteOnboardingProps) {
     const onboardingData = prepareOnboardingOnyxData({
         introSelected,
@@ -5424,7 +5420,6 @@ async function completeOnboarding({
         isInvitedAccountant,
         onboardingPurposeSelected,
         isSelfTourViewed,
-        betas,
     });
     if (!onboardingData) {
         return;

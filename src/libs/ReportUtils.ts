@@ -11582,9 +11582,6 @@ type PrepareOnboardingOnyxDataParams = {
     onboardingPurposeSelected?: OnboardingPurpose;
     // TODO: isSelfTourViewed will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
     isSelfTourViewed?: boolean;
-    // Accepted for backwards compatibility with existing callers — the bespoke direct-post
-    // path no longer depends on a beta gate. Safe to drop once no caller passes it.
-    betas?: OnyxEntry<Beta[]>;
     // TODO: hasCompletedGuidedSetupFlow will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
     hasCompletedGuidedSetupFlow?: boolean;
 };
@@ -11965,7 +11962,7 @@ function prepareOnboardingOnyxData({
             key: `${ONYXKEYS.COLLECTION.REPORT}${targetChatReportID}`,
             value: {
                 hasOutstandingChildTask,
-                ...(skipSignOff && !message ? {} : {lastVisibleActionCreated}),
+                ...(shouldUseFollowupsInsteadOfTasks || (skipSignOff && !message) ? {} : {lastVisibleActionCreated}),
                 lastActorAccountID: actorAccountID,
             },
         },
