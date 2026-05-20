@@ -99,8 +99,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         }
         setOnboardingErrorMessage(null);
 
-        // Skip the merge-validation step for public-domain accounts.
-        if (onboardingValues?.shouldValidate && !account?.isFromPublicDomain) {
+        if (onboardingValues?.shouldValidate) {
             Navigation.navigate(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute());
             return;
         }

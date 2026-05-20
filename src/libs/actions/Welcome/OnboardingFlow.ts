@@ -133,8 +133,8 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
         return `/${ROUTES.ONBOARDING_WORK_EMAIL.route}`;
     }
 
-    // Skip the merge-validation and private-domain screens for public-domain accounts.
-    if (isUserFromPublicDomain && (onboardingInitialPath.includes(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.route) || onboardingInitialPath.includes(ROUTES.ONBOARDING_PRIVATE_DOMAIN.route))) {
+    // PRIVATE_DOMAIN ("People you may know are already here") only makes sense for users on a private domain.
+    if (isUserFromPublicDomain && onboardingInitialPath.includes(ROUTES.ONBOARDING_PRIVATE_DOMAIN.route)) {
         if (isVsb) {
             return `/${ROUTES.ONBOARDING_ACCOUNTING.route}`;
         }

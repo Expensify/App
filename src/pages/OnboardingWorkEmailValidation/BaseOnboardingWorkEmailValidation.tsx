@@ -42,24 +42,6 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
     const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION);
 
     useEffect(() => {
-        // Public-domain accounts have no work account to merge with; the screen's wording assumes a private domain workspace.
-        if (account?.isFromPublicDomain) {
-            if (isVsb) {
-                Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(), {forceReplace: true});
-                return;
-            }
-            if (isSmb) {
-                Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(), {forceReplace: true});
-                return;
-            }
-            if (!onboardingValues?.isMergeAccountStepSkipped) {
-                Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(), {forceReplace: true});
-                return;
-            }
-            Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
-            return;
-        }
-
         if (onboardingValues?.isMergeAccountStepCompleted === undefined) {
             return;
         }
@@ -87,7 +69,6 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
 
         Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
     }, [
-        account?.isFromPublicDomain,
         onboardingValues?.isMergeAccountStepCompleted,
         onboardingValues?.shouldRedirectToClassicAfterMerge,
         onboardingValues?.isMergeAccountStepSkipped,
@@ -107,11 +88,6 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
         setOnboardingErrorMessage(null);
         MergeIntoAccountAndLogin(workEmail, validateCode, session?.accountID);
     };
-
-    // Public-domain accounts have no work account to merge with; render nothing while the redirect above takes effect.
-    if (account?.isFromPublicDomain) {
-        return null;
-    }
 
     return (
         <ScreenWrapper
