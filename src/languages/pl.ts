@@ -1018,8 +1018,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         freeTrialSection: {
             title: ({days}: {days: number}) => `Darmowy okres próbny: pozostało ${days} ${days === 1 ? 'dzień' : 'dni'}!`,
-            offer50Body: 'Zyskaj 50% zniżki na pierwszy rok!',
-            offer25Body: 'Uzyskaj 25% zniżki na pierwszy rok!',
+            offer50Body: 'Zyskaj 50% zniżki na pierwszy rok',
+            offer25Body: 'Uzyskaj 25% zniżki na pierwszy rok',
             addCardBody: 'Nie czekaj! Dodaj teraz swoją kartę płatniczą.',
             ctaClaim: 'Roszczenie',
             ctaAdd: 'Dodaj kartę',
@@ -2467,6 +2467,7 @@ const translations: TranslationDeepObject<typeof en> = {
             expiration: 'Wygaśnięcie',
             cvv: 'CVV',
             address: 'Adres',
+            reveal: 'Pokaż',
             revealDetails: 'Pokaż szczegóły',
             revealCvv: 'Pokaż kod CVV',
             copyCardNumber: 'Skopiuj numer karty',
@@ -2589,10 +2590,10 @@ ${amount} dla ${merchant} - ${date}`,
             approverSubtitle: 'Wszyscy zatwierdzający należą do istniejącego przepływu pracy.',
             bulkApproverSubtitle: 'Żaden akceptujący nie spełnia kryteriów dla wybranych raportów.',
         },
-        configureViaGusto: 'Skonfiguruj przez Gusto.',
-        gustoApprovalWorkflowLockedPrompt:
-            'Zatwierdzanie jest zarządzane przez Twoją integrację z Gusto. Aby zaktualizować swój proces zatwierdzania, przejdź do ustawień połączenia z Gusto.',
-        goToGustoSettings: 'Przejdź do ustawień Gusto',
+        configureViaHR: ({provider}: {provider: string}) => `Skonfiguruj przez ${provider}.`,
+        hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
+            `Zatwierdzanie jest zarządzane przez Twoją integrację z ${provider}. Aby zaktualizować swój proces zatwierdzania, przejdź do ustawień połączenia z ${provider}.`,
+        goToHRSettings: ({provider}: {provider: string}) => `Przejdź do ustawień ${provider}`,
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: 'Nie udało się zmienić częstotliwości wysyłania. Spróbuj ponownie lub skontaktuj się z pomocą techniczną.',
@@ -4295,6 +4296,12 @@ ${amount} dla ${merchant} - ${date}`,
                         return 'Administrator';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Audytor';
+                    case CONST.POLICY.ROLE.CARD_ADMIN:
+                        return 'Administrator karty';
+                    case CONST.POLICY.ROLE.PEOPLE_ADMIN:
+                        return 'Administrator osób';
+                    case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
+                        return 'Administrator płatności';
                     case CONST.POLICY.ROLE.USER:
                         return 'Członek';
                     default:
@@ -4325,11 +4332,14 @@ ${amount} dla ${merchant} - ${date}`,
             budgetTypeForNotificationMessage: {tag: 'znacznik', category: 'kategoria'},
             policyExpenseChatName: (displayName: string) => `Wydatki ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>Transakcje z Karty Expensify będą automatycznie eksportowane do „Konta zobowiązań Karty Expensify” utworzonego dzięki <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">naszej integracji</a>.</muted-text-label>`,
-            travelInvoicing: 'Eksportuj należności z Expensify Travel do',
+            travelInvoicing: 'Eksportuj wydatki z fakturowania podróży jako',
             travelInvoicingVendor: 'Dostawca usług turystycznych',
             travelInvoicingPayableAccount: 'Konto zobowiązań z tytułu podróży',
             hr: 'HR',
             rooms: 'Pokoje',
+            cardAdminAlternateText: 'Zarządzaj kartami przestrzeni roboczej.',
+            peopleAdminAlternateText: 'Zarządzaj członkami i procesami akceptacji.',
+            paymentsAdminAlternateText: 'Zarządzaj płatnościami w przepływie pracy.',
         },
         createdForClient: {
             title: 'Utworzyłeś przestrzeń roboczą dla swojego klienta!',
@@ -4649,6 +4659,7 @@ ${amount} dla ${merchant} - ${date}`,
             exportDeepDiveCompanyCard:
                 'Wyeksportowane wydatki zostaną zaksięgowane jako transakcje bankowe na poniższym koncie bankowym Xero, a daty transakcji będą zgodne z datami na Twoim wyciągu bankowym.',
             bankTransactions: 'Transakcje bankowe',
+            travelInvoicingDescription: 'Wydatki na podróże zostaną wyeksportowane jako transakcje bankowe na konto Xero wskazane poniżej.',
             xeroBankAccount: 'Konto bankowe Xero',
             xeroBankAccountDescription: 'Wybierz, gdzie wydatki będą księgowane jako transakcje bankowe.',
             exportExpensesDescription: 'Raporty zostaną wyeksportowane jako rachunek zakupu z datą i statusem wybranymi poniżej.',
@@ -5954,6 +5965,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 `Za chwilę utworzysz i udostępnisz ${newWorkspaceName ?? ''} ${totalMembers ?? 0} członkom oryginalnego obszaru roboczego.`,
             error: 'Wystąpił błąd podczas duplikowania Twojego nowego obszaru roboczego. Spróbuj ponownie.',
         },
+        copyPolicySettings: {error: 'Wystąpił błąd podczas kopiowania ustawień przestrzeni roboczej. Spróbuj ponownie.'},
         emptyWorkspace: {
             title: 'Nie masz żadnych przestrzeni roboczych',
             subtitle: 'Śledź paragony, rozliczaj wydatki, zarządzaj podróżami, wysyłaj faktury i wiele więcej.',
@@ -7013,8 +7025,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                     description: 'Dla pracowników, którzy chcą przesyłać wydatki do pracodawcy.',
                 },
             },
-            description: 'Wybierz plan odpowiedni dla siebie. Szczegółową listę funkcji i cen znajdziesz w naszej',
-            subscriptionLink: 'strona pomocy dotycząca typów planów i cen',
+            description: 'Wybierz plan odpowiedni dla siebie.',
+            subscriptionLink: 'Dowiedz się więcej',
             lockedPlanDescription: ({count, annualSubscriptionEndDate}: WorkspaceLockedPlanTypeParams) => ({
                 one: `Zobowiązałeś(-aś) się do 1 aktywnego członka w planie Control do końca rocznej subskrypcji ${annualSubscriptionEndDate}. Możesz przejść na subskrypcję z rozliczaniem za użycie i zmienić plan na Collect od ${annualSubscriptionEndDate}, wyłączając automatyczne odnawianie w`,
                 other: `Zobowiązałeś(-aś) się do ${count} aktywnych członków w planie Control do końca rocznej subskrypcji ${annualSubscriptionEndDate}. Możesz przejść na subskrypcję płatną za użycie i zmienić plan na Collect od ${annualSubscriptionEndDate}, wyłączając automatyczne odnawianie w`,
@@ -8551,7 +8563,15 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             `<muted-text-label>Oczekuje na rachunek z powodu przerwanego połączenia z bankiem. Rozwiąż problem w sekcji <a href="${workspaceCompanyCardRoute}">Karty firmowe</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Paragon oczekuje z powodu zerwanego połączenia z bankiem. Poproś administratora przestrzeni roboczej o rozwiązanie problemu.',
         markAsCashToIgnore: 'Oznacz jako gotówkę, aby zignorować i poprosić o płatność.',
-        smartscanFailed: ({canEdit = true}) => `Skanowanie paragonu nie powiodło się.${canEdit ? 'Wpisz szczegóły ręcznie.' : ''}`,
+        smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
+            if (missingFields.length > 0) {
+                const fieldNames: Record<string, string> = {merchant: 'sprzedawcy', date: 'daty', amount: 'kwoty'};
+                const translated = missingFields.map((f) => fieldNames[f] ?? f);
+                const fieldList = translated.join(translated.length > 2 ? ', ' : ' i ');
+                return `Skanowanie paragonu nie powiodło się — brak ${fieldList}.${canEdit ? ' Wpisz szczegóły ręcznie.' : ''}`;
+            }
+            return `Skanowanie paragonu nie powiodło się.${canEdit ? 'Wpisz szczegóły ręcznie.' : ''}`;
+        },
         receiptGeneratedWithAI: 'Potencjalny paragon wygenerowany przez AI',
         someTagLevelsRequired: (tagName?: string) => `Brak ${tagName ?? 'Tag'}`,
         tagOutOfPolicy: (tagName?: string) => `${tagName ?? 'Tag'} nie jest już ważny`,

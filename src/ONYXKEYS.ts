@@ -326,6 +326,9 @@ const ONYXKEYS = {
     /** Token needed to initialize Plaid link */
     RAM_ONLY_PLAID_LINK_TOKEN: 'plaidLinkToken',
 
+    /** Token needed to initialize the Merge Link SDK for HR integrations */
+    RAM_ONLY_MERGE_HR_LINK_TOKEN: 'mergeHRLinkToken',
+
     /** Capture Plaid event  */
     PLAID_CURRENT_EVENT: 'plaidCurrentEvent',
 
@@ -726,6 +729,7 @@ const ONYXKEYS = {
         ATTACHMENT: 'attachment_',
         DOMAIN: 'domain_',
         DOWNLOAD: 'download_',
+        EXPORT_DOWNLOAD: 'nvp_exportDownload_',
         POLICY: 'policy_',
         POLICY_DRAFTS: 'policyDrafts_',
         POLICY_JOIN_MEMBER: 'policyJoinMember_',
@@ -1298,6 +1302,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.ATTACHMENT]: OnyxTypes.Attachment;
     [ONYXKEYS.COLLECTION.DOMAIN]: OnyxTypes.Domain;
     [ONYXKEYS.COLLECTION.DOWNLOAD]: OnyxTypes.Download;
+    [ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD]: OnyxTypes.ExportDownload;
     [ONYXKEYS.COLLECTION.POLICY]: OnyxTypes.Policy;
     [ONYXKEYS.COLLECTION.POLICY_DRAFTS]: OnyxTypes.Policy;
     [ONYXKEYS.COLLECTION.POLICY_CATEGORIES]: OnyxTypes.PolicyCategories;
@@ -1452,6 +1457,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.PLAID_DATA]: OnyxTypes.PlaidData;
     [ONYXKEYS.IS_PLAID_DISABLED]: boolean;
     [ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN]: string;
+    [ONYXKEYS.RAM_ONLY_MERGE_HR_LINK_TOKEN]: string;
     [ONYXKEYS.ONFIDO_TOKEN]: string;
     [ONYXKEYS.ONFIDO_APPLICANT_ID]: string;
     [ONYXKEYS.NVP_PREFERRED_LOCALE]: OnyxTypes.Locale;
