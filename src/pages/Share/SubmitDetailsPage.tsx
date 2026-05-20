@@ -42,6 +42,7 @@ import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/clean
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
+import {rand64} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
@@ -216,6 +217,10 @@ function SubmitDetailsPage({
             return;
         }
 
+        // `transaction.transactionID` is the draft placeholder; mirror the action's `existingTransactionID ?? rand64()` chain so cleanup nav targets the created expense.
+        const existingTransactionID = getExistingTransactionID(transaction.linkedTrackedExpenseReportAction);
+        const optimisticTransactionID = existingTransactionID ?? rand64();
+
         if (isSelfDM(report)) {
             trackExpense({
                 report: report ?? {reportID: reportOrAccountID},
@@ -253,9 +258,9 @@ function SubmitDetailsPage({
                 betas,
                 draftTransactionIDs,
                 isSelfTourViewed,
+                optimisticTransactionID,
             });
         } else {
-            const existingTransactionID = getExistingTransactionID(transaction.linkedTrackedExpenseReportAction);
             const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
 
             requestMoney({
@@ -296,13 +301,14 @@ function SubmitDetailsPage({
                 isSelfTourViewed,
                 betas,
                 personalDetails,
+                optimisticTransactionID,
             });
         }
         cleanupAndNavigateAfterExpenseCreate({
             report: isSelfDM(report) ? report : reportToSubmit,
             action: CONST.IOU.ACTION.CREATE,
             draftTransactionIDs,
-            transactionID: transaction.transactionID,
+            transactionID: optimisticTransactionID,
             isFromGlobalCreate: getIsFromGlobalCreate(transaction),
             optimisticChatReportID: reportOrAccountID,
             linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
