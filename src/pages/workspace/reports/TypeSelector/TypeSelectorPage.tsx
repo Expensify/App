@@ -17,6 +17,7 @@ import type {ReportFieldItemType} from '@pages/workspace/reports/ReportFieldType
 import ReportFieldTypePicker from '@pages/workspace/reports/ReportFieldTypePicker';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
@@ -47,7 +48,7 @@ function TypeSelectorPage({
             [INPUT_IDS.TYPE]: item.value,
             [INPUT_IDS.INITIAL_VALUE]: getDefaultInitialValueForReportFieldType(item.value),
         });
-        Navigation.goBack();
+        Navigation.goBack(ROUTES.WORKSPACE_CREATE_REPORT_FIELD.getRoute(policyID));
     };
 
     return (
