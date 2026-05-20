@@ -8,6 +8,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import {openApp} from '@libs/actions/App';
 import {isMobileSafari} from '@libs/Browser';
+import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import {waitForIdle} from '@libs/Network/SequentialQueue';
 import CONST from '@src/CONST';
@@ -57,7 +58,11 @@ function SignInModal() {
             return;
         }
 
+        const shouldPreserveRevealedReport = isReportTopmostSplitNavigator();
         Navigation.dismissModal();
+        if (shouldPreserveRevealedReport) {
+            return;
+        }
         Navigation.navigate(ROUTES.HOME);
     }, [isLoadingApp]);
 
