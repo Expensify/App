@@ -15,7 +15,6 @@ import UserPills from '@components/UserPills';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import usePersonalDetailsByEmail from '@hooks/usePersonalDetailsByEmail';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
@@ -49,7 +48,6 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
     const styles = useThemeStyles();
     const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
-    const personalDetailsByEmail = usePersonalDetailsByEmail();
     const approverCount = approvalWorkflow.approvers.length;
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -175,7 +173,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                 {approvalWorkflow.approvers.map((approver, approverIndex) => {
                     const errorText = approverErrorMessage(approver, approverIndex);
                     const isApproverInMultipleWorkflows = !errorText && approvalWorkflow.usedApproverEmails.some((approverEmail) => approverEmail === approver?.email);
-                    const limitDescription = getApprovalLimitDescription({approver, currency, translate, convertToDisplayString, personalDetailsByEmail});
+                    const limitDescription = getApprovalLimitDescription({approver, currency, translate, convertToDisplayString});
                     const hintText = [isApproverInMultipleWorkflows ? translate('workflowsPage.approverInMultipleWorkflows') : undefined, limitDescription].filter(Boolean).join('\n');
 
                     return (

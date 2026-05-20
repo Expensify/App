@@ -1020,8 +1020,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         freeTrialSection: {
             title: ({days}: {days: number}) => `Essai gratuit : plus que ${days} ${days === 1 ? 'jour' : 'jours'} !`,
-            offer50Body: 'Profitez de 50 % de réduction sur votre première année !',
-            offer25Body: 'Obtenez 25 % de réduction sur votre première année !',
+            offer50Body: 'Profitez de 50 % de réduction sur votre première année',
+            offer25Body: 'Obtenez 25 % de réduction sur votre première année',
             addCardBody: 'N’attendez pas ! Ajoutez votre carte de paiement maintenant.',
             ctaClaim: 'Demande',
             ctaAdd: 'Ajouter une carte',
@@ -2481,6 +2481,7 @@ const translations: TranslationDeepObject<typeof en> = {
             expiration: 'Expiration',
             cvv: 'Cryptogramme visuel (CVV)',
             address: 'Adresse',
+            reveal: 'Afficher',
             revealDetails: 'Afficher les détails',
             revealCvv: 'Afficher le cryptogramme',
             copyCardNumber: 'Copier le numéro de carte',
@@ -2606,10 +2607,10 @@ ${amount} pour ${merchant} - ${date}`,
             approverSubtitle: 'Tous les approbateurs appartiennent à un workflow existant.',
             bulkApproverSubtitle: 'Aucun approbateur ne correspond aux critères pour les rapports sélectionnés.',
         },
-        configureViaGusto: 'Configurer via Gusto.',
-        gustoApprovalWorkflowLockedPrompt:
-            'Les validations sont gérées par votre intégration Gusto. Pour mettre à jour votre workflow de validation, accédez aux paramètres de connexion Gusto.',
-        goToGustoSettings: 'Aller aux paramètres Gusto',
+        configureViaHR: ({provider}: {provider: string}) => `Configurer via ${provider}.`,
+        hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
+            `Les validations sont gérées par votre intégration ${provider}. Pour mettre à jour votre workflow de validation, accédez aux paramètres de connexion ${provider}.`,
+        goToHRSettings: ({provider}: {provider: string}) => `Aller aux paramètres ${provider}`,
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: "La fréquence de soumission n'a pas pu être modifiée. Veuillez réessayer ou contacter l'assistance.",
@@ -4330,6 +4331,12 @@ ${amount} pour ${merchant} - ${date}`,
                         return 'Administrateur';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditeur';
+                    case CONST.POLICY.ROLE.CARD_ADMIN:
+                        return 'Administrateur de carte';
+                    case CONST.POLICY.ROLE.PEOPLE_ADMIN:
+                        return 'Administration des personnes';
+                    case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
+                        return 'Administrateur des paiements';
                     case CONST.POLICY.ROLE.USER:
                         return 'Membre';
                     default:
@@ -4360,11 +4367,14 @@ ${amount} pour ${merchant} - ${date}`,
             budgetTypeForNotificationMessage: {tag: 'tag', category: 'catégorie'},
             policyExpenseChatName: (displayName: string) => `Dépenses de ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>Les transactions de la Carte Expensify seront automatiquement exportées vers un « compte de passif Carte Expensify » créé avec <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">notre intégration</a>.</muted-text-label>`,
-            travelInvoicing: 'Exporter Expensify Travel à payer vers',
+            travelInvoicing: 'Exporter les frais de facturation de voyages en tant que',
             travelInvoicingVendor: 'Fournisseur de voyages',
             travelInvoicingPayableAccount: 'Compte fournisseur déplacements',
             hr: 'RH',
             rooms: 'Salons',
+            cardAdminAlternateText: 'Gérer les cartes de l’espace de travail.',
+            peopleAdminAlternateText: 'Gérez les membres et les workflows d’approbation.',
+            paymentsAdminAlternateText: 'Gérer les paiements de workflow.',
         },
         createdForClient: {
             title: 'Vous avez créé un espace de travail pour votre client !',
@@ -4692,6 +4702,7 @@ ${amount} pour ${merchant} - ${date}`,
             exportDeepDiveCompanyCard:
                 'Les dépenses exportées seront enregistrées comme des transactions bancaires sur le compte bancaire Xero ci-dessous, et les dates de transaction correspondront aux dates figurant sur votre relevé bancaire.',
             bankTransactions: 'Transactions bancaires',
+            travelInvoicingDescription: 'Les frais de voyage seront exportés sous forme de transactions bancaires vers le compte Xero indiqué ci-dessous.',
             xeroBankAccount: 'Compte bancaire Xero',
             xeroBankAccountDescription: 'Choisissez où les dépenses seront enregistrées comme transactions bancaires.',
             exportExpensesDescription: 'Les notes de frais seront exportées sous forme de facture d’achat avec la date et le statut sélectionnés ci-dessous.',
@@ -6011,6 +6022,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 `Vous êtes sur le point de créer et de partager ${newWorkspaceName ?? ''} avec ${totalMembers ?? 0} membres de l’espace de travail d’origine.`,
             error: 'Une erreur s’est produite lors de la duplication de votre nouvel espace de travail. Veuillez réessayer.',
         },
+        copyPolicySettings: {error: 'Une erreur s’est produite lors de la copie des paramètres de l’espace de travail. Veuillez réessayer.'},
         emptyWorkspace: {
             title: 'Vous n’avez aucun espace de travail',
             subtitle: 'Suivez les reçus, remboursez les dépenses, gérez les voyages, envoyez des factures, et plus encore.',
@@ -6752,6 +6764,59 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Les intégrations RH sont uniquement disponibles avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
+            approvalSubmit: {
+                title: 'Approbations',
+                description: 'Configurez de manière centralisée à qui tous les membres soumettent en activant les approbations.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Les validations sont disponibles avec les forfaits Collect et Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
+            },
+            companyCardSubmit: {
+                title: 'Cartes d’entreprise',
+                description: `Apportez votre propre carte professionnelle dans Expensify pour bénéficier de l’importation automatique, de la catégorisation automatique, de règles personnalisables et du rapprochement intégré.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>L’importation de cartes d’entreprise est disponible avec les offres Collect et Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
+            },
+            travelSubmit: {
+                title: 'Expensify Travel',
+                description:
+                    'Réservez des vols, hôtels, voitures et trains à tarif réduit partout dans le monde depuis Expensify, avec rapports de devoir de diligence et gestion intégrée des dépenses.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Expensify Travel est disponible avec les forfaits Collect et Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
+            },
+            roles: {
+                title: 'Rôles',
+                description: 'Attribuez différents rôles aux différents membres pour augmenter ou réduire la visibilité et le contrôle selon les besoins.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Les rôles sont disponibles avec les formules Collect et Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
+            },
+            payments: {
+                title: 'Paiements',
+                description: 'Remboursez vos employé·e·s directement depuis le compte bancaire de votre entreprise.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Les paiements sont disponibles avec les offres Collect et Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
+            },
+            accounting: {
+                title: 'Comptabilité',
+                description:
+                    'Synchronisez les catégories, les tags, les taux de taxe et plus encore depuis votre système comptable vers Expensify, et exportez également les notes de frais et les transactions par carte – sans saisie (ni fautes de frappe) !',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>La comptabilité est disponible avec les offres Collect et Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
+            },
+            expensifyCard: {
+                title: 'Carte Expensify',
+                description:
+                    'Émettez des cartes d’entreprise (y compris des cartes virtuelles) directement depuis votre propre compte bancaire pour bénéficier d’un contrôle des dépenses en temps réel avec une connexion infaillible, et jusqu’à 2 % de cashback !',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>La carte Expensify est disponible avec les offres Collect et Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
+                upgradeButton: 'Mettre à niveau et activer',
+            },
+            invoicing: {
+                title: 'Facturation',
+                description:
+                    'Créez, envoyez et suivez des factures professionnelles, le tout dans Expensify. Soyez payé plus rapidement grâce aux paiements intégrés et à la visibilité en temps réel.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>La facturation est disponible avec les offres Collect et Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -7078,8 +7143,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     description: 'Pour les employés souhaitant soumettre des dépenses à leur employeur.',
                 },
             },
-            description: 'Choisissez l’offre qui vous convient. Pour une liste détaillée des fonctionnalités et des tarifs, consultez notre',
-            subscriptionLink: "page d'aide sur les types de forfaits et les tarifs",
+            description: 'Choisissez l’offre qui vous convient.',
+            subscriptionLink: 'En savoir plus',
             lockedPlanDescription: ({count, annualSubscriptionEndDate}: WorkspaceLockedPlanTypeParams) => ({
                 one: `Vous vous êtes engagé à 1 membre actif sur le plan Control jusqu'à la fin de votre abonnement annuel, le ${annualSubscriptionEndDate}. Vous pourrez passer à un abonnement à l’usage et rétrograder vers le plan Collect à partir du ${annualSubscriptionEndDate} en désactivant le renouvellement automatique dans`,
                 other: `Vous vous êtes engagé·e à avoir ${count} membres actifs sur le forfait Control jusqu’à la fin de votre abonnement annuel le ${annualSubscriptionEndDate}. Vous pouvez passer à un abonnement à l’usage et rétrograder vers le forfait Collect à partir du ${annualSubscriptionEndDate} en désactivant le renouvellement automatique dans`,
@@ -8625,7 +8690,15 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             `<muted-text-label>Reçu en attente en raison d’une connexion bancaire rompue. Veuillez résoudre le problème dans les <a href="${workspaceCompanyCardRoute}">Cartes d’entreprise</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Reçu en attente en raison d’une connexion bancaire rompue. Veuillez demander à un administrateur de l’espace de travail de résoudre le problème.',
         markAsCashToIgnore: 'Marquer comme paiement en espèces pour l’ignorer et demander un paiement.',
-        smartscanFailed: ({canEdit = true}) => `L’analyse du reçu a échoué.${canEdit ? 'Saisir les détails manuellement.' : ''}`,
+        smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
+            if (missingFields.length > 0) {
+                const fieldNames: Record<string, string> = {merchant: 'commerçant', date: 'date', amount: 'montant'};
+                const translated = missingFields.map((f) => fieldNames[f] ?? f);
+                const fieldList = translated.join(translated.length > 2 ? ', ' : ' et ');
+                return `L’analyse du reçu a échoué — champ(s) manquant(s) : ${fieldList}.${canEdit ? ' Saisir les détails manuellement.' : ''}`;
+            }
+            return `L’analyse du reçu a échoué.${canEdit ? 'Saisir les détails manuellement.' : ''}`;
+        },
         receiptGeneratedWithAI: 'Reçu potentiellement généré par IA',
         someTagLevelsRequired: (tagName?: string) => `${tagName ?? 'Tag'} manquant`,
         tagOutOfPolicy: (tagName?: string) => `${tagName ?? 'Tag'} n’est plus valide`,
