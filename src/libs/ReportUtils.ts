@@ -167,7 +167,6 @@ import {
     isPendingDeletePolicy,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyAuditor,
-    isPolicyFieldListEmpty,
     isPolicyMember,
     isPolicyMemberWithoutPendingDelete,
     isPolicyOwner,
@@ -4476,7 +4475,8 @@ function isReportFieldDisabledForUser(report: OnyxEntry<Report>, reportField: On
  * - the report belongs to a paid group policy.
  */
 function canEditReportTitle(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, currentUserAccountID: number | undefined): boolean {
-    const titleField = getAvailableReportFields(report, Object.values(policy?.fieldList ?? {})).find((reportField) => isReportFieldOfTypeTitle(reportField));
+    const titleField =
+        getAvailableReportFields(report, Object.values(policy?.fieldList ?? {})).find((reportField) => isReportFieldOfTypeTitle(reportField)) ?? getTitleFieldWithFallback(policy);
     const isFieldDisabled = isReportFieldDisabled(report, titleField, policy);
 
     return !isFieldDisabled && isAdminOwnerApproverOrReportOwner(report, policy, currentUserAccountID) && isExpenseReport(report) && isPaidGroupPolicyPolicyUtils(policy);
@@ -4492,17 +4492,13 @@ function getTitleReportField(reportFields: Record<string, PolicyReportField>) {
 /**
  * Gets the title field from a policy, with a fallback when the policy fieldList is empty (matches OldDot behavior).
  */
-function getTitleFieldWithFallback(policy: OnyxEntry<Policy>): PolicyReportField | undefined {
+function getTitleFieldWithFallback(policy: OnyxEntry<Policy>): PolicyReportField {
     const policyTitleField = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE];
     if (policyTitleField) {
         return policyTitleField;
     }
 
-    if (isPolicyFieldListEmpty(policy)) {
-        return FALLBACK_TITLE_FIELD;
-    }
-
-    return undefined;
+    return FALLBACK_TITLE_FIELD;
 }
 
 /**
