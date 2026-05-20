@@ -24,8 +24,6 @@ type CopyPolicySettingsSourceFeatureContext = {
  * Identifier for the external account a policy's accounting connection points to. `companyID`
  * is stored in different paths on each integration's connection JSON, so we read each one out
  * to a single shape we can compare across policies.
- *
- * Mirrors `Policy::getConnectionCompanyID` in Auth/auth/lib/Policy.cpp.
  */
 type AccountingConnectionIdentity = {
     connectionName: ConnectionName;
