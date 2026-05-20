@@ -9,6 +9,7 @@ import type {Section} from '@components/SelectionList/SelectionListWithSections/
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useInitiallyFocusedKey from '@hooks/useInitiallyFocusedKey';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -100,18 +101,7 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         });
     }, [invitedEmailsToAccountIDsDraft, personalDetails]);
 
-    const {
-        searchTerm,
-        debouncedSearchTerm,
-        setSearchTerm,
-        availableOptions,
-        selectedOptions,
-        selectedOptionsForDisplay,
-        toggleSelection,
-        areOptionsInitialized,
-        onListEndReached,
-        searchOptions,
-    } = useSearchSelector({
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, onListEndReached, searchOptions} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
         includeUserToInvite: true,
@@ -120,6 +110,7 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         includeRecentReports: false,
         shouldInitialize: didScreenTransitionEnd,
         initialSelected: initiallySelectedOptions,
+        shouldKeepSelectedInAvailableOptions: true,
     });
 
     const sections: Array<Section<OptionData>> = useMemo(() => {
@@ -129,21 +120,12 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             return [];
         }
 
-        // Selected options section
-        if (selectedOptionsForDisplay.length > 0) {
-            sectionsArr.push({
-                title: undefined,
-                data: selectedOptionsForDisplay,
-                sectionIndex: 0,
-            });
-        }
-
-        // Contacts section
+        // Contacts section (includes both selected and unselected items)
         if (availableOptions.personalDetails.length > 0) {
             sectionsArr.push({
                 title: translate('common.contacts'),
                 data: availableOptions.personalDetails,
-                sectionIndex: 1,
+                sectionIndex: 0,
             });
         }
 
@@ -152,12 +134,14 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             sectionsArr.push({
                 title: undefined,
                 data: [availableOptions.userToInvite],
-                sectionIndex: 2,
+                sectionIndex: 1,
             });
         }
 
         return sectionsArr;
-    }, [areOptionsInitialized, selectedOptionsForDisplay, availableOptions.personalDetails, availableOptions.userToInvite, translate]);
+    }, [areOptionsInitialized, availableOptions.personalDetails, availableOptions.userToInvite, translate]);
+
+    const initiallyFocusedKey = useInitiallyFocusedKey(() => availableOptions.personalDetails.find((item) => item.isSelected)?.keyForList);
 
     const handleToggleSelection = useCallback(
         (option: OptionData) => {
@@ -265,6 +249,8 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                     onSelectRow={handleToggleSelection}
                     shouldShowTextInput
                     textInputOptions={textInputOptions}
+                    initiallyFocusedItemKey={initiallyFocusedKey}
+                    shouldPreventAutoScrollOnSelect
                     confirmButtonOptions={{
                         onConfirm: inviteUser,
                         isDisabled: !selectedOptions.length,
