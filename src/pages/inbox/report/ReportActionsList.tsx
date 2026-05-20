@@ -2,6 +2,7 @@ import {useRoute} from '@react-navigation/native';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
@@ -425,7 +426,17 @@ function ReportActionsList({
         reportScrollManager.scrollToBottom();
         readActionSkippedRef.current = false;
         readNewestAction(report.reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
-    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID, backTo, introSelected, reportLoadingState?.hasOnceLoadedReportActions, betas]);
+    }, [
+        setIsFloatingMessageCounterVisible,
+        hasNewestReportAction,
+        reportScrollManager,
+        report.reportID,
+        backTo,
+        introSelected,
+        reportLoadingState?.hasOnceLoadedReportActions,
+        betas,
+        readActionSkippedRef,
+    ]);
 
     /**
      * Thread's divider line should hide when the first chat in the thread is marked as unread.

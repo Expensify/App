@@ -151,7 +151,6 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
         if (!isMarkedAsRead) {
             handleAppVisibilityMarkAsRead();
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report?.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, reportID, isVisible, isFocused, reportLoadingState?.hasOnceLoadedReportActions]);
 
     return {readActionSkippedRef};
