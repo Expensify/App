@@ -610,6 +610,7 @@ function PureReportActionItem({
                                                                 isArchivedRoom={isArchivedRoom}
                                                                 isClosedExpenseReportWithNoExpenses={isClosedExpenseReportWithNoExpenses}
                                                                 isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReport}
+                                                                personalDetails={personalDetails}
                                                                 shouldShowBorder={shouldShowBorder}
                                                                 isOnSearch={isOnSearch}
                                                                 index={index}

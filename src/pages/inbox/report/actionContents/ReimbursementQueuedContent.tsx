@@ -5,7 +5,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,7 +18,7 @@ import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Report, ReportAction} from '@src/types/onyx';
+import type {PersonalDetailsList, Report, ReportAction} from '@src/types/onyx';
 
 type ReimbursementQueuedContentProps = {
     /** The reimbursement queued action */
@@ -30,13 +29,15 @@ type ReimbursementQueuedContentProps = {
 
     /** The IOU/Expense report we are paying */
     iouReport: OnyxEntry<Report>;
+
+    /** Personal details list for resolving the submitter's display name */
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
-function ReimbursementQueuedContent({action, report, iouReport}: ReimbursementQueuedContentProps) {
+function ReimbursementQueuedContent({action, report, iouReport, personalDetails}: ReimbursementQueuedContentProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const kycWallRef = useContext(KYCWallContext);
-    const personalDetails = usePersonalDetails();
 
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
