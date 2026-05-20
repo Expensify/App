@@ -32,6 +32,7 @@ import {
     getOriginalCurrencyForDisplay,
     getReimbursable,
     getTaxName,
+    hasValidModifiedAmount,
     isDeletedTransaction as isDeletedTransactionUtil,
     isExpenseUnreported,
     isScanning,
@@ -537,9 +538,11 @@ function TransactionItemRowWide({
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TOTAL: {
                 const isFromExpenseReport = isExpenseReport(transactionItem.report ?? report);
-                const hasConvertedAmount = transactionItem.convertedAmount != null;
+                const hasConvertedAmount = transactionItem.convertedAmount != null && !hasValidModifiedAmount(transactionItem);
                 // Offline expenses don't have a BE-computed convertedAmount yet — fall back to the unconverted
                 // amount in the transaction's own currency so users don't see a misleading $0.00 placeholder.
+                // Edited expenses also fall back to the transaction amount because convertedAmount can be stale
+                // until the backend returns a fresh converted value. This includes modifiedAmount = 0.
                 // Pass isFromExpenseReport so IOU reports stay positive while expense reports get NewDot's signed display.
                 const totalAmount = hasConvertedAmount ? getConvertedAmount(transactionItem, isFromExpenseReport) : getAmount(transactionItem, isFromExpenseReport);
                 // When converted, display in the report's output currency; otherwise use the transaction's own currency.

@@ -16591,6 +16591,12 @@ describe('ReportUtils', () => {
             expect(result).toBe(-5000);
         });
 
+        it('should prefer modified amount over stale converted amount for TOTAL column', () => {
+            const transaction = createMockTransaction({amount: -5000, convertedAmount: -5000, modifiedAmount: 0});
+            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.TOTAL, mockReport, mockPolicy);
+            expect(result).toBe(0);
+        });
+
         it('should return description for DESCRIPTION column', () => {
             const transaction = createMockTransaction({comment: {comment: 'Test description'}});
             const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION, mockReport, mockPolicy);

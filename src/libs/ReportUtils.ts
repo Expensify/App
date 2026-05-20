@@ -285,6 +285,7 @@ import {
     getCreated as getTransactionCreated,
     getTransactionID,
     getWaypoints,
+    hasValidModifiedAmount,
     hasMissingSmartscanFields as hasMissingSmartscanFieldsTransactionUtils,
     hasNoticeTypeViolation,
     hasReceipt as hasReceiptTransactionUtils,
@@ -13304,7 +13305,7 @@ function getTransactionSortValue(transaction: Transaction, key: SortableColumnNa
         case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
             return getTransactionAmount(transaction, isExpenseReport(report), transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
         case CONST.SEARCH.TABLE_COLUMNS.TOTAL:
-            return Math.abs(transaction.convertedAmount ?? 0);
+            return Math.abs(hasValidModifiedAmount(transaction) ? Number(transaction.modifiedAmount) : (transaction.convertedAmount ?? 0));
         case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
             return Parser.htmlToText(transaction.comment?.comment ?? '');
         case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
