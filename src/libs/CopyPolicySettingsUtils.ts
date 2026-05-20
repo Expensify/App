@@ -1,8 +1,8 @@
-import type {Part} from '@libs/actions/Policy/CopyPolicySettings';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import {isAuthenticationError} from './actions/connections';
+import type {Part} from './actions/Policy/CopyPolicySettings';
 
 type CopyPolicySettingsSourceFeatureContext = {
     policy: Policy | undefined;

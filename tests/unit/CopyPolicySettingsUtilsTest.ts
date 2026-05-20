@@ -170,22 +170,18 @@ describe('CopyPolicySettingsUtils', () => {
 
         it('hides travel when the source policy does not have travel enabled', () => {
             expect(isCopyPolicySettingsPartEnabledOnSource('travel', baseContext)).toBe(false);
-            expect(
-                isCopyPolicySettingsPartEnabledOnSource('travel', {
-                    ...baseContext,
-                    policy: {...baseContext.policy, isTravelEnabled: true},
-                }),
-            ).toBe(true);
+
+            const travelPolicy = createRandomPolicy(3);
+            travelPolicy.isTravelEnabled = true;
+            expect(isCopyPolicySettingsPartEnabledOnSource('travel', {...baseContext, policy: travelPolicy})).toBe(true);
         });
 
         it('hides distance rates when the feature flag is off even if rates exist', () => {
             expect(isCopyPolicySettingsPartEnabledOnSource('distanceRates', baseContext)).toBe(false);
-            expect(
-                isCopyPolicySettingsPartEnabledOnSource('distanceRates', {
-                    ...baseContext,
-                    policy: {...baseContext.policy, areDistanceRatesEnabled: true},
-                }),
-            ).toBe(true);
+
+            const distancePolicy = createRandomPolicy(4);
+            distancePolicy.areDistanceRatesEnabled = true;
+            expect(isCopyPolicySettingsPartEnabledOnSource('distanceRates', {...baseContext, policy: distancePolicy})).toBe(true);
         });
     });
 
