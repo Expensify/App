@@ -559,11 +559,7 @@ function WorkspacesListPage() {
         }
 
         tableRef.current?.scrollToIndex({index: duplicateWorkspaceIndex, animated: false});
-        const handle = TransitionTracker.runAfterTransitions({
-            callback: () => clearDuplicateWorkspace(),
-        });
-
-        return () => handle.cancel();
+        clearDuplicateWorkspace();
     }, [duplicateWorkspace?.policyID, isFocused]);
 
     const headerButton = <WorkspacesListPageHeaderButton shouldShowNewWorkspaceButton={!isRestrictedPolicyCreation && !!workspaceRows.length} />;

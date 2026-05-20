@@ -48,7 +48,7 @@ type TableBodyProps = ViewProps & {
 function TableBody<T>({contentContainerStyle, style, ...props}: TableBodyProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {processedData: filteredAndSortedData, activeSearchString, listProps, hasActiveFilters, hasSearchString, isEmptyResult} = useTableContext<T>();
+    const {processedData: filteredAndSortedData, activeSearchString, listProps, listRef, hasActiveFilters, hasSearchString, isEmptyResult} = useTableContext<T>();
     const {ListEmptyComponent, contentContainerStyle: listContentContainerStyle, ...restListProps} = listProps ?? {};
 
     const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
@@ -89,6 +89,7 @@ function TableBody<T>({contentContainerStyle, style, ...props}: TableBodyProps) 
             {...props}
         >
             <FlashList<T>
+                ref={listRef}
                 data={filteredAndSortedData}
                 showsVerticalScrollIndicator={false}
                 style={[styles.flex1, styles.mnh0]}
