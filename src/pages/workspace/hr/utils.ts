@@ -3,7 +3,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {hasSynchronizationErrorMessage, isConnectionInProgress} from '@libs/actions/connections';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import type {HRConnectionName} from '@libs/PolicyUtils';
-import {getHRApprovalMode, getIntegrationLastSuccessfulDate, isGustoConnected, isMergeHRConnected, isZenefitsConnected} from '@libs/PolicyUtils';
+import {getConnectedHRProvider, getHRApprovalMode, getIntegrationLastSuccessfulDate} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import MERGE_HR_PROVIDERS from '@src/CONST/MERGE_HR_PROVIDERS';
 import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
@@ -84,15 +84,8 @@ type GetHRCardStateParams = {
 function getHRCardState({policy, connectionName, connectionSyncProgress, getLocalDateFromDatetime, mergeSlug}: GetHRCardStateParams) {
     const isSyncInProgress = connectionSyncProgress?.connectionName === connectionName && isConnectionInProgress(connectionSyncProgress, policy);
 
-    let isConnected = false;
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.GUSTO) {
-        isConnected = isGustoConnected(policy);
-    } else if (connectionName === CONST.POLICY.CONNECTIONS.NAME.ZENEFITS) {
-        isConnected = isZenefitsConnected(policy);
-    } else if (connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR) {
-        const mergeConnection = policy?.connections?.merge_hris;
-        isConnected = isMergeHRConnected(policy) && (!mergeSlug || mergeConnection?.config?.integration === mergeSlug);
-    }
+    const connectedProvider = getConnectedHRProvider(policy);
+    const isConnected = connectedProvider?.connectionName === connectionName && (!mergeSlug || connectedProvider.mergeSlug === mergeSlug);
 
     const connection = policy?.connections?.[connectionName];
     const syncProgress = connectionSyncProgress?.connectionName === connectionName ? connectionSyncProgress : undefined;

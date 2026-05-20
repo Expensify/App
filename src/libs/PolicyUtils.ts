@@ -5,6 +5,7 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 import type {SelectorType} from '@components/SelectionScreen';
 import CONST from '@src/CONST';
 import MERGE_HR_PROVIDERS from '@src/CONST/MERGE_HR_PROVIDERS';
+import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
@@ -73,6 +74,9 @@ type HRProviderInfo = {
 
     /** Optional logo URL. Populated only for Merge HR providers when their slug resolves in `MERGE_HR_PROVIDERS`. */
     iconUrl?: string;
+
+    /** Merge HR integration slug (e.g. `'bamboohr'`, `'workday'`). Only set when `connectionName` is Merge HR. */
+    mergeSlug?: MergeHRProviderSlug;
 };
 
 type WorkspaceDetails = {
@@ -1917,6 +1921,7 @@ function getConnectedHRProvider(policy?: OnyxEntry<Policy>): HRProviderInfo | nu
             connectionName: CONST.POLICY.CONNECTIONS.NAME.MERGE_HR,
             displayName: providerInfo?.displayName ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.merge_hris,
             iconUrl: providerInfo?.iconUrl ?? undefined,
+            mergeSlug: slug,
         };
     }
     return null;

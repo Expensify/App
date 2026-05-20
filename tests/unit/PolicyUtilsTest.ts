@@ -2761,6 +2761,7 @@ describe('PolicyUtils', () => {
                 const provider = getConnectedHRProvider(policy);
                 expect(provider?.connectionName).toBe(CONST.POLICY.CONNECTIONS.NAME.MERGE_HR);
                 expect(provider?.displayName).toBe('Workday');
+                expect(provider?.mergeSlug).toBe('workday');
             });
         });
 
