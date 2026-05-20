@@ -5346,10 +5346,6 @@ const translations = {
                     confirmText: 'Report issue',
                     cancelText: 'Skip',
                 },
-                duplicateFeedModal: {
-                    title: 'Card feed already connected',
-                    prompt: "You can't add the same card feed to the same workspace twice.",
-                },
                 csvColumns: {
                     cardNumber: 'Card number',
                     postedDate: 'Date',
@@ -7173,8 +7169,8 @@ const translations = {
                     description: 'For employees looking to submit expenses to their employer.',
                 },
             },
-            description: "Choose a plan that's right for you. For a detailed list of features and pricing, check out our",
-            subscriptionLink: 'plan types and pricing help page',
+            description: "Choose a plan that's right for you.",
+            subscriptionLink: 'Learn more',
             lockedPlanDescription: ({count, annualSubscriptionEndDate}: WorkspaceLockedPlanTypeParams) => ({
                 one: `You've committed to 1 active member on the Control plan until your annual subscription ends on ${annualSubscriptionEndDate}. You can switch to pay-per-use subscription and downgrade to the Collect plan starting ${annualSubscriptionEndDate} by disabling auto-renew in`,
                 other: `You've committed to ${count} active members on the Control plan until your annual subscription ends on ${annualSubscriptionEndDate}. You can switch to pay-per-use subscription and downgrade to the Collect plan starting ${annualSubscriptionEndDate} by disabling auto-renew in`,

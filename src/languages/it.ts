@@ -5314,10 +5314,6 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     confirmText: 'Segnala problema',
                     cancelText: 'Salta',
                 },
-                duplicateFeedModal: {
-                    title: 'Feed carta già connesso',
-                    prompt: 'Non puoi aggiungere due volte lo stesso flusso di carta allo stesso spazio di lavoro.',
-                },
                 csvColumns: {
                     cardNumber: 'Numero di carta',
                     postedDate: 'Data',
@@ -7058,8 +7054,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     description: 'Per i dipendenti che desiderano inviare le spese al proprio datore di lavoro.',
                 },
             },
-            description: 'Scegli il piano più adatto a te. Per un elenco dettagliato di funzionalità e prezzi, consulta la nostra',
-            subscriptionLink: 'pagina di aiuto su tipi di piano e prezzi',
+            description: 'Scegli il piano più adatto a te.',
+            subscriptionLink: 'Scopri di più',
             lockedPlanDescription: ({count, annualSubscriptionEndDate}: WorkspaceLockedPlanTypeParams) => ({
                 one: `Ti sei impegnato per 1 membro attivo nel piano Control fino al termine dell’abbonamento annuale, il ${annualSubscriptionEndDate}. Puoi passare all’abbonamento a consumo e effettuare il downgrade al piano Collect a partire dal ${annualSubscriptionEndDate} disattivando il rinnovo automatico in`,
                 other: `Ti sei impegnato per ${count} membri attivi nel piano Control fino alla fine dell’abbonamento annuale, il ${annualSubscriptionEndDate}. Puoi passare all’abbonamento a consumo e effettuare il downgrade al piano Collect a partire dal ${annualSubscriptionEndDate} disattivando il rinnovo automatico in`,

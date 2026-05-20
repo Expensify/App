@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -56,16 +56,15 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const {feed: bankNameFromRoute, backTo, policyID: policyIDFromRoute} = route?.params ?? {};
     const policyID = policyIDFromProps ?? policyIDFromRoute;
-    const [cardFeeds, , rawCardFeeds] = useCardFeeds(policyID);
+    const [cardFeeds] = useCardFeeds(policyID);
     const prevFeedsData = usePrevious(cardFeeds);
     const illustrations = useMemoizedLazyIllustrations(['PendingBank']);
-    const shouldBlockWindowOpenRef = useRef(false);
+    const [shouldBlockWindowOpen, setShouldBlockWindowOpen] = useState(false);
     const selectedBank = addNewCard?.data?.selectedBank;
     const bankName = feed ? getBankName(getCompanyCardFeed(feed)) : (bankNameFromRoute ?? addNewCard?.data?.plaidConnectedFeed ?? selectedBank);
-    const rawFeedKeys = useMemo(() => Object.keys(rawCardFeeds?.settings?.companyCards ?? {}), [rawCardFeeds?.settings?.companyCards]);
     const {isNewFeedConnected, newFeed} = useMemo(
-        () => checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds ?? {}, addNewCard?.data?.plaidConnectedFeed, rawFeedKeys),
-        [addNewCard?.data?.plaidConnectedFeed, cardFeeds, prevFeedsData, rawFeedKeys],
+        () => checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds ?? {}, addNewCard?.data?.plaidConnectedFeed),
+        [addNewCard?.data?.plaidConnectedFeed, cardFeeds, prevFeedsData],
     );
     const {isOffline} = useNetwork();
     const plaidToken = addNewCard?.data?.publicToken ?? assignCard?.cardToAssign?.plaidAccessToken;
@@ -79,7 +78,6 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
     const isNewFeedHasError = !!(newFeed && cardFeeds?.[newFeed]?.errors);
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
-    const isDuplicateFeed = isNewFeedConnected && !newFeed && isPlaid;
 
     const onOpenBankConnectionFlow = useCallback(() => {
         if (!url) {
@@ -152,16 +150,8 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
 
         // Handle add new card flow
         if (isNewFeedConnected) {
-            shouldBlockWindowOpenRef.current = true;
+            setShouldBlockWindowOpen(true);
             customWindow?.close();
-
-            if (isDuplicateFeed) {
-                setAddNewCompanyCardStepAndData({data: {isDuplicateFeedDetected: true}});
-                Navigation.closeRHPFlow();
-                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
-                return;
-            }
-
             if (newFeed) {
                 updateSelectedFeed(newFeed, policyID);
             }
@@ -170,7 +160,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
             return;
         }
-        if (!shouldBlockWindowOpenRef.current) {
+        if (!shouldBlockWindowOpen) {
             if (isPlaid) {
                 onImportPlaidAccounts();
                 return;
@@ -182,8 +172,8 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
     }, [
         isNewFeedConnected,
         isAllFeedsResultLoading,
+        shouldBlockWindowOpen,
         isBlockedToAddNewFeeds,
-        isDuplicateFeed,
         newFeed,
         policyID,
         url,

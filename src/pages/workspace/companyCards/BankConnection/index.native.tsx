@@ -60,14 +60,13 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
     const plaidToken = addNewCard?.data?.publicToken ?? assignCard?.cardToAssign?.plaidAccessToken;
     const isPlaid = !!plaidToken;
     const url = getCompanyCardBankConnection(policyID, bankName);
-    const [cardFeeds, , rawCardFeeds] = useCardFeeds(policyID);
+    const [cardFeeds] = useCardFeeds(policyID);
     const [isConnectionCompleted, setConnectionCompleted] = useState(false);
     const prevFeedsData = usePrevious(cardFeeds);
     const isFeedExpired = feed ? isSelectedFeedExpired(cardFeeds?.[feed]) : false;
-    const rawFeedKeys = useMemo(() => Object.keys(rawCardFeeds?.settings?.companyCards ?? {}), [rawCardFeeds?.settings?.companyCards]);
     const {isNewFeedConnected, newFeed} = useMemo(
-        () => checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds ?? {}, addNewCard?.data?.plaidConnectedFeed, rawFeedKeys),
-        [addNewCard?.data?.plaidConnectedFeed, cardFeeds, prevFeedsData, rawFeedKeys],
+        () => checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds ?? {}, addNewCard?.data?.plaidConnectedFeed),
+        [addNewCard?.data?.plaidConnectedFeed, cardFeeds, prevFeedsData],
     );
     const headerTitleAddCards = !backTo ? translate('workspace.companyCards.addCards') : undefined;
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
@@ -75,7 +74,6 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
     const {updateBrokenConnection, isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
     const isNewFeedHasError = !!(newFeed && cardFeeds?.[newFeed]?.errors);
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
-    const isDuplicateFeed = isNewFeedConnected && !newFeed && isPlaid;
 
     const activityReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'BankConnection',
@@ -141,13 +139,6 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
 
         // Handle add new card flow
         if (isNewFeedConnected) {
-            if (isDuplicateFeed) {
-                setAddNewCompanyCardStepAndData({data: {isDuplicateFeedDetected: true}});
-                Navigation.closeRHPFlow();
-                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
-                return;
-            }
-
             if (newFeed) {
                 updateSelectedFeed(newFeed, policyID);
             }
@@ -161,7 +152,6 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
         }
     }, [
         isNewFeedConnected,
-        isDuplicateFeed,
         newFeed,
         policyID,
         url,

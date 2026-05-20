@@ -5340,10 +5340,6 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     confirmText: 'Signaler un problème',
                     cancelText: 'Ignorer',
                 },
-                duplicateFeedModal: {
-                    title: 'Flux de carte déjà connecté',
-                    prompt: 'Vous ne pouvez pas ajouter deux fois le même flux de carte au même espace de travail.',
-                },
                 csvColumns: {
                     cardNumber: 'Numéro de carte',
                     postedDate: 'Date',
@@ -7094,8 +7090,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     description: 'Pour les employés souhaitant soumettre des dépenses à leur employeur.',
                 },
             },
-            description: 'Choisissez l’offre qui vous convient. Pour une liste détaillée des fonctionnalités et des tarifs, consultez notre',
-            subscriptionLink: "page d'aide sur les types de forfaits et les tarifs",
+            description: 'Choisissez l’offre qui vous convient.',
+            subscriptionLink: 'En savoir plus',
             lockedPlanDescription: ({count, annualSubscriptionEndDate}: WorkspaceLockedPlanTypeParams) => ({
                 one: `Vous vous êtes engagé à 1 membre actif sur le plan Control jusqu'à la fin de votre abonnement annuel, le ${annualSubscriptionEndDate}. Vous pourrez passer à un abonnement à l’usage et rétrograder vers le plan Collect à partir du ${annualSubscriptionEndDate} en désactivant le renouvellement automatique dans`,
                 other: `Vous vous êtes engagé·e à avoir ${count} membres actifs sur le forfait Control jusqu’à la fin de votre abonnement annuel le ${annualSubscriptionEndDate}. Vous pouvez passer à un abonnement à l’usage et rétrograder vers le forfait Collect à partir du ${annualSubscriptionEndDate} en désactivant le renouvellement automatique dans`,
