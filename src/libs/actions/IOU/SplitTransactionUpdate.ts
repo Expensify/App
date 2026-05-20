@@ -1212,7 +1212,7 @@ function updateSplitTransactions({
         // resulting in 3 transactions(deleted, undeleted, and original) being shown at the same time when offline.
         // Since original transaction will be reverted and both splits will eventually be deleted, we remove
         // the undeleted split entirely instead of marking it for deletion.
-        const forceDeleteSplitTransactionID = isReverseSplitOperation ? splitExpenses.at(0)?.transactionID : undefined;
+        const forceDeleteSplitTransactionID = isReverseSplitOperation && !isOffline ? splitExpenses.at(0)?.transactionID : undefined;
 
         const {
             optimisticData: deleteExpenseOptimisticData,
