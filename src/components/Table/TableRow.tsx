@@ -1,12 +1,14 @@
 import React from 'react';
-import type {GestureResponderEvent, KeyboardEvent, PressableStateCallbackType} from 'react-native';
+import type {PressableStateCallbackType} from 'react-native';
 import {View} from 'react-native';
+import Animated from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {PressableWithFeedbackProps} from '@components/Pressable/PressableWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
+import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -28,6 +30,9 @@ type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible'> & {
     /** Whether or not the table row is loading */
     isLoading?: boolean;
 
+    /** Whether or not the row should animate in highlighted */
+    shouldAnimateInHighlight?: boolean;
+
     /** The loading component to render within the table row when the row is loading */
     LoadingComponent?: React.ComponentType;
 
@@ -45,6 +50,7 @@ export default function TableRow({
     sentryLabel,
     interactive,
     isLoading,
+    shouldAnimateInHighlight,
     skeletonReasonAttributes,
     LoadingComponent,
     onPress,
@@ -68,19 +74,32 @@ export default function TableRow({
         gridTemplateColumns.unshift(`${variables.tableCheckboxColumnWidth}px`);
     }
 
+    const animatedHighlightStyle = useAnimatedHighlightStyle({
+        borderRadius: 0,
+        shouldHighlight: !!shouldAnimateInHighlight,
+        highlightColor: theme.messageHighlightBG,
+        backgroundColor: theme.transparent,
+        shouldApplyOtherStyles: true,
+    });
+
     const tableRowPressableStyles = [
         styles.mh5,
-        styles.flexRow,
         styles.highlightBG,
-        styles.alignItemsCenter,
         isInteractive && styles.userSelectNone,
-        shouldUseNarrowTableLayout ? styles.ph4 : styles.ph3,
-        shouldUseNarrowTableLayout && !isLoading && styles.pv4,
-        !shouldUseNarrowTableLayout && !isLoading && styles.pv2,
         !isFirstRow && styles.borderTop,
         isLastRow && styles.tableBottomRadius,
         item.selected && [styles.activeComponentBG, {borderColor: theme.buttonHoveredBG}],
         shouldUseNarrowTableLayout ? styles.tableRowHeightCompact : styles.tableRowHeight,
+    ];
+
+    const tableRowContentContainerStyles = [
+        styles.flex1,
+        styles.flexRow,
+        styles.alignItemsCenter,
+        shouldUseNarrowTableLayout ? styles.ph4 : styles.ph3,
+        shouldUseNarrowTableLayout && !isLoading && styles.pv4,
+        !shouldUseNarrowTableLayout && !isLoading && styles.pv2,
+        animatedHighlightStyle,
     ];
 
     const tableRowContentStyles = [
@@ -134,33 +153,35 @@ export default function TableRow({
                 onPress={onPress}
                 {...props}
             >
-                {(state) =>
-                    !!isLoading && LoadingComponent ? (
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
-                            <SkeletonViewContentLoader
-                                width="100%"
-                                backgroundColor={theme.skeletonLHNIn}
-                                foregroundColor={theme.skeletonLHNOut}
-                                height={variables.tableSkeletonHeight}
-                            >
-                                <LoadingComponent />
-                            </SkeletonViewContentLoader>
-                        </View>
-                    ) : (
-                        <View style={tableRowContentStyles}>
-                            {selectionEnabled && (
-                                <View style={styles.flex1}>
-                                    <Checkbox
-                                        isChecked={!!item.selected}
-                                        accessibilityLabel="TEST"
-                                        onPress={(event) => handleCheckboxPress(event as unknown as MouseEvent)}
-                                    />
-                                </View>
-                            )}
-                            {renderChildren(state)}
-                        </View>
-                    )
-                }
+                {(state) => (
+                    <Animated.View style={tableRowContentContainerStyles}>
+                        {!!isLoading && LoadingComponent ? (
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
+                                <SkeletonViewContentLoader
+                                    width="100%"
+                                    backgroundColor={theme.skeletonLHNIn}
+                                    foregroundColor={theme.skeletonLHNOut}
+                                    height={variables.tableSkeletonHeight}
+                                >
+                                    <LoadingComponent />
+                                </SkeletonViewContentLoader>
+                            </View>
+                        ) : (
+                            <View style={tableRowContentStyles}>
+                                {selectionEnabled && (
+                                    <View style={styles.flex1}>
+                                        <Checkbox
+                                            isChecked={!!item.selected}
+                                            accessibilityLabel="TEST"
+                                            onPress={(event) => handleCheckboxPress(event as unknown as MouseEvent)}
+                                        />
+                                    </View>
+                                )}
+                                {renderChildren(state)}
+                            </View>
+                        )}
+                    </Animated.View>
+                )}
             </PressableWithFeedback>
         </OfflineWithFeedback>
     );

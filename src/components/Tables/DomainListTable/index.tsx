@@ -68,14 +68,14 @@ export default function DomainListTable({domains}: DomainListTableProps) {
             renderItem={renderTableItem}
             compareItems={compareTableItems}
             isItemInSearch={isTableItemInSearch}
-            keyExtractor={(row) => row.domainAccountID.toString()}
             initialSortColumn="domains"
             title={translate('common.domains')}
             ListEmptyComponent={DomainListEmptyState}
+            keyExtractor={(row, index) => `${row.domainAccountID}-${index}`}
         >
             {domains.length > CONST.SEARCH_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.common.findDomain')} />}
             <Table.Header />
-            <Table.Body style={styles.pb20} />
+            <Table.Body />
         </Table>
     );
 }

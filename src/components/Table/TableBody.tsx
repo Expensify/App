@@ -49,13 +49,22 @@ type TableBodyProps = ViewProps & {
 function TableBody<DataType extends TableData>({contentContainerStyle, style, ...props}: TableBodyProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {processedData: filteredAndSortedData, activeSearchString, listProps, hasActiveFilters, hasSearchString, isEmptyResult} = useTableContext<DataType>();
+    const {
+        processedData: filteredAndSortedData,
+        activeSearchString,
+        listProps,
+        listRef,
+        shouldUseNarrowTableLayout,
+        hasActiveFilters,
+        hasSearchString,
+        isEmptyResult,
+    } = useTableContext<DataType>();
     const {ListEmptyComponent, contentContainerStyle: listContentContainerStyle, ...restListProps} = listProps ?? {};
 
     const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: true,
         addOfflineIndicatorBottomSafeAreaPadding: true,
-        style: styles.pb4,
+        style: shouldUseNarrowTableLayout ? styles.pb20 : styles.pb4,
     });
 
     // Determine the message based on what caused the empty result
@@ -90,9 +99,11 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
             {...props}
         >
             <FlashList<DataType>
+                ref={listRef}
                 data={filteredAndSortedData}
-                showsVerticalScrollIndicator={false}
                 style={[styles.flex1, styles.mnh0]}
+                showsVerticalScrollIndicator={false}
+                maintainVisibleContentPosition={{disabled: true}}
                 ListEmptyComponent={isEmptyResult ? EmptyResultComponent : ListEmptyComponent}
                 contentContainerStyle={[filteredAndSortedData.length === 0 && styles.flex1, listContentContainerStyle, tableBodyContentContainerStyle, contentContainerStyle]}
                 keyboardShouldPersistTaps="handled"

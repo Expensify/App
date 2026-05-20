@@ -4200,12 +4200,18 @@ ${amount} para ${merchant} - ${date}`,
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO]: 'Ninguno',
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL]: 'Indirecto',
             },
-            roleName: (role) => {
+            roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
                         return 'Administrador';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditor';
+                    case CONST.POLICY.ROLE.CARD_ADMIN:
+                        return 'Administrador de tarjeta';
+                    case CONST.POLICY.ROLE.PEOPLE_ADMIN:
+                        return 'Administrador de personas';
+                    case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
+                        return 'Administrador de pagos';
                     case CONST.POLICY.ROLE.USER:
                         return 'Miembro';
                     default:
@@ -4240,10 +4246,13 @@ ${amount} para ${merchant} - ${date}`,
             viewTransactions: 'Ver transacciones',
             policyExpenseChatName: (displayName) => `${displayName}'s gastos`,
             deepDiveExpensifyCard: `<muted-text-label>Las transacciones de la Tarjeta Expensify se exportan automáticamente a una "Cuenta de Responsabilidad de la Tarjeta Expensify" creada con <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">nuestra integración</a>.</muted-text-label>`,
-            travelInvoicing: 'Exportar Viajes de Expensify por Pagar a',
+            travelInvoicing: 'Exportar gastos de facturación de viajes como',
             travelInvoicingVendor: 'Proveedor de viajes',
             travelInvoicingPayableAccount: 'Cuenta por pagar de viajes',
             findDomain: 'Buscar dominio',
+            cardAdminAlternateText: 'Gestiona tarjetas del espacio de trabajo.',
+            peopleAdminAlternateText: 'Gestiona miembros y flujos de aprobación.',
+            paymentsAdminAlternateText: 'Gestiona los pagos del flujo de trabajo.',
         },
         createdForClient: {
             title: '¡Has creado un espacio de trabajo para tu cliente!',
@@ -4567,6 +4576,7 @@ ${amount} para ${merchant} - ${date}`,
             exportDeepDiveCompanyCard:
                 'Cada gasto exportado se contabiliza como una transacción bancaria en la cuenta bancaria de Xero que selecciones a continuación. Las fechas de las transacciones coincidirán con las fechas de el extracto bancario.',
             bankTransactions: 'Transacciones bancarias',
+            travelInvoicingDescription: 'Los gastos de viaje se exportarán como transacciones bancarias a la cuenta de Xero especificada a continuación.',
             xeroBankAccount: 'Cuenta bancaria de Xero',
             xeroBankAccountDescription: 'Elige dónde se contabilizarán los gastos como transacciones bancarias.',
             exportExpensesDescription: 'Los informes se exportarán como una factura de compra utilizando la fecha y el estado que seleccione a continuación',

@@ -36,7 +36,6 @@ import {filterInactiveCards} from '@libs/CardUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {
@@ -496,6 +495,7 @@ function WorkspacesListPage() {
                     isLoadingBill: !!isLoadingBill,
                     isJoinRequestPending: true,
                     isDefault: activePolicyID === policyID,
+                    shouldAnimateInHighlight: duplicateWorkspace?.policyID === policyID,
                     ownerAccountID: policyOwnerAccountID,
                     ownerLogin: ownerDetails ? ownerDetails.login : undefined,
                     ownerAvatar: ownerDetails ? ownerDetails.avatar : undefined,
@@ -524,6 +524,7 @@ function WorkspacesListPage() {
                     ownerAccountID: policyOwnerAccountID,
                     isLoadingBill: !!isLoadingBill,
                     isJoinRequestPending: false,
+                    shouldAnimateInHighlight: duplicateWorkspace?.policyID === policy.id,
                     isDefault: activePolicyID === policy.id,
                     isDeleted: isPendingDeletePolicy(policy),
                     ownerLogin: ownerDetails ? ownerDetails.login : undefined,
@@ -557,11 +558,7 @@ function WorkspacesListPage() {
         }
 
         tableRef.current?.scrollToIndex({index: duplicateWorkspaceIndex, animated: false});
-        const handle = TransitionTracker.runAfterTransitions({
-            callback: () => clearDuplicateWorkspace(),
-        });
-
-        return () => handle.cancel();
+        clearDuplicateWorkspace();
     }, [duplicateWorkspace?.policyID, isFocused]);
 
     const headerButton = <WorkspacesListPageHeaderButton shouldShowNewWorkspaceButton={!isRestrictedPolicyCreation && !!workspaceRows.length} />;

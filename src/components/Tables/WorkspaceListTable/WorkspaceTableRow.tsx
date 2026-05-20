@@ -114,6 +114,7 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
             skeletonReasonAttributes={{context: 'WorkspaceRow'}}
+            shouldAnimateInHighlight={item.shouldAnimateInHighlight}
             onPress={item.action}
             offlineWithFeedback={{
                 shouldHideOnDelete: false,
@@ -136,7 +137,7 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
                                 fallbackIcon={icons.FallbackWorkspaceAvatar}
                             />
 
-                            <View style={[styles.flexGrow1, styles.gap1]}>
+                            <View style={[styles.flex1, styles.gap1]}>
                                 <TextWithTooltip
                                     shouldShowTooltip
                                     text={item.title}
@@ -176,8 +177,8 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
                                 src={icons.ArrowRight}
                                 fill={theme.icon}
                                 additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
-                                width={variables.iconSizeSmall}
-                                height={variables.iconSizeSmall}
+                                width={variables.iconSizeNormal}
+                                height={variables.iconSizeNormal}
                             />
                         </View>
                     )}

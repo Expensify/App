@@ -4207,6 +4207,12 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                         return '管理员';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return '审计员';
+                    case CONST.POLICY.ROLE.CARD_ADMIN:
+                        return '卡片管理员';
+                    case CONST.POLICY.ROLE.PEOPLE_ADMIN:
+                        return '人员管理';
+                    case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
+                        return '付款管理员';
                     case CONST.POLICY.ROLE.USER:
                         return '成员';
                     default:
@@ -4236,12 +4242,15 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             budgetTypeForNotificationMessage: {tag: '标签', category: '类别'},
             policyExpenseChatName: (displayName: string) => `${displayName} 的报销费用`,
             deepDiveExpensifyCard: `<muted-text-label>Expensify 卡交易将自动导出到使用<a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">我们的集成</a>创建的“Expensify 卡负债账户”。</muted-text-label>`,
-            travelInvoicing: '将 Expensify Travel 应付导出至',
+            travelInvoicing: '将差旅开票费用导出为',
             travelInvoicingVendor: '差旅供应商',
             travelInvoicingPayableAccount: '差旅应付账户',
             hr: '人力资源',
             rooms: '房间',
             findDomain: '查找域名',
+            cardAdminAlternateText: '管理工作区卡片。',
+            peopleAdminAlternateText: '管理成员和审批流程。',
+            paymentsAdminAlternateText: '管理工作流付款。',
         },
         createdForClient: {
             title: '您已为客户创建了工作区！',
@@ -4549,6 +4558,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             purchaseBill: '采购账单',
             exportDeepDiveCompanyCard: '导出的报销将作为银行交易记入下方的 Xero 银行账户，且交易日期将与您的银行对账单上的日期一致。',
             bankTransactions: '银行交易',
+            travelInvoicingDescription: '差旅费用将作为银行交易导出到下面指定的 Xero 账户。',
             xeroBankAccount: 'Xero 银行账户',
             xeroBankAccountDescription: '选择报销费用将作为银行交易入账的位置。',
             exportExpensesDescription: '报表将按照在下方选择的日期和状态导出为采购账单。',

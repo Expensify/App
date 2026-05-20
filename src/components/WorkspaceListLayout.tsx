@@ -73,31 +73,6 @@ export default function WorkspaceListLayout({children, headerButton}: WorkspaceL
             bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.WORKSPACES} />}
         >
             <View style={[styles.flex1, styles.flexRow]}>
-                {!shouldUseNarrowLayout && (
-                    <View style={styles.sidebarContainer}>
-                        <TopBarWithLoadingBar
-                            shouldDisplaySearch={false}
-                            shouldDisplayHelpButton={false}
-                            breadcrumbLabel={activeTabLabel}
-                        />
-                        <ScrollView contentContainerStyle={styles.flexColumn}>
-                            <View style={[styles.pb4, styles.mh3, styles.mt3]}>
-                                {navigationOptions.map((navigationOption) => (
-                                    <HighlightableMenuItem
-                                        shouldIconUseAutoWidthStyle
-                                        key={navigationOption.screenName}
-                                        icon={navigationOption.icon}
-                                        title={navigationOption.title}
-                                        wrapperStyle={styles.sectionMenuItem(false)}
-                                        focused={activeRoute === navigationOption.screenName}
-                                        onPress={() => Navigation.navigate(navigationOption.route)}
-                                    />
-                                ))}
-                            </View>
-                        </ScrollView>
-                    </View>
-                )}
-
                 <View style={[styles.flex1]}>
                     <TopBarWithLoadingBar
                         shouldDisplayHelpButton
@@ -106,16 +81,14 @@ export default function WorkspaceListLayout({children, headerButton}: WorkspaceL
                         <View style={[styles.pr3]}>{!shouldDisplayButtonsInSeparateLine && headerButton}</View>
                     </TopBarWithLoadingBar>
 
-                    {shouldUseNarrowLayout && (
-                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.pr5]}>
-                            <TabSelectorBase
-                                tabs={navigationOptions}
-                                activeTabKey={activeNarrowLayoutTabKey}
-                                onTabPress={onTabPress}
-                            />
-                            {shouldDisplayButtonsInSeparateLine && headerButton}
-                        </View>
-                    )}
+                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.pr5]}>
+                        <TabSelectorBase
+                            tabs={navigationOptions}
+                            activeTabKey={activeNarrowLayoutTabKey}
+                            onTabPress={onTabPress}
+                        />
+                        {shouldDisplayButtonsInSeparateLine && headerButton}
+                    </View>
 
                     {children}
                     {!shouldUseNarrowLayout && <OfflineIndicator style={styles.pl5} />}
