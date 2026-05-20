@@ -23,10 +23,12 @@ export type {default as ConnectBankAccountParams} from './ConnectBankAccountPara
 export type {default as OpenDuplicatePolicyPageParams} from './OpenDuplicatePolicyPageParams';
 export type {default as ConnectPolicyToAccountingIntegrationParams} from './ConnectPolicyToAccountingIntegrationParams';
 export type {default as ConnectPolicyToGustoParams} from './ConnectPolicyToGustoParams';
+export type {default as ConnectPolicyToMergeParams} from './ConnectPolicyToMergeParams';
 export type {default as ConnectPolicyToZenefitsParams} from './ConnectPolicyToZenefitsParams';
 export type {default as OpenPolicyProfilePageParams} from './OpenPolicyProfilePageParams';
 export type {default as OpenPolicyInitialPageParams} from './OpenPolicyInitialPageParams';
 export type {default as SyncPolicyToGustoParams} from './SyncPolicyToGustoParams';
+export type {default as SyncPolicyToMergeHRParams} from './SyncPolicyToMergeHRParams';
 export type {default as SyncPolicyToZenefitsParams} from './SyncPolicyToZenefitsParams';
 export type {default as SyncPolicyToQuickbooksOnlineParams} from './SyncPolicyToQuickbooksOnlineParams';
 export type {default as SyncPolicyToXeroParams} from './SyncPolicyToXeroParams';
@@ -255,6 +257,8 @@ export type {default as EnablePolicyReportFieldsParams} from './EnablePolicyRepo
 export type {default as EnablePolicyExpensifyCardsParams} from './EnablePolicyExpensifyCardsParams';
 export type {default as UpdateGustoApprovalModeParams} from './UpdateGustoApprovalModeParams';
 export type {default as UpdateGustoFinalApproverParams} from './UpdateGustoFinalApproverParams';
+export type {default as UpdateMergeHRApprovalModeParams} from './UpdateMergeHRApprovalModeParams';
+export type {default as UpdateMergeHRFinalApproverParams} from './UpdateMergeHRFinalApproverParams';
 export type {default as UpdateZenefitsApprovalModeParams} from './UpdateZenefitsApprovalModeParams';
 export type {default as UpdateZenefitsFinalApproverParams} from './UpdateZenefitsFinalApproverParams';
 export type {default as AcceptJoinRequestParams} from './AcceptJoinRequest';
