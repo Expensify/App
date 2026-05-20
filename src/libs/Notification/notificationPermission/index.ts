@@ -1,7 +1,3 @@
-// Web-only. There is no .native variant on purpose: on iOS/Android the
-// notification permission prompt is owned by the existing push-registration
-// flow, so the `window.Notification` guards below cause getStatus and request
-// to resolve to 'denied' on native, which disables the EnableNotificationsBanner.
 import Log from '@libs/Log';
 import type NotificationPermissionModule from './types';
 import type {NotificationPermissionStatus} from './types';
