@@ -1,6 +1,7 @@
 import {
     areAllTargetsAccountingCompatible,
     arePoliciesAccountingCompatible,
+    FEATURE_ROWS,
     getAccountingConnectionIdentity,
     getConnectionCompanyID,
     isCopyPolicySettingsPartEnabledOnSource,
@@ -197,6 +198,25 @@ describe('CopyPolicySettingsUtils', () => {
             const targetA = createRandomPolicy(1);
             const targetB = createRandomPolicy(2);
             expect(areAllTargetsAccountingCompatible(empty, [targetA, targetB])).toBe(true);
+        });
+    });
+
+    describe('FEATURE_ROWS', () => {
+        it('has all copy-settings parts mapped to their respective translation keys', () => {
+            const parts = FEATURE_ROWS.map((row) => row.part);
+            expect(parts).toContain('overview');
+            expect(parts).toContain('members');
+            expect(parts).toContain('reports');
+            expect(parts).toContain('accounting');
+            expect(parts).toContain('categories');
+            expect(parts).toContain('tags');
+            expect(parts).toContain('taxes');
+            expect(parts).toContain('workflows');
+            expect(parts).toContain('rules');
+            expect(parts).toContain('distanceRates');
+            expect(parts).toContain('perDiem');
+            expect(parts).toContain('invoices');
+            expect(parts).toContain('travel');
         });
     });
 });
