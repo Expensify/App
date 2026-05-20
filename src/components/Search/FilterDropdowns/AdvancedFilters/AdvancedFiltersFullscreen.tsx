@@ -39,7 +39,7 @@ function AdvancedFiltersFullscreen({queryJSON, closeOverlay}: AdvancedFiltersFul
     return (
         <ScreenWrapperContainer
             testID="AdvancedFiltersFullscreen"
-            shouldEnableMaxHeight
+            shouldEnableMaxHeight={!!selectedFilter}
             includeSafeAreaPaddingBottom
             // Avoiding keyboard is already handled by the modal
             shouldEnableKeyboardAvoidingView={false}
