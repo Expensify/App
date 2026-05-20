@@ -1,6 +1,5 @@
 import React, {useMemo} from 'react';
 import {Keyboard, StyleSheet, View} from 'react-native';
-import Animated from 'react-native-reanimated';
 import type {SvgProps} from 'react-native-svg';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Avatar from '@components/Avatar';
@@ -80,7 +79,6 @@ function HeaderWithBackButton({
     subTitleLink = '',
     shouldMinimizeMenuButton = false,
     openParentReportInCurrentTab = false,
-    leftContentAnimatedStyle,
 }: HeaderWithBackButtonProps) {
     // Avatar-header routes skip Header, so register the dialog label here.
     useDialogLabelRegistration(shouldShowReportAvatarWithDisplay ? (report?.reportName ?? '') : '');
@@ -243,55 +241,52 @@ function HeaderWithBackButton({
             onTouchStart={isInLandscapeMode ? () => Keyboard.dismiss() : undefined}
         >
             <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden, styles.mr3]}>
-                <Animated.View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.flexShrink1, styles.overflowHidden, leftContentAnimatedStyle]}>
-                    {shouldShowBackButton && (
-                        <Tooltip text={translate('common.back')}>
-                            <PressableWithoutFeedback
-                                onPress={() => {
-                                    if (Keyboard.isVisible()) {
-                                        Keyboard.dismiss();
-                                    }
-                                    const topmostReportId = Navigation.getTopmostReportId();
-                                    if (shouldNavigateToTopMostReport && topmostReportId) {
-                                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(topmostReportId));
-                                    } else {
-                                        onBackButtonPress();
-                                    }
-                                }}
-                                style={[styles.touchableButtonImage]}
-                                role={CONST.ROLE.BUTTON}
-                                accessibilityLabel={translate('common.back')}
-                                id={CONST.BACK_BUTTON_NATIVE_ID}
-                                sentryLabel={CONST.SENTRY_LABEL.HEADER.BACK_BUTTON}
-                            >
-                                <Icon
-                                    src={icons.BackArrow}
-                                    fill={iconFill ?? theme.icon}
-                                />
-                            </PressableWithoutFeedback>
-                        </Tooltip>
-                    )}
-                    {!!icon && (
-                        <Icon
-                            src={icon}
-                            width={iconWidth ?? variables.iconHeader}
-                            height={iconHeight ?? variables.iconHeader}
-                            additionalStyles={[styles.mr2, iconStyles]}
-                            fill={iconFill}
-                        />
-                    )}
-                    {!!policyAvatar && (
-                        <Avatar
-                            size={CONST.AVATAR_SIZE.SMALL}
-                            containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.SMALL)), styles.mr3]}
-                            source={policyAvatar?.source}
-                            name={policyAvatar?.name}
-                            avatarID={policyAvatar?.id}
-                            type={policyAvatar?.type}
-                        />
-                    )}
-                    {middleContent}
-                </Animated.View>
+                {shouldShowBackButton && (
+                    <Tooltip text={translate('common.back')}>
+                        <PressableWithoutFeedback
+                            onPress={() => {
+                                if (Keyboard.isVisible()) {
+                                    Keyboard.dismiss();
+                                }
+                                const topmostReportId = Navigation.getTopmostReportId();
+                                if (shouldNavigateToTopMostReport && topmostReportId) {
+                                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(topmostReportId));
+                                } else {
+                                    onBackButtonPress();
+                                }
+                            }}
+                            style={[styles.touchableButtonImage]}
+                            role={CONST.ROLE.BUTTON}
+                            accessibilityLabel={translate('common.back')}
+                            id={CONST.BACK_BUTTON_NATIVE_ID}
+                            sentryLabel={CONST.SENTRY_LABEL.HEADER.BACK_BUTTON}
+                        >
+                            <Icon
+                                src={icons.BackArrow}
+                                fill={iconFill ?? theme.icon}
+                            />
+                        </PressableWithoutFeedback>
+                    </Tooltip>
+                )}
+                {!!icon && (
+                    <Icon
+                        src={icon}
+                        width={iconWidth ?? variables.iconHeader}
+                        height={iconHeight ?? variables.iconHeader}
+                        additionalStyles={[styles.mr2, iconStyles]}
+                        fill={iconFill}
+                    />
+                )}
+                {!!policyAvatar && (
+                    <Avatar
+                        containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT)), styles.mr3]}
+                        source={policyAvatar?.source}
+                        name={policyAvatar?.name}
+                        avatarID={policyAvatar?.id}
+                        type={policyAvatar?.type}
+                    />
+                )}
+                {middleContent}
                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
                     <View style={[styles.pr2, styles.flexRow, styles.alignItemsCenter]}>
                         {children}

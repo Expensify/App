@@ -2,18 +2,13 @@ import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigationState} from
 import {emailSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
-import MenuIcon from '@assets/images/menu.svg';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItem from '@components/HighlightableMenuItem';
-import Icon from '@components/Icon';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import {collapseProgress, peekProgress, toggleSidebar} from '@components/Navigation/SidebarCollapseStore';
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
@@ -29,7 +24,6 @@ import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
@@ -55,7 +49,6 @@ import {
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import type WORKSPACE_TO_RHP from '@navigation/linkingConfig/RELATIONS/WORKSPACE_TO_RHP';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -99,40 +92,6 @@ function dismissError(policyID: string | undefined, pendingAction: PendingAction
 function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: WorkspaceInitialPageProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const theme = useTheme();
-
-    // Slide the toggle button horizontally so it lands at the collapsed-sidebar center.
-    // Toggle's natural center inside HeaderWithBackButton (280-wide): SIDEBAR_WIDTH
-    // - mr3(12) - pr2(8) - p2(8) - iconSizeSmall/2(8) = 244. Collapsed-sidebar target
-    // center: COLLAPSED_WIDTH / 2 = 38. Travel: 244 - 38 = 206.
-    const sidebarToggleAnimatedStyle = useAnimatedStyle(() => {
-        const cp = collapseProgress.get();
-        const pp = peekProgress.get();
-        const visualExpansion = 1 - cp * (1 - pp);
-        return {transform: [{translateX: -1 - 206 * (1 - visualExpansion)}]};
-    });
-
-    // Fade + slide menu item titles in lockstep with the collapse animation.
-    const titleAnimatedStyle = useAnimatedStyle(() => {
-        const cp = collapseProgress.get();
-        const pp = peekProgress.get();
-        const visualExpansion = 1 - cp * (1 - pp);
-        return {
-            opacity: visualExpansion,
-            transform: [{translateX: -8 * (1 - visualExpansion)}],
-        };
-    });
-
-    // Animated wrapper width: each menu item row shrinks from 256 (inner width = sidebar
-    // 280 minus mh3*2 = 24) to 52 (icon column) as the sidebar collapses.
-    const menuItemWrapperAnimatedStyle = useAnimatedStyle(() => {
-        const cp = collapseProgress.get();
-        const pp = peekProgress.get();
-        const visualExpansion = 1 - cp * (1 - pp);
-        return {
-            width: 52 + (variables.sideBarWithLHBWidth - 24 - 52) * visualExpansion,
-        };
-    });
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
@@ -495,26 +454,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                     onBackButtonPress={() => Navigation.goBack(route.params?.backTo ?? ROUTES.WORKSPACES_LIST.route)}
                     policyAvatar={policyAvatar}
                     shouldDisplayHelpButton={shouldUseNarrowLayout}
-                    leftContentAnimatedStyle={shouldUseNarrowLayout ? undefined : titleAnimatedStyle}
-                >
-                    {!shouldUseNarrowLayout && (
-                        <Animated.View style={sidebarToggleAnimatedStyle}>
-                            <PressableWithoutFeedback
-                                accessibilityLabel="Toggle sidebar"
-                                onPress={toggleSidebar}
-                                sentryLabel={CONST.SENTRY_LABEL.TOP_BAR.CANCEL_BUTTON}
-                                style={[styles.p2, styles.br2]}
-                            >
-                                <Icon
-                                    src={MenuIcon}
-                                    width={variables.iconSizeSmall}
-                                    height={variables.iconSizeSmall}
-                                    fill={theme.icon}
-                                />
-                            </PressableWithoutFeedback>
-                        </Animated.View>
-                    )}
-                </HeaderWithBackButton>
+                />
 
                 <ScrollView contentContainerStyle={[styles.flexColumn, styles.pb14]}>
                     <OfflineWithFeedback
@@ -531,50 +471,24 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                 Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
                                 In this case where user can click on workspace avatar or menu items, we need to have a check for `isExecuting`. So, we are directly mapping menuItems.
                             */}
-                            {workspaceMenuItems.map((item) =>
-                                shouldUseNarrowLayout ? (
-                                    <HighlightableMenuItem
-                                        key={item.translationKey}
-                                        disabled={hasPolicyCreationError || isExecuting}
-                                        interactive={!hasPolicyCreationError}
-                                        title={translate(item.translationKey)}
-                                        icon={item.icon}
-                                        onPress={item.action}
-                                        brickRoadIndicator={item.brickRoadIndicator}
-                                        wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
-                                        highlighted={!!item?.highlighted}
-                                        focused={!!(item.screenName && activeRoute?.startsWith(item.screenName))}
-                                        role={CONST.ROLE.TAB}
-                                        badgeText={item.badgeText}
-                                        shouldIconUseAutoWidthStyle
-                                        sentryLabel={item.sentryLabel}
-                                    />
-                                ) : (
-                                    <Animated.View
-                                        key={item.translationKey}
-                                        style={[{overflow: 'hidden', alignSelf: 'flex-start', borderRadius: 8}, menuItemWrapperAnimatedStyle]}
-                                    >
-                                        <View style={{width: variables.sideBarWithLHBWidth - 24}}>
-                                            <HighlightableMenuItem
-                                                disabled={hasPolicyCreationError || isExecuting}
-                                                interactive={!hasPolicyCreationError}
-                                                title={translate(item.translationKey)}
-                                                titleAnimatedStyle={titleAnimatedStyle}
-                                                icon={item.icon}
-                                                onPress={item.action}
-                                                brickRoadIndicator={item.brickRoadIndicator}
-                                                wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
-                                                highlighted={!!item?.highlighted}
-                                                focused={!!(item.screenName && activeRoute?.startsWith(item.screenName))}
-                                                role={CONST.ROLE.TAB}
-                                                badgeText={item.badgeText}
-                                                shouldIconUseAutoWidthStyle
-                                                sentryLabel={item.sentryLabel}
-                                            />
-                                        </View>
-                                    </Animated.View>
-                                ),
-                            )}
+                            {workspaceMenuItems.map((item) => (
+                                <HighlightableMenuItem
+                                    key={item.translationKey}
+                                    disabled={hasPolicyCreationError || isExecuting}
+                                    interactive={!hasPolicyCreationError}
+                                    title={translate(item.translationKey)}
+                                    icon={item.icon}
+                                    onPress={item.action}
+                                    brickRoadIndicator={item.brickRoadIndicator}
+                                    wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
+                                    highlighted={!!item?.highlighted}
+                                    focused={!!(item.screenName && activeRoute?.startsWith(item.screenName))}
+                                    role={CONST.ROLE.TAB}
+                                    badgeText={item.badgeText}
+                                    shouldIconUseAutoWidthStyle
+                                    sentryLabel={item.sentryLabel}
+                                />
+                            ))}
                         </View>
                     </OfflineWithFeedback>
                 </ScrollView>

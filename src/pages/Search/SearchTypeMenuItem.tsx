@@ -1,13 +1,9 @@
 import React from 'react';
 import {View} from 'react-native';
-import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
-import {collapseProgress, peekProgress, useSidebarCollapse} from '@components/Navigation/SidebarCollapseStore';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
-import Tooltip from '@components/Tooltip';
-import TooltipSense from '@components/Tooltip/TooltipSense';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -40,20 +36,10 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isVisuallyCollapsed} = useSidebarCollapse();
 
-    const labelAnimatedStyle = useAnimatedStyle(() => {
-        const visualExpansion = 1 - collapseProgress.get() * (1 - peekProgress.get());
-        return {
-            opacity: visualExpansion,
-            transform: [{translateX: -8 * (1 - visualExpansion)}],
-        };
-    });
-
-    const pressable = (
+    return (
         <PressableWithoutFeedback
             onPress={onPress}
-            onHoverIn={isVisuallyCollapsed ? () => TooltipSense.activate() : undefined}
             accessibilityLabel={title}
             accessibilityState={{selected: focused}}
             role={CONST.ROLE.TAB}
@@ -77,35 +63,25 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
                             />
                         </View>
                     )}
-                    {!isVisuallyCollapsed && (
-                        <Animated.View style={[styles.justifyContentCenter, styles.flex1, styles.ml3, labelAnimatedStyle]}>
-                            <Text
-                                style={[styles.popoverMenuText, styles.textStrong]}
-                                numberOfLines={1}
-                            >
-                                {title}
-                            </Text>
-                        </Animated.View>
-                    )}
-                    {!isVisuallyCollapsed && !!badgeText && (
-                        <Animated.View style={labelAnimatedStyle}>
-                            <Badge
-                                text={badgeText}
-                                badgeStyles={styles.todoBadge}
-                                success
-                            />
-                        </Animated.View>
+                    <View style={[styles.justifyContentCenter, styles.flex1, styles.ml3]}>
+                        <Text
+                            style={[styles.popoverMenuText, styles.textStrong]}
+                            numberOfLines={1}
+                        >
+                            {title}
+                        </Text>
+                    </View>
+                    {!!badgeText && (
+                        <Badge
+                            text={badgeText}
+                            badgeStyles={styles.todoBadge}
+                            success
+                        />
                     )}
                 </>
             )}
         </PressableWithoutFeedback>
     );
-
-    if (isVisuallyCollapsed) {
-        return <Tooltip text={title}>{pressable}</Tooltip>;
-    }
-
-    return pressable;
 }
 
 export default SearchTypeMenuItem;

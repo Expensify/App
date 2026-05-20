@@ -23,7 +23,7 @@ const commonScreenOptions: PlatformStackNavigationOptions = {
     },
 };
 
-const useSplitNavigatorScreenOptions = (sidebarWidth: number = variables.sideBarWithLHBWidth) => {
+const useSplitNavigatorScreenOptions = () => {
     const themeStyles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -40,8 +40,8 @@ const useSplitNavigatorScreenOptions = (sidebarWidth: number = variables.sideBar
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props}),
                 cardStyle: {
                     ...StyleUtils.getNavigationModalCardStyle(),
-                    width: shouldUseNarrowLayout ? '100%' : sidebarWidth,
-                    marginLeft: shouldUseNarrowLayout ? 0 : -sidebarWidth,
+                    width: shouldUseNarrowLayout ? '100%' : variables.sideBarWithLHBWidth,
+                    marginLeft: shouldUseNarrowLayout ? 0 : -variables.sideBarWithLHBWidth,
                     ...(shouldUseNarrowLayout ? {} : themeStyles.borderRight),
                 },
             },
