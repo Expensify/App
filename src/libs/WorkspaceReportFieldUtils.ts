@@ -107,7 +107,7 @@ function hasFormulaPartsInInitialValue(initialValue?: string): boolean {
  * Checks if a report field name already exists in the policy's field list (case-insensitive).
  */
 function isReportFieldNameExisting(fieldList: Record<string, PolicyReportField> | undefined, fieldName: string): boolean {
-    return Object.values(fieldList ?? {}).some((reportField) => reportField.name.toLowerCase() === fieldName.toLowerCase());
+    return Object.entries(fieldList ?? {}).some(([key, reportField]) => key !== CONST.POLICY.FIELDS.FIELD_LIST_TITLE && reportField.name.toLowerCase() === fieldName.toLowerCase());
 }
 
 /**
