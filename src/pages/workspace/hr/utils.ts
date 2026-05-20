@@ -6,79 +6,109 @@ import getMergeHRSetupLink from '@libs/actions/connections/MergeHR';
 import getZenefitsSetupLink from '@libs/actions/connections/Zenefits';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import type {HRConnectionName} from '@libs/PolicyUtils';
-import {getHRApprovalMode, getIntegrationLastSuccessfulDate, isGustoConnected, isMergeHRConnected, isZenefitsConnected} from '@libs/PolicyUtils';
+import {getConnectedHRProvider, getHRApprovalMode, getIntegrationLastSuccessfulDate} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import MERGE_HR_PROVIDERS from '@src/CONST/MERGE_HR_PROVIDERS';
 import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type Beta from '@src/types/onyx/Beta';
-import type {PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {ConnectionName, PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
+import type {ConnectionName, GustoConnectionConfig, MergeHRConnectionConfig, PolicyConnectionSyncProgress, PolicyConnectionSyncStage, ZenefitsConnectionConfig} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-type HRCardConfig = {
-    approvalMode?: string;
-    finalApprover?: string;
-    pendingFields?: Record<string, PendingAction>;
-    errorFields?: Record<string, unknown>;
-};
+type HRCardConfig = MergeHRConnectionConfig | GustoConnectionConfig | ZenefitsConnectionConfig | undefined;
 
 type HRCardDescriptor = {
+    /** Unique identifier for this card. */
     key: string;
+
+    /** The Onyx connection name that identifies this HR provider. */
     connectionName: HRConnectionName;
+
+    /** Human-readable provider name shown in the UI (e.g. "Gusto", "Zenefits"). */
     displayName: string;
+
+    /** Provider logo — either a remote URL string or a local icon asset. */
     icon: string | IconAsset;
-    iconType: typeof CONST.ICON_TYPE_AVATAR;
+
+    /** Whether this provider is currently connected to the workspace. */
     isConnected: boolean;
+
+    /** Whether a sync operation is currently running for this provider. */
     isSyncInProgress: boolean;
+
+    /** ISO date string of the last successful sync, used for "last synced" display. */
     successfulDate?: string;
+
+    /** Whether the last sync resulted in an error. */
     hasError: boolean;
-    mergeSlug?: MergeHRProviderSlug;
-    setupLink: string;
+
+    /** Human-readable error message from the last failed sync attempt. */
+    lastSyncErrorMessage?: string;
+
+    /** Current stage of an in-progress sync, used to show step-level progress. */
+    syncStageInProgress?: PolicyConnectionSyncStage;
+
+    /** Navigation route to the approval-mode settings page for this provider. */
     approvalModeRoute?: Route;
+
+    /** Navigation route to the final-approver selection page for this provider. */
     finalApproverRoute?: Route;
+
+    /** Persisted configuration for the HR connection (approval mode, final approver, pending/error state). */
     config?: HRCardConfig;
+
+    /** Translated label describing the current approval mode. */
     approvalModeLabel?: string;
+
+    /** Display name of the assigned final approver. */
     finalApproverDisplayName?: string;
 };
 
 type GetHRCardStateParams = {
+    /** The workspace policy to derive HR card state from. */
     policy: OnyxEntry<Policy>;
+
+    /** Connection name used to look up sync progress and connection status. */
     connectionName: ConnectionName;
+
+    /** Current sync progress entry from Onyx, if any sync is running. */
     connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>;
+
+    /** Locale helper that converts an ISO datetime to a localized date string. */
     getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'];
+
+    /** Slug identifying a specific Merge HR sub-provider (e.g. "bamboohr", "rippling"). */
     mergeSlug?: MergeHRProviderSlug;
 };
 
+/** Derives the runtime state (connected, syncing, errors, last sync date) for a single HR provider on a given policy. */
 function getHRCardState({policy, connectionName, connectionSyncProgress, getLocalDateFromDatetime, mergeSlug}: GetHRCardStateParams) {
     const isSyncInProgress = connectionSyncProgress?.connectionName === connectionName && isConnectionInProgress(connectionSyncProgress, policy);
 
-    let isConnected = false;
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.GUSTO) {
-        isConnected = isGustoConnected(policy);
-    } else if (connectionName === CONST.POLICY.CONNECTIONS.NAME.ZENEFITS) {
-        isConnected = isZenefitsConnected(policy);
-    } else if (connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR) {
-        const mergeConnection = policy?.connections?.merge_hris;
-        isConnected = isMergeHRConnected(policy) && (!mergeSlug || mergeConnection?.config?.integration === mergeSlug);
-    }
+    const connectedProvider = getConnectedHRProvider(policy);
+    const isConnected = connectedProvider?.connectionName === connectionName && (!mergeSlug || connectedProvider.mergeSlug === mergeSlug);
 
     const connection = policy?.connections?.[connectionName];
     const syncProgress = connectionSyncProgress?.connectionName === connectionName ? connectionSyncProgress : undefined;
     const successfulDate = getIntegrationLastSuccessfulDate(getLocalDateFromDatetime, connection, syncProgress);
 
     const hasError = hasSynchronizationErrorMessage(policy, connectionName, !!isSyncInProgress);
+    const lastSyncErrorMessage = hasError ? (connection?.lastSync?.errorMessage ?? undefined) : undefined;
+    const syncStageInProgress = isSyncInProgress && syncProgress?.stageInProgress ? syncProgress.stageInProgress : undefined;
 
     return {
         isConnected,
         isSyncInProgress: !!isSyncInProgress,
         successfulDate,
         hasError,
+        lastSyncErrorMessage,
+        syncStageInProgress,
     };
 }
 
+/** Returns a translated label for the current approval mode of the given HR connection (e.g. "Basic", "Manager", "Custom"). Falls back to "Not set". */
 function getApprovalModeLabel(policy: OnyxEntry<Policy>, connectionName: HRConnectionName, translate: LocaleContextProps['translate']): string {
     const approvalMode = getHRApprovalMode(policy, connectionName);
 
@@ -101,6 +131,7 @@ function getApprovalModeLabel(policy: OnyxEntry<Policy>, connectionName: HRConne
     }
 }
 
+/** Resolves the final approver email to a display name via personal details. Returns "Not set" when no approver is configured. */
 function getFinalApproverDisplayName(finalApprover: string | undefined | null, translate: LocaleContextProps['translate']): string {
     if (!finalApprover) {
         return translate('workspace.hr.notSet');
@@ -108,86 +139,85 @@ function getFinalApproverDisplayName(finalApprover: string | undefined | null, t
     return getDisplayNameOrDefault(getPersonalDetailByEmail(finalApprover), finalApprover, false);
 }
 
-function getCardConfig(policy: OnyxEntry<Policy>, connectionName: HRConnectionName): HRCardConfig | undefined {
+/** Extracts the connection-specific config object (approval mode, final approver, pending/error fields) from the policy for a given HR provider. */
+function getCardConfig(policy: OnyxEntry<Policy>, connectionName: HRConnectionName): MergeHRConnectionConfig | GustoConnectionConfig | ZenefitsConnectionConfig | undefined {
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.GUSTO) {
-        return policy?.connections?.gusto?.config as HRCardConfig | undefined;
+        return policy?.connections?.gusto?.config;
     }
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.ZENEFITS) {
-        return policy?.connections?.zenefits?.config as HRCardConfig | undefined;
+        return policy?.connections?.zenefits?.config;
     }
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR) {
-        return policy?.connections?.merge_hris?.config as HRCardConfig | undefined;
+        return policy?.connections?.merge_hris?.config;
     }
     return undefined;
 }
 
-function getApprovalModeRoute(connectionName: HRConnectionName, policyID: string): Route | undefined {
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.GUSTO) {
-        return ROUTES.WORKSPACE_HR_GUSTO_APPROVAL_MODE.getRoute(policyID);
-    }
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.ZENEFITS) {
-        return ROUTES.WORKSPACE_HR_ZENEFITS_APPROVAL_MODE.getRoute(policyID);
-    }
-    return undefined;
-}
-
-function getFinalApproverRoute(connectionName: HRConnectionName, policyID: string): Route | undefined {
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.GUSTO) {
-        return ROUTES.WORKSPACE_HR_GUSTO_FINAL_APPROVER.getRoute(policyID);
-    }
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.ZENEFITS) {
-        return ROUTES.WORKSPACE_HR_ZENEFITS_FINAL_APPROVER.getRoute(policyID);
-    }
-    return undefined;
-}
+const STATIC_HR_PROVIDERS = [
+    {
+        key: 'gusto',
+        beta: CONST.BETAS.GUSTO,
+        connectionName: CONST.POLICY.CONNECTIONS.NAME.GUSTO,
+        titleKey: 'workspace.hr.gusto.title',
+        iconParam: 'gustoIcon',
+        approvalModeRoute: ROUTES.WORKSPACE_HR_GUSTO_APPROVAL_MODE,
+        finalApproverRoute: ROUTES.WORKSPACE_HR_GUSTO_FINAL_APPROVER,
+    },
+    {
+        key: 'zenefits',
+        beta: CONST.BETAS.ZENEFITS,
+        connectionName: CONST.POLICY.CONNECTIONS.NAME.ZENEFITS,
+        titleKey: 'workspace.hr.zenefits.title',
+        iconParam: 'zenefitsIcon',
+        approvalModeRoute: ROUTES.WORKSPACE_HR_ZENEFITS_APPROVAL_MODE,
+        finalApproverRoute: ROUTES.WORKSPACE_HR_ZENEFITS_FINAL_APPROVER,
+    },
+] as const;
 
 type GetHRCardsParams = {
+    /** The workspace policy used to derive connection state for each HR provider. */
     policy: OnyxEntry<Policy>;
+
+    /** Current sync progress entry from Onyx, shared across all providers. */
     connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>;
+
+    /** Locale helper that converts an ISO datetime to a localized date string. */
     getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'];
+
+    /** Predicate that checks whether a given beta flag is enabled for the current user. */
     isBetaEnabled: (beta: Beta) => boolean;
+
+    /** Translation function for resolving i18n keys into display strings. */
     translate: LocaleContextProps['translate'];
+
+    /** ID of the workspace policy, used to build navigation routes. */
     policyID: string;
+
+    /** Local icon asset for the Gusto provider card. */
     gustoIcon: IconAsset;
+
+    /** Local icon asset for the Zenefits provider card. */
     zenefitsIcon: IconAsset;
 };
 
-function getHRCards({policy, connectionSyncProgress, isBetaEnabled, getLocalDateFromDatetime, translate, policyID, gustoIcon, zenefitsIcon}: GetHRCardsParams): HRCardDescriptor[] {
+/** Builds the full list of HR provider card descriptors for the workspace HR page, including static providers (Gusto, Zenefits) and dynamic Merge HR sub-providers gated by betas. */
+function getHRCards({policy, connectionSyncProgress, isBetaEnabled, getLocalDateFromDatetime, translate, policyID, ...iconParams}: GetHRCardsParams): HRCardDescriptor[] {
     const cards: HRCardDescriptor[] = [];
 
-    if (isBetaEnabled(CONST.BETAS.GUSTO)) {
-        const connectionName = CONST.POLICY.CONNECTIONS.NAME.GUSTO;
+    for (const provider of STATIC_HR_PROVIDERS) {
+        if (!isBetaEnabled(provider.beta)) {
+            continue;
+        }
+        const {connectionName} = provider;
         const state = getHRCardState({policy, connectionName, connectionSyncProgress, getLocalDateFromDatetime});
         const config = getCardConfig(policy, connectionName);
         cards.push({
-            key: 'gusto',
+            key: provider.key,
             connectionName,
-            displayName: translate('workspace.hr.gusto.title'),
-            icon: gustoIcon,
-            iconType: CONST.ICON_TYPE_AVATAR,
-            setupLink: getGustoSetupLink(policyID),
-            approvalModeRoute: getApprovalModeRoute(connectionName, policyID),
-            finalApproverRoute: getFinalApproverRoute(connectionName, policyID),
-            config,
-            approvalModeLabel: getApprovalModeLabel(policy, connectionName, translate),
-            finalApproverDisplayName: getFinalApproverDisplayName(config?.finalApprover, translate),
-            ...state,
-        });
-    }
-
-    if (isBetaEnabled(CONST.BETAS.ZENEFITS)) {
-        const connectionName = CONST.POLICY.CONNECTIONS.NAME.ZENEFITS;
-        const state = getHRCardState({policy, connectionName, connectionSyncProgress, getLocalDateFromDatetime});
-        const config = getCardConfig(policy, connectionName);
-        cards.push({
-            key: 'zenefits',
-            connectionName,
-            displayName: translate('workspace.hr.zenefits.title'),
-            icon: zenefitsIcon,
-            iconType: CONST.ICON_TYPE_AVATAR,
-            setupLink: getZenefitsSetupLink(policyID),
-            approvalModeRoute: getApprovalModeRoute(connectionName, policyID),
-            finalApproverRoute: getFinalApproverRoute(connectionName, policyID),
+            displayName: translate(provider.titleKey),
+            icon: iconParams[provider.iconParam],
+            approvalModeRoute: provider.approvalModeRoute.getRoute(policyID),
+            finalApproverRoute: provider.finalApproverRoute.getRoute(policyID),
             config,
             approvalModeLabel: getApprovalModeLabel(policy, connectionName, translate),
             finalApproverDisplayName: getFinalApproverDisplayName(config?.finalApprover, translate),
@@ -197,27 +227,20 @@ function getHRCards({policy, connectionSyncProgress, isBetaEnabled, getLocalDate
 
     if (isBetaEnabled(CONST.BETAS.MERGE_HR)) {
         const mergeConnectionName = CONST.POLICY.CONNECTIONS.NAME.MERGE_HR;
-        const mergeConnectedSlug = policy?.connections?.merge_hris?.config?.integration;
+        const disconnectedState = {isConnected: false, isSyncInProgress: false, hasError: false} as const;
 
         for (const [slug, providerEntry] of Object.entries(MERGE_HR_PROVIDERS) as Array<[MergeHRProviderSlug, (typeof MERGE_HR_PROVIDERS)[MergeHRProviderSlug]]>) {
             const state = getHRCardState({policy, connectionName: mergeConnectionName, connectionSyncProgress, getLocalDateFromDatetime, mergeSlug: slug});
-            const isThisSlugConnected = !!mergeConnectedSlug && mergeConnectedSlug === slug;
-            const config = isThisSlugConnected ? getCardConfig(policy, mergeConnectionName) : undefined;
+            const config = state.isConnected ? getCardConfig(policy, mergeConnectionName) : undefined;
 
             cards.push({
                 key: `merge_${slug}`,
                 connectionName: mergeConnectionName,
                 displayName: providerEntry.displayName,
                 icon: providerEntry.iconUrl,
-                iconType: CONST.ICON_TYPE_AVATAR,
-                isConnected: isThisSlugConnected,
-                isSyncInProgress: isThisSlugConnected ? state.isSyncInProgress : false,
-                successfulDate: isThisSlugConnected ? state.successfulDate : undefined,
-                hasError: isThisSlugConnected ? state.hasError : false,
-                mergeSlug: slug,
-                setupLink: getMergeHRSetupLink(policyID, slug),
-                approvalModeRoute: undefined,
-                finalApproverRoute: undefined,
+                ...(state.isConnected ? state : disconnectedState),
+                approvalModeRoute: ROUTES.WORKSPACE_HR_MERGE_APPROVAL_MODE.getRoute(policyID),
+                finalApproverRoute: ROUTES.WORKSPACE_HR_MERGE_FINAL_APPROVER.getRoute(policyID),
                 config,
                 approvalModeLabel: config ? getApprovalModeLabel(policy, mergeConnectionName, translate) : undefined,
                 finalApproverDisplayName: config ? getFinalApproverDisplayName(config.finalApprover, translate) : undefined,

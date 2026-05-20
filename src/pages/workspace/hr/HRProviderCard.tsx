@@ -1,4 +1,5 @@
 import React from 'react';
+import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import MenuItem from '@components/MenuItem';
@@ -19,13 +20,17 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type {HRCardDescriptor} from './utils';
 
 type HRProviderCardProps = {
+    /** Descriptor object containing the HR provider's display info, connection state, and sync status. */
     card: HRCardDescriptor;
+
+    /** The workspace policy that owns this HR integration. */
     policy: Policy | undefined;
-    isFirst?: boolean;
-    onConnect: () => void;
+
+    /** Callback invoked when the user taps the "Connect" button for an unconnected provider. */
+    handleConnect: () => void;
 };
 
-function HRProviderCard({card, policy, isFirst, onConnect}: HRProviderCardProps) {
+function HRProviderCard({card, policy, handleConnect}: HRProviderCardProps) {
     const {translate, datetimeToRelative} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -33,14 +38,21 @@ function HRProviderCard({card, policy, isFirst, onConnect}: HRProviderCardProps)
     const {showConfirmModal} = useConfirmModal();
 
     const fallbackIcon = icons.Building;
+    // Some integrations have a hardcoded icon, others are passing icon url.
     const cardIcon = typeof card.icon === 'string' && card.icon.startsWith('http') ? card.icon : (card.icon as IconAsset) || fallbackIcon;
 
     let connectionDescription: string | undefined;
-    if (!card.isSyncInProgress && card.successfulDate && !card.hasError) {
-        connectionDescription = translate('workspace.hr.lastSync', datetimeToRelative(String(card.successfulDate)));
+    if (card.isSyncInProgress && card.syncStageInProgress) {
+        connectionDescription = translate('workspace.hr.syncStageName', {stage: card.syncStageInProgress});
+    } else if (card.successfulDate && !card.hasError) {
+        connectionDescription = translate('workspace.hr.lastSync', datetimeToRelative(card.successfulDate));
     }
 
-    const lastSyncErrorMessage = card.hasError ? translate('workspace.hr.syncError', card.displayName) : undefined;
+    let lastSyncErrorMessage: string | undefined;
+    if (card.hasError) {
+        const genericError = translate('workspace.hr.syncError', card.displayName);
+        lastSyncErrorMessage = card.lastSyncErrorMessage ? `${genericError} ("${card.lastSyncErrorMessage}")` : genericError;
+    }
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = [
         {
@@ -60,36 +72,35 @@ function HRProviderCard({card, policy, isFirst, onConnect}: HRProviderCardProps)
                     cancelText: translate('common.cancel'),
                     danger: true,
                 }).then((result) => {
-                    if (!result) {
+                    if (!result || !policy) {
                         return;
                     }
-                    if (policy) {
-                        removePolicyConnection(policy, card.connectionName);
-                    }
+                    removePolicyConnection(policy, card.connectionName);
                 });
             },
             shouldCallAfterModalHide: true,
+            disabled: isOffline,
         },
     ];
 
-    let rightComponent;
+    let rightInset;
     if (!card.isConnected) {
-        rightComponent = (
+        rightInset = (
             <Button
                 small
                 text={translate('workspace.hr.connect')}
-                onPress={onConnect}
+                onPress={handleConnect}
             />
         );
     } else if (card.isSyncInProgress) {
-        rightComponent = (
+        rightInset = (
             <ActivityIndicator
-                style={[styles.popoverMenuIcon]}
+                style={[styles.popoverMenuIcon, styles.alignSelfCenter]}
                 reasonAttributes={{context: `HRProviderCard.${card.key}Sync`}}
             />
         );
     } else {
-        rightComponent = (
+        rightInset = (
             <ThreeDotsMenu
                 shouldSelfPosition
                 menuItems={overflowMenu}
@@ -101,6 +112,8 @@ function HRProviderCard({card, policy, isFirst, onConnect}: HRProviderCardProps)
         );
     }
 
+    const rightComponent = <View style={styles.alignSelfCenter}>{rightInset}</View>;
+
     const {approvalModeRoute, finalApproverRoute} = card;
 
     return (
@@ -108,12 +121,12 @@ function HRProviderCard({card, policy, isFirst, onConnect}: HRProviderCardProps)
             <MenuItem
                 title={card.displayName}
                 icon={cardIcon}
-                iconType={card.iconType}
-                wrapperStyle={[styles.ph0, styles.pv2, isFirst && styles.mt4, !!lastSyncErrorMessage && styles.pb0]}
+                iconType={CONST.ICON_TYPE_AVATAR}
+                wrapperStyle={[styles.ph0, styles.pv2, !!lastSyncErrorMessage && styles.pb0]}
                 interactive={false}
                 description={connectionDescription}
                 errorText={lastSyncErrorMessage}
-                errorTextStyle={[styles.mt5]}
+                errorTextStyle={styles.mt5}
                 shouldShowRedDotIndicator
                 shouldShowRightComponent
                 rightComponent={rightComponent}

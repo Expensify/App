@@ -1,14 +1,13 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import ConnectToHRFlow from '@components/ConnectToHRFlow';
+import CollapsibleSection from '@components/CollapsibleSection';
+import ConnectToGustoFlow from '@components/ConnectToGustoFlow';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import TextInput from '@components/TextInput';
 import useGustoSyncResultsModal from '@hooks/useGustoSyncResultsModal';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -28,7 +27,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import HRProviderCard from './HRProviderCard';
+import type {HRCardDescriptor} from './utils';
 import {getHRCards} from './utils';
+
+const HR_BETAS = [CONST.BETAS.GUSTO, CONST.BETAS.ZENEFITS, CONST.BETAS.MERGE_HR] as const;
 
 type WorkspaceHRPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.HR>;
 
@@ -44,12 +46,9 @@ function WorkspaceHRPage({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const policy = usePolicy(policyID);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
-    const icons = useMemoizedLazyExpensifyIcons(['GustoSquare', 'ZenefitsSquare', 'DownArrow', 'UpArrow']);
+    const icons = useMemoizedLazyExpensifyIcons(['GustoSquare', 'ZenefitsSquare']);
     const illustrations = useMemoizedLazyIllustrations(['NewUser']);
-
-    const [isOtherExpanded, setIsOtherExpanded] = useState(false);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [activeHRFlow, setActiveHRFlow] = useState<{setupLink: string; key: number}>();
+    const [activeGustoFlowKey, setActiveGustoFlowKey] = useState<number>();
 
     useWorkspaceDocumentTitle(undefined, 'workspace.common.hr');
 
@@ -72,12 +71,24 @@ function WorkspaceHRPage({
         zenefitsIcon: icons.ZenefitsSquare,
     });
 
-    const connectedCards = cards.filter((c) => c.isConnected).sort((a, b) => localeCompare(a.displayName, b.displayName));
-    const disconnectedCards = cards.filter((c) => !c.isConnected).sort((a, b) => localeCompare(a.displayName, b.displayName));
+    const connectedCards: HRCardDescriptor[] = [];
+    const disconnectedCards: HRCardDescriptor[] = [];
+    for (const card of cards) {
+        (card.isConnected ? connectedCards : disconnectedCards).push(card);
+    }
+    const byName = (a: HRCardDescriptor, b: HRCardDescriptor) => localeCompare(a.displayName, b.displayName);
+    connectedCards.sort(byName);
+    disconnectedCards.sort(byName);
 
-    const visibleDisconnectedCards = searchQuery ? disconnectedCards.filter((c) => c.displayName.toLowerCase().includes(searchQuery.toLowerCase())) : disconnectedCards;
+    const shouldBeBlocked = !HR_BETAS.some(isBetaEnabled);
 
-    const shouldBeBlocked = !isBetaEnabled(CONST.BETAS.GUSTO) && !isBetaEnabled(CONST.BETAS.ZENEFITS) && !isBetaEnabled(CONST.BETAS.MERGE_HR);
+    const handleConnect = (connectionName: string) => {
+        if (connectionName !== CONST.POLICY.CONNECTIONS.NAME.GUSTO) {
+            return;
+        }
+        // eslint-disable-next-line react-hooks/purity
+        setActiveGustoFlowKey(Math.random());
+    };
 
     return (
         <AccessOrNotFoundWrapper
@@ -93,15 +104,15 @@ function WorkspaceHRPage({
                 shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
             >
-                {!!activeHRFlow && (
-                    <ConnectToHRFlow
-                        key={activeHRFlow.key}
-                        setupLink={activeHRFlow.setupLink}
+                {!!activeGustoFlowKey && (
+                    <ConnectToGustoFlow
+                        key={activeGustoFlowKey}
+                        policyID={policyID}
                     />
                 )}
                 <HeaderWithBackButton
                     icon={illustrations.NewUser}
-                    title={translate('workspace.common.hr')}
+                    title={translate('workspace.hr.title')}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldUseHeadlineHeader
                     onBackButtonPress={() => Navigation.goBack()}
@@ -111,61 +122,44 @@ function WorkspaceHRPage({
                         <Section
                             contentPaddingOnLargeScreens={{padding: 24}}
                             isCentralPane
-                            renderTitle={() => <Text style={[styles.textStrong]}>{translate('workspace.accounting.title')}</Text>}
+                            renderTitle={() => <Text style={[styles.textStrong]}>{translate('workspace.hr.connections')}</Text>}
                         >
-                            {connectedCards.map((card, index) => (
-                                <HRProviderCard
-                                    key={card.key}
-                                    card={card}
-                                    policy={policy}
-                                    isFirst={index === 0}
-                                    onConnect={() => setActiveHRFlow({setupLink: card.setupLink, key: Math.random()})}
-                                />
-                            ))}
-
-                            {connectedCards.length === 0 &&
-                                disconnectedCards.map((card, index) => (
+                            <View style={styles.mt4}>
+                                {connectedCards.map((card) => (
                                     <HRProviderCard
                                         key={card.key}
                                         card={card}
                                         policy={policy}
-                                        isFirst={index === 0}
-                                        onConnect={() => setActiveHRFlow({setupLink: card.setupLink, key: Math.random()})}
+                                        handleConnect={() => handleConnect(card.connectionName)}
                                     />
                                 ))}
+                                {connectedCards.length === 0 &&
+                                    disconnectedCards.map((card) => (
+                                        <HRProviderCard
+                                            key={card.key}
+                                            card={card}
+                                            policy={policy}
+                                            handleConnect={() => handleConnect(card.connectionName)}
+                                        />
+                                    ))}
+                            </View>
 
                             {connectedCards.length > 0 && disconnectedCards.length > 0 && (
-                                <>
-                                    <MenuItem
-                                        title={translate('common.other')}
-                                        shouldShowRightIcon
-                                        icon={isOtherExpanded ? icons.UpArrow : icons.DownArrow}
-                                        onPress={() => setIsOtherExpanded((prev) => !prev)}
-                                        wrapperStyle={[styles.ph0, styles.pv2, styles.mt4]}
-                                        role={CONST.ROLE.BUTTON}
-                                    />
-                                    {isOtherExpanded && (
-                                        <>
-                                            {disconnectedCards.length > 12 && (
-                                                <TextInput
-                                                    value={searchQuery}
-                                                    onChangeText={setSearchQuery}
-                                                    placeholder={translate('common.search')}
-                                                    accessibilityLabel={translate('common.search')}
-                                                    containerStyles={[styles.mb3]}
-                                                />
-                                            )}
-                                            {visibleDisconnectedCards.map((card) => (
-                                                <HRProviderCard
-                                                    key={card.key}
-                                                    card={card}
-                                                    policy={policy}
-                                                    onConnect={() => setActiveHRFlow({setupLink: card.setupLink, key: Math.random()})}
-                                                />
-                                            ))}
-                                        </>
-                                    )}
-                                </>
+                                <CollapsibleSection
+                                    title={translate('workspace.accounting.other')}
+                                    wrapperStyle={[styles.pr3, styles.mt5, styles.pv3]}
+                                    titleStyle={[styles.textNormal, styles.colorMuted]}
+                                    textStyle={[styles.flex1, styles.userSelectNone, styles.textNormal, styles.colorMuted]}
+                                >
+                                    {disconnectedCards.map((card) => (
+                                        <HRProviderCard
+                                            key={card.key}
+                                            card={card}
+                                            policy={policy}
+                                            handleConnect={() => handleConnect(card.connectionName)}
+                                        />
+                                    ))}
+                                </CollapsibleSection>
                             )}
                         </Section>
                     </View>
