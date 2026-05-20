@@ -6856,8 +6856,8 @@ ${reportName}
                     description: '适用于希望向雇主提交费用的员工。',
                 },
             },
-            description: '选择适合您的方案。要查看详细的功能和价格列表，请访问我们的',
-            subscriptionLink: '方案类型和价格帮助页面',
+            description: '选择适合你的方案。',
+            subscriptionLink: '了解详情',
             lockedPlanDescription: ({count, annualSubscriptionEndDate}: WorkspaceLockedPlanTypeParams) => ({
                 one: `在 Control 方案中，你已承诺在年度订阅到期（${annualSubscriptionEndDate}）前保持 1 位活跃成员。你可以在 ${annualSubscriptionEndDate} 起关闭自动续订，以改为按使用付费订阅并降级到 Collect 方案，操作入口在`,
                 other: `在年费订阅于${annualSubscriptionEndDate}结束之前，你已承诺在 Control 方案中保留 ${count} 名活跃成员。你可以在${annualSubscriptionEndDate}起，通过关闭自动续订，改为按使用量付费订阅并降级到 Collect 方案，操作入口在`,
