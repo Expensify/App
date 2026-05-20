@@ -170,7 +170,7 @@ function useSelectionModeReportActions({
 
     const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere;
 
-    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(report, shouldShowPayButton);
+    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(report, shouldShowPayButton, transactions);
 
     const shouldShowApproveButton = canApproveIOU(report, policy, reportMetadata, currentUserAccountID, transactions) && !hasOnlyPendingTransactions;
 
@@ -564,7 +564,7 @@ function useSelectionModeReportActions({
         canAllowSettlement,
         isAnyTransactionOnHold,
         isInvoiceReport,
-        hasOnlyHeldExpenses: hasOnlyHeldExpensesReportUtils(report?.reportID, transactions),
+        hasOnlyHeldExpenses: hasOnlyHeldExpensesReportUtils(transactions),
         nonHeldAmount,
         fullAmount,
         hasValidNonHeldAmount,
