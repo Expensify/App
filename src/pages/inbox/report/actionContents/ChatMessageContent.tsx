@@ -29,8 +29,8 @@ import ChatActionableButtons from './ChatActionableButtons';
 type ChatMessageContentProps = {
     action: OnyxTypes.ReportAction;
     report: OnyxEntry<OnyxTypes.Report>;
-    actionReport: OnyxEntry<OnyxTypes.Report>;
-    actionReportID: string | undefined;
+    actionOwnerReport: OnyxEntry<OnyxTypes.Report>;
+    actionOwnerReportID: string | undefined;
     reportID: string | undefined;
     originalReportID: string;
     displayAsGroup: boolean;
@@ -45,8 +45,8 @@ type ChatMessageContentProps = {
 function ChatMessageContent({
     action,
     report,
-    actionReport,
-    actionReportID,
+    actionOwnerReport,
+    actionOwnerReportID,
     reportID,
     originalReportID,
     displayAsGroup,
@@ -117,8 +117,8 @@ function ChatMessageContent({
                         {mayHaveActionableButtons && (
                             <ChatActionableButtons
                                 action={action}
-                                actionReport={actionReport}
-                                actionReportID={actionReportID}
+                                actionOwnerReport={actionOwnerReport}
+                                actionOwnerReportID={actionOwnerReportID}
                                 reportID={reportID}
                             />
                         )}

@@ -14,11 +14,11 @@ import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 
 type JoinRequestContentProps = {
     action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>;
-    actionReportID: string | undefined;
+    actionOwnerReportID: string | undefined;
     policyID: string | undefined;
 };
 
-function JoinRequestContent({action, actionReportID, policyID}: JoinRequestContentProps) {
+function JoinRequestContent({action, actionOwnerReportID, policyID}: JoinRequestContentProps) {
     const {translate} = useLocalize();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
@@ -29,13 +29,13 @@ function JoinRequestContent({action, actionReportID, policyID}: JoinRequestConte
                   {
                       text: 'actionableMentionJoinWorkspaceOptions.accept',
                       key: `${action.reportActionID}-actionableMentionJoinWorkspace-${CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT}`,
-                      onPress: () => acceptJoinRequest(actionReportID, action),
+                      onPress: () => acceptJoinRequest(actionOwnerReportID, action),
                       isPrimary: true,
                   },
                   {
                       text: 'actionableMentionJoinWorkspaceOptions.decline',
                       key: `${action.reportActionID}-actionableMentionJoinWorkspace-${CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.DECLINE}`,
-                      onPress: () => declineJoinRequest(actionReportID, action),
+                      onPress: () => declineJoinRequest(actionOwnerReportID, action),
                   },
               ];
 

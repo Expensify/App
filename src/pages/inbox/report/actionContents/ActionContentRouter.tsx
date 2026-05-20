@@ -151,8 +151,9 @@ function ActionContentRouter({
     const {translate, formatTravelDate} = useLocalize();
     const styles = useThemeStyles();
 
-    const actionReport = originalReport ?? report;
-    const actionReportID = originalReportID ?? reportID;
+    // Report that owns this action for mutations (thread / merged-list cases use originalReport).
+    const actionOwnerReport = originalReport ?? report;
+    const actionOwnerReportID = originalReportID ?? reportID;
     const policyID = report?.policyID;
     const reportOwnerAccountID = report?.ownerAccountID;
 
@@ -370,7 +371,7 @@ function ActionContentRouter({
         return (
             <JoinRequestContent
                 action={action}
-                actionReportID={actionReportID}
+                actionOwnerReportID={actionOwnerReportID}
                 policyID={policyID}
             />
         );
@@ -390,7 +391,7 @@ function ActionContentRouter({
             <ReportMentionWhisperContent
                 action={action}
                 reportID={reportID}
-                actionReport={actionReport}
+                actionOwnerReport={actionOwnerReport}
             />
         );
     }
@@ -399,7 +400,7 @@ function ActionContentRouter({
             <ConfirmWhisperContent
                 action={action}
                 reportID={reportID}
-                actionReport={actionReport}
+                actionOwnerReport={actionOwnerReport}
                 originalReportID={originalReportID}
             />
         );
@@ -480,8 +481,8 @@ function ActionContentRouter({
         <ChatMessageContent
             action={action}
             report={report}
-            actionReport={actionReport}
-            actionReportID={actionReportID}
+            actionOwnerReport={actionOwnerReport}
+            actionOwnerReportID={actionOwnerReportID}
             reportID={reportID}
             originalReportID={originalReportID}
             displayAsGroup={displayAsGroup}

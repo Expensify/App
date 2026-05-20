@@ -14,10 +14,10 @@ import type {Report, ReportAction} from '@src/types/onyx';
 type ReportMentionWhisperContentProps = {
     action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER>;
     reportID: string | undefined;
-    actionReport: OnyxEntry<Report>;
+    actionOwnerReport: OnyxEntry<Report>;
 };
 
-function ReportMentionWhisperContent({action, reportID, actionReport}: ReportMentionWhisperContentProps) {
+function ReportMentionWhisperContent({action, reportID, actionOwnerReport}: ReportMentionWhisperContentProps) {
     const isReportArchived = useReportIsArchived(reportID);
     const resolution = getOriginalMessage(action)?.resolution;
     const mentionReportContextValue = {currentReportID: reportID, exactlyMatch: true};
@@ -28,13 +28,13 @@ function ReportMentionWhisperContent({action, reportID, actionReport}: ReportMen
               {
                   text: 'common.yes',
                   key: `${action.reportActionID}-actionableReportMentionWhisper-${CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.CREATE}`,
-                  onPress: () => resolveActionableReportMentionWhisper(actionReport, action, CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.CREATE, isReportArchived),
+                  onPress: () => resolveActionableReportMentionWhisper(actionOwnerReport, action, CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.CREATE, isReportArchived),
                   isPrimary: true,
               },
               {
                   text: 'common.no',
                   key: `${action.reportActionID}-actionableReportMentionWhisper-${CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.NOTHING}`,
-                  onPress: () => resolveActionableReportMentionWhisper(actionReport, action, CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.NOTHING, isReportArchived),
+                  onPress: () => resolveActionableReportMentionWhisper(actionOwnerReport, action, CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.NOTHING, isReportArchived),
               },
           ];
 

@@ -36,12 +36,12 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 type ChatActionableButtonsProps = {
     action: OnyxTypes.ReportAction;
-    actionReport: OnyxEntry<OnyxTypes.Report>;
-    actionReportID: string | undefined;
+    actionOwnerReport: OnyxEntry<OnyxTypes.Report>;
+    actionOwnerReportID: string | undefined;
     reportID: string | undefined;
 };
 
-function ChatActionableButtons({action, actionReport, actionReportID, reportID}: ChatActionableButtonsProps) {
+function ChatActionableButtons({action, actionOwnerReport, actionOwnerReportID, reportID}: ChatActionableButtonsProps) {
     const styles = useThemeStyles();
     const personalDetail = useCurrentUserPersonalDetails();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
@@ -81,7 +81,7 @@ function ChatActionableButtons({action, actionReport, actionReportID, reportID}:
                 return [];
             }
 
-            if (!actionReport) {
+            if (!actionOwnerReport) {
                 return [];
             }
 
@@ -90,7 +90,7 @@ function ChatActionableButtons({action, actionReport, actionReportID, reportID}:
                 key: `${action.reportActionID}-conciergeCategoryOptions-${option}`,
                 onPress: () => {
                     resolveConciergeCategoryOptions(
-                        actionReport,
+                        actionOwnerReport,
                         reportID,
                         action.reportActionID,
                         option,
@@ -112,7 +112,7 @@ function ChatActionableButtons({action, actionReport, actionReportID, reportID}:
                 return [];
             }
 
-            if (!actionReport) {
+            if (!actionOwnerReport) {
                 return [];
             }
 
@@ -121,7 +121,7 @@ function ChatActionableButtons({action, actionReport, actionReportID, reportID}:
                 key: `${action.reportActionID}-conciergeDescriptionOptions-${option}`,
                 onPress: () => {
                     resolveConciergeDescriptionOptions(
-                        actionReport,
+                        actionOwnerReport,
                         reportID,
                         action.reportActionID,
                         option,
@@ -133,7 +133,7 @@ function ChatActionableButtons({action, actionReport, actionReportID, reportID}:
             }));
         }
         const messageHtml = getReportActionMessage(action)?.html;
-        if (messageHtml && actionReport) {
+        if (messageHtml && actionOwnerReport) {
             const followups = parseFollowupsFromHtml(messageHtml);
             if (followups && followups.length > 0) {
                 return followups.map((followup) => ({
@@ -142,7 +142,7 @@ function ChatActionableButtons({action, actionReport, actionReportID, reportID}:
                     key: `${action.reportActionID}-followup-${followup.text}`,
                     onPress: () => {
                         resolveSuggestedFollowup(
-                            actionReport,
+                            actionOwnerReport,
                             reportID,
                             action,
                             followup,
@@ -158,7 +158,7 @@ function ChatActionableButtons({action, actionReport, actionReportID, reportID}:
 
         if (isActionableTrackExpense(action)) {
             const baseDraftTransactionParams = {
-                reportID: actionReportID,
+                reportID: actionOwnerReportID,
                 reportActionID: action.reportActionID,
                 introSelected,
                 draftTransactionIDs,
@@ -196,7 +196,7 @@ function ChatActionableButtons({action, actionReport, actionReportID, reportID}:
                 text: 'actionableMentionTrackExpense.nothing',
                 key: `${action.reportActionID}-actionableMentionTrackExpense-nothing`,
                 onPress: () => {
-                    dismissTrackExpenseActionableWhisper(actionReportID, action);
+                    dismissTrackExpenseActionableWhisper(actionOwnerReportID, action);
                 },
             });
             return options;

@@ -28,7 +28,7 @@ function MentionWhisperContent({action, report, originalReport, originalReportID
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
 
-    const actionReport = originalReport ?? report;
+    const actionOwnerReport = originalReport ?? report;
     const reportPolicyID = report?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${reportPolicyID}`);
 
@@ -42,7 +42,7 @@ function MentionWhisperContent({action, report, originalReport, originalReportID
             key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE}`,
             onPress: () =>
                 resolveActionableMentionWhisper(
-                    actionReport,
+                    actionOwnerReport,
                     action,
                     CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE,
                     isOriginalReportArchived,
@@ -56,7 +56,7 @@ function MentionWhisperContent({action, report, originalReport, originalReportID
             key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE}`,
             onPress: () =>
                 resolveActionableMentionWhisper(
-                    actionReport,
+                    actionOwnerReport,
                     action,
                     CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE,
                     isOriginalReportArchived,
@@ -68,7 +68,7 @@ function MentionWhisperContent({action, report, originalReport, originalReportID
             key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING}`,
             onPress: () =>
                 resolveActionableMentionWhisper(
-                    actionReport,
+                    actionOwnerReport,
                     action,
                     CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING,
                     isOriginalReportArchived,
