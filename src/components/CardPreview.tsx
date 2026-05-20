@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCardFeedBackgroundColor, getCardHolderTextColor} from '@styles/utils/card';
+import {getCardFeedBackgroundColor, getCardHolderTextColor} from '@libs/CardUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
