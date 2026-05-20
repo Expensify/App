@@ -80,7 +80,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
     const sourcePolicy = sourcePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`] : undefined;
     const targetPolicyIDs = copyPolicySettings?.targetPolicyIDs ?? [];
 
-    const targetPolicies = targetPolicyIDs.map((id) => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]).filter(Boolean);
+    const targetPolicies = targetPolicyIDs.map((id) => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]);
 
     const isAccountingCompatible = areAllTargetsAccountingCompatible(sourcePolicy, targetPolicies);
 

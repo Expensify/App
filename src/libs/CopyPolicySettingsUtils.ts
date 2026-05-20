@@ -91,6 +91,10 @@ function getAccountingConnectionIdentity(policy: Policy | undefined): Accounting
  * across mismatched external accounts.
  */
 function arePoliciesAccountingCompatible(source: Policy | undefined, target: Policy | undefined): boolean {
+    if (!target) {
+        return false;
+    }
+
     const sourceIdentity = getAccountingConnectionIdentity(source);
     const targetIdentity = getAccountingConnectionIdentity(target);
 

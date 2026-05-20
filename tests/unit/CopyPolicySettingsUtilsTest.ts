@@ -1,4 +1,4 @@
-import {arePoliciesAccountingCompatible, getAccountingConnectionIdentity, getConnectionCompanyID} from '@libs/CopyPolicySettingsUtils';
+import {areAllTargetsAccountingCompatible, arePoliciesAccountingCompatible, getAccountingConnectionIdentity, getConnectionCompanyID} from '@libs/CopyPolicySettingsUtils';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
@@ -116,6 +116,27 @@ describe('CopyPolicySettingsUtils', () => {
 
             expect(arePoliciesAccountingCompatible(qbo1, qbo2)).toBe(false);
             expect(arePoliciesAccountingCompatible(qbo1, qbo1Again)).toBe(true);
+        });
+
+        it('treats an unresolved target policy as incompatible', () => {
+            const empty = createRandomPolicy(0);
+            expect(arePoliciesAccountingCompatible(empty, undefined)).toBe(false);
+            expect(arePoliciesAccountingCompatible(undefined, undefined)).toBe(false);
+        });
+    });
+
+    describe('areAllTargetsAccountingCompatible', () => {
+        it('returns false when any target policy is unresolved', () => {
+            const empty = createRandomPolicy(0);
+            const loaded = createRandomPolicy(1);
+            expect(areAllTargetsAccountingCompatible(empty, [loaded, undefined])).toBe(false);
+        });
+
+        it('returns true when every loaded target is compatible', () => {
+            const empty = createRandomPolicy(0);
+            const targetA = createRandomPolicy(1);
+            const targetB = createRandomPolicy(2);
+            expect(areAllTargetsAccountingCompatible(empty, [targetA, targetB])).toBe(true);
         });
     });
 });
