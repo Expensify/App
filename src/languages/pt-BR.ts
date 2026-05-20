@@ -4785,8 +4785,8 @@ ${amount} para ${merchant} - ${date}`,
             prerequisites: {
                 title: 'Antes de conectar',
                 installBundle: 'Para conexões FFA',
-                installBundleDescription: ({href}: {href: string}) =>
-                    `Instale o pacote do Expensify no Salesforce clicando neste link: <a href="${href}">Instalar FFA Expensify Bundle (Versão 1.4)</a>`,
+                installBundleDescription: ({href, version}: {href: string; version: string}) =>
+                    `Instale o pacote do Expensify no Salesforce clicando neste link: <a href="${href}">Instalar FFA Expensify Bundle (Versão ${version})</a>`,
                 installBundleConfirm: 'Eu instalei o pacote',
                 setupContacts: 'Configurar usuário e contatos',
                 setupContactsBullet1:

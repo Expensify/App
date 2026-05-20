@@ -4891,8 +4891,8 @@ const translations = {
             prerequisites: {
                 title: 'Before you connect',
                 installBundle: 'For FFA Connections',
-                installBundleDescription: ({href}: {href: string}) =>
-                    `Install the Expensify bundle in Salesforce by clicking this link: <a href="${href}">Install FFA Expensify Bundle (Version 1.4)</a>`,
+                installBundleDescription: ({href, version}: {href: string; version: string}) =>
+                    `Install the Expensify bundle in Salesforce by clicking this link: <a href="${href}">Install FFA Expensify Bundle (Version ${version})</a>`,
                 installBundleConfirm: "I've installed the bundle",
                 setupContacts: 'Set up user and contacts',
                 setupContactsBullet1:

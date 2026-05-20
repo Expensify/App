@@ -2777,6 +2777,8 @@ const CONST = {
         SANDBOX: 'https://test.salesforce.com/packaging/installPackage.apexp?p0=04t4p000001UQVo',
     },
 
+    CERTINIA_FFA_BUNDLE_VERSION: '1.4',
+
     CERTINIA_CONFIG: {
         EXPORTER: 'exporter',
         EXPORT_STATUS: 'exportStatus',

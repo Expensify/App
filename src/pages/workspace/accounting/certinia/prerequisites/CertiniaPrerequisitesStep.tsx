@@ -36,6 +36,7 @@ function CertiniaPrerequisitesStep({onNext, currentPageName, onConnect}: Certini
                 <RenderHTML
                     html={translate('workspace.certinia.prerequisites.installBundleDescription', {
                         href: bundleInstallHref,
+                        version: CONST.CERTINIA_FFA_BUNDLE_VERSION,
                     })}
                 />
             </View>
