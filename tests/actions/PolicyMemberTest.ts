@@ -1426,4 +1426,41 @@ describe('actions/PolicyMember', () => {
             expect(clearedApproverDraft).toBeFalsy();
         });
     });
+
+    describe('imported spreadsheet member role (migrated @react-navigation role picker, #90855)', () => {
+        it('setImportedSpreadsheetMemberRole stores the selected role in Onyx', async () => {
+            Member.setImportedSpreadsheetMemberRole(CONST.POLICY.ROLE.ADMIN);
+            await waitForBatchedUpdates();
+
+            const role = await getOnyxValue(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_ROLE);
+
+            // The role is now lifted into Onyx (previously it lived only in the parent's useState)
+            expect(role).toBe(CONST.POLICY.ROLE.ADMIN);
+        });
+
+        it('setImportedSpreadsheetMemberData stores the imported member data in Onyx', async () => {
+            const memberData = [{email: 'importtest@example.com', role: '', submitsTo: '', forwardsTo: ''}];
+            Member.setImportedSpreadsheetMemberData(memberData);
+            await waitForBatchedUpdates();
+
+            const storedData = await getOnyxValue(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA);
+
+            expect(storedData).toEqual(memberData);
+        });
+
+        it('clearImportedSpreadsheetMemberData clears BOTH the member data and the lifted role, so re-entering the import flow resets the role to its default', async () => {
+            // Simulate an in-progress import where a non-default role (Admin) was picked
+            Member.setImportedSpreadsheetMemberData([{email: 'importtest@example.com', role: '', submitsTo: '', forwardsTo: ''}]);
+            Member.setImportedSpreadsheetMemberRole(CONST.POLICY.ROLE.ADMIN);
+            await waitForBatchedUpdates();
+            expect(await getOnyxValue(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_ROLE)).toBe(CONST.POLICY.ROLE.ADMIN);
+
+            // The unmount cleanup (ImportedMembersConfirmationPage) / re-entering the flow must clear both keys
+            Member.clearImportedSpreadsheetMemberData();
+            await waitForBatchedUpdates();
+
+            expect(await getOnyxValue(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA)).toBeFalsy();
+            expect(await getOnyxValue(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_ROLE)).toBeFalsy();
+        });
+    });
 });
