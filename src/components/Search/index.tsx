@@ -86,7 +86,7 @@ import useOptimisticSearchTracking from './hooks/useOptimisticSearchTracking';
 import useStableOptimisticSortedData from './hooks/useStableOptimisticSortedData';
 import SearchChartView from './SearchChartView';
 import SearchChartWrapper from './SearchChartWrapper';
-import {useSearchActionsContext, useSearchStateContext} from './SearchContext';
+import {useSearchActionsContext, useSearchStateContext, useSyncSelectedReports} from './SearchContext';
 import SearchList from './SearchList';
 import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
 import {SearchScopeProvider} from './SearchScopeProvider';
@@ -891,7 +891,7 @@ function Search({
             return;
         }
 
-        setSelectedTransactions(newTransactionList, filteredData);
+        setSelectedTransactions(newTransactionList);
 
         isRefreshingSelection.current = true;
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -944,6 +944,10 @@ function Search({
     useEffect(() => {
         isRefreshingSelection.current = false;
     }, [selectedTransactions]);
+
+    // Keeps `selectedReports` in sync with the current selection + visible rows.
+    // Hoisted out of `toggleTransaction` so the callback doesn't churn on every search re-derivation.
+    useSyncSelectedReports(filteredData);
 
     const updateSelectAllMatchingItemsState = useCallback(
         (updatedSelectedTransactions: SelectedTransactions) => {
@@ -1003,7 +1007,7 @@ function Search({
                     accountID,
                     outstandingReportsByPolicyID,
                 );
-                setSelectedTransactions(updatedTransactions, filteredData);
+                setSelectedTransactions(updatedTransactions);
                 updateSelectAllMatchingItemsState(updatedTransactions);
                 return;
             }
@@ -1027,7 +1031,7 @@ function Search({
                         ...selectedTransactions,
                     };
                     delete reducedSelectedTransactions[reportKey];
-                    setSelectedTransactions(reducedSelectedTransactions, filteredData);
+                    setSelectedTransactions(reducedSelectedTransactions);
                     updateSelectAllMatchingItemsState(reducedSelectedTransactions);
                     return;
                 }
@@ -1037,7 +1041,7 @@ function Search({
                     ...selectedTransactions,
                     [reportKey]: emptyReportSelection,
                 };
-                setSelectedTransactions(updatedTransactions, filteredData);
+                setSelectedTransactions(updatedTransactions);
                 updateSelectAllMatchingItemsState(updatedTransactions);
                 return;
             }
@@ -1051,7 +1055,7 @@ function Search({
                     delete reducedSelectedTransactions[transaction.keyForList];
                 }
 
-                setSelectedTransactions(reducedSelectedTransactions, filteredData);
+                setSelectedTransactions(reducedSelectedTransactions);
                 updateSelectAllMatchingItemsState(reducedSelectedTransactions);
                 return;
             }
@@ -1071,10 +1075,10 @@ function Search({
                         }),
                 ),
             };
-            setSelectedTransactions(updatedTransactions, filteredData);
+            setSelectedTransactions(updatedTransactions);
             updateSelectAllMatchingItemsState(updatedTransactions);
         },
-        [selectedTransactions, setSelectedTransactions, filteredData, updateSelectAllMatchingItemsState, transactions, email, accountID, outstandingReportsByPolicyID, searchResults?.data],
+        [selectedTransactions, setSelectedTransactions, updateSelectAllMatchingItemsState, transactions, email, accountID, outstandingReportsByPolicyID, searchResults?.data],
     );
 
     const onSelectRowInMobileSelectionMode = (item: SearchListItem) => {
@@ -1374,7 +1378,7 @@ function Search({
                     }),
             );
         }
-        setSelectedTransactions(updatedTransactions, filteredData);
+        setSelectedTransactions(updatedTransactions);
         updateSelectAllMatchingItemsState(updatedTransactions);
     }, [
         validGroupBy,

@@ -20,7 +20,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {SearchActionsContextValue, SearchContextData, SearchStateContextValue, SelectedTransactions} from './types';
+import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from './SearchList/ListItem/types';
+import type {SearchActionsContextValue, SearchContextData, SearchStateContextValue, SelectedReports, SelectedTransactions} from './types';
 
 type SearchContextProps = {
     children: React.ReactNode;
@@ -72,6 +73,7 @@ const defaultSearchActionsContext: SearchActionsContextValue = {
     setLastSearchType: () => {},
     setCurrentSelectedTransactionReportID: () => {},
     setSelectedTransactions: () => {},
+    setSelectedReports: () => {},
     removeTransaction: () => {},
     clearSelectedTransactions: () => {},
     setShouldShowFiltersBarLoading: () => {},
@@ -80,6 +82,77 @@ const defaultSearchActionsContext: SearchActionsContextValue = {
     setShouldResetSearchQuery: () => {},
     setSortedReportIDs: () => {},
 };
+
+function deriveSelectedReports(
+    transactionIDs: SelectedTransactions,
+    data: TransactionListItemType[] | TransactionGroupListItemType[] | ReportActionListItemType[] | TaskListItemType[],
+): SelectedReports[] {
+    if (data.length && data.every(isTransactionReportGroupListItemType)) {
+        return data
+            .filter((item) => {
+                if (!isMoneyRequestReport(item)) {
+                    return false;
+                }
+                if (item.transactions.length === 0) {
+                    return !!item.keyForList && transactionIDs[item.keyForList]?.isSelected;
+                }
+                return item.transactions.every(({keyForList}) => transactionIDs[keyForList]?.isSelected);
+            })
+            .map(
+                ({
+                    reportID,
+                    action = CONST.SEARCH.ACTION_TYPES.VIEW,
+                    total = CONST.DEFAULT_NUMBER_ID,
+                    policyID,
+                    allActions = [action],
+                    currency,
+                    chatReportID,
+                    managerID,
+                    ownerAccountID,
+                    parentReportActionID,
+                    parentReportID,
+                    type,
+                }) => ({
+                    reportID,
+                    action,
+                    total,
+                    policyID,
+                    allActions,
+                    currency,
+                    chatReportID,
+                    managerID,
+                    ownerAccountID,
+                    parentReportActionID,
+                    parentReportID,
+                    type,
+                }),
+            );
+    }
+    if (data.length && data.every(isTransactionListItemType)) {
+        return data
+            .filter(({keyForList}) => !!keyForList && transactionIDs[keyForList]?.isSelected)
+            .map((item) => {
+                const total = hasValidModifiedAmount(item) ? Number(item.modifiedAmount) : (item.amount ?? CONST.DEFAULT_NUMBER_ID);
+                const action = item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW;
+
+                return {
+                    reportID: item.reportID,
+                    action,
+                    total,
+                    policyID: item.policyID,
+                    allActions: item.allActions ?? [action],
+                    currency: item.currency,
+                    chatReportID: item.report?.chatReportID,
+                    managerID: item.report?.managerID,
+                    ownerAccountID: item.report?.ownerAccountID,
+                    parentReportActionID: item.report?.parentReportActionID,
+                    parentReportID: item.report?.parentReportID,
+                    type: item.report?.type,
+                };
+            });
+    }
+    return [];
+}
 
 const SearchStateContext = React.createContext<SearchStateContextValue>(defaultSearchStateContext);
 const SearchActionsContext = React.createContext<SearchActionsContextValue>(defaultSearchActionsContext);
@@ -148,91 +221,31 @@ function SearchContextProvider({children}: SearchContextProps) {
         currentSearchResults = snapshotSearchResults ?? undefined;
     }
 
-    const setSelectedTransactions: SearchActionsContextValue['setSelectedTransactions'] = (transactionIDs, data = []) => {
+    const setSelectedTransactions: SearchActionsContextValue['setSelectedTransactions'] = (transactionIDs) => {
         if (transactionIDs instanceof Array) {
             if (!transactionIDs.length && areTransactionsEmpty.current) {
                 areTransactionsEmpty.current = true;
                 return;
             }
             areTransactionsEmpty.current = false;
-            return setSearchContextData((prevState) => ({
+            setSearchContextData((prevState) => ({
                 ...prevState,
                 selectedTransactionIDs: transactionIDs,
             }));
-        }
-
-        // When selecting transactions, we also need to manage the reports to which these transactions belong. This is done to ensure proper exporting to CSV.
-        let matchingReports: SearchStateContextValue['selectedReports'] = [];
-
-        if (data.length && data.every(isTransactionReportGroupListItemType)) {
-            matchingReports = data
-                .filter((item) => {
-                    if (!isMoneyRequestReport(item)) {
-                        return false;
-                    }
-                    if (item.transactions.length === 0) {
-                        return !!item.keyForList && transactionIDs[item.keyForList]?.isSelected;
-                    }
-                    return item.transactions.every(({keyForList}) => transactionIDs[keyForList]?.isSelected);
-                })
-                .map(
-                    ({
-                        reportID,
-                        action = CONST.SEARCH.ACTION_TYPES.VIEW,
-                        total = CONST.DEFAULT_NUMBER_ID,
-                        policyID,
-                        allActions = [action],
-                        currency,
-                        chatReportID,
-                        managerID,
-                        ownerAccountID,
-                        parentReportActionID,
-                        parentReportID,
-                        type,
-                    }) => ({
-                        reportID,
-                        action,
-                        total,
-                        policyID,
-                        allActions,
-                        currency,
-                        chatReportID,
-                        managerID,
-                        ownerAccountID,
-                        parentReportActionID,
-                        parentReportID,
-                        type,
-                    }),
-                );
-        } else if (data.length && data.every(isTransactionListItemType)) {
-            matchingReports = data
-                .filter(({keyForList}) => !!keyForList && transactionIDs[keyForList]?.isSelected)
-                .map((item) => {
-                    const total = hasValidModifiedAmount(item) ? Number(item.modifiedAmount) : (item.amount ?? CONST.DEFAULT_NUMBER_ID);
-                    const action = item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW;
-
-                    return {
-                        reportID: item.reportID,
-                        action,
-                        total,
-                        policyID: item.policyID,
-                        allActions: item.allActions ?? [action],
-                        currency: item.currency,
-                        chatReportID: item.report?.chatReportID,
-                        managerID: item.report?.managerID,
-                        ownerAccountID: item.report?.ownerAccountID,
-                        parentReportActionID: item.report?.parentReportActionID,
-                        parentReportID: item.report?.parentReportID,
-                        type: item.report?.type,
-                    };
-                });
+            return;
         }
 
         setSearchContextData((prevState) => ({
             ...prevState,
-            selectedReports: matchingReports,
             selectedTransactions: transactionIDs,
             shouldTurnOffSelectionMode: false,
+        }));
+    };
+
+    const setSelectedReports: SearchActionsContextValue['setSelectedReports'] = (reports) => {
+        setSearchContextData((prevState) => ({
+            ...prevState,
+            selectedReports: reports,
         }));
     };
 
@@ -346,6 +359,7 @@ function SearchContextProvider({children}: SearchContextProps) {
     const searchActionsContextValue: SearchActionsContextValue = {
         removeTransaction,
         setSelectedTransactions,
+        setSelectedReports,
         setCurrentSelectedTransactionReportID,
         clearSelectedTransactions,
         setShouldShowFiltersBarLoading,
@@ -376,4 +390,17 @@ function useSearchActionsContext() {
     return useContext(SearchActionsContext);
 }
 
-export {SearchContextProvider, useSearchStateContext, useSearchActionsContext, SearchStateContext, SearchActionsContext};
+/**
+ * Derives `selectedReports` from the current selection + visible rows and syncs it into context.
+ * Used by the Search component so `toggleTransaction` can stay independent of `filteredData`.
+ */
+function useSyncSelectedReports(data: TransactionListItemType[] | TransactionGroupListItemType[] | ReportActionListItemType[] | TaskListItemType[]) {
+    const {selectedTransactions} = useSearchStateContext();
+    const {setSelectedReports} = useSearchActionsContext();
+    
+    useEffect(() => {
+        setSelectedReports(deriveSelectedReports(selectedTransactions, data));
+    }, [selectedTransactions, data, setSelectedReports]);
+}
+
+export {SearchContextProvider, useSearchStateContext, useSearchActionsContext, useSyncSelectedReports, SearchStateContext, SearchActionsContext};
