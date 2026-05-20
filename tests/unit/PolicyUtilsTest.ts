@@ -2675,6 +2675,46 @@ describe('PolicyUtils', () => {
             const policies = buildPolicies([['member@acme.com']]);
             expect(getNonWorkspaceMemberExclusions(details, policies, currentUserLogin)).toEqual({'outsider@other.com': true});
         });
+
+        it('excludes Expensify-team members of employeeList when current user is non-Expensify', () => {
+            const details = buildPersonalDetails(['am@expensify.com', 'bob@acme.com']);
+            const policies = buildPolicies([['am@expensify.com', 'bob@acme.com']]);
+            const result = getNonWorkspaceMemberExclusions(details, policies, 'customer@acme.com');
+            expect(result['am@expensify.com']).toBe(true);
+            expect(result['bob@acme.com']).toBeUndefined();
+        });
+
+        it('excludes Expensify-team members of employeeList when current user is non-Expensify (team.expensify.com)', () => {
+            const details = buildPersonalDetails(['guide@team.expensify.com', 'bob@acme.com']);
+            const policies = buildPolicies([['guide@team.expensify.com', 'bob@acme.com']]);
+            const result = getNonWorkspaceMemberExclusions(details, policies, 'customer@acme.com');
+            expect(result['guide@team.expensify.com']).toBe(true);
+            expect(result['bob@acme.com']).toBeUndefined();
+        });
+
+        it('does not exclude Expensify-team logins when current user is Expensify staff', () => {
+            const details = buildPersonalDetails(['am@expensify.com', 'bob@acme.com']);
+            const policies = buildPolicies([['am@expensify.com', 'bob@acme.com']]);
+            const result = getNonWorkspaceMemberExclusions(details, policies, 'staff@expensify.com');
+            expect(result['am@expensify.com']).toBeUndefined();
+            expect(result['bob@acme.com']).toBeUndefined();
+        });
+
+        it('excludes a former AM still in employeeList', () => {
+            const details = buildPersonalDetails(['formeram@expensify.com', 'bob@acme.com']);
+            const policies = buildPolicies([['formeram@expensify.com', 'bob@acme.com']]);
+            const result = getNonWorkspaceMemberExclusions(details, policies, 'customer@acme.com');
+            expect(result['formeram@expensify.com']).toBe(true);
+            expect(result['bob@acme.com']).toBeUndefined();
+        });
+
+        it('does not exclude an Expensify staff member who is the current user', () => {
+            const details = buildPersonalDetails(['staff@expensify.com', 'am@expensify.com']);
+            const policies = buildPolicies([['staff@expensify.com', 'am@expensify.com']]);
+            const result = getNonWorkspaceMemberExclusions(details, policies, 'staff@expensify.com');
+            expect(result['staff@expensify.com']).toBeUndefined();
+            expect(result['am@expensify.com']).toBeUndefined();
+        });
     });
 
     describe('HR connection helpers', () => {
