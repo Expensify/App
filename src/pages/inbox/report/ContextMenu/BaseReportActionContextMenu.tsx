@@ -408,7 +408,7 @@ function BaseReportActionContextMenu({
                                 policyTags,
                                 translate,
                                 harvestReport,
-                                harvestReportOriginalID: reportNameValuePairs?.originalID,
+                                harvestReportOriginalID: getNonEmptyStringOnyxID(getHarvestOriginalReportID(reportNameValuePairs?.origin, reportNameValuePairs?.originalID)),
                                 introSelected,
                                 isSelfTourViewed,
                                 betas,
