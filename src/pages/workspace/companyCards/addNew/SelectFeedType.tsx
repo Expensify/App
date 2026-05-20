@@ -10,7 +10,6 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isPlaidSupportedCountry} from '@libs/CardUtils';
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
