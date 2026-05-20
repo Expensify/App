@@ -11,6 +11,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import useCompleteOnboarding from '@hooks/useCompleteOnboarding';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
@@ -85,13 +87,12 @@ type OnboardingListItem = ListItem & {
     keyForList: OnboardingAccounting;
 };
 
-function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboardingAccountingProps) {
+function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccountingProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
-        'CircleSlash',
         'Connect',
         'QBOCircle',
         'QBDSquare',
@@ -109,15 +110,16 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [onboardingUserReportedIntegration] = useOnyx(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION);
+    const [onboardingFeaturesMap] = useOnyx(ONYXKEYS.ONBOARDING_INTERESTED_FEATURES_MAP);
     const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.ACCOUNTING);
 
     const [userReportedIntegration, setUserReportedIntegration] = useState<OnboardingAccounting | undefined>(onboardingUserReportedIntegration ?? undefined);
+    const [otherIntegrationText, setOtherIntegrationText] = useState('');
     const [error, setError] = useState('');
 
     const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
-    const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
 
-    const isVsb = onboarding?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
+    const {completeOnboardingFlow, isLoading: isCompletingOnboarding} = useCompleteOnboarding();
 
     // Set onboardingPolicyID and onboardingAdminsChatReportID if a workspace is created by the backend for OD signup
     useEffect(() => {
@@ -145,21 +147,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
         };
     };
 
-    const noneAccountingOption: OnboardingListItem = {
-        keyForList: 'none',
-        text: translate('onboarding.accounting.none'),
-        leftElement: (
-            <Icon
-                src={expensifyIcons.CircleSlash}
-                width={variables.iconSizeNormal}
-                height={variables.iconSizeNormal}
-                fill={theme.icon}
-                additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR), styles.mr3, styles.onboardingSmallIcon]}
-            />
-        ),
-        isSelected: userReportedIntegration === null,
-    };
-
     const othersAccountingOption: OnboardingListItem = {
         keyForList: 'other',
         text: translate('workspace.accounting.other'),
@@ -175,22 +162,33 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
         isSelected: userReportedIntegration === 'other',
     };
 
-    const accountingOptions: OnboardingListItem[] = [...integrations.map(createAccountingOption), othersAccountingOption, noneAccountingOption];
+    const accountingOptions: OnboardingListItem[] = [...integrations.map(createAccountingOption), othersAccountingOption];
 
-    const handleContinue = () => {
+    const handleContinue = async () => {
         if (userReportedIntegration === undefined) {
             setError(translate('onboarding.errorSelection'));
             return;
         }
 
-        setOnboardingUserReportedIntegration(userReportedIntegration);
+        if (userReportedIntegration === 'other' && !otherIntegrationText.trim()) {
+            setError(translate('onboarding.errorSelection'));
+            return;
+        }
 
-        // Navigate to the next onboarding step interested features with the selected integration
-        Navigation.navigate(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute(route.params?.backTo));
+        // Store the actual integration value — for 'other', use the typed text
+        const integrationValue = userReportedIntegration === 'other' ? otherIntegrationText.trim() : userReportedIntegration;
+        setOnboardingUserReportedIntegration(integrationValue);
+
+        // Use the persisted features map from the InterestedFeatures step
+        if (!onboardingFeaturesMap) {
+            return;
+        }
+
+        await completeOnboardingFlow({featuresMap: onboardingFeaturesMap, userReportedIntegration: integrationValue});
     };
 
     const handleIntegrationSelect = (integrationKey: OnboardingListItem['keyForList']) => {
-        setUserReportedIntegration(integrationKey === 'none' ? null : integrationKey);
+        setUserReportedIntegration(integrationKey);
         setError('');
     };
 
@@ -230,10 +228,10 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                shouldShowBackButton={!isVsb}
+                shouldShowBackButton
                 stepCounter={onboardingStep?.stepCounter}
                 progressBarPercentage={onboardingStep?.progressBarPercentage}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.ONBOARDING_EMPLOYEES.getRoute())}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute())}
                 shouldDisplayHelpButton={false}
             />
             <View style={[onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
@@ -246,6 +244,18 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
             </View>
             <ScrollView style={[onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5, styles.pt3, styles.pb8]}>
                 <View style={[styles.flexRow, styles.flexWrap, styles.gap3, styles.mb3]}>{accountingOptions.map(renderOption)}</View>
+                {userReportedIntegration === 'other' && (
+                    <TextInput
+                        accessibilityLabel={translate('workspace.accounting.other')}
+                        label={translate('workspace.accounting.other')}
+                        value={otherIntegrationText}
+                        onChangeText={(text) => {
+                            setOtherIntegrationText(text);
+                            setError('');
+                        }}
+                        autoFocus
+                    />
+                )}
             </ScrollView>
             <FixedFooter style={[styles.pt3, styles.ph5]}>
                 {!!error && (
@@ -261,6 +271,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
                     large
                     text={translate('common.continue')}
                     onPress={handleContinue}
+                    isLoading={isCompletingOnboarding}
                     pressOnEnter
                     sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.CONTINUE}
                 />
