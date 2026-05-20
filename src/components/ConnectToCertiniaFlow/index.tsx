@@ -60,6 +60,8 @@ function ConnectToCertiniaFlow({policyID}: ConnectToCertiniaFlowProps) {
 
     useEffect(() => {
         if (!isAuthError && hasReusablePoliciesConnectedToCertinia) {
+            // We could ignore the lint error here because this effect has no dependencies, and would only run once.
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setIsReuseConnectionsPopoverOpen(true);
             return;
         }
