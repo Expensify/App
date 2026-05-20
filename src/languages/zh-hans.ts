@@ -925,8 +925,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 personalSubtitle: '钱包',
             },
         },
-        assignedCards: '你的 Expensify 卡',
-        assignedCardsRemaining: ({amount}: {amount: string}) => `剩余 ${amount}`,
         announcements: '公告',
         discoverSection: {
             title: '发现',
@@ -1006,6 +1004,7 @@ const translations: TranslationDeepObject<typeof en> = {
             setupRules: '设置消费规则',
             inviteAccountant: '邀请你的会计',
         },
+        yourSpend: {title: '您的支出', awaitingApproval: '等待审批', repaidLast30Days: '过去30天内已偿还', recentTransactions: ({lastFour}: {lastFour: string}) => `最近交易 • ${lastFour}`},
     },
     allSettingsScreen: {
         subscription: '订阅',
@@ -2467,6 +2466,11 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         frozenByAdminNeedsUnfreeze: ({person}: {person: string}) => `此卡已被${person}冻结。请联系管理员解冻。`,
         spendRules: '支出规则',
         editSpendRules: '编辑支出规则',
+        cardUnblocked: '卡已解除冻结！',
+        cardUnblockedDescription: '下次消费时，系统可能会提示你将银行卡插入读卡器。',
+        pinBlocked: '由于多次输入错误 PIN，您的银行卡已被停用。',
+        unblock: '取消屏蔽',
+        unblockCard: '解除卡片冻结',
     },
     workflowsPage: {
         workflowTitle: '支出',
@@ -2925,6 +2929,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         mergeBlockScreen: {
             title: '无法添加工作邮箱',
             subtitle: (workEmail: string | undefined) => `我们无法添加 ${workEmail}。请稍后在设置中重试，或与 Concierge 聊天以获取指导。`,
+            workAccountClosedSubtitle: '与此邮箱关联的工作账户已被关闭。请联系您公司的管理员以重新激活该账户，或使用其他邮箱注册。',
         },
         tasks: {
             testDriveAdminTask: {
@@ -6538,6 +6543,55 @@ ${reportName}
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>人力资源集成功能仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
+            approvalSubmit: {
+                title: '审批',
+                description: '启用审批功能，以集中配置所有成员向谁提交。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>审批功能适用于 Collect 和 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+            },
+            companyCardSubmit: {
+                title: '公司卡枚',
+                description: `将你自己的公司卡片连接到 Expensify，可享受自动导入、自动分类、自定义规则支持以及集成对账功能。`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>公司信用卡导入功能适用于 Collect 和 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+            },
+            travelSubmit: {
+                title: 'Expensify 差旅',
+                description: '通过 Expensify 在全球预订折扣机票、酒店、租车和火车，并享受差旅关怀报告和集成费用管理。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Expensify Travel 适用于 Collect 和 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+            },
+            roles: {
+                title: '角色',
+                description: '为不同成员分配不同角色，以根据需要提高或降低可见性和控制权。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>角色可在 Collect 和 Control 方案中使用，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+            },
+            payments: {
+                title: '付款',
+                description: '直接从您的企业银行账户向员工报销。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>付款功能适用于 Collect 和 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+            },
+            accounting: {
+                title: '会计',
+                description: '从您的会计系统同步类别、标签、税率等信息到 Expensify，并导出费用报表和卡片交易记录——全程无需手动输入，也不用担心输入错误！',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>会计功能适用于 Collect 和 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+            },
+            expensifyCard: {
+                title: 'Expensify 卡',
+                description: '直接从您自己的银行账户发放公司卡（包括虚拟卡），通过牢不可破的连接实现实时消费管控，并享受最高 2% 返现！',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Expensify 卡适用于 Collect 和 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+                upgradeButton: '升级并启用',
+            },
+            invoicing: {
+                title: '开具发票',
+                description: '在 Expensify 中创建、发送并跟踪专业发票。通过集成付款和实时可见性，让收款更快捷。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>开票功能适用于 Collect 和 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -6857,8 +6911,8 @@ ${reportName}
                     description: '适用于希望向雇主提交费用的员工。',
                 },
             },
-            description: '选择适合您的方案。要查看详细的功能和价格列表，请访问我们的',
-            subscriptionLink: '方案类型和价格帮助页面',
+            description: '选择适合你的方案。',
+            subscriptionLink: '了解详情',
             lockedPlanDescription: ({count, annualSubscriptionEndDate}: WorkspaceLockedPlanTypeParams) => ({
                 one: `在 Control 方案中，你已承诺在年度订阅到期（${annualSubscriptionEndDate}）前保持 1 位活跃成员。你可以在 ${annualSubscriptionEndDate} 起关闭自动续订，以改为按使用付费订阅并降级到 Collect 方案，操作入口在`,
                 other: `在年费订阅于${annualSubscriptionEndDate}结束之前，你已承诺在 Control 方案中保留 ${count} 名活跃成员。你可以在${annualSubscriptionEndDate}起，通过关闭自动续订，改为按使用量付费订阅并降级到 Collect 方案，操作入口在`,

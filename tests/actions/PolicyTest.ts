@@ -2977,6 +2977,32 @@ describe('actions/Policy', () => {
     });
 
     describe('enablePolicyRules', () => {
+        it('should enable billable tracking when policy rules are enabled', async () => {
+            mockFetch.pause();
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                areRulesEnabled: false,
+                disabledFields: {
+                    defaultBillable: true,
+                    reimbursable: false,
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            Policy.enablePolicyRules(fakePolicy, true);
+            await waitForBatchedUpdates();
+
+            const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+            expect(policy?.areRulesEnabled).toBe(true);
+            expect(policy?.disabledFields?.defaultBillable).toBe(false);
+            expect(policy?.disabledFields?.reimbursable).toBe(false);
+            expect(policy?.pendingFields?.disabledFields).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            await mockFetch.resume();
+        });
+
         it('should not reset preventSelfApproval when the rule feature is turned off', async () => {
             (fetch as MockFetch)?.pause?.();
             Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
@@ -5660,7 +5686,7 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             // When creating policy expense chats for a new member
-            const result = Policy.createPolicyExpenseChats(policyID, {[newMemberEmail]: newMemberAccountID}, ESH_ACCOUNT_ID);
+            const result = Policy.createPolicyExpenseChats(policyID, {[newMemberEmail]: newMemberAccountID}, {accountID: ESH_ACCOUNT_ID});
 
             // Then optimistic data should be generated
             expect(result.onyxOptimisticData.length).toBeGreaterThan(0);
@@ -5718,7 +5744,7 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             // When creating policy expense chats for the existing member
-            const result = Policy.createPolicyExpenseChats(policyID, {[existingMemberEmail]: existingMemberAccountID}, ESH_ACCOUNT_ID);
+            const result = Policy.createPolicyExpenseChats(policyID, {[existingMemberEmail]: existingMemberAccountID}, {accountID: ESH_ACCOUNT_ID});
 
             // Then the existing report should be reused (no new reportActionID)
             const reportCreationEntry = result.reportCreationData[existingMemberEmail];
@@ -5737,7 +5763,7 @@ describe('actions/Policy', () => {
             const newMemberAccountID = 200;
             const customAccountID = 999;
 
-            const result = Policy.createPolicyExpenseChats(policyID, {[newMemberEmail]: newMemberAccountID}, customAccountID);
+            const result = Policy.createPolicyExpenseChats(policyID, {[newMemberEmail]: newMemberAccountID}, {accountID: customAccountID});
 
             // Find the optimistic report data
             const reportCreationEntry = result.reportCreationData[newMemberEmail];

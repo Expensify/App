@@ -957,8 +957,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 personalSubtitle: 'Carteira',
             },
         },
-        assignedCards: 'Seus Cartões Expensify',
-        assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} restante`,
         announcements: 'Comunicados',
         discoverSection: {
             title: 'Descobrir',
@@ -1037,6 +1035,12 @@ const translations: TranslationDeepObject<typeof en> = {
             linkCompanyCards: 'Vincular cartões corporativos',
             setupRules: 'Configurar regras de gasto',
             inviteAccountant: 'Convide seu contador',
+        },
+        yourSpend: {
+            title: 'Seus gastos',
+            awaitingApproval: 'Aguardando aprovação',
+            repaidLast30Days: 'Reembolsado nos últimos 30 dias',
+            recentTransactions: ({lastFour}: {lastFour: string}) => `Transações recentes • ${lastFour}`,
         },
     },
     allSettingsScreen: {
@@ -2528,6 +2532,11 @@ ${amount} para ${merchant} - ${date}`,
         frozenByAdminNeedsUnfreeze: ({person}: {person: string}) => `Este cartão foi bloqueado por ${person}. Entre em contato com um administrador para desbloqueá-lo.`,
         spendRules: 'Regras de gasto',
         editSpendRules: 'Editar regras de gastos',
+        cardUnblocked: 'Cartão desbloqueado!',
+        cardUnblockedDescription: 'Pode ser que você seja solicitado a inserir o seu cartão no leitor na próxima vez que fizer uma compra.',
+        pinBlocked: 'Seu cartão foi bloqueado devido a tentativas de PIN incorretas.',
+        unblock: 'Desbloquear',
+        unblockCard: 'Desbloquear cartão',
     },
     workflowsPage: {
         workflowTitle: 'Gastos',
@@ -2995,6 +3004,8 @@ ${amount} para ${merchant} - ${date}`,
             title: 'Não foi possível adicionar o e-mail de trabalho',
             subtitle: (workEmail: string | undefined) =>
                 `Não foi possível adicionar ${workEmail}. Tente novamente mais tarde em Configurações ou converse com o Concierge para obter orientação.`,
+            workAccountClosedSubtitle:
+                'A conta de trabalho associada a este e-mail foi encerrada. Entre em contato com o administrador da sua empresa para reativá-la ou inscreva-se com um e-mail diferente.',
         },
         tasks: {
             testDriveAdminTask: {
@@ -6706,6 +6717,57 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Integrações de RH estão disponíveis apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
             },
+            approvalSubmit: {
+                title: 'Aprovações',
+                description: 'Configure centralmente para quem todos os membros enviam relatórios ativando as aprovações.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>As aprovações estão disponíveis nos planos Collect e Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
+            },
+            companyCardSubmit: {
+                title: 'Cartões corporativos',
+                description: `Traga seu próprio cartão corporativo para o Expensify para obter importação automática, categorização automática, suporte a regras personalizáveis e reconciliação integrada.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>A importação de cartão corporativo está disponível nos planos Collect e Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
+            },
+            travelSubmit: {
+                title: 'Expensify Travel',
+                description: 'Reserve voos, hotéis, carros e trens com desconto no mundo todo, diretamente pelo Expensify, com relatórios de duty of care e gestão de despesas integrada.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>O Expensify Travel está disponível nos planos Collect e Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
+            },
+            roles: {
+                title: 'Funções',
+                description: 'Defina funções diferentes para membros diferentes para aumentar ou reduzir a visibilidade e o controle conforme apropriado.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Funções estão disponíveis nos planos Collect e Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
+            },
+            payments: {
+                title: 'Pagamentos',
+                description: 'Reembolse funcionários diretamente da conta bancária da sua empresa.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Os pagamentos estão disponíveis nos planos Collect e Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
+            },
+            accounting: {
+                title: 'Contabilidade',
+                description:
+                    'Sincronize categorias, tags, taxas de imposto e muito mais do seu sistema contábil para o Expensify, além de exportar relatórios de despesas e transações de cartão – sem digitação (ou erros de digitação)!',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>O módulo de contabilidade está disponível nos planos Collect e Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
+            },
+            expensifyCard: {
+                title: 'Cartão Expensify',
+                description:
+                    'Emita cartões corporativos (incluindo cartões virtuais) diretamente da sua própria conta bancária para ter controle de gastos em tempo real com uma conexão inquebrável e até 2% de cashback!',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>O Cartão Expensify está disponível nos planos Collect e Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
+                upgradeButton: 'Fazer upgrade e ativar',
+            },
+            invoicing: {
+                title: 'Faturamento',
+                description: 'Crie, envie e acompanhe faturas profissionais, tudo dentro do Expensify. Receba mais rápido com pagamentos integrados e visibilidade em tempo real.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>O faturamento está disponível nos planos Collect e Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -7032,8 +7094,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                     description: 'Para funcionários que desejam enviar despesas ao empregador.',
                 },
             },
-            description: 'Escolha o plano ideal para você. Para ver a lista detalhada de recursos e preços, confira nosso',
-            subscriptionLink: 'página de ajuda sobre tipos de plano e preços',
+            description: 'Escolha o plano ideal para você.',
+            subscriptionLink: 'Saiba mais',
             lockedPlanDescription: ({count, annualSubscriptionEndDate}: WorkspaceLockedPlanTypeParams) => ({
                 one: `Você se comprometeu com 1 membro ativo no plano Control até o fim da sua assinatura anual em ${annualSubscriptionEndDate}. Você pode mudar para a assinatura pré-paga por uso e fazer downgrade para o plano Collect a partir de ${annualSubscriptionEndDate}, desativando a renovação automática em`,
                 other: `Você se comprometeu com ${count} membros ativos no plano Control até o fim da sua assinatura anual em ${annualSubscriptionEndDate}. Você pode mudar para a assinatura pós-paga e fazer downgrade para o plano Collect a partir de ${annualSubscriptionEndDate} desativando a renovação automática em`,

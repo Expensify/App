@@ -1,4 +1,5 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {CurrentUser} from '@userActions/Policy/Policy';
 import type {IOUAction} from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Accountant} from '@src/types/onyx/IOU';
@@ -24,8 +25,7 @@ type CreateTrackExpenseParams = {
     shouldHandleNavigation?: boolean;
     shouldDeferForSearch?: boolean;
     isASAPSubmitBetaEnabled: boolean;
-    currentUserAccountIDParam: number;
-    currentUserEmailParam: string;
+    currentUser: CurrentUser;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
