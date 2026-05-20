@@ -285,7 +285,6 @@
 "../../src/libs/Notification/PushNotification/shouldShowPushNotification.ts"	"no-restricted-syntax"	2
 "../../src/libs/Notification/PushNotification/subscribeToPushNotifications.ts"	"no-restricted-syntax"	1
 "../../src/libs/OptionsListUtils/index.ts"	"@typescript-eslint/no-deprecated/deprecatedAllReportActions"	2
-"../../src/libs/OptionsListUtils/index.ts"	"@typescript-eslint/no-deprecated/deprecatedAllSortedReportActions[iouReportID]"	1
 "../../src/libs/OptionsListUtils/index.ts"	"@typescript-eslint/no-deprecated/deprecatedAllSortedReportActions[reportID]"	1
 "../../src/libs/OptionsListUtils/index.ts"	"@typescript-eslint/no-deprecated/deprecatedCachedOneTransactionThreadReportIDs[reportID]"	2
 "../../src/libs/OptionsListUtils/index.ts"	"@typescript-eslint/no-deprecated/deprecatedLastReportActions[reportID]"	3
