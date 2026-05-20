@@ -421,7 +421,7 @@ function getAllExpensesToHoldIfApplicable(
     policy: OnyxEntry<Policy>,
     currentUserAccountID: number | undefined,
 ) {
-    if (!report || !reportActions || !hasOnlyHeldExpenses(report?.reportID)) {
+    if (!report || !reportActions || !hasOnlyHeldExpenses(reportTransactions)) {
         return [];
     }
 
@@ -475,7 +475,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
             isChatReportArchived,
             invoiceReceiverPolicy,
             reportActions,
-        }) && hasOnlyHeldExpenses(report?.reportID);
+        }) && hasOnlyHeldExpenses(reportTransactions);
     const expensesToHold = getAllExpensesToHoldIfApplicable(report, reportActions, reportTransactions, policy, currentUserAccountID);
 
     if (isMarkAsCashAction(currentUserLogin, currentUserAccountID, report, reportTransactions, violations, policy)) {

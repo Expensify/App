@@ -1018,8 +1018,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         freeTrialSection: {
             title: ({days}: {days: number}) => `Prova gratuita: ${days} ${days === 1 ? 'giorno' : 'giorni'} rimanenti!`,
-            offer50Body: 'Ottieni il 50% di sconto sul tuo primo anno!',
-            offer25Body: 'Ottieni il 25% di sconto sul tuo primo anno!',
+            offer50Body: 'Ottieni il 50% di sconto sul tuo primo anno',
+            offer25Body: 'Ottieni il 25% di sconto sul tuo primo anno',
             addCardBody: 'Non aspettare! Aggiungi subito la tua carta di pagamento.',
             ctaClaim: 'Richiesta',
             ctaAdd: 'Aggiungi carta',
@@ -2472,6 +2472,7 @@ const translations: TranslationDeepObject<typeof en> = {
             expiration: 'Scadenza',
             cvv: 'CVV',
             address: 'Indirizzo',
+            reveal: 'Mostra',
             revealDetails: 'Mostra dettagli',
             revealCvv: 'Mostra CVV',
             copyCardNumber: 'Copia numero carta',
@@ -4304,9 +4305,15 @@ ${amount} per ${merchant} - ${date}`,
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
-                        return 'Amministrazione';
+                        return 'Amministratore';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Revisore';
+                    case CONST.POLICY.ROLE.CARD_ADMIN:
+                        return 'Amministrazione carta';
+                    case CONST.POLICY.ROLE.PEOPLE_ADMIN:
+                        return 'Amministrazione persone';
+                    case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
+                        return 'Amministrazione pagamenti';
                     case CONST.POLICY.ROLE.USER:
                         return 'Membro';
                     default:
@@ -4337,11 +4344,14 @@ ${amount} per ${merchant} - ${date}`,
             budgetFrequencyUnit: {monthly: 'mese', yearly: 'anno'},
             budgetTypeForNotificationMessage: {tag: 'etichetta', category: 'categoria'},
             deepDiveExpensifyCard: `<muted-text-label>Le transazioni della Carta Expensify verranno esportate automaticamente in un "Conto Passivo Carta Expensify" creato con <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">la nostra integrazione</a>.</muted-text-label>`,
-            travelInvoicing: 'Esporta conti da pagare di Expensify Travel a',
+            travelInvoicing: 'Esporta le spese di fatturazione viaggi come',
             travelInvoicingVendor: 'Fornitore di viaggi',
             travelInvoicingPayableAccount: 'Conto debiti per viaggi',
             hr: 'Risorse umane',
             rooms: 'Stanze',
+            cardAdminAlternateText: 'Gestisci le carte dello spazio di lavoro.',
+            peopleAdminAlternateText: 'Gestisci i membri e i flussi di approvazione.',
+            paymentsAdminAlternateText: 'Gestisci i pagamenti del flusso di lavoro.',
         },
         createdForClient: {
             title: 'Hai creato uno spazio di lavoro per il tuo cliente!',
@@ -4667,6 +4677,7 @@ ${amount} per ${merchant} - ${date}`,
             exportDeepDiveCompanyCard:
                 'Le spese esportate verranno registrate come transazioni bancarie sul conto bancario Xero indicato di seguito e le date delle transazioni corrisponderanno alle date sul tuo estratto conto bancario.',
             bankTransactions: 'Transazioni bancarie',
+            travelInvoicingDescription: 'Le spese di viaggio verranno esportate come transazioni bancarie nel conto Xero specificato di seguito.',
             xeroBankAccount: 'Conto bancario Xero',
             xeroBankAccountDescription: 'Scegli dove registrare le spese come transazioni bancarie.',
             exportExpensesDescription: 'I report verranno esportati come note di acquisto con la data e lo stato selezionati di seguito.',
@@ -5981,6 +5992,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 `Stai per creare e condividere ${newWorkspaceName ?? ''} con ${totalMembers ?? 0} membri dello spazio di lavoro originale.`,
             error: 'Si è verificato un errore durante la duplicazione del tuo nuovo workspace. Riprova.',
         },
+        copyPolicySettings: {error: 'Si è verificato un errore durante la copia delle impostazioni dello spazio di lavoro. Riprova.'},
         emptyWorkspace: {
             title: 'Non hai nessuna area di lavoro',
             subtitle: 'Tieni traccia delle ricevute, rimborsa le spese, gestisci i viaggi, invia le fatture e altro ancora.',
