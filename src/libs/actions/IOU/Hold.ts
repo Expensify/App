@@ -161,6 +161,7 @@ function putOnHold(
             | typeof ONYXKEYS.COLLECTION.REPORT
             | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
             | typeof ONYXKEYS.COLLECTION.NEXT_STEP
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
         >
     > = [
         {
@@ -188,6 +189,11 @@ function putOnHold(
             value: {
                 lastVisibleActionCreated: transactionThreadReport.lastVisibleActionCreated,
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            value: transactionViolations,
         },
     ];
 
