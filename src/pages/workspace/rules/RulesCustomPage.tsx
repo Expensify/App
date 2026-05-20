@@ -13,6 +13,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
+import {getPolicyCustomRulesText} from '@libs/PolicyCustomRulesUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {updateCustomRules} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
@@ -32,8 +33,9 @@ function RulesCustomPage({
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const policyCustomRulesText = getPolicyCustomRulesText(policy);
 
-    const [customRulesValue, setCustomRulesValue] = useState(() => Parser.htmlToMarkdown(policy?.customRules ?? ''));
+    const [customRulesValue, setCustomRulesValue] = useState(() => Parser.htmlToMarkdown(policyCustomRulesText));
 
     const onChangeCustomRules = useCallback((newValue: string) => {
         setCustomRulesValue(newValue);
@@ -57,7 +59,7 @@ function RulesCustomPage({
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.RULES_CUSTOM_FORM}
                     onSubmit={({customRules}) => {
-                        updateCustomRules(policyID, customRules, policy?.customRules);
+                        updateCustomRules(policyID, customRules, policyCustomRulesText);
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     submitButtonText={translate('workspace.editor.save')}

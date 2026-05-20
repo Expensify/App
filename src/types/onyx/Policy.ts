@@ -2214,7 +2214,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         };
 
         /** A set of custom rules defined with natural language */
-        customRules?: string;
+        customRules?: string | number;
 
         /** URL of the workspace rules PDF document stored in a private S3 bucket */
         rulesDocumentURL?: string;

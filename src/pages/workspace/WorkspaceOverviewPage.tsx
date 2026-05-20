@@ -195,6 +195,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     };
     const policyName = policy?.name ?? '';
     const policyDescription = policy?.description ?? translate('workspace.common.defaultDescription');
+    const policyCustomRulesText = String(policy?.customRules ?? '');
     const policyCurrency = policy?.outputCurrency ?? '';
     const readOnly = !canEditWorkspaceSettings(policy);
     const currencyReadOnly = readOnly || isBankAccountVerified;
@@ -214,7 +215,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     );
 
     const hasRulesDocument = !!policy?.rulesDocumentURL;
-    const hasCustomRulesText = !StringUtils.isEmptyString(policy?.customRules ?? '');
+    const hasCustomRulesText = !StringUtils.isEmptyString(policyCustomRulesText);
 
     const handleRulesDocumentPicked = useCallback(
         (files: FileObject[]) => {
@@ -949,7 +950,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         {(isPolicyAdmin || hasCustomRulesText) && (
                             <OfflineWithFeedback pendingAction={policy?.pendingFields?.customRules}>
                                 <MenuItemWithTopDescription
-                                    title={policy?.customRules ?? ''}
+                                    title={policyCustomRulesText}
                                     description={translate('workspace.rules.customRules.policyText')}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.CUSTOM_RULES}
                                     shouldShowRightIcon={!readOnly}

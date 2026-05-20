@@ -53,6 +53,7 @@ import type {MemberForList} from './OptionsListUtils';
 import {getAccountIDsByLogins, getLoginByAccountID, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
 import {isPublicDomain, isValidAccountRoute} from './ValidationUtils';
+import {getPolicyCustomRulesText} from './PolicyCustomRulesUtils';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 
@@ -829,7 +830,7 @@ function hasConfiguredRules(policy: OnyxEntry<Policy>): boolean {
         return false;
     }
 
-    if (!!policy.customRules && policy.customRules.trim().length > 0) {
+    if (getPolicyCustomRulesText(policy).trim().length > 0) {
         return true;
     }
 
