@@ -51,7 +51,10 @@ jobs:
 
       - name: Run branch performance tests
         shell: bash
-        run: NODE_OPTIONS=--experimental-vm-modules npx reassure --branch="${{ github.head_ref }}" --commit-hash="${{ github.event.pull_request.head.sha }}" --no-compare
+        env:
+          BRANCH: ${{ github.head_ref }}
+          COMMIT_HASH: ${{ github.event.pull_request.head.sha }}
+        run: NODE_OPTIONS=--experimental-vm-modules npx reassure --branch="$BRANCH" --commit-hash="$COMMIT_HASH" --no-compare
 
       - name: Upload branch performance results
         # v6
