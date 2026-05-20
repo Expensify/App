@@ -1,6 +1,6 @@
 // eslint-disable-next-line you-dont-need-lodash-underscore/union-by
 import lodashUnionBy from 'lodash/unionBy';
-import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {UpdateMoneyRequestParams} from '@libs/API/parameters';
@@ -43,12 +43,17 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
+import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {Routes, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {UpdateMoneyRequestData} from '.';
 import {getAllReports, getAllTransactions, getAllTransactionViolations, getPolicyTagsData, getRecentAttendees} from '.';
 import {getUpdatedMoneyRequestReportData, mergePolicyRecentlyUsedCategories, mergePolicyRecentlyUsedCurrencies} from './MoneyRequestBuilder';
+
+type UpdateMoneyRequestData<TKey extends OnyxKey> = {
+    params: UpdateMoneyRequestParams;
+    onyxData: OnyxData<TKey>;
+};
 
 type UpdateMoneyRequestDateParams = {
     transactionID: string;
@@ -1655,6 +1660,11 @@ function getUpdateTrackExpenseParams(
 
     const dataToIncludeInParams: Partial<TransactionDetails> = Object.fromEntries(Object.entries(transactionDetails ?? {}).filter(([key]) => key in transactionChanges));
 
+    // Preserve full-precision distance to avoid `increasedDistance` drift; mirrors `getUpdateMoneyRequestParams`.
+    if ('distance' in transactionChanges && typeof transactionChanges.distance === 'number') {
+        dataToIncludeInParams.distance = transactionChanges.distance;
+    }
+
     const apiParams: UpdateMoneyRequestParams = {
         ...dataToIncludeInParams,
         reportID: chatReport?.reportID,
@@ -1823,4 +1833,4 @@ export {
     updateMoneyRequestDistanceRate,
     updateMoneyRequestAmountAndCurrency,
 };
-export type {UpdateMoneyRequestDataKeys};
+export type {UpdateMoneyRequestData, UpdateMoneyRequestDataKeys};

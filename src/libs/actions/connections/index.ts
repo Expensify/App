@@ -24,6 +24,8 @@ function removePolicyConnection(policy: Policy, connectionName: PolicyConnection
             | typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS
             | typeof ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION
             | typeof ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION
+            | typeof ONYXKEYS.COLLECTION.TRAVEL_INVOICING_CONTINUOUS_RECONCILIATION_CONNECTION
+            | typeof ONYXKEYS.COLLECTION.TRAVEL_INVOICING_USE_CONTINUOUS_RECONCILIATION
         >
     > = [
         {
@@ -48,6 +50,16 @@ function removePolicyConnection(policy: Policy, connectionName: PolicyConnection
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRAVEL_INVOICING_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRAVEL_INVOICING_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`,
             value: null,
         },
     ];
@@ -119,6 +131,12 @@ function getSyncConnectionParameters(connectionName: PolicyConnectionName) {
         }
         case CONST.POLICY.CONNECTIONS.NAME.GUSTO: {
             return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_GUSTO, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.GUSTO_SYNC_TITLE};
+        }
+        case CONST.POLICY.CONNECTIONS.NAME.ZENEFITS: {
+            return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_ZENEFITS, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.ZENEFITS_SYNC_TITLE};
+        }
+        case CONST.POLICY.CONNECTIONS.NAME.MERGE_HR: {
+            return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_MERGE_HR, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.MERGE_HR_SYNC_TITLE};
         }
         case CONST.POLICY.CONNECTIONS.NAME.CERTINIA: {
             return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_FINANCIAL_FORCE, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.FINANCIAL_FORCE_SYNC_CONNECTION};

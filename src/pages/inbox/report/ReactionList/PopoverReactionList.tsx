@@ -3,7 +3,7 @@ import type {RefObject} from 'react';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
-import {getEmojiReactionDetails} from '@libs/EmojiUtils';
+import {getEmojiReactionDetails, mergeReactionsByEmoji} from '@libs/EmojiUtils';
 import type {ReactionListAnchor} from '@pages/inbox/ReportScreenContext';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {multiPersonalDetailsSelector} from '@src/selectors/PersonalDetails';
@@ -25,7 +25,10 @@ function PopoverReactionList({isVisible, emojiName, reportActionID, anchorPositi
 
     const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`);
 
-    const selectedReaction = emojiReactions?.[emojiName];
+    // Merge duplicate name/hex entries for the same emoji before looking up, so the reaction
+    // list shows the combined users and count rather than only one format's worth of data.
+    const mergedReactions = mergeReactionsByEmoji(emojiReactions ?? {});
+    const selectedReaction = mergedReactions[emojiName];
     const isReady = !!selectedReaction;
     const {emojiCodes = [], reactionCount = 0, hasUserReacted = false, userAccountIDs = []} = selectedReaction ? getEmojiReactionDetails(emojiName, selectedReaction, accountID) : {};
 
@@ -42,12 +45,12 @@ function PopoverReactionList({isVisible, emojiName, reportActionID, anchorPositi
         if (!isVisible) {
             return;
         }
-        const reactionUsers = emojiReactions?.[emojiName]?.users;
+        const reactionUsers = mergedReactions[emojiName]?.users;
         if (!reactionUsers || Object.keys(reactionUsers).length > 0) {
             return;
         }
         onClose();
-    }, [emojiReactions, emojiName, isVisible, onClose]);
+    }, [emojiReactions, emojiName, isVisible, onClose, mergedReactions]);
 
     return (
         <PopoverWithMeasuredContent
