@@ -621,11 +621,13 @@ describe('Session', () => {
         });
 
         test('should make the SignInWithSupportAuthToken API call', () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const readSpy = jest.spyOn(API, 'read');
             const testToken = 'supportAuthToken456';
 
             SessionUtil.signInWithSupportAuthToken(testToken);
 
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             expect(readSpy).toHaveBeenCalledWith('SignInWithSupportAuthToken', {authToken: testToken}, expect.objectContaining({optimisticData: expect.any(Array)}));
 
             readSpy.mockRestore();
