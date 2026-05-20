@@ -176,6 +176,7 @@ type ComputeReportName = {
     currentUserLogin: string;
     // TODO: Make this required when https://github.com/Expensify/App/issues/66411 is done
     conciergeReportID?: string;
+    reportAttributes?: ReportAttributesDerivedValue['reports'];
 };
 
 let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
@@ -418,7 +419,7 @@ function computeReportNameBasedOnReportAction(
     reportPolicy: Policy | undefined,
     parentReport: Report | undefined,
     personalDetailsList: OnyxEntry<PersonalDetailsList>,
-    conciergeReportID: string | undefined,
+    reportAttributes: ReportAttributesDerivedValue['reports'] | undefined,
 ): string | undefined {
     if (!parentReportAction) {
         return undefined;
@@ -529,11 +530,11 @@ function computeReportNameBasedOnReportAction(
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-        return Parser.htmlToText(getUnreportedTransactionMessage(translate, parentReportAction, conciergeReportID));
+        return Parser.htmlToText(getUnreportedTransactionMessage(translate, parentReportAction, reportAttributes));
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {
-        return Parser.htmlToText(getMovedTransactionMessage(translate, parentReportAction, conciergeReportID));
+        return Parser.htmlToText(getMovedTransactionMessage(translate, parentReportAction, reportAttributes));
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT)) {
@@ -891,6 +892,7 @@ function computeReportName({
     currentUserLogin,
     allPolicyTags,
     conciergeReportID,
+    reportAttributes,
 }: ComputeReportName): string {
     if (!report?.reportID) {
         return '';
@@ -908,7 +910,7 @@ function computeReportName({
         reportPolicy,
         parentReport,
         personalDetailsList,
-        conciergeReportID,
+        reportAttributes,
     );
 
     if (parentReportActionBasedName) {
@@ -933,6 +935,7 @@ function computeReportName({
             currentUserAccountID,
             currentUserLogin,
             conciergeReportID,
+            reportAttributes,
         });
         return getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, isOriginalReportDeleted(parentReportAction, originalReport), translateLocal);
     }
@@ -1015,7 +1018,7 @@ function computeReportName({
         });
     }
 
-    if (isConciergeChatReport(report)) {
+    if (isConciergeChatReport(report, conciergeReportID)) {
         formattedName = CONST.CONCIERGE_DISPLAY_NAME;
     }
 

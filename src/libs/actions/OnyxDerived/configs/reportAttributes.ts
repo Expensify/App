@@ -89,12 +89,12 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.SESSION,
         ONYXKEYS.COLLECTION.POLICY,
         ONYXKEYS.COLLECTION.POLICY_TAGS,
-        ONYXKEYS.COLLECTION.REPORT_METADATA,
         ONYXKEYS.CONCIERGE_REPORT_ID,
+        ONYXKEYS.COLLECTION.REPORT_METADATA,
         ONYXKEYS.NETWORK,
     ],
     compute: (
-        [reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, session, policies, policyTags],
+        [reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, session, policies, policyTags, conciergeReportID],
         {currentValue, sourceValues},
     ) => {
         // Read the in-memory offline state directly (NETWORK is a dependency so recompute still fires when it changes).
@@ -354,6 +354,8 @@ export default createOnyxDerivedValueConfig({
                               currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                               currentUserLogin: session?.email ?? '',
                               allPolicyTags: policyTags,
+                              conciergeReportID: conciergeReportID ?? undefined,
+                              reportAttributes: currentValue?.reports,
                           })
                         : '',
                     isEmpty: generateIsEmptyReport(report, isReportArchived),

@@ -2,7 +2,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Report, Transaction} from '@src/types/onyx';
-import {isIOUReport} from './ReportUtils';
+import {isInvoiceReport, isIOUReport} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {isExpenseUnreported} from './TransactionUtils';
 import {isInvalidMerchantValue} from './ValidationUtils';
@@ -171,10 +171,11 @@ function isValidMerchant(merchant: string | undefined, transaction?: OnyxEntry<T
     const trimmedMerchant = merchant?.trim() ?? '';
     const isEmpty = !trimmedMerchant;
 
-    // Unreported expenses and IOU requests can have empty merchants (allows clearing)
+    // Unreported expenses, IOU requests, and invoices can have empty merchants (allows clearing)
     const isUnreported = transaction ? isExpenseUnreported(transaction) : false;
     const isIOU = !!report && isIOUReport(report);
-    if (isEmpty && (isUnreported || isIOU)) {
+    const isInvoice = !!report && isInvoiceReport(report);
+    if (isEmpty && (isUnreported || isIOU || isInvoice)) {
         return true;
     }
 
