@@ -144,6 +144,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
         return achData?.currentStep ?? CONST.BANK_ACCOUNT.STEP.COUNTRY;
     };
     const currentStep = getInitialCurrentStep();
+    const prevCurrentStep = usePrevious(currentStep);
+    const prevSubStep = usePrevious(achData?.subStep);
     const [USDBankAccountStep, setUSDBankAccountStep] = useState<string | null>(subStepParam ?? null);
     const [isNonUSDSetup, setIsNonUSDSetup] = useState(policy ? isNonUSDWorkspace : achData?.currency !== CONST.CURRENCY.USD || reimbursementAccountDraft?.currency !== CONST.CURRENCY.USD);
 
@@ -308,8 +310,14 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
 
             const currentStepRouteParam = getStepToOpenFromRouteParams(route, hasConfirmedUSDCurrency);
             if (currentStepRouteParam === currentStep) {
-                // If the user is connecting online with plaid, reset any bank account errors so we don't persist old data from a potential previous connection
-                if (currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && achData?.subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
+                // If the user is connecting online with plaid, reset any bank account errors so we don't persist old data from a potential previous connection.
+                // Only clear when entering the Plaid sub-step (step transition) — clearing on every isLoading toggle would wipe fresh backend errors
+                // the instant they arrive (e.g. duplicate bank account error after re-selecting the same Plaid account).
+                const justEnteredPlaidStep =
+                    currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT &&
+                    achData?.subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID &&
+                    (prevCurrentStep !== currentStep || prevSubStep !== achData?.subStep);
+                if (justEnteredPlaidStep) {
                     hideBankAccountErrors();
                 }
 
