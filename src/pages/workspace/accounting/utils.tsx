@@ -154,7 +154,13 @@ function getAccountingIntegrationData(
                     ...getTrackingCategories(policy).map((category) => `${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${category.id}`),
                 ],
                 onExportPagePress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.path, basePath)),
-                subscribedExportSettings: [CONST.XERO_CONFIG.EXPORTER, CONST.XERO_CONFIG.BILL_DATE, CONST.XERO_CONFIG.BILL_STATUS, CONST.XERO_CONFIG.NON_REIMBURSABLE_ACCOUNT],
+                subscribedExportSettings: [
+                    CONST.XERO_CONFIG.EXPORTER,
+                    CONST.XERO_CONFIG.BILL_DATE,
+                    CONST.XERO_CONFIG.BILL_STATUS,
+                    CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT,
+                    CONST.XERO_CONFIG.NON_REIMBURSABLE_ACCOUNT,
+                ],
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.ROUTE.XERO)),
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID)),
                 subscribedAdvancedSettings: [
