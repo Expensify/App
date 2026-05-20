@@ -459,19 +459,6 @@ function MoneyRequestReportTransactionList({
             const backTo = Navigation.getActiveRoute();
             let reportIDToNavigate = iouAction?.childReportID;
 
-            console.log('[growl-view] [navigateToTransaction] entry', {
-                activeTransactionID,
-                iouActionExists: !!iouAction,
-                iouActionReportActionID: iouAction?.reportActionID,
-                iouActionChildReportID: iouAction?.childReportID,
-                iouActionPendingAction: iouAction?.pendingAction,
-                reportExists: !!report,
-                reportID: report?.reportID,
-                reportPolicyID: report?.policyID,
-                backTo,
-                initialReportIDToNavigate: reportIDToNavigate,
-            });
-
             const routeParams = {
                 reportID: reportIDToNavigate,
                 backTo,
@@ -479,14 +466,6 @@ function MoneyRequestReportTransactionList({
 
             if (!reportIDToNavigate) {
                 const transaction = sortedTransactions.find((t) => t.transactionID === activeTransactionID);
-                console.log('[growl-view] [navigateToTransaction] no childReportID – creating optimistic thread', {
-                    transactionExists: !!transaction,
-                    transactionPendingAction: transaction?.pendingAction,
-                    transactionErrors: transaction?.errors,
-                    transactionReportID: transaction?.reportID,
-                    introSelectedExists: !!introSelected,
-                    betasCount: betas?.length,
-                });
                 const transactionThreadReport = createTransactionThreadReport({
                     introSelected,
                     currentUserLogin: currentUserDetails.email ?? '',
@@ -496,20 +475,11 @@ function MoneyRequestReportTransactionList({
                     iouReportAction: iouAction,
                     transaction,
                 });
-                console.log('[growl-view] [navigateToTransaction] createTransactionThreadReport result', {
-                    optimisticThreadExists: !!transactionThreadReport,
-                    optimisticThreadReportID: transactionThreadReport?.reportID,
-                    optimisticThreadParentReportID: transactionThreadReport?.parentReportID,
-                    optimisticThreadParentReportActionID: transactionThreadReport?.parentReportActionID,
-                    optimisticThreadType: transactionThreadReport?.type,
-                    optimisticThreadChatType: transactionThreadReport?.chatType,
-                });
                 if (transactionThreadReport) {
                     reportIDToNavigate = transactionThreadReport.reportID;
                     routeParams.reportID = reportIDToNavigate;
                 }
             } else {
-                console.log('[growl-view] [navigateToTransaction] childReportID exists – calling setOptimisticTransactionThread', {reportIDToNavigate});
                 setOptimisticTransactionThread(reportIDToNavigate, report?.reportID, iouAction?.reportActionID, report?.policyID);
             }
 
@@ -517,10 +487,8 @@ function MoneyRequestReportTransactionList({
             // to display prev/next arrows in RHP for navigation - use visual order from grouped transactions
             setActiveTransactionIDs(visualOrderTransactionIDs).then(() => {
                 if (reportIDToNavigate) {
-                    console.log('[growl-view] [navigateToTransaction] marking reportID as expense', {reportIDToNavigate});
                     markReportIDAsExpense(reportIDToNavigate);
                 }
-                console.log('[growl-view] [navigateToTransaction] setActiveTransactionIDs resolved – navigating', {routeParams});
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(routeParams));
             });
         },

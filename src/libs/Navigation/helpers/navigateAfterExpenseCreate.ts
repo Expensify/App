@@ -135,14 +135,16 @@ function navigateAfterExpenseCreate({
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH);
 
         const navigateToSearch = () => {
+            const isNarrow = getIsNarrowLayout();
+            const isFullscreenPreInserted = Navigation.getIsFullscreenPreInsertedUnderRHP();
             console.log('[growl-view] navigateToSearch firing', {
-                isNarrow: getIsNarrowLayout(),
-                fullscreenPreInserted: Navigation.getIsFullscreenPreInsertedUnderRHP?.(),
+                isNarrow,
+                fullscreenPreInserted: isFullscreenPreInserted,
             });
-            if (getIsNarrowLayout() && Navigation.getIsFullscreenPreInsertedUnderRHP()) {
+            if (isNarrow && isFullscreenPreInserted) {
                 Navigation.clearFullscreenPreInsertedFlag();
                 Navigation.dismissModal();
-            } else if (getIsNarrowLayout()) {
+            } else if (isNarrow) {
                 Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
             } else {
                 Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));

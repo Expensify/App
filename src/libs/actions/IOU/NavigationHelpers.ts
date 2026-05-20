@@ -52,7 +52,16 @@ function handleNavigateAfterExpenseCreate({
     shouldAddPendingNewTransactionIDs?: boolean;
 }) {
     const hasMultipleTransactions = Object.values(getAllTransactions()).filter((transaction) => transaction?.reportID === activeReportID).length > 0;
-    navigateAfterExpenseCreate({activeReportID, iouReportID, transactionID, transactionThreadReportID, isFromGlobalCreate, isInvoice, hasMultipleTransactions, shouldAddPendingNewTransactionIDs});
+    navigateAfterExpenseCreate({
+        activeReportID,
+        iouReportID,
+        transactionID,
+        transactionThreadReportID,
+        isFromGlobalCreate,
+        isInvoice,
+        hasMultipleTransactions,
+        shouldAddPendingNewTransactionIDs,
+    });
 }
 
 export {dismissModalAndOpenReportInInboxTab, handleNavigateAfterExpenseCreate, highlightTransactionOnSearchRouteIfNeeded};
