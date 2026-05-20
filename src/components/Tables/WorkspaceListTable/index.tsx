@@ -101,14 +101,14 @@ export default function WorkspaceListTable({ref, workspaces}: WorkspaceListTable
             renderItem={renderTableItem}
             compareItems={compareTableItems}
             isItemInSearch={isTableItemInSearch}
-            keyExtractor={(row) => row.policyID}
             initialSortColumn="workspaces"
             title={translate('common.workspaces')}
             ListEmptyComponent={WorkspacesEmptyStateComponent}
+            keyExtractor={(row, index) => `${row.policyID}-${index}`}
         >
             {workspaces.length > CONST.SEARCH_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.common.findWorkspace')} />}
             <Table.Header />
-            <Table.Body contentContainerStyle={styles.pb20} />
+            <Table.Body />
         </Table>
     );
 }
