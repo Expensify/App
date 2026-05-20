@@ -392,7 +392,6 @@ const SCREENS = {
         WAYPOINT: 'Money_Request_Waypoint',
         EDIT_WAYPOINT: 'Money_Request_Edit_Waypoint',
         RECEIPT: 'Money_Request_Receipt',
-        STATE_SELECTOR: 'Money_Request_State_Selector',
         STEP_ATTENDEES: 'Money_Request_Attendee',
         STEP_ACCOUNTANT: 'Money_Request_Accountant',
         STEP_DESTINATION: 'Money_Request_Destination',
@@ -442,6 +441,7 @@ const SCREENS = {
     IOU_SEND: {
         ADD_BANK_ACCOUNT: 'IOU_Send_Add_Bank_Account',
         ADD_DEBIT_CARD: 'IOU_Send_Add_Debit_Card',
+        DYNAMIC_ADDRESS_STATE: 'IOU_Send_Dynamic_Address_State',
         ENABLE_PAYMENTS: 'IOU_Send_Enable_Payments',
     },
 

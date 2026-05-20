@@ -11,25 +11,29 @@ import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import type {MoneyRequestNavigatorParamList, SettingsNavigatorParamList} from '@libs/Navigation/types';
 import type {Option} from '@libs/searchOptions';
 import searchOptions from '@libs/searchOptions';
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import StringUtils from '@libs/StringUtils';
 import {appendParam} from '@libs/Url';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 
 type State = keyof typeof COMMON_CONST.STATES;
 
-type DynamicStateSelectionPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.DYNAMIC_ADDRESS_STATE>;
+type DynamicStateSelectionPageProps = PlatformStackScreenProps<
+    SettingsNavigatorParamList | MoneyRequestNavigatorParamList,
+    typeof SCREENS.SETTINGS.PROFILE.DYNAMIC_ADDRESS_STATE | typeof SCREENS.IOU_SEND.DYNAMIC_ADDRESS_STATE
+>;
 
 function DynamicStateSelectionPage({route}: DynamicStateSelectionPageProps) {
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {translate} = useLocalize();
     const currentState = route.params.state;
     const label = route.params.label;
-    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.ADDRESS_STATE.path);
+    const dynamicStateRoute = route.name === SCREENS.IOU_SEND.DYNAMIC_ADDRESS_STATE ? DYNAMIC_ROUTES.IOU_SEND_ADDRESS_STATE : DYNAMIC_ROUTES.ADDRESS_STATE;
+    const backPath = useDynamicBackPath(dynamicStateRoute.path);
     const initialSelectedValue = useInitialSelection(currentState ?? undefined, {resetOnFocus: true});
     const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
 

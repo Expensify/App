@@ -369,6 +369,12 @@ const DYNAMIC_ROUTES = {
         getRoute: (state = '', label = '') => getUrlWithParams('state', {state, label}),
         queryParams: ['state', 'label'],
     },
+    IOU_SEND_ADDRESS_STATE: {
+        path: 'submit/state',
+        entryScreens: [SCREENS.IOU_SEND.ADD_DEBIT_CARD],
+        getRoute: (state = '', label = '') => getUrlWithParams('submit/state', {state, label}),
+        queryParams: ['state', 'label'],
+    },
     SETTINGS_CATEGORY_EDIT: {
         path: 'category-edit',
         entryScreens: [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS],
@@ -1883,16 +1889,6 @@ const ROUTES = {
         getRoute: (transactionID: string, backTo: string) => getUrlWithBackToParam(`receipt-view/${transactionID}`, backTo),
     } as const,
 
-    MONEY_REQUEST_STATE_SELECTOR: {
-        route: 'submit/state',
-
-        getRoute: (state?: string, backTo?: string, label?: string) =>
-            `${getUrlWithBackToParam(`submit/state${state ? `?state=${encodeURIComponent(state)}` : ''}`, backTo)}${
-                // the label param can be an empty string so we cannot use a nullish ?? operator
-
-                label ? `${backTo || state ? '&' : '?'}label=${encodeURIComponent(label)}` : ''
-            }` as const,
-    },
     MONEY_REQUEST_STEP_TIME_RATE: {
         route: ':action/:iouType/rate/:transactionID/:reportID/:reportActionID?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, reportActionID?: string) =>

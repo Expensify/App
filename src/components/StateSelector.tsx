@@ -10,11 +10,12 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
 import type {MenuItemProps} from './MenuItem';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 
 type State = keyof typeof COMMON_CONST.STATES;
+
+type DynamicStateRoute = typeof DYNAMIC_ROUTES.ADDRESS_STATE | typeof DYNAMIC_ROUTES.IOU_SEND_ADDRESS_STATE;
 
 type StateSelectorProps = {
     /** Form error text. e.g when no state is selected */
@@ -35,14 +36,14 @@ type StateSelectorProps = {
     /** Callback to call when the picker modal is dismissed */
     onBlur?: () => void;
 
-    /** object to get route details from */
-    stateSelectorRoute?: typeof ROUTES.MONEY_REQUEST_STATE_SELECTOR;
+    /** Dynamic route config used to open the state selection screen */
+    dynamicStateRoute?: DynamicStateRoute;
 
     /** Reference to the outer element */
     ref?: ForwardedRef<View>;
 };
 
-function StateSelector({errorText, onBlur, value: stateCode, label, onInputChange, wrapperStyle, stateSelectorRoute, ref}: StateSelectorProps) {
+function StateSelector({errorText, onBlur, value: stateCode, label, onInputChange, wrapperStyle, dynamicStateRoute = DYNAMIC_ROUTES.ADDRESS_STATE, ref}: StateSelectorProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {state: stateFromUrl} = useGeographicalStateAndCountryFromRoute();
@@ -92,12 +93,7 @@ function StateSelector({errorText, onBlur, value: stateCode, label, onInputChang
             errorText={errorText}
             onPress={() => {
                 didOpenStateSelector.current = true;
-                if (stateSelectorRoute) {
-                    const activeRoute = Navigation.getActiveRoute();
-                    Navigation.navigate(stateSelectorRoute.getRoute(stateCode, activeRoute, label));
-                    return;
-                }
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADDRESS_STATE.getRoute(stateCode ?? '', label ?? '')));
+                Navigation.navigate(createDynamicRoute(dynamicStateRoute.getRoute(stateCode ?? '', label ?? '')));
             }}
             wrapperStyle={wrapperStyle}
         />

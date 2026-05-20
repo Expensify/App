@@ -1753,10 +1753,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.STEP_WAYPOINT]: ROUTES.MONEY_REQUEST_STEP_WAYPOINT.route,
                         [SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT]: ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.route,
                         [SCREENS.MONEY_REQUEST.STEP_TAX_RATE]: ROUTES.MONEY_REQUEST_STEP_TAX_RATE.route,
-                        [SCREENS.MONEY_REQUEST.STATE_SELECTOR]: {
-                            path: ROUTES.MONEY_REQUEST_STATE_SELECTOR.route,
-                            exact: true,
-                        },
+                        [SCREENS.IOU_SEND.DYNAMIC_ADDRESS_STATE]: DYNAMIC_ROUTES.IOU_SEND_ADDRESS_STATE.path,
                         [SCREENS.MONEY_REQUEST.STEP_ATTENDEES]: ROUTES.MONEY_REQUEST_ATTENDEE.route,
                         [SCREENS.MONEY_REQUEST.STEP_ACCOUNTANT]: ROUTES.MONEY_REQUEST_ACCOUNTANT.route,
                         [SCREENS.MONEY_REQUEST.STEP_UPGRADE]: ROUTES.MONEY_REQUEST_UPGRADE.route,

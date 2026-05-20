@@ -5,7 +5,7 @@ import React from 'react';
 import SelectionList from '@components/SelectionList';
 import searchOptions from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
-import StateSelectionPage from '@pages/settings/Profile/PersonalDetails/StateSelectionPage';
+import DynamicStateSelectionPage from '@pages/settings/Profile/PersonalDetails/DynamicStateSelectionPage';
 
 const mockUseState = React.useState;
 const mockStates = COMMON_CONST.STATES;
@@ -16,10 +16,11 @@ jest.mock('@react-navigation/native', () => {
     return {
         ...actualNavigation,
         useFocusEffect: jest.fn(),
-        useRoute: jest.fn(() => ({params: {state: 'NY', label: 'State', backTo: ''}})),
+        useRoute: jest.fn(() => ({params: {state: 'NY', label: 'State'}})),
     };
 });
 
+jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => '/settings/profile/address'));
 jest.mock('@components/HeaderWithBackButton', () => jest.fn(() => null));
 jest.mock('@components/ScreenWrapper', () => jest.fn(({children}: {children: React.ReactNode}) => children));
 jest.mock('@components/SelectionList', () => jest.fn(() => null));
@@ -52,7 +53,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
 }));
 
-describe('StateSelectionPage', () => {
+describe('DynamicStateSelectionPage', () => {
     const mockedSelectionList = jest.mocked(SelectionList);
 
     beforeEach(() => {
@@ -60,7 +61,12 @@ describe('StateSelectionPage', () => {
     });
 
     it('pins the saved state to the top on reopen and wires debounced focus sync', () => {
-        render(<StateSelectionPage />);
+        render(
+            <DynamicStateSelectionPage
+                route={{params: {state: 'NY', label: 'State'}}}
+                navigation={{} as never}
+            />,
+        );
 
         const selectionListProps = mockedSelectionList.mock.lastCall?.[0];
         expect(selectionListProps?.data.at(0)).toEqual(
@@ -75,7 +81,12 @@ describe('StateSelectionPage', () => {
     });
 
     it('keeps natural filtered ordering while search is active', () => {
-        render(<StateSelectionPage />);
+        render(
+            <DynamicStateSelectionPage
+                route={{params: {state: 'NY', label: 'State'}}}
+                navigation={{} as never}
+            />,
+        );
 
         const initialProps = mockedSelectionList.mock.lastCall?.[0];
 
