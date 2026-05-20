@@ -30,7 +30,7 @@ import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {freezeCard, unfreezeCard} from '@libs/actions/Card';
+import {freezeCard, simulateExpensifyCardDeclinedTransaction, unfreezeCard} from '@libs/actions/Card';
 import {resetValidateActionCodeSent} from '@libs/actions/User';
 import navigateToCardTransactions from '@libs/CardNavigationUtils';
 import {clearRevealedPIN, useRevealedPIN} from '@libs/CardPINStore';
@@ -377,6 +377,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                     onPress={() => {
                                         Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN.getRoute(String(currentPhysicalCard?.cardID)));
                                     }}
+                                    small
                                 />
                             </View>
                         )}
@@ -496,6 +497,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                         }}
                                                         isDisabled={isCardDetailsLoading[card.cardID] || isOffline}
                                                         isLoading={isCardDetailsLoading[card.cardID]}
+                                                        small
                                                     />
                                                 ) : undefined
                                             }

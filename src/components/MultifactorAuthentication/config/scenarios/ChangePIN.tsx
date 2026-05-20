@@ -5,6 +5,8 @@ import {DefaultClientFailureScreen, DefaultServerFailureScreen} from '@component
 import type {MultifactorAuthenticationScenarioCustomConfig} from '@components/MultifactorAuthentication/config/types';
 import {useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
 import {changePINForCard} from '@libs/actions/MultifactorAuthentication';
+// eslint-disable-next-line no-restricted-imports
+import spacing from '@styles/utils/spacing';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
@@ -50,12 +52,13 @@ const ChangePINSuccessScreen = createScreenWithDefaults(
 const PINUnblockedSuccessScreen = createScreenWithDefaults(
     DefaultSuccessScreen,
     {
-        headerTitle: 'cardPage.pinChangedHeader',
-        title: 'cardPage.pinChanged',
-        subtitle: 'cardPage.pinUnblockedDescription',
+        headerTitle: 'cardPage.unlockCard',
+        title: 'cardPage.cardUnlocked',
+        subtitle: 'cardPage.cardUnlockedDescription',
         illustration: 'CardReader',
         iconWidth: variables.cardReaderWidth,
         iconHeight: variables.cardReaderHeight,
+        titleStyle: spacing.mt8,
     },
     'PINUnblockedSuccessScreen',
 );
