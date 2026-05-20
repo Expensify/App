@@ -34,6 +34,8 @@ class GpsTripService : Service() {
             .setAutoCancel(false)
 
         if (!deepLink.isNullOrEmpty()) {
+            // deepLink example: 'create/create/start/1/102024159558962/distance-new/distance-gps'
+            // we need to add the prefix to make sure it opens correctly 
             val tapIntent = Intent(Intent.ACTION_VIEW, Uri.parse("new-expensify://$deepLink")).apply {
                 this.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
             }
