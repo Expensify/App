@@ -23,6 +23,11 @@ let crossTabRequestsCallback: (() => void) | undefined;
 // When the counter is 0, any callback must be from a cross-tab storage event,
 // so it is safe to reconcile deletions from the leader tab.
 let pendingOnyxWrites = 0;
+// Tracks the number of unresolved own writes to PERSISTED_ONGOING_REQUESTS.
+// Incremented synchronously *before* the Onyx write begins so that any
+// synchronous callback fired during the write sees the counter > 0 and skips
+// updating ongoingRequest from a potentially stale serialized copy.
+let pendingOwnOngoingRequestWrites = 0;
 
 function trackOnyxWrite<T>(promise: Promise<T>): Promise<T> {
     pendingOnyxWrites++;
@@ -163,6 +168,20 @@ Onyx.connectWithoutView({
 Onyx.connectWithoutView({
     key: ONYXKEYS.PERSISTED_ONGOING_REQUESTS,
     callback: (val) => {
+        // After initialization, when we have pending own writes to this key,
+        // the callback is from our own Onyx.set/multiSet. Skip it to prevent
+        // a stale serialized copy (delivered out of order by Onyx) from
+        // overwriting the current in-memory value and triggering a spurious
+        // flush() via triggerInitializationCallback().
+        if (isInitialized && pendingOwnOngoingRequestWrites > 0) {
+            Log.info('[PersistedRequests] ONGOING_REQUEST callback skipped (own write pending)', false, {
+                diskValue: val?.command ?? 'null',
+                inMemoryCommand: ongoingRequest?.command ?? 'null',
+                pendingOwnWrites: pendingOwnOngoingRequestWrites,
+            });
+            return;
+        }
+
         const previousOngoingRequest = ongoingRequest;
         ongoingRequest = val ?? null;
 
@@ -188,6 +207,7 @@ function clear() {
     persistedRequests = [];
     pendingSaveOperations = [];
     knownRequestIDs.clear();
+    pendingOwnOngoingRequestWrites = 0;
     Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, null);
     return trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, []));
 }
@@ -287,17 +307,22 @@ function endRequestAndRemoveFromQueue<TKey extends OnyxKey>(requestToRemove: Req
         newQueueLength: persistedRequests.length,
     });
 
+    pendingOwnOngoingRequestWrites++;
     trackOnyxWrite(
         Onyx.multiSet({
             [ONYXKEYS.PERSISTED_REQUESTS]: persistedRequests,
             [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: null,
         }),
-    ).then(() => {
-        Log.info('[PersistedRequests] Successfully persisted request removal to disk', false, {
-            command: requestToRemove.command,
-            newQueueLength: getLength(),
+    )
+        .then(() => {
+            Log.info('[PersistedRequests] Successfully persisted request removal to disk', false, {
+                command: requestToRemove.command,
+                newQueueLength: getLength(),
+            });
+        })
+        .finally(() => {
+            pendingOwnOngoingRequestWrites--;
         });
-    });
 }
 
 function deleteRequestsByIndices(indices: number[]): Promise<void> {
@@ -341,12 +366,16 @@ function updateOngoingRequest<TKey extends OnyxKey>(newRequest: Request<TKey>) {
     Log.info('[PersistedRequests] Updating the ongoing request', false, {ongoingRequest, newRequest});
     ongoingRequest = newRequest as AnyRequest;
 
+    pendingOwnOngoingRequestWrites++;
     if (shouldPersistOngoingRequest(ongoingRequest)) {
-        trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, newRequest as AnyRequest));
+        trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, newRequest as AnyRequest)).finally(() => {
+            pendingOwnOngoingRequestWrites--;
+        });
         return;
     }
 
     trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, null)).finally(() => {
+        pendingOwnOngoingRequestWrites--;
         ongoingRequest = newRequest as AnyRequest;
     });
 }
@@ -395,13 +424,16 @@ function processNextRequest(): AnyRequest | null {
     // (e.g. File objects in data.file or data.receipt). IndexedDB cannot clone
     // native File objects (DataCloneError). These requests cannot survive a crash
     // anyway since File references are lost on restart.
+    pendingOwnOngoingRequestWrites++;
     if (shouldPersistOngoingRequest(ongoingRequest)) {
         trackOnyxWrite(
             Onyx.multiSet({
                 [ONYXKEYS.PERSISTED_REQUESTS]: persistedRequests,
                 [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: ongoingRequest,
             }),
-        );
+        ).finally(() => {
+            pendingOwnOngoingRequestWrites--;
+        });
     } else {
         trackOnyxWrite(
             Onyx.multiSet({
@@ -409,6 +441,7 @@ function processNextRequest(): AnyRequest | null {
                 [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: null,
             }),
         ).finally(() => {
+            pendingOwnOngoingRequestWrites--;
             ongoingRequest = nextRequest;
         });
     }
@@ -453,12 +486,15 @@ function rollbackOngoingRequest() {
 
     // Persist both changes to disk so a crash after rollback doesn't lose
     // the rolled-back request or leave a stale ongoingRequest on disk.
+    pendingOwnOngoingRequestWrites++;
     trackOnyxWrite(
         Onyx.multiSet({
             [ONYXKEYS.PERSISTED_REQUESTS]: persistedRequests,
             [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: null,
         }),
-    );
+    ).finally(() => {
+        pendingOwnOngoingRequestWrites--;
+    });
 }
 
 function getAll(): AnyRequest[] {
@@ -481,6 +517,7 @@ function getOngoingRequest(): AnyRequest | null {
  */
 function resetPendingWritesForTest() {
     pendingOnyxWrites = 0;
+    pendingOwnOngoingRequestWrites = 0;
 }
 
 export {
