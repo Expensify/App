@@ -854,10 +854,11 @@ function getTagNamesFromTagsLists(policyTagLists: PolicyTagLists): string[] {
 }
 
 /**
- * Cleans up escaping of colons (used to create multi-level tags, e.g. "Parent: Child") in the tag name we receive from the backend
+ * Cleans up escaping of colons used to create multi-level tags (e.g. "Parent: Child"),
+ * and HTML-decodes the result so tags stored with encoded entities display correctly (e.g. `R&amp;D`, renders as `R&D`)
  */
 function getCleanedTagName(tag: string) {
-    return tag?.replaceAll('\\:', CONST.COLON);
+    return Str.htmlDecode(tag?.replaceAll('\\:', CONST.COLON) ?? '');
 }
 
 /**
@@ -1168,7 +1169,7 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFe
         return policy?.[featureName] ? !!policy?.[featureName] : hasAccountingFeatureConnection(policy);
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED) {
-        return policy?.isHREnabled === true || !!policy?.connections?.gusto;
+        return policy?.isHREnabled === true || isHRIntegrationConnected(policy);
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED) {
         return policy?.receiptPartners?.enabled ?? false;
@@ -1808,6 +1809,14 @@ function isGustoConnected(policy?: OnyxEntry<Policy>) {
     return !!policy?.connections?.gusto;
 }
 
+function isZenefitsConnected(policy?: OnyxEntry<Policy>) {
+    return !!policy?.connections?.zenefits;
+}
+
+function isHRIntegrationConnected(policy?: OnyxEntry<Policy>) {
+    return isGustoConnected(policy) || isZenefitsConnected(policy);
+}
+
 function getConnectedIntegration(policy: Policy | undefined, connectionNames: readonly ConnectionName[] = getAccountingConnectionNames()) {
     return connectionNames.find((integration) => !!policy?.connections?.[integration]);
 }
@@ -2355,6 +2364,8 @@ export {
     getRulesDocumentSourceURL,
     getHRConnectionNames,
     isGustoConnected,
+    isZenefitsConnected,
+    isHRIntegrationConnected,
     isSubmitPolicy,
     isPolicyEditor,
 };
