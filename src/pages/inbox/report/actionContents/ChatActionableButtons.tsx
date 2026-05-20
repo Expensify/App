@@ -228,6 +228,4 @@ function ChatActionableButtons({action, actionReport, actionReportID, reportID}:
     );
 }
 
-ChatActionableButtons.displayName = 'ChatActionableButtons';
-
 export default ChatActionableButtons;

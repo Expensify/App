@@ -49,6 +49,4 @@ function ConfirmWhisperContent({action, reportID, originalReportID, actionReport
     );
 }
 
-ConfirmWhisperContent.displayName = 'ConfirmWhisperContent';
-
 export default ConfirmWhisperContent;

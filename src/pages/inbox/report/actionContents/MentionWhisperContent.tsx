@@ -91,6 +91,4 @@ function MentionWhisperContent({action, report, originalReport, originalReportID
     );
 }
 
-MentionWhisperContent.displayName = 'MentionWhisperContent';
-
 export default MentionWhisperContent;

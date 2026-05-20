@@ -18,6 +18,4 @@ function ReimbursedContent({action, reportOwnerAccountID}: ReimbursedContentProp
     return <ReportActionItemBasicMessage message={message} />;
 }
 
-ReimbursedContent.displayName = 'ReimbursedContent';
-
 export default ReimbursedContent;

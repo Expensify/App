@@ -58,6 +58,4 @@ function ReportMentionWhisperContent({action, reportID, actionReport}: ReportMen
     );
 }
 
-ReportMentionWhisperContent.displayName = 'ReportMentionWhisperContent';
-
 export default ReportMentionWhisperContent;

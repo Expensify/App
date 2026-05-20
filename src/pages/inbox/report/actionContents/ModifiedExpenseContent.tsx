@@ -51,6 +51,4 @@ function ModifiedExpenseContent({action, policyID, originalReport}: ModifiedExpe
     );
 }
 
-ModifiedExpenseContent.displayName = 'ModifiedExpenseContent';
-
 export default ModifiedExpenseContent;

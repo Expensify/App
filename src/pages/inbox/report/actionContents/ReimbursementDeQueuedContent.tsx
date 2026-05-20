@@ -22,6 +22,4 @@ function ReimbursementDeQueuedContent({action, reportOwnerAccountID}: Reimbursem
     return <ReportActionItemBasicMessage message={message} />;
 }
 
-ReimbursementDeQueuedContent.displayName = 'ReimbursementDeQueuedContent';
-
 export default ReimbursementDeQueuedContent;

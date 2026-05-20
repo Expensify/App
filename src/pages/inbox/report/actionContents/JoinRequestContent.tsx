@@ -53,6 +53,4 @@ function JoinRequestContent({action, actionReportID, policyID}: JoinRequestConte
     );
 }
 
-JoinRequestContent.displayName = 'JoinRequestContent';
-
 export default JoinRequestContent;
