@@ -286,8 +286,11 @@ function ActionContentRouter({
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED)) {
         return (
             <ReceiptScanFailedContent
+                reportID={reportID}
+                reportType={report?.type}
                 parentReportID={report?.parentReportID}
                 parentReportActionID={report?.parentReportActionID}
+                actionReportID={action.reportID}
             />
         );
     }
