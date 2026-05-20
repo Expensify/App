@@ -33,6 +33,9 @@ type ListHeaderProps<TItem extends ListItem> = {
 
     /** Whether to prevent default focus when selecting rows */
     shouldPreventDefaultFocusOnSelectRow?: boolean;
+
+    /** Custom accessibility label for the select all checkbox, providing context about what is being selected */
+    selectAllAccessibilityLabel?: string;
 };
 
 function ListHeader<TItem extends ListItem>({
@@ -44,6 +47,7 @@ function ListHeader<TItem extends ListItem>({
     selectAllTextStyle,
     shouldShowSelectAllButton,
     shouldPreventDefaultFocusOnSelectRow,
+    selectAllAccessibilityLabel,
 }: ListHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -69,7 +73,7 @@ function ListHeader<TItem extends ListItem>({
             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                 <Checkbox
                     testID="selection-list-select-all-checkbox"
-                    accessibilityLabel={translate('accessibilityHints.selectAllItems')}
+                    accessibilityLabel={selectAllAccessibilityLabel ?? translate('accessibilityHints.selectAllItems')}
                     isChecked={dataDetails.allSelected}
                     isIndeterminate={dataDetails.someSelected}
                     onPress={onSelectAll}
@@ -80,7 +84,7 @@ function ListHeader<TItem extends ListItem>({
                     <PressableWithFeedback
                         style={[styles.userSelectNone, styles.flexRow, styles.alignItemsCenter]}
                         onPress={onSelectAll}
-                        accessibilityLabel={translate('accessibilityHints.selectAllItems')}
+                        accessibilityLabel={selectAllAccessibilityLabel ?? translate('accessibilityHints.selectAllItems')}
                         sentryLabel={CONST.SENTRY_LABEL.SELECTION_LIST.LIST_HEADER_SELECT_ALL}
                         accessibilityRole="button"
                         accessibilityState={{checked: dataDetails.allSelected, disabled: allDisabled}}
