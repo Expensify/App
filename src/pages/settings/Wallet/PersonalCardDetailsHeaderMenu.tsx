@@ -1,5 +1,6 @@
 import {format, parseISO} from 'date-fns';
 import React from 'react';
+import {View} from 'react-native';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -104,36 +105,38 @@ function PersonalCardDetailsHeaderMenu({
                     />
                 </OfflineWithFeedback>
             )}
-            {isCSVImportedPersonalCard && (
-                <MenuItem
-                    icon={icons.Table}
-                    title={translate('spreadsheet.importSpreadsheet')}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_SPREADSHEET.getRoute(Number(cardID)))}
-                />
-            )}
-            {shouldShowBreakConnection && (
-                <MenuItem
-                    icon={icons.Trashcan}
-                    disabled={isOffline || card?.isLoadingLastUpdated}
-                    title="Break connection (Testing)"
-                    onPress={onBreakConnection}
-                />
-            )}
-            {isCSVImportedPersonalCard ? (
-                <MenuItem
-                    icon={icons.Trashcan}
-                    title={translate('common.delete')}
-                    style={styles.mb1}
-                    onPress={onDeleteCard}
-                />
-            ) : (
-                <MenuItem
-                    icon={expensifyIcons.RemoveMembers}
-                    title={translate('workspace.moreFeatures.companyCards.removeCard')}
-                    style={styles.mb1}
-                    onPress={onUnassignCard}
-                />
-            )}
+            <View style={styles.mt4}>
+                {isCSVImportedPersonalCard && (
+                    <MenuItem
+                        icon={icons.Table}
+                        title={translate('spreadsheet.importSpreadsheet')}
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_SPREADSHEET.getRoute(Number(cardID)))}
+                    />
+                )}
+                {shouldShowBreakConnection && (
+                    <MenuItem
+                        icon={icons.Trashcan}
+                        disabled={isOffline || card?.isLoadingLastUpdated}
+                        title="Break connection (Testing)"
+                        onPress={onBreakConnection}
+                    />
+                )}
+                {isCSVImportedPersonalCard ? (
+                    <MenuItem
+                        icon={icons.Trashcan}
+                        title={translate('common.delete')}
+                        style={styles.mb1}
+                        onPress={onDeleteCard}
+                    />
+                ) : (
+                    <MenuItem
+                        icon={expensifyIcons.RemoveMembers}
+                        title={translate('workspace.moreFeatures.companyCards.removeCard')}
+                        style={styles.mb1}
+                        onPress={onUnassignCard}
+                    />
+                )}
+            </View>
         </>
     );
 }
