@@ -25,7 +25,7 @@ declare -r GITHUB_ACTIONS=(
     "$ACTIONS_DIR/getPullRequestIncrementalChanges/getPullRequestIncrementalChanges.ts"
     "$ACTIONS_DIR/isDeployChecklistLocked/isDeployChecklistLocked.ts"
     "$ACTIONS_DIR/markPullRequestsAsDeployed/markPullRequestsAsDeployed.ts"
-    "$ACTIONS_DIR/postTestBuildComment/postTestBuildComment.ts"
+    "$ACTIONS_DIR/postOrReplaceComment/postOrReplaceComment.ts"
     "$ACTIONS_DIR/proposalPoliceComment/proposalPoliceComment.ts"
     "$ACTIONS_DIR/reopenIssueWithComment/reopenIssueWithComment.ts"
     "$ACTIONS_DIR/reviewerChecklist/reviewerChecklist.ts"

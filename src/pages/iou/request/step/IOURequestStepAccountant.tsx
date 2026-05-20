@@ -5,7 +5,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {setMoneyRequestAccountant} from '@libs/actions/IOU';
+import {setMoneyRequestAccountant} from '@libs/actions/IOU/MoneyRequest';
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import {createDraftWorkspaceAndNavigateToConfirmationScreen} from '@libs/ReportUtils';
