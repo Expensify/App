@@ -39,6 +39,7 @@ import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
 import BaseDomainMembersPage from '@pages/domain/BaseDomainMembersPage';
+import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -302,60 +303,62 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const getCustomRowProps = (accountID: number, email?: string) => getMemberCustomRowProps(accountID, domainPendingActions, domainErrors, email);
 
     if (isLoadingOnyxValue(domainResults)) {
-        return <FullScreenLoadingIndicator />;
+        return <FullScreenLoadingIndicator reasonAttributes={{context: 'DomainMembersPage'}} />;
     }
 
     if (!domain?.validated) {
         return (
-            <ScreenWrapper
-                enableEdgeToEdgeBottomSafeAreaPadding
-                shouldEnableMaxHeight
-                shouldShowOfflineIndicatorInWideScreen
-                testID="DomainMembersPage"
-            >
-                <FullPageNotFoundView
-                    onBackButtonPress={() => Navigation.goBack()}
-                    shouldShow={!doesDomainExist}
-                    shouldForceFullScreen
-                    shouldDisplaySearchRouter
+            <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
+                <ScreenWrapper
+                    enableEdgeToEdgeBottomSafeAreaPadding
+                    shouldEnableMaxHeight
+                    shouldShowOfflineIndicatorInWideScreen
+                    testID="DomainMembersPage"
                 >
-                    <HeaderWithBackButton
-                        title={translate('domain.domainMembers')}
-                        onBackButtonPress={Navigation.goBack}
-                        icon={illustrations.Profile}
-                        shouldShowBackButton={shouldUseNarrowLayout}
-                        shouldDisplayHelpButton
-                    />
-                    <ScrollView
-                        keyboardShouldPersistTaps="handled"
-                        addBottomSafeAreaPadding
-                        style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
+                    <FullPageNotFoundView
+                        onBackButtonPress={() => Navigation.goBack()}
+                        shouldShow={!doesDomainExist}
+                        shouldForceFullScreen
+                        shouldDisplaySearchRouter
                     >
-                        <View style={shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection}>
-                            <FeatureList
-                                menuItems={membersFeatureListItems}
-                                title={translate('domain.members.membersFeatureList.title')}
-                                renderSubtitle={() => (
-                                    <SectionSubtitleHTML
-                                        html={translate('domain.members.membersFeatureList.subtitle', {domainName: `@${domainName ?? ''}`})}
-                                        wrapperStyle={styles.pt3}
-                                    />
-                                )}
-                                ctaText={translate('domain.verifyDomain.title')}
-                                ctaAccessibilityLabel={translate('domain.verifyDomain.title')}
-                                onCtaPress={() => {
-                                    Navigation.navigate(ROUTES.DOMAIN_VERIFY.getRoute(domainAccountID));
-                                }}
-                                illustrationBackgroundColor={colors.blue700}
-                                illustration={illustrations.LaptopOnDeskWithCoffeeAndKey}
-                                illustrationStyle={styles.emptyStateSamlIllustration}
-                                illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentCenter]}
-                                titleStyles={styles.textHeadlineH1}
-                            />
-                        </View>
-                    </ScrollView>
-                </FullPageNotFoundView>
-            </ScreenWrapper>
+                        <HeaderWithBackButton
+                            title={translate('domain.domainMembers')}
+                            onBackButtonPress={Navigation.goBack}
+                            icon={illustrations.Profile}
+                            shouldShowBackButton={shouldUseNarrowLayout}
+                            shouldDisplayHelpButton
+                        />
+                        <ScrollView
+                            keyboardShouldPersistTaps="handled"
+                            addBottomSafeAreaPadding
+                            style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
+                        >
+                            <View style={shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection}>
+                                <FeatureList
+                                    menuItems={membersFeatureListItems}
+                                    title={translate('domain.members.membersFeatureList.title')}
+                                    renderSubtitle={() => (
+                                        <SectionSubtitleHTML
+                                            html={translate('domain.members.membersFeatureList.subtitle', {domainName: `@${domainName ?? ''}`})}
+                                            wrapperStyle={styles.pt3}
+                                        />
+                                    )}
+                                    ctaText={translate('domain.verifyDomain.title')}
+                                    ctaAccessibilityLabel={translate('domain.verifyDomain.title')}
+                                    onCtaPress={() => {
+                                        Navigation.navigate(ROUTES.DOMAIN_VERIFY.getRoute(domainAccountID));
+                                    }}
+                                    illustrationBackgroundColor={colors.blue700}
+                                    illustration={illustrations.LaptopOnDeskWithCoffeeAndKey}
+                                    illustrationStyle={styles.emptyStateSamlIllustration}
+                                    illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentCenter]}
+                                    titleStyles={styles.textHeadlineH1}
+                                />
+                            </View>
+                        </ScrollView>
+                    </FullPageNotFoundView>
+                </ScreenWrapper>
+            </DomainNotFoundPageWrapper>
         );
     }
 
