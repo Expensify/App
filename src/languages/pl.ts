@@ -4296,6 +4296,12 @@ ${amount} dla ${merchant} - ${date}`,
                         return 'Administrator';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Audytor';
+                    case CONST.POLICY.ROLE.CARD_ADMIN:
+                        return 'Administrator karty';
+                    case CONST.POLICY.ROLE.PEOPLE_ADMIN:
+                        return 'Administrator osób';
+                    case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
+                        return 'Administrator płatności';
                     case CONST.POLICY.ROLE.USER:
                         return 'Członek';
                     default:
@@ -4326,12 +4332,15 @@ ${amount} dla ${merchant} - ${date}`,
             budgetTypeForNotificationMessage: {tag: 'znacznik', category: 'kategoria'},
             policyExpenseChatName: (displayName: string) => `Wydatki ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>Transakcje z Karty Expensify będą automatycznie eksportowane do „Konta zobowiązań Karty Expensify” utworzonego dzięki <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">naszej integracji</a>.</muted-text-label>`,
-            travelInvoicing: 'Eksportuj należności z Expensify Travel do',
+            travelInvoicing: 'Eksportuj wydatki z fakturowania podróży jako',
             travelInvoicingVendor: 'Dostawca usług turystycznych',
             travelInvoicingPayableAccount: 'Konto zobowiązań z tytułu podróży',
             hr: 'HR',
             rooms: 'Pokoje',
             findDomain: 'Znajdź domenę',
+            cardAdminAlternateText: 'Zarządzaj kartami przestrzeni roboczej.',
+            peopleAdminAlternateText: 'Zarządzaj członkami i procesami akceptacji.',
+            paymentsAdminAlternateText: 'Zarządzaj płatnościami w przepływie pracy.',
         },
         createdForClient: {
             title: 'Utworzyłeś przestrzeń roboczą dla swojego klienta!',
@@ -4651,6 +4660,7 @@ ${amount} dla ${merchant} - ${date}`,
             exportDeepDiveCompanyCard:
                 'Wyeksportowane wydatki zostaną zaksięgowane jako transakcje bankowe na poniższym koncie bankowym Xero, a daty transakcji będą zgodne z datami na Twoim wyciągu bankowym.',
             bankTransactions: 'Transakcje bankowe',
+            travelInvoicingDescription: 'Wydatki na podróże zostaną wyeksportowane jako transakcje bankowe na konto Xero wskazane poniżej.',
             xeroBankAccount: 'Konto bankowe Xero',
             xeroBankAccountDescription: 'Wybierz, gdzie wydatki będą księgowane jako transakcje bankowe.',
             exportExpensesDescription: 'Raporty zostaną wyeksportowane jako rachunek zakupu z datą i statusem wybranymi poniżej.',

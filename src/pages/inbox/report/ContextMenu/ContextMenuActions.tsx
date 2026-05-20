@@ -185,6 +185,7 @@ import {
 } from '@libs/ReportUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils';
 import {setDownload} from '@userActions/Download';
+import {toggleEmojiReaction} from '@userActions/EmojiReactions';
 import {
     explain,
     markCommentAsUnread,
@@ -192,7 +193,6 @@ import {
     openReport,
     readNewestAction,
     saveReportActionDraft,
-    toggleEmojiReaction,
     togglePinnedState,
     toggleSubscribeToChildReport,
 } from '@userActions/Report';
