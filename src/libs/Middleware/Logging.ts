@@ -2,6 +2,7 @@ import type {OnyxKey} from 'react-native-onyx';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import type HttpsError from '@libs/Errors/HttpsError';
 import Log from '@libs/Log';
+import sanitizeLogParams from '@libs/sanitizeLogParams';
 import CONST from '@src/CONST';
 import type Request from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
@@ -67,11 +68,11 @@ function logRequestDetails<TKey extends OnyxKey>(message: string, request: Reque
      * requests because they contain sensitive information.
      */
     if (request.command !== 'AuthenticatePusher') {
-        extraData.request = {
+        extraData.request = sanitizeLogParams({
             ...request,
             data: serializeLoggingData(request.data),
-        };
-        extraData.response = response;
+        });
+        extraData.response = sanitizeLogParams(response);
     }
 
     Log.info(message, false, logParams, false, extraData);
@@ -90,7 +91,7 @@ const Logging: Middleware = (response, request) => {
                 message: error.message,
                 status: error.status,
                 title: error.title,
-                request,
+                request: sanitizeLogParams(request),
             };
 
             // If the command that failed is Log it's possible that the next call to Log may also fail.

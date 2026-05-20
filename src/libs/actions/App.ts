@@ -13,6 +13,7 @@ import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {isPublicRoom, isValidReport} from '@libs/ReportUtils';
+import {sanitizeUrlForLogging} from '@libs/sanitizeLogParams';
 import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
 import {cancelAllSpans, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
@@ -246,7 +247,7 @@ function saveCurrentPathBeforeBackground() {
         const currentPath = getPathFromState(currentState);
 
         if (currentPath) {
-            Log.info('Saving current path before background', false, {currentPath});
+            Log.info('Saving current path before background', false, {currentPath: sanitizeUrlForLogging(currentPath)});
             updateLastVisitedPath(currentPath);
         }
     } catch (error) {

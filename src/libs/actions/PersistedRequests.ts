@@ -2,6 +2,7 @@ import {deepEqual} from 'fast-equals';
 import type {OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
+import sanitizeLogParams from '@libs/sanitizeLogParams';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Request} from '@src/types/onyx';
 import type {AnyRequest} from '@src/types/onyx/Request';
@@ -311,7 +312,7 @@ function deleteRequestsByIndices(indices: number[]): Promise<void> {
 function update<TKey extends OnyxKey>(oldRequestIndex: number, newRequest: Request<TKey>): Promise<void> {
     const requests = [...persistedRequests];
     const oldRequest = requests.at(oldRequestIndex);
-    Log.info('[PersistedRequests] Updating a request', false, {oldRequest, newRequest, oldRequestIndex});
+    Log.info('[PersistedRequests] Updating a request', false, {oldRequest: sanitizeLogParams(oldRequest), newRequest: sanitizeLogParams(newRequest), oldRequestIndex});
     requests.splice(oldRequestIndex, 1, newRequest as AnyRequest);
     persistedRequests = requests;
     if (newRequest.requestID != null) {
@@ -321,7 +322,7 @@ function update<TKey extends OnyxKey>(oldRequestIndex: number, newRequest: Reque
 }
 
 function updateOngoingRequest<TKey extends OnyxKey>(newRequest: Request<TKey>) {
-    Log.info('[PersistedRequests] Updating the ongoing request', false, {ongoingRequest, newRequest});
+    Log.info('[PersistedRequests] Updating the ongoing request', false, {ongoingRequest: sanitizeLogParams(ongoingRequest), newRequest: sanitizeLogParams(newRequest)});
     ongoingRequest = newRequest as AnyRequest;
 
     if (newRequest.persistWhenOngoing) {
