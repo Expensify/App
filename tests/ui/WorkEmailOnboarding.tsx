@@ -16,6 +16,7 @@ import HttpUtils from '@libs/HttpUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {OnboardingModalNavigatorParamList} from '@navigation/types';
+import OnboardingPrivateDomain from '@pages/OnboardingPrivateDomain';
 import OnboardingWorkEmail from '@pages/OnboardingWorkEmail';
 import OnboardingWorkEmailValidation from '@pages/OnboardingWorkEmailValidation';
 import CONST from '@src/CONST';
@@ -82,6 +83,28 @@ const renderOnboardingWorkEmailValidationPage = (
                         <Stack.Screen
                             name={SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION}
                             component={OnboardingWorkEmailValidation}
+                            initialParams={initialParams}
+                        />
+                    </Stack.Navigator>
+                </NavigationContainer>
+            </PortalProvider>
+        </ComposeProviders>,
+        {wrapper: HTMLProviderWrapper},
+    );
+};
+
+const renderOnboardingPrivateDomainPage = (
+    initialRouteName: typeof SCREENS.ONBOARDING.PRIVATE_DOMAIN,
+    initialParams: OnboardingModalNavigatorParamList[typeof SCREENS.ONBOARDING.PRIVATE_DOMAIN],
+) => {
+    return render(
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
+            <PortalProvider>
+                <NavigationContainer>
+                    <Stack.Navigator initialRouteName={initialRouteName}>
+                        <Stack.Screen
+                            name={SCREENS.ONBOARDING.PRIVATE_DOMAIN}
+                            component={OnboardingPrivateDomain}
                             initialParams={initialParams}
                         />
                     </Stack.Navigator>
@@ -654,6 +677,97 @@ describe('OnboardingWorkEmailValidation Page', () => {
 
         await waitFor(() => {
             expect(screen.getByText(TestHelper.translateLocal('onboarding.mergeBlockScreen.subtitle', workEmail))).toBeOnTheScreen();
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+});
+
+describe('OnboardingPrivateDomain Page', () => {
+    beforeAll(() => {
+        Onyx.init({
+            keys: ONYXKEYS,
+        });
+    });
+
+    beforeEach(() => {
+        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
+            isSmallScreenWidth: false,
+            shouldUseNarrowLayout: false,
+        } as ResponsiveLayoutResult);
+    });
+
+    afterEach(async () => {
+        await act(async () => {
+            await Onyx.clear();
+        });
+
+        jest.clearAllMocks();
+    });
+
+    it('should redirect a public-domain user away to the purpose step', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+            });
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {isFromPublicDomain: true});
+        });
+
+        const {unmount} = renderOnboardingPrivateDomainPage(SCREENS.ONBOARDING.PRIVATE_DOMAIN, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PURPOSE.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()), {forceReplace: true});
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should redirect a public-domain SMB user away to the employees step', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+                signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB,
+            });
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {isFromPublicDomain: true});
+        });
+
+        const {unmount} = renderOnboardingPrivateDomainPage(SCREENS.ONBOARDING.PRIVATE_DOMAIN, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_EMPLOYEES.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()), {forceReplace: true});
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should redirect a public-domain VSB user away to the accounting step', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+                signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB,
+            });
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {isFromPublicDomain: true});
+        });
+
+        const {unmount} = renderOnboardingPrivateDomainPage(SCREENS.ONBOARDING.PRIVATE_DOMAIN, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_ACCOUNTING.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()), {forceReplace: true});
         });
 
         unmount();
