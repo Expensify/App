@@ -43,6 +43,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const illustrations = useMemoizedLazyIllustrations(['Hashtag']);
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
+    const isAdmin = isPolicyAdmin(policy);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.rooms');
 
     const [rooms] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
@@ -120,7 +121,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                         <WorkspaceRoomsListItem
                             report={item}
                             onPress={() => {
-                                const targetRoute = isPolicyAdmin(policy) ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(item.reportID) : ROUTES.REPORT_WITH_ID.getRoute(item.reportID);
+                                const targetRoute = isAdmin ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(item.reportID) : ROUTES.REPORT_WITH_ID.getRoute(item.reportID);
                                 Navigation.navigate(targetRoute);
                             }}
                         />
