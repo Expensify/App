@@ -24,6 +24,7 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSaveSortedReportIDs from '@hooks/useSaveSortedReportIDs';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useStableArrayReference from '@hooks/useStableArrayReference';
@@ -77,6 +78,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
+import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
 import type {OutstandingReportsByPolicyIDDerivedValue, SaveSearch, Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type SearchResults from '@src/types/onyx/SearchResults';
@@ -259,6 +261,8 @@ function Search({
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
@@ -1096,17 +1100,18 @@ function Search({
                 // If the report is unreported (self DM), we want to open the track expense thread instead of a report with an ID of 0
                 const shouldOpenTransactionThread = !isOneTransactionReport(item.report) || item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
                 const shouldOpenTransactionThreadInNewTab = shouldOpenTransactionThread && isModifiedMousePress(event);
-                const targetReportID = createAndOpenSearchTransactionThread(
+                const targetReportID = createAndOpenSearchTransactionThread({
                     item,
                     introSelected,
                     backTo,
-                    email ?? '',
-                    accountID,
+                    currentUserLogin: email ?? '',
+                    currentUserAccountID: accountID,
                     betas,
-                    item?.reportAction?.childReportID,
-                    undefined,
-                    shouldOpenTransactionThread && !shouldOpenTransactionThreadInNewTab,
-                );
+                    isSelfTourViewed,
+                    hasCompletedGuidedSetupFlow,
+                    IOUTransactionID: item?.reportAction?.childReportID,
+                    shouldNavigate: shouldOpenTransactionThread && !shouldOpenTransactionThreadInNewTab,
+                });
                 if (shouldOpenTransactionThreadInNewTab && targetReportID) {
                     openInternalRouteInNewTab(ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID, backTo}), event);
                 }
@@ -1156,17 +1161,19 @@ function Search({
                 const firstTransaction = item.transactions.at(0);
                 if (item.isOneTransactionReport && firstTransaction && transactionPreviewData) {
                     if (!firstTransaction?.reportAction?.childReportID) {
-                        createAndOpenSearchTransactionThread(
-                            firstTransaction,
+                        createAndOpenSearchTransactionThread({
+                            item: firstTransaction,
                             introSelected,
                             backTo,
-                            email ?? '',
-                            accountID,
+                            currentUserLogin: email ?? '',
+                            currentUserAccountID: accountID,
                             betas,
-                            firstTransaction?.reportAction?.childReportID,
+                            isSelfTourViewed,
+                            hasCompletedGuidedSetupFlow,
+                            IOUTransactionID: firstTransaction?.reportAction?.childReportID,
                             transactionPreviewData,
-                            false,
-                        );
+                            shouldNavigate: false,
+                        });
                     } else {
                         setOptimisticDataForTransactionThreadPreview(firstTransaction, transactionPreviewData, firstTransaction?.reportAction?.childReportID);
                     }
@@ -1239,6 +1246,8 @@ function Search({
             unmarkReportIDAsMultiTransactionExpense,
             introSelected,
             betas,
+            isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
             email,
             accountID,
             queryJSON,
@@ -1317,6 +1326,8 @@ function Search({
             }),
         [type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy, isChat, newSearchResultKeys, hash],
     );
+
+    useSaveSortedReportIDs(type, sortedData);
 
     const {stableSortedData, hasCachedOptimisticItem} = useStableOptimisticSortedData(sortedData, searchResults, optimisticTrackingState);
 
