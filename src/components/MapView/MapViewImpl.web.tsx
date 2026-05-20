@@ -48,6 +48,7 @@ function MapViewImpl({
     distanceInMeters,
     unit,
     ref,
+    shouldDisplayCurrentLocation = true,
 }: MapViewProps) {
     const directionCoordinates = !directionCoordinatesProp || utils.isSingleSegmentRoute(directionCoordinatesProp) ? directionCoordinatesProp : directionCoordinatesProp.flat();
 
@@ -75,7 +76,10 @@ function MapViewImpl({
     // location without bothering the user. It will return
     // false if user has already started dragging the map or
     // if there are one or more waypoints present.
-    const shouldPanMapToCurrentPosition = useCallback(() => !userInteractedWithMap && (!waypoints || waypoints.length === 0), [userInteractedWithMap, waypoints]);
+    const shouldPanMapToCurrentPosition = useCallback(
+        () => !userInteractedWithMap && !shouldDisplayCurrentLocation && (!waypoints || waypoints.length === 0),
+        [userInteractedWithMap, waypoints, shouldDisplayCurrentLocation],
+    );
 
     const setCurrentPositionToInitialState: GeolocationErrorCallback = useCallback(
         (error) => {
@@ -268,7 +272,7 @@ function MapViewImpl({
                 mapStyle={styleURL}
                 interactive={interactive}
             >
-                {interactive && (
+                {interactive && shouldDisplayCurrentLocation && (
                     <Marker
                         key="Current-position"
                         longitude={currentPosition?.longitude ?? 0}
@@ -301,7 +305,11 @@ function MapViewImpl({
                 )}
                 {waypoints?.map(({coordinate, markerComponent, id}) => {
                     const MarkerComponent = markerComponent;
-                    if (utils.areSameCoordinate([coordinate[0], coordinate[1]], [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0]) && interactive) {
+                    if (
+                        utils.areSameCoordinate([coordinate[0], coordinate[1]], [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0]) &&
+                        interactive &&
+                        shouldDisplayCurrentLocation
+                    ) {
                         return null;
                     }
                     return (

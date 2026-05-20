@@ -91,6 +91,7 @@ function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = tr
             waypoints={waypointMarkers}
             styleURL={CONST.MAPBOX.STYLE_URL}
             requireRouteToDisplayMap={requireRouteToDisplayMap}
+            shouldDisplayCurrentLocation={false}
         />
     ) : (
         <PendingMapView

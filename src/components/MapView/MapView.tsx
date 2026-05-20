@@ -41,6 +41,7 @@ function MapView({
     distanceInMeters,
     unit,
     ref,
+    shouldDisplayCurrentLocation = true,
 }: MapViewProps) {
     const directionCoordinates = !directionCoordinatesProp || utils.isSingleSegmentRoute(directionCoordinatesProp) ? directionCoordinatesProp : directionCoordinatesProp.flat();
 
@@ -70,7 +71,10 @@ function MapView({
     // location without bothering the user. It will return
     // false if user has already started dragging the map or
     // if there are one or more waypoints present.
-    const shouldPanMapToCurrentPosition = useCallback(() => !userInteractedWithMap && (!waypoints || waypoints.length === 0), [userInteractedWithMap, waypoints]);
+    const shouldPanMapToCurrentPosition = useCallback(
+        () => !userInteractedWithMap && !shouldDisplayCurrentLocation && (!waypoints || waypoints.length === 0),
+        [userInteractedWithMap, waypoints, shouldDisplayCurrentLocation],
+    );
 
     const setCurrentPositionToInitialState: GeolocationErrorCallback = useCallback(
         (error) => {
@@ -277,7 +281,7 @@ function MapView({
                     centerCoordinate={initCenterCoordinate}
                     bounds={initBounds}
                 />
-                {interactive && (
+                {interactive && shouldDisplayCurrentLocation && (
                     <MarkerView
                         id={CONST.MAP_VIEW_LAYERS.USER_LOCATION}
                         coordinate={[currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0]}
@@ -292,9 +296,14 @@ function MapView({
                 )}
                 {waypoints?.map(({coordinate, markerComponent, id}) => {
                     const MarkerComponent = markerComponent;
-                    if (utils.areSameCoordinate([coordinate[0], coordinate[1]], [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0]) && interactive) {
+                    if (
+                        utils.areSameCoordinate([coordinate[0], coordinate[1]], [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0]) &&
+                        interactive &&
+                        shouldDisplayCurrentLocation
+                    ) {
                         return null;
                     }
+
                     return (
                         <MarkerView
                             id={id}
