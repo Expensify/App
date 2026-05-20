@@ -89,6 +89,7 @@ export type {default as ResolveActionableMentionWhisperParams} from './ResolveAc
 export type {default as ChangePolicyUberBillingAccountPageParams} from './ChangePolicyUberBillingAccountPageParams';
 export type {default as ResolveActionableReportMentionWhisperParams} from './ResolveActionableReportMentionWhisperParams';
 export type {default as RevealExpensifyCardDetailsParams} from './RevealExpensifyCardDetailsParams';
+export type {default as RevealExpensifyCardDetailsWithSCAParams} from './RevealExpensifyCardDetailsWithSCAParams';
 export type {default as SearchForReportsParams} from './SearchForReportsParams';
 export type {default as SearchForRoomsToMentionParams} from './SearchForRoomsToMentionParams';
 export type {default as SearchForUsersParams} from './SearchForUsersParams';

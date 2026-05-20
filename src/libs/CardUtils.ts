@@ -160,6 +160,15 @@ function supportsPINManagementFeatures(card: Card | undefined): boolean {
 }
 
 /**
+ * Checks if the card requires Strong Customer Authentication (SCA) — i.e. an MFA flow
+ * for revealing card details, in place of the email magic-code flow.
+ * Currently mirrors {@link supportsPINManagementFeatures}: UK/EU (feedCountry GB) program.
+ */
+function requiresStrongCustomerAuthentication(card: Card | undefined): boolean {
+    return isExpensifyCard(card) && card?.nameValuePairs?.feedCountry === CONST.COUNTRY.GB;
+}
+
+/**
  * @param card
  * @param translate
  * @returns string in format %<bank> • <lastFourPAN || Not Activated>%.
@@ -1800,6 +1809,7 @@ export {
     getDefaultExpensifyCardLimitType,
     isExpensifyCard,
     supportsPINManagementFeatures,
+    requiresStrongCustomerAuthentication,
     getDomainCards,
     formatCardExpiration,
     getMonthFromExpirationDateString,
