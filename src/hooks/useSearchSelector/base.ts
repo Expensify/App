@@ -332,20 +332,26 @@ function useSearchSelectorBase({
         }
     })();
 
+    const optionsCounters: Required<Record<keyof Options, (options: Options) => number>> = {
+        recentReports: (options) => options.recentReports?.length ?? 0,
+        personalDetails: (options) => options.personalDetails?.length ?? 0,
+        userToInvite: (options) => (options.userToInvite ? 1 : 0),
+        currentUserOption: (options) => (options.currentUserOption ? 1 : 0),
+        workspaceChats: (options) => options.workspaceChats?.length ?? 0,
+        selfDMChat: (options) => (options.selfDMChat ? 1 : 0),
+    };
+
     const onListEndReached = useDebounce(() => {
         if (!areOptionsInitialized) {
             return;
         }
 
-        const itemCounts =
-            (baseOptions.recentReports?.length ?? 0) +
-            (baseOptions.personalDetails?.length ?? 0) +
-            (baseOptions.userToInvite ? 1 : 0) +
-            (baseOptions.currentUserOption ? 1 : 0) +
-            (baseOptions.workspaceChats?.length ?? 0) +
-            (baseOptions.selfDMChat ? 1 : 0);
+        let optionsCount = 0;
+        for (const optionsCounter of Object.values(optionsCounters)) {
+            optionsCount += optionsCounter(baseOptions);
+        }
 
-        if (itemCounts < maxResults) {
+        if (optionsCount < maxResults) {
             return;
         }
 
