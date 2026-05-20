@@ -4319,6 +4319,7 @@ const translations = {
             goToWorkspace: 'Go to workspace',
             duplicateWorkspace: 'Duplicate workspace',
             duplicateWorkspacePrefix: 'Duplicate',
+            goToRoom: 'Go to room',
             goToWorkspaces: 'Go to workspaces',
             clearFilter: 'Clear filter',
             workspaceName: 'Workspace name',

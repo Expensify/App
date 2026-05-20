@@ -4753,6 +4753,7 @@ const CONST = {
         UNAPPROVE: 'unapprove',
         DEBUG: 'debug',
         GO_TO_WORKSPACE: 'goToWorkspace',
+        GO_TO_ROOM: 'goToRoom',
         ERROR: 'error',
         TRACK: {
             SUBMIT: 'submit',

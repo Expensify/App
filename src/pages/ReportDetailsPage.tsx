@@ -113,6 +113,7 @@ import {
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {isDemoTransaction} from '@libs/TransactionUtils';
+import {shouldShowGoToRoom as shouldShowGoToRoomUtil} from '@libs/WorkspaceRoomsUtils';
 import {getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU/DeleteMoneyRequest';
 import {deleteTrackExpense, getNavigationUrlAfterTrackExpenseDelete} from '@userActions/IOU/TrackExpense';
 import {
@@ -168,7 +169,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const activePolicy = useActivePolicy();
     const styles = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Users', 'Gear', 'Send', 'Folder', 'UserPlus', 'Pencil', 'Checkmark', 'Building', 'Exit', 'Bug', 'Camera', 'Trashcan']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Users', 'Gear', 'Send', 'Folder', 'UserPlus', 'Pencil', 'Checkmark', 'Building', 'Exit', 'Bug', 'Camera', 'Trashcan', 'Hashtag']);
     const backTo = route.params.backTo;
 
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
@@ -361,6 +362,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
 
     const shouldShowLeaveButton = canLeaveChat(report, policy, currentUserPersonalDetails?.accountID, !!reportNameValuePairs?.private_isArchived);
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, currentUserPersonalDetails?.email) && !policy?.isJoinRequestPending;
+    const shouldShowGoToRoom = shouldShowGoToRoomUtil(report);
 
     const reportForHeader = useMemo(() => getReportForHeader(report), [report]);
     const shouldParseFullTitle = parentReportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && !isGroupChat;
@@ -562,6 +564,19 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
             }
         }
 
+        if (shouldShowGoToRoom) {
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.GO_TO_ROOM,
+                translationKey: 'workspace.common.goToRoom',
+                icon: expensifyIcons.Hashtag,
+                action: () => {
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+                },
+                isAnonymousAction: false,
+                shouldShowRightIcon: true,
+            });
+        }
+
         if (shouldShowGoToWorkspace) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.GO_TO_WORKSPACE,
@@ -633,6 +648,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
         isTaskReport,
         isCanceledTaskReport,
         shouldShowGoToWorkspace,
+        shouldShowGoToRoom,
         shouldShowLeaveButton,
         isDebugModeEnabled,
         shouldOpenRoomMembersPage,
