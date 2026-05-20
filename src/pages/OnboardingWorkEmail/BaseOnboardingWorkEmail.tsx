@@ -70,10 +70,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     }, []);
 
     useEffect(() => {
-        // A validated account should never see this screen — the backend command also refuses validated callers.
-        // This catches the case where the user lands here without first calling AddWorkEmail (e.g. signed up,
-        // closed the tab on this screen, signed back in via magic code which validated the account, and onboarding
-        // resumed on this route). Force-replace so the back button can't return here.
+        // A validated account has no reason to be on the onboarding "add work email" screen.
         if (account?.validated) {
             if (isVsb) {
                 Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(), {forceReplace: true});
@@ -97,7 +94,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         }
         setOnboardingErrorMessage(null);
 
-        // Skip the merge-validation step for public-domain accounts; the screen's "someone from your domain created a workspace" wording only makes sense for private domains.
+        // Skip the merge-validation step for public-domain accounts.
         if (onboardingValues?.shouldValidate && !account?.isFromPublicDomain) {
             Navigation.navigate(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute());
             return;

@@ -129,14 +129,11 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
         Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, [CONST.ONBOARDING_CHOICES.EMPLOYER, CONST.ONBOARDING_CHOICES.TRACK_BUSINESS, CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]);
     }
     // A validated account has no reason to be on the onboarding "add work email" screen.
-    // The backend command also refuses validated callers, so showing the screen would just lead to an error.
     if (isUserFromPublicDomain && !onboardingValuesParam?.isMergeAccountStepCompleted && !isAccountValidated) {
         return `/${ROUTES.ONBOARDING_WORK_EMAIL.route}`;
     }
 
-    // Public-domain users should never resume onboarding on the work-email merge-validation screen
-    // ("Someone from <your-public-domain> has already created a workspace") or the private-domain screen
-    // ("People you may know are already here!") — both screens assume the signup email is on a private domain.
+    // Skip the merge-validation and private-domain screens for public-domain accounts.
     if (isUserFromPublicDomain && (onboardingInitialPath.includes(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.route) || onboardingInitialPath.includes(ROUTES.ONBOARDING_PRIVATE_DOMAIN.route))) {
         if (isVsb) {
             return `/${ROUTES.ONBOARDING_ACCOUNTING.route}`;
