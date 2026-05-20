@@ -1,30 +1,26 @@
-import {Circle, type Color, listFontFamilies, matchFont, Paragraph, type SkFont, Skia, Text as SkText, SkTypeface, type SkTypefaceFontProvider} from '@shopify/react-native-skia';
+import {Circle, Skia, Text as SkText, SkTypeface} from '@shopify/react-native-skia';
+import type {Color} from '@shopify/react-native-skia';
 import JSON5 from 'json5';
 import lodashIsObject from 'lodash/isObject';
 import lodashMerge from 'lodash/merge';
 import React, {ComponentProps, Fragment, useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import type {ColorValue, TextStyle, ViewStyle} from 'react-native';
-import {type CustomRendererProps, type TBlock, TNode, TNodeChildrenRenderer} from 'react-native-render-html';
-import type {CartesianChartRenderArg, ChartBounds, PointsArray, RoundedCorners} from 'victory-native';
+import type {ViewStyle} from 'react-native';
+import {TNode} from 'react-native-render-html';
+import type {CustomRendererProps, TBlock} from 'react-native-render-html';
+import type {CartesianChartRenderArg, RoundedCorners} from 'victory-native';
 import {Bar, CartesianChart, Line} from 'victory-native';
 import {BAR_INNER_PADDING} from '@components/Charts/BarChart/BarChartContent';
 import {useChartDefaultTypeface} from '@components/Charts/hooks';
 import {DEFAULT_CHART_COLOR} from '@components/Charts/utils';
-import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
-import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isArchivedNonExpenseReport} from '@libs/ReportUtils';
-import CONST from '@src/CONST';
 
 const X_KEY = 'x';
 const Y_KEY_PREFIX = 'y';
 
 type RawData = Record<string, any>;
+
+type StyleObject = Record<string, any>;
 
 type LabelItem = {
     /** Position on the X-axis */
@@ -109,45 +105,26 @@ function processNode(tnode: TNode, typeface: SkTypeface | null) {
     const legendItems: LegendItem[] = [];
 
     if (tnode.tagName === 'victorybar' || tnode.tagName === 'victorychart') {
-        const parsedData = parseAttribute(tnode.attributes.data);
-        if (Array.isArray(parsedData)) {
-            const yKey = Y_KEY_PREFIX + getHierarchyID(tnode);
-            yKeys.push(yKey);
-            (parsedData as RawData[]).forEach((point) => {
-                data[point.x] = {
-                    [xKey]: point.x,
-                    [yKey]: point.y,
-                };
-            });
-        }
+        const points = parseAttribute<RawData[]>(tnode.attributes.data);
+        const yKey = Y_KEY_PREFIX + getHierarchyID(tnode);
+        yKeys.push(yKey);
+        points?.forEach((point) => {
+            data[point.x] = {
+                [xKey]: point.x,
+                [yKey]: point.y,
+            };
+        });
     } else if (tnode.tagName === 'victoryaxis') {
         const isDependentAxis = 'dependentaxis' in tnode.attributes && tnode.attributes.dependentaxis !== 'false';
-        const tickCount = parseAttribute(tnode.attributes.tickcount);
-        const tickValues = parseAttribute(tnode.attributes.tickvalues);
-        const orientation = parseAttribute(tnode.attributes.orientation);
-        const style = parseAttribute(tnode.attributes.style);
-        // s77rt clean up the `let`s and nested code
-        let lineColor: Color | undefined;
-        let lineWidth: number | undefined;
-        let labelColor: string | undefined;
-        let labelOffset: number | undefined;
-        let fontSize: number | undefined;
-        if (lodashIsObject(style)) {
-            // VC uses separate colors for axis and grid but VN uses a unifed one.
-            if ('grid' in style && lodashIsObject(style.grid)) {
-                lineColor ??= 'stroke' in style.grid ? (style.grid.stroke as Color) : undefined;
-                lineWidth ??= 'strokeWidth' in style.grid ? Number(style.grid.strokeWidth) : undefined;
-            }
-            if ('axis' in style && lodashIsObject(style.axis)) {
-                lineColor ??= 'stroke' in style.axis ? (style.axis.stroke as Color) : undefined;
-                lineWidth ??= 'strokeWidth' in style.axis ? Number(style.axis.strokeWidth) : undefined;
-            }
-            if ('tickLabels' in style && lodashIsObject(style.tickLabels)) {
-                labelColor ??= 'fill' in style.tickLabels ? String(style.tickLabels.fill) : undefined;
-                labelOffset ??= 'padding' in style.tickLabels ? Number(style.tickLabels.padding) : undefined;
-                fontSize ??= 'fontSize' in style.tickLabels ? Number(style.tickLabels.fontSize) : undefined;
-            }
-        }
+        const tickCount = parseAttribute<number>(tnode.attributes.tickcount);
+        const tickValues = parseAttribute<number[]>(tnode.attributes.tickvalues);
+        const orientation = parseAttribute<string>(tnode.attributes.orientation);
+        const style = parseAttribute<StyleObject>(tnode.attributes.style);
+        const lineColor = style?.axis?.stroke !== undefined ? (style.axis.stroke as Color) : undefined;
+        const lineWidth = style?.axis?.strokeWidth !== undefined ? Number(style.axis.strokeWidth) : undefined;
+        const labelColor = style?.tickLabels?.fill !== undefined ? String(style.tickLabels.fill) : undefined;
+        const labelOffset = style?.tickLabels?.padding !== undefined ? Number(style.tickLabels.padding) : undefined;
+        const fontSize = style?.tickLabels?.fontSize !== undefined ? Number(style.tickLabels.fontSize) : undefined;
         const font = typeface ? Skia.Font(typeface, fontSize) : null;
         if (isDependentAxis) {
             yAxis = [
@@ -175,24 +152,13 @@ function processNode(tnode: TNode, typeface: SkTypeface | null) {
             };
         }
     } else if (tnode.tagName === 'victorylabel') {
-        const x = parseAttribute(tnode.attributes.x);
-        const y = parseAttribute(tnode.attributes.y);
-        const text = parseAttribute(tnode.attributes.text);
-        const style = parseAttribute(tnode.attributes.style);
-        let color: Color = 'black';
-        let fontSize: number = 16;
-        let fontWeight: 'normal' | 'bold' = 'normal';
-        if (lodashIsObject(style)) {
-            if ('fill' in style) {
-                color = style.fill as Color;
-            }
-            if ('fontSize' in style) {
-                fontSize = Number(style.fontSize);
-            }
-            if ('fontWeight' in style && Number(style.fontWeight) === 700) {
-                fontWeight = 'bold';
-            }
-        }
+        const x = parseAttribute<number>(tnode.attributes.x) ?? 0;
+        const y = parseAttribute<number>(tnode.attributes.y) ?? 0;
+        const text = parseAttribute<string>(tnode.attributes.text) ?? '';
+        const style = parseAttribute<StyleObject>(tnode.attributes.style);
+        const color = style?.fill !== undefined ? (style.fill as Color) : 'black';
+        const fontSize = style?.fontSize !== undefined ? Number(style.fontSize) : 16;
+        const fontWeight = Number(style?.fontWeight) === 700 ? 'bold' : 'normal';
         labelItems.push({
             x,
             y,
@@ -202,42 +168,28 @@ function processNode(tnode: TNode, typeface: SkTypeface | null) {
             fontWeight,
         });
     } else if (tnode.tagName === 'victorylegend') {
-        const x = parseAttribute(tnode.attributes.x);
-        const y = parseAttribute(tnode.attributes.y);
-        const gutter = parseAttribute(tnode.attributes.gutter);
-        const symbolSpacer = parseAttribute(tnode.attributes.symbolspacer);
+        const x = parseAttribute<number>(tnode.attributes.x) ?? 0;
+        const y = parseAttribute<number>(tnode.attributes.y) ?? 0;
+        const gutter = parseAttribute<number>(tnode.attributes.gutter) ?? 32;
+        const symbolSpacer = parseAttribute<number>(tnode.attributes.symbolspacer) ?? 8;
         const data = parseAttribute(tnode.attributes.data);
-        const style = parseAttribute(tnode.attributes.style);
-        let color: Color = 'black';
-        let fontSize: number = 13;
-        let fontWeight: 'normal' | 'bold' = 'normal';
-        if (lodashIsObject(style) && 'labels' in style && lodashIsObject(style.labels)) {
-            if ('fill' in style.labels) {
-                color = style.labels.fill as Color;
-            }
-            if ('fontSize' in style.labels) {
-                fontSize = Number(style.labels.fontSize);
-            }
-            if ('fontWeight' in style.labels && Number(style.labels.fontWeight) === 700) {
-                fontWeight = 'bold';
-            }
-        }
-        const entries: LegendItemEntry[] = [];
-        if (Array.isArray(data)) {
-            (data as Array<Record<string, any>>).forEach((entry) => {
-                const text = entry.name;
-                const symbolColor: Color = entry.symbol?.fill ?? 'black';
-                const symbolSize: number = Number(entry.symbol?.size ?? 6);
-                entries.push({
-                    text,
-                    color,
-                    fontSize,
-                    fontWeight,
-                    symbolColor,
-                    symbolSize,
-                });
-            });
-        }
+        const style = parseAttribute<StyleObject>(tnode.attributes.style);
+        const color = style?.labels?.fill !== undefined ? (style.labels.fill as Color) : 'black';
+        const fontSize = style?.labels?.fontSize !== undefined ? Number(style.labels.fontSize) : 12;
+        const fontWeight = Number(style?.labels?.fontWeight) === 700 ? 'bold' : 'normal';
+        const entries: LegendItemEntry[] = (parseAttribute<RawData[]>(tnode.attributes.data) ?? []).map((entry) => {
+            const text = entry.name !== undefined ? String(entry.name) : '';
+            const symbolColor = entry.symbol?.fill !== undefined ? (entry.symbol.fill as Color) : 'black';
+            const symbolSize = entry.symbol?.size !== undefined ? Number(entry.symbol.size) : 4;
+            return {
+                text,
+                color,
+                fontSize,
+                fontWeight,
+                symbolColor,
+                symbolSize,
+            };
+        });
         legendItems.push({
             x,
             y,
@@ -282,14 +234,14 @@ function processNode(tnode: TNode, typeface: SkTypeface | null) {
  *        : "[ {x: 'Jan', y: 3} ]" -> `[{"x": "Jan", "y": 3}]` (Valid RFC 8259)
  *        : "Green" -> "Green"
  */
-function parseAttribute(attribute: string): any {
+function parseAttribute<T>(attribute: string): T | undefined {
     if (!attribute) {
         return undefined;
     }
     try {
-        return JSON5.parse(attribute);
+        return JSON5.parse<T>(attribute);
     } catch {
-        return attribute;
+        return attribute as T;
     }
 }
 
@@ -391,6 +343,7 @@ function VictoryChartRenderer({tnode}: CustomRendererProps<TBlock>) {
     const {regular: regularTypeface, bold: boldTypeface} = useChartDefaultTypeface();
     const {data, xKey, yKeys, xAxis, yAxis, labelItems, legendItems} = useMemo(() => processNode(tnode, regularTypeface), [tnode, regularTypeface]);
     const {nodeStyles, parentNodeStyles} = useMemo(() => parseStyles(tnode), [tnode]);
+    const [isCartesianChart, isPolarChart] = useMemo(() => [Object.keys(data).length > 0, false], [data]);
 
     const renderCartesianChartChild = useCallback((tnode: TNode, index: Number, renderArgs: CartesianChartRenderArg<RawData, string>) => {
         const key = `${tnode.tagName ?? 'node'}-${index}`;
@@ -429,59 +382,61 @@ function VictoryChartRenderer({tnode}: CustomRendererProps<TBlock>) {
         }
     }, []);
 
-    const renderOutside = useCallback(
-        (renderArgs: CartesianChartRenderArg<RawData, string>) => {
-            return (
-                <>
-                    {labelItems.map(({x, y, text, color, fontSize, fontWeight}) => {
+    const renderCartesianChartOutside = useCallback(() => {
+        return (
+            <>
+                {labelItems.map(({x, y, text, color, fontSize, fontWeight}) => {
+                    const typeface = fontWeight === 'bold' ? boldTypeface : regularTypeface;
+                    const font = typeface ? Skia.Font(typeface, fontSize) : null;
+                    return (
+                        <SkText
+                            key={`text-${x}-${y}`}
+                            x={x}
+                            y={y}
+                            text={text}
+                            font={font}
+                            color={color}
+                        />
+                    );
+                })}
+                {legendItems.map(({x: startX, y, entries, gutter, symbolSpacer}, legendIndex) => {
+                    let x = startX;
+                    return entries.map(({text, color, fontSize, fontWeight, symbolColor, symbolSize}) => {
                         const typeface = fontWeight === 'bold' ? boldTypeface : regularTypeface;
                         const font = typeface ? Skia.Font(typeface, fontSize) : null;
+                        const fontMetrics = font?.getMetrics();
+                        const lineHeight = fontMetrics ? fontMetrics.ascent + fontMetrics.descent + fontMetrics.leading : 0;
+                        const symbolX = x;
+                        x += symbolSize + symbolSpacer;
+                        const textX = x;
+                        x += (font?.getGlyphWidths(font.getGlyphIDs(text)).reduce((acc, width) => acc + width, 0) ?? 0) + gutter;
                         return (
-                            <SkText
-                                key={`text-${x}-${y}`}
-                                x={x}
-                                y={y}
-                                text={text}
-                                font={font}
-                                color={color}
-                            />
+                            <Fragment key={`legend-${legendIndex}-${x}-${y}`}>
+                                <Circle
+                                    cx={symbolX}
+                                    cy={y}
+                                    r={symbolSize}
+                                    color={symbolColor}
+                                />
+                                <SkText
+                                    x={textX}
+                                    y={y - lineHeight / 2}
+                                    text={text}
+                                    font={font}
+                                    color={color}
+                                />
+                            </Fragment>
                         );
-                    })}
-                    {legendItems.map(({x: startX, y, entries, gutter, symbolSpacer}, legendIndex) => {
-                        let x = startX;
-                        return entries.map(({text, color, fontSize, fontWeight, symbolColor, symbolSize}) => {
-                            const typeface = fontWeight === 'bold' ? boldTypeface : regularTypeface;
-                            const font = typeface ? Skia.Font(typeface, fontSize) : null;
-                            const fontMetrics = font?.getMetrics();
-                            const lineHeight = fontMetrics ? fontMetrics.ascent + fontMetrics.descent + fontMetrics.leading : 0;
-                            const symbolX = x;
-                            x += symbolSize + symbolSpacer;
-                            const textX = x;
-                            x += (font?.getGlyphWidths(font.getGlyphIDs(text)).reduce((acc, width) => acc + width, 0) ?? 0) + gutter;
-                            return (
-                                <Fragment key={`legend-${legendIndex}-${x}-${y}`}>
-                                    <Circle
-                                        cx={symbolX}
-                                        cy={y}
-                                        r={symbolSize}
-                                        color={symbolColor}
-                                    />
-                                    <SkText
-                                        x={textX}
-                                        y={y - lineHeight / 2}
-                                        text={text}
-                                        font={font}
-                                        color={color}
-                                    />
-                                </Fragment>
-                            );
-                        });
-                    })}
-                </>
-            );
-        },
-        [labelItems, legendItems, regularTypeface, boldTypeface],
-    );
+                    });
+                })}
+            </>
+        );
+    }, [labelItems, legendItems, regularTypeface, boldTypeface]);
+
+    // Invalid chart (no charts or mixed charts)
+    if (isCartesianChart === isPolarChart) {
+        return null;
+    }
 
     return (
         <View style={[styles.chartContainer, styles.mw100, parentNodeStyles]}>
@@ -495,7 +450,7 @@ function VictoryChartRenderer({tnode}: CustomRendererProps<TBlock>) {
                     domain={parseAttribute(tnode.attributes.domain)}
                     domainPadding={parseDomainPadding(tnode.attributes.domainpadding)}
                     padding={parseAttribute(tnode.attributes.padding)}
-                    renderOutside={renderOutside}
+                    renderOutside={renderCartesianChartOutside}
                 >
                     {(renderArgs) => tnode.children.map((child, childIndex) => renderCartesianChartChild(child, childIndex, renderArgs))}
                 </CartesianChart>
