@@ -2167,7 +2167,16 @@ function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
 }
 
 function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
-    const {onyxData: trackedExpenseOnyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams, accountantParams, currentUserAccountID} = trackedExpenseParams;
+    const {
+        onyxData: trackedExpenseOnyxData,
+        reportInformation,
+        transactionParams,
+        policyParams,
+        createdWorkspaceParams,
+        accountantParams,
+        currentUserAccountID,
+        reportActionsList,
+    } = trackedExpenseParams;
 
     const policyID = policyParams?.policyID;
     const chatReportID = reportInformation?.chatReportID;
@@ -2235,6 +2244,9 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
             CONST.POLICY.ROLE.ADMIN,
             formatPhoneNumber,
             currentUserAccountID,
+            undefined,
+            undefined,
+            reportActionsList,
         );
         onyxData.optimisticData?.push(...addAccountantToWorkspaceOptimisticData);
         onyxData.successData?.push(...addAccountantToWorkspaceSuccessData);
@@ -2316,6 +2328,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         isSelfTourViewed,
         defaultWorkspaceName,
         previousOdometerDraft,
+        reportActionsList,
     } = params;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
     const {policy, policyCategories, policyTagList} = policyData;
@@ -2362,6 +2375,8 @@ function trackExpense(params: CreateTrackExpenseParams) {
         report,
         isDraftPolicy,
         action,
+        // Strip reportActionsList from retryParams to keep the serialized error JSON small.
+        reportActionsList: undefined,
         participantParams: {
             participant,
             payeeAccountID,
@@ -2601,6 +2616,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 accountantParams,
                 currentUserAccountID: currentUserAccountIDParam,
                 currentUserEmail: currentUserEmailParam,
+                reportActionsList,
             };
             shareTrackedExpense(trackedExpenseParams);
             break;
