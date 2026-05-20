@@ -6,6 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {dismissForSession} from '@libs/actions/ConciergeNotificationBanner';
 import NotificationPermission from '@libs/Notification/notificationPermission';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 
 // Vertical overlap (px) between the bottom of the cream banner and the top of the composer.
 // ReportFooter applies marginTop: -BANNER_COMPOSER_OVERLAP_PX to the composer so this many
@@ -43,7 +44,7 @@ function EnableNotificationsBanner() {
 
     return (
         <View
-            accessibilityRole="alert"
+            role={CONST.ROLE.STATUS}
             accessibilityLiveRegion="polite"
         >
             <Banner
