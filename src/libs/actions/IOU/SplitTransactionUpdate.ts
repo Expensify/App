@@ -1400,6 +1400,15 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     const transactionThreadReportID = params.firstIOU?.childReportID;
     const transactionThreadReportScreen = Navigation.getReportRouteByID(transactionThreadReportID);
 
+    const removeTransactionThreadReportScreen = () => {
+        requestAnimationFrame(() => {
+            if (!transactionThreadReportScreen?.key) {
+                return;
+            }
+            Navigation.removeScreenByKey(transactionThreadReportScreen.key);
+        });
+    };
+
     // Reset selected transactions in search after saving split expenses
     const searchFullScreenRoutes = navigationRef.getRootState()?.routes.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
     const lastRoute = searchFullScreenRoutes?.state?.routes?.at(-1);
@@ -1412,16 +1421,7 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
 
     if (isSearchPageTopmostFullScreenRoute) {
         Navigation.navigateBackToLastSuperWideRHPScreen();
-
-        // After the modal is dismissed, remove the transaction thread report screen
-        // to avoid navigating back to a report removed by the split transaction.
-        requestAnimationFrame(() => {
-            if (!transactionThreadReportScreen?.key) {
-                return;
-            }
-
-            Navigation.removeScreenByKey(transactionThreadReportScreen.key);
-        });
+        removeTransactionThreadReportScreen();
 
         return;
     }
@@ -1433,27 +1433,14 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     if (willDeleteExpenseReport && fallbackReportID) {
         const backRoute = ROUTES.REPORT_WITH_ID.getRoute(fallbackReportID);
         navigateBackOnDeleteTransaction(backRoute);
-
-        // Remove the transaction thread report screen to avoid navigating back to a removed report
-        requestAnimationFrame(() => {
-            if (!transactionThreadReportScreen?.key) {
-                return;
-            }
-            Navigation.removeScreenByKey(transactionThreadReportScreen.key);
-        });
+        removeTransactionThreadReportScreen();
 
         return;
     }
 
     if (!params.transactionReport?.parentReportID) {
         Navigation.navigateBackToLastSuperWideRHPScreen();
-
-        requestAnimationFrame(() => {
-            if (!transactionThreadReportScreen?.key) {
-                return;
-            }
-            Navigation.removeScreenByKey(transactionThreadReportScreen.key);
-        });
+        removeTransactionThreadReportScreen();
 
         return;
     }
@@ -1464,15 +1451,7 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, targetReportID);
     }
     Navigation.dismissModalWithReport({reportID: targetReportID});
-
-    // After the modal is dismissed, remove the transaction thread report screen
-    // to avoid navigating back to a report removed by the split transaction.
-    requestAnimationFrame(() => {
-        if (!transactionThreadReportScreen?.key) {
-            return;
-        }
-        Navigation.removeScreenByKey(transactionThreadReportScreen.key);
-    });
+    removeTransactionThreadReportScreen();
 }
 
 export {updateSplitTransactions, updateSplitTransactionsFromSplitExpensesFlow};
