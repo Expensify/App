@@ -6,7 +6,11 @@ import type {IsItemInSearchCallback, SearchingMethods} from './middlewares/searc
 import type {SelectionMethods} from './middlewares/selection';
 import type {ActiveSorting, CompareItemsCallback, SortingMethods} from './middlewares/sorting';
 
+/**
+ * Defines the required minimum shape for each row of data in the table
+ */
 type TableData = {
+    /** A unique identifier for the row */
     keyForList: string;
 };
 
@@ -162,7 +166,6 @@ export type {
     TableRow,
     TableColumn,
     TableMethods,
-    TableRow as TableRowData,
     TableHandle,
     TableProps,
     SharedListProps,

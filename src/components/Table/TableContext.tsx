@@ -2,7 +2,7 @@ import type {FlashListRef} from '@shopify/flash-list';
 import React, {createContext, useContext} from 'react';
 import type {FilterConfig} from './middlewares/filtering';
 import type {ActiveSorting} from './middlewares/sorting';
-import type {SharedListProps, TableColumn, TableData, TableMethods, TableRowData} from './types';
+import type {SharedListProps, TableColumn, TableData, TableMethods, TableRow} from './types';
 
 /**
  * The shape of the Table context value.
@@ -25,7 +25,7 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     selectionEnabled?: boolean;
 
     /** The data array after filtering, searching, and sorting have been applied. */
-    processedData: TableRowData<DataType>[];
+    processedData: TableRow<DataType>[];
 
     /** The original length of the data array before any processing. */
     originalDataLength: number;

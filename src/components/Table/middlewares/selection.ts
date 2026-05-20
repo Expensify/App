@@ -3,25 +3,29 @@ import {TableData, TableRow} from '../types';
 import {MiddlewareHookResult} from './types';
 
 export type UseSelectionProps<DataType extends TableData> = {
+    /** The data being used in the table */
     data: DataType[];
 };
 
 export type SelectionMethods = {
+    /** Callback to either select or unselect all rows in the table */
     handleSelectAll: () => void;
 
+    /** Callback to select multiple rows in the table, while holding shift and clicking on a row */
     handleMultipleRowSelection: (keyForList: string) => void;
 
+    /** Callback to select a single row in the table */
     handleSingleRowSelection: (keyForList: string) => void;
 };
 
 export type UseSelectionResult<DataType extends TableData> = MiddlewareHookResult<DataType, SelectionMethods, TableRow<DataType>>;
 
 export default function useSelection<DataType extends TableData>({data}: UseSelectionProps<DataType>): UseSelectionResult<DataType> {
+    const keyForLists = data.map((item) => item.keyForList);
+
     const lastSelectedRowKeyRef = useRef<string | null>(null);
     const lastSelectedRowIsSelectedRef = useRef<boolean>(false);
     const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
-
-    const keyForLists = data.map((item) => item.keyForList);
 
     /**
      * When the select all checkbox is toggled, select or deselect all of the

@@ -61,6 +61,7 @@ function DomainsListPage() {
                 title: Str.extractEmailDomain(domain.email),
                 errors: domainErrors?.errors,
                 pendingAction: domain.pendingAction,
+                keyForList: String(domain.accountID),
                 brickRoadIndicator: hasDomainErrors(domainErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 action: () => navigateToDomain({domainAccountID: domain.accountID, isAdmin: isDomainAdmin}),
             });
