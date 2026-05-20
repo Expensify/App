@@ -169,7 +169,7 @@ function GrowlNotification({ref}: GrowlNotificationProps) {
                                     }}
                                     style={[styles.ml2, styles.p2]}
                                 >
-                                    <Text style={[styles.growlNotificationText, styles.textBold, {color: theme.link}]}>{action.label}</Text>
+                                    <Text style={[styles.growlNotificationText, styles.textBold, {color: theme.linkReversed}]}>{action.label}</Text>
                                 </PressableWithoutFeedback>
                             )}
                         </View>

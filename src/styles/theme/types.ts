@@ -33,6 +33,7 @@ type ThemeColors = {
     syntax: Color;
     link: Color;
     linkHover: Color;
+    linkReversed: Color;
     buttonDefaultBG: Color;
     buttonHoveredBG: Color;
     buttonPressedBG: Color;

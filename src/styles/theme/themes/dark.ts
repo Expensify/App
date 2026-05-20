@@ -27,6 +27,7 @@ const darkTheme = {
     syntax: colors.productDark800,
     link: colors.blue300,
     linkHover: colors.blue100,
+    linkReversed: colors.blue600,
     buttonDefaultBG: colors.productDark400,
     buttonHoveredBG: colors.productDark500,
     buttonPressedBG: colors.productDark600,
