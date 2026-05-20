@@ -4293,12 +4293,10 @@ type TypeMenuSectionsParams = {
     isOffline: boolean;
     defaultExpensifyCard: CardFeedForDisplay | undefined;
     draftTransactionIDs: string[] | undefined;
-    isTrackIntentUser: boolean;
 };
 
 function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuSection[] {
-    const {currentUserEmail, currentUserAccountID, cardFeedsByPolicy, defaultCardFeed, policies, savedSearches, isOffline, defaultExpensifyCard, draftTransactionIDs, isTrackIntentUser} =
-        params;
+    const {currentUserEmail, currentUserAccountID, cardFeedsByPolicy, defaultCardFeed, policies, savedSearches, isOffline, defaultExpensifyCard, draftTransactionIDs} = params;
     const typeMenuSections: SearchTypeMenuSection[] = [];
 
     const {
@@ -4322,47 +4320,45 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
             expenseReportsSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.REPORTS]);
         }
 
-        if (!isTrackIntentUser) {
-            if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.SUBMIT]) {
-                expenseReportsSection.menuItems.push({
-                    ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SUBMIT],
-                    emptyState: {
-                        title: 'search.searchResults.emptySubmitResults.title',
-                        subtitle: 'search.searchResults.emptySubmitResults.subtitle',
-                        buttons: hasGroupPoliciesWithExpenseChat
-                            ? [
-                                  {
-                                      success: true,
-                                      buttonText: 'report.newReport.createExpense',
-                                      buttonAction: () => {
-                                          interceptAnonymousUser(() => {
-                                              startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs, CONST.IOU.REQUEST_TYPE.SCAN);
-                                          });
-                                      },
+        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.SUBMIT]) {
+            expenseReportsSection.menuItems.push({
+                ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SUBMIT],
+                emptyState: {
+                    title: 'search.searchResults.emptySubmitResults.title',
+                    subtitle: 'search.searchResults.emptySubmitResults.subtitle',
+                    buttons: hasGroupPoliciesWithExpenseChat
+                        ? [
+                              {
+                                  success: true,
+                                  buttonText: 'report.newReport.createExpense',
+                                  buttonAction: () => {
+                                      interceptAnonymousUser(() => {
+                                          startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs, CONST.IOU.REQUEST_TYPE.SCAN);
+                                      });
                                   },
-                              ]
-                            : [],
-                    },
-                });
-            }
-            if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.APPROVE]) {
-                expenseReportsSection.menuItems.push({
-                    ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.APPROVE],
-                    emptyState: {
-                        title: 'search.searchResults.emptyApproveResults.title',
-                        subtitle: 'search.searchResults.emptyApproveResults.subtitle',
-                    },
-                });
-            }
-            if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.PAY]) {
-                expenseReportsSection.menuItems.push({
-                    ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.PAY],
-                    emptyState: {
-                        title: 'search.searchResults.emptyPayResults.title',
-                        subtitle: 'search.searchResults.emptyPayResults.subtitle',
-                    },
-                });
-            }
+                              },
+                          ]
+                        : [],
+                },
+            });
+        }
+        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.APPROVE]) {
+            expenseReportsSection.menuItems.push({
+                ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.APPROVE],
+                emptyState: {
+                    title: 'search.searchResults.emptyApproveResults.title',
+                    subtitle: 'search.searchResults.emptyApproveResults.subtitle',
+                },
+            });
+        }
+        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.PAY]) {
+            expenseReportsSection.menuItems.push({
+                ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.PAY],
+                emptyState: {
+                    title: 'search.searchResults.emptyPayResults.title',
+                    subtitle: 'search.searchResults.emptyPayResults.subtitle',
+                },
+            });
         }
 
         if (expenseReportsSection.menuItems.length > 0) {
@@ -4377,16 +4373,14 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
             menuItems: [],
         };
 
-        if (!isTrackIntentUser) {
-            if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.EXPORT]) {
-                accountingSection.menuItems.push({
-                    ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.EXPORT],
-                    emptyState: {
-                        title: 'search.searchResults.emptyExportResults.title',
-                        subtitle: 'search.searchResults.emptyExportResults.subtitle',
-                    },
-                });
-            }
+        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.EXPORT]) {
+            accountingSection.menuItems.push({
+                ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.EXPORT],
+                emptyState: {
+                    title: 'search.searchResults.emptyExportResults.title',
+                    subtitle: 'search.searchResults.emptyExportResults.subtitle',
+                },
+            });
         }
 
         if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]) {
@@ -4455,7 +4449,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
 
         const insightsSearchKeys = [
             CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME,
-            ...(!isTrackIntentUser ? [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS] : []),
+            CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS,
             CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES,
             CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS,
         ];

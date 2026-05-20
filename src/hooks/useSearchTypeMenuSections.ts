@@ -2,11 +2,10 @@ import {defaultExpensifyCardSelector} from '@selectors/Card';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import isTrackOnboardingChoice from '@libs/OnboardingUtils';
 import {createTypeMenuSections, doesSearchItemMatchSort} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {IntroSelected, Policy, Session} from '@src/types/onyx';
+import type {Policy, Session} from '@src/types/onyx';
 import useCardFeedsForDisplay from './useCardFeedsForDisplay';
 import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
 import useMappedPolicies from './useMappedPolicies';
@@ -43,8 +42,6 @@ const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
     accountID: session?.accountID,
 });
 
-const isTrackIntentUserSelector = (introSelected: OnyxEntry<IntroSelected>) => isTrackOnboardingChoice(introSelected?.choice);
-
 type UseSearchTypeMenuSectionsParams = {
     hash?: number;
     similarSearchHash?: number;
@@ -68,7 +65,6 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
     const [currentUserLoginAndAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: currentUserLoginAndAccountIDSelector});
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [pendingReportCreation, setPendingReportCreation] = useState<{policyID: string; policyName?: string; onConfirm: (shouldDismissEmptyReportsConfirmation: boolean) => void} | null>(
         null,
     );
@@ -111,7 +107,6 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
                 isOffline,
                 defaultExpensifyCard,
                 draftTransactionIDs,
-                isTrackIntentUser: isTrackIntentUser ?? false,
             }),
         [
             currentUserLoginAndAccountID?.email,
@@ -123,7 +118,6 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
             savedSearches,
             isOffline,
             draftTransactionIDs,
-            isTrackIntentUser,
         ],
     );
 

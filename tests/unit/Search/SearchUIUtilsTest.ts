@@ -6315,7 +6315,6 @@ describe('SearchUIUtils', () => {
                 isOffline: false,
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
-                isTrackIntentUser: false,
             })
                 .map((section) => section.menuItems)
                 .flat();
@@ -6399,7 +6398,6 @@ describe('SearchUIUtils', () => {
                 isOffline: false,
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
-                isTrackIntentUser: false,
             });
 
             const todoSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => SearchUIUtils.TODO_SEARCH_KEYS.has(item.key)));
@@ -6459,7 +6457,6 @@ describe('SearchUIUtils', () => {
                 isOffline: false,
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
-                isTrackIntentUser: false,
             });
 
             const monthlyAccrualSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => SearchUIUtils.MONTHLY_ACCRUAL_SEARCH_KEYS.has(item.key)));
@@ -6503,7 +6500,6 @@ describe('SearchUIUtils', () => {
                 isOffline: false,
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
-                isTrackIntentUser: false,
             });
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -6523,7 +6519,6 @@ describe('SearchUIUtils', () => {
                 isOffline: false,
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
-                isTrackIntentUser: false,
             });
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -6550,7 +6545,6 @@ describe('SearchUIUtils', () => {
                 isOffline: false,
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
-                isTrackIntentUser: false,
             });
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -6577,7 +6571,6 @@ describe('SearchUIUtils', () => {
                 isOffline: true,
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
-                isTrackIntentUser: false,
             });
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -6608,7 +6601,6 @@ describe('SearchUIUtils', () => {
                 isOffline: false,
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
-                isTrackIntentUser: false,
             });
 
             const todoSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => SearchUIUtils.TODO_SEARCH_KEYS.has(item.key)));
@@ -6639,7 +6631,6 @@ describe('SearchUIUtils', () => {
                 isOffline: false,
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
-                isTrackIntentUser: false,
             });
 
             const monthlyAccrualSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => SearchUIUtils.MONTHLY_ACCRUAL_SEARCH_KEYS.has(item.key)));
@@ -6682,7 +6673,6 @@ describe('SearchUIUtils', () => {
                 isOffline: false,
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
-                isTrackIntentUser: false,
             });
 
             const reconciliationSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => SearchUIUtils.RECONCILIATION_SEARCH_KEYS.has(item.key)));
@@ -6718,7 +6708,6 @@ describe('SearchUIUtils', () => {
                 isOffline: false,
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
-                isTrackIntentUser: false,
             });
             const reconciliationSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => SearchUIUtils.RECONCILIATION_SEARCH_KEYS.has(item.key)));
             expect(reconciliationSectionMenuItems.length).toBeGreaterThan(0);
@@ -6774,7 +6763,6 @@ describe('SearchUIUtils', () => {
                 isOffline: false,
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
-                isTrackIntentUser: false,
             });
 
             const reconciliationItem = sections.flatMap((section) => section.menuItems).find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
@@ -6817,7 +6805,6 @@ describe('SearchUIUtils', () => {
                 isOffline: false,
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
-                isTrackIntentUser: false,
             });
 
             const reconciliationItem = sections.flatMap((section) => section.menuItems).find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
@@ -6886,7 +6873,6 @@ describe('SearchUIUtils', () => {
                 isOffline: false,
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
-                isTrackIntentUser: false,
             });
 
             const expenseReportsSection = sections.find((section) => section.translationPath === 'search.tabs.expenseReports');
@@ -6959,7 +6945,6 @@ describe('SearchUIUtils', () => {
                 isOffline: false,
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
-                isTrackIntentUser: false,
             });
 
             const accountingSection = sections.find((section) => section.translationPath === 'search.tabs.accounting');
@@ -6973,7 +6958,7 @@ describe('SearchUIUtils', () => {
             expect(sectionKeys).toContain(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
         });
 
-        it('should not show todo items or export for track-intent users', () => {
+        it('should show submit/approve/pay/export when policy has approvals and payments enabled', () => {
             const mockPolicies = {
                 policy1: {
                     id: 'policy1',
@@ -7033,16 +7018,14 @@ describe('SearchUIUtils', () => {
                 isOffline: false,
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
-                isTrackIntentUser: true,
             });
 
             const allMenuItems = sections.flatMap((section) => section.menuItems);
             const allKeys = allMenuItems.map((item) => item.key);
 
-            expect(allKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.SUBMIT);
-            expect(allKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.APPROVE);
-            expect(allKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.PAY);
-            expect(allKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.EXPORT);
+            expect(allKeys).toContain(CONST.SEARCH.SEARCH_KEYS.SUBMIT);
+            expect(allKeys).toContain(CONST.SEARCH.SEARCH_KEYS.APPROVE);
+            expect(allKeys).toContain(CONST.SEARCH.SEARCH_KEYS.EXPORT);
         });
 
         it('should generate correct routes', () => {
@@ -7056,7 +7039,6 @@ describe('SearchUIUtils', () => {
                 isOffline: false,
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
-                isTrackIntentUser: false,
             })
                 .map((section) => section.menuItems)
                 .flat();
@@ -7129,7 +7111,6 @@ describe('SearchUIUtils', () => {
                 isOffline: false,
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
-                isTrackIntentUser: false,
             });
             const todoSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => SearchUIUtils.TODO_SEARCH_KEYS.has(item.key)));
 
