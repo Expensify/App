@@ -17,7 +17,6 @@ import WorkspaceRow from './WorkspaceTableRow';
 type WorkspaceTableColumnKey = 'workspaces' | 'owner' | 'type' | 'actions';
 
 type WorkspaceRowData = {
-    rowType: 'workspace';
     title: string;
     icon: AvatarSource;
     disabled: boolean;

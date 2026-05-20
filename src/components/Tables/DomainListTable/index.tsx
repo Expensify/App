@@ -15,7 +15,6 @@ import DomainListTableRow from './DomainListTableRow';
 type DomainTableColumnKey = 'domains' | 'actions';
 
 type DomainRowData = {
-    rowType: 'domain';
     domainAccountID: number;
     title: string;
     isAdmin: boolean;
