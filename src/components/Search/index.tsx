@@ -957,7 +957,7 @@ function Search({
                 if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                     return count;
                 }
-                
+
                 return count + 1;
             }
             // For regular reports, count all transactions except pending delete ones
