@@ -2628,13 +2628,13 @@ describe('PolicyUtils', () => {
         };
         const buildPolicies = (employeeLogins: string[][]): OnyxCollection<Policy> => {
             const result: OnyxCollection<Policy> = {};
-            employeeLogins.forEach((logins, index) => {
-                const employeeList: PolicyEmployeeList = {};
+            for (const [index, logins] of employeeLogins.entries()) {
+                const memberList: PolicyEmployeeList = {};
                 for (const login of logins) {
-                    employeeList[login] = {email: login};
+                    memberList[login] = {email: login};
                 }
-                result[`policy_${index + 1}`] = {id: `${index + 1}`, employeeList} as Policy;
-            });
+                result[`policy_${index + 1}`] = {id: `${index + 1}`, employeeList: memberList} as Policy;
+            }
             return result;
         };
 
