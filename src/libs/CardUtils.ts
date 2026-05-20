@@ -169,7 +169,7 @@ function getCardDescription(card: Card | undefined, translate: LocalizedTranslat
         return '';
     }
     if (isTravelCard(card)) {
-        return translate('cardTransactions.centralInvoicing');
+        return translate('cardTransactions.travelInvoicing');
     }
     const isCSVCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank?.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
     if (isCSVCard) {
@@ -189,7 +189,7 @@ function getCardDescription(card: Card | undefined, translate: LocalizedTranslat
  */
 function getCardDescriptionForSearchTable(card: Card, translate: LocalizedTranslate, displayName?: string) {
     if (isTravelCard(card)) {
-        return translate('cardTransactions.centralInvoicing');
+        return translate('cardTransactions.travelInvoicing');
     }
     const isCSVCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank?.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
     if (isCSVCard) {
@@ -213,7 +213,7 @@ function getCompanyCardDescription(translate: LocalizedTranslate, transactionCar
     const card = cards[cardID];
 
     if (isTravelCard(card)) {
-        return translate('cardTransactions.centralInvoicing');
+        return translate('cardTransactions.travelInvoicing');
     }
 
     if (isExpensifyCard(card)) {
@@ -800,7 +800,7 @@ function getFeedNameForDisplay(
 
     // Travel Invoicing cards share the Expensify Card bank, so feedCountry is what distinguishes them.
     if (feed === CONST.EXPENSIFY_CARD.BANK && feedCountry === CONST.TRAVEL.PROGRAM_TRAVEL_US) {
-        return translate('search.filters.card.centralInvoicing');
+        return translate('search.filters.card.travelInvoicing');
     }
 
     const customName = customFeedName ?? getCustomFeedNameFromFeeds(cardFeeds, feed as CompanyCardFeed);
@@ -1060,12 +1060,8 @@ function filterAllInactiveCards(cards: CardList | undefined, includeDeactivated 
 
     const closedStates = new Set<number>([CONST.EXPENSIFY_CARD.STATE.CLOSED, CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED]);
     return filterObject(cards, (_key, card) => {
-        const isAdminZeroedExpensifyCard = isExpensifyCard(card) && isCardWithCustomZeroLimit(card);
         if (card.state === CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED) {
-            return !!card.nameValuePairs?.frozen || (includeDeactivated && isAdminZeroedExpensifyCard);
-        }
-        if (card.state === CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED) {
-            return includeDeactivated && isAdminZeroedExpensifyCard;
+            return !!card.nameValuePairs?.frozen || includeDeactivated;
         }
         return !closedStates.has(card.state);
     });
@@ -1083,7 +1079,7 @@ function filterInactiveCards(cardsList: WorkspaceCardsList | undefined) {
 
 /**
  * Onyx selector for workspace Expensify Card management pages. Same as `filterInactiveCards`, but also
- * keeps issued deactivated cards and zero-limit suspended cards so admins can view and edit them.
+ * keeps all suspended cards so admins can view and edit them.
  */
 function filterInactiveCardsForWorkspace(cardsList: WorkspaceCardsList | undefined) {
     const {cardList, ...assignedCards} = cardsList ?? {};

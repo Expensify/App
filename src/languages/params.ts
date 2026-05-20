@@ -43,6 +43,8 @@ type ParentNavigationSummaryParams = {reportName?: string; workspaceName?: strin
 
 type ViolationsIncreasedDistanceParams = {formattedRouteDistance?: string};
 
+type OptionalParam<T> = Partial<T>;
+
 type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string};
 
 type ExportedToIntegrationParams = {label: string; markedManually?: boolean; inProgress?: boolean; lastModified?: string};

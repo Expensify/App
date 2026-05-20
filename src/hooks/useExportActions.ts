@@ -234,6 +234,10 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
             icon: expensifyIcons.Download,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.DOWNLOAD_PDF,
             onSelected: () => {
+                if (isOffline) {
+                    showOfflineModal();
+                    return;
+                }
                 if (!moneyRequestReport?.reportID) {
                     return;
                 }
@@ -265,4 +269,3 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
 }
 
 export default useExportActions;
-export type {UseExportActionsParams, UseExportActionsReturn};
