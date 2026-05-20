@@ -11,7 +11,7 @@ import useFullscreenAdvancedFilters from './useFullscreenAdvancedFilters';
 
 type FilterListProps = {
     selectedFilter: SearchFilter['key'] | null;
-    style: StyleProp<ViewStyle>;
+    style?: StyleProp<ViewStyle>;
     onFilterSelected: (filter: SearchFilter['key']) => void;
 };
 
