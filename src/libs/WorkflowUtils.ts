@@ -43,6 +43,14 @@ type GetApproversParams = {
     firstEmail: string;
 };
 
+/** Resolve the display name for an over-limit forwarder email, falling back to the email itself */
+function getOverLimitForwardsToDisplayName(overLimitForwardsTo: string | undefined, personalDetailsByEmail: PersonalDetailsList): string | undefined {
+    if (!overLimitForwardsTo) {
+        return undefined;
+    }
+    return personalDetailsByEmail[overLimitForwardsTo]?.displayName ?? overLimitForwardsTo;
+}
+
 /** Get the list of approvers for a given email */
 function calculateApprovers({employees, firstEmail, personalDetailsByEmail}: GetApproversParams): Approver[] {
     const approvers: Approver[] = [];
@@ -57,7 +65,6 @@ function calculateApprovers({employees, firstEmail, personalDetailsByEmail}: Get
 
         const isCircularReference = currentApproverEmails.has(nextEmail);
         const employee = employees[nextEmail];
-        const overLimitForwardsTo = employee.overLimitForwardsTo;
         approvers.push({
             email: nextEmail,
             forwardsTo: employee.forwardsTo,
@@ -65,8 +72,8 @@ function calculateApprovers({employees, firstEmail, personalDetailsByEmail}: Get
             displayName: personalDetailsByEmail[nextEmail]?.displayName ?? nextEmail,
             isCircularReference,
             approvalLimit: employee.approvalLimit,
-            overLimitForwardsTo,
-            overLimitForwardsToDisplayName: overLimitForwardsTo ? (personalDetailsByEmail[overLimitForwardsTo]?.displayName ?? overLimitForwardsTo) : undefined,
+            overLimitForwardsTo: employee.overLimitForwardsTo,
+            overLimitForwardsToDisplayName: getOverLimitForwardsToDisplayName(employee.overLimitForwardsTo, personalDetailsByEmail),
         });
 
         // If we've already seen this approver, break to prevent infinite loop
@@ -690,6 +697,7 @@ export {
     getApprovalLimitDescription,
     getEligibleExistingBusinessBankAccounts,
     getOpenConnectedToPolicyBusinessBankAccounts,
+    getOverLimitForwardsToDisplayName,
     INITIAL_APPROVAL_WORKFLOW,
     mergeWorkflowMembersWithAvailableMembers,
     updateWorkflowDataOnApproverRemoval,
