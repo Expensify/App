@@ -23,10 +23,12 @@ export type {default as ConnectBankAccountParams} from './ConnectBankAccountPara
 export type {default as OpenDuplicatePolicyPageParams} from './OpenDuplicatePolicyPageParams';
 export type {default as ConnectPolicyToAccountingIntegrationParams} from './ConnectPolicyToAccountingIntegrationParams';
 export type {default as ConnectPolicyToGustoParams} from './ConnectPolicyToGustoParams';
+export type {default as ConnectPolicyToMergeParams} from './ConnectPolicyToMergeParams';
 export type {default as ConnectPolicyToZenefitsParams} from './ConnectPolicyToZenefitsParams';
 export type {default as OpenPolicyProfilePageParams} from './OpenPolicyProfilePageParams';
 export type {default as OpenPolicyInitialPageParams} from './OpenPolicyInitialPageParams';
 export type {default as SyncPolicyToGustoParams} from './SyncPolicyToGustoParams';
+export type {default as SyncPolicyToMergeHRParams} from './SyncPolicyToMergeHRParams';
 export type {default as SyncPolicyToZenefitsParams} from './SyncPolicyToZenefitsParams';
 export type {default as SyncPolicyToQuickbooksOnlineParams} from './SyncPolicyToQuickbooksOnlineParams';
 export type {default as SyncPolicyToXeroParams} from './SyncPolicyToXeroParams';
@@ -180,6 +182,7 @@ export type {default as ConnectPolicyToFinancialForceParams} from './ConnectPoli
 export type {default as UpdateFinancialForceGenericTypeParams} from './UpdateFinancialForceGenericTypeParams';
 export type {default as OpenWorkspaceInvitePageParams} from './OpenWorkspaceInvitePageParams';
 export type {default as OpenWorkspaceMembersPageParams} from './OpenWorkspaceMembersPageParams';
+export type {default as OpenWorkspaceRoomsPageParams} from './OpenWorkspaceRoomsPageParams';
 export type {default as OpenPolicyCategoriesPageParams} from './OpenPolicyCategoriesPageParams';
 export type {default as OpenPolicyTagsPageParams} from './OpenPolicyTagsPageParams';
 export type {default as VerifyAddSecondaryLoginCodeParams} from './VerifyAddSecondaryLoginCodeParams';
@@ -254,6 +257,8 @@ export type {default as EnablePolicyReportFieldsParams} from './EnablePolicyRepo
 export type {default as EnablePolicyExpensifyCardsParams} from './EnablePolicyExpensifyCardsParams';
 export type {default as UpdateGustoApprovalModeParams} from './UpdateGustoApprovalModeParams';
 export type {default as UpdateGustoFinalApproverParams} from './UpdateGustoFinalApproverParams';
+export type {default as UpdateMergeHRApprovalModeParams} from './UpdateMergeHRApprovalModeParams';
+export type {default as UpdateMergeHRFinalApproverParams} from './UpdateMergeHRFinalApproverParams';
 export type {default as UpdateZenefitsApprovalModeParams} from './UpdateZenefitsApprovalModeParams';
 export type {default as UpdateZenefitsFinalApproverParams} from './UpdateZenefitsFinalApproverParams';
 export type {default as AcceptJoinRequestParams} from './AcceptJoinRequest';
@@ -409,7 +414,9 @@ export type {default as UpdateCardSettlementAccountParams} from './UpdateCardSet
 export type {default as ConfigureTravelInvoicingForPolicyParams} from './ConfigureTravelInvoicingForPolicyParams';
 export type {default as DeactivateTravelInvoicingParams} from './DeactivateTravelInvoicingParams';
 export type {default as SetTravelInvoicingSettlementAccountParams} from './SetTravelInvoicingSettlementAccountParams';
+export type {default as SetTravelInvoicingReconciliationBankAccountParams} from './SetTravelInvoicingReconciliationBankAccountParams';
 export type {default as PayTravelInvoicingSpendParams} from './PayTravelInvoicingSpendParams';
+export type {default as ToggleTravelInvoicingContinuousReconciliationParams} from './ToggleTravelInvoicingContinuousReconciliationParams';
 export type {default as UpdateTravelInvoicingMonthlyLimitParams} from './UpdateTravelInvoicingMonthlyLimitParams';
 export type {default as UpdateTravelInvoicingSettlementFrequencyParams} from './UpdateTravelInvoicingSettlementFrequencyParams';
 export type {default as RetryTravelCardsProvisioningParams} from './RetryTravelCardsProvisioningParams';
