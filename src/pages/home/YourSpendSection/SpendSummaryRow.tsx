@@ -25,9 +25,23 @@ const SKELETON_ICON_SIZE = 40;
 const SKELETON_ICON_OFFSET_Y = 12;
 const SKELETON_ICON_BORDER_RADIUS = 8;
 const SKELETON_GAP = 12;
-const SKELETON_TEXT_WIDTH = 120;
 const SKELETON_TEXT_OFFSET_Y = 26;
 const SKELETON_TEXT_HEIGHT = 12;
+
+// Cycle the title width across rows to match `ForYouSkeleton.getTitleSkeletonWidth`,
+// so stacked Your spend rows have the same visual rhythm as For You rows.
+function getSkeletonTitleWidth(index: number) {
+    switch (index % 3) {
+        case 0:
+            return 140;
+        case 1:
+            return 120;
+        case 2:
+            return 100;
+        default:
+            return 120;
+    }
+}
 
 type SpendSummaryRowProps = {
     state: ReturnType<typeof useYourSpendData>['approvalRowState'];
@@ -37,9 +51,12 @@ type SpendSummaryRowProps = {
     iconSrc: IconAsset;
     onPress: () => void;
     wrapperStyle: StyleProp<ViewStyle>;
+    // Position of this row within the Your spend list. Used to vary the skeleton
+    // title width across stacked rows, mirroring `ForYouSkeleton`.
+    skeletonRowIndex: number;
 };
 
-function SpendSummaryRow({state, testIDPrefix, description, totals, iconSrc, onPress, wrapperStyle}: SpendSummaryRowProps) {
+function SpendSummaryRow({state, testIDPrefix, description, totals, iconSrc, onPress, wrapperStyle, skeletonRowIndex}: SpendSummaryRowProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -47,6 +64,7 @@ function SpendSummaryRow({state, testIDPrefix, description, totals, iconSrc, onP
     if (state === YOUR_SPEND_ROW_STATE.LOADING) {
         const horizontalPadding = shouldUseNarrowLayout ? SKELETON_NARROW_OFFSET_X : SKELETON_WIDE_OFFSET_X;
         const titleX = horizontalPadding + SKELETON_ICON_SIZE + SKELETON_GAP;
+        const titleWidth = getSkeletonTitleWidth(skeletonRowIndex);
         return (
             <View testID={`${testIDPrefix}-skeleton`}>
                 <ItemListSkeletonView
@@ -63,7 +81,7 @@ function SpendSummaryRow({state, testIDPrefix, description, totals, iconSrc, onP
                             />
                             <SkeletonRect
                                 transform={[{translateX: titleX}, {translateY: SKELETON_TEXT_OFFSET_Y}]}
-                                width={SKELETON_TEXT_WIDTH}
+                                width={titleWidth}
                                 height={SKELETON_TEXT_HEIGHT}
                             />
                         </>

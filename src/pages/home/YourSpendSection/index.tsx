@@ -45,6 +45,7 @@ function YourSpendSection() {
                     iconSrc={icons.ThumbsUpHourglass}
                     onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: awaitingApprovalQuery}))}
                     wrapperStyle={wrapperStyle}
+                    skeletonRowIndex={0}
                 />
 
                 <SpendSummaryRow
@@ -55,6 +56,7 @@ function YourSpendSection() {
                     iconSrc={icons.MoneyBag}
                     onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: repaidLast30DaysQuery}))}
                     wrapperStyle={wrapperStyle}
+                    skeletonRowIndex={1}
                 />
 
                 {cardRows.map((cardRow) => (
