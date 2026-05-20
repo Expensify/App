@@ -106,6 +106,7 @@ function useReportActionsVisibility({
             currentUserAccountID,
             greetingText: translate('common.concierge.greeting'),
             loadOlderChats,
+            isConciergeMainDM,
             showFullHistory: isConciergeMainDM ? conciergeShowFullHistory : undefined,
             onSetShowFullHistory: isConciergeMainDM ? setConciergeShowFullHistory : undefined,
         });
