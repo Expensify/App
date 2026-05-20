@@ -47,7 +47,7 @@ function PerDiemFields({perDiemCustomUnit, transaction, isReadOnly, didConfirm, 
                 if (!transactionID) {
                     return;
                 }
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SUBRATE_EDIT.getRoute(action, iouType, transactionID, reportID, index, Navigation.getActiveRoute()));
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SUBRATE_EDIT.getRoute(action, iouType, transactionID, reportID, index, undefined, Navigation.getActiveRoute()));
             }}
             disabled={didConfirm}
             interactive={!isReadOnly}
@@ -103,7 +103,7 @@ function PerDiemFields({perDiemCustomUnit, transaction, isReadOnly, didConfirm, 
                     if (!transactionID) {
                         return;
                     }
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DESTINATION_EDIT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()));
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DESTINATION_EDIT.getRoute(action, iouType, transactionID, reportID, undefined, Navigation.getActiveRoute()));
                 }}
                 disabled={didConfirm}
                 interactive={!isReadOnly}

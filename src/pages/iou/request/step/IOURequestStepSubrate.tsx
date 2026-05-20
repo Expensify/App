@@ -64,7 +64,7 @@ function getSubrateOptions(subRates: Subrate[], filledSubRates: CommentSubrate[]
 
 function IOURequestStepSubrate({
     route: {
-        params: {action, backTo, iouType, pageIndex, reportID, transactionID},
+        params: {action, backTo, iouType, pageIndex, reportID, transactionID, backToReport},
     },
     transaction,
     report,
@@ -119,7 +119,7 @@ function IOURequestStepSubrate({
             Navigation.goBack(backTo);
             return;
         }
-        Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_TIME.getRoute(action, iouType, transactionID, reportID));
+        Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_TIME.getRoute(action, iouType, transactionID, reportID, backToReport));
     };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_SUBRATE_FORM>): Partial<Record<string, TranslationPaths>> => {
@@ -159,7 +159,7 @@ function IOURequestStepSubrate({
         if (backTo) {
             goBack();
         } else {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, transactionReportID));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, transactionReportID, backToReport));
         }
     };
 

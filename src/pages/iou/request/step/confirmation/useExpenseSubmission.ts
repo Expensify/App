@@ -430,6 +430,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 existingChatReport,
             );
             const activeReportID = isExpenseReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : chatReportID;
+            const navigationActiveReportID = backToReport ?? activeReportID;
 
             const result = submitPerDiemExpenseIOUActions({
                 report,
@@ -472,13 +473,13 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 conciergeReportID,
                 shouldHandleNavigation: shouldHandleNav,
             });
-            if (shouldHandleNav && result && activeReportID) {
+            if (shouldHandleNav && result && navigationActiveReportID) {
                 navigateAfterExpenseCreate({
-                    activeReportID,
+                    activeReportID: navigationActiveReportID,
                     transactionID: result.transactionID,
                     isFromGlobalCreate: transaction.isFromFloatingActionButton ?? transaction.isFromGlobalCreate,
                     hasMultipleTransactions: reportTransactions.length > 0,
-                    shouldAddPendingNewTransactionIDs: activeReportID === chatReportID,
+                    shouldAddPendingNewTransactionIDs: navigationActiveReportID === chatReportID,
                 });
             }
         }

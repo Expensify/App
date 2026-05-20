@@ -21,7 +21,7 @@ type IOURequestStepPerDiemWorkspaceProps = WithFullTransactionOrNotFoundProps<ty
 
 function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOURequestStepPerDiemWorkspaceProps) {
     const {
-        params: {action, iouType, transactionID},
+        params: {action, iouType, transactionID, backToReport},
     } = route;
     const {accountID} = useCurrentUserPersonalDetails();
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
@@ -68,7 +68,7 @@ function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOUReq
                 }
                 setCustomUnitID(transactionID, perDiemUnit?.customUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
                 setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '', undefined);
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DESTINATION.getRoute(action, targetIouType, transactionID, targetReport.reportID));
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DESTINATION.getRoute(action, targetIouType, transactionID, targetReport.reportID, backToReport));
             }}
         />
     );
