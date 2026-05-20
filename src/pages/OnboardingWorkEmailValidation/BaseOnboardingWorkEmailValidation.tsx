@@ -108,6 +108,11 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
         MergeIntoAccountAndLogin(workEmail, validateCode, session?.accountID);
     };
 
+    // Public-domain accounts have no work account to merge with; render nothing while the redirect above takes effect.
+    if (account?.isFromPublicDomain) {
+        return null;
+    }
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
