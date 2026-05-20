@@ -6435,6 +6435,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 existingRateName: 'Já existe uma tarifa de distância com este nome',
                 nameRequired: 'Nome é obrigatório',
                 startDateMustBeBeforeEndDate: 'A data de início deve ser anterior à data de término',
+                amountRequired: 'O valor é obrigatório',
             },
             amountPerUnit: (unit: string) => `Valor por ${unit}`,
             startDate: 'Data de início',

@@ -6490,6 +6490,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 existingRateName: 'Un taux kilométrique portant ce nom existe déjà',
                 nameRequired: 'Le nom est obligatoire',
                 startDateMustBeBeforeEndDate: 'La date de début doit être antérieure à la date de fin',
+                amountRequired: 'Le montant est obligatoire',
             },
             amountPerUnit: (unit: string) => `Montant par ${unit}`,
             startDate: 'Date de début',

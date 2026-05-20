@@ -6456,6 +6456,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 existingRateName: 'Esiste già una tariffa distanza con questo nome',
                 nameRequired: 'Il nome è obbligatorio',
                 startDateMustBeBeforeEndDate: 'La data di inizio deve essere precedente alla data di fine',
+                amountRequired: "L'importo è obbligatorio",
             },
             amountPerUnit: (unit: string) => `Importo per ${unit}`,
             startDate: 'Data di inizio',
