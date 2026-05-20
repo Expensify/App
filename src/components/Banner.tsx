@@ -147,11 +147,11 @@ function Banner({
                                 onPress={onButtonPress}
                             />
                         )}
-                        {shouldShowSecondaryButton && (
+                        {shouldShowSecondaryButton && !!secondaryButtonText && (
                             <Button
                                 small={shouldUseSmallButtons}
                                 style={[styles.ml2]}
-                                text={secondaryButtonText ?? ''}
+                                text={secondaryButtonText}
                                 onPress={onSecondaryButtonPress}
                             />
                         )}
