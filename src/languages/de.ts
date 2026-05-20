@@ -7090,6 +7090,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             syncError: (providerName: string) => `Verbindung zu ${providerName} nicht möglich`,
             connectionDescription: (providerName: string) => `Verbinden Sie ${providerName}, um Mitarbeitergenehmigungen mit Ihrem Workspace zu synchronisieren.`,
             approvalMode: 'Genehmigungsmodus',
+            providerApprovalMode: (providerName: string) => `${providerName}-Genehmigungsmodus`,
             finalApprover: 'Endgültige:r Genehmiger:in',
             notSet: 'Nicht festgelegt',
             approvalModeDescription: (providerName: string) => `Mitglieder und Manager sind für die Synchronisation mit ${providerName} eingerichtet.`,

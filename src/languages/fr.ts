@@ -7112,6 +7112,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             syncError: (providerName: string) => `Impossible de se connecter à ${providerName}`,
             connectionDescription: (providerName: string) => `Connectez ${providerName} pour synchroniser les approbations des employés avec votre espace de travail.`,
             approvalMode: "Mode d'approbation",
+            providerApprovalMode: (providerName: string) => `Mode d'approbation ${providerName}`,
             finalApprover: 'Approbateur final',
             notSet: 'Non défini',
             approvalModeDescription: (providerName: string) => `Les membres et les responsables sont configurés pour se synchroniser avec ${providerName}.`,
