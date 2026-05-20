@@ -436,7 +436,7 @@ function MoneyRequestReportPreviewContent({
                 viewOffset: -2 * styles.gap2.gap,
                 animated: true,
             });
-        }, CONST.ANIMATED_TRANSITION);
+        }, CONST.PENDING_TRANSACTION_SCROLL_DELAY);
 
         // We only want to scroll to a new transaction when the set of new transaction IDs changes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
