@@ -114,6 +114,7 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
             skeletonReasonAttributes={{context: 'WorkspaceRow'}}
+            shouldAnimateInHighlight={item.shouldAnimateInHighlight}
             onPress={item.action}
             offlineWithFeedback={{
                 shouldHideOnDelete: false,

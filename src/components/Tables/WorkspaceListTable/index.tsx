@@ -25,6 +25,7 @@ type WorkspaceRowData = {
     isDeleted: boolean;
     isLoadingBill: boolean;
     isJoinRequestPending: boolean;
+    shouldAnimateInHighlight: boolean;
     policyID: string;
     ownerAccountID?: number;
     ownerName?: string;
