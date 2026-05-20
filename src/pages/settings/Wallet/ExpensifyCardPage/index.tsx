@@ -364,7 +364,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                 />
                             </CardDetailsActionButtons>
                         )}
-                        <View style={styles.mt3}>
+                        <View style={styles.mt4}>
                             {shouldShowChangePINRow && isCardPINBlocked && (
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.ph5, styles.mb5]}>
                                     <DotIndicatorMessage

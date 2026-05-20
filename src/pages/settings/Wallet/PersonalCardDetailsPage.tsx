@@ -254,7 +254,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
                     </OfflineWithFeedback>
                 )}
                 {!!card && (
-                    <View style={isCardBroken ? undefined : styles.mt3}>
+                    <View style={isCardBroken ? undefined : styles.mt4}>
                         <PersonalCardDetailsHeaderMenu
                             card={card}
                             cardID={cardID}
