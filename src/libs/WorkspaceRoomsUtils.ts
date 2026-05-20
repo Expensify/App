@@ -13,9 +13,6 @@ function shouldShowGoToRoom(report: OnyxEntry<Report>): boolean {
         return true;
     }
     const rootState = navigationRef.getRootState();
-    if (!rootState) {
-        return true;
-    }
     const backgroundReportID = getTopmostReportParams(rootState)?.reportID;
     return backgroundReportID !== report?.reportID;
 }
