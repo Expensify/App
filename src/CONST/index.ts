@@ -9949,12 +9949,6 @@ const CONST = {
     HOME: {
         ANNOUNCEMENTS: [
             {
-                title: 'Smarter cards, mileage, and approvals',
-                subtitle: 'Product update',
-                url: 'https://use.expensify.com/blog/expensify-april-2026-product-update',
-                publishedDate: '2026-04-15',
-            },
-            {
                 title: 'New BYOC partnership: Institute of Commercial Payments',
                 subtitle: 'Press release',
                 url: 'https://www.businesswire.com/news/home/20260421550894/en/Expensify-Partners-With-IOCP-to-Expand-Access-to-Modern-Spend-Management',
@@ -9965,6 +9959,12 @@ const CONST = {
                 subtitle: 'Press release',
                 url: 'https://www.businesswire.com/news/home/20260506556347/en/Expensify-Named-Expense-Management-Platform-of-the-Year',
                 publishedDate: '2026-05-06',
+            },
+            {
+                title: 'Policy upload, card freeze, and bulk editing',
+                subtitle: 'Product update',
+                url: 'https://use.expensify.com/blog/expensify-may-2026-product-update',
+                publishedDate: '2026-05-20',
             },
         ],
     },
