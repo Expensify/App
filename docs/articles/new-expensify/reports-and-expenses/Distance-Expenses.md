@@ -130,7 +130,7 @@ The expense amount is automatically calculated by multiplying the distance by th
 
 ## Can I edit a Distance expense after I’ve created it?
 
-Yes! You can edit the expense before it is approved. When editing a map-based Distance expense, you’ll see two tabs at the top: **Map** and **Manual**. Select **Map** to update waypoints, or select **Manual** to type in the distance directly. To learn how to edit an expense, see [Managing Expenses in a Report](/articles/new-expensify/reports-and-expenses/Managing-Expenses-in-a-Report).
+Yes! You can edit the expense before it is approved. When editing a map-based Distance expense, two tabs appear at the top: **Map** and **Manual**. Select **Map** to update waypoints, or select **Manual** to type in the distance directly. To learn how to edit an expense, see [Managing Expenses in a Report](/articles/new-expensify/reports-and-expenses/Managing-Expenses-in-a-Report).
 
 ## Can I update the Distance expense unit or rate?
 
