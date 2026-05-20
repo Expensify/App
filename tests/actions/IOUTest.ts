@@ -5438,6 +5438,7 @@ describe('actions/IOU', () => {
                 policy: mockPolicy,
                 allTransactions,
                 policyTagList,
+                nonDuplicatedTransactionViolations: [],
             });
 
             let updatedTransaction: OnyxEntry<Transaction>;

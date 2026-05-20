@@ -19,7 +19,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetails, Report} from '@src/types/onyx';
+import type {PersonalDetails, Report, TransactionViolation} from '@src/types/onyx';
 import IOURequestEditReportCommon from './IOURequestEditReportCommon';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -67,6 +67,9 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const targetExpensePolicyID = isOwnedByOtherOrHasPerDiem ? selectedReport?.policyID : undefined;
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions, undefined, targetExpensePolicyID);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const nonDuplicatedTransactionViolations = Object.values(transactionViolations ?? {})
+        .flat()
+        .filter((violation): violation is TransactionViolation => violation?.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
@@ -92,6 +95,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
                 allTransactions,
                 policyTagList,
+                nonDuplicatedTransactionViolations,
             });
             turnOffMobileSelectionMode();
             clearSelectedTransactions(true);
@@ -113,6 +117,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
             allTransactions,
             policyTagList,
+            nonDuplicatedTransactionViolations,
         });
         if (shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();

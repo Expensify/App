@@ -20,7 +20,7 @@ import IOURequestEditReportCommon from '@pages/iou/request/step/IOURequestEditRe
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetails, Transaction} from '@src/types/onyx';
+import type {PersonalDetails, Transaction, TransactionViolation} from '@src/types/onyx';
 
 type TransactionGroupListItem = ListItem & {
     /** reportID of the report */
@@ -96,6 +96,9 @@ function SearchTransactionsChangeReport() {
         return report?.ownerAccountID;
     }, [selectedTransactions, selectedTransactionsKeys, allReports]);
     const targetOwnerPersonalDetails = useMemo(() => getPersonalDetailsForAccountID(targetOwnerAccountID, personalDetails) as PersonalDetails, [personalDetails, targetOwnerAccountID]);
+    const nonDuplicatedTransactionViolations = Object.values(transactionViolations ?? {})
+        .flat()
+        .filter((violation): violation is TransactionViolation => violation?.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
     const createReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {
         const optimisticReport = createNewReport(
             targetOwnerPersonalDetails,
@@ -120,6 +123,7 @@ function SearchTransactionsChangeReport() {
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyForMovingExpensesID}`],
                 allTransactions: transactions,
                 policyTagList,
+                nonDuplicatedTransactionViolations,
             });
             clearSelectedTransactions();
         });
@@ -196,6 +200,7 @@ function SearchTransactionsChangeReport() {
             policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
             allTransactions: transactions,
             policyTagList,
+            nonDuplicatedTransactionViolations,
         });
         InteractionManager.runAfterInteractions(() => {
             clearSelectedTransactions();
@@ -217,6 +222,7 @@ function SearchTransactionsChangeReport() {
             policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
             allTransactions: transactions,
             policyTagList,
+            nonDuplicatedTransactionViolations,
         });
         clearSelectedTransactions();
         Navigation.goBack();

@@ -14,7 +14,7 @@ import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report, Session, Transaction} from '@src/types/onyx';
+import type {Policy, Report, Session, Transaction, TransactionViolation} from '@src/types/onyx';
 
 type TransactionGroupListItem = ListItem & {
     /** reportID of the report */
@@ -159,6 +159,11 @@ function useReportSelectionActions({
         }
     };
 
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const nonDuplicatedTransactionViolations = Object.values(transactionViolations ?? {})
+        .flat()
+        .filter((violation): violation is TransactionViolation => violation?.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
+
     const handleRegularReportSelection = (item: TransactionGroupListItem, report: OnyxEntry<Report>) => {
         if (!transaction) {
             return;
@@ -191,6 +196,7 @@ function useReportSelectionActions({
                         policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
                         allTransactions,
                         policyTagList,
+                        nonDuplicatedTransactionViolations,
                     });
                     removeTransaction(transaction.transactionID);
                 }
@@ -213,6 +219,7 @@ function useReportSelectionActions({
                 policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
                 allTransactions,
                 policyTagList,
+                nonDuplicatedTransactionViolations,
             });
             removeTransaction(transaction.transactionID);
         });

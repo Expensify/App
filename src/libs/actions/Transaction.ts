@@ -107,12 +107,6 @@ Onyx.connect({
     },
 });
 
-let allTransactionViolations: TransactionViolations = [];
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    callback: (val) => (allTransactionViolations = val ?? []),
-});
-
 // Helper to safely check for a string 'name' property
 function isViolationWithName(violation: unknown): violation is {name: string} {
     return !!(violation && typeof violation === 'object' && typeof (violation as {name?: unknown}).name === 'string');
@@ -851,6 +845,7 @@ type ChangeTransactionsReportProps = {
     policyCategories?: OnyxEntry<PolicyCategories>;
     allTransactions: OnyxCollection<Transaction>;
     policyTagList: OnyxEntry<PolicyTagLists>;
+    nonDuplicatedTransactionViolations: TransactionViolation[];
 };
 
 function changeTransactionsReport({
@@ -864,6 +859,7 @@ function changeTransactionsReport({
     policyCategories,
     allTransactions,
     policyTagList,
+    nonDuplicatedTransactionViolations,
 }: ChangeTransactionsReportProps) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -1147,7 +1143,7 @@ function changeTransactionsReport({
                     optimisticData.push({
                         onyxMethod: Onyx.METHOD.SET,
                         key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
-                        value: allTransactionViolations.filter((violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
+                        value: nonDuplicatedTransactionViolations,
                     });
                 }
             }

@@ -39,6 +39,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {TransactionViolation} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type WorkspaceListItem = {
@@ -104,6 +105,11 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
         });
     };
 
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const nonDuplicatedTransactionViolations = Object.values(transactionViolations ?? {})
+        .flat()
+        .filter((violation): violation is TransactionViolation => violation?.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
+
     const createReport = (policyID: string, shouldDismissEmptyReportsConfirmation?: boolean) => {
         const optimisticReport = createNewReport(policyID, shouldDismissEmptyReportsConfirmation);
         const selectedTransactionsKeys = Object.keys(selectedTransactions);
@@ -123,6 +129,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                     policyCategories: undefined,
                     allTransactions,
                     policyTagList,
+                    nonDuplicatedTransactionViolations,
                 });
 
                 // eslint-disable-next-line rulesdir/no-default-id-values
