@@ -703,6 +703,9 @@ type XeroExportConfig = {
 
     /** The accounting Method for Xero connection config */
     accountingMethod?: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
+
+    /** Account ID that receives the exported travel payable */
+    travelInvoicingPayableAccountID?: string;
 };
 
 /** TODO: Will be handled in another issue */
@@ -2438,5 +2441,7 @@ export type {
     NetSuiteConnectionData,
     HRConnectionConfigBase,
     MergeHRConnectionConfig,
+    GustoConnectionConfig,
+    ZenefitsConnectionConfig,
     MergeHRConnectionData,
 };

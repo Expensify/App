@@ -1,0 +1,11 @@
+---
+description: Never commit or push changes unless the user explicitly asks
+globs:
+alwaysApply: true
+---
+
+# No Auto Commit/Push
+
+- NEVER run `git commit` or `git push` unless the user explicitly says to commit or push.
+- Staging files with `git add` is allowed when the user asks to stage changes.
+- Suggesting a commit message is fine, but do not execute the commit.

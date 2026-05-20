@@ -189,6 +189,7 @@ describe('ReportActionsView', () => {
         mockUseTransactionsAndViolationsForReport.mockReturnValue({
             transactions: {},
             violations: {},
+            isLoaded: true,
         });
 
         mockUsePaginatedReportActions.mockReturnValue({
