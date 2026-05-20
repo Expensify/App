@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
@@ -478,7 +477,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     }, [isQuickSettingsFlow, policyID, backTo]);
 
     const navigateToCreateTagPage = () => {
-        Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_TAG_CREATE.getRoute(policyID, backTo) : ROUTES.WORKSPACE_TAG_CREATE.getRoute(policyID));
+        Navigation.navigate(isQuickSettingsFlow ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_CREATE.path) : ROUTES.WORKSPACE_TAG_CREATE.getRoute(policyID));
     };
 
     const navigateToTagSettings = (tag: TagListItem) => {
@@ -493,19 +492,19 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     : ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(policyID, tag.orderWeight),
             );
         } else {
-            Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_TAG_SETTINGS.getRoute(policyID, 0, tag.value, backTo) : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, 0, tag.value));
+            Navigation.navigate(
+                isQuickSettingsFlow ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_SETTINGS.getRoute(0, tag.value)) : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, 0, tag.value),
+            );
         }
     };
 
     const deleteTags = () => {
         deletePolicyTags(policyData, selectedTags);
 
-        InteractionManager.runAfterInteractions(() => {
-            setSelectedTags([]);
-            if (isMobileSelectionModeEnabled && selectedTags.length === Object.keys(policyTagLists.at(0)?.tags ?? {}).length) {
-                turnOffMobileSelectionMode();
-            }
-        });
+        setSelectedTags([]);
+        if (isMobileSelectionModeEnabled && selectedTags.length === Object.keys(policyTagLists.at(0)?.tags ?? {}).length) {
+            turnOffMobileSelectionMode();
+        }
     };
 
     const isLoading = !isOffline && policyTags === undefined;
@@ -931,7 +930,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     {!hasVisibleTags && !isLoading && (
                         <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                             <GenericEmptyStateComponent
-                                // eslint-disable-next-line react/jsx-props-no-spreading
                                 {...genericIllustration}
                                 title={translate('workspace.tags.emptyTags.title')}
                                 subtitleText={subtitleText}

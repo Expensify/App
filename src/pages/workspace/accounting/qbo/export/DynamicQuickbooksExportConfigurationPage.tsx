@@ -35,8 +35,8 @@ function DynamicQuickbooksExportConfigurationPage({policy}: WithPolicyConnection
     const policyOwner = policy?.owner ?? '';
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const errorFields = qboConfig?.errorFields;
-    const {accountPayable} = policy?.connections?.quickbooksOnline?.data ?? {};
-    const travelPayableAccount = accountPayable?.find((account) => account.id === qboConfig?.travelInvoicingPayableAccountID);
+    const {creditCards} = policy?.connections?.quickbooksOnline?.data ?? {};
+    const travelPayableAccount = creditCards?.find((account) => account.id === qboConfig?.travelInvoicingPayableAccountID);
 
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [cardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID));
