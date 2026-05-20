@@ -8,7 +8,7 @@ import useOnyx from './useOnyx';
 type FeedKeysWithAssignedCards = Record<string, true>;
 
 function useFeedKeysWithAssignedCards(): FeedKeysWithAssignedCards | undefined {
-    const feedKeysWithCardsSelector = useCallback((allWorkspaceCards: OnyxCollection<WorkspaceCardsList>) => buildFeedKeysWithAssignedCards(allWorkspaceCards));
+    const feedKeysWithCardsSelector = useCallback((allWorkspaceCards: OnyxCollection<WorkspaceCardsList>) => buildFeedKeysWithAssignedCards(allWorkspaceCards), []);
     const [feedKeysWithCards] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {
         selector: feedKeysWithCardsSelector,
     });
