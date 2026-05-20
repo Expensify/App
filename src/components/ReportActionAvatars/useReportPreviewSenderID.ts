@@ -115,17 +115,17 @@ function getAccountIDFromTransactionDirection(transaction: Transaction, action: 
 function isExplicitlyDeletedIOUAction(iouAction: ReportAction): boolean {
     const originalMessage = getOriginalMessage(iouAction) as OriginalMessageIOU | undefined;
 
-    if (originalMessage?.deleted || isDeletedParentAction(iouAction)) {
+    if (originalMessage?.deleted || isDeletedParentAction(iouAction) || iouAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
         return true;
     }
 
     const message = iouAction.message;
 
     if (Array.isArray(message)) {
-        return message.length === 0 || message.some((fragment) => !!fragment?.deleted || fragment?.html === '');
+        return message.some((fragment) => !!fragment?.deleted);
     }
 
-    return !!message?.deleted || message?.html === '';
+    return !!message?.deleted;
 }
 
 type GetReportPreviewSenderIDParams = {
