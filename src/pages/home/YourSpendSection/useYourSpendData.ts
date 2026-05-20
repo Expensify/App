@@ -96,12 +96,9 @@ function useYourSpendData(): UseYourSpendDataReturn {
 
     const {isApprovalApplicable, isPaymentApplicable} = getYourSpendApplicability(policies);
 
-    // Anchor for the displayable-cards memoization chain. The compiler chooses
-    // not to extract `getDisplayableExpensifyCards(cardList)` into a cache slot
-    // on its own, so without this `useMemo` every downstream value derived from
-    // `displayableCards` (cardQueryByCardID, cardSnapshotKeys, cardSnapshotsSelector,
-    // cardRows, the useOnyx options object) gets a new identity every render —
-    // which then defeats the compiler's own caches for those values.
+    // Memo anchor. The compiler does not auto-cache this call, so without the
+    // `useMemo` every downstream value derived from `displayableCards` would
+    // get a new identity each render and defeat the compiler's downstream caches.
     const displayableCards = useMemo(() => getDisplayableExpensifyCards(cardList), [cardList]);
 
     // Stable signature of the displayable card IDs. Used as a dependency for the
@@ -112,10 +109,8 @@ function useYourSpendData(): UseYourSpendDataReturn {
         .sort((a, b) => a - b)
         .join(',');
 
-    // For each displayable card, precompute the query string and its parsed JSON exactly once.
-    // Reused below for snapshot lookup, card-row construction, and firing the search.
-    // Kept as `useMemo` (rather than relying on the compiler) because it's a chain
-    // anchor: cardSnapshotKeys/cardSnapshotsSelector/cardRows all depend on this.
+    // Precompute the query string and parsed JSON per card. Another memo anchor:
+    // downstream caches key off this object's identity.
     const cardQueryByCardID = useMemo(
         () =>
             displayableCards.reduce<Record<number, {query: string; queryJSON: ReturnType<typeof buildSearchQueryJSON>}>>((acc, card) => {
@@ -126,15 +121,9 @@ function useYourSpendData(): UseYourSpendDataReturn {
         [displayableCards, accountID],
     );
 
-    // Onyx subscribes to the snapshot collection but the selector narrows the
-    // observed data to only the snapshots for our displayable cards. useOnyx
-    // does a deep equality check on selector output, so unrelated snapshot
-    // mutations elsewhere in the app no longer re-render this hook's consumers.
-    // The projection is further narrowed to just {count, total, currency} so the
-    // deep-equal comparison is O(1) per card instead of O(transactions).
-    // Kept as `useMemo` because `cardSnapshotsSelector` (and therefore the
-    // `{selector}` options object passed to `useOnyx`) depends on this array's
-    // identity.
+    // Narrow the snapshot subscription to our displayable cards and project to just
+    // {count, total, currency}, so `useOnyx`'s deep-equal on selector output is
+    // O(1) per card and unrelated snapshot mutations don't re-render us.
     const cardSnapshotKeys = useMemo(
         () =>
             Object.values(cardQueryByCardID)
@@ -163,32 +152,71 @@ function useYourSpendData(): UseYourSpendDataReturn {
     };
     const [cardSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT, {selector: cardSnapshotsSelector});
 
-    // Returned to consumers and rendered as a list, so we want a stable identity
-    // when nothing relevant changed. Kept as `useMemo` because the compiler does
-    // not extract this reduce into a cache slot on its own.
+    // Per-card equivalent of the approval/payment cache below; see that comment
+    // for the full mechanic. Cached by cardID so each row keeps its last READY
+    // totals when the shared snapshot is wiped by the Search screen.
+    const [cachedCardTotals, setCachedCardTotals] = useState<Record<number, YourSpendRowTotals>>({});
+
+    const cardCacheUpdates: Record<number, YourSpendRowTotals> = {};
+    let hasCardCacheUpdates = false;
+    for (const card of displayableCards) {
+        const entry = cardQueryByCardID[card.cardID];
+        const hash = entry?.queryJSON?.hash;
+        const snapshotKey = hash !== undefined ? `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}` : undefined;
+        const snapshot = snapshotKey ? cardSnapshots?.[snapshotKey] : undefined;
+        if (!snapshot?.count) {
+            continue;
+        }
+        const cached = cachedCardTotals[card.cardID];
+        if (!cached || cached.total !== snapshot.total || cached.currency !== snapshot.currency) {
+            cardCacheUpdates[card.cardID] = {total: snapshot.total, currency: snapshot.currency};
+            hasCardCacheUpdates = true;
+        }
+    }
+    if (hasCardCacheUpdates) {
+        setCachedCardTotals((prev) => ({...prev, ...cardCacheUpdates}));
+    }
+
+    // `useMemo` to keep a stable identity for the consumer list; the compiler
+    // does not extract this reduce on its own.
     const cardRows: YourSpendCardRow[] = useMemo(
         () =>
             displayableCards.reduce<YourSpendCardRow[]>((acc, card) => {
                 const entry = cardQueryByCardID[card.cardID];
-                const hash = entry?.queryJSON?.hash;
-                const snapshotKey = hash !== undefined ? `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}` : undefined;
-                const snapshot = snapshotKey ? cardSnapshots?.[snapshotKey] : undefined;
-                if (!entry || !snapshot?.count) {
+                if (!entry) {
                     return acc;
                 }
+                const hash = entry.queryJSON?.hash;
+                const snapshotKey = hash !== undefined ? `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}` : undefined;
+                const snapshot = snapshotKey ? cardSnapshots?.[snapshotKey] : undefined;
+
+                // Snapshot loaded but its count was wiped by the Search screen — fall back
+                // to cached READY totals. "Snapshot never loaded" and "count === 0" both
+                // leave the row hidden.
+                const countIsMissing = snapshot !== undefined && (snapshot.count === undefined || snapshot.count === null);
+                const cached = cachedCardTotals[card.cardID];
+                const shouldUseCached = countIsMissing && cached !== undefined;
+
+                if (!snapshot?.count && !shouldUseCached) {
+                    return acc;
+                }
+
+                const total = snapshot?.count ? snapshot.total : cached?.total;
+                const currency = snapshot?.count ? snapshot.currency : cached?.currency;
+
                 const unapprovedExpenseLimit = card.nameValuePairs?.unapprovedExpenseLimit;
                 const spentFraction = unapprovedExpenseLimit ? 1 - (card.availableSpend ?? 0) / unapprovedExpenseLimit : undefined;
                 acc.push({
                     cardID: card.cardID,
                     lastFour: card.lastFourPAN ?? '',
                     query: entry.query,
-                    total: snapshot.total,
-                    currency: snapshot.currency,
+                    total,
+                    currency,
                     spentFraction,
                 });
                 return acc;
             }, []),
-        [displayableCards, cardQueryByCardID, cardSnapshots],
+        [displayableCards, cardQueryByCardID, cardSnapshots, cachedCardTotals],
     );
 
     const approvalRowStateRaw = getYourSpendRowState({isApplicable: isApprovalApplicable, isOffline, searchResults: approvalSearchResults});
@@ -197,12 +225,12 @@ function useYourSpendData(): UseYourSpendDataReturn {
     const approvalTotalsRaw: YourSpendRowTotals = {total: approvalSearchResults?.search.total, currency: approvalSearchResults?.search.currency};
     const paymentTotalsRaw: YourSpendRowTotals = {total: paymentSearchResults?.search.total, currency: paymentSearchResults?.search.currency};
 
-    // The Search screen reuses the same snapshot key for the same query and fires `search()` with
-    // `shouldCalculateTotals: false` (default). That optimistically clears `count/total/currency`
-    // on the shared snapshot, then the response SETs `search` without totals — causing this row to
-    // briefly flip to HIDDEN_EMPTY between navigation and the home re-fetch. Cache the last READY
-    // totals and reuse them whenever the snapshot is loaded but its count has been wiped. A
-    // genuine `count === 0` is still treated as empty.
+    // The Search screen reuses the same snapshot key and calls `search()` with
+    // `shouldCalculateTotals: false`, wiping `count/total/currency` on the shared
+    // snapshot and briefly flipping this row to HIDDEN_EMPTY between navigation
+    // and the home re-fetch. Cache the last READY totals and reuse them when the
+    // snapshot is loaded but its count has been wiped. A genuine `count === 0`
+    // is still treated as empty.
     const [cachedApprovalReady, setCachedApprovalReady] = useState<YourSpendRowTotals | null>(null);
     const [cachedPaymentReady, setCachedPaymentReady] = useState<YourSpendRowTotals | null>(null);
 
@@ -233,8 +261,8 @@ function useYourSpendData(): UseYourSpendDataReturn {
     const approvalTotals: YourSpendRowTotals = shouldUseCachedApproval && cachedApprovalReady ? cachedApprovalReady : approvalTotalsRaw;
     const paymentTotals: YourSpendRowTotals = shouldUseCachedPayment && cachedPaymentReady ? cachedPaymentReady : paymentTotalsRaw;
 
-    // Stable key that changes whenever approval/payment applicability flips, so the
-    // search-firing effect re-runs and the gating inside fireSearches takes effect.
+    // Stable key that changes whenever approval/payment applicability flips, so
+    // the search-firing effect re-runs.
     const applicabilityKey = `${isApprovalApplicable ? 1 : 0}${isPaymentApplicable ? 1 : 0}`;
 
     const fireSearches = useEffectEvent(() => {
