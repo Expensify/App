@@ -1501,7 +1501,6 @@ function issueExpensifyCard(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`,
             value: {
-                hasOnceLoaded: true,
                 cardRules: {
                     [cardRuleID]: {
                         pendingAction: null,
@@ -1514,7 +1513,6 @@ function issueExpensifyCard(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`,
             value: {
-                hasOnceLoaded: true,
                 cardRules: {
                     [cardRuleID]: null,
                 },
