@@ -1,5 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import {setMoneyRequestAmount} from '@libs/actions/IOU';
+import {setMoneyRequestAmount} from '@libs/actions/IOU/MoneyRequest';
 import {setSplitShares} from '@libs/actions/IOU/Split';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
