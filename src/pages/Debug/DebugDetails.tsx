@@ -105,8 +105,16 @@ function DebugDetails({formType, data, policyHasEnabledTags, policyID, children,
                 try {
                     validate(key, DebugUtils.onyxDataToString(value));
                 } catch (e) {
-                    const {cause, message} = e as SyntaxError;
-                    newErrors[key] = cause || message === 'debug.missingValue' ? translate(message as TranslationPaths, cause as never) : message;
+                    const {cause, message} = e as SyntaxError & {cause?: {propertyName?: string; expectedType?: string; expectedValues?: string}};
+                    if (message === 'debug.invalidProperty') {
+                        newErrors[key] = translate('debug.invalidProperty', cause?.propertyName ?? '', cause?.expectedType ?? '');
+                    } else if (message === 'debug.missingProperty') {
+                        newErrors[key] = translate('debug.missingProperty', cause?.propertyName ?? '');
+                    } else if (message === 'debug.invalidValue') {
+                        newErrors[key] = translate('debug.invalidValue', cause?.expectedValues ?? '');
+                    } else {
+                        newErrors[key] = translate(message as TranslationPaths);
+                    }
                 }
             }
             return newErrors;
