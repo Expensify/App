@@ -71,6 +71,7 @@ jest.mock('@libs/actions/MultifactorAuthentication', () => ({
 
 jest.mock('@libs/ApiUtils', () => ({
     isUsingStagingApi: () => false,
+    getCommandURL: () => 'https://test-api.expensify.com/api/Ping?',
 }));
 
 const mockExecuteScenario = jest.fn().mockResolvedValue(undefined);
