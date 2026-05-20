@@ -32,7 +32,7 @@ type AmountInputProps = {
     ref: React.Ref<AmountFilterHandle>;
     filterKey: SearchAmountFilterKeys;
     modifier: ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS>;
-    value: string | undefined;
+    value: string;
     label: string;
 };
 
@@ -47,7 +47,7 @@ function getFrontendAmount(amount: string | undefined) {
 function AmountInput({ref, filterKey, modifier, value, label}: AmountInputProps) {
     const styles = useThemeStyles();
     const fullscreen = useFullscreenAdvancedFilters();
-    const [amount, setAmount] = useState(() => getFrontendAmount(value));
+    const [amount, setAmount] = useState(value);
 
     useImperativeHandle(ref, () => ({
         getValue: () => {
@@ -59,7 +59,7 @@ function AmountInput({ref, filterKey, modifier, value, label}: AmountInputProps)
     return (
         <AmountWithoutCurrencyInput
             containerStyles={[styles.ph4, styles.mv2]}
-            defaultValue={amount}
+            defaultValue={value}
             onInputChange={setAmount}
             label={label}
             accessibilityLabel={label}
@@ -74,16 +74,16 @@ function AmountInput({ref, filterKey, modifier, value, label}: AmountInputProps)
 type AmountBetweenInputProps = {
     ref: React.Ref<AmountFilterHandle>;
     filterKey: SearchAmountFilterKeys;
-    greaterThanValue: string | undefined;
-    lessThanValue: string | undefined;
+    greaterThanValue: string;
+    lessThanValue: string;
 };
 
 function AmountBetweenInput({ref, filterKey, greaterThanValue, lessThanValue}: AmountBetweenInputProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const fullscreen = useFullscreenAdvancedFilters();
-    const [greaterThanAmount, setGreaterThanAmount] = useState(() => getFrontendAmount(greaterThanValue));
-    const [lessThanAmount, setLessThanAmount] = useState(() => getFrontendAmount(lessThanValue));
+    const [greaterThanAmount, setGreaterThanAmount] = useState(greaterThanValue);
+    const [lessThanAmount, setLessThanAmount] = useState(lessThanValue);
 
     useImperativeHandle(ref, () => ({
         getValue: () => {
@@ -100,7 +100,7 @@ function AmountBetweenInput({ref, filterKey, greaterThanValue, lessThanValue}: A
         <View style={[styles.flexRow, styles.gap1, styles.ph4, styles.mv2]}>
             <AmountWithoutCurrencyInput
                 containerStyles={styles.flex1}
-                defaultValue={greaterThanAmount}
+                defaultValue={greaterThanValue}
                 onInputChange={setGreaterThanAmount}
                 label={greaterThanLabel}
                 accessibilityLabel={greaterThanLabel}
@@ -111,7 +111,7 @@ function AmountBetweenInput({ref, filterKey, greaterThanValue, lessThanValue}: A
             />
             <AmountWithoutCurrencyInput
                 containerStyles={styles.flex1}
-                defaultValue={lessThanAmount}
+                defaultValue={lessThanValue}
                 onInputChange={setLessThanAmount}
                 label={lessThanLabel}
                 accessibilityLabel={lessThanLabel}
@@ -192,15 +192,15 @@ function AmountFilterComponent({filterKey, value, onChange}: AmountFilterCompone
                                 <AmountBetweenInput
                                     ref={inputRef}
                                     filterKey={filterKey}
-                                    greaterThanValue={value?.[CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN]}
-                                    lessThanValue={value?.[CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN]}
+                                    greaterThanValue={getFrontendAmount(value?.[CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN])}
+                                    lessThanValue={getFrontendAmount(value?.[CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN])}
                                 />
                             ) : (
                                 <AmountInput
                                     ref={inputRef}
                                     filterKey={filterKey}
                                     modifier={config.keyForList}
-                                    value={value?.[config.keyForList]}
+                                    value={getFrontendAmount(value?.[config.keyForList])}
                                     label={label}
                                 />
                             ))}

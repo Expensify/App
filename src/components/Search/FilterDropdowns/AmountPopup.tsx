@@ -41,7 +41,7 @@ function AmountInput({title, value, name, onSave, onBackButtonPress}: AmountInpu
         >
             <AmountWithoutCurrencyInput
                 containerStyles={[styles.ph4, styles.mb2]}
-                defaultValue={amount}
+                defaultValue={value}
                 onInputChange={setAmount}
                 label={title}
                 accessibilityLabel={title}
