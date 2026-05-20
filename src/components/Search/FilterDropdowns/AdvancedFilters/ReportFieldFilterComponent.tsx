@@ -28,13 +28,13 @@ function ReportFieldFilterComponent({values, onChange}: ReportFieldComponentProp
     }
 
     return (
-        <View style={[styles.flex1, styles.justifyContentBetween]}>
+        <View style={[styles.flex1]}>
             <ReportFieldBase
                 ref={reportFieldRef}
                 values={values}
                 selectedField={selectedField}
                 onFieldSelected={setSelectedField}
-                style={reportFieldStyle}
+                style={[reportFieldStyle, styles.flex1]}
             />
             {(!!selectedField || fullscreen) && (
                 <Button
