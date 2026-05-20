@@ -7,7 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import {isAuthenticationError} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
-import {popoverAnchorRefsInitialValue} from '@pages/workspace/accounting/AccountingContext/default';
+import {useAccountingState} from '@pages/workspace/accounting/AccountingContext';
 import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,16 +26,17 @@ function ConnectToCertiniaFlow({policyID}: ConnectToCertiniaFlowProps) {
     const {translate} = useLocalize();
 
     const hasReusablePoliciesConnectedToCertinia = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.CERTINIA, policyID);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const isAuthError = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.CERTINIA);
-    const shouldShowReuseConnectionsPopover = !isAuthError && hasReusablePoliciesConnectedToCertinia;
 
-    const [isReuseConnectionsPopoverOpen, setIsReuseConnectionsPopoverOpen] = useState(shouldShowReuseConnectionsPopover);
+    const [isReuseConnectionsPopoverOpen, setIsReuseConnectionsPopoverOpen] = useState(false);
     const [reuseConnectionPopoverPosition, setReuseConnectionPopoverPosition] = useState<AnchorPosition | null>(null);
 
-    const icons = useMemoizedLazyExpensifyIcons(['Copy', 'LinkCopy']);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const isAuthError = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.CERTINIA);
 
-    const threeDotsMenuContainerRef = popoverAnchorRefsInitialValue[CONST.POLICY.CONNECTIONS.NAME.CERTINIA];
+    const {popoverAnchorRefs} = useAccountingState();
+    const threeDotsMenuContainerRef = popoverAnchorRefs?.current?.[CONST.POLICY.CONNECTIONS.NAME.CERTINIA];
+
+    const icons = useMemoizedLazyExpensifyIcons(['Copy', 'LinkCopy']);
     const {calculatePopoverPosition} = usePopoverPosition();
 
     const connectionOptions = [
@@ -59,6 +60,7 @@ function ConnectToCertiniaFlow({policyID}: ConnectToCertiniaFlowProps) {
 
     useEffect(() => {
         if (!isAuthError && hasReusablePoliciesConnectedToCertinia) {
+            setIsReuseConnectionsPopoverOpen(true);
             return;
         }
         Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_PREREQUISITES.getRoute(policyID));
@@ -73,7 +75,7 @@ function ConnectToCertiniaFlow({policyID}: ConnectToCertiniaFlowProps) {
         calculatePopoverPosition(threeDotsMenuContainerRef, anchorAlignment).then(setReuseConnectionPopoverPosition);
     }, [isReuseConnectionsPopoverOpen, calculatePopoverPosition, threeDotsMenuContainerRef]);
 
-    if (!threeDotsMenuContainerRef || !reuseConnectionPopoverPosition) {
+    if (!reuseConnectionPopoverPosition) {
         return null;
     }
 
