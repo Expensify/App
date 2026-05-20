@@ -1016,8 +1016,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         freeTrialSection: {
             title: ({days}: {days: number}) => `Avaliação gratuita: restam ${days} ${days === 1 ? 'dia' : 'dias'}!`,
-            offer50Body: 'Ganhe 50% de desconto no seu primeiro ano!',
-            offer25Body: 'Ganhe 25% de desconto no seu primeiro ano!',
+            offer50Body: 'Ganhe 50% de desconto no seu primeiro ano',
+            offer25Body: 'Ganhe 25% de desconto no seu primeiro ano',
             addCardBody: 'Não espere! Adicione seu cartão de pagamento agora.',
             ctaClaim: 'Solicitação',
             ctaAdd: 'Adicionar cartão',
@@ -2465,6 +2465,7 @@ const translations: TranslationDeepObject<typeof en> = {
             expiration: 'Validade',
             cvv: 'CVV',
             address: 'Endereço',
+            reveal: 'Revelar',
             revealDetails: 'Revelar detalhes',
             revealCvv: 'Revelar código CVV',
             copyCardNumber: 'Copiar número do cartão',
@@ -2587,10 +2588,10 @@ ${amount} para ${merchant} - ${date}`,
             approverSubtitle: 'Todas as pessoas aprovadoras pertencem a um fluxo de trabalho existente.',
             bulkApproverSubtitle: 'Nenhum aprovador corresponde aos critérios para os relatórios selecionados.',
         },
-        configureViaGusto: 'Configurar via Gusto.',
-        gustoApprovalWorkflowLockedPrompt:
-            'As aprovações são gerenciadas pela sua integração com o Gusto. Para atualizar seu fluxo de aprovação, vá até as configurações de conexão do Gusto.',
-        goToGustoSettings: 'Ir para as configurações do Gusto',
+        configureViaHR: ({provider}: {provider: string}) => `Configurar via ${provider}.`,
+        hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
+            `As aprovações são gerenciadas pela sua integração com o ${provider}. Para atualizar seu fluxo de aprovação, vá até as configurações de conexão do ${provider}.`,
+        goToHRSettings: ({provider}: {provider: string}) => `Ir para as configurações do ${provider}`,
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: 'Não foi possível alterar a frequência de envio. Tente novamente ou entre em contato com o suporte.',
@@ -4331,6 +4332,7 @@ ${amount} para ${merchant} - ${date}`,
             travelInvoicingVendor: 'Fornecedor de viagem',
             travelInvoicingPayableAccount: 'Conta a pagar de viagens',
             hr: 'RH',
+            rooms: 'Salas',
         },
         createdForClient: {
             title: 'Você criou um espaço de trabalho para seu cliente!',
@@ -5544,8 +5546,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                         subtitle: 'Parabéns! Agora você está pronto para reservar e gerenciar viagens neste workspace.',
                         manageTravelLabel: 'Gerenciar viagens',
                     },
-                    centralInvoicingSection: {
-                        title: 'Faturamento centralizado',
+                    travelInvoicingSection: {
+                        title: 'Faturamento de viagens',
                         subtitle: 'Centralize todos os gastos de viagem em uma fatura mensal em vez de pagar no momento da compra.',
                         learnHow: 'Saiba como.',
                         subsections: {
@@ -5562,7 +5564,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                             reduceLimitTitle: 'Reduzir o limite de gastos com viagens?',
                             reduceLimitWarning: 'Se você reduzir o limite, os membros que já gastaram mais do que esse valor não poderão fazer novas reservas de viagem até o próximo mês.',
                             provisioningError:
-                                'Não conseguimos provisionar alguns membros do seu workspace para faturamento centralizado. Tente novamente mais tarde ou entre em contato com o Concierge para obter ajuda.',
+                                'Não foi possível provisionar alguns dos membros do seu workspace para faturamento de viagens. Tente novamente mais tarde ou entre em contato com o Concierge para obter ajuda.',
                         },
                     },
                     disableModal: {
@@ -5583,7 +5585,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                     exportToCSV: 'Exportar para CSV',
                     selectDateRangeError: 'Selecione um intervalo de datas para exportar',
                     invalidDateRangeError: 'A data de início deve ser anterior à data de término',
-                    enabled: 'Faturamento centralizado ativado!',
+                    enabled: 'Faturamento de Viagem ativado!',
                     enabledDescription: 'Todos os gastos de viagem neste workspace agora serão centralizados em uma fatura mensal.',
                 },
                 personalDetailsDescription: 'Para reservar viagens, insira seu nome legal exatamente como consta no documento de identificação emitido pelo governo.',
@@ -5959,6 +5961,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 `Você está prestes to criar e compartilhar ${newWorkspaceName ?? ''} com ${totalMembers ?? 0} membros do workspace original.`,
             error: 'Ocorreu um erro ao duplicar seu novo espaço de trabalho. Tente novamente.',
         },
+        copyPolicySettings: {error: 'Ocorreu um erro ao copiar as configurações do workspace. Tente novamente.'},
         emptyWorkspace: {
             title: 'Você não tem nenhum workspace',
             subtitle: 'Controle recibos, reembolse despesas, gerencie viagens, envie faturas e muito mais.',
@@ -6353,7 +6356,11 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 chooseBankAccount: 'Escolha a conta bancária na qual os pagamentos do seu Cartão Expensify serão conciliados.',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `Certifique-se de que esta conta corresponda à sua <a href="${settlementAccountUrl}">conta de liquidação do Cartão Expensify</a> (terminada em ${lastFourPAN}) para que a Reconciliação Contínua funcione corretamente.`,
+                chooseTravelInvoicingBankAccount: 'Escolha a conta bancária na qual os pagamentos de faturamento de viagem serão conciliados.',
+                travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
+                    `Certifique-se de que esta conta corresponda à sua conta de liquidação de faturamento de viagem (terminada em ${lastFourPAN}) para que a Conciliação Contínua funcione corretamente.`,
             },
+            syncTravelInvoicingSettlements: 'Sincronizar liquidações de faturamento de viagens',
         },
         export: {
             notReadyHeading: 'Não está pronto para exportar',
@@ -7082,6 +7089,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                     }),
                 },
             },
+            merge: {
+                approvalMode: 'Modo de aprovação',
+                finalApprover: 'Aprovador final',
+            },
             zenefits: {
                 title: 'TriNet',
                 connect: 'Conectar',
@@ -7808,7 +7819,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `Todos os ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `Todos os cartões CSV importados${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
-                centralInvoicing: 'Faturamento centralizado',
+                travelInvoicing: 'Faturamento de viagens',
             },
             reportField: (name: string, value: string) => `${name} é ${value}`,
             current: 'Atual',
@@ -7842,7 +7853,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Cartão Expensify',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Reembolso',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Faturamento centralizado',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Faturamento de viagens',
             },
             is: 'É',
             action: {
@@ -8265,7 +8276,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         personalCard: 'Cartão pessoal',
         companyCard: 'Cartão corporativo',
         expensifyCard: 'Cartão Expensify',
-        centralInvoicing: 'Faturamento centralizado',
+        travelInvoicing: 'Faturamento de viagens',
         travelCard: 'Cartão de viagem',
     },
     distance: {
@@ -8549,7 +8560,15 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             `<muted-text-label>Recibo pendente devido a uma conexão bancária interrompida. Resolva em <a href="${workspaceCompanyCardRoute}">Cartões corporativos</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Recibo pendente devido à conexão bancária com problemas. Peça a um administrador do workspace para resolver.',
         markAsCashToIgnore: 'Marcar como dinheiro para ignorar e solicitar pagamento.',
-        smartscanFailed: ({canEdit = true}) => `A digitalização do recibo falhou.${canEdit ? 'Insira os detalhes manualmente.' : ''}`,
+        smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
+            if (missingFields.length > 0) {
+                const fieldNames: Record<string, string> = {merchant: 'estabelecimento', date: 'data', amount: 'valor'};
+                const translated = missingFields.map((f) => fieldNames[f] ?? f);
+                const fieldList = translated.join(translated.length > 2 ? ', ' : ' e ');
+                return `A digitalização do recibo falhou — faltando ${fieldList}.${canEdit ? ' Insira os detalhes manualmente.' : ''}`;
+            }
+            return `A digitalização do recibo falhou.${canEdit ? 'Insira os detalhes manualmente.' : ''}`;
+        },
         receiptGeneratedWithAI: 'Recibo possivelmente gerado por IA',
         someTagLevelsRequired: (tagName?: string) => `Faltando ${tagName ?? 'Etiqueta'}`,
         tagOutOfPolicy: (tagName?: string) => `${tagName ?? 'Etiqueta'} não é mais válido`,
@@ -8631,6 +8650,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         bookACallTextBottom:
             'Ficaríamos muito animados em fazer uma ligação com você para entender o motivo. Você pode agendar uma chamada com um de nossos gerentes de produto sêniores para discutir suas necessidades.',
         takeMeToExpensifyClassic: 'Leve-me para o Expensify Classic',
+        goBackJustOnce: 'Voltar apenas desta vez',
     },
     listBoundary: {
         errorMessage: 'Ocorreu um erro ao carregar mais mensagens',

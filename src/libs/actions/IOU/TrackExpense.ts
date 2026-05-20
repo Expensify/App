@@ -104,12 +104,13 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt, ReceiptSource} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {deleteMoneyRequest, getCleanUpTransactionThreadReportOnyxData, getNavigationUrlOnMoneyRequestDelete} from './DeleteMoneyRequest';
-import type {ReplaceReceipt, StartSplitBilActionParams} from './index';
 import {getAllReports, getAllTransactionDrafts, getAllTransactions, getAllTransactionViolations, getMoneyRequestPolicyTags} from './index';
 import {buildMinimalTransactionForFormula, getMoneyRequestInformation, getReceiptError, getReportPreviewAction, getTransactionWithPreservedLocalReceiptSource} from './MoneyRequestBuilder';
 import type {BuildOnyxDataForMoneyRequestKeys, RequestMoneyInformation} from './MoneyRequestBuilder';
 import {handleNavigateAfterExpenseCreate, highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
+import type {ReplaceReceipt} from './Receipt';
 import {getSearchOnyxUpdate} from './SearchUpdate';
+import type {StartSplitBilActionParams} from './Split';
 import type BasePolicyParams from './types/BasePolicyParams';
 import type {CreateTrackExpenseParams} from './types/CreateTrackExpenseParams';
 import type {
@@ -1603,6 +1604,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         betas,
         personalDetails,
         shouldDeferAutoSubmit,
+        shouldDeferForSearch: shouldDeferForSearchParam,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
@@ -1871,7 +1873,8 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
     // hasDeferredWrite() check on mount always sees the pending channel.
     if (deferredAPIWrite) {
         deferOrExecuteWrite(deferredAPIWrite, {
-            shouldDeferForSearch: shouldHandleNavigation && !requestMoneyInformation.isRetry && isFromGlobalCreate && !isReportTopmostSplitNavigator(),
+            shouldDeferForSearch:
+                (shouldDeferForSearchParam ?? false) || (shouldHandleNavigation && !requestMoneyInformation.isRetry && isFromGlobalCreate && !isReportTopmostSplitNavigator()),
             isRetry: requestMoneyInformation.isRetry,
             optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
@@ -1880,12 +1883,13 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
 
     if (!requestMoneyInformation.isRetry) {
         highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transaction.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
-
         if (shouldHandleNavigation) {
+            const navigationReportID = backToReport ?? activeReportID;
             handleNavigateAfterExpenseCreate({
-                activeReportID: backToReport ?? activeReportID,
+                activeReportID: navigationReportID,
                 transactionID: transaction.transactionID,
                 isFromGlobalCreate,
+                shouldAddPendingNewTransactionIDs: navigationReportID === chatReport.reportID,
             });
         }
     }
@@ -2665,7 +2669,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
             };
 
             deferOrExecuteWrite(apiWrite, {
-                shouldDeferForSearch: shouldHandleNavigation && !params.isRetry && isFromGlobalCreate && !isReportTopmostSplitNavigator(),
+                shouldDeferForSearch: (params.shouldDeferForSearch ?? false) || (shouldHandleNavigation && !params.isRetry && isFromGlobalCreate && !isReportTopmostSplitNavigator()),
                 isRetry: params.isRetry,
                 optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`,
                 onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
@@ -2686,6 +2690,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 activeReportID,
                 transactionID: transaction?.transactionID,
                 isFromGlobalCreate,
+                shouldAddPendingNewTransactionIDs: action === CONST.IOU.ACTION.CATEGORIZE || action === CONST.IOU.ACTION.SHARE,
             });
         }
     }
@@ -2762,10 +2767,14 @@ function deleteTrackExpense({
 
     // STEP 1: Get all collections we're updating
     if (!isSelfDM(chatReport)) {
+        const allReports = getAllReports();
+        const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`];
+
         deleteMoneyRequest({
             transactionID,
             reportAction,
             transactions,
+            transactionThreadReport,
             violations,
             iouReport,
             chatReport: chatIOUReport,
