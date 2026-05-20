@@ -10,13 +10,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import HighlightableMenuItem from './HighlightableMenuItem';
 import NAVIGATION_TABS from './Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TabBarBottomContent from './Navigation/TabBarBottomContent';
 import TopBarWithLoadingBar from './Navigation/TopBarWithLoadingBar';
 import OfflineIndicator from './OfflineIndicator';
 import ScreenWrapper from './ScreenWrapper';
-import ScrollView from './ScrollView';
 import TabSelectorBase from './TabSelector/TabSelectorBase';
 
 type WorkspaceListLayoutProps = PropsWithChildren<{
