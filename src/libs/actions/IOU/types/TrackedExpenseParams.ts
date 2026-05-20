@@ -1,4 +1,4 @@
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {CreateWorkspaceParams} from '@libs/API/parameters';
 import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
 import type ONYXKEYS from '@src/ONYXKEYS';
@@ -65,6 +65,9 @@ type TrackedExpenseParams = {
     createdWorkspaceParams?: CreateWorkspaceParams;
     accountantParams?: TrackExpenseAccountantParams;
     currentUserAccountID: number;
+    currentUserEmail?: string;
+    // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66578
+    reportActionsList?: OnyxCollection<OnyxTypes.ReportActions>;
 };
 
 export type {TrackedExpenseParams, TrackedExpensePolicyParams, TrackedExpenseTransactionParams, TrackedExpenseReportInformation, BuildOnyxDataForTrackExpenseKeys};

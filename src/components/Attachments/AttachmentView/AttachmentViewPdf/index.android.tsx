@@ -62,7 +62,6 @@ function AttachmentViewPdf(props: AttachmentViewPdfProps) {
     const Content = useMemo(
         () => (
             <BaseAttachmentViewPdf
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 onScaleChanged={(newScale) => {
                     // The react-native-pdf's onScaleChanged event will sometimes give us scale values of e.g. 0.99... instead of 1,
