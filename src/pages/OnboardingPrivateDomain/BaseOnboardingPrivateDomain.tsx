@@ -29,6 +29,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     const {translate} = useLocalize();
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const {isBetaEnabled} = usePermissions();
     const canUseSubmit2026 = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
 
@@ -66,13 +67,30 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     }, [route.params?.backTo, onboardingValues]);
 
     useEffect(() => {
+        if (account?.isFromPublicDomain) {
+            return;
+        }
         if (isValidated) {
             return;
         }
         sendValidateCode();
-    }, [sendValidateCode, isValidated]);
+    }, [sendValidateCode, isValidated, account?.isFromPublicDomain]);
 
     useEffect(() => {
+        // Public-domain accounts shouldn't be on this screen — the "people you may know" copy assumes a private domain.
+        if (account?.isFromPublicDomain) {
+            if (isVsb) {
+                Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()), {forceReplace: true});
+                return;
+            }
+            if (isSmb) {
+                Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()), {forceReplace: true});
+                return;
+            }
+            Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()), {forceReplace: true});
+            return;
+        }
+
         if (!isValidated) {
             return;
         }
@@ -95,7 +113,12 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
             }
             Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()), {forceReplace: true});
         }
-    }, [isValidated, joinablePoliciesLength, getAccessiblePoliciesAction?.loading, isVsb, isSmb]);
+    }, [isValidated, joinablePoliciesLength, getAccessiblePoliciesAction?.loading, isVsb, isSmb, account?.isFromPublicDomain]);
+
+    // Render nothing for public-domain accounts; the redirect useEffect above will navigate away.
+    if (account?.isFromPublicDomain) {
+        return null;
+    }
 
     return (
         <ScreenWrapper

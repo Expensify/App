@@ -83,7 +83,8 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                 Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(), {forceReplace: true});
                 return;
             }
-            if (!onboardingValues?.isMergeAccountStepSkipped) {
+            // PRIVATE_DOMAIN ("People you may know are already here") only makes sense for users on a private domain.
+            if (!onboardingValues?.isMergeAccountStepSkipped && !account?.isFromPublicDomain) {
                 Navigation.navigate(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(), {forceReplace: true});
                 return;
             }
