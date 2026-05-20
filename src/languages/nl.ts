@@ -5962,7 +5962,13 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 `Je staat op het punt ${newWorkspaceName ?? ''} te maken en te delen met ${totalMembers ?? 0} leden van de oorspronkelijke werkruimte.`,
             error: 'Er is een fout opgetreden bij het dupliceren van je nieuwe werkruimte. Probeer het opnieuw.',
         },
-        copyPolicySettings: {error: 'Er is een fout opgetreden bij het kopiëren van de werkruimtainstellingen. Probeer het opnieuw.'},
+        copyPolicySettings: {
+            error: 'Er is een fout opgetreden bij het kopiëren van de werkruimtainstellingen. Probeer het opnieuw.',
+            title: 'Instellingen kopiëren',
+            selectWorkspaces: 'Selecteer werkruimtes',
+            description: 'Kies de werkruimtes waarnaar je instellingen wilt kopiëren en selecteer daarna de instellingen die je wilt kopiëren.',
+            searchPlaceholder: 'Werkruimtes zoeken',
+        },
         emptyWorkspace: {
             title: 'Je hebt geen werkruimtes',
             subtitle: 'Volg bonnen, vergoed uitgaven, beheer reizen, verstuur facturen en meer.',
