@@ -25,17 +25,7 @@ import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isUsingStagingApi} from '@libs/ApiUtils';
 import navigateToCardTransactions from '@libs/CardNavigationUtils';
-import {
-    getCardFeedBackgroundColor,
-    getCardFeedIcon,
-    getCardHolderTextColor,
-    getCompanyCardFeed,
-    getCompanyFeeds,
-    getDefaultCardName,
-    getDomainOrWorkspaceAccountID,
-    getPlaidInstitutionIconUrl,
-    maskCardNumber,
-} from '@libs/CardUtils';
+import {getCardFeedIcon, getCompanyCardFeed, getCompanyFeeds, getDefaultCardName, getDomainOrWorkspaceAccountID, getPlaidInstitutionIconUrl, maskCardNumber} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -45,6 +35,7 @@ import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CardDetailsActionButtons, {CardDetailsActionButton} from '@pages/settings/Wallet/CardDetailsActionButtons';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import {getCardFeedBackgroundColor, getCardHolderTextColor} from '@styles/utils/card';
 import variables from '@styles/variables';
 import {clearCompanyCardErrorField, unassignWorkspaceCompanyCard, updateWorkspaceCompanyCard} from '@userActions/CompanyCards';
 import CONFIG from '@src/CONFIG';
