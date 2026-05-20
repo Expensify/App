@@ -199,7 +199,7 @@ describe('CurrencyUtils', () => {
             ['eur', false],
             [' USD', false],
             ['US', false],
-            ['USDX', false],
+            ['USDD', false],
             ['US1', false],
             [undefined, false],
             [null, false],
@@ -218,13 +218,13 @@ describe('CurrencyUtils', () => {
             expect(CurrencyUtils.sanitizeCurrencyCode('eur')).toBe('EUR');
         });
 
-        test.each(['', 'XX', 'USDX', 'US1', '???'])('falls back to USD for malformed input %p', (input) => {
+        test.each(['', 'XX', 'USDD', 'US1', '???'])('falls back to USD for malformed input %p', (input) => {
             expect(CurrencyUtils.sanitizeCurrencyCode(input)).toBe(CONST.CURRENCY.USD);
         });
     });
 
     describe('convertToDisplayString with malformed currency', () => {
-        test.each(['', 'XX', 'USDX', '???'])('does not throw and falls back to USD formatting for %p', (input) => {
+        test.each(['', 'XX', 'USDD', '???'])('does not throw and falls back to USD formatting for %p', (input) => {
             expect(() => CurrencyUtils.convertToDisplayString(2500, input)).not.toThrow();
             expect(CurrencyUtils.convertToDisplayString(2500, input)).toBe('$25.00');
         });
@@ -235,7 +235,7 @@ describe('CurrencyUtils', () => {
     });
 
     describe('getLocalizedCurrencySymbol with malformed currency', () => {
-        test.each(['', 'XX', 'USDX'])('returns the USD symbol without throwing for %p', (input) => {
+        test.each(['', 'XX', 'USDD'])('returns the USD symbol without throwing for %p', (input) => {
             expect(() => CurrencyUtils.getLocalizedCurrencySymbol(CONST.LOCALES.EN, input)).not.toThrow();
             expect(CurrencyUtils.getLocalizedCurrencySymbol(CONST.LOCALES.EN, input)).toBe(CurrencyUtils.getLocalizedCurrencySymbol(CONST.LOCALES.EN, CONST.CURRENCY.USD));
         });
