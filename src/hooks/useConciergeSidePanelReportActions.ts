@@ -46,14 +46,14 @@ function useConciergeSidePanelReportActions({
 
     if (prevSessionStartTime !== sessionStartTime) {
         setPrevSessionStartTime(sessionStartTime);
-        setShowFullHistory(false);
+        setLocalShowFullHistory(false);
         // Determine once at session start whether unread messages already exist.
         // This value never changes for the rest of the session.
         const messagesExistAtStart = !!sessionStartTime && visibleReportActions.some((action) => !isCreatedAction(action) && action.created >= sessionStartTime);
         setHadMessagesAtSessionStart(messagesExistAtStart);
     } else if (prevHasUserSentMessage && !hasUserSentMessage) {
         setPrevHasUserSentMessage(hasUserSentMessage);
-        setShowFullHistory(false);
+        setLocalShowFullHistory(false);
     } else if (prevHasUserSentMessage !== hasUserSentMessage) {
         setPrevHasUserSentMessage(hasUserSentMessage);
     }
