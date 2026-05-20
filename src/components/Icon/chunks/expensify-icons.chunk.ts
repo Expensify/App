@@ -58,6 +58,7 @@ import CircularArrowBackwards from '@assets/images/circular-arrow-backwards.svg'
 import Clock from '@assets/images/clock.svg';
 import Close from '@assets/images/close.svg';
 import ClosedSign from '@assets/images/closed-sign.svg';
+import CoinsButton from '@assets/images/coins-button.svg';
 import Coins from '@assets/images/coins.svg';
 import Collapse from '@assets/images/collapse.svg';
 import Columns from '@assets/images/columns.svg';
@@ -364,6 +365,7 @@ const Expensicons = {
     Tag,
     MultiTag,
     Coins,
+    CoinsButton,
     Thread,
     Gallery,
     GalleryPlus,
