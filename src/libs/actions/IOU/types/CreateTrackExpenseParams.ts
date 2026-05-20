@@ -21,6 +21,7 @@ type CreateTrackExpenseParams = {
     accountantParams?: TrackExpenseAccountantParams;
     isRetry?: boolean;
     shouldPlaySound?: boolean;
+    /** Passthrough payload — only consumed by `handleFileRetry` to clean up drafts after a successful retry. Ignored by `trackExpense`. */
     draftTransactionIDs?: string[];
     optimisticChatReportID?: string;
     optimisticTransactionID?: string;

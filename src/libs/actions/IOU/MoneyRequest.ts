@@ -7,20 +7,12 @@ import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {getGPSRoutes, getGPSWaypoints} from '@libs/GPSDraftDetailsUtils';
-import {
-    calculateDefaultReimbursable,
-    formatCurrentUserToAttendee,
-    getExistingTransactionID,
-    navigateToConfirmationPage,
-    navigateToParticipantPage,
-    resolveOptimisticChatReportID,
-} from '@libs/IOUUtils';
+import {calculateDefaultReimbursable, formatCurrentUserToAttendee, getExistingTransactionID, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import Log from '@libs/Log';
-// Type-only: the action never invokes this view-layer helper; it's dependency-injected by the UI caller.
-import type {DismissFirstSubmitOptions, WriteOverrides} from '@libs/Navigation/helpers/submitWithDismissFirst';
+import type {SubmitEnvelopeDispatcher, WriteOverrides} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import Navigation from '@libs/Navigation/Navigation';
-import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
@@ -105,8 +97,8 @@ type CreateTransactionParams = {
     betas: OnyxEntry<Beta[]>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
-    shouldHandleNav?: boolean;
-    onTransactionsCreated: (lastTransactionID: string | undefined, optimisticChatReportID: string | undefined, shouldHandleNav: boolean) => void;
+    optimisticTransactionIDs: string[];
+    optimisticChatReportID: string | undefined;
 };
 
 type InitialTransactionParams = {
@@ -121,7 +113,6 @@ type InitialTransactionParams = {
 };
 
 type MoneyRequestStepScanParticipantsFlowParams = {
-    submitWithDismissFirst: (options: DismissFirstSubmitOptions) => void;
     iouType: IOUType;
     policy: OnyxEntry<Policy>;
     report: OnyxEntry<Report>;
@@ -157,11 +148,12 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     amountOwed: OnyxEntry<number>;
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
-    onTransactionsCreated: (lastTransactionID: string | undefined, optimisticChatReportID: string | undefined, shouldHandleNav: boolean) => void;
+    optimisticTransactionIDs: string[];
+    optimisticChatReportID: string | undefined;
+    dispatchEnvelope: SubmitEnvelopeDispatcher;
 };
 
 type MoneyRequestStepDistanceNavigationParams = {
-    submitWithDismissFirst: (options: DismissFirstSubmitOptions) => void;
     iouType: IOUType;
     policy: OnyxEntry<Policy>;
     report: OnyxEntry<Report>;
@@ -189,7 +181,6 @@ type MoneyRequestStepDistanceNavigationParams = {
     quickAction: OnyxEntry<QuickAction>;
     policyRecentlyUsedCurrencies?: string[];
     introSelected?: IntroSelected;
-    privateIsArchived?: boolean;
     draftTransactionIDs: string[] | undefined;
     selfDMReport: OnyxEntry<Report>;
     gpsCoordinates?: string;
@@ -207,7 +198,9 @@ type MoneyRequestStepDistanceNavigationParams = {
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
     conciergeReportID: string | undefined;
-    onTransactionsCreated: (lastTransactionID: string | undefined, optimisticChatReportID: string | undefined, shouldHandleNav: boolean) => void;
+    optimisticTransactionID: string;
+    optimisticChatReportID: string | undefined;
+    dispatchEnvelope: SubmitEnvelopeDispatcher;
 };
 
 function createTransaction({
@@ -233,26 +226,12 @@ function createTransaction({
     betas,
     personalDetails,
     recentWaypoints,
-    onTransactionsCreated,
-    shouldHandleNav = true,
+    optimisticTransactionIDs,
+    optimisticChatReportID,
 }: CreateTransactionParams) {
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
-    let lastOptimisticTransactionID: string | undefined;
 
-    // The UI navigates after this write completes, so it must target the exact chat the action resolves or creates.
-    let scanOptimisticChatReportID: string | undefined;
-    let scanChatReportID: string | undefined;
-    if (iouType === CONST.IOU.TYPE.TRACK && report) {
-        scanChatReportID = report.reportID;
-    } else if (participant?.isPolicyExpenseChat && participant.reportID) {
-        scanChatReportID = participant.reportID;
-    } else {
-        const resolved = resolveOptimisticChatReportID([participant?.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserAccountID], report);
-        scanOptimisticChatReportID = resolved.optimisticChatReportID;
-        scanChatReportID = resolved.chatReportID;
-    }
-
-    for (const receiptFile of files) {
+    for (const [index, receiptFile] of files.entries()) {
         const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
         const receipt: Receipt = receiptFile.file ?? {};
         receipt.source = receiptFile.source;
@@ -261,7 +240,7 @@ function createTransaction({
         const defaultTaxCode = getDefaultTaxCode(policy, transaction);
         const taxCode = (transaction?.taxCode ? transaction.taxCode : defaultTaxCode) ?? '';
         const taxAmount = transaction?.taxAmount ?? 0;
-        lastOptimisticTransactionID = rand64();
+        const optimisticTransactionID = optimisticTransactionIDs.at(index);
         if (iouType === CONST.IOU.TYPE.TRACK && report) {
             trackExpense({
                 report,
@@ -294,7 +273,7 @@ function createTransaction({
                 recentWaypoints,
                 betas,
                 isSelfTourViewed,
-                optimisticTransactionID: lastOptimisticTransactionID,
+                optimisticTransactionID,
             });
         } else {
             const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
@@ -334,12 +313,11 @@ function createTransaction({
                 existingTransactionDraft,
                 isSelfTourViewed,
                 personalDetails,
-                optimisticChatReportID: scanOptimisticChatReportID,
-                optimisticTransactionID: lastOptimisticTransactionID,
+                optimisticChatReportID,
+                optimisticTransactionID,
             });
         }
     }
-    onTransactionsCreated(lastOptimisticTransactionID, scanChatReportID, shouldHandleNav);
 }
 
 function getMoneyRequestParticipantOptions(
@@ -396,9 +374,10 @@ function handleMoneyRequestStepScanParticipants({
     amountOwed,
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
-    onTransactionsCreated,
-    submitWithDismissFirst,
-}: MoneyRequestStepScanParticipantsFlowParams) {
+    optimisticTransactionIDs,
+    optimisticChatReportID,
+    dispatchEnvelope,
+}: MoneyRequestStepScanParticipantsFlowParams): void {
     if (backTo) {
         Navigation.goBack(backTo);
         return;
@@ -464,7 +443,7 @@ function handleMoneyRequestStepScanParticipants({
                     participantsPolicyTags,
                 };
 
-                submitWithDismissFirst({
+                dispatchEnvelope({
                     executeWrite: (overrides) =>
                         startSplitBill({
                             ...splitBaseParams,
@@ -516,11 +495,12 @@ function handleMoneyRequestStepScanParticipants({
                 betas,
                 personalDetails,
                 recentWaypoints,
-                onTransactionsCreated,
+                optimisticTransactionIDs,
+                optimisticChatReportID,
             };
 
             const scanDestinationReportID = iouType === CONST.IOU.TYPE.TRACK ? selfDMReport?.reportID : report?.reportID;
-            submitWithDismissFirst({
+            dispatchEnvelope({
                 executeWrite: (overrides) => {
                     const scanCreateParams = {...baseCreateTransactionParams, shouldHandleNav: overrides.shouldHandleNavigation};
                     if (locationPermissionGranted) {
@@ -618,7 +598,6 @@ function handleMoneyRequestStepDistanceNavigation({
     quickAction,
     policyRecentlyUsedCurrencies,
     introSelected,
-    privateIsArchived,
     draftTransactionIDs = [],
     selfDMReport,
     gpsCoordinates,
@@ -637,9 +616,10 @@ function handleMoneyRequestStepDistanceNavigation({
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
     conciergeReportID,
-    onTransactionsCreated,
-    submitWithDismissFirst,
-}: MoneyRequestStepDistanceNavigationParams) {
+    optimisticTransactionID,
+    optimisticChatReportID,
+    dispatchEnvelope,
+}: MoneyRequestStepDistanceNavigationParams): void {
     const isManualDistance = manualDistance !== undefined;
     const isOdometerDistance = odometerDistance !== undefined;
     const isGPSDistance = gpsDistance !== undefined && gpsCoordinates !== undefined;
@@ -661,7 +641,7 @@ function handleMoneyRequestStepDistanceNavigation({
     // to the confirm step.
     // If the user started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
     if (report?.reportID && !isArchivedExpenseReport && iouType !== CONST.IOU.TYPE.CREATE) {
-        const participants = getMoneyRequestParticipantOptions(currentUserAccountID, report, policy, personalDetails, conciergeReportID, privateIsArchived, reportAttributesDerived);
+        const participants = getMoneyRequestParticipantOptions(currentUserAccountID, report, policy, personalDetails, conciergeReportID, isArchivedExpenseReport, reportAttributesDerived);
 
         setDistanceRequestData?.(participants);
         if (shouldSkipConfirmation) {
@@ -708,11 +688,9 @@ function handleMoneyRequestStepDistanceNavigation({
             const distanceTaxCode = (transaction?.taxCode ? transaction.taxCode : distanceDefaultTaxCode) ?? '';
             const distanceTaxAmount = transaction?.taxAmount ?? 0;
             if (isCreatingTrackExpense && participant) {
-                const distanceOptimisticTransactionID = rand64();
-                // Pre-generate the self-DM ID so UI cleanup targets the chat the action will write to.
-                const distanceOptimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
-                submitWithDismissFirst({
-                    executeWrite: (overrides) => {
+                dispatchEnvelope({
+                    // trackExpense handles its own post-write navigation, so dismiss-first overrides aren't threaded here.
+                    executeWrite: () => {
                         trackExpense({
                             report,
                             isDraftPolicy: false,
@@ -759,10 +737,9 @@ function handleMoneyRequestStepDistanceNavigation({
                             betas,
                             isSelfTourViewed,
                             previousOdometerDraft,
-                            optimisticTransactionID: distanceOptimisticTransactionID,
-                            optimisticChatReportID: distanceOptimisticChatReportID,
+                            optimisticTransactionID,
+                            optimisticChatReportID,
                         });
-                        onTransactionsCreated(distanceOptimisticTransactionID, distanceOptimisticChatReportID, overrides.shouldHandleNavigation);
                     },
                     destinationReportID: selfDMReport?.reportID,
                     telemetryContext: {
@@ -824,7 +801,7 @@ function handleMoneyRequestStepDistanceNavigation({
                 });
             };
 
-            submitWithDismissFirst({
+            dispatchEnvelope({
                 executeWrite: executeDistanceWrite,
                 destinationReportID: distanceDestinationReportID,
                 telemetryContext: {

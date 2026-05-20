@@ -59,9 +59,6 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import resolveChatForSubmitCleanup from './resolveChatForSubmitCleanup';
 
-// Ends the submit expense span, starts a geolocation child span, then calls getCurrentPosition.
-// The expense callback receives GPS coordinates on success or undefined on error.
-// Extracted to avoid duplicating this identical telemetry block across trackExpense and requestMoney paths.
 function getCurrentPositionWithGeolocationSpan(onPosition: (gpsCoords?: {lat: number; long: number}) => void) {
     const parentSpan = getSpan(CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE);
     markSubmitExpenseEnd();
@@ -188,7 +185,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const [isConfirmed, setIsConfirmed] = useState(false);
     const formHasBeenSubmitted = useRef(false);
 
-    // Transaction violations – ref keeps callbacks always reading the latest value without re-creating them.
+    // Ref so callbacks always read the latest transactionViolations.
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const transactionViolationsRef = useRef(transactionViolations);
     useEffect(() => {
@@ -254,7 +251,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
     const transactionTaxValue = transaction?.taxValue ?? getTaxValue(policy, transaction, transactionTaxCode) ?? '';
 
-    // resolveChatForSubmitCleanup mirrors the action's chat resolution so cleanup + nav land where the action wrote.
     function performPostBatchCleanup({
         participant,
         shouldHandleNav,
@@ -463,6 +459,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             return;
         }
         if (isTrackExpense) {
+            const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
             submitPerDiemExpenseForSelfDM({
                 selfDMReport,
                 policy,
@@ -481,8 +478,11 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                 quickAction,
-                shouldHandleNavigation: shouldHandleNav,
+                optimisticChatReportID,
             });
+            if (shouldHandleNav) {
+                dismissModalAndOpenReportInInboxTabHelper(optimisticChatReportID, false, false);
+            }
         } else {
             const isExpenseReport = isMoneyRequestReport(report);
             let existingChatReport = report;
@@ -701,9 +701,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         });
     }
 
-    // shouldHandleNavigation is a function parameter, not a closure variable, so it does not
-    // need to appear in any dependency array. The handle* functions pass it at call time
-    // (e.g. createTransaction(participants, false, false) for fast paths).
     function createTransaction(selectedParticipantsArg: Participant[], locationPermissionGranted = false, shouldHandleNavigation = true) {
         setIsConfirmed(true);
         let splitParticipants = selectedParticipantsArg;

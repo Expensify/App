@@ -27,12 +27,10 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
-import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
-import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
-import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
+import submitEnvelopeWithCleanup from '@libs/Navigation/helpers/submitEnvelopeWithCleanup';
 import Navigation from '@libs/Navigation/Navigation';
-import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
+import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import {generateReportID, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
 import {getDistanceInMeters, getIsFromGlobalCreate} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
@@ -210,8 +208,10 @@ function IOURequestStepDistanceManual({
             return;
         }
 
+        const optimisticTransactionID = rand64();
+        const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
+
         handleMoneyRequestStepDistanceNavigation({
-            submitWithDismissFirst,
             iouType,
             report,
             policy,
@@ -236,7 +236,6 @@ function IOURequestStepDistanceManual({
             quickAction,
             policyRecentlyUsedCurrencies,
             introSelected,
-            privateIsArchived: isArchived,
             selfDMReport,
             policyForMovingExpenses,
             betas,
@@ -249,21 +248,20 @@ function IOURequestStepDistanceManual({
             ownerBillingGracePeriodEnd,
             conciergeReportID,
             draftTransactionIDs,
-            onTransactionsCreated: (lastTransactionID, optimisticChatReportID, shouldHandleNav) => {
-                if (shouldHandleNav) {
-                    cleanupAndNavigateAfterExpenseCreate({
-                        report,
-                        action,
-                        draftTransactionIDs,
-                        transactionID: lastTransactionID,
-                        isFromGlobalCreate: getIsFromGlobalCreate(transaction),
-                        backToReport,
-                        optimisticChatReportID,
-                    });
-                    return;
-                }
-                cleanupAfterExpenseCreate({draftTransactionIDs, linkedTrackedExpenseReportAction: transaction?.linkedTrackedExpenseReportAction});
-            },
+            optimisticTransactionID,
+            optimisticChatReportID,
+            dispatchEnvelope: (envelope) =>
+                submitEnvelopeWithCleanup({
+                    envelope,
+                    report,
+                    action,
+                    draftTransactionIDs,
+                    transactionID: optimisticTransactionID,
+                    isFromGlobalCreate: getIsFromGlobalCreate(transaction),
+                    backToReport,
+                    optimisticChatReportID,
+                    linkedTrackedExpenseReportAction: transaction?.linkedTrackedExpenseReportAction,
+                }),
         });
     };
 

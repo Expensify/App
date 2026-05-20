@@ -57,7 +57,7 @@ import {
     mergePolicyRecentlyUsedCurrencies,
 } from './MoneyRequestBuilder';
 import type {MoneyRequestInformation} from './MoneyRequestBuilder';
-import {dismissModalAndOpenReportInInboxTab, highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
+import {highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
 import type BasePolicyParams from './types/BasePolicyParams';
 import type BaseTransactionParams from './types/BaseTransactionParams';
 import type RequestMoneyParticipantParams from './types/RequestMoneyParticipantParams';
@@ -265,7 +265,8 @@ type PerDiemExpenseInformationForSelfDM = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
-    shouldHandleNavigation?: boolean;
+    /** UI-generated; used as the self-DM report's reportID when one does not already exist, so the UI's post-submit navigation lands on the same report the action wrote to. */
+    optimisticChatReportID: string;
 };
 
 type PerDiemExpenseInformationForSelfDMResult = {
@@ -574,7 +575,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
  * Gathers all the data needed to submit a per diem expense from self DM.
  */
 function getPerDiemExpenseInformationForSelfDM(perDiemExpenseInformation: PerDiemExpenseInformationForSelfDM): PerDiemExpenseInformationForSelfDMResult {
-    const {selfDMReport, transactionParams, policy, currentUserAccountIDParam, currentUserEmailParam, quickAction} = perDiemExpenseInformation;
+    const {selfDMReport, transactionParams, policy, currentUserAccountIDParam, currentUserEmailParam, quickAction, optimisticChatReportID} = perDiemExpenseInformation;
     const {comment = '', currency, created, category, tag, customUnit, billable, attendees, reimbursable} = transactionParams;
 
     const amount = computePerDiemExpenseAmount(customUnit);
@@ -602,7 +603,7 @@ function getPerDiemExpenseInformationForSelfDM(perDiemExpenseInformation: PerDie
     // If we don't have a self DM report, create an optimistic one
     if (!chatReport) {
         const currentTime = DateUtils.getDBTime();
-        const optimisticSelfDMReport = buildOptimisticSelfDMReport(currentTime);
+        const optimisticSelfDMReport = buildOptimisticSelfDMReport(currentTime, optimisticChatReportID);
         const selfDMCreatedReportAction = buildOptimisticCreatedReportAction({emailCreatingAction: currentUserEmailParam, created: currentTime});
         optimisticSelfDMReportID = optimisticSelfDMReport.reportID;
         optimisticSelfDMCreatedReportActionID = selfDMCreatedReportAction.reportActionID;
@@ -1024,7 +1025,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
  * Submit a per diem expense from self DM
  */
 function submitPerDiemExpenseForSelfDM(submitPerDiemExpenseInformation: PerDiemExpenseInformationForSelfDM) {
-    const {selfDMReport, policy, transactionParams, currentUserAccountIDParam, currentUserEmailParam, quickAction, shouldHandleNavigation = true} = submitPerDiemExpenseInformation;
+    const {selfDMReport, policy, transactionParams, currentUserAccountIDParam, currentUserEmailParam, quickAction, optimisticChatReportID} = submitPerDiemExpenseInformation;
     const {currency, comment = '', category, tag, created, customUnit, attendees, billable, reimbursable} = transactionParams;
 
     if (
@@ -1045,6 +1046,7 @@ function submitPerDiemExpenseForSelfDM(submitPerDiemExpenseInformation: PerDiemE
         currentUserAccountIDParam,
         currentUserEmailParam,
         quickAction,
+        optimisticChatReportID,
     });
 
     const customUnitRate = getPerDiemRateCustomUnitRate(policy, customUnit.customUnitRateID);
@@ -1084,8 +1086,6 @@ function submitPerDiemExpenseForSelfDM(submitPerDiemExpenseInformation: PerDiemE
         API.write(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST, parameters, onyxData);
     };
 
-    // Self-DM always navigates to a report (dismissModalAndOpenReportInInboxTab),
-    // never to Search, so the SEARCH channel would never be flushed.
     deferOrExecuteWrite(apiWrite, {
         shouldDeferForSearch: false,
         optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
@@ -1093,10 +1093,6 @@ function submitPerDiemExpenseForSelfDM(submitPerDiemExpenseInformation: PerDiemE
     });
 
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
-
-    if (shouldHandleNavigation) {
-        dismissModalAndOpenReportInInboxTab(chatReport.reportID);
-    }
 
     notifyNewAction(chatReport.reportID, undefined, true);
 }

@@ -30,11 +30,11 @@ function resolveChatForSubmitCleanup({
         return {report, optimisticChatReportID: fallbackOptimisticChatReportID};
     }
 
-    // Tracked-expense submit writes to the participant's policy/1:1 chat (action passes parentChatReport: undefined), never the self-DM source — so skip the keep-source shortcut below.
-    const isTrackedExpenseSubmit = action === CONST.IOU.ACTION.SUBMIT;
+    // SUBMIT (move-from-track) writes to the participant's policy/1:1 chat, never the self-DM source — skip the keep-source shortcut.
+    const isMoveFromTrackSubmit = action === CONST.IOU.ACTION.SUBMIT;
 
     // Keep `report` unless it's a non-special 1:1 chat whose participants don't match the submission target.
-    if (!isTrackedExpenseSubmit && report?.reportID) {
+    if (!isMoveFromTrackSubmit && report?.reportID) {
         const isSpecialChat = !!participant.isPolicyExpenseChat || isPolicyExpenseChat(report) || isSelfDM(report) || isGroupChat(report) || isDeprecatedGroupDM(report);
         if (isSpecialChat) {
             return {report, optimisticChatReportID: fallbackOptimisticChatReportID};

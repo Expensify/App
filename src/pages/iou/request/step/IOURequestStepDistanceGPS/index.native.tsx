@@ -21,11 +21,10 @@ import {handleMoneyRequestStepDistanceNavigation, setGPSTransactionDraftData} fr
 import {init as initMapboxToken, stop as stopMapboxToken} from '@libs/actions/MapboxToken';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getGPSConvertedDistance, getGpsPoints, getGPSWaypoints, getLastGpsPoint, getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
-import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
-import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
-import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
+import submitEnvelopeWithCleanup from '@libs/Navigation/helpers/submitEnvelopeWithCleanup';
 import Navigation from '@libs/Navigation/Navigation';
-import {isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
+import {rand64} from '@libs/NumberUtils';
+import {generateReportID, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
 import {getIsFromGlobalCreate} from '@libs/TransactionUtils';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
@@ -103,9 +102,10 @@ function IOURequestStepDistanceGPS({
         setGPSTransactionDraftData(transactionID, gpsDraftDetails, distance);
 
         const waypoints = getGPSWaypoints(gpsDraftDetails);
+        const optimisticTransactionID = rand64();
+        const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
 
         handleMoneyRequestStepDistanceNavigation({
-            submitWithDismissFirst,
             iouType,
             report,
             policy,
@@ -129,7 +129,6 @@ function IOURequestStepDistanceGPS({
             quickAction,
             policyRecentlyUsedCurrencies,
             introSelected,
-            privateIsArchived: isArchived,
             gpsCoordinates,
             gpsDistance: distance,
             selfDMReport,
@@ -144,21 +143,20 @@ function IOURequestStepDistanceGPS({
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
             conciergeReportID,
-            onTransactionsCreated: (lastTransactionID, optimisticChatReportID, shouldHandleNav) => {
-                if (shouldHandleNav) {
-                    cleanupAndNavigateAfterExpenseCreate({
-                        report,
-                        action,
-                        draftTransactionIDs,
-                        transactionID: lastTransactionID,
-                        isFromGlobalCreate: getIsFromGlobalCreate(transaction),
-                        backToReport,
-                        optimisticChatReportID,
-                    });
-                    return;
-                }
-                cleanupAfterExpenseCreate({draftTransactionIDs, linkedTrackedExpenseReportAction: transaction?.linkedTrackedExpenseReportAction});
-            },
+            optimisticTransactionID,
+            optimisticChatReportID,
+            dispatchEnvelope: (envelope) =>
+                submitEnvelopeWithCleanup({
+                    envelope,
+                    report,
+                    action,
+                    draftTransactionIDs,
+                    transactionID: optimisticTransactionID,
+                    isFromGlobalCreate: getIsFromGlobalCreate(transaction),
+                    backToReport,
+                    optimisticChatReportID,
+                    linkedTrackedExpenseReportAction: transaction?.linkedTrackedExpenseReportAction,
+                }),
         });
     };
 

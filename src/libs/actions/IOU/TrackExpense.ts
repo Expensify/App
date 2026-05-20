@@ -1713,13 +1713,8 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         playSound(SOUNDS.DONE);
     }
 
-    // API.write is deferred until the Search screen's actual content (not skeleton)
-    // lays out, so that Onyx optimistic updates don't block the JS thread while
-    // the skeleton→content transition is in progress. The Search component flushes
-    // the registered write from its content onLayout callback.
-    // Only the SUBMIT and default (REQUEST_MONEY) branches wrap the write; deferOrExecuteWrite
-    // defers iff the UI reserved a SEARCH/DISMISS_MODAL channel, else writes immediately.
-    // CATEGORIZE and SHARE navigate elsewhere and don't benefit from this deferral.
+    // Wrapped in a closure so deferOrExecuteWrite can register it against the SEARCH/DISMISS_MODAL channel
+    // when the UI reserved one; otherwise it runs synchronously below.
     let deferredAPIWrite: (() => void) | undefined;
 
     switch (action) {
@@ -1852,8 +1847,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         }
     }
 
-    // Register the deferred write BEFORE navigation so the Search component's
-    // hasDeferredWrite() check on mount always sees the pending channel.
     if (deferredAPIWrite) {
         deferOrExecuteWrite(deferredAPIWrite, {
             shouldDeferForSearch: false,

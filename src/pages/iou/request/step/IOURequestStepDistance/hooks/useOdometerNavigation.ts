@@ -4,9 +4,9 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import useOnyx from '@hooks/useOnyx';
 import {handleMoneyRequestStepDistanceNavigation} from '@libs/actions/IOU/MoneyRequest';
-import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
-import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
-import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
+import submitEnvelopeWithCleanup from '@libs/Navigation/helpers/submitEnvelopeWithCleanup';
+import {rand64} from '@libs/NumberUtils';
+import {generateReportID} from '@libs/ReportUtils';
 import {getIsFromGlobalCreate} from '@libs/TransactionUtils';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,7 +19,6 @@ type UseOdometerNavigationParams = {
     /** Type of IOU flow (request, split, track, etc.). */
     iouType: IOUType;
 
-    /** IOU action (CREATE / SUBMIT / CATEGORIZE / SHARE) — forwarded to cleanup helpers. */
     action: IOUAction;
 
     /** The chat/expense report that owns this transaction. */
@@ -144,8 +143,10 @@ function useOdometerNavigation({
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 
     return ({odometerStart, odometerEnd, odometerDistance, unit, previousOdometerDraft}: NavigateOptions) => {
+        const optimisticTransactionID = rand64();
+        const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
+
         handleMoneyRequestStepDistanceNavigation({
-            submitWithDismissFirst,
             iouType,
             report,
             policy,
@@ -169,7 +170,6 @@ function useOdometerNavigation({
             quickAction,
             policyRecentlyUsedCurrencies,
             introSelected,
-            privateIsArchived: isArchived,
             selfDMReport,
             policyForMovingExpenses,
             odometerStart,
@@ -186,21 +186,20 @@ function useOdometerNavigation({
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
             conciergeReportID,
-            onTransactionsCreated: (lastTransactionID, optimisticChatReportID, shouldHandleNav) => {
-                if (shouldHandleNav) {
-                    cleanupAndNavigateAfterExpenseCreate({
-                        report,
-                        action,
-                        draftTransactionIDs,
-                        transactionID: lastTransactionID,
-                        isFromGlobalCreate: getIsFromGlobalCreate(transaction),
-                        backToReport,
-                        optimisticChatReportID,
-                    });
-                    return;
-                }
-                cleanupAfterExpenseCreate({draftTransactionIDs, linkedTrackedExpenseReportAction: transaction?.linkedTrackedExpenseReportAction});
-            },
+            optimisticTransactionID,
+            optimisticChatReportID,
+            dispatchEnvelope: (envelope) =>
+                submitEnvelopeWithCleanup({
+                    envelope,
+                    report,
+                    action,
+                    draftTransactionIDs,
+                    transactionID: optimisticTransactionID,
+                    isFromGlobalCreate: getIsFromGlobalCreate(transaction),
+                    backToReport,
+                    optimisticChatReportID,
+                    linkedTrackedExpenseReportAction: transaction?.linkedTrackedExpenseReportAction,
+                }),
         });
     };
 }

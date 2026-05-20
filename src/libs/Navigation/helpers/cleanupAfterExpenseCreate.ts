@@ -1,4 +1,4 @@
-// eslint-disable-next-line no-restricted-imports
+// eslint-disable-next-line no-restricted-imports -- InteractionManager is the only cross-platform API to defer work past the dismiss animation
 import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {removeDraftTransactionsByIDs} from '@libs/actions/TransactionEdit';
@@ -10,7 +10,7 @@ type CleanupAfterExpenseCreateParams = {
     linkedTrackedExpenseReportAction?: OnyxEntry<ReportAction>;
 };
 
-/** Cleanup-only (no navigation). Use `cleanupAndNavigateAfterExpenseCreate` for normal post-submit flows. */
+/** Drops expense drafts and the linked tracked-expense RHP after a submit. Use `cleanupAndNavigateAfterExpenseCreate` when the flow also needs navigation. */
 function cleanupAfterExpenseCreate({draftTransactionIDs, linkedTrackedExpenseReportAction}: CleanupAfterExpenseCreateParams) {
     // Defer past the modal-dismiss animation so it doesn't block the JS thread.
     // eslint-disable-next-line @typescript-eslint/no-deprecated -- InteractionManager is widely used across the codebase and kept alive via a dedicated RN patch

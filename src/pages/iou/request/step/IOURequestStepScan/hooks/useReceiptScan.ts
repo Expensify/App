@@ -14,9 +14,9 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import {getMoneyRequestParticipantOptions, handleMoneyRequestStepScanParticipants} from '@libs/actions/IOU/MoneyRequest';
-import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
-import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
-import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
+import {resolveOptimisticChatReportID} from '@libs/IOUUtils';
+import submitEnvelopeWithCleanup from '@libs/Navigation/helpers/submitEnvelopeWithCleanup';
+import {rand64} from '@libs/NumberUtils';
 import {isPolicyExpenseChat} from '@libs/ReportUtils';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue, hasReceipt, shouldReuseInitialTransaction} from '@libs/TransactionUtils';
@@ -110,8 +110,22 @@ function useReceiptScan({
             },
         });
 
+        // Resolve once: the action writes to chatReportID; UI cleanup must navigate to the same report.
+        const scanParticipant = participants.at(0);
+        let optimisticChatReportID: string | undefined;
+        let chatReportID: string | undefined;
+        if (iouType === CONST.IOU.TYPE.TRACK && report?.reportID) {
+            chatReportID = report.reportID;
+        } else if (scanParticipant?.isPolicyExpenseChat && scanParticipant.reportID) {
+            chatReportID = scanParticipant.reportID;
+        } else {
+            const resolved = resolveOptimisticChatReportID([scanParticipant?.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID], report);
+            optimisticChatReportID = resolved.optimisticChatReportID;
+            chatReportID = resolved.chatReportID;
+        }
+        const optimisticTransactionIDs = files.map(() => rand64());
+
         handleMoneyRequestStepScanParticipants({
-            submitWithDismissFirst,
             iouType,
             policy,
             report,
@@ -153,25 +167,23 @@ function useReceiptScan({
             allTransactionDrafts,
             participants,
             participantsPolicyTags,
-            onTransactionsCreated: (lastTransactionID, optimisticChatReportID, shouldHandleNav) => {
-                if (shouldHandleNav) {
-                    cleanupAndNavigateAfterExpenseCreate({
-                        report,
-                        action,
-                        draftTransactionIDs,
-                        transactionID: lastTransactionID ?? initialTransactionID,
-                        isFromGlobalCreate: getIsFromGlobalCreate(initialTransaction),
-                        backToReport,
-                        optimisticChatReportID,
-                        linkedTrackedExpenseReportAction: initialTransaction?.linkedTrackedExpenseReportAction,
-                    });
-                    return;
-                }
-                cleanupAfterExpenseCreate({draftTransactionIDs, linkedTrackedExpenseReportAction: initialTransaction?.linkedTrackedExpenseReportAction});
-            },
+            optimisticTransactionIDs,
+            optimisticChatReportID,
             amountOwed,
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
+            dispatchEnvelope: (envelope) =>
+                submitEnvelopeWithCleanup({
+                    envelope,
+                    report,
+                    action,
+                    draftTransactionIDs,
+                    transactionID: optimisticTransactionIDs.at(-1) ?? initialTransactionID,
+                    isFromGlobalCreate: getIsFromGlobalCreate(initialTransaction),
+                    backToReport,
+                    optimisticChatReportID: chatReportID,
+                    linkedTrackedExpenseReportAction: initialTransaction?.linkedTrackedExpenseReportAction,
+                }),
         });
     }
 

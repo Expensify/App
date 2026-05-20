@@ -34,8 +34,6 @@ function cleanupAndNavigateAfterExpenseCreate({
     const finalActiveReportID = backToReport ?? report?.reportID ?? optimisticChatReportID;
     const finalActiveReport = finalActiveReportID === report?.reportID ? report : getReportOrDraftReport(finalActiveReportID);
     const hasMultipleTransactions = isMoneyRequestReport(finalActiveReport);
-    // CATEGORIZE/SHARE always notify the receiving workspace; plain submit only when navigation lands on the chat
-    // (no backToReport diversion, not the money-request report itself).
     const shouldAddPendingNewTransactionIDs =
         action === CONST.IOU.ACTION.CATEGORIZE || action === CONST.IOU.ACTION.SHARE ? true : !backToReport && !!finalActiveReport && !hasMultipleTransactions;
 

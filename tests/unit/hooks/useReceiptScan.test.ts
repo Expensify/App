@@ -47,6 +47,7 @@ jest.mock('@userActions/IOU/Receipt', () => ({
     setMoneyRequestReceipt: (...args: unknown[]) => mockSetMoneyRequestReceipt(...args),
 }));
 
+jest.mock('@libs/Navigation/helpers/submitWithDismissFirst', () => jest.requireActual('../../__mocks__/submitWithDismissFirst'));
 jest.mock('@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate', () => ({
     __esModule: true,
     default: (...args: unknown[]) => mockCleanupAndNavigateAfterExpenseCreate(...args),
@@ -479,16 +480,25 @@ describe('useReceiptScan', () => {
 
         it('should pass isFromGlobalCreate=true to cleanup when the initial transaction was started from the FAB (isFromFloatingActionButton)', async () => {
             params.initialTransaction = {...params.initialTransaction, isFromFloatingActionButton: true} as Transaction;
+            mockHandleMoneyRequestStepScanParticipants.mockImplementationOnce((actionParams: {dispatchEnvelope: (envelope: unknown) => void}) =>
+                actionParams.dispatchEnvelope({
+                    executeWrite: jest.fn(),
+                    destinationReportID: undefined,
+                    telemetryContext: {
+                        scenario: 'request-money-scan',
+                        iouType: 'request',
+                        requestType: 'scan',
+                        isFromGlobalCreate: true,
+                        hasReceipt: true,
+                    },
+                }),
+            );
             const {result} = renderHook(() => useReceiptScan(params));
             await waitForBatchedUpdatesWithAct();
             const files = [{file: {uri: 'receipt.jpg'}, source: 'file://receipt.jpg', transactionID: INITIAL_TRANSACTION_ID}];
             await act(async () => {
                 result.current.navigateToConfirmationStep(files, false, false);
             });
-            const [capturedParams] = mockHandleMoneyRequestStepScanParticipants.mock.calls.at(0) as [
-                {onTransactionsCreated: (lastTransactionID: string | undefined, optimisticChatReportID: string | undefined, shouldHandleNav: boolean) => void},
-            ];
-            act(() => capturedParams.onTransactionsCreated(INITIAL_TRANSACTION_ID, undefined, true));
             expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledWith(
                 expect.objectContaining({
                     isFromGlobalCreate: true,

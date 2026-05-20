@@ -1,29 +1,3 @@
-/**
- * Shared orchestration for the "dismiss-first" submit optimization.
- *
- * Multiple expense submit flows (scan, distance, manual, split, pay, track)
- * follow the same 3-branch navigation pattern after collecting input:
- *
- *   1. Search is topmost -> dismiss modal, defer write for Search skeleton
- *   2. Destination report exists -> reveal it before/during dismiss, then write
- *   3. Fallback -> write immediately with telemetry (caller handles its own navigation)
- *
- * This module centralizes the telemetry setup + navigation branching so each
- * call site only needs to describe *what* to write and *where* it should land.
- *
- * **View-layer helper.** Must only be invoked from
- * components/hooks, never from `src/libs/actions/`. Action entrypoints that
- * need it receive it by dependency injection from their UI caller.
- *
- * **Relationship with SubmitExpenseOrchestrator:**
- * This is the simplified variant for skip-confirmation paths (QAB amount entry,
- * scan without confirmation, distance without confirmation). It handles a 3-branch
- * decision (Search / destination report / fallback). The full-featured orchestrator
- * in `SubmitExpenseOrchestrator.tsx` handles confirmation-step flows with a richer
- * decision tree (pre-inserts, RHP dismiss, search dismiss, etc.) via `getSubmitHandler`.
- * Both share the same telemetry primitives (`startTracking`, `setFastPath`,
- * `setPendingSubmitFollowUpAction`) to ensure consistent span instrumentation.
- */
 import {reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
@@ -35,27 +9,23 @@ import ROUTES from '@src/ROUTES';
 import getTopmostReportParams from './getTopmostReportParams';
 import isSearchTopmostFullScreenRoute from './isSearchTopmostFullScreenRoute';
 
-/**
- * Overrides passed into `executeWrite` by the orchestration layer.
- *
- * When called by `submitWithDismissFirst`, both fields are always provided
- * with explicit values so callers don't need `?? true` guards. When used
- * via dependency injection by action entrypoints the fields are optional
- * to allow `= {}` defaults.
- */
 type WriteOverrides = {
     shouldHandleNavigation: boolean;
     shouldDeferForSearch: boolean;
 };
 
-type DismissFirstSubmitOptions = {
-    /** The API write function to execute; receives navigation/defer overrides from the orchestrator. */
+/** Action result the orchestrator dispatches: the write to fire plus the metadata it needs to pick a nav strategy. */
+type SubmitEnvelope = {
     executeWrite: (overrides: WriteOverrides) => void;
-    /** Report that will display the expense after submission (used to pick the dismiss target). */
     destinationReportID: string | undefined;
-    /** Telemetry metadata for the submit-expense performance span. */
     telemetryContext: SubmitExpenseContext;
 };
+
+/**
+ * Required `dispatchEnvelope` param on envelope-producing actions. Forces the caller to consume the envelope —
+ * a missing dispatcher is a type error, not a silent no-op. Typically wired to {@link submitEnvelopeWithCleanup}.
+ */
+type SubmitEnvelopeDispatcher = (envelope: SubmitEnvelope) => void;
 
 function startDismissFirstTracking(
     telemetryContext: SubmitExpenseContext,
@@ -73,14 +43,18 @@ function startDismissFirstTracking(
 }
 
 /**
- * Orchestrates the dismiss-first submit pattern. Picks the best navigation
- * strategy and executes the write — every branch starts telemetry tracking.
+ * View-layer dismiss-first submit orchestrator. Picks one of four nav strategies, then fires `executeWrite`
+ * at the matching moment (after dismiss / after reveal / synchronously):
  *
- *   1. Search is topmost -> dismiss modal, defer write for Search skeleton
- *   2. Destination report exists -> reveal it before/during dismiss, then write
- *   3. Neither -> start tracking with default fast path, call executeWrite with defaults
+ *   1. Search topmost            -> dismiss modal, defer write for Search skeleton
+ *   2. Destination already shown -> dismiss modal, write after transition
+ *   3. Destination loaded        -> reveal destination then dismiss, write after transition
+ *   4. Destination not loaded    -> write immediately, then reveal-and-dismiss
+ *   5. Fallback                  -> start tracking with default fast path, write with defaults
+ *
+ * Must not be called from `src/libs/actions/`; action entrypoints return a `SubmitEnvelope` for the UI to dispatch.
  */
-function submitWithDismissFirst({executeWrite, destinationReportID, telemetryContext}: DismissFirstSubmitOptions): void {
+function submitWithDismissFirst({executeWrite, destinationReportID, telemetryContext}: SubmitEnvelope): void {
     const shouldStayOnSearch = isSearchTopmostFullScreenRoute();
 
     if (shouldStayOnSearch) {
@@ -117,12 +91,10 @@ function submitWithDismissFirst({executeWrite, destinationReportID, telemetryCon
         return;
     }
 
-    // Fallback: no fast-path navigation applies. Start tracking so telemetry
-    // is never silently skipped, then execute the write with defaults.
     startTracking(telemetryContext, {skipSubmitExpenseSpan: true});
     setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DEFAULT);
     executeWrite({shouldHandleNavigation: true, shouldDeferForSearch: false});
 }
 
 export {submitWithDismissFirst};
-export type {DismissFirstSubmitOptions, WriteOverrides};
+export type {SubmitEnvelope, SubmitEnvelopeDispatcher, WriteOverrides};
