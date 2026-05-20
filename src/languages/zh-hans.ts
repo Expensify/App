@@ -984,8 +984,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         freeTrialSection: {
             title: ({days}: {days: number}) => `免费试用：剩余 ${days} ${days === 1 ? '天' : '天'} 天！`,
-            offer50Body: '首年可享受五折优惠！',
-            offer25Body: '首年可享 75 折优惠！',
+            offer50Body: '首年可享受五折优惠',
+            offer25Body: '首年可享 75 折优惠',
             addCardBody: '别再犹豫！现在就添加你的付款卡。',
             ctaClaim: '报销申请',
             ctaAdd: '添加卡片',
@@ -2404,6 +2404,7 @@ const translations: TranslationDeepObject<typeof en> = {
             expiration: '到期日期',
             cvv: 'CVV',
             address: '地址',
+            reveal: '显示',
             revealDetails: '显示详细信息',
             revealCvv: '显示 CVV',
             copyCardNumber: '复制卡号',
@@ -2525,9 +2526,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             approverSubtitle: '所有审批人都属于一个现有的工作流。',
             bulkApproverSubtitle: '所选报表中没有符合条件的审批人。',
         },
-        configureViaGusto: '通过 Gusto 配置。',
-        gustoApprovalWorkflowLockedPrompt: '审批由你的 Gusto 集成管理。若要更新审批流程，请前往 Gusto 连接设置。',
-        goToGustoSettings: '前往 Gusto 设置',
+        configureViaHR: ({provider}: {provider: string}) => `通过 ${provider} 配置。`,
+        hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) => `审批由你的 ${provider} 集成管理。若要更新审批流程，请前往 ${provider} 连接设置。`,
+        goToHRSettings: ({provider}: {provider: string}) => `前往 ${provider} 设置`,
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: '提交频率无法更改。请重试或联系支持团队。',
@@ -4206,6 +4207,12 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                         return '管理员';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return '审计员';
+                    case CONST.POLICY.ROLE.CARD_ADMIN:
+                        return '卡片管理员';
+                    case CONST.POLICY.ROLE.PEOPLE_ADMIN:
+                        return '人员管理';
+                    case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
+                        return '付款管理员';
                     case CONST.POLICY.ROLE.USER:
                         return '成员';
                     default:
@@ -4235,10 +4242,14 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             budgetTypeForNotificationMessage: {tag: '标签', category: '类别'},
             policyExpenseChatName: (displayName: string) => `${displayName} 的报销费用`,
             deepDiveExpensifyCard: `<muted-text-label>Expensify 卡交易将自动导出到使用<a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">我们的集成</a>创建的“Expensify 卡负债账户”。</muted-text-label>`,
-            travelInvoicing: '将 Expensify Travel 应付导出至',
+            travelInvoicing: '将差旅开票费用导出为',
             travelInvoicingVendor: '差旅供应商',
             travelInvoicingPayableAccount: '差旅应付账户',
             hr: '人力资源',
+            rooms: '房间',
+            cardAdminAlternateText: '管理工作区卡片。',
+            peopleAdminAlternateText: '管理成员和审批流程。',
+            paymentsAdminAlternateText: '管理工作流付款。',
         },
         createdForClient: {
             title: '您已为客户创建了工作区！',
@@ -4546,6 +4557,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             purchaseBill: '采购账单',
             exportDeepDiveCompanyCard: '导出的报销将作为银行交易记入下方的 Xero 银行账户，且交易日期将与您的银行对账单上的日期一致。',
             bankTransactions: '银行交易',
+            travelInvoicingDescription: '差旅费用将作为银行交易导出到下面指定的 Xero 账户。',
             xeroBankAccount: 'Xero 银行账户',
             xeroBankAccountDescription: '选择报销费用将作为银行交易入账的位置。',
             exportExpensesDescription: '报表将按照在下方选择的日期和状态导出为采购账单。',
@@ -5813,6 +5825,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 `您即将创建并共享 ${newWorkspaceName ?? ''}，其中包含来自原始工作区的 ${totalMembers ?? 0} 位成员。`,
             error: '复制您的新工作区时发生错误。请重试。',
         },
+        copyPolicySettings: {error: '复制工作区设置时发生错误。请重试。'},
         emptyWorkspace: {
             title: '你还没有工作区',
             subtitle: '跟踪收据、报销费用、管理差旅、发送发票等。',
@@ -6198,7 +6211,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 chooseBankAccount: '选择用于对账 Expensify 卡付款的银行账户。',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `请确保此账户与您的<a href="${settlementAccountUrl}">Expensify 卡结算账户</a>（末尾为 ${lastFourPAN}）一致，以便持续对账功能正常运行。`,
+                chooseTravelInvoicingBankAccount: '选择用于核对差旅开票付款的银行账户。',
+                travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) => `请确保此账户与您的差旅发票结算账户（以 ${lastFourPAN} 结尾）一致，以确保持续对账功能正常运行。`,
             },
+            syncTravelInvoicingSettlements: '同步差旅开票结算',
         },
         export: {
             notReadyHeading: '尚未准备好导出',
@@ -6521,6 +6537,55 @@ ${reportName}
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>人力资源集成功能仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
+            approvalSubmit: {
+                title: '审批',
+                description: '启用审批功能，以集中配置所有成员向谁提交。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>审批功能适用于 Collect 和 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+            },
+            companyCardSubmit: {
+                title: '公司卡枚',
+                description: `将你自己的公司卡片连接到 Expensify，可享受自动导入、自动分类、自定义规则支持以及集成对账功能。`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>公司信用卡导入功能适用于 Collect 和 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+            },
+            travelSubmit: {
+                title: 'Expensify 差旅',
+                description: '通过 Expensify 在全球预订折扣机票、酒店、租车和火车，并享受差旅关怀报告和集成费用管理。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Expensify Travel 适用于 Collect 和 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+            },
+            roles: {
+                title: '角色',
+                description: '为不同成员分配不同角色，以根据需要提高或降低可见性和控制权。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>角色可在 Collect 和 Control 方案中使用，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+            },
+            payments: {
+                title: '付款',
+                description: '直接从您的企业银行账户向员工报销。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>付款功能适用于 Collect 和 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+            },
+            accounting: {
+                title: '会计',
+                description: '从您的会计系统同步类别、标签、税率等信息到 Expensify，并导出费用报表和卡片交易记录——全程无需手动输入，也不用担心输入错误！',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>会计功能适用于 Collect 和 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+            },
+            expensifyCard: {
+                title: 'Expensify 卡',
+                description: '直接从您自己的银行账户发放公司卡（包括虚拟卡），通过牢不可破的连接实现实时消费管控，并享受最高 2% 返现！',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Expensify 卡适用于 Collect 和 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+                upgradeButton: '升级并启用',
+            },
+            invoicing: {
+                title: '开具发票',
+                description: '在 Expensify 中创建、发送并跟踪专业发票。通过集成付款和实时可见性，让收款更快捷。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>开票功能适用于 Collect 和 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -6840,8 +6905,8 @@ ${reportName}
                     description: '适用于希望向雇主提交费用的员工。',
                 },
             },
-            description: '选择适合您的方案。要查看详细的功能和价格列表，请访问我们的',
-            subscriptionLink: '方案类型和价格帮助页面',
+            description: '选择适合你的方案。',
+            subscriptionLink: '了解详情',
             lockedPlanDescription: ({count, annualSubscriptionEndDate}: WorkspaceLockedPlanTypeParams) => ({
                 one: `在 Control 方案中，你已承诺在年度订阅到期（${annualSubscriptionEndDate}）前保持 1 位活跃成员。你可以在 ${annualSubscriptionEndDate} 起关闭自动续订，以改为按使用付费订阅并降级到 Collect 方案，操作入口在`,
                 other: `在年费订阅于${annualSubscriptionEndDate}结束之前，你已承诺在 Control 方案中保留 ${count} 名活跃成员。你可以在${annualSubscriptionEndDate}起，通过关闭自动续订，改为按使用量付费订阅并降级到 Collect 方案，操作入口在`,
@@ -6907,6 +6972,10 @@ ${reportName}
                         other: (count: number) => `${count} 员工`,
                     }),
                 },
+            },
+            merge: {
+                approvalMode: '审批模式',
+                finalApprover: '最终审批人',
             },
             zenefits: {
                 title: 'TriNet',
@@ -8335,7 +8404,22 @@ ${reportName}
             `<muted-text-label>由于银行连接中断，收据暂时待处理。请前往<a href="${workspaceCompanyCardRoute}">公司卡</a>中解决。</muted-text-label>`,
         memberBrokenConnectionError: '由于银行连接中断，收据处于待处理状态。请联系工作区管理员解决。',
         markAsCashToIgnore: '标记为现金以忽略并请求付款。',
-        smartscanFailed: ({canEdit = true}) => `收据扫描失败。${canEdit ? '手动输入详细信息。' : ''}`,
+        smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
+            if (missingFields.length > 0) {
+                const fieldNames: Record<string, string> = {merchant: '商家', date: '日期', amount: '金额'};
+                const translated = missingFields.map((f) => fieldNames[f] ?? f);
+                let fieldList = '';
+                if (translated.length === 1) {
+                    fieldList = translated.at(0) ?? '';
+                } else if (translated.length === 2) {
+                    fieldList = translated.join('和');
+                } else {
+                    fieldList = translated.join('、');
+                }
+                return `收据扫描失败 — 缺少${fieldList}。${canEdit ? '手动输入详细信息。' : ''}`;
+            }
+            return `收据扫描失败。${canEdit ? '手动输入详细信息。' : ''}`;
+        },
         receiptGeneratedWithAI: '可能由 AI 生成的收据',
         someTagLevelsRequired: (tagName?: string) => `缺少 ${tagName ?? '标签'}`,
         tagOutOfPolicy: (tagName?: string) => `${tagName ?? '标签'} 不再有效`,
@@ -8415,6 +8499,7 @@ ${reportName}
         bookACallTextTop: '切换回 Expensify 经典版后，您将无法享受：',
         bookACallTextBottom: '我们非常期待与您通话以了解原因。您可以预约与我们的一位资深产品经理通话，讨论您的需求。',
         takeMeToExpensifyClassic: '带我前往 Expensify 经典版',
+        goBackJustOnce: '仅此一次返回',
     },
     listBoundary: {
         errorMessage: '加载更多消息时出错',

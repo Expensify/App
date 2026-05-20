@@ -1006,8 +1006,8 @@ const translations = {
         },
         freeTrialSection: {
             title: ({days}: {days: number}) => `Free trial: ${days} ${days === 1 ? 'day' : 'days'} left!`,
-            offer50Body: 'Get 50% off your first year!',
-            offer25Body: 'Get 25% off your first year!',
+            offer50Body: 'Get 50% off your first year',
+            offer25Body: 'Get 25% off your first year',
             addCardBody: "Don't wait! Add your payment card now.",
             ctaClaim: 'Claim',
             ctaAdd: 'Add card',
@@ -2545,6 +2545,7 @@ const translations = {
             expiration: 'Expiration',
             cvv: 'CVV',
             address: 'Address',
+            reveal: 'Reveal',
             revealDetails: 'Reveal details',
             revealCvv: 'Reveal CVV',
             copyCardNumber: 'Copy card number',
@@ -2608,9 +2609,10 @@ const translations = {
         addApprovalTip: 'This default workflow applies to all members, unless a more specific workflow exists.',
         approver: 'Approver',
         addApprovalsDescription: 'Require additional approval before authorizing a payment.',
-        configureViaGusto: 'Configure via Gusto.',
-        gustoApprovalWorkflowLockedPrompt: 'Approvals are managed by your Gusto integration. To update your approval workflow, head to your Gusto connection settings.',
-        goToGustoSettings: 'Go to Gusto settings',
+        configureViaHR: ({provider}: {provider: string}) => `Configure via ${provider}.`,
+        hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
+            `Approvals are managed by your ${provider} integration. To update your approval workflow, head to your ${provider} connection settings.`,
+        goToHRSettings: ({provider}: {provider: string}) => `Go to ${provider} settings`,
         makeOrTrackPaymentsTitle: 'Payments',
         makeOrTrackPaymentsDescription: 'Add an authorized payer for payments made in Expensify or track payments made elsewhere.',
         customApprovalWorkflowEnabled:
@@ -4317,6 +4319,7 @@ const translations = {
             perDiem: 'Per diem',
             travel: 'Travel',
             members: 'Members',
+            rooms: 'Rooms',
             accounting: 'Accounting',
             hr: 'HR',
             receiptPartners: 'Receipt partners',
@@ -4390,6 +4393,9 @@ const translations = {
             memberAlternateText: 'Submit and approve reports.',
             adminAlternateText: 'Manage reports and workspace settings.',
             auditorAlternateText: 'View and comment on reports.',
+            cardAdminAlternateText: 'Manage workspace cards.',
+            peopleAdminAlternateText: 'Manage members and approval workflows.',
+            paymentsAdminAlternateText: 'Manage workflow payments.',
             reimbursementChoice: {
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES]: 'Direct',
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO]: 'None',
@@ -4401,6 +4407,12 @@ const translations = {
                         return 'Admin';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditor';
+                    case CONST.POLICY.ROLE.CARD_ADMIN:
+                        return 'Card Admin';
+                    case CONST.POLICY.ROLE.PEOPLE_ADMIN:
+                        return 'People Admin';
+                    case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
+                        return 'Payments Admin';
                     case CONST.POLICY.ROLE.USER:
                         return 'Member';
                     default:
@@ -4435,7 +4447,7 @@ const translations = {
             viewTransactions: 'View transactions',
             policyExpenseChatName: (displayName: string) => `${displayName}'s expenses`,
             deepDiveExpensifyCard: `<muted-text-label>Expensify Card transactions will automatically export to an "Expensify Card Liability Account" created with <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">our integration</a>.</muted-text-label>`,
-            travelInvoicing: 'Export Expensify Travel Payable To',
+            travelInvoicing: 'Export travel invoicing expenses as',
             travelInvoicingVendor: 'Travel vendor',
             travelInvoicingPayableAccount: 'Travel payable account',
         },
@@ -4759,6 +4771,7 @@ const translations = {
             purchaseBill: 'Purchase bill',
             exportDeepDiveCompanyCard: 'Exported expenses will post as bank transactions to the Xero bank account below, and transaction dates will match the dates on your bank statement.',
             bankTransactions: 'Bank transactions',
+            travelInvoicingDescription: 'Travel expenses will export as bank transactions to the Xero account specified below.',
             xeroBankAccount: 'Xero bank account',
             xeroBankAccountDescription: 'Choose where expenses will post as bank transactions.',
             exportExpensesDescription: 'Reports will export as a purchase bill with the date and status selected below.',
@@ -6010,6 +6023,9 @@ const translations = {
                 `You’re about to create and share ${newWorkspaceName ?? ''} with ${totalMembers ?? 0} members from the original workspace.`,
             error: 'An error occurred while duplicating your new workspace. Please try again.',
         },
+        copyPolicySettings: {
+            error: 'An error occurred while copying workspace settings. Please try again.',
+        },
         emptyWorkspace: {
             title: 'No workspaces yet',
             subtitle: 'Create a workspace to manage your expenses, reimbursements, and company cards.',
@@ -6401,14 +6417,18 @@ const translations = {
             cardReconciliation: 'Card reconciliation',
             reconciliationAccount: 'Reconciliation account',
             continuousReconciliation: 'Continuous Reconciliation',
+            syncTravelInvoicingSettlements: 'Sync travel invoicing settlements',
             saveHoursOnReconciliation:
                 'Save hours on reconciliation each accounting period by having Expensify continuously reconcile Expensify Card statements and settlements on your behalf.',
             enableContinuousReconciliation: (accountingAdvancedSettingsLink: string, connectionName: string) =>
                 `<muted-text-label>In order to enable Continuous Reconciliation, please enable <a href="${accountingAdvancedSettingsLink}">auto-sync</a> for ${connectionName}.</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Choose the bank account that your Expensify Card payments will be reconciled against.',
+                chooseTravelInvoicingBankAccount: 'Choose the bank account that your travel invoicing payments will be reconciled against.',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `Make sure this account matches your <a href="${settlementAccountUrl}">Expensify Card settlement account</a> (ending in ${lastFourPAN}) so Continuous Reconciliation works properly.`,
+                travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
+                    `Make sure this account matches your travel invoicing settlement account (ending in ${lastFourPAN}) so Continuous Reconciliation works properly.`,
             },
         },
         hr: {
@@ -6479,6 +6499,10 @@ const translations = {
                         other: (count: number) => `${count} employees`,
                     }),
                 },
+            },
+            merge: {
+                approvalMode: 'Approval mode',
+                finalApprover: 'Final approver',
             },
             zenefits: {
                 title: 'TriNet',
@@ -6710,6 +6734,12 @@ const translations = {
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Advanced approvals are only available on the Control plan, which starts at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
+            approvalSubmit: {
+                title: 'Approvals',
+                description: 'Centrally configure who all members submit to by enabling approvals.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Approvals are available on the Collect and Control plans, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+            },
             categories: {
                 title: 'Categories',
                 description: 'Categories allow you to track and organize spend. Use our default categories or add your own.',
@@ -6740,6 +6770,12 @@ const translations = {
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>This is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
+            companyCardSubmit: {
+                title: 'Company cards',
+                description: `Bring your own company card to Expensify to get automatic import, automatic categorization, customizable rule support, and integrated reconciliation.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Company card import is available on the Collect and Control plans, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+            },
             rules: {
                 title: 'Rules',
                 description: `Rules run in the background and keep your spend under control so you don't have to sweat the small stuff.\n\nRequire expense details like receipts and descriptions, set limits and defaults, and automate approvals and payments – all in one place.`,
@@ -6765,6 +6801,12 @@ const translations = {
                 description: 'Expensify Travel is a new corporate travel booking and management platform that allows members to book accommodations, flights, transportation, and more.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Travel is available on the Collect plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+            },
+            travelSubmit: {
+                title: 'Expensify Travel',
+                description: 'Book discounted flights, hotels, cars, and trains globally from within Expensify, with duty of care reporting and integrated expense management.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Expensify Travel is available on the Collect and Control plans, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             reports: {
                 title: 'Reports',
@@ -6796,6 +6838,39 @@ const translations = {
                 description: 'Multiple approval levels is a workflow tool for companies that require more than one person to approve a report before it can be reimbursed.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Multiple approval levels are only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+            },
+            roles: {
+                title: 'Roles',
+                description: 'Assign different roles to different members to increase or decrease visibility and control as appropriate.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Roles are available on the Collect and Control plans, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+            },
+            payments: {
+                title: 'Payments',
+                description: 'Reimburse employees directly from your business bank account.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Payments are available on the Collect and Control plans, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+            },
+            accounting: {
+                title: 'Accounting',
+                description:
+                    'Sync categories, tags, tax rates, and more from your accounting system to Expensify, as well as export expense reports and card transactions – no typing (or typos) involved!',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Accounting is available on the Collect and Control plans, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+            },
+            expensifyCard: {
+                title: 'Expensify Card',
+                description:
+                    'Issue company cards (including virtual cards) directly from your own bank account to get realtime spend control with an unbreakable connection, and up to 2% cashback!',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>The Expensify Card is available on the Collect and Control plans, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+                upgradeButton: 'Upgrade and enable',
+            },
+            invoicing: {
+                title: 'Invoicing',
+                description: 'Create, send, and track professional invoices, all inside Expensify. Get paid faster with integrated payments and real-time visibility.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Invoicing is available on the Collect and Control plans, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             pricing: {
                 perActiveMember: 'per active member per month.',
@@ -7145,8 +7220,8 @@ const translations = {
                     description: 'For employees looking to submit expenses to their employer.',
                 },
             },
-            description: "Choose a plan that's right for you. For a detailed list of features and pricing, check out our",
-            subscriptionLink: 'plan types and pricing help page',
+            description: "Choose a plan that's right for you.",
+            subscriptionLink: 'Learn more',
             lockedPlanDescription: ({count, annualSubscriptionEndDate}: WorkspaceLockedPlanTypeParams) => ({
                 one: `You've committed to 1 active member on the Control plan until your annual subscription ends on ${annualSubscriptionEndDate}. You can switch to pay-per-use subscription and downgrade to the Collect plan starting ${annualSubscriptionEndDate} by disabling auto-renew in`,
                 other: `You've committed to ${count} active members on the Control plan until your annual subscription ends on ${annualSubscriptionEndDate}. You can switch to pay-per-use subscription and downgrade to the Collect plan starting ${annualSubscriptionEndDate} by disabling auto-renew in`,
@@ -8614,7 +8689,22 @@ const translations = {
             `<muted-text-label>Receipt pending due to broken bank connection. Please resolve in <a href="${workspaceCompanyCardRoute}">Company cards</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Receipt pending due to broken bank connection. Please ask a workspace admin to resolve.',
         markAsCashToIgnore: 'Mark as cash to ignore and request payment.',
-        smartscanFailed: ({canEdit = true}) => `Receipt scanning failed.${canEdit ? ' Enter details manually.' : ''}`,
+        smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
+            if (missingFields.length > 0) {
+                const fieldNames: Record<string, string> = {merchant: 'merchant', date: 'date', amount: 'amount'};
+                const translated = missingFields.map((f) => fieldNames[f] ?? f);
+                let fieldList = '';
+                if (translated.length === 1) {
+                    fieldList = translated.at(0) ?? '';
+                } else if (translated.length === 2) {
+                    fieldList = translated.join(' and ');
+                } else {
+                    fieldList = `${translated.slice(0, translated.length - 1).join(', ')}, and ${translated.at(-1)}`;
+                }
+                return `Receipt scanning failed — missing ${fieldList}.${canEdit ? ' Enter details manually.' : ''}`;
+            }
+            return `Receipt scanning failed.${canEdit ? ' Enter details manually.' : ''}`;
+        },
         receiptGeneratedWithAI: 'Potential AI-generated receipt',
         someTagLevelsRequired: (tagName?: string) => `Missing ${tagName ?? 'Tag'}`,
         tagOutOfPolicy: (tagName?: string) => `${tagName ?? 'Tag'} no longer valid`,
@@ -8695,6 +8785,7 @@ const translations = {
         bookACallTextTop: 'By switching to Expensify Classic, you will miss out on:',
         bookACallTextBottom: 'We’d be excited to get on a call with you to understand why. You can book a call with one of our senior product managers to discuss your needs.',
         takeMeToExpensifyClassic: 'Take me to Expensify Classic',
+        goBackJustOnce: 'Go back just once',
     },
     listBoundary: {
         errorMessage: 'An error occurred while loading more messages',

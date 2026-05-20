@@ -40,7 +40,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
     const {isPaidAnimationRunning, isApprovedAnimationRunning, stopAnimation, startAnimation, startApprovedAnimation} = usePaymentAnimationsContext();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const {accountID, email, login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const {accountID, email, login: currentUserLogin, localCurrencyCode} = useCurrentUserPersonalDetails();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
@@ -137,6 +137,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
                 introSelected,
                 currentUserAccountIDParam: accountID,
                 currentUserEmailParam: email ?? '',
+                currentUserLocalCurrency: localCurrencyCode ?? CONST.CURRENCY.USD,
                 payAsBusiness,
                 existingB2BInvoiceReport,
                 methodID,

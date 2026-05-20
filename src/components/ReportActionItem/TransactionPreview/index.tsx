@@ -3,7 +3,7 @@ import React, {memo, useCallback, useMemo} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import {showContextMenuForReport} from '@components/ShowContextMenuContext';
+import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -31,31 +31,20 @@ import type {TransactionPreviewProps} from './types';
 function TransactionPreview(props: TransactionPreviewProps) {
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
-    const {
-        action,
-        chatReportID,
-        reportID,
-        contextMenuAnchor,
-        checkIfContextMenuActive = () => {},
-        shouldDisplayContextMenu,
-        transactionID: transactionIDFromProps,
-        onPreviewPressed,
-        shouldHighlight,
-        reportPreviewAction,
-        contextAction,
-        originalReportID,
-    } = props;
+    const {action, chatReportID, reportID, transactionID: transactionIDFromProps, onPreviewPressed, shouldHighlight, reportPreviewAction, contextAction} = props;
+    const {anchor: contextMenuAnchorRef, shouldDisplayContextMenu, originalReportID} = useShowContextMenuState();
+    const {checkIfContextMenuActive} = useShowContextMenuActions();
 
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const isMoneyRequestAction = isMoneyRequestActionReportActionsUtils(action);
     const transactionID = transactionIDFromProps ?? (isMoneyRequestAction ? getOriginalMessage(action)?.IOUTransactionID : undefined);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(iouReport?.policyID)}`);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(iouReport?.policyID)}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(iouReport?.policyID)}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(report?.policyID)}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`);
     const violations = useTransactionViolations(transaction?.transactionID);
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
     const session = useSession();
@@ -78,7 +67,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
         if (!shouldDisplayContextMenu) {
             return;
         }
-        showContextMenuForReport(event, contextMenuAnchor, contextMenuReportID, contextMenuAction, checkIfContextMenuActive, originalReportID);
+        showContextMenuForReport(event, contextMenuAnchorRef, contextMenuReportID, contextMenuAction, checkIfContextMenuActive, originalReportID);
     };
 
     const offlineWithFeedbackOnClose = useCallback(() => {
@@ -87,9 +76,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
     }, [chatReportID]);
 
     const navigateToReviewFields = () =>
-        Navigation.navigate(
-            getReviewNavigationRoute(Navigation.getActiveRoute(), route.params?.threadReportID, transaction, duplicates, policy, policyCategories, policyTags ?? {}, iouReport),
-        );
+        Navigation.navigate(getReviewNavigationRoute(Navigation.getActiveRoute(), route.params?.threadReportID, transaction, duplicates, policy, policyCategories, policyTags ?? {}, report));
 
     const transactionPreview = transaction;
 
@@ -122,7 +109,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
                     personalDetails={personalDetails}
                     transaction={transactionPreview}
                     transactionRawAmount={transactionRawAmount}
-                    report={iouReport}
+                    report={report}
                     violations={violations}
                     offlineWithFeedbackOnClose={offlineWithFeedbackOnClose}
                     navigateToReviewFields={navigateToReviewFields}
@@ -146,7 +133,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
             personalDetails={personalDetails}
             transaction={originalTransaction ?? transaction}
             transactionRawAmount={transactionRawAmount}
-            report={iouReport}
+            report={report}
             violations={violations}
             offlineWithFeedbackOnClose={offlineWithFeedbackOnClose}
             navigateToReviewFields={navigateToReviewFields}

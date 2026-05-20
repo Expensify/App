@@ -47,9 +47,13 @@ function useEditComposerToggle({selection, composerRef, onFocus, onValueChange, 
     const previousTextRef = useRef<string | null>(null);
 
     type ApplyComposerValueOptions = {
+        /** Whether the applied value is from an edited message */
         isEditingInComposer?: boolean;
+        /** Whether to move the selection to the end of the text */
         shouldMoveSelectionToEnd?: boolean;
+        /** The selection to apply */
         selection?: TextSelection | null;
+        /** Whether to force a native value update */
         shouldForceNativeValueUpdate?: boolean;
     };
 
@@ -91,7 +95,9 @@ function useEditComposerToggle({selection, composerRef, onFocus, onValueChange, 
             }
 
             // When editing ends, focus the main composer again.
-            onFocus?.();
+            if (wasEditingRef.current) {
+                onFocus?.();
+            }
 
             wasEditingRef.current = false;
             wasEditingInComposerRef.current = shouldUseNarrowLayout;
