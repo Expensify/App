@@ -57,8 +57,6 @@ export default function DomainListTableRow({item, rowIndex, shouldUseNarrowTable
         />
     );
 
-    const arrowIconSize = shouldUseNarrowTableLayout ? variables.iconSizeSmall : variables.iconSizeNormal;
-
     const domainDetailsContainerStyles = [
         !shouldUseNarrowTableLayout && styles.alignItemsCenter,
         !shouldUseNarrowTableLayout && styles.flexRow,
@@ -107,8 +105,8 @@ export default function DomainListTableRow({item, rowIndex, shouldUseNarrowTable
                             src={icons.ArrowRight}
                             fill={theme.icon}
                             additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
-                            width={arrowIconSize}
-                            height={arrowIconSize}
+                            width={variables.iconSizeNormal}
+                            height={variables.iconSizeNormal}
                         />
                     </View>
                 </>
