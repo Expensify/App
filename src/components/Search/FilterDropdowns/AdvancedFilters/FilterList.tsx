@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import ScrollView from '@components/ScrollView';
 import SpacerView from '@components/SpacerView';
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
@@ -10,17 +11,18 @@ import useFullscreenAdvancedFilters from './useFullscreenAdvancedFilters';
 
 type FilterListProps = {
     selectedFilter: SearchFilter['key'] | null;
+    style: StyleProp<ViewStyle>;
     onFilterSelected: (filter: SearchFilter['key']) => void;
 };
 
-function FilterList({selectedFilter, onFilterSelected}: FilterListProps) {
+function FilterList({selectedFilter, style, onFilterSelected}: FilterListProps) {
     const styles = useThemeStyles();
     const {typeFiltersKeys} = useAdvancedSearchFilters();
     const fullscreen = useFullscreenAdvancedFilters();
 
     return (
         <ScrollView
-            style={[styles.typeFiltersContainer, fullscreen && styles.pv0, !!selectedFilter && styles.dNone]}
+            style={[styles.typeFiltersContainer, fullscreen && styles.pv0, style]}
             contentContainerStyle={[fullscreen && styles.pb5]}
             showsVerticalScrollIndicator={false}
         >

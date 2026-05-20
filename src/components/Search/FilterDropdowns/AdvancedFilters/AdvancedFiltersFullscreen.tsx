@@ -57,6 +57,7 @@ function AdvancedFiltersFullscreen({queryJSON, closeOverlay}: AdvancedFiltersFul
                 }}
             />
             <FilterList
+                style={!!selectedFilter && styles.dNone}
                 selectedFilter={selectedFilter}
                 onFilterSelected={setSelectedFilter}
             />
