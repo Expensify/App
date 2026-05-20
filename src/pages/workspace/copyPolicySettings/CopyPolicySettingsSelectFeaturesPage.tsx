@@ -201,20 +201,27 @@ function CopyPolicySettingsSelectFeaturesPage() {
         if (!part || isFeatureDisabled(part)) {
             return;
         }
-        setSelectedFeatures((prev) => (prev.includes(part) ? prev.filter((selectedPart) => selectedPart !== part) : [...prev, part]));
+        setSelectedFeatures((prev) => {
+            if (prev.includes(part)) {
+                const next = prev.filter((selectedPart) => selectedPart !== part);
+                if (part === 'accounting') {
+                    return next.filter((selectedPart) => !(ACCOUNTING_FORCE_ENABLED_PARTS as readonly Part[]).includes(selectedPart));
+                }
+                return next;
+            }
+            return [...prev, part];
+        });
     };
 
     const selectableFeatures: Part[] = availableFeatureRows.filter((row) => !isFeatureDisabled(row.part)).map((row) => row.part);
 
     const toggleAll = () => {
-        const selectableSet = new Set(selectableFeatures);
-        setSelectedFeatures((prev) => {
-            const allSelected = selectableFeatures.every((part) => prev.includes(part));
-            if (allSelected) {
-                return prev.filter((part) => !selectableSet.has(part));
-            }
-            return Array.from(new Set([...prev, ...selectableFeatures]));
-        });
+        const allSelected = selectableFeatures.every((part) => selectedAvailableFeatures.includes(part));
+        if (allSelected) {
+            setSelectedFeatures([]);
+            return;
+        }
+        setSelectedFeatures(Array.from(new Set([...selectedAvailableFeatures, ...selectableFeatures])));
     };
 
     const saveAndNavigate = () => {
