@@ -60,7 +60,7 @@ function WorkspaceHRPage({
     const [activeZenefitsFlowKey, setActiveZenefitsFlowKey] = useState<number>();
     const {showConfirmModal} = useConfirmModal();
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
-    const icons = useMemoizedLazyExpensifyIcons(['GustoSquare', 'ZenefitsSquare', 'Sync', 'Trashcan']);
+    const icons = useMemoizedLazyExpensifyIcons(['GustoSquare', 'TriNetSquare', 'Sync', 'Trashcan']);
     const illustrations = useMemoizedLazyIllustrations(['NewUser']);
 
     // Gusto state
@@ -370,7 +370,7 @@ function WorkspaceHRPage({
                                 <>
                                     <MenuItem
                                         title={translate('workspace.hr.zenefits.title')}
-                                        icon={icons.ZenefitsSquare}
+                                        icon={icons.TriNetSquare}
                                         iconType={CONST.ICON_TYPE_AVATAR}
                                         wrapperStyle={[styles.ph0, styles.pv2, styles.mt4, !!zenefitsSyncErrorMessage && styles.pb0]}
                                         interactive={false}
