@@ -65,7 +65,6 @@ function AmountSelectorModal({value, description = '', onValueSelected, isVisibl
                 >
                     <View style={styles.flex1}>
                         <NumberWithSymbolForm
-                            // eslint-disable-next-line react/jsx-props-no-spreading
                             {...rest}
                             value={currentValue}
                             onInputChange={setValue}

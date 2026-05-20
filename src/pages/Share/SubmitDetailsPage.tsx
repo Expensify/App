@@ -21,7 +21,6 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {GpsPoint} from '@libs/actions/IOU';
 import {
     getIOURequestPolicyID,
     getMoneyRequestParticipantsFromReport,
@@ -30,9 +29,10 @@ import {
     setMoneyRequestParticipantsFromReport,
     setMoneyRequestReimbursable,
     updateLastLocationPermissionPrompt,
-} from '@libs/actions/IOU';
+} from '@libs/actions/IOU/MoneyRequest';
 import {setMoneyRequestReceipt} from '@libs/actions/IOU/Receipt';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
+import type {GPSPoint as GpsPoint} from '@libs/actions/IOU/types/TrackExpenseTransactionParams';
 import DateUtils from '@libs/DateUtils';
 import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
