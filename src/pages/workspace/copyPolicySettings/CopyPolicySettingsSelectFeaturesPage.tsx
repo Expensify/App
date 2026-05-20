@@ -209,9 +209,9 @@ function CopyPolicySettingsSelectFeaturesPage() {
             return;
         }
         showConfirmModal({
-            title: translate('workspace.copyPolicySettings.workflowsWithoutMembersTitle'),
+            title: translate('common.headsUp'),
             prompt: translate('workspace.copyPolicySettings.workflowsWithoutMembersPrompt'),
-            confirmText: translate('common.continue'),
+            confirmText: translate('workspace.copyPolicySettings.workflowsWithoutMembersConfirm'),
             cancelText: translate('common.cancel'),
         }).then((result) => {
             if (result.action !== ModalActions.CONFIRM) {
