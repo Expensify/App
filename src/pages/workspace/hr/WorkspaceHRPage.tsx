@@ -1,13 +1,13 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
+import ConnectToGustoFlow from '@components/ConnectToGustoFlow';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import useEnvironment from '@hooks/useEnvironment';
 import useGustoSyncResultsModal from '@hooks/useGustoSyncResultsModal';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -40,7 +40,6 @@ function WorkspaceHRPage({
     },
 }: WorkspaceHRPageProps) {
     const {translate, getLocalDateFromDatetime, localeCompare} = useLocalize();
-    const {environmentURL} = useEnvironment();
     const isFocused = useIsFocused();
     const {isBetaEnabled} = usePermissions();
     const styles = useThemeStyles();
@@ -49,6 +48,7 @@ function WorkspaceHRPage({
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const icons = useMemoizedLazyExpensifyIcons(['GustoSquare', 'ZenefitsSquare', 'DownArrow', 'UpArrow']);
     const illustrations = useMemoizedLazyIllustrations(['NewUser']);
+    const [activeGustoFlowKey, setActiveGustoFlowKey] = useState<number>();
 
     const [isOtherExpanded, setIsOtherExpanded] = useState(false);
 
@@ -69,7 +69,6 @@ function WorkspaceHRPage({
         isBetaEnabled,
         translate,
         policyID,
-        environmentURL,
         gustoIcon: icons.GustoSquare,
         zenefitsIcon: icons.ZenefitsSquare,
     });
@@ -85,6 +84,14 @@ function WorkspaceHRPage({
 
     const shouldBeBlocked = !HR_BETAS.some(isBetaEnabled);
 
+    const onConnect = (connectionName: string) => {
+        if (connectionName !== CONST.POLICY.CONNECTIONS.NAME.GUSTO) {
+            return;
+        }
+        // eslint-disable-next-line react-hooks/purity
+        setActiveGustoFlowKey(Math.random());
+    };
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
@@ -99,6 +106,12 @@ function WorkspaceHRPage({
                 shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
             >
+                {!!activeGustoFlowKey && (
+                    <ConnectToGustoFlow
+                        key={activeGustoFlowKey}
+                        policyID={policyID}
+                    />
+                )}
                 <HeaderWithBackButton
                     icon={illustrations.NewUser}
                     title={translate('workspace.common.hr')}
@@ -119,6 +132,7 @@ function WorkspaceHRPage({
                                         key={card.key}
                                         card={card}
                                         policy={policy}
+                                        onConnect={() => onConnect(card.connectionName)}
                                     />
                                 ))}
 
@@ -128,6 +142,7 @@ function WorkspaceHRPage({
                                             key={card.key}
                                             card={card}
                                             policy={policy}
+                                            onConnect={() => onConnect(card.connectionName)}
                                         />
                                     ))}
                             </View>
@@ -148,6 +163,7 @@ function WorkspaceHRPage({
                                                 key={card.key}
                                                 card={card}
                                                 policy={policy}
+                                                onConnect={() => onConnect(card.connectionName)}
                                             />
                                         ))}
                                 </>

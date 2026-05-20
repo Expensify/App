@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import {VoidExpression} from 'typescript';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import MenuItem from '@components/MenuItem';
@@ -22,9 +23,10 @@ import type {HRCardDescriptor} from './utils';
 type HRProviderCardProps = {
     card: HRCardDescriptor;
     policy: Policy | undefined;
+    onConnect: () => void;
 };
 
-function HRProviderCard({card, policy}: HRProviderCardProps) {
+function HRProviderCard({card, policy, onConnect}: HRProviderCardProps) {
     const {translate, datetimeToRelative} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -85,7 +87,7 @@ function HRProviderCard({card, policy}: HRProviderCardProps) {
             <Button
                 small
                 text={translate('workspace.hr.connect')}
-                onPress={card.onConnect}
+                onPress={onConnect}
             />
         );
     } else if (card.isSyncInProgress) {

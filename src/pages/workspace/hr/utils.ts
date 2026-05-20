@@ -1,10 +1,6 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {hasSynchronizationErrorMessage, isConnectionInProgress} from '@libs/actions/connections';
-import getGustoSetupLink from '@libs/actions/connections/Gusto';
-import getMergeHRSetupLink from '@libs/actions/connections/MergeHR';
-import getZenefitsSetupLink from '@libs/actions/connections/Zenefits';
-import {openLink} from '@libs/actions/Link';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import type {HRConnectionName} from '@libs/PolicyUtils';
 import {getHRApprovalMode, getIntegrationLastSuccessfulDate, isGustoConnected, isMergeHRConnected, isZenefitsConnected} from '@libs/PolicyUtils';
@@ -38,7 +34,6 @@ type HRCardDescriptor = {
     hasError: boolean;
     lastSyncErrorMessage?: string;
     syncStageInProgress?: PolicyConnectionSyncStage;
-    onConnect: () => void;
     approvalModeRoute?: Route;
     finalApproverRoute?: Route;
     config?: HRCardConfig;
@@ -136,7 +131,6 @@ const STATIC_HR_PROVIDERS = [
         iconParam: 'gustoIcon',
         approvalModeRoute: ROUTES.WORKSPACE_HR_GUSTO_APPROVAL_MODE,
         finalApproverRoute: ROUTES.WORKSPACE_HR_GUSTO_FINAL_APPROVER,
-        buildConnectAction: (policyID: string, environmentURL: string) => () => openLink(getGustoSetupLink(policyID), environmentURL),
     },
     {
         key: 'zenefits',
@@ -146,7 +140,6 @@ const STATIC_HR_PROVIDERS = [
         iconParam: 'zenefitsIcon',
         approvalModeRoute: ROUTES.WORKSPACE_HR_ZENEFITS_APPROVAL_MODE,
         finalApproverRoute: ROUTES.WORKSPACE_HR_ZENEFITS_FINAL_APPROVER,
-        buildConnectAction: (policyID: string, environmentURL: string) => () => openLink(getZenefitsSetupLink(policyID), environmentURL),
     },
 ] as const;
 
@@ -157,12 +150,11 @@ type GetHRCardsParams = {
     isBetaEnabled: (beta: Beta) => boolean;
     translate: LocaleContextProps['translate'];
     policyID: string;
-    environmentURL: string;
     gustoIcon: IconAsset;
     zenefitsIcon: IconAsset;
 };
 
-function getHRCards({policy, connectionSyncProgress, isBetaEnabled, getLocalDateFromDatetime, translate, policyID, environmentURL, ...iconParams}: GetHRCardsParams): HRCardDescriptor[] {
+function getHRCards({policy, connectionSyncProgress, isBetaEnabled, getLocalDateFromDatetime, translate, policyID, ...iconParams}: GetHRCardsParams): HRCardDescriptor[] {
     const cards: HRCardDescriptor[] = [];
 
     for (const provider of STATIC_HR_PROVIDERS) {
@@ -178,7 +170,6 @@ function getHRCards({policy, connectionSyncProgress, isBetaEnabled, getLocalDate
             displayName: translate(provider.titleKey),
             icon: iconParams[provider.iconParam],
             iconType: CONST.ICON_TYPE_AVATAR,
-            onConnect: provider.buildConnectAction(policyID, environmentURL),
             approvalModeRoute: provider.approvalModeRoute.getRoute(policyID),
             finalApproverRoute: provider.finalApproverRoute.getRoute(policyID),
             config,
@@ -196,10 +187,6 @@ function getHRCards({policy, connectionSyncProgress, isBetaEnabled, getLocalDate
             const state = getHRCardState({policy, connectionName: mergeConnectionName, connectionSyncProgress, getLocalDateFromDatetime, mergeSlug: slug});
             const config = state.isConnected ? getCardConfig(policy, mergeConnectionName) : undefined;
 
-            const connectPolicyToMergeHR = (policyId: string, integration: MergeHRProviderSlug) => {
-                getMergeHRSetupLink(policyId, integration);
-                // TODO finish the flow in the next PR
-            };
             cards.push({
                 key: `merge_${slug}`,
                 connectionName: mergeConnectionName,
@@ -207,7 +194,6 @@ function getHRCards({policy, connectionSyncProgress, isBetaEnabled, getLocalDate
                 icon: providerEntry.iconUrl,
                 iconType: CONST.ICON_TYPE_AVATAR,
                 ...(state.isConnected ? state : disconnectedState),
-                onConnect: () => connectPolicyToMergeHR(policyID, slug),
                 approvalModeRoute: ROUTES.WORKSPACE_HR_MERGE_APPROVAL_MODE.getRoute(policyID),
                 finalApproverRoute: ROUTES.WORKSPACE_HR_MERGE_FINAL_APPROVER.getRoute(policyID),
                 config,

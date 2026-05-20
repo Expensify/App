@@ -7,10 +7,6 @@ import type {PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-jest.mock('@libs/actions/connections/Gusto', () => jest.fn(() => 'https://gusto.example.com'));
-jest.mock('@libs/actions/connections/Zenefits', () => jest.fn(() => 'https://zenefits.example.com'));
-jest.mock('@libs/actions/connections/MergeHR', () => ({__esModule: true, default: jest.fn(() => 'https://merge.example.com')}));
-jest.mock('@libs/actions/Link', () => ({openLink: jest.fn()}));
 jest.mock('@libs/PersonalDetailsUtils', () => ({
     getPersonalDetailByEmail: jest.fn(() => null),
     getDisplayNameOrDefault: jest.fn((_detail: unknown, fallback: string) => fallback),
@@ -22,7 +18,6 @@ const MERGE_HR = CONST.POLICY.CONNECTIONS.NAME.MERGE_HR;
 
 const STUB_ICON = {} as IconAsset;
 const POLICY_ID = 'ABC123';
-const ENV_URL = 'https://dev.new.expensify.com:8082';
 const SYNC_TIMEOUT = CONST.POLICY.CONNECTIONS.SYNC_STAGE_TIMEOUT_MINUTES;
 
 type GetHRCardsParams = Parameters<typeof getHRCards>[0];
@@ -63,7 +58,6 @@ function makeGetHRCardsParams(overrides: Partial<GetHRCardsParams> = {}): GetHRC
         isBetaEnabled: allBetasEnabled,
         translate: stubTranslate,
         policyID: POLICY_ID,
-        environmentURL: ENV_URL,
         gustoIcon: STUB_ICON,
         zenefitsIcon: STUB_ICON,
         ...overrides,
@@ -461,13 +455,6 @@ describe('getHRCards', () => {
         const bamboo = cards.find((c) => c.key === 'merge_bamboohr');
         expect(bamboo?.isSyncInProgress).toBe(true);
         expect(bamboo?.syncStageInProgress).toBe(CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.MERGE_HR_SYNC_TITLE);
-    });
-
-    it('each card has an onConnect callback', () => {
-        const cards = getHRCards(makeGetHRCardsParams());
-        for (const card of cards) {
-            expect(typeof card.onConnect).toBe('function');
-        }
     });
 
     it('uses provider icons from params for static providers', () => {
