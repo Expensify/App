@@ -3599,6 +3599,7 @@ const CONST = {
         SUCCESS: 'success',
         ERROR: 'error',
         WARNING: 'warning',
+        LOADING: 'loading',
         DURATION: 2000,
         DURATION_LONG: 3500,
     },

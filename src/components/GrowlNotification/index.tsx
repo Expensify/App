@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import {Directions, Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {useSharedValue, withSpring} from 'react-native-reanimated';
 import type {SvgProps} from 'react-native-svg';
+import ActivityIndicator from '@components/ActivityIndicator';
 import Icon from '@components/Icon';
 import * as Pressables from '@components/Pressable';
 import Text from '@components/Text';
@@ -109,15 +110,23 @@ function GrowlNotification({ref}: GrowlNotificationProps) {
     }, []);
 
     useEffect(() => {
-        if (!duration) {
+        if (duration === undefined) {
             return;
         }
 
         fling(0);
-        setTimeout(() => {
+
+        if (duration <= 0) {
+            // Indefinite (loading) growl - slide in but don't auto-dismiss.
+            return;
+        }
+
+        const timeoutId = setTimeout(() => {
             fling();
             setDuration(undefined);
         }, duration);
+
+        return () => clearTimeout(timeoutId);
     }, [duration, fling]);
 
     // GestureDetector by default runs callbacks on UI thread using Reanimated. In this
@@ -134,18 +143,24 @@ function GrowlNotification({ref}: GrowlNotificationProps) {
             <GrowlNotificationContainer translateY={translateY}>
                 <PressableWithoutFeedback
                     accessibilityLabel={bodyText}
+                    sentryLabel="GrowlNotification-Dismiss"
                     onPress={() => fling()}
                 >
                     <GestureDetector gesture={flingGesture}>
                         <View style={styles.growlNotificationBox}>
-                            <Icon
-                                src={types[type].icon}
-                                fill={types[type].iconColor}
-                            />
+                            {type === CONST.GROWL.LOADING ? (
+                                <ActivityIndicator reasonAttributes={{context: 'GrowlNotification.Loading'}} />
+                            ) : (
+                                <Icon
+                                    src={types[type].icon}
+                                    fill={types[type].iconColor}
+                                />
+                            )}
                             <Text style={[styles.growlNotificationText, action ? styles.flex1 : undefined]}>{bodyText}</Text>
                             {!!action && (
                                 <PressableWithoutFeedback
                                     accessibilityLabel={action.label}
+                                    sentryLabel="GrowlNotification-Action"
                                     onPress={() => {
                                         const onPress = action.onPress;
                                         fling();

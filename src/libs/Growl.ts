@@ -49,10 +49,18 @@ function success(bodyText: string, duration: number = CONST.GROWL.DURATION, acti
     show(bodyText, CONST.GROWL.SUCCESS, duration, action);
 }
 
+/**
+ * Show indefinite loading growl (no auto-dismiss). Call success/error/show again to replace it.
+ */
+function loading(bodyText: string) {
+    show(bodyText, CONST.GROWL.LOADING, 0);
+}
+
 export default {
     show,
     error,
     success,
+    loading,
 };
 
 export type {GrowlRef, GrowlAction};

@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import {createTransactionThreadReport, setOptimisticTransactionThread} from '@libs/actions/Report';
+import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Growl from '@libs/Growl';
 import Log from '@libs/Log';
@@ -102,46 +103,156 @@ function navigateAfterExpenseCreate({
     const type = isInvoice ? CONST.SEARCH.DATA_TYPES.INVOICE : CONST.SEARCH.DATA_TYPES.EXPENSE;
 
     // POC: When the expense is created from outside Inbox AND outside Spend (e.g. from Settings),
-    // show a growl with a "View" action instead of force-navigating away from the user's current screen.
-    // Clicking View takes the user to Spend and opens the RHP focused on this expense.
+    // show a loading growl while the backend confirms creation, then swap to a "View" growl that
+    // deep-links to the new expense's RHP.
     if (!isUserOnSpend) {
         const queryStringForGrowl = buildCannedSearchQuery({type});
+        console.log('[growl-view] entering growl branch', {
+            transactionID,
+            iouReportID,
+            providedTransactionThreadReportID,
+            isInvoice,
+            activeReportID,
+            queryStringForGrowl,
+            currentUserEmail,
+            currentUserAccountID,
+        });
         Navigation.dismissModal();
-        Growl.success('Expense added', 6000, {
-            label: 'View',
-            onPress: () => {
-                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryStringForGrowl}), {forceReplace: true});
+        Growl.loading('Adding expense…');
 
-                const iouReport = iouReportID ? getReportOrDraftReport(iouReportID) : undefined;
-                const iouAction = iouReportID ? getIOUActionForReportID(iouReportID, transactionID) : undefined;
-                let threadReportID = providedTransactionThreadReportID ?? iouAction?.childReportID;
+        const navigateToExpenseRHP = () => {
+            const iouReport = iouReportID ? getReportOrDraftReport(iouReportID) : undefined;
+            const iouAction = iouReportID ? getIOUActionForReportID(iouReportID, transactionID) : undefined;
+            let threadReportID = providedTransactionThreadReportID ?? iouAction?.childReportID;
 
-                // Mirrors MoneyRequestReportTransactionList.navigateToTransaction: if the IOU action has no
-                // childReportID yet (shouldGenerateTransactionThreadReport=false in useExpenseSubmission),
-                // build an optimistic transaction thread on the fly so we can deep-link to a single expense.
-                if (!threadReportID) {
-                    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-                    const optimisticThread = createTransactionThreadReport({
-                        introSelected,
-                        currentUserLogin: currentUserEmail,
-                        currentUserAccountID,
-                        betas,
-                        iouReport,
-                        iouReportAction: iouAction,
-                        transaction,
-                    });
-                    threadReportID = optimisticThread?.reportID;
-                } else {
-                    setOptimisticTransactionThread(threadReportID, iouReport?.reportID, iouAction?.reportActionID, iouReport?.policyID);
+            console.log('[growl-view] View clicked – resolving thread', {
+                providedTransactionThreadReportID,
+                iouActionExists: !!iouAction,
+                iouActionReportActionID: iouAction?.reportActionID,
+                iouActionChildReportID: iouAction?.childReportID,
+                iouActionPendingAction: iouAction?.pendingAction,
+                iouReportExists: !!iouReport,
+                iouReportID: iouReport?.reportID,
+                iouReportPolicyID: iouReport?.policyID,
+                resolvedThreadReportID: threadReportID,
+            });
+
+            // Mirrors MoneyRequestReportTransactionList.navigateToTransaction: if no childReportID exists yet
+            // (shouldGenerateTransactionThreadReport=false in useExpenseSubmission), build the optimistic
+            // thread on the fly. createTransactionThreadReport internally calls openReport with the proper
+            // newReportObject/participants/parent links, which is what prevents the BE auth error when
+            // ReportScreen subsequently fetches the thread.
+            if (!threadReportID) {
+                const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+                console.log('[growl-view] no childReportID – creating optimistic thread', {
+                    transactionExists: !!transaction,
+                    transactionPendingAction: transaction?.pendingAction,
+                    transactionErrors: transaction?.errors,
+                    transactionReportID: transaction?.reportID,
+                    introSelectedExists: !!introSelected,
+                    betasCount: betas?.length,
+                });
+                const optimisticThread = createTransactionThreadReport({
+                    introSelected,
+                    currentUserLogin: currentUserEmail,
+                    currentUserAccountID,
+                    betas,
+                    iouReport,
+                    iouReportAction: iouAction,
+                    transaction,
+                });
+                threadReportID = optimisticThread?.reportID;
+                console.log('[growl-view] createTransactionThreadReport result', {
+                    optimisticThreadExists: !!optimisticThread,
+                    optimisticThreadReportID: optimisticThread?.reportID,
+                    optimisticThreadParentReportID: optimisticThread?.parentReportID,
+                    optimisticThreadParentReportActionID: optimisticThread?.parentReportActionID,
+                    optimisticThreadType: optimisticThread?.type,
+                    optimisticThreadChatType: optimisticThread?.chatType,
+                });
+            } else {
+                console.log('[growl-view] childReportID exists – calling setOptimisticTransactionThread', {threadReportID});
+                setOptimisticTransactionThread(threadReportID, iouReport?.reportID, iouAction?.reportActionID, iouReport?.policyID);
+            }
+
+            if (!threadReportID) {
+                console.log('[growl-view] BAILING – no threadReportID after fallback');
+                Log.warn('[Growl View] Unable to resolve transaction thread reportID; skipping nav.');
+                return;
+            }
+
+            // Capture the originating route BEFORE swapping the full-screen to Search so the RHP back arrow
+            // returns the user to where they tapped "View" from (matches MoneyRequestReportTransactionList.navigateToTransaction).
+            const backTo = Navigation.getActiveRoute();
+            console.log('[growl-view] before SEARCH_ROOT swap', {backTo, threadReportID});
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryStringForGrowl}), {forceReplace: true});
+
+            // Defer the RHP push until after the full-screen swap settles, matching navigateToTransaction's ordering.
+            setActiveTransactionIDs([transactionID]).then(() => {
+                const targetRoute = ROUTES.SEARCH_REPORT.getRoute({
+                    reportID: threadReportID ?? '',
+                    backTo,
+                });
+                console.log('[growl-view] setActiveTransactionIDs resolved – navigating to RHP', {
+                    targetRoute,
+                    threadReportID,
+                });
+                requestAnimationFrame(() => {
+                    console.log('[growl-view] rAF fired – calling Navigation.navigate', {targetRoute});
+                    Navigation.navigate(targetRoute);
+                });
+            });
+        };
+
+        // Wait for the backend success callback (transaction.pendingAction === null) before swapping the
+        // loading growl to the "View" affordance. Bail after a safety timeout so we never hang forever.
+        let resolved = false;
+        const connectionId = Onyx.connectWithoutView({
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            callback: (transaction) => {
+                if (resolved || !transaction) {
+                    console.log('[growl-view] transaction onyx callback ignored', {resolved, transactionExists: !!transaction});
+                    return;
                 }
+                const hasErrors = !!transaction.errors && Object.keys(transaction.errors).length > 0;
+                const isConfirmed = transaction.pendingAction === null || transaction.pendingAction === undefined;
 
-                if (threadReportID) {
-                    Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID}));
-                } else if (activeReportID) {
-                    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: activeReportID}));
+                console.log('[growl-view] transaction onyx callback', {
+                    transactionID,
+                    pendingAction: transaction.pendingAction,
+                    hasErrors,
+                    errors: transaction.errors,
+                    isConfirmed,
+                    reportID: transaction.reportID,
+                });
+
+                if (hasErrors) {
+                    resolved = true;
+                    Onyx.disconnect(connectionId);
+                    console.log('[growl-view] showing ERROR growl');
+                    Growl.error('Failed to add expense', CONST.GROWL.DURATION_LONG);
+                    return;
+                }
+                if (isConfirmed) {
+                    resolved = true;
+                    Onyx.disconnect(connectionId);
+                    console.log('[growl-view] BE confirmed – swapping to SUCCESS growl with View action');
+                    Growl.success('Expense added', 6000, {label: 'View', onPress: navigateToExpenseRHP});
                 }
             },
         });
+
+        setTimeout(() => {
+            if (resolved) {
+                return;
+            }
+            resolved = true;
+            Onyx.disconnect(connectionId);
+            console.log('[growl-view] TIMEOUT – BE never confirmed, showing SUCCESS growl anyway');
+            // Backend never confirmed - still let the user navigate using the optimistic thread.
+            Growl.success('Expense added', 6000, {label: 'View', onPress: navigateToExpenseRHP});
+        }, 30000);
+
         return;
     }
 
