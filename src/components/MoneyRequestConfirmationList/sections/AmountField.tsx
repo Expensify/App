@@ -8,7 +8,6 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearMoneyRequestAmount, getMoneyRequestParticipantsFromReport, setMoneyRequestAmount} from '@libs/actions/IOU/MoneyRequest';
 import {convertToBackendAmount, convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
@@ -85,7 +84,6 @@ function AmountField({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const amountInputRef = useRef<BaseTextInputRef | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
 
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
 
@@ -113,16 +111,15 @@ function AmountField({
     const allowNegative = shouldEnableNegative(report, policy, iouType, transaction?.participants);
 
     // `autoFocus` on our TextInput only runs on mount. Closing and reopening the RHP often keeps the same mounted
-    // instance, so autofocus does not run again. After `ScreenWrapper` finishes its entry transition the field is
-    // reliably focusable. We also re-focus when the parent-owned participant picker closes (visible → hidden), so
-    // the amount input gains focus once the user selects a participant in the new manual expense flow.
+    // instance, so autofocus does not run again. We re-focus when the parent-owned participant picker closes
+    // (visible → hidden) so the amount input gains focus once the user selects a participant in the new manual
+    // expense flow. The setTimeout defers focus past the RHP entry / picker close animation so the input reliably
+    // receives focus.
     useEffect(() => {
-        if (!didScreenTransitionEnd || !autoFocus || isAmountFieldDisabled || !isNewManualExpenseFlowEnabled || isParticipantPickerVisible) {
+        if (!autoFocus || isAmountFieldDisabled || !isNewManualExpenseFlowEnabled || isParticipantPickerVisible) {
             return;
         }
 
-        // Delay focus until the picker's close animation finishes — focusing while the modal is still
-        // animating away does not reliably land focus on the amount input.
         focusTimeoutRef.current = setTimeout(() => amountInputRef.current?.focus(), CONST.ANIMATED_TRANSITION);
 
         return () => {
@@ -131,7 +128,7 @@ function AmountField({
             }
             clearTimeout(focusTimeoutRef.current);
         };
-    }, [didScreenTransitionEnd, autoFocus, isAmountFieldDisabled, isNewManualExpenseFlowEnabled, isParticipantPickerVisible]);
+    }, [autoFocus, isAmountFieldDisabled, isNewManualExpenseFlowEnabled, isParticipantPickerVisible]);
 
     const showCurrencyPicker = () => {
         setIsCurrencyPickerVisible(true);
