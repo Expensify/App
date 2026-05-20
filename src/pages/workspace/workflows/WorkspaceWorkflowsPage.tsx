@@ -3,8 +3,10 @@ import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
 import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
+import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
 import type {BankName} from '@components/Icon/BankIconsUtils';
@@ -13,6 +15,7 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import RenderHTML from '@components/RenderHTML';
 import SearchBar from '@components/SearchBar';
 import Section from '@components/Section';
@@ -42,6 +45,7 @@ import {
     setWorkspaceAutoHarvesting,
     setWorkspaceReimbursement,
 } from '@libs/actions/Policy/Policy';
+import {dismissProductTraining} from '@libs/actions/Welcome';
 import {setApprovalWorkflow} from '@libs/actions/Workflow';
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import {getAllCardsForWorkspace, isSmartLimitEnabled as isSmartLimitEnabledUtil} from '@libs/CardUtils';
@@ -71,6 +75,7 @@ import ExpenseReportRulesSection from '@pages/workspace/rules/ExpenseReportRules
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
+import variables from '@styles/variables';
 import {pressLockedBankAccount} from '@userActions/BankAccounts';
 import {getPaymentMethods} from '@userActions/PaymentMethods';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
@@ -80,12 +85,15 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
+import type DismissedProductTraining from '@src/types/onyx/DismissedProductTraining';
 import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
 import {getAutoReportingFrequencyDisplayNames} from './WorkspaceAutoReportingFrequencyPage';
 
 type WorkspaceWorkflowsPageProps = WithPolicyProps & PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
+
+const agentsWorkflowsBannerDismissedSelector = (value: OnyxEntry<DismissedProductTraining>): boolean => !!value?.[CONST.AGENTS_WORKFLOWS_BANNER];
 
 function WorkflowNoResultsView({message, shouldShow, searchValue}: {message: string; shouldShow: boolean; searchValue: string}) {
     const styles = useThemeStyles();
@@ -113,8 +121,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const illustrations = useMemoizedLazyIllustrations(['Workflows']);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Info', 'Plus']);
+    const illustrations = useMemoizedLazyIllustrations(['Workflows', 'AiBot']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Close', 'DotIndicator', 'Info', 'Plus']);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply a correct padding style
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
@@ -126,6 +134,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {isBetaEnabled} = usePermissions();
     const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
+    const isCustomAgentBetaEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
+    const [isAgentsWorkflowsBannerDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: agentsWorkflowsBannerDismissedSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds);
     const {showConfirmModal} = useConfirmModal();
@@ -431,6 +441,50 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 </View>
                             </View>
                         )}
+                        {isCustomAgentBetaEnabled && !isAgentsWorkflowsBannerDismissed && (
+                            <View
+                                style={[
+                                    styles.flexRow,
+                                    styles.alignItemsCenter,
+                                    styles.gap4,
+                                    styles.ph5,
+                                    styles.pv4,
+                                    styles.borderRadiusComponentLarge,
+                                    styles.mt6,
+                                    styles.mb0,
+                                    styles.agentsPromoBannerBackgroundColor,
+                                ]}
+                            >
+                                <Icon
+                                    src={illustrations.AiBot}
+                                    width={variables.iconSizeAgentsPromoBanner}
+                                    height={variables.iconSizeAgentsPromoBanner}
+                                />
+                                <View style={[styles.flex1, styles.gap1]}>
+                                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                        <Text style={[styles.textStrong, styles.agentsPromoBannerText]}>{translate('workflowsPage.automateApprovalsWithAgentsTitle')}</Text>
+                                        <Badge
+                                            success
+                                            isStrong
+                                            isCondensed
+                                            text={translate('common.new')}
+                                        />
+                                    </View>
+                                    <Text style={[styles.textLabel, styles.agentsPromoBannerText]}>{translate('workflowsPage.automateApprovalsWithAgentsSubtitle')}</Text>
+                                </View>
+                                <PressableWithoutFeedback
+                                    onPress={() => dismissProductTraining(CONST.AGENTS_WORKFLOWS_BANNER, true)}
+                                    role={CONST.ROLE.BUTTON}
+                                    accessibilityLabel={translate('common.dismiss')}
+                                    sentryLabel="AgentsWorkflowsBanner-Dismiss"
+                                >
+                                    <Icon
+                                        src={expensifyIcons.Close}
+                                        fill={theme.iconColorfulBackground}
+                                    />
+                                </PressableWithoutFeedback>
+                            </View>
+                        )}
                         {filteredApprovalWorkflows.length > CONST.SEARCH_BAR_THRESHOLD && (
                             <SearchBar
                                 label={translate('workflowsPage.findWorkflow')}
@@ -666,7 +720,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         expensifyIcons.Info,
         expensifyIcons.Plus,
         expensifyIcons.DotIndicator,
+        expensifyIcons.Close,
+        illustrations.AiBot,
+        isCustomAgentBetaEnabled,
+        isAgentsWorkflowsBannerDismissed,
         theme.textSupporting,
+        theme.iconColorfulBackground,
         accountManagerReportID,
         filteredApprovalWorkflows.length,
         workflowSearchInput,

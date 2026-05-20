@@ -2981,6 +2981,14 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.trialBannerBackgroundColor,
         },
 
+        agentsPromoBannerBackgroundColor: {
+            backgroundColor: colors.green600,
+        },
+
+        agentsPromoBannerText: {
+            color: theme.textColorfulBackground,
+        },
+
         unreadIndicatorContainer: {
             position: 'absolute',
             top: -10,

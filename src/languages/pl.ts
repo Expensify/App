@@ -2557,6 +2557,8 @@ ${amount} dla ${merchant} - ${date}`,
         addApprovalTip: 'Domyślny proces pracy ma zastosowanie do wszystkich członków, chyba że istnieje bardziej szczegółowy proces pracy.',
         approver: 'Osoba zatwierdzająca',
         addApprovalsDescription: 'Wymagaj dodatkowej akceptacji przed autoryzacją płatności.',
+        automateApprovalsWithAgentsTitle: 'Automatyzuj akceptacje z agentami',
+        automateApprovalsWithAgentsSubtitle: 'Dodaj agenta do poniższego procesu, aby zautomatyzować akceptacje.',
         makeOrTrackPaymentsTitle: 'Płatności',
         makeOrTrackPaymentsDescription: 'Dodaj upoważnionego płatnika dla płatności dokonywanych w Expensify lub śledź płatności wykonywane gdzie indziej.',
         customApprovalWorkflowEnabled:

@@ -2488,6 +2488,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         addApprovalTip: '除非存在更具体的工作流程，否则此默认工作流程适用于所有成员。',
         approver: '审批人',
         addApprovalsDescription: '在付款前需要额外审批。',
+        automateApprovalsWithAgentsTitle: '使用代理自动化审批',
+        automateApprovalsWithAgentsSubtitle: '在下面的工作流中添加代理以自动化审批。',
         makeOrTrackPaymentsTitle: '付款',
         makeOrTrackPaymentsDescription: '为在 Expensify 中进行的付款添加授权付款人，或跟踪在其他地方进行的付款。',
         customApprovalWorkflowEnabled:
