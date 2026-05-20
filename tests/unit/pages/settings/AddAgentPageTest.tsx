@@ -1,7 +1,10 @@
 import {render} from '@testing-library/react-native';
 import React from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import Navigation from '@libs/Navigation/Navigation';
 import AddAgentPage from '@pages/settings/Agents/AddAgentPage';
+import {setInitialPresetID, setNavigationToken} from '@pages/settings/Agents/pendingAgentAvatarStore';
+import ROUTES from '@src/ROUTES';
 
 jest.mock('@userActions/Agent', () => ({
     createAgent: jest.fn(),
@@ -29,11 +32,14 @@ jest.mock('@hooks/useThemeStyles', () =>
 
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyIllustrations: jest.fn(() => ({AiBot: 1})),
-    useMemoizedLazyExpensifyIcons: jest.fn(() => ({Sync: 1})),
+    useMemoizedLazyExpensifyIcons: jest.fn(() => ({Pencil: 1})),
 }));
+
+jest.mock('@hooks/useOnyx', () => jest.fn(() => [undefined, {status: 'loaded'}]));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
+    navigate: jest.fn(),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -44,6 +50,7 @@ jest.mock('@react-navigation/native', () => {
         ...actual,
         useIsFocused: () => true,
         useRoute: jest.fn(() => ({name: '', key: '', params: {}})),
+        useFocusEffect: jest.fn(),
     };
 });
 
@@ -75,19 +82,33 @@ jest.mock('@components/Form/InputWrapper', () => {
     return MockInputWrapper;
 });
 
+let mockAvatarOnPress: (() => void) | undefined;
+
 jest.mock('@components/AvatarButtonWithIcon', () => {
-    function MockAvatarButtonWithIcon() {
+    function MockAvatarButtonWithIcon({onPress}: {onPress?: () => void}) {
+        mockAvatarOnPress = onPress;
         return null;
     }
     return MockAvatarButtonWithIcon;
 });
 
+jest.mock('@pages/settings/Agents/pendingAgentAvatarStore', () => ({
+    setInitialPresetID: jest.fn(),
+    setNavigationToken: jest.fn(),
+    getPendingAvatar: jest.fn(() => null),
+    clearPendingAvatar: jest.fn(),
+}));
+
+const mockSetInitialPresetID = jest.mocked(setInitialPresetID);
+const mockSetNavigationToken = jest.mocked(setNavigationToken);
+const mockNavigate = jest.mocked(Navigation.navigate);
 const mockUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDetails);
 
 describe('AddAgentPage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: 0});
+        mockAvatarOnPress = undefined;
     });
 
     it('renders page title', () => {
@@ -131,5 +152,22 @@ describe('AddAgentPage', () => {
         const {toJSON} = render(<AddAgentPage />);
 
         expect(JSON.stringify(toJSON())).toContain('prompt::addAgentPage.defaultPrompt');
+    });
+
+    it('navigates to add avatar route when avatar button is pressed', () => {
+        render(<AddAgentPage />);
+
+        mockAvatarOnPress?.();
+
+        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_AGENTS_ADD_AVATAR);
+    });
+
+    it('sets navigation token and initial preset ID when avatar button is pressed', () => {
+        render(<AddAgentPage />);
+
+        mockAvatarOnPress?.();
+
+        expect(mockSetNavigationToken).toHaveBeenCalledTimes(1);
+        expect(mockSetInitialPresetID).toHaveBeenCalledTimes(1);
     });
 });

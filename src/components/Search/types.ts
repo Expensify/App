@@ -150,7 +150,6 @@ type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
 type SearchDatePreset = ValueOf<typeof CONST.SEARCH.DATE_PRESETS>;
 type SearchWithdrawalType = ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>;
 type SearchWithdrawalStatus = Array<ValueOf<typeof CONST.SEARCH.SETTLEMENT_STATUS>>;
-type SearchAction = ValueOf<typeof CONST.SEARCH.ACTION_FILTERS>;
 type SyntaxFilterKey = ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>;
 
 type SearchCustomColumnIds =
@@ -181,6 +180,9 @@ type SearchContextData = {
     isOnSearch: boolean;
     shouldTurnOffSelectionMode: boolean;
     shouldResetSearchQuery: boolean;
+    sortedReportIDs: ReadonlyArray<string | undefined>;
+    /** True when at least one transaction is selected. */
+    hasSelectedTransactions: boolean;
 };
 
 type SearchStateContextValue = SearchContextData & {
@@ -211,6 +213,7 @@ type SearchActionsContextValue = {
     setShouldShowSelectAllMatchingItems: (shouldShow: boolean) => void;
     selectAllMatchingItems: (on: boolean) => void;
     setShouldResetSearchQuery: (shouldReset: boolean) => void;
+    setSortedReportIDs: (ids: ReadonlyArray<string | undefined>) => void;
 };
 
 type ASTNode = {
@@ -257,7 +260,6 @@ type SearchDateFilterKeys =
 type SearchDateKey = `${SearchDateFilterKeys}${ValueOf<typeof CONST.SEARCH.DATE_MODIFIERS>}` | ReportFieldDateKey;
 
 type SearchAmountFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT;
-type SearchAmountValues = Record<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS>, string | undefined>;
 
 type SearchCurrencyFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY
@@ -391,7 +393,6 @@ export type {
     SearchDateFilterKeys,
     SearchDateKey,
     SearchAmountFilterKeys,
-    SearchAmountValues,
     SearchStatus,
     SearchQueryJSON,
     SearchQueryString,
@@ -407,14 +408,9 @@ export type {
     QueryFilter,
     QueryFilters,
     SyntaxFilterKey,
-    RawFilterKey,
     RawQueryFilter,
     SearchFilterKey,
     UserFriendlyKey,
-    ExpenseSearchStatus,
-    InvoiceSearchStatus,
-    TripSearchStatus,
-    TaskSearchStatus,
     SearchAutocompleteResult,
     PaymentData,
     BulkPaySelectionData,
@@ -428,7 +424,6 @@ export type {
     SearchDatePreset,
     SearchWithdrawalType,
     SearchWithdrawalStatus,
-    SearchAction,
     SearchCurrencyFilterKeys,
     UserFriendlyValue,
     SelectedReports,

@@ -51,9 +51,16 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
 
     const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(isComposerFullSize);
     const [isMenuVisible, setMenuVisibility] = useState(false);
-    const [text, setText] = useState(() => {
+    const getInitialText = () => {
         return draftComment ?? '';
-    });
+    };
+    const textRef = useRef<string>(getInitialText());
+    const [text, setTextState] = useState(getInitialText);
+
+    const setText = (v: string) => {
+        setTextState(v);
+        textRef.current = v;
+    };
 
     const containerRef = useRef<View>(null);
     const suggestionsRef = useRef<SuggestionsRef>(null);
@@ -63,9 +70,9 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
 
     const {editingState, editingReportID, editingReportActionID, editingReportAction, editingMessage, currentEditMessageSelection} = useReportActionActiveEdit();
 
-    const [didResetComposerHeight, setDidResetComposerHeight] = useState(false);
+    const [didResetComposerHeightWhileEditing, setDidResetComposerHeightWhileEditing] = useState(false);
 
-    const isEditingInComposer = shouldUseNarrowLayout && editingState !== 'off' && !didResetComposerHeight;
+    const isEditingInComposer = shouldUseNarrowLayout && editingState !== 'off' && !didResetComposerHeightWhileEditing;
     const effectiveDraft = isEditingInComposer ? editingMessage : draftComment;
 
     const {debouncedCommentMaxLengthValidation, exceededMaxLength, isExceedingMaxLength, isTaskTitle} = useDebouncedCommentMaxLengthValidation({
@@ -111,8 +118,6 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
         isFocused,
         isMenuVisible,
         isFullComposerAvailable,
-        didResetComposerHeight,
-        draftComment,
     };
 
     const composerEditState = {
@@ -122,8 +127,10 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
         editingReportActionID,
         editingReportAction,
         editingMessage,
+        draftComment,
         effectiveDraft,
         currentEditMessageSelection,
+        didResetComposerHeightWhileEditing,
     };
 
     const composerSendState = {
@@ -146,12 +153,12 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
         onItemSelected,
         onTriggerAttachmentPicker,
         clearComposer,
-        setDidResetComposerHeight,
     };
 
     const composerEditActions = {
         publishDraft,
         deleteDraft,
+        setDidResetComposerHeightWhileEditing,
     };
 
     const composerMeta = {
@@ -161,6 +168,7 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
         actionButtonRef,
         isNextModalWillOpenRef,
         attachmentFileRef,
+        textRef,
     };
 
     return (
@@ -181,4 +189,3 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
 }
 
 export default ComposerProvider;
-export type {ComposerProviderProps};
