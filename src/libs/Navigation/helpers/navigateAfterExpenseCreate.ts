@@ -1,8 +1,8 @@
 /* eslint-disable no-console -- temporary debug instrumentation for [growl-view] POC */
 import Onyx from 'react-native-onyx';
+import {addPendingNewTransactionIDs} from '@libs/actions/IOU/PendingNewTransactions';
 import {createTransactionThreadReport, setOptimisticTransactionThread} from '@libs/actions/Report';
 import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
-import {addPendingNewTransactionIDs} from '@libs/actions/IOU/PendingNewTransactions';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Growl from '@libs/Growl';
 import Log from '@libs/Log';
@@ -84,20 +84,18 @@ type NavigateAfterExpenseCreateParams = {
  * - If it is created elsewhere, it will navigate to Reports > Expense and highlight the newly created expense.
  */
 function navigateAfterExpenseCreate({
-    
     activeReportID,
-   
+
     iouReportID,
     transactionID,
     transactionThreadReportID: providedTransactionThreadReportID,
-   
+
     isFromGlobalCreate,
-   
+
     isInvoice,
-   
+
     hasMultipleTransactions,
     shouldAddPendingNewTransactionIDs = false,
-,
 }: NavigateAfterExpenseCreateParams) {
     const isUserOnInbox = isReportTopmostSplitNavigator();
     const isUserOnSpend = isSearchTopmostFullScreenRoute();

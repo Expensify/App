@@ -2157,15 +2157,13 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         const navigationActiveReportID = backToReport ?? activeReportID;
         highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, parameters.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
         handleNavigateAfterExpenseCreate({
-            
             activeReportID: navigationActiveReportID,
-           
+
             iouReportID: parameters.iouReportID,
             isFromGlobalCreate,
-           
+
             transactionID: parameters.transactionID,
             transactionThreadReportID: parameters.transactionThreadReportID,
-        ,
             shouldAddPendingNewTransactionIDs: navigationActiveReportID === parameters.chatReportID,
         });
     }
