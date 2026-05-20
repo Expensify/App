@@ -408,6 +408,7 @@ function BaseReportActionContextMenu({
                                 policyTags,
                                 translate,
                                 harvestReport,
+                                harvestReportOriginalID: reportNameValuePairs?.originalID,
                                 introSelected,
                                 isSelfTourViewed,
                                 betas,
