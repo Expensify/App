@@ -164,7 +164,7 @@ const SCREENS = {
             ADDRESS: 'Settings_Address',
             AVATAR: 'Settings_Avatar',
             DYNAMIC_ADDRESS_COUNTRY: 'Dynamic_Address_Country',
-            ADDRESS_STATE: 'Settings_Address_State',
+            DYNAMIC_ADDRESS_STATE: 'Dynamic_Address_State',
         },
 
         PREFERENCES: {

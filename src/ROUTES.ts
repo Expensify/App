@@ -356,6 +356,19 @@ const DYNAMIC_ROUTES = {
         getRoute: (country = '') => `country?country=${country}`,
         queryParams: ['country'],
     },
+    ADDRESS_STATE: {
+        path: 'state',
+        entryScreens: [
+            SCREENS.SETTINGS.PROFILE.ADDRESS,
+            SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS,
+            SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS,
+            SCREENS.DOMAIN_CARD.DOMAIN_CARD_UPDATE_ADDRESS,
+            SCREENS.TRAVEL.WORKSPACE_ADDRESS,
+            SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT,
+        ],
+        getRoute: (state = '', label = '') => getUrlWithParams('state', {state, label}),
+        queryParams: ['state', 'label'],
+    },
     SETTINGS_CATEGORY_EDIT: {
         path: 'category-edit',
         entryScreens: [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS],
@@ -1113,16 +1126,6 @@ const ROUTES = {
     SETTINGS_DATE_OF_BIRTH: 'settings/profile/date-of-birth',
     SETTINGS_PHONE_NUMBER: 'settings/profile/phone',
     SETTINGS_ADDRESS: 'settings/profile/address',
-    SETTINGS_ADDRESS_STATE: {
-        route: 'settings/profile/address/state',
-
-        getRoute: (state?: string, backTo?: string, label?: string) =>
-            `${getUrlWithBackToParam(`settings/profile/address/state${state ? `?state=${encodeURIComponent(state)}` : ''}`, backTo)}${
-                // the label param can be an empty string so we cannot use a nullish ?? operator
-
-                label ? `${backTo || state ? '&' : '?'}label=${encodeURIComponent(label)}` : ''
-            }` as const,
-    },
     SETTINGS_CONTACT_METHODS: {
         route: 'settings/profile/contact-methods',
 

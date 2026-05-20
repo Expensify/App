@@ -511,10 +511,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             exact: true,
                         },
                         [SCREENS.SETTINGS.PROFILE.DYNAMIC_ADDRESS_COUNTRY]: DYNAMIC_ROUTES.ADDRESS_COUNTRY.path,
-                        [SCREENS.SETTINGS.PROFILE.ADDRESS_STATE]: {
-                            path: ROUTES.SETTINGS_ADDRESS_STATE.route,
-                            exact: true,
-                        },
+                        [SCREENS.SETTINGS.PROFILE.DYNAMIC_ADDRESS_STATE]: DYNAMIC_ROUTES.ADDRESS_STATE.path,
                         [SCREENS.SETTINGS.DELEGATE.VERIFY_ACCOUNT]: {
                             path: ROUTES.SETTINGS_DELEGATE_VERIFY_ACCOUNT,
                             exact: true,
