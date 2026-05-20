@@ -657,12 +657,17 @@ function getGuideAndAccountManagerInfo(
 }
 
 /**
- * Build a soft-exclusion map of every hydrated personal-details login that is NOT a member of
- * any of the user's policies' employeeList. Used by the search filters so the picker shows only
- * workspace members. Free-text input via `includeUserToInvite: true` still lets users type any
- * email manually.
+ * Build a soft-exclusion map for the search filters. Hides two groups:
+ *   1. Logins not present in any of the user's policies' employeeList (non workspace members).
+ *   2. Expensify-team logins (@expensify.com / @team.expensify.com), to catch current and former
+ *      Account Managers / Guides who are added to customer workspaces with role:admin. Skipped
+ *      when the current user is themselves on the Expensify team so they still see colleagues.
+ *      Same carveout as WorkspaceMembersPage.
+ * Free text input via includeUserToInvite still lets users select any email manually.
  */
 function getNonWorkspaceMemberExclusions(personalDetails: OnyxEntry<PersonalDetailsList>, policies: OnyxCollection<Policy>, currentUserLogin: string | undefined): Record<string, boolean> {
+    const currentUserIsExpensifyTeam = !!currentUserLogin && isExpensifyTeam(currentUserLogin);
+
     const workspaceMemberLogins = new Set<string>();
     if (currentUserLogin) {
         workspaceMemberLogins.add(currentUserLogin.toLowerCase());
@@ -679,10 +684,16 @@ function getNonWorkspaceMemberExclusions(personalDetails: OnyxEntry<PersonalDeta
     const exclusion: Record<string, boolean> = {};
     for (const details of Object.values(personalDetails ?? {})) {
         const login = details?.login?.toLowerCase();
-        if (!login || workspaceMemberLogins.has(login)) {
+        if (!login) {
             continue;
         }
-        exclusion[login] = true;
+        if (!workspaceMemberLogins.has(login)) {
+            exclusion[login] = true;
+            continue;
+        }
+        if (!currentUserIsExpensifyTeam && isExpensifyTeam(login)) {
+            exclusion[login] = true;
+        }
     }
     return exclusion;
 }
