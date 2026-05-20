@@ -926,18 +926,23 @@ const CONST = {
         WALLET: 'WALLET',
     },
     COUNTRY: {
-        US: 'US',
-        MX: 'MX',
+        AS: 'AS',
         AU: 'AU',
         CA: 'CA',
+        FI: 'FI',
+        FR: 'FR',
         GB: 'GB',
         GI: 'GI',
-        IT: 'IT',
-        PR: 'PR',
         GU: 'GU',
-        VI: 'VI',
-        AS: 'AS',
+        IE: 'IE',
+        IL: 'IL',
+        IS: 'IS',
+        IT: 'IT',
         MP: 'MP',
+        MX: 'MX',
+        PR: 'PR',
+        US: 'US',
+        VI: 'VI',
     },
     SWIPE_DIRECTION: {
         DOWN: 'down',
@@ -4162,6 +4167,12 @@ const CONST = {
         NAME: 'expensifyCard',
         BANK: 'Expensify Card',
         ROUTE: 'expensify-card',
+        // Countries where the most terminals are "offline," so users must
+        // change their PIN at an ATM rather than via the in-app online flow.
+        // - Offline-only: GB, IE
+        // - Mostly offline: FR
+        // - Many offline terminals: FI, IL, IS
+        OFFLINE_PIN_MARKETS: ['GB', 'IE', 'FR', 'FI', 'IL', 'IS'] as string[],
         CARD_PROGRAM: {
             CURRENT: 'CURRENT',
         },
@@ -6901,6 +6912,9 @@ const CONST = {
 
     // We need to store this server side error in order to not show the blocking screen when the error is for invalid code
     MERGE_ACCOUNT_INVALID_CODE_ERROR: '401 Not authorized - Invalid validateCode',
+
+    // Returned when a user tries to add a work email tied to a closed work account, so we can show a specific error message instead of the generic blocking screen subtitle
+    WORK_ACCOUNT_CLOSED_ERROR: '401 work account is closed',
     REIMBURSEMENT_ACCOUNT: {
         DEFAULT_DATA: {
             achData: {

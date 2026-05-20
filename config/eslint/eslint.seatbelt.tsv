@@ -651,7 +651,6 @@
 "../../src/pages/workspace/expensifyCard/WorkspaceEditCardLimitPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/workspace/expensifyCard/WorkspaceEditCardLimitTypePage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/workspace/expensifyCard/WorkspaceExpensifyCardDetailsPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	2
-"../../src/pages/workspace/hr/WorkspaceHRPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/workspace/hr/gusto/GustoApprovalModePage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/workspace/members/ImportMembersPage.tsx"	"no-restricted-syntax"	1
 "../../src/pages/workspace/members/ImportMembersPage.tsx"	"rulesdir/no-default-id-values"	1
