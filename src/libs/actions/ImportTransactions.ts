@@ -14,7 +14,7 @@ import type ImportedSpreadsheet from '@src/types/onyx/ImportedSpreadsheet';
 import type {ImportFinalModal, ImportTransactionSettings} from '@src/types/onyx/ImportedSpreadsheet';
 import type {SavedCSVColumnLayoutData} from '@src/types/onyx/SavedCSVColumnLayout';
 import type Transaction from '@src/types/onyx/Transaction';
-import {getImportFailedFinalModal} from './ImportSpreadsheet';
+import {getImportFailedFinalModal, getImportFinalModalID, getImportFinalModalOnyxData, waitForImportFinalModal} from './ImportSpreadsheet';
 
 type TransactionFromCSV = {
     transactionID: string;
@@ -356,8 +356,19 @@ async function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet, exist
         columnMappings: JSON.stringify(columnLayout),
     };
 
+    const importFinalModal: ImportFinalModal = {
+        titleKey: 'spreadsheet.importSuccessfulTitle',
+        promptKey: 'spreadsheet.importTransactionsSuccessfulDescription',
+        promptKeyParams: {transactions: transactionList.length},
+    };
+    const importFinalModalID = getImportFinalModalID();
+    const importFinalModalResult = waitForImportFinalModal(importFinalModalID);
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.CARD_LIST | typeof ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST>> = [];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.CARD_LIST | typeof ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST>> = [];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IMPORTED_SPREADSHEET>> = [getImportFinalModalOnyxData(importFinalModalID, importFinalModal)];
+    const failureData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.CARD_LIST | typeof ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST | typeof ONYXKEYS.IMPORTED_SPREADSHEET>
+    > = [getImportFinalModalOnyxData(importFinalModalID, getImportFailedFinalModal())];
 
     // Only add card to optimistic data if we're creating a new card
     if (!isAddingToExistingCard && optimisticCard) {
@@ -417,18 +428,15 @@ async function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet, exist
         },
     });
 
-    const importFinalModal: ImportFinalModal = {
-        titleKey: 'spreadsheet.importSuccessfulTitle',
-        promptKey: 'spreadsheet.importTransactionsSuccessfulDescription',
-        promptKeyParams: {transactions: transactionList.length},
-    };
     try {
         await API.write(WRITE_COMMANDS.IMPORT_CSV_TRANSACTIONS, params, {
             optimisticData,
+            successData,
             failureData,
         });
-        return importFinalModal;
+        return await importFinalModalResult.promise;
     } catch {
+        importFinalModalResult.cancel();
         return getImportFailedFinalModal();
     }
 }

@@ -3,7 +3,7 @@ import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type PolicyData from '@hooks/usePolicyData/types';
-import {getImportFailedFinalModal} from '@libs/actions/ImportSpreadsheet';
+import {getImportFailedFinalModal, getImportFinalModalID, getImportFinalModalOnyxData, waitForImportFinalModal} from '@libs/actions/ImportSpreadsheet';
 import * as API from '@libs/API';
 import type {
     EnablePolicyTagsParams,
@@ -872,7 +872,9 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
         return Promise.resolve(getImportFailedFinalModal());
     }
 
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+    const importFinalModalID = getImportFinalModalID();
+    const importFinalModalResult = waitForImportFinalModal(importFinalModalID);
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.IMPORTED_SPREADSHEET> = {
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -881,6 +883,7 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
                     hasMultipleTagLists: true,
                 },
             },
+            getImportFinalModalOnyxData(importFinalModalID, getImportMultiLevelTagsFinalModal()),
         ],
         failureData: [
             {
@@ -890,6 +893,7 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
                     hasMultipleTagLists: false,
                 },
             },
+            getImportFinalModalOnyxData(importFinalModalID, getImportFailedFinalModal()),
         ],
     };
 
@@ -907,14 +911,15 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
                 };
 
                 API.write(WRITE_COMMANDS.IMPORT_MULTI_LEVEL_TAGS, parameters, onyxData)
-                    .then(() => {
-                        resolve(getImportMultiLevelTagsFinalModal());
-                    })
+                    .then(() => importFinalModalResult.promise)
+                    .then(resolve)
                     .catch(() => {
+                        importFinalModalResult.cancel();
                         resolve(getImportFailedFinalModal());
                     });
             },
             () => {
+                importFinalModalResult.cancel();
                 resolve(getImportFailedFinalModal());
             },
             spreadsheet.fileType ?? CONST.SHARE_FILE_MIMETYPE.CSV,

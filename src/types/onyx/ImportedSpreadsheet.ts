@@ -74,6 +74,12 @@ type ImportedSpreadsheet = {
 
     /** Settings for importing transactions from the spreadsheet */
     importTransactionSettings?: ImportTransactionSettings;
+
+    /** ID for matching an async import result modal to the request that produced it */
+    importFinalModalID?: string | null;
+
+    /** Modal to show after a queued import request finishes */
+    importFinalModal?: ImportFinalModalUnion | null;
 };
 
 export default ImportedSpreadsheet;

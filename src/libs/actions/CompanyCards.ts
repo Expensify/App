@@ -43,7 +43,7 @@ import type {
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type Transaction from '@src/types/onyx/Transaction';
-import {getImportFailedFinalModal} from './ImportSpreadsheet';
+import {getImportFailedFinalModal, getImportFinalModalID, getImportFinalModalOnyxData, waitForImportFinalModal} from './ImportSpreadsheet';
 
 type AddNewCompanyCardFlowData = {
     /** Step to be set in Onyx */
@@ -1161,14 +1161,19 @@ function importCSVCompanyCards({
         },
         pendingMessageKey: 'spreadsheet.importCompanyCardTransactionsPendingMessage',
     };
+    const importFinalModalID = getImportFinalModalID();
+    const importFinalModalResult = waitForImportFinalModal(importFinalModalID);
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER | typeof ONYXKEYS.COLLECTION.LAST_SELECTED_FEED>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`,
-            value: lastSelectedFeed ?? null,
-        },
-    ];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IMPORTED_SPREADSHEET>> = [getImportFinalModalOnyxData(importFinalModalID, importFinalModal)];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER | typeof ONYXKEYS.COLLECTION.LAST_SELECTED_FEED | typeof ONYXKEYS.IMPORTED_SPREADSHEET>> =
+        [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`,
+                value: lastSelectedFeed ?? null,
+            },
+            getImportFinalModalOnyxData(importFinalModalID, getImportFailedFinalModal()),
+        ];
 
     if (shouldCreateFeed || shouldSetNickname) {
         optimisticData.push({
@@ -1209,9 +1214,12 @@ function importCSVCompanyCards({
         });
     }
 
-    return API.write(WRITE_COMMANDS.IMPORT_CSV_COMPANY_CARDS, parameters, {optimisticData, failureData})
-        .then(() => importFinalModal)
-        .catch(() => getImportFailedFinalModal());
+    return API.write(WRITE_COMMANDS.IMPORT_CSV_COMPANY_CARDS, parameters, {optimisticData, successData, failureData})
+        .then(() => importFinalModalResult.promise)
+        .catch(() => {
+            importFinalModalResult.cancel();
+            return getImportFailedFinalModal();
+        });
 }
 
 /**
