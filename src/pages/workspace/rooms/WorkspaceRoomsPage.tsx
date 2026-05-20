@@ -37,12 +37,48 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Report} from '@src/types/onyx';
 
 type WorkspaceRoomsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.ROOMS>;
 
 type RoomListItem = ListItem & {
     reportID: string;
 };
+
+function RoomRightElement({report}: {report: Report}) {
+    const styles = useThemeStyles();
+    const personalDetails = usePersonalDetails();
+    const ownerDetails = report.ownerAccountID ? (personalDetails?.[report.ownerAccountID] ?? undefined) : undefined;
+    const ownerDisplayName = ownerDetails ? getDisplayNameOrDefault(ownerDetails) : '';
+    const memberCount = getParticipantsAccountIDsForDisplay(report, true, false, false, undefined, personalDetails).length;
+
+    return (
+        <>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.flex2]}>
+                {!!ownerDetails && (
+                    <>
+                        <Avatar
+                            source={ownerDetails.avatar}
+                            avatarID={ownerDetails.accountID}
+                            name={ownerDisplayName}
+                            type={CONST.ICON_TYPE_AVATAR}
+                            size={CONST.AVATAR_SIZE.SMALLER}
+                        />
+                        <Text
+                            numberOfLines={1}
+                            style={styles.flexShrink1}
+                        >
+                            {ownerDisplayName}
+                        </Text>
+                    </>
+                )}
+            </View>
+            <View style={styles.flex1}>
+                <Text>{memberCount}</Text>
+            </View>
+        </>
+    );
+}
 
 function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const {translate, localeCompare} = useLocalize();
@@ -57,7 +93,6 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const policy = usePolicy(policyID);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.rooms');
 
-    const personalDetails = usePersonalDetails();
     const reportAttributes = useReportAttributes();
     const archivedReportsIdSet = useArchivedReportsIdSet();
 
@@ -71,43 +106,12 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
 
     const data: RoomListItem[] = (policyReports ?? [])
         .filter((report) => !archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`) && !isHiddenForCurrentUser(report))
-        .map((report) => {
-            const ownerDetails = report.ownerAccountID ? (personalDetails?.[report.ownerAccountID] ?? undefined) : undefined;
-            const ownerDisplayName = ownerDetails ? getDisplayNameOrDefault(ownerDetails) : '';
-            const roomName = getReportName(report, reportAttributes);
-            const memberCount = getParticipantsAccountIDsForDisplay(report, true, false, false, undefined, personalDetails).length;
-            return {
-                keyForList: report.reportID,
-                text: roomName,
-                reportID: report.reportID,
-                rightElement: (
-                    <>
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.flex2]}>
-                            {!!ownerDetails && (
-                                <>
-                                    <Avatar
-                                        source={ownerDetails.avatar}
-                                        avatarID={ownerDetails.accountID}
-                                        name={ownerDisplayName}
-                                        type={CONST.ICON_TYPE_AVATAR}
-                                        size={CONST.AVATAR_SIZE.SMALLER}
-                                    />
-                                    <Text
-                                        numberOfLines={1}
-                                        style={styles.flexShrink1}
-                                    >
-                                        {ownerDisplayName}
-                                    </Text>
-                                </>
-                            )}
-                        </View>
-                        <View style={styles.flex1}>
-                            <Text>{memberCount}</Text>
-                        </View>
-                    </>
-                ),
-            };
-        })
+        .map((report) => ({
+            keyForList: report.reportID,
+            text: getReportName(report, reportAttributes),
+            reportID: report.reportID,
+            rightElement: <RoomRightElement report={report} />,
+        }))
         .sort((a, b) => localeCompare(a.text ?? '', b.text ?? ''));
 
     useFocusEffect(() => {
