@@ -201,6 +201,8 @@ describe('Support auth token login', () => {
     });
 
     beforeEach(() => {
+        jest.restoreAllMocks();
+
         jest.spyOn(Session, 'signInWithSupportAuthToken').mockImplementation((authToken: string) => {
             Onyx.merge(ONYXKEYS.CREDENTIALS, {
                 login: TEST_USER_LOGIN_1,
@@ -236,20 +238,32 @@ describe('Support auth token login', () => {
     });
 
     it('should not call signInWithSupportAuthToken twice when navigating from LogInWithShortLivedAuthTokenPage to LogOutPreviousUserPage', async () => {
-        expect(hasAuthToken()).toBe(false);
-
-        const url = getSupportAuthURL();
-        Linking.setInitialURL(url);
-        const {unmount} = render(<App />);
+        // First, sign in a user so the app is on AuthScreens
+        const {unmount: unmount1} = render(<App />);
+        await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID_2, TEST_USER_LOGIN_2, undefined, TEST_AUTH_TOKEN_2);
 
         await waitForBatchedUpdatesWithAct();
 
-        // signInWithSupportAuthToken is called by LogInWithShortLivedAuthTokenPage first.
-        // After sign-in succeeds, the app transitions to AuthScreens which renders LogOutPreviousUserPage.
-        // The dedup guard (getLastShortAuthToken()) should prevent LogOutPreviousUserPage from calling it again.
+        expect(hasAuthToken()).toBe(true);
+        expect(getCurrentUserEmail()).toBe(TEST_USER_LOGIN_2);
+        unmount1();
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Now set up the support auth token deep link and remount.
+        // With an existing session, the app renders AuthScreens (LogOutPreviousUserPage),
+        // and the deep link also triggers LogInWithShortLivedAuthTokenPage.
+        // Without the fix, both pages would call signInWithSupportAuthToken.
+        const url = getSupportAuthURL();
+        Linking.setInitialURL(url);
+        const {unmount: unmount2} = render(<App />);
+
+        await waitForBatchedUpdatesWithAct();
+
+        // The dedup guard (getLastShortAuthToken()) should ensure only one call happens.
         expect(Session.signInWithSupportAuthToken).toHaveBeenCalledTimes(1);
 
-        unmount();
+        unmount2();
         await waitForBatchedUpdatesWithAct();
     });
 });
