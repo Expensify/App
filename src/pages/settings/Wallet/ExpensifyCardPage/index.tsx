@@ -30,7 +30,7 @@ import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {freezeCard, simulateExpensifyCardDeclinedTransaction, unfreezeCard} from '@libs/actions/Card';
+import {freezeCard, unfreezeCard} from '@libs/actions/Card';
 import {resetValidateActionCodeSent} from '@libs/actions/User';
 import navigateToCardTransactions from '@libs/CardNavigationUtils';
 import {clearRevealedPIN, useRevealedPIN} from '@libs/CardPINStore';
