@@ -11703,12 +11703,6 @@ function prepareOnboardingOnyxData({
     const tasks = shouldUseFollowupsInsteadOfTasks ? [] : onboardingMessage.tasks;
     const tasksData = tasks
         .filter((task) => {
-            if (engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
-                if (!!selectedInterestedFeatures && TASK_TO_FEATURE[task.type] && !selectedInterestedFeatures.includes(TASK_TO_FEATURE[task.type])) {
-                    return false;
-                }
-            }
-
             if (([CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES, CONST.ONBOARDING_TASK_TYPE.SETUP_TAGS] as string[]).includes(task.type) && userReportedIntegration) {
                 return false;
             }
@@ -11716,28 +11710,6 @@ function prepareOnboardingOnyxData({
             if (([CONST.ONBOARDING_TASK_TYPE.ADD_ACCOUNTING_INTEGRATION, CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS] as string[]).includes(task.type) && !userReportedIntegration) {
                 return false;
             }
-            type SkipViewTourOnboardingChoices =
-                | typeof CONST.ONBOARDING_CHOICES.SUBMIT
-                | typeof CONST.ONBOARDING_CHOICES.CHAT_SPLIT
-                | typeof CONST.ONBOARDING_CHOICES.PERSONAL_SPEND
-                | typeof CONST.ONBOARDING_CHOICES.EMPLOYER
-                | typeof CONST.ONBOARDING_CHOICES.TRACK_PERSONAL
-                | typeof CONST.ONBOARDING_CHOICES.MANAGE_TEAM;
-            if (
-                task.type === CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR &&
-                [
-                    CONST.ONBOARDING_CHOICES.EMPLOYER,
-                    CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
-                    CONST.ONBOARDING_CHOICES.TRACK_PERSONAL,
-                    CONST.ONBOARDING_CHOICES.SUBMIT,
-                    CONST.ONBOARDING_CHOICES.CHAT_SPLIT,
-                    CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
-                ].includes(introSelected?.choice as SkipViewTourOnboardingChoices) &&
-                engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM
-            ) {
-                return false;
-            }
-
             // Exclude createWorkspace and viewTour tasks from #admin room, for test drive receivers,
             // since these users already have them in concierge
             if (
@@ -11763,8 +11735,7 @@ function prepareOnboardingOnyxData({
                 CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
                 targetChatType,
             );
-            const emailCreatingAction =
-                engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? (allPersonalDetails?.[actorAccountID]?.login ?? CONST.EMAIL.CONCIERGE) : CONST.EMAIL.CONCIERGE;
+            const emailCreatingAction = CONST.EMAIL.CONCIERGE;
             const taskCreatedAction = buildOptimisticCreatedReportAction({emailCreatingAction});
             const taskReportAction = buildOptimisticTaskCommentReportAction(currentTask.reportID, taskTitle, 0, `task for ${taskTitle}`, targetChatReportID, actorAccountID, index + 3);
             currentTask.parentReportActionID = taskReportAction.reportAction.reportActionID;
