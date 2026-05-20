@@ -2401,6 +2401,7 @@ function getValidOptions(
                     !report.isTaskReport &&
                     report.item?.chatType !== CONST.REPORT.CHAT_TYPE.SELF_DM &&
                     report.item?.chatType !== CONST.REPORT.CHAT_TYPE.POLICY_ADMINS &&
+                    report.item?.chatType !== CONST.REPORT.CHAT_TYPE.POLICY_ROOM &&
                     report.item?.chatType !== CONST.REPORT.CHAT_TYPE.GROUP &&
                     !report.private_isArchived
                 ) {
