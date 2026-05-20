@@ -56,12 +56,10 @@ function AdvancedFiltersFullscreen({queryJSON, closeOverlay}: AdvancedFiltersFul
                     closeOverlay();
                 }}
             />
-            <Activity mode={selectedFilter ? 'hidden' : 'visible'}>
-                <FilterList
-                    selectedFilter={selectedFilter}
-                    onFilterSelected={setSelectedFilter}
-                />
-            </Activity>
+            <FilterList
+                selectedFilter={selectedFilter}
+                onFilterSelected={setSelectedFilter}
+            />
             {!!selectedFilter && (
                 <View style={[styles.filterContentContainer]}>
                     <SelectedFilterContent

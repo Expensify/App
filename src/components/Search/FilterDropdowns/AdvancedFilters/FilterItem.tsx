@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React from 'react';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
@@ -26,9 +26,6 @@ function FilterItem({filterKey, isSelected, onPress, onHoverIn, onFocus}: Filter
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
 
-    const shouldCallPressOnPressOutRef = useRef(false);
-    const shouldCallPressOnPressRef = useRef(false);
-
     const {labelKey, icon} = FILTER_VIEW_MAP[filterKey];
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', icon]);
 
@@ -51,33 +48,7 @@ function FilterItem({filterKey, isSelected, onPress, onHoverIn, onFocus}: Filter
             accessibilityLabel={filterKey}
             onHoverIn={onHoverIn}
             onFocus={onFocus}
-            onPress={() => {
-                // Pressable has an issue (https://github.com/facebook/react-native/issues/29714) where onPress
-                // could be triggered earlier before onPressOut when the press happens quickly.
-                // Normal interaction: onPressIn -> onPressOut -> onPress
-                // Buggy interaction: onPressIn -> onPress -> onPressOut
-                // onPress is called immediately if we are going through the normal interaction (onPress is triggered after onPressOut).
-                // Otherwise, the onPress will be triggered later in onPressOut.
-                if (shouldCallPressOnPressRef.current) {
-                    onPress?.();
-                    shouldCallPressOnPressRef.current = false;
-                    return;
-                }
-
-                shouldCallPressOnPressOutRef.current = true;
-            }}
-            onPressOut={() => {
-                if (!shouldCallPressOnPressOutRef.current) {
-                    shouldCallPressOnPressRef.current = true;
-                    return;
-                }
-                // If shouldCallPressOnPressOutRef.current is true, then it means onPress is triggered earlier before onPressOut
-                // and we only want to trigger the onPress after onPressOut, because when this component is hidden by Activity,
-                // onPressOut won't be triggered anymore. This fix make sure onPressOut will always be triggered.
-                // We could probably fix this in GenericPressable, but since the bug only affect this component, I'll keep the fix scope small.
-                onPress?.();
-                shouldCallPressOnPressOutRef.current = false;
-            }}
+            onPress={onPress}
             sentryLabel={`Search-Advanced-Filter-${filterKey}`}
         >
             {({pressed}) => (

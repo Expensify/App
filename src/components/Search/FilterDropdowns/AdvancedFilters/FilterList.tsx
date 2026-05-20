@@ -20,7 +20,7 @@ function FilterList({selectedFilter, onFilterSelected}: FilterListProps) {
 
     return (
         <ScrollView
-            style={[styles.typeFiltersContainer, fullscreen && styles.pv0]}
+            style={[styles.typeFiltersContainer, fullscreen && styles.pv0, !!selectedFilter && styles.dNone]}
             contentContainerStyle={[fullscreen && styles.pb5]}
             showsVerticalScrollIndicator={false}
         >
