@@ -11,6 +11,8 @@ Workspace Rules let Admins enforce expense policies by setting custom requiremen
 
 **Note:** Rules are only available on the **Control** plan. You must be a **Workspace Admin** to enable or manage them.
 
+You can also [add text or a PDF expense policy document](/articles/new-expensify/workspaces/Add-an-Expense-Policy-to-a-Workspace) to your workspace overview page so members can reference your company's expense guidelines.
+
 ---
 
 ## How to enable Workspace Rules
@@ -48,7 +50,7 @@ Once enabled, go to the **Rules** tab in the left menu to manage expense-level s
 
 When an expense breaks a Workspace Rule or Category Rule, the expense is flagged with a violation and the approver is prompted to manually review it before approval.
 
-![Expense showing violations]({{site.url}}/assets/images/ExpensifyHelp-FlagExpensesMissing|temizedReceipts_02.png){:width="100%"}
+![Expense showing violations]({{site.url}}/assets/images/ExpensifyHelp-FlagExpensesMissingItemizedReceipts_02.png){:width="100%"}
 
 ---
 
@@ -62,7 +64,7 @@ Workspace Merchant Rules:
 - Don't change how members submit expenses
 
 To learn how to set up and manage Workspace Merchant Rules, see:
-[**Workspace Merchant Rules**](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Merchant-Rules)
+[**Workspace Merchant Rules**](/articles/new-expensify/workspaces/Workspace-Merchant-Rules)
 
 ---
 
@@ -77,8 +79,9 @@ To enable it:
 3. Toggle it on and select any categories to monitor:
    - Alcohol
    - Gambling
-   - Tobacco
+   - Handwritten receipts
    - Hotel Incidentals
+   - Tobacco
    - Adult Entertainment
 
 **Note:** Violations appear in both New Expensify and Expensify Classic, but the rule must be enabled in **New Expensify**.
@@ -110,7 +113,7 @@ To manage them:
 Available options:
 
 - **Approver** – Assign a specific approver for expenses in this category.
-- **Default tax rate** – Set a default tax percentage ([Taxes](https://help.expensify.com/articles/new-expensify/workspaces/Track-Taxes) must be enabled on the workspace).
+- **Default tax rate** – Set a default tax percentage ([Taxes](/articles/new-expensify/workspaces/Track-Taxes) must be enabled on the workspace).
 - **Flag amounts over** - Set a spending cap for this category.
 - **Require receipts over** – Set a threshold for when receipts are required.
 - **Require itemized receipts over** – Require itemized receipts for expenses over a specific amount.

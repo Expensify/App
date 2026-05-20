@@ -1,5 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import {useCallback, useEffect, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchListItem, TransactionGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
@@ -7,12 +8,12 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import {search} from '@libs/actions/Search';
 import {mergeTransactionIdsHighlightOnSearchRoute} from '@libs/actions/Transaction';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {isReportActionEntry} from '@libs/SearchUIUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions, SearchResults, Transaction} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
@@ -100,8 +101,12 @@ function useSearchHighlightAndScroll({
 
         // Check if there is a change in the transactions or report actions list
         if ((!isChat && hasTransactionsIDsChange) || hasReportActionsIDsChange || hasPendingSearchRef.current) {
-            // If we're not focused or offline, don't trigger search
-            if (!isFocused || isOffline) {
+            // Skip if offline, or if the user has navigated to a different fullscreen page entirely.
+            // An RHP layered on top of Search makes `isFocused` false but keeps Search as the topmost
+            // fullscreen route, so we still want to refetch — otherwise the snapshot can't reflect
+            // entries the user creates from the RHP until they close it.
+            const isSearchStillActive = isFocused || isSearchTopmostFullScreenRoute();
+            if (!isSearchStillActive || isOffline) {
                 hasPendingSearchRef.current = true;
                 return;
             }
@@ -133,7 +138,6 @@ function useSearchHighlightAndScroll({
             triggeredByHookRef.current = true;
 
             // Trigger the search
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 search({queryJSON, searchKey, offset, shouldCalculateTotals, isLoading: !!searchResults?.search?.isLoading});
             });
@@ -222,40 +226,23 @@ function useSearchHighlightAndScroll({
             }
 
             const newKeys = new Set<string>();
+            const consumedManualIDs: string[] = [];
             for (const id of newTransactionIDs) {
                 const newTransactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${id}`;
                 highlightedIDs.current.add(newTransactionKey);
                 newKeys.add(newTransactionKey);
+                if (manualHighlightTransactionIDs.has(id)) {
+                    consumedManualIDs.push(id);
+                }
             }
             setNewSearchResultKeys(newKeys);
+
+            // Clear consumed manual highlight flags so subsequent detect runs don't re-highlight the same IDs.
+            if (consumedManualIDs.length > 0) {
+                mergeTransactionIdsHighlightOnSearchRoute(queryJSON.type, Object.fromEntries(consumedManualIDs.map((id) => [id, false])));
+            }
         }
-    }, [searchResults?.data, previousSearchResults, isChat, transactionIDsToHighlight]);
-
-    // Reset transactionIDsToHighlight after they have been highlighted
-    useEffect(() => {
-        if (isEmptyObject(transactionIDsToHighlight) || newSearchResultKeys === null) {
-            return;
-        }
-
-        const highlightedTransactionIDs = Object.keys(transactionIDsToHighlight).filter(
-            (id) => transactionIDsToHighlight[id] && newSearchResultKeys?.has(`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`),
-        );
-
-        // We need to use requestAnimationFrame here to ensure that setTimeout actually starts
-        // only after the user has navigated to the "Reports > Expenses" page.
-        // Otherwise, there is still a chance we might miss the timing because setTimeout runs too early,
-        // causing the highlight not to appear.
-        let timer: NodeJS.Timeout;
-        const animation = requestAnimationFrame(() => {
-            timer = setTimeout(() => {
-                mergeTransactionIdsHighlightOnSearchRoute(queryJSON.type, Object.fromEntries(highlightedTransactionIDs.map((id) => [id, false])));
-            }, CONST.ANIMATED_HIGHLIGHT_START_DURATION);
-        });
-        return () => {
-            clearTimeout(timer);
-            cancelAnimationFrame(animation);
-        };
-    }, [transactionIDsToHighlight, queryJSON.type, newSearchResultKeys]);
+    }, [searchResults?.data, previousSearchResults, isChat, transactionIDsToHighlight, queryJSON.type]);
 
     // Remove transactionIDsToHighlight when the user leaves the current search type
     useEffect(
@@ -324,7 +311,9 @@ function useSearchHighlightAndScroll({
         triggeredByHookRef.current = false;
     };
 
-    return {newSearchResultKeys, handleSelectionListScroll, newTransactions};
+    const hasQueuedHighlights = newSearchResultKeys !== null && newSearchResultKeys.size > 0;
+
+    return {newSearchResultKeys, handleSelectionListScroll, newTransactions, hasQueuedHighlights};
 }
 
 /**

@@ -7,7 +7,15 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
-import {getDelegateAccountIDFromReportAction, getOriginalMessage, getReportAction, getReportActionActorAccountID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {
+    getDelegateAccountIDFromReportAction,
+    getHumanAgentAccountIDFromReportAction,
+    getHumanAgentFirstName,
+    getOriginalMessage,
+    getReportAction,
+    getReportActionActorAccountID,
+    isMoneyRequestAction,
+} from '@libs/ReportActionsUtils';
 import {
     getDefaultWorkspaceAvatar,
     getDisplayNameForParticipant,
@@ -55,7 +63,7 @@ function useReportActionAvatars({
     const defaultAvatars = useDefaultAvatars();
     /* Get avatar type */
     const allPersonalDetails = usePersonalDetails();
-    const {formatPhoneNumber} = useLocalize();
+    const {formatPhoneNumber, translate} = useLocalize();
     const [personalDetailsFromSnapshot] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     // When the search hash changes, personalDetails from the snapshot will be undefined if it hasn't been fetched yet.
     // Therefore, we will fall back to allPersonalDetails while the data is being fetched.
@@ -108,12 +116,12 @@ function useReportActionAvatars({
 
     const {chatReportIDAdmins, chatReportIDAnnounce, workspaceAccountID} = policy ?? {};
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [policyChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${Number(chatReportIDAnnounce) ? chatReportIDAnnounce : chatReportIDAdmins}`);
 
     const delegateAccountID = getDelegateAccountIDFromReportAction(action);
     const delegatePersonalDetails = delegateAccountID ? personalDetails?.[delegateAccountID] : undefined;
     const actorAccountID = getReportActionActorAccountID(action, iouReport, chatReport, delegatePersonalDetails);
+    const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(action);
 
     const isAInvoiceReport = isInvoiceReport(iouReport ?? null);
 
@@ -151,7 +159,7 @@ function useReportActionAvatars({
                 ...(personalDetails?.[workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
                 shouldDisplayAllActors: false,
                 isWorkspaceActor: false,
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
                 actorHint: String(policyID).replaceAll(CONST.REGEX.MERGED_ACCOUNT_PREFIX, ''),
                 accountID: workspaceAccountID,
                 delegateAccountID: undefined,
@@ -189,7 +197,6 @@ function useReportActionAvatars({
             !shouldShowConvertedSubscriptAvatar) ||
         shouldUseCardFeed;
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldUseMultipleAvatars = shouldUseAccountIDs || shouldShowAllActors || shouldShowConvertedSubscriptAvatar;
 
     let avatarType: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE> = CONST.REPORT_ACTION_AVATARS.TYPE.SINGLE;
@@ -291,7 +298,6 @@ function useReportActionAvatars({
         const iouReportIcons = getIconsWithDefaults(iouReport);
         secondaryAvatar = iouReportIcons.at(iouReportIcons.at(1)?.id === primaryAvatar.id ? 0 : 1);
     } else if (!isWorkspaceActor) {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         secondaryAvatar = reportIcons.at(chatReport?.isOwnPolicyExpenseChat || isAWorkspaceChat ? 0 : 1);
     } else if (isAInvoiceReport) {
         secondaryAvatar = reportIcons.at(1);
@@ -311,7 +317,7 @@ function useReportActionAvatars({
         avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT && avatars.at(0)?.type === CONST.ICON_TYPE_AVATAR && avatars.at(1)?.type === CONST.ICON_TYPE_WORKSPACE;
     const isWorkspaceWithUserAvatar =
         avatars.at(0)?.type === CONST.ICON_TYPE_WORKSPACE && avatars.at(1)?.type === CONST.ICON_TYPE_AVATAR && avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE;
-    // eslint-disable-next-line rulesdir/no-negated-variables
+
     const wasReportPreviewMovedToDifferentPolicy = shouldUseChangedPolicyID && isAReportPreviewAction;
 
     if (shouldUseInvoiceExpenseIcons) {
@@ -334,6 +340,24 @@ function useReportActionAvatars({
         avatars = [firstAvatar, policyChatReportIcon];
     }
 
+    // When a human Concierge agent reveals themselves, show a subscript avatar
+    // with Concierge as the main avatar and the agent as the secondary avatar
+    if (humanAgentAccountID && avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.SINGLE) {
+        const humanAgentDetails = personalDetails?.[humanAgentAccountID];
+        if (humanAgentDetails) {
+            const agentFirstName = getHumanAgentFirstName(action, personalDetails);
+            const agentAvatar: IconType = {
+                id: humanAgentAccountID,
+                type: CONST.ICON_TYPE_AVATAR,
+                source: humanAgentDetails.avatar ?? defaultAvatars.FallbackAvatar,
+                name: agentFirstName ?? translate('reportAction.humanSupportAgent'),
+            };
+            const [conciergeAvatar] = avatars;
+            avatars = [conciergeAvatar, agentAvatar];
+            avatarType = CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT;
+        }
+    }
+
     return {
         avatars,
         avatarType,
@@ -345,6 +369,7 @@ function useReportActionAvatars({
             actorHint: String(shouldUsePrimaryAvatarID ? primaryAvatar.id : login || defaultDisplayName || fallbackDisplayName).replaceAll(CONST.REGEX.MERGED_ACCOUNT_PREFIX, ''),
             accountID,
             delegateAccountID: !isWorkspaceActor && !!delegateAccountID ? actorAccountID : undefined,
+            humanAgentAccountID,
         },
         source: {
             iouReport,

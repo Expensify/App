@@ -1,4 +1,4 @@
-import {hasCreditBankAccount} from '@src/libs/actions/ReimbursementAccount/store';
+import hasCreditBankAccount from '@libs/actions/ReimbursementAccount/hasCreditBankAccount';
 import type {BankAccountList} from '@src/types/onyx';
 
 describe('ReimbursementAccountTest', () => {

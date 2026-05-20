@@ -31,10 +31,6 @@ jobs:
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
-      - name: Get number of CPU cores
-        id: cpu-cores
-        uses: SimenB/github-actions-cpu-cores@31e91de0f8654375a21e8e83078be625380e2b18
-
       - name: Cache Jest cache
         id: cache-jest-cache
         # v5.0.1

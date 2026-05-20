@@ -5,11 +5,13 @@ import {
     configureTravelInvoicingForPolicy,
     deactivateTravelInvoicing,
     retryTravelCardsProvisioning,
+    setTravelInvoicingReconciliationBankAccount,
     setTravelInvoicingSettlementAccount,
+    toggleTravelInvoicingContinuousReconciliation,
     updateTravelInvoiceSettlementFrequency,
 } from '@libs/actions/TravelInvoicing';
 // We need to import API because it is used in the tests
-// eslint-disable-next-line no-restricted-syntax
+
 import * as API from '@libs/API';
 import {getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
 import CONST from '@src/CONST';
@@ -121,6 +123,86 @@ describe('TravelInvoicing', () => {
                 paymentBankAccountID: null,
             },
         });
+    });
+
+    it('toggleTravelInvoicingContinuousReconciliation sends travel-specific optimistic, success, and failure data', () => {
+        const workspaceAccountID = 456;
+        const connectionName = CONST.POLICY.CONNECTIONS.NAME.NETSUITE;
+        const oldConnectionName = CONST.POLICY.CONNECTIONS.NAME.QBO;
+
+        toggleTravelInvoicingContinuousReconciliation(workspaceAccountID, true, connectionName, oldConnectionName);
+
+        expect(spyAPIWrite).toHaveBeenCalledWith(
+            'ToggleTravelInvoicingContinuousReconciliation',
+            {
+                policyAccountID: workspaceAccountID,
+                shouldUseContinuousReconciliation: true,
+                travelInvoicingContinuousReconciliationConnection: connectionName,
+            },
+            expect.objectContaining({
+                optimisticData: expect.arrayContaining([
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.TRAVEL_INVOICING_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`,
+                        value: true,
+                    }),
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.TRAVEL_INVOICING_USE_CONTINUOUS_RECONCILIATION_PENDING_ACTION}${workspaceAccountID}`,
+                        value: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    }),
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.TRAVEL_INVOICING_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`,
+                        value: connectionName,
+                    }),
+                ]),
+                successData: expect.arrayContaining([
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.TRAVEL_INVOICING_USE_CONTINUOUS_RECONCILIATION_PENDING_ACTION}${workspaceAccountID}`,
+                        value: null,
+                    }),
+                ]),
+                failureData: expect.arrayContaining([
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.TRAVEL_INVOICING_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`,
+                        value: false,
+                    }),
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.TRAVEL_INVOICING_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`,
+                        value: oldConnectionName,
+                    }),
+                ]),
+            }),
+        );
+    });
+
+    it('setTravelInvoicingReconciliationBankAccount sends the selected bank account and reverts on failure', () => {
+        const workspaceAccountID = 456;
+        const domainName = 'expensify_policy_123.expensify.com';
+        const selectedBankAccountID = 'account-123';
+        const previousBankAccountID = 'account-111';
+
+        setTravelInvoicingReconciliationBankAccount(workspaceAccountID, domainName, selectedBankAccountID, previousBankAccountID);
+
+        expect(spyAPIWrite).toHaveBeenCalledWith(
+            'SetTravelInvoicingReconciliationBankAccount',
+            {
+                domainName,
+                travelInvoicingReconciliationBankAccountID: selectedBankAccountID,
+            },
+            expect.objectContaining({
+                optimisticData: expect.arrayContaining([
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.TRAVEL_INVOICING_RECONCILIATION_BANK_ACCOUNT_ID}${workspaceAccountID}`,
+                        value: selectedBankAccountID,
+                    }),
+                ]),
+                failureData: expect.arrayContaining([
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.TRAVEL_INVOICING_RECONCILIATION_BANK_ACCOUNT_ID}${workspaceAccountID}`,
+                        value: previousBankAccountID,
+                    }),
+                ]),
+            }),
+        );
     });
 
     it('clearTravelInvoicingSettlementFrequencyErrors clears errors', () => {

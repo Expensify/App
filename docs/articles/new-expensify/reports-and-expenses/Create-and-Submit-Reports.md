@@ -14,7 +14,7 @@ Follow these steps to build an expense report manually.
 1. In the navigation tabs (on the left on Web, on the bottom on Mobile), select **+ Create**.
 2. Select **Create report** to open a draft report on your default workspace.
   - Reports are opened on your default workspace. To switch workspaces select **More > Change workspace**.
-3. Select **Add expense** to add the first expense. You can create a new expense or add an existing unreported expense.
+3. Select **Add expense** to add the first expense. You can create a new expense or add an existing expense.
  
 **Note:** To add additional expenses to an existing report, select **More > Add** expense. 
 

@@ -1,13 +1,12 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-import type {SearchAutocompleteQueryRange, SearchFilterKey} from '@components/Search/types';
+import type {SearchAutocompleteQueryRange} from '@components/Search/types';
 import {parse} from '@libs/SearchParser/autocompleteParser';
 import {getFilterDisplayValue} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import type {CardFeeds, CardList, PersonalDetailsList, Policy, Report, ReportAttributesDerivedValue} from '@src/types/onyx';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
-
-const getSubstitutionsKey = (filterKey: SearchFilterKey, value: string) => `${filterKey}:${value}`;
+import {getSubstitutionMapKey, getSubstitutionMapKeyWithIndex} from './getQueryWithSubstitutions';
 
 /**
  * Given a plaintext query and specific entities data,
@@ -44,6 +43,8 @@ function buildSubstitutionsMap(
         return {};
     }
 
+    const substitutionKeyOccurrences = new Map<string, number>();
+
     const substitutionsMap = searchAutocompleteQueryRanges.reduce((map, range) => {
         const {key: filterKey, value: filterValue} = range;
 
@@ -56,7 +57,10 @@ function buildSubstitutionsMap(
             const taxRateNames = taxRates.length > 0 ? taxRates : [taxRateID];
             const uniqueTaxRateNames = [...new Set(taxRateNames)];
             for (const taxRateName of uniqueTaxRateNames) {
-                const substitutionKey = getSubstitutionsKey(filterKey, taxRateName);
+                const substitutionBaseKey = getSubstitutionMapKey(filterKey, taxRateName);
+                const occurrenceIndex = substitutionKeyOccurrences.get(substitutionBaseKey) ?? 0;
+                substitutionKeyOccurrences.set(substitutionBaseKey, occurrenceIndex + 1);
+                const substitutionKey = getSubstitutionMapKeyWithIndex(filterKey, taxRateName, occurrenceIndex);
 
                 // eslint-disable-next-line no-param-reassign
                 map[substitutionKey] = taxRateID;
@@ -89,7 +93,10 @@ function buildSubstitutionsMap(
 
             // If displayValue === filterValue, then it means there is nothing to substitute, so we don't add any key to map
             if (displayValue !== filterValue) {
-                const substitutionKey = getSubstitutionsKey(filterKey, displayValue);
+                const substitutionBaseKey = getSubstitutionMapKey(filterKey, displayValue);
+                const occurrenceIndex = substitutionKeyOccurrences.get(substitutionBaseKey) ?? 0;
+                substitutionKeyOccurrences.set(substitutionBaseKey, occurrenceIndex + 1);
+                const substitutionKey = getSubstitutionMapKeyWithIndex(filterKey, displayValue, occurrenceIndex);
                 // eslint-disable-next-line no-param-reassign
                 map[substitutionKey] = filterValue;
             }

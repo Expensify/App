@@ -24,7 +24,7 @@ function applyFormatting(text: string, selectionStart: number, selectionEnd: num
 function findMatchingFormat(text: string, selectionStart: number, selectionEnd: number, formatRule: FormatRule): Match | null {
     const markdownRanges = parseExpensiMark(text);
     for (const range of markdownRanges) {
-        if (range && range.type === formatRule.markdownType && range.start != null && range.length != null) {
+        if (range?.type === formatRule.markdownType && range.start != null && range.length != null) {
             const rangeEnd = range.start + range.length;
             const isExactMatch = range.start === selectionStart && rangeEnd === selectionEnd;
             const isEnclosedMatch = range.start - 1 === selectionStart && rangeEnd + 1 === selectionEnd;
