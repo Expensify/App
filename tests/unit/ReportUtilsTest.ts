@@ -14248,7 +14248,7 @@ describe('ReportUtils', () => {
         });
 
         it('returns false when policy is not a paid group policy', () => {
-            const testPolicy = getPolicy({type: CONST.POLICY.TYPE.PERSONAL});
+            const testPolicy = getPolicy({type: CONST.POLICY.TYPE.PERSONAL, role: CONST.POLICY.ROLE.ADMIN});
             const report = {
                 ...createExpenseReport(126),
                 policyID: testPolicy.id,
@@ -14337,18 +14337,18 @@ describe('ReportUtils', () => {
                 orderWeight: 1,
                 isTax: false,
             };
-            const policy = {
+            const testPolicyData = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM, 'Test'),
                 fieldList: {
                     [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: titleField,
                 },
             };
 
-            expect(getTitleFieldWithFallback(policy)).toBe(titleField);
+            expect(getTitleFieldWithFallback(testPolicyData)).toBe(titleField);
         });
 
         it('returns fallback when policy has custom fields but no title field', () => {
-            const policy = {
+            const testPolicyData = {
                 ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM, 'Test'),
                 fieldList: {
                     text_customField: {
@@ -14368,18 +14368,18 @@ describe('ReportUtils', () => {
                 },
             };
 
-            const result = getTitleFieldWithFallback(policy);
+            const result = getTitleFieldWithFallback(testPolicyData);
             expect(result.fieldID).toBe(CONST.REPORT_FIELD_TITLE_FIELD_ID);
             expect(result.type).toBe(CONST.REPORT_FIELD_TYPES.TEXT);
         });
 
         it('returns fallback when policy has empty fieldList', () => {
-            const policy = {
+            const testPolicyData = {
                 ...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM, 'Test'),
                 fieldList: {},
             };
 
-            const result = getTitleFieldWithFallback(policy);
+            const result = getTitleFieldWithFallback(testPolicyData);
             expect(result.fieldID).toBe(CONST.REPORT_FIELD_TITLE_FIELD_ID);
         });
 
