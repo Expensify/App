@@ -2,6 +2,7 @@ package com.expensify.chat
 
 import android.content.Intent
 import android.os.Build
+import android.util.Log
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
@@ -20,10 +21,14 @@ class GpsTripServiceModule(reactContext: ReactApplicationContext) :
             putExtra(GpsTripService.EXTRA_DEEP_LINK, deepLink)
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            context.startForegroundService(intent)
-        } else {
-            context.startService(intent)
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(intent)
+            } else {
+                context.startService(intent)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to start GPS trip service", e)
         }
     }
 
@@ -31,5 +36,9 @@ class GpsTripServiceModule(reactContext: ReactApplicationContext) :
     fun stopService() {
         val context = reactApplicationContext
         context.stopService(Intent(context, GpsTripService::class.java))
+    }
+
+    companion object {
+        private const val TAG = "GpsTripServiceModule"
     }
 }
