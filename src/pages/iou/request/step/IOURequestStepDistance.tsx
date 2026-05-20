@@ -27,7 +27,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useWaypointItems from '@hooks/useWaypointItems';
-import {setMoneyRequestDistance} from '@libs/actions/IOU';
+import {setMoneyRequestDistance} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestDistance} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {init, stop} from '@libs/actions/MapboxToken';
@@ -225,7 +225,15 @@ function IOURequestStepDistance({
         lastSyncedRouteDistance.current = routeDistance;
     }, [routeDistance, distanceUnit, customUnitQuantity]);
 
-    const setDistanceRequestData = useDistanceRequestData({policy, personalPolicy, transaction, customUnitRateID, transactionID, isSplitRequest});
+    const setDistanceRequestData = useDistanceRequestData({
+        policy,
+        personalPolicy,
+        transaction,
+        customUnitRateID,
+        transactionID,
+        isSplitRequest,
+        currentUserAccountID: currentUserAccountIDParam,
+    });
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
@@ -575,6 +583,7 @@ function IOURequestStepDistance({
             isASAPSubmitBetaEnabled,
             parentReportNextStep,
             recentWaypoints,
+            distanceOriginalPolicy,
         });
         transactionWasSaved.current = true;
         // Remove the backup eagerly so the parent report view reads the optimistic transaction
@@ -609,6 +618,7 @@ function IOURequestStepDistance({
         duplicateWaypointsError,
         atLeastTwoDifferentWaypointsError,
         hasRouteError,
+        distanceOriginalPolicy,
     ]);
 
     const renderItem = useCallback(

@@ -615,6 +615,7 @@ function MoneyRequestConfirmationList({
                 isDistanceRequestWithPendingRoute={isDistanceRequestWithPendingRoute}
                 shouldCalculateDistanceAmount={shouldCalculateDistanceAmount}
                 distanceRequestAmount={distanceRequestAmount}
+                currentUserAccountID={currentUserPersonalDetails.accountID}
                 setFormError={setFormError}
                 clearFormErrors={clearFormErrors}
             />
