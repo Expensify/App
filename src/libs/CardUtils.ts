@@ -959,7 +959,7 @@ function getFilteredCardList(
     workspaceCardFeeds: OnyxCollection<WorkspaceCardsList>,
     feedName?: CompanyCardFeedWithDomainID,
 ): UnassignedCard[] {
-    const {cardList: customFeedCardsToAssign, ...cards} = list ?? {};
+    const {cardList: legacyCardList, cardListByEncrypted, ...cards} = list ?? {};
 
     // For direct feeds, filter by cardName (which is unique for direct/OAuth feeds)
     const assignedCardNames = new Set(Object.values(cards).map((card) => card.cardName));
@@ -980,7 +980,7 @@ function getFilteredCardList(
         if (!workspaceCards) {
             continue;
         }
-        const {cardList, ...workspaceCardItems} = workspaceCards;
+        const {cardList, cardListByEncrypted: _cardListByEncrypted, ...workspaceCardItems} = workspaceCards;
         for (const card of Object.values(workspaceCardItems)) {
             if (card?.cardName) {
                 allWorkspaceAssignedCardNames.add(card.cardName);
@@ -1001,17 +1001,21 @@ function getFilteredCardList(
             }));
     }
 
-    // For commercial feeds: key is the masked PAN (display name), value is the encrypted card number (unique identifier).
-    // Filter by encrypted card number (unique per physical card) to correctly handle
-    // multiple cards that share the same masked PAN. Fall back to cardName filtering
-    // when encryptedCardNumber is not available on assigned cards.
-    return Object.entries(customFeedCardsToAssign ?? {})
-        .filter(([cardName, encryptedCardNumber]) => {
+    // Normalize both wire shapes to (maskedPAN, encryptedCardNumber) pairs. Prefer the new
+    // `cardListByEncrypted` shape (encryptedCardNumber → maskedPAN) since it's unique per
+    // physical card; fall back to the legacy `cardList` shape (maskedPAN → encryptedCardNumber)
+    // when older backends are still in the deploy window or when Onyx holds a stale cache.
+    const commercialCards: Array<{cardName: string; encryptedCardNumber: string}> = cardListByEncrypted
+        ? Object.entries(cardListByEncrypted).map(([encryptedCardNumber, cardName]) => ({cardName, encryptedCardNumber}))
+        : Object.entries(legacyCardList ?? {}).map(([cardName, encryptedCardNumber]) => ({cardName, encryptedCardNumber}));
+
+    return commercialCards
+        .filter(({cardName, encryptedCardNumber}) => {
             const isAssignedByEncrypted = assignedEncryptedCardNumbers.has(encryptedCardNumber) || allWorkspaceAssignedEncryptedCardNumbers.has(encryptedCardNumber);
             const isAssignedByName = assignedCardNames.has(cardName) || allWorkspaceAssignedCardNames.has(cardName);
             return !isAssignedByEncrypted && !isAssignedByName;
         })
-        .map(([cardName, encryptedCardNumber]) => ({
+        .map(({cardName, encryptedCardNumber}) => ({
             cardName,
             cardID: encryptedCardNumber,
         }));

@@ -364,8 +364,11 @@ type IssueNewCard = {
 
 /** List of Expensify cards */
 type WorkspaceCardsList = CardList & {
-    /** List of cards to assign */
+    /** Legacy list of cards to assign, keyed by masked PAN with the encrypted card number as the value. May collide when multiple cards share the same masked PAN. */
     cardList?: Record<string, string>;
+
+    /** List of cards to assign, keyed by encrypted card number with the masked PAN as the value. Preferred over `cardList` when present. */
+    cardListByEncrypted?: Record<string, string>;
 };
 
 /**
