@@ -60,8 +60,7 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnl
     const hasValidExistingAccounts = eligibleBusinessBankAccounts.length > 0;
     const hasMultipleEligibleBankAccounts = eligibleBusinessBankAccounts.length > 1;
     const hasInvoiceDefaultBankAccount = transferBankAccountID !== CONST.DEFAULT_NUMBER_ID;
-    const isInvoiceDefaultBankAccountMissing =
-        hasInvoiceDefaultBankAccount && !eligibleBusinessBankAccounts.some((account) => account.accountData?.bankAccountID === transferBankAccountID);
+    const isInvoiceDefaultBankAccountMissing = hasInvoiceDefaultBankAccount && !eligibleBusinessBankAccounts.some((account) => account.accountData?.bankAccountID === transferBankAccountID);
     const shouldShowMakeDefaultButton = !paymentMethod.isSelectedPaymentMethodDefault && (hasMultipleEligibleBankAccounts || isInvoiceDefaultBankAccountMissing);
     const isSupportedGlobalReimbursement = isCurrencySupportedForGlobalReimbursement((policy?.outputCurrency ?? '') as CurrencyType);
 
