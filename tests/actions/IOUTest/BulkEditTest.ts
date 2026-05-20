@@ -72,6 +72,8 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: false,
             });
 
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
@@ -145,6 +147,8 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: false,
             });
 
             expect(writeSpy).not.toHaveBeenCalled();
@@ -207,6 +211,8 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: false,
             });
 
             const getOptimisticTotal = (callIndex: number) => {
@@ -278,6 +284,8 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: false,
             });
 
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
@@ -353,6 +361,8 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: false,
             });
 
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
@@ -419,6 +429,8 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: false,
             });
 
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
@@ -483,6 +495,8 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: false,
             });
 
             expect(writeSpy).toHaveBeenCalled();
@@ -554,6 +568,8 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: false,
             });
             await waitForBatchedUpdates();
 
@@ -610,6 +626,8 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: false,
             });
             await waitForBatchedUpdates();
 
@@ -669,6 +687,8 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: false,
             });
             await waitForBatchedUpdates();
 
@@ -735,6 +755,8 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: false,
             });
             await waitForBatchedUpdates();
 
@@ -802,6 +824,8 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: false,
             });
             await waitForBatchedUpdates();
 
@@ -880,6 +904,8 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: false,
             });
             await waitForBatchedUpdates();
 
@@ -946,6 +972,8 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: false,
             });
             await waitForBatchedUpdates();
 
@@ -1024,6 +1052,8 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: false,
             });
             await waitForBatchedUpdates();
 
@@ -1083,6 +1113,8 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: false,
             });
 
             // category/billable changes must be silently dropped for IOUs —
@@ -1149,6 +1181,8 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: 'test@example.com',
                 currentUserAccountID: 1,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: false,
             });
 
             expect(writeSpy).toHaveBeenCalled();
@@ -1239,6 +1273,8 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: false,
             });
 
             // Then: the optimistic transaction update should use the transaction's own policy for tax resolution.
@@ -1331,6 +1367,8 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: false,
             });
 
             // Then: buildOptimisticModifiedExpenseReportAction should receive the transaction's own policy,
@@ -1401,6 +1439,8 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: false,
             });
 
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
@@ -1470,6 +1510,8 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: false,
             });
 
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
@@ -1535,6 +1577,8 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: false,
             });
 
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
@@ -1545,6 +1589,146 @@ describe('actions/IOU/BulkEdit', () => {
 
             writeSpy.mockRestore();
             canEditFieldSpy.mockRestore();
+        });
+
+        it.each([
+            {isSelfTourViewed: true, hasCompletedGuidedSetupFlow: true},
+            {isSelfTourViewed: false, hasCompletedGuidedSetupFlow: false},
+        ])(
+            'forwards isSelfTourViewed=$isSelfTourViewed and hasCompletedGuidedSetupFlow=$hasCompletedGuidedSetupFlow into createTransactionThreadReport when no thread exists yet',
+            ({isSelfTourViewed, hasCompletedGuidedSetupFlow}) => {
+                // Transaction without transactionThreadReportID + iouReport present
+                // -> updateMultipleMoneyRequests should create an optimistic thread
+                //    and the two onboarding flags must be forwarded verbatim.
+                const transactionID = `transaction-thread-fwd-${isSelfTourViewed}`;
+                const iouReportID = `iou-thread-fwd-${isSelfTourViewed}`;
+                const policy = createRandomPolicy(99, CONST.POLICY.TYPE.TEAM);
+
+                const iouReport: Report = {
+                    ...createRandomReport(99, undefined),
+                    reportID: iouReportID,
+                    policyID: policy.id,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                };
+
+                const reports = {
+                    [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+                };
+
+                // Note: no transactionThreadReportID set on the transaction
+                const transaction: Transaction = {
+                    ...createRandomTransaction(99),
+                    transactionID,
+                    reportID: iouReportID,
+                    amount: -1000,
+                    currency: CONST.CURRENCY.USD,
+                };
+                const transactions = {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+                };
+
+                const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+                // eslint-disable-next-line rulesdir/no-multiple-api-calls
+                const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+                const createTransactionThreadReportSpy = jest.spyOn(require('@userActions/Report'), 'createTransactionThreadReport').mockReturnValue(undefined);
+
+                updateMultipleMoneyRequests({
+                    transactionIDs: [transactionID],
+                    changes: {merchant: 'Updated Merchant'},
+                    policy,
+                    reports,
+                    transactions,
+                    reportActions: {},
+                    policyCategories: undefined,
+                    policyTags: {},
+                    hash: undefined,
+                    introSelected: undefined,
+                    betas: undefined,
+                    currentUserLogin: RORY_EMAIL,
+                    currentUserAccountID: RORY_ACCOUNT_ID,
+                    isSelfTourViewed,
+                    hasCompletedGuidedSetupFlow,
+                });
+
+                expect(createTransactionThreadReportSpy).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        isSelfTourViewed,
+                        hasCompletedGuidedSetupFlow,
+                    }),
+                );
+
+                writeSpy.mockRestore();
+                canEditFieldSpy.mockRestore();
+                createTransactionThreadReportSpy.mockRestore();
+            },
+        );
+
+        it('does not call createTransactionThreadReport when the transaction already has a thread (onboarding flags are not forwarded)', () => {
+            // When a transactionThreadReportID is already known, no thread creation should happen.
+            // This isolates the new-param path from the steady-state path.
+            const transactionID = 'transaction-thread-existing';
+            const transactionThreadReportID = 'thread-existing';
+            const iouReportID = 'iou-thread-existing';
+            const policy = createRandomPolicy(100, CONST.POLICY.TYPE.TEAM);
+
+            const transactionThread: Report = {
+                ...createRandomReport(100, undefined),
+                reportID: transactionThreadReportID,
+                parentReportID: iouReportID,
+                policyID: policy.id,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(101, undefined),
+                reportID: iouReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`]: transactionThread,
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+            };
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(100),
+                transactionID,
+                reportID: iouReportID,
+                transactionThreadReportID,
+                amount: -1000,
+                currency: CONST.CURRENCY.USD,
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const createTransactionThreadReportSpy = jest.spyOn(require('@userActions/Report'), 'createTransactionThreadReport');
+
+            updateMultipleMoneyRequests({
+                transactionIDs: [transactionID],
+                changes: {merchant: 'Updated Merchant'},
+                policy,
+                reports,
+                transactions,
+                reportActions: {},
+                policyCategories: undefined,
+                policyTags: {},
+                hash: undefined,
+                introSelected: undefined,
+                betas: undefined,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                isSelfTourViewed: true,
+                hasCompletedGuidedSetupFlow: true,
+            });
+
+            expect(createTransactionThreadReportSpy).not.toHaveBeenCalled();
+
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+            createTransactionThreadReportSpy.mockRestore();
         });
     });
 

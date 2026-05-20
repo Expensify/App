@@ -83,6 +83,8 @@ type UpdateMultipleMoneyRequestsParams = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     currentUserLogin: string;
     currentUserAccountID: number;
+    isSelfTourViewed: boolean | undefined;
+    hasCompletedGuidedSetupFlow: boolean | undefined;
 };
 
 function updateMultipleMoneyRequests({
@@ -100,6 +102,8 @@ function updateMultipleMoneyRequests({
     betas,
     currentUserAccountID,
     currentUserLogin,
+    isSelfTourViewed,
+    hasCompletedGuidedSetupFlow,
 }: UpdateMultipleMoneyRequestsParams) {
     // Track running totals per report so multiple edits in the same report compound correctly.
     const optimisticReportsByID: Record<string, OnyxTypes.Report> = {};
@@ -146,6 +150,8 @@ function updateMultipleMoneyRequests({
                 iouReport,
                 iouReportAction: reportAction,
                 transaction,
+                isSelfTourViewed,
+                hasCompletedGuidedSetupFlow,
             });
             if (optimisticTransactionThread?.reportID) {
                 transactionThreadReportID = optimisticTransactionThread.reportID;
