@@ -214,6 +214,10 @@ describe('CurrencyUtils', () => {
     });
 
     describe('sanitizeCurrencyCode', () => {
+        beforeEach(() => {
+            CurrencyUtils.resetInvalidCurrencyWarningsForTesting();
+        });
+
         test('returns the input unchanged for a valid ISO 4217 code', () => {
             expect(CurrencyUtils.sanitizeCurrencyCode('EUR')).toBe('EUR');
         });
@@ -240,13 +244,12 @@ describe('CurrencyUtils', () => {
         test('logs a warning at most once per unique malformed value', () => {
             const warnSpy = jest.spyOn(Log, 'warn').mockImplementation(() => undefined);
             try {
-                // Use unique fixtures so other tests don't already mark these as warned.
-                CurrencyUtils.sanitizeCurrencyCode('TEST_THROTTLE_A');
-                CurrencyUtils.sanitizeCurrencyCode('TEST_THROTTLE_A');
-                CurrencyUtils.sanitizeCurrencyCode('TEST_THROTTLE_A');
+                CurrencyUtils.sanitizeCurrencyCode('XX');
+                CurrencyUtils.sanitizeCurrencyCode('XX');
+                CurrencyUtils.sanitizeCurrencyCode('XX');
                 expect(warnSpy).toHaveBeenCalledTimes(1);
 
-                CurrencyUtils.sanitizeCurrencyCode('TEST_THROTTLE_B');
+                CurrencyUtils.sanitizeCurrencyCode('???');
                 expect(warnSpy).toHaveBeenCalledTimes(2);
             } finally {
                 warnSpy.mockRestore();
@@ -258,6 +261,18 @@ describe('CurrencyUtils', () => {
             try {
                 expect(CurrencyUtils.sanitizeCurrencyCode(' eur ')).toBe('EUR');
                 expect(warnSpy).not.toHaveBeenCalled();
+            } finally {
+                warnSpy.mockRestore();
+            }
+        });
+
+        test('shares the throttle across helpers that go through sanitizeCurrencyCode', () => {
+            const warnSpy = jest.spyOn(Log, 'warn').mockImplementation(() => undefined);
+            try {
+                CurrencyUtils.convertToDisplayString(2500, 'XX');
+                CurrencyUtils.getLocalizedCurrencySymbol(CONST.LOCALES.EN, 'XX');
+                CurrencyUtils.convertToShortDisplayString(2500, 'XX');
+                expect(warnSpy).toHaveBeenCalledTimes(1);
             } finally {
                 warnSpy.mockRestore();
             }
@@ -305,6 +320,19 @@ describe('CurrencyUtils', () => {
             expect(() => CurrencyUtils.convertToDisplayStringWithoutCurrency(2500, input)).not.toThrow();
             // Output should not contain a currency symbol but should contain the numeric portion.
             const result = CurrencyUtils.convertToDisplayStringWithoutCurrency(2500, input);
+            expect(result).not.toMatch(/\$/);
+            expect(result).toContain('25');
+        });
+    });
+
+    describe('convertToDisplayStringWithExplicitCurrency with malformed currency', () => {
+        test.each(['XX', 'USDD', '???'])('does not throw and falls back to USD formatting for truthy malformed %p', (input) => {
+            expect(() => CurrencyUtils.convertToDisplayStringWithExplicitCurrency(2500, input)).not.toThrow();
+            expect(CurrencyUtils.convertToDisplayStringWithExplicitCurrency(2500, input)).toBe('$25.00');
+        });
+
+        test.each([undefined, ''])('returns the symbol-less form for falsy currency %p (delegates to convertToDisplayStringWithoutCurrency)', (input) => {
+            const result = CurrencyUtils.convertToDisplayStringWithExplicitCurrency(2500, input);
             expect(result).not.toMatch(/\$/);
             expect(result).toContain('25');
         });

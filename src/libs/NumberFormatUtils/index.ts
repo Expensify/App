@@ -9,30 +9,29 @@ intlPolyfill();
 
 const MemoizedNumberFormat = memoize(Intl.NumberFormat, {maxSize: 10, monitoringName: 'NumberFormatUtils'});
 
-function format(locale: Locale | undefined, number: number, options?: Intl.NumberFormatOptions): string {
+/**
+ * Build an Intl.NumberFormat with a USD fallback for malformed currency codes.
+ * Intl throws RangeError for empty/malformed currency values; check presence of the option (not truthiness)
+ * so we still recover when currency is '' rather than rethrowing and crashing the screen.
+ */
+function createFormatter(locale: Locale | undefined, options?: Intl.NumberFormatOptions): Intl.NumberFormat {
     try {
-        return new MemoizedNumberFormat(locale ?? CONST.LOCALES.DEFAULT, options).format(number);
+        return new MemoizedNumberFormat(locale ?? CONST.LOCALES.DEFAULT, options);
     } catch (e) {
-        // Intl throws RangeError for empty/malformed currency values; check presence of the option (not truthiness)
-        // so we still recover when currency is '' rather than rethrowing and crashing the screen.
         if (e instanceof RangeError && options && 'currency' in options) {
             Log.warn('NumberFormatUtils: malformed currency code, falling back to USD', {currency: options.currency});
-            return new MemoizedNumberFormat(locale ?? CONST.LOCALES.DEFAULT, {...options, currency: CONST.CURRENCY.USD}).format(number);
+            return new MemoizedNumberFormat(locale ?? CONST.LOCALES.DEFAULT, {...options, currency: CONST.CURRENCY.USD});
         }
         throw e;
     }
 }
 
+function format(locale: Locale | undefined, number: number, options?: Intl.NumberFormatOptions): string {
+    return createFormatter(locale, options).format(number);
+}
+
 function formatToParts(locale: Locale | undefined, number: number, options?: Intl.NumberFormatOptions): Intl.NumberFormatPart[] {
-    try {
-        return new MemoizedNumberFormat(locale ?? CONST.LOCALES.DEFAULT, options).formatToParts(number);
-    } catch (e) {
-        if (e instanceof RangeError && options && 'currency' in options) {
-            Log.warn('NumberFormatUtils: malformed currency code, falling back to USD', {currency: options.currency});
-            return new MemoizedNumberFormat(locale ?? CONST.LOCALES.DEFAULT, {...options, currency: CONST.CURRENCY.USD}).formatToParts(number);
-        }
-        throw e;
-    }
+    return createFormatter(locale, options).formatToParts(number);
 }
 
 export {format, formatToParts};

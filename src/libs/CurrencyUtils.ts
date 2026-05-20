@@ -32,6 +32,14 @@ function isValidCurrencyCode(currencyCode: unknown): currencyCode is string {
 const warnedInvalidCurrencyCodes = new Set<string>();
 
 /**
+ * Test-only: clears the in-memory de-dup of malformed currency codes so tests asserting on `Log.warn`
+ * are not affected by warnings emitted by earlier tests. Production code should not call this.
+ */
+function resetInvalidCurrencyWarningsForTesting() {
+    warnedInvalidCurrencyCodes.clear();
+}
+
+/**
  * Validates a currency code and returns it unchanged if it is a valid ISO 4217 code.
  * Whitespace and case-only variations (e.g. " usd ") are normalized rather than discarded.
  * Returns CONST.CURRENCY.USD and logs a warning at most once per unique malformed value, to prevent Intl.NumberFormat
@@ -230,6 +238,7 @@ function convertToDisplayStringWithoutCurrency(amountInCents: number, currency: 
 export {
     isValidCurrencyCode,
     sanitizeCurrencyCode,
+    resetInvalidCurrencyWarningsForTesting,
     getCurrencyDecimals,
     getCurrencyUnit,
     getLocalizedCurrencySymbol,
