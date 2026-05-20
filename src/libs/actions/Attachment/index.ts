@@ -133,7 +133,6 @@ async function getCachedAttachment({uri, attachmentID, attachment, sourceHeaders
     const cacheKey = !isAuthRemoteAttachment && attachmentID ? attachmentID : imageSource;
     const cachePromise = pendingCaches.get(cacheKey);
     if (cachePromise) {
-        console.log('caching is in progress');
         return cachePromise.catch(() => imageSource);
     }
 
