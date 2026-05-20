@@ -3553,7 +3553,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         searchInputSkeleton: {
-            height: 44,
+            height: 46,
             justifyContent: 'center',
         },
 
