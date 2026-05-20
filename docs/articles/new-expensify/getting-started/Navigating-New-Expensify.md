@@ -13,7 +13,7 @@ This guide explains where to find each tab and what it’s used for.
 
 ---
 
-# Where to find navigation tabs
+## Where to find navigation tabs
 
 The **navigation tabs** are your main way to move through the app.
 
@@ -30,7 +30,7 @@ Tabs include:
 
 ---
 
-# What the Home tab is used for
+## What the Home tab is used for
 
 The **Home** tab is the first screen you see when you sign in.
 
@@ -40,7 +40,7 @@ For a full breakdown of what appears on Home, see the **Expensify Home Overview*
 
 ---
 
-# What the Inbox tab is used for
+## What the Inbox tab is used for
 
 The **Inbox** tab is where conversations and action-related items are managed.
 
@@ -53,7 +53,7 @@ Use Inbox to:
 
 ---
 
-# What the Spend tab is used for
+## What the Spend tab is used for
 
 **Spend** is the main place to search and act on expenses and expense reports.
 
@@ -65,7 +65,7 @@ From **Spend**, you can:
 
 ---
 
-# What the Workspaces tab is used for
+## What the Workspaces tab is used for
 
 The **Workspaces** tab displays all workspaces you are a member of. 
 
@@ -84,7 +84,7 @@ Use **Workspaces** for company and team configuration.
 
 ---
 
-# What the Account tab is used for
+## What the Account tab is used for
 
 The **Account** tab contains personal and account-level settings.
 
@@ -110,7 +110,7 @@ Use Account for personal settings and billing.
 
 ---
 
-# Using the Receipt and Create buttons
+## Using the Receipt and Create buttons
 
 In addition to the navigation tabs, you’ll see two primary action buttons:
 
@@ -121,7 +121,7 @@ The Receipt and Create buttons are available from all screens so you can quickly
 
 ---
 
-# How to navigate Expensify quickly
+## How to navigate Expensify quickly
 
 If you’re not sure where to go:
 
