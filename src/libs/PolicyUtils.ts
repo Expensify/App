@@ -667,6 +667,37 @@ function getExpensifyTeamExclusions(personalDetails: OnyxEntry<PersonalDetailsLi
 }
 
 /**
+ * Build a soft-exclusion map of every hydrated personal-details login that is NOT a member of
+ * any of the user's policies' employeeList. Used by the search filters so the picker shows only
+ * workspace members. Free-text input via `includeUserToInvite: true` still lets users type any
+ * email manually.
+ */
+function getNonWorkspaceMemberExclusions(personalDetails: OnyxEntry<PersonalDetailsList>, policies: OnyxCollection<Policy>, currentUserLogin: string | undefined): Record<string, boolean> {
+    const workspaceMemberLogins = new Set<string>();
+    if (currentUserLogin) {
+        workspaceMemberLogins.add(currentUserLogin.toLowerCase());
+    }
+    for (const policy of Object.values(policies ?? {})) {
+        if (!policy?.employeeList) {
+            continue;
+        }
+        for (const email of Object.keys(policy.employeeList)) {
+            workspaceMemberLogins.add(email.toLowerCase());
+        }
+    }
+
+    const exclusion: Record<string, boolean> = {};
+    for (const details of Object.values(personalDetails ?? {})) {
+        const login = details?.login?.toLowerCase();
+        if (!login || workspaceMemberLogins.has(login)) {
+            continue;
+        }
+        exclusion[login] = true;
+    }
+    return exclusion;
+}
+
+/**
  * Get soft exclusions (Guide/Account Manager) that should be hidden from auto-suggestions
  * but can still be manually entered by the user.
  *
@@ -2236,6 +2267,7 @@ export {
     getGuideAndAccountManagerInfo,
     getSoftExclusionsForGuideAndAccountManager,
     getExpensifyTeamExclusions,
+    getNonWorkspaceMemberExclusions,
     filterGuideAndAccountManager,
     isMultiLevelTags,
     getPolicyBrickRoadIndicatorStatus,
