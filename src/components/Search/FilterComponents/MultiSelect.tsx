@@ -50,12 +50,8 @@ function MultiSelect<T extends string>({loading, value, items, isSearchable, sea
     const [selectedItems, setSelectedItems] = useState(value);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
 
-    const filteredItems = isSearchable
-        ? items.filter((item) => {
-              const searchLower = debouncedSearchTerm.toLowerCase();
-              return item.text.toLowerCase().includes(searchLower) || item.searchableText?.toLowerCase().includes(searchLower);
-          })
-        : items;
+    const searchLower = debouncedSearchTerm.toLowerCase();
+    const filteredItems = isSearchable ? items.filter((item) => item.text.toLowerCase().includes(searchLower) || item.searchableText?.toLowerCase().includes(searchLower)) : items;
     const listData: ListItem[] = filteredItems.map((item) => ({
         text: item.text,
         keyForList: item.value,
