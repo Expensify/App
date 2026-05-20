@@ -13,6 +13,7 @@ import MentionHereRenderer from './MentionHereRenderer';
 import MentionReportRenderer from './MentionReportRenderer';
 import MentionUserRenderer from './MentionUserRenderer';
 import NextStepEmailRenderer from './NextStepEmailRenderer';
+import OLRenderer from './OLRenderer';
 import PreRenderer from './PreRenderer';
 import RBRRenderer from './RBRRenderer';
 import ShortMentionRenderer from './ShortMentionRenderer';
@@ -31,6 +32,7 @@ const HTMLEngineProviderComponentList: CustomTagRendererRecord = {
     a: AnchorRenderer,
     code: CodeRenderer,
     img: ImageRenderer,
+    ol: OLRenderer,
     ul: ULRenderer,
     video: VideoRenderer,
 

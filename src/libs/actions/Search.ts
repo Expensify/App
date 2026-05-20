@@ -961,11 +961,13 @@ function bulkDeleteReports({
         const reportID = selectedTransactions[transactionID].report?.reportID;
         const batchTransactionIDsForReport = reportID ? (transactionsByReport[reportID] ?? []) : [];
         const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedTransactions[transactionID].report?.chatReportID}`];
+        const transactionThreadReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportAction?.childReportID}`];
         const reportNameValuePair = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport?.reportID}`];
 
         deleteMoneyRequest({
             transactionID,
             reportAction,
+            transactionThreadReport,
             transactions,
             violations: transactionsViolations,
             iouReport: selectedTransactions[transactionID].report,
