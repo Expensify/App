@@ -178,7 +178,7 @@ function AmountFilterComponent({filterKey, value, onChange}: AmountFilterCompone
 
     return (
         <View style={[styles.flex1, styles.justifyContentBetween, !fullscreen && styles.pv2]}>
-            <ScrollView>
+            <ScrollView keyboardShouldPersistTaps='handled'>
                 {modifierConfig.map((config) => (
                     <Fragment key={config.keyForList}>
                         <SingleSelectListItem
