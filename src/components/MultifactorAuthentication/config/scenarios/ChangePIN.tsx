@@ -4,6 +4,7 @@ import createScreenWithDefaults from '@components/MultifactorAuthentication/comp
 import {DefaultClientFailureScreen, DefaultServerFailureScreen} from '@components/MultifactorAuthentication/components/OutcomeScreen/FailureScreen/defaultScreens';
 import type {MultifactorAuthenticationScenarioCustomConfig} from '@components/MultifactorAuthentication/config/types';
 import {changePINForCard} from '@libs/actions/MultifactorAuthentication';
+import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 
 /**
@@ -49,6 +50,10 @@ const ChangePINSuccessScreen = createScreenWithDefaults(
 export default {
     allowedAuthenticationMethods: [CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS_HSM, CONST.MULTIFACTOR_AUTHENTICATION.TYPE.PASSKEYS],
     action: changePINForCard,
+    callback: async () => {
+        Navigation.closeRHPFlow();
+        return CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN;
+    },
     successScreen: <ChangePINSuccessScreen />,
     defaultClientFailureScreen: <ClientFailureScreen />,
     defaultServerFailureScreen: <ServerFailureScreen />,
