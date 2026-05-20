@@ -11,6 +11,8 @@ import {handleInitialScreenLayout, MFA_INITIAL_SCREEN, mfaNavigationRef, resetMf
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSidePanelActions from '@hooks/useSidePanelActions';
+import useSidePanelState from '@hooks/useSidePanelState';
 import useTheme from '@hooks/useTheme';
 import useThemePreference from '@hooks/useThemePreference';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -44,6 +46,32 @@ function TransparentScreen() {
 
 TransparentScreen.displayName = 'TransparentScreen';
 
+/**
+ * Closes the SidePanel on activation and latches `true` only after the close transition ends.
+ * Prevents the Stack from mounting while the parent View width is still racing.
+ */
+function useAwaitSidePanelClose(shouldMount: boolean): boolean {
+    const {shouldHideSidePanel, isSidePanelTransitionEnded} = useSidePanelState();
+    const {closeSidePanel} = useSidePanelActions();
+    const [isSidePanelClosed, setIsSidePanelClosed] = useState(false);
+
+    useEffect(() => {
+        if (!shouldMount) {
+            setIsSidePanelClosed(false);
+            return;
+        }
+        closeSidePanel();
+        // closeSidePanel ref is unstable; excluding it prevents the effect from firing twice per activation.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [shouldMount]);
+
+    if (shouldMount && !isSidePanelClosed && shouldHideSidePanel && isSidePanelTransitionEnded) {
+        setIsSidePanelClosed(true);
+    }
+
+    return isSidePanelClosed;
+}
+
 function MultifactorAuthenticationModalNavigator() {
     const {isCancelConfirmVisible, isModalOpen, scenario} = useMultifactorAuthenticationState();
     const {requestCancel, hideCancelConfirm, confirmCancel} = useMultifactorAuthentication();
@@ -58,6 +86,8 @@ function MultifactorAuthenticationModalNavigator() {
     const backdropProgress = useSharedValue(0);
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
     const CancelConfirmModal = scenario?.modals.cancelConfirmation ?? DefaultCancelConfirmModal;
+
+    const isStackReadyToMount = useAwaitSidePanelClose(phase !== 'closed');
 
     // 'closing' outlives isModalOpen=false so the slide-out animation can play.
     if (isModalOpen && phase !== 'open') {
@@ -123,61 +153,63 @@ function MultifactorAuthenticationModalNavigator() {
                 </Animated.View>
             )}
             <View style={[styles.pAbsolute, styles.r0, styles.h100, styles.overflowHidden, shouldUseNarrowLayout ? styles.w100 : {width: variables.sideBarWidth}]}>
-                <NavigationIndependentTree>
-                    <BaseNavigationContainer
-                        ref={mfaNavigationRef}
-                        theme={navigationTheme}
-                    >
-                        <Stack.Navigator
-                            screenOptions={{
-                                headerShown: false,
-                                animationTypeForReplace: 'push',
-                                animation: Animations.SLIDE_FROM_RIGHT,
-                                gestureEnabled: false,
-                                native: {contentStyle: styles.navigationScreenCardStyle},
-                                web: {
-                                    presentation: Presentation.TRANSPARENT_MODAL,
-                                    cardOverlayEnabled: false,
-                                    cardStyle: styles.navigationScreenCardStyle,
-                                    // Always use the Expensify modal interpolator (not just on Safari like RHP does).
-                                    // The MFA navigator pushes the real screen from MFA_INITIAL's onLayout callback,
-                                    // so when push fires the incoming screen's measured width can still be 0.
-                                    // forHorizontalIOS interpolates translateX from layouts.screen.width — if width
-                                    // is 0 at push start, the slide range collapses to 0→0 and the screen appears
-                                    // via opacity only. modalCardStyleInterpolator uses a constant variables.sideBarWidth
-                                    // on wide layout, so the slide range is stable regardless of layout timing.
-                                    cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props}),
-                                },
-                            }}
+                {isStackReadyToMount && (
+                    <NavigationIndependentTree>
+                        <BaseNavigationContainer
+                            ref={mfaNavigationRef}
+                            theme={navigationTheme}
                         >
-                            <Stack.Screen
-                                name={MFA_INITIAL_SCREEN}
-                                component={TransparentScreen}
-                                options={{
-                                    animation: Animations.NONE,
-                                    native: {contentStyle: {backgroundColor: 'transparent'}},
-                                    web: {cardStyle: {backgroundColor: 'transparent'}},
+                            <Stack.Navigator
+                                screenOptions={{
+                                    headerShown: false,
+                                    animationTypeForReplace: 'push',
+                                    animation: Animations.SLIDE_FROM_RIGHT,
+                                    gestureEnabled: false,
+                                    native: {contentStyle: styles.navigationScreenCardStyle},
+                                    web: {
+                                        presentation: Presentation.TRANSPARENT_MODAL,
+                                        cardOverlayEnabled: false,
+                                        cardStyle: styles.navigationScreenCardStyle,
+                                        // Always use the Expensify modal interpolator (not just on Safari like RHP does).
+                                        // The MFA navigator pushes the real screen from MFA_INITIAL's onLayout callback,
+                                        // so when push fires the incoming screen's measured width can still be 0.
+                                        // forHorizontalIOS interpolates translateX from layouts.screen.width — if width
+                                        // is 0 at push start, the slide range collapses to 0→0 and the screen appears
+                                        // via opacity only. modalCardStyleInterpolator uses a constant variables.sideBarWidth
+                                        // on wide layout, so the slide range is stable regardless of layout timing.
+                                        cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props}),
+                                    },
                                 }}
-                            />
-                            <Stack.Screen
-                                name={SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE}
-                                getComponent={loadValidateCodePage}
-                            />
-                            <Stack.Screen
-                                name={SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT}
-                                getComponent={loadPromptPage}
-                            />
-                            <Stack.Screen
-                                name={SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS}
-                                getComponent={loadOutcomePage}
-                            />
-                            <Stack.Screen
-                                name={SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE}
-                                getComponent={loadOutcomePage}
-                            />
-                        </Stack.Navigator>
-                    </BaseNavigationContainer>
-                </NavigationIndependentTree>
+                            >
+                                <Stack.Screen
+                                    name={MFA_INITIAL_SCREEN}
+                                    component={TransparentScreen}
+                                    options={{
+                                        animation: Animations.NONE,
+                                        native: {contentStyle: {backgroundColor: 'transparent'}},
+                                        web: {cardStyle: {backgroundColor: 'transparent'}},
+                                    }}
+                                />
+                                <Stack.Screen
+                                    name={SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE}
+                                    getComponent={loadValidateCodePage}
+                                />
+                                <Stack.Screen
+                                    name={SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT}
+                                    getComponent={loadPromptPage}
+                                />
+                                <Stack.Screen
+                                    name={SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS}
+                                    getComponent={loadOutcomePage}
+                                />
+                                <Stack.Screen
+                                    name={SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE}
+                                    getComponent={loadOutcomePage}
+                                />
+                            </Stack.Navigator>
+                        </BaseNavigationContainer>
+                    </NavigationIndependentTree>
+                )}
             </View>
             <CancelConfirmModal
                 isVisible={isCancelConfirmVisible}
