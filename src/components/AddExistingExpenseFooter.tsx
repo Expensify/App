@@ -95,6 +95,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
                     policyCategories,
                     allTransactions: selectedTransactions,
                     policyTagList,
+                    allTransactionViolation: transactionViolations,
                 });
             }
         });

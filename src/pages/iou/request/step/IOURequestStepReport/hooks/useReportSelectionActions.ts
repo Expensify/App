@@ -100,6 +100,7 @@ function useReportSelectionActions({
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {removeTransaction} = useSearchActionsContext();
 
     const buildParticipants = (report: OnyxEntry<Report>) => [
@@ -191,6 +192,7 @@ function useReportSelectionActions({
                         policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
                         allTransactions,
                         policyTagList,
+                        allTransactionViolation: transactionViolations,
                     });
                     removeTransaction(transaction.transactionID);
                 }
@@ -213,6 +215,7 @@ function useReportSelectionActions({
                 policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
                 allTransactions,
                 policyTagList,
+                allTransactionViolation: transactionViolations,
             });
             removeTransaction(transaction.transactionID);
         });
