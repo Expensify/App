@@ -612,7 +612,7 @@ describe('Session', () => {
     });
 
     describe('signInWithSupportAuthToken', () => {
-        test('should store the auth token via setLastShortAuthToken for dedup guard', () => {
+        test('should store the auth token via setLastShortAuthToken for duplicate call guard', () => {
             const testToken = 'supportAuthToken123';
 
             SessionUtil.signInWithSupportAuthToken(testToken);
