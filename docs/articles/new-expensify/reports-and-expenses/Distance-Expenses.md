@@ -88,6 +88,23 @@ Once a Distance expense is created, it can be submitted on a report. To learn ho
 
 ---
 
+## How to edit an existing Distance expense
+
+You can update the distance on a manual or map-based Distance expense before it is approved. When you open the expense and select the **Distance** field, you can choose between two editing methods:
+
+- **Map** — Update the start and stop locations or add/remove waypoints. The distance and amount are recalculated automatically based on the new route.
+- **Manual** — Type in a new distance value directly. The amount is recalculated based on the updated distance and the applicable rate.
+
+To edit the distance:
+
+1. Open the Distance expense.
+2. Select the **Distance** field.
+3. Select **Map** or **Manual** from the top row.
+4. Update the route or distance value.
+5. Select **Save**.
+
+---
+
 ## How reimbursement rates are set for Distance expenses
 
 ### Distance expenses created on a Workspace
