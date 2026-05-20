@@ -76,7 +76,7 @@ function DateFilterComponent({filterKey, value: initialValue, onChange}: DateFil
             />
             {(!!selectedDateModifier || fullscreen) && (
                 <Button
-                    style={[styles.ph5, styles.pb3]}
+                    style={[styles.ph5, styles.pb5]}
                     success
                     medium={!fullscreen}
                     large={fullscreen}
