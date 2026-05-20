@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -44,7 +44,16 @@ function CopyPolicySettingsSelectWorkspacesPage() {
     const currentUserEmail = currentUserPersonalDetails?.email;
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [copyPolicySettings] = useOnyx(ONYXKEYS.COPY_POLICY_SETTINGS);
     const [selectedTargetIDs, setSelectedTargetIDs] = useState<string[]>([]);
+
+    useEffect(() => {
+        if (!copyPolicySettings?.targetPolicyIDs) {
+            return;
+        }
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setSelectedTargetIDs(copyPolicySettings.targetPolicyIDs);
+    }, [copyPolicySettings?.targetPolicyIDs]);
 
     const sourcePolicy = sourcePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`] : undefined;
     const isSourceCorporate = sourcePolicy?.type === CONST.POLICY.TYPE.CORPORATE;
