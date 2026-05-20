@@ -11,7 +11,6 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import {areSettingsInErrorFields, getCurrentSageIntacctEntityName, settingsPendingAction} from '@libs/PolicyUtils';
 import createDynamicRoute from '@navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@navigation/Navigation';
-import TravelInvoicingContinuousReconciliationSection from '@pages/workspace/accounting/common/TravelInvoicingContinuousReconciliationSection';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -119,13 +118,6 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                     })()}
                 />
             </OfflineWithFeedback>
-            <TravelInvoicingContinuousReconciliationSection
-                policy={policy}
-                connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
-                isAutoSyncEnabled={!!config?.autoSync?.enabled}
-                toggleWrapperStyle={[styles.ph5, styles.pv3]}
-            />
-
             {toggleSections.map((section) => (
                 <ToggleSettingOptionRow
                     key={section.label}
