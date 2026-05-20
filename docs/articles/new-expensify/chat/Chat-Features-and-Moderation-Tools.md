@@ -16,7 +16,7 @@ New Expensify Chat makes it easy to collaborate with teammates through messaging
 
 You can send messages, attach files, and add emojis from the message bar at the bottom of any chat.
 
-**On Desktop:**
+**On Web:**
 1. Open any chat from your inbox.
 2. Click the field labeled **Write something**, then type your message.
 3. To add an attachment, click the **plus icon** and select **Add attachment**.
@@ -46,7 +46,7 @@ You can send messages, attach files, and add emojis from the message bar at the 
 
 # Edit or Delete Messages
 
-## How to edit or delete a message on desktop
+## How to edit or delete a message on web
 
 1. Open a chat.
 2. Right-click (or hover over) a message.
