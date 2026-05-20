@@ -1,4 +1,5 @@
 import React, {useEffect} from 'react';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
 import {isAgentEmail} from '@libs/SessionUtils';
@@ -16,16 +17,28 @@ function withAgentAccessDenied(getComponent: () => React.ComponentType): () => R
             ProtectedComponent = (props) => {
                 const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: sessionEmailSelector});
                 const isAgent = isAgentEmail(sessionEmail);
+                const isAlreadyOnRedirectTarget = Navigation.isActiveRoute(ROUTES.SETTINGS_PROFILE.route);
+                const shouldRedirect = isAgent && !isAlreadyOnRedirectTarget;
 
                 useEffect(() => {
-                    if (!isAgent) {
+                    if (!shouldRedirect) {
                         return;
                     }
                     Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute());
-                }, [isAgent]);
+                }, [shouldRedirect]);
 
-                if (isAgent) {
+                if (shouldRedirect) {
                     return null;
+                }
+                if (isAgent) {
+                    return (
+                        <FullPageNotFoundView
+                            shouldShow
+                            titleKey="delegate.notAllowed"
+                            subtitleKey="delegate.noAccessMessage"
+                            shouldShowLink={false}
+                        />
+                    );
                 }
                 return <Component {...props} />;
             };

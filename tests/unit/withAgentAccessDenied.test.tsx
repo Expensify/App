@@ -16,6 +16,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
     dismissModal: jest.fn(),
     getActiveRoute: jest.fn(() => ''),
+    isActiveRoute: jest.fn(() => false),
 }));
 
 jest.mock('@hooks/useResponsiveLayout', () => () => ({shouldUseNarrowLayout: false}));
@@ -51,6 +52,7 @@ describe('withAgentAccessDenied', () => {
 
     beforeEach(() => {
         (Navigation.navigate as jest.Mock).mockClear();
+        (Navigation.isActiveRoute as jest.Mock).mockReturnValue(false);
     });
 
     it('redirects agent account to the profile page instead of rendering the wrapped component', async () => {
@@ -63,6 +65,21 @@ describe('withAgentAccessDenied', () => {
         await waitFor(() => {
             expect(screen.queryByTestId('protected-content')).toBeNull();
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_PROFILE.getRoute());
+        });
+    });
+
+    it('shows access denied view instead of redirecting when agent is already on the redirect target', async () => {
+        (Navigation.isActiveRoute as jest.Mock).mockReturnValue(true);
+        await TestHelper.signInWithTestUser(1, 'agent_123@expensify.ai');
+        await waitForBatchedUpdatesWithAct();
+
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.queryByTestId('protected-content')).toBeNull();
+            expect(screen.getByText('Not so fast...')).toBeDefined();
+            expect(Navigation.navigate).not.toHaveBeenCalled();
         });
     });
 
