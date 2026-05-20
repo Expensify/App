@@ -8,7 +8,7 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setMoneyRequestDescription} from '@libs/actions/IOU';
+import {setMoneyRequestDescription} from '@libs/actions/IOU/MoneyRequest';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import variables from '@styles/variables';

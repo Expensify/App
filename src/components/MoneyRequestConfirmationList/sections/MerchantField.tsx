@@ -5,7 +5,7 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearMoneyRequestMerchant, setMoneyRequestMerchant} from '@libs/actions/IOU';
+import {clearMoneyRequestMerchant, setMoneyRequestMerchant} from '@libs/actions/IOU/MoneyRequest';
 import Navigation from '@libs/Navigation/Navigation';
 import {isInvalidMerchantValue, isValidInputLength} from '@libs/ValidationUtils';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';

@@ -1,4 +1,3 @@
-import {accountIDSelector} from '@selectors/Session';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -11,8 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearMoneyRequestAmount, setMoneyRequestAmount} from '@libs/actions/IOU';
-import {getMoneyRequestParticipantsFromReport} from '@libs/actions/IOU/MoneyRequest';
+import {clearMoneyRequestAmount, getMoneyRequestParticipantsFromReport, setMoneyRequestAmount} from '@libs/actions/IOU/MoneyRequest';
 import {convertToBackendAmount, convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import {calculateAmount} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -81,7 +79,6 @@ function AmountField({
     const {getCurrencyDecimals} = useCurrencyListActions();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
-    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const amountInputRef = useRef<BaseTextInputRef | null>(null);
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
@@ -164,7 +161,7 @@ function AmountField({
                 return;
             }
             const splitShares = splitDraftTransaction?.splitShares ?? transactionSlice?.splitShares;
-            const accountID = currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
+            const accountID = currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID;
             const newAccountIDs = Object.keys(splitShares ?? {}).map((key) => Number(key));
             const oldAccountIDs = Object.keys(transactionSlice?.splitShares ?? {}).map((key) => Number(key));
             const accountIDs = [...new Set<number>([accountID, ...newAccountIDs, ...oldAccountIDs])];
@@ -198,7 +195,7 @@ function AmountField({
             const participantAccountIDs =
                 shareAccountIDs.length > 0 ? shareAccountIDs : (transactionSlice.participants ?? []).map((p) => p.accountID).filter((id): id is number => id !== undefined);
             if (participantAccountIDs.length > 0) {
-                setSplitShares(transactionForHandlers, updatedAmount, updatedCurrency, participantAccountIDs);
+                setSplitShares(transactionForHandlers, updatedAmount, updatedCurrency, participantAccountIDs, currentUserPersonalDetails.accountID);
             }
             return;
         }
