@@ -110,6 +110,7 @@ import {
     getReportStatusTranslation,
     getReportSubtitlePrefix,
     getTaskAssigneeChatOnyxData,
+    getTitleFieldWithFallback,
     getTransactionDetails,
     getTransactionSortValue,
     getUnreportedTransactionMessage,
@@ -14270,6 +14271,121 @@ describe('ReportUtils', () => {
             };
 
             expect(canEditReportTitle(report, testPolicy, currentUserAccountID)).toBe(false);
+        });
+
+        it('returns true when policy has custom fields but no title field (uses fallback)', () => {
+            const testPolicy = getPolicy({
+                role: CONST.POLICY.ROLE.ADMIN,
+                fieldList: {
+                    text_customField: {
+                        fieldID: 'text_customField',
+                        name: 'Custom',
+                        type: CONST.REPORT_FIELD_TYPES.TEXT,
+                        defaultValue: '',
+                        deletable: true,
+                        target: CONST.POLICY.DEFAULT_FIELD_LIST_TARGET,
+                        values: [],
+                        keys: [],
+                        externalIDs: [],
+                        disabledOptions: [],
+                        orderWeight: 1,
+                        isTax: false,
+                    },
+                },
+            });
+            const report = {
+                ...createExpenseReport(128),
+                policyID: testPolicy.id,
+                ownerAccountID: 888,
+                managerID: 999,
+            };
+
+            mockedPolicyUtils.isPaidGroupPolicy.mockReturnValueOnce(true);
+            expect(canEditReportTitle(report, testPolicy, currentUserAccountID)).toBe(true);
+        });
+
+        it('returns true when policy has empty fieldList (uses fallback)', () => {
+            const testPolicy = getPolicy({
+                role: CONST.POLICY.ROLE.ADMIN,
+                fieldList: {},
+            });
+            const report = {
+                ...createExpenseReport(129),
+                policyID: testPolicy.id,
+                ownerAccountID: 888,
+                managerID: 999,
+            };
+
+            mockedPolicyUtils.isPaidGroupPolicy.mockReturnValueOnce(true);
+            expect(canEditReportTitle(report, testPolicy, currentUserAccountID)).toBe(true);
+        });
+    });
+
+    describe('getTitleFieldWithFallback', () => {
+        it('returns the policy title field when it exists', () => {
+            const titleField: PolicyReportField = {
+                fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
+                name: 'Title',
+                type: CONST.REPORT_FIELD_TYPES.TEXT,
+                defaultValue: 'My Custom Default',
+                deletable: true,
+                target: CONST.POLICY.DEFAULT_FIELD_LIST_TARGET,
+                values: [],
+                keys: [],
+                externalIDs: [],
+                disabledOptions: [],
+                orderWeight: 1,
+                isTax: false,
+            };
+            const policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM, 'Test'),
+                fieldList: {
+                    [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: titleField,
+                },
+            };
+
+            expect(getTitleFieldWithFallback(policy)).toBe(titleField);
+        });
+
+        it('returns fallback when policy has custom fields but no title field', () => {
+            const policy = {
+                ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM, 'Test'),
+                fieldList: {
+                    text_customField: {
+                        fieldID: 'text_customField',
+                        name: 'Custom',
+                        type: CONST.REPORT_FIELD_TYPES.TEXT,
+                        defaultValue: '',
+                        deletable: true,
+                        target: CONST.POLICY.DEFAULT_FIELD_LIST_TARGET,
+                        values: [],
+                        keys: [],
+                        externalIDs: [],
+                        disabledOptions: [],
+                        orderWeight: 1,
+                        isTax: false,
+                    },
+                },
+            };
+
+            const result = getTitleFieldWithFallback(policy);
+            expect(result.fieldID).toBe(CONST.REPORT_FIELD_TITLE_FIELD_ID);
+            expect(result.type).toBe(CONST.REPORT_FIELD_TYPES.TEXT);
+        });
+
+        it('returns fallback when policy has empty fieldList', () => {
+            const policy = {
+                ...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM, 'Test'),
+                fieldList: {},
+            };
+
+            const result = getTitleFieldWithFallback(policy);
+            expect(result.fieldID).toBe(CONST.REPORT_FIELD_TITLE_FIELD_ID);
+        });
+
+        it('returns fallback when policy is undefined', () => {
+            const result = getTitleFieldWithFallback(undefined);
+            expect(result.fieldID).toBe(CONST.REPORT_FIELD_TITLE_FIELD_ID);
         });
     });
 
