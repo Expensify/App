@@ -16,7 +16,9 @@ import Parser from '@libs/Parser';
 import {
     getDistanceRateCustomUnitRate,
     getPerDiemRateCustomUnitRate,
+    getQBOVendorByID,
     getSortedTagKeys,
+    hasVendorFeature,
     isAttendeeTrackingEnabled as isAttendeeTrackingEnabledForPolicy,
     isDefaultTagName,
     isTaxTrackingEnabled,
@@ -428,6 +430,29 @@ const ViolationsUtils = {
                 Object.keys(policyTagList).length === 1
                     ? getTagViolationsForSingleLevelTags(updatedTransaction, newTransactionViolations, policyRequiresTags, policyTagList)
                     : getTagViolationsForMultiLevelTags(updatedTransaction, newTransactionViolations, policyTagList, hasDependentTags);
+        }
+
+        // Inactive vendor violation (Vendor matching CC R1, QBO). Mirrors `categoryOutOfPolicy` /
+        // `tagOutOfPolicy` — computed entirely client-side from the policy's imported vendor list.
+        // The vendor object on the transaction is left as-is when the violation fires (or when the
+        // feature is disabled) — we never clear the user's selection just because the vendor list
+        // changed; the admin needs to see what was previously set so they can re-pick.
+        const hasInactiveVendorViolation = newTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.INACTIVE_VENDOR);
+        const isVendorFeatureActive = hasVendorFeature(policy);
+        const transactionVendorID = updatedTransaction.comment?.vendor?.externalID;
+        if (!isVendorFeatureActive) {
+            // Feature off (e.g. admin switched export type away from credit/debit card) — clear any
+            // stale inactive-vendor violation.
+            if (hasInactiveVendorViolation) {
+                newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
+            }
+        } else if (transactionVendorID) {
+            const matchedVendor = getQBOVendorByID(policy, transactionVendorID);
+            if (!matchedVendor && !hasInactiveVendorViolation) {
+                newTransactionViolations.push({name: CONST.VIOLATIONS.INACTIVE_VENDOR, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
+            } else if (matchedVendor && hasInactiveVendorViolation) {
+                newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
+            }
         }
 
         const customUnitRateID = updatedTransaction?.comment?.customUnit?.customUnitRateID;
