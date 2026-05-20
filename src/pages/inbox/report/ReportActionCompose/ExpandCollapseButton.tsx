@@ -44,7 +44,6 @@ function ExpandCollapseButton({
     const sentryLabel = shouldCollapse ? CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_COLLAPSE_BUTTON : CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_EXPAND_BUTTON;
 
     return (
-        // eslint-disable-next-line react/jsx-props-no-spreading
         <View {...restProps}>
             <Tooltip
                 text={tooltipText}
