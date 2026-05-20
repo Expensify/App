@@ -2091,6 +2091,87 @@ describe('Transaction', () => {
             expect(Object.keys(reportActions ?? {}).length).toBe(0);
         });
 
+        it('should preserve an existing hold when optimistic dismissal is built from a stale transaction snapshot', async () => {
+            const transactionID = 'dismissTxnHold';
+            const threadReportID = 'threadDismissHold';
+            const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const;
+            const testerEmail = 'tester@example.com';
+            const mockViolations: TransactionViolation[] = [{name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: 'warning'}];
+
+            mockFetch.pause();
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, mockViolations);
+
+            const transactionInOnyx = generateTransaction({
+                transactionID,
+                reportID: FAKE_OLD_REPORT_ID,
+                comment: {
+                    hold: 'holdReportActionID',
+                    dismissedViolations: {
+                        [CONST.VIOLATIONS.SMARTSCAN_FAILED]: {
+                            owner: 123,
+                        },
+                    },
+                },
+            });
+            await Onyx.merge(transactionKey, transactionInOnyx);
+
+            const staleTransaction = {
+                ...transactionInOnyx,
+                comment: {
+                    dismissedViolations: {
+                        [CONST.VIOLATIONS.SMARTSCAN_FAILED]: {
+                            owner: 123,
+                        },
+                    },
+                    hold: undefined,
+                },
+            } as Transaction;
+
+            const iouAction = {
+                reportActionID: rand64(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                childReportID: threadReportID,
+                actorAccountID: CURRENT_USER_ID,
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    IOUReportID: FAKE_OLD_REPORT_ID,
+                    IOUTransactionID: transactionID,
+                    amount: transactionInOnyx.amount,
+                    currency: transactionInOnyx.currency,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[iouAction.reportActionID]: iouAction});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`, {});
+
+            mockFetch.fail();
+
+            dismissDuplicateTransactionViolation({
+                transactionIDs: [transactionID],
+                dismissedPersonalDetails: {login: testerEmail, accountID: CURRENT_USER_ID},
+                expenseReport: newReport,
+                policy: undefined,
+                isASAPSubmitBetaEnabled: false,
+                allTransactions: {[transactionKey]: staleTransaction},
+            });
+            await waitForBatchedUpdates();
+
+            const optimisticTransaction = await getOnyxValue(transactionKey);
+            const duplicateDismissals = optimisticTransaction?.comment?.dismissedViolations?.[CONST.VIOLATIONS.DUPLICATED_TRANSACTION];
+            expect(optimisticTransaction?.comment?.hold).toBe('holdReportActionID');
+            expect(optimisticTransaction?.comment?.dismissedViolations?.[CONST.VIOLATIONS.SMARTSCAN_FAILED]).toEqual({owner: 123});
+            expect(duplicateDismissals?.[testerEmail]).toEqual(expect.any(Number));
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            const revertedTransaction = await getOnyxValue(transactionKey);
+            expect(revertedTransaction?.comment?.hold).toBe('holdReportActionID');
+            expect(revertedTransaction?.comment?.dismissedViolations?.[CONST.VIOLATIONS.SMARTSCAN_FAILED]).toEqual({owner: 123});
+            expect(revertedTransaction?.comment?.dismissedViolations?.[CONST.VIOLATIONS.DUPLICATED_TRANSACTION]).toBeUndefined();
+        });
+
         it('should not modify Onyx data when tag list does not exist at given index (empty violations array)', async () => {
             const transactionID = 'dismissTxn3';
             const threadReportID = 'threadDismiss3';
