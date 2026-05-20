@@ -1,11 +1,12 @@
 import {subYears} from 'date-fns';
 import React, {useCallback} from 'react';
+import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import DatePicker from '@components/DatePicker';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
-import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
@@ -33,7 +34,7 @@ function DateOfBirthPage() {
             const requiredFields = ['dob' as const];
             const errors = getFieldRequiredErrors(values, requiredFields, translate);
 
-            const minimumAge = CONST.DATE_BIRTH.MIN_AGE;
+            const minimumAge = CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT;
             const maximumAge = CONST.DATE_BIRTH.MAX_AGE;
             const dateError = getAgeRequirementError(translate, values.dob ?? '', minimumAge, maximumAge);
 
@@ -57,10 +58,12 @@ function DateOfBirthPage() {
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 {isLoadingApp ? (
-                    <FullscreenLoadingIndicator
-                        style={[styles.flex1, styles.pRelative]}
-                        reasonAttributes={{context: 'DateOfBirthPage', isLoadingApp} satisfies SkeletonSpanReasonAttributes}
-                    />
+                    <View style={[styles.flex1, styles.fullScreenLoading]}>
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            reasonAttributes={{context: 'DateOfBirthPage', isLoadingApp} satisfies SkeletonSpanReasonAttributes}
+                        />
+                    </View>
                 ) : (
                     <FormProvider
                         style={[styles.flexGrow1, styles.ph5]}
@@ -77,7 +80,7 @@ function DateOfBirthPage() {
                             label={translate('common.date')}
                             defaultValue={privatePersonalDetails?.dob ?? ''}
                             minDate={subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE)}
-                            maxDate={subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE)}
+                            maxDate={subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT)}
                             autoFocus
                             autoComplete="birthdate-full"
                         />

@@ -87,11 +87,17 @@ type BaseTextInputWithSymbolProps = {
     /** Function to toggle the amount to negative */
     toggleNegative?: () => void;
 
+    /** Style for the negative symbol */
+    negativeSymbolStyle?: StyleProp<TextStyle>;
+
     /** The test ID of TextInput. Used to locate the view in end-to-end tests. */
     testID?: string;
 
     /** Determines which keyboard to open */
     keyboardType?: KeyboardTypeOptions;
+
+    /** Component to render on the right hand side of the input - only shown if clear button is not rendered */
+    rightHandSideComponent?: React.ReactNode;
 } & Pick<
     BaseTextInputProps,
     | 'autoFocus'
@@ -107,6 +113,7 @@ type BaseTextInputWithSymbolProps = {
     | 'disabled'
     | 'ref'
     | 'accessibilityLabel'
+    | 'shouldAllowFocusInLandscapeMode'
 >;
 
 type TextInputWithSymbolProps = Omit<BaseTextInputWithSymbolProps, 'onSelectionChange'> & {

@@ -1,6 +1,6 @@
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -8,6 +8,7 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -23,9 +24,11 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
+import {hasReceipt} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
-import {setMoneyRequestDescription, updateMoneyRequestDescription} from '@userActions/IOU';
+import {setMoneyRequestDescription} from '@userActions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
+import {updateMoneyRequestDescription} from '@userActions/IOU/UpdateMoneyRequest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -82,6 +85,7 @@ function IOURequestStepDescription({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
+    const delegateAccountID = useDelegateAccountID();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
@@ -155,7 +159,7 @@ function IOURequestStepDescription({
             return;
         }
 
-        setMoneyRequestDescription(transaction?.transactionID, newComment, isTransactionDraft);
+        setMoneyRequestDescription(transaction?.transactionID, newComment, isTransactionDraft, hasReceipt(transaction));
 
         if (action === CONST.IOU.ACTION.EDIT) {
             updateMoneyRequestDescription({
@@ -170,6 +174,7 @@ function IOURequestStepDescription({
                 currentUserEmailParam,
                 isASAPSubmitBetaEnabled,
                 parentReportNextStep,
+                delegateAccountID,
             });
         }
 
@@ -177,20 +182,14 @@ function IOURequestStepDescription({
         shouldNavigateAfterSaveRef.current = true;
     };
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
     const isReportInGroupPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE && personalPolicyID !== report.policyID;
-    const getDescriptionHint = () => {
-        return transaction?.category && policyCategories ? (policyCategories[transaction?.category]?.commentHint ?? '') : '';
-    };
+    const descriptionHint = transaction?.category && policyCategories ? (policyCategories[transaction?.category]?.commentHint ?? '') : '';
 
     useDiscardChangesConfirmation({
         onCancel: () => {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => {
-                inputRef.current?.focus();
-            });
+            inputRef.current?.focus();
         },
         getHasUnsavedChanges: () => {
             if (isSaved) {
@@ -237,7 +236,8 @@ function IOURequestStepDescription({
                         type="markdown"
                         excludedMarkdownStyles={!isReportInGroupPolicy ? ['mentionReport'] : []}
                         ref={inputCallbackRef}
-                        hint={getDescriptionHint()}
+                        hint={descriptionHint}
+                        shouldRenderHintAsHTML={!!descriptionHint}
                     />
                 </View>
             </FormProvider>
@@ -245,9 +245,8 @@ function IOURequestStepDescription({
     );
 }
 
-// eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepDescriptionWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDescription);
-// eslint-disable-next-line rulesdir/no-negated-variables
+
 const IOURequestStepDescriptionWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDescriptionWithFullTransactionOrNotFound);
 
 export default IOURequestStepDescriptionWithWritableReportOrNotFound;

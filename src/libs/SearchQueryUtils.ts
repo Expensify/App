@@ -1,6 +1,7 @@
+import {addDays, endOfMonth, format, parse, startOfMonth, startOfYear, subMonths} from 'date-fns';
 import cloneDeep from 'lodash/cloneDeep';
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {
@@ -13,12 +14,14 @@ import type {
     ReportFieldTextKey,
     SearchAmountFilterKeys,
     SearchDateFilterKeys,
+    SearchDateKey,
     SearchDatePreset,
     SearchFilterKey,
     SearchQueryJSON,
     SearchQueryString,
     SearchStatus,
     SearchWithdrawalType,
+    SyntaxFilterKey,
     UserFriendlyKey,
     UserFriendlyValue,
 } from '@components/Search/types';
@@ -30,13 +33,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS, {ALLOWED_TYPE_FILTERS, AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
+import type {ExpenseTypeValue, ExpenseTypeValues, HasFilterValue, HasFilterValues, IsFilterValue, IsFilterValues, SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
-import arraysEqual from '@src/utils/arraysEqual';
+import type {SearchDataTypes, SearchResultDataType} from '@src/types/onyx/SearchResults';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescription} from './CardUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
+import DateUtils from './DateUtils';
 import Log from './Log';
 import {validateAmount} from './MoneyRequestUtils';
 import {getPreservedNavigatorState} from './Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
@@ -69,6 +72,7 @@ const VALID_EXPENSE_TYPES = new Set(Object.values(CONST.SEARCH.TRANSACTION_TYPE)
 const VALID_HAS_TYPES = new Set(Object.values(CONST.SEARCH.HAS_VALUES));
 const VALID_IS_TYPES = new Set(Object.values(CONST.SEARCH.IS_VALUES));
 const VALID_WITHDRAWAL_TYPES = new Set(Object.values(CONST.SEARCH.WITHDRAWAL_TYPE));
+const VALID_WITHDRAWAL_STATUSES = new Set<string>(Object.values(CONST.SEARCH.SETTLEMENT_STATUS));
 
 // Create reverse lookup maps for O(1) performance
 const createKeyToUserFriendlyMap = () => {
@@ -135,6 +139,83 @@ function sanitizeSearchValue(str: string) {
     return str;
 }
 
+function getRangeQueryValue(from?: string, to?: string) {
+    if (from && to) {
+        return `${from},${to}`;
+    }
+    if (from) {
+        return from;
+    }
+    if (to) {
+        return `,${to}`;
+    }
+    return '';
+}
+
+function getInclusiveRangeBoundary(date?: string, dayOffset = 0) {
+    const validDate = date ?? '';
+    if (!isValidDate(validDate)) {
+        return undefined;
+    }
+
+    return format(addDays(parse(validDate, 'yyyy-MM-dd', new Date()), dayOffset), 'yyyy-MM-dd');
+}
+
+function getRangeBoundariesFromFormValue(rangeValue?: string, fallbackAfter?: string, fallbackBefore?: string) {
+    const parsedRange = parseRangeQueryValue(rangeValue);
+    if (rangeValue && (parsedRange.from || parsedRange.to)) {
+        return parsedRange;
+    }
+
+    const from = getInclusiveRangeBoundary(fallbackAfter, 1);
+    const to = getInclusiveRangeBoundary(fallbackBefore, -1);
+
+    if (from && to && from > to) {
+        return {
+            from: undefined,
+            to: undefined,
+        };
+    }
+
+    return {
+        from,
+        to,
+    };
+}
+
+function getDateRangeDisplayValueFromFormValue(rangeValue?: string, fallbackAfter?: string, fallbackBefore?: string, shouldOmitCurrentYear = false) {
+    if (!rangeValue) {
+        return '';
+    }
+
+    const rangeBoundaries = getRangeBoundariesFromFormValue(rangeValue, fallbackAfter, fallbackBefore);
+    if (rangeBoundaries.from && rangeBoundaries.to) {
+        const shouldShowFullYear = !shouldOmitCurrentYear || DateUtils.doesDateBelongToAPastYear(rangeBoundaries.from) || DateUtils.doesDateBelongToAPastYear(rangeBoundaries.to);
+        return DateUtils.getFormattedDateRangeForSearch(rangeBoundaries.from, rangeBoundaries.to, shouldShowFullYear, shouldOmitCurrentYear);
+    }
+
+    const singleBoundary = rangeBoundaries.from ?? rangeBoundaries.to;
+    return singleBoundary ? DateUtils.formatToReadableString(singleBoundary) : '';
+}
+
+function parseRangeQueryValue(rangeValue?: string) {
+    if (!rangeValue) {
+        return {
+            from: undefined,
+            to: undefined,
+        };
+    }
+
+    const [rawFrom = '', rawTo = ''] = rangeValue.split(',', 2);
+    const from = isValidDate(rawFrom) ? rawFrom : undefined;
+    const to = isValidDate(rawTo) ? rawTo : undefined;
+
+    return {
+        from,
+        to,
+    };
+}
+
 /**
  * @private
  * Returns date filter value for QueryString.
@@ -144,11 +225,22 @@ function buildDateFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>, 
     const dateOn = filterValues[`${filterKey}${CONST.SEARCH.DATE_MODIFIERS.ON}`];
     const dateAfter = filterValues[`${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`];
     const dateBefore = filterValues[`${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}`];
+    const dateRange = filterValues[`${filterKey}${CONST.SEARCH.DATE_MODIFIERS.RANGE}`];
+    const rangeBoundaries = parseRangeQueryValue(dateRange);
+    const hasRange = !!(rangeBoundaries.from ?? rangeBoundaries.to);
 
     const dateFilters = [];
 
     if (dateOn) {
         dateFilters.push(`${filterKey}:${dateOn}`);
+    }
+    if (hasRange) {
+        if (rangeBoundaries.from) {
+            dateFilters.push(`${filterKey}${operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO]}${rangeBoundaries.from}`);
+        }
+        if (rangeBoundaries.to) {
+            dateFilters.push(`${filterKey}${operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO]}${rangeBoundaries.to}`);
+        }
     }
     if (dateAfter) {
         dateFilters.push(`${filterKey}>${dateAfter}`);
@@ -214,8 +306,20 @@ function buildFilterValuesString(filterName: string, queryFilters: QueryFilter[]
             filterValueString += `${delimiter}${sanitizeSearchValue(queryFilter.value.toString())}`;
         } else if (queryFilter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
             filterValueString += ` -${filterName}:${sanitizeSearchValue(queryFilter.value.toString())}`;
+        } else if (queryFilter.operator === CONST.SEARCH.SYNTAX_OPERATORS.RANGE) {
+            const rangeBoundaries = parseRangeQueryValue(queryFilter.value.toString());
+            if (rangeBoundaries.from) {
+                filterValueString += ` ${filterName}${operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO]}${sanitizeSearchValue(rangeBoundaries.from)}`;
+            }
+            if (rangeBoundaries.to) {
+                filterValueString += ` ${filterName}${operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO]}${sanitizeSearchValue(rangeBoundaries.to)}`;
+            }
         } else {
-            filterValueString += ` ${filterName}${operatorToCharMap[queryFilter.operator]}${sanitizeSearchValue(queryFilter.value.toString())}`;
+            const operatorChar = operatorToCharMap[queryFilter.operator];
+            if (!operatorChar) {
+                continue;
+            }
+            filterValueString += ` ${filterName}${operatorChar}${sanitizeSearchValue(queryFilter.value.toString())}`;
         }
     }
 
@@ -284,7 +388,7 @@ function getFilters(queryJSON: SearchQueryJSON) {
  * - for `AMOUNT` it formats value to "backend" amount
  * - for personal filters it tries to substitute any user emails with accountIDs
  */
-function getUpdatedFilterValue(filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>, filterValue: string | string[], shouldSkipAmountConversion = false) {
+function getUpdatedFilterValue(filterName: SyntaxFilterKey, filterValue: string | string[], shouldSkipAmountConversion = false) {
     if (AMOUNT_FILTER_KEYS.includes(filterName as SearchAmountFilterKeys)) {
         if (shouldSkipAmountConversion) {
             return filterValue;
@@ -338,6 +442,37 @@ function getUpdatedFilterValue(filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_FI
  */
 const customCollator = new Intl.Collator('en', {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'});
 
+let defaultSearchQueryJSON: SearchQueryJSON | undefined;
+
+function getDefaultSearchQueryJSON() {
+    if (defaultSearchQueryJSON) {
+        return defaultSearchQueryJSON;
+    }
+
+    defaultSearchQueryJSON = parseSearchQuery('') as SearchQueryJSON;
+    return defaultSearchQueryJSON;
+}
+
+function wasViewExplicitlySet(queryJSON?: SearchQueryJSON | Readonly<SearchQueryJSON>) {
+    if (!queryJSON?.view) {
+        return false;
+    }
+
+    if (queryJSON.rawFilterList?.some((filter) => filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW)) {
+        return true;
+    }
+
+    if (queryJSON.isViewExplicitlySet) {
+        return true;
+    }
+
+    if (queryJSON.view !== getDefaultSearchQueryJSON()?.view) {
+        return true;
+    }
+
+    return false;
+}
+
 /**
  * @private
  * Computes and returns a numerical hash for a given queryJSON.
@@ -361,7 +496,7 @@ function getQueryHashes(query: SearchQueryJSON) {
 
     // Certain filters' values are significant in deciding which search we are on, so we want to include
     // their value when computing the similarSearchHash
-    const similarSearchValueBasedFilters = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION, CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE]);
+    const similarSearchValueBasedFilters = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION]);
 
     const flatFilters = query.flatFilters
         .map((filter) => {
@@ -386,6 +521,10 @@ function getQueryHashes(query: SearchQueryJSON) {
 
     const similarSearchHash = hashText(Array.from(filterSet).join(''), 2 ** 32);
     const recentSearchHash = hashText(orderedQuery, 2 ** 32);
+
+    if (query.groupBy && wasViewExplicitlySet(query)) {
+        orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW}:${query.view}`;
+    }
 
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${query.sortBy}`;
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER}:${query.sortOrder}`;
@@ -442,26 +581,32 @@ function getRawFilterListFromQuery(rawQuery: SearchQueryString) {
 }
 
 // Cache for buildSearchQueryJSON to avoid re-running the PEG parser for identical queries.
+// Cached values are shallow-frozen; callers needing to change fields must spread into a new object first.
 // This is a pure function called from 64+ sites — many fire during the same render cycle
 // with identical query strings, each running the full parser from scratch.
-const buildSearchQueryJSONCache = new Map<string, SearchQueryJSON | undefined>();
+const buildSearchQueryJSONCache = new Map<string, Readonly<SearchQueryJSON> | undefined>();
 const BUILD_SEARCH_QUERY_JSON_CACHE_MAX_SIZE = 50;
 const BUILD_SEARCH_QUERY_JSON_CACHE_KEY_SEPARATOR = '\x00'; // Null byte prevents collisions if query/rawQuery contain arbitrary strings
 
-function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQueryString) {
-    const cacheKey = rawQuery ? `${query}${BUILD_SEARCH_QUERY_JSON_CACHE_KEY_SEPARATOR}${rawQuery}` : query;
+function getBuildSearchQueryJSONCacheKey(query: SearchQueryString, rawQuery?: SearchQueryString) {
+    return rawQuery ? `${query}${BUILD_SEARCH_QUERY_JSON_CACHE_KEY_SEPARATOR}${rawQuery}` : query;
+}
+
+function getCachedSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQueryString): Readonly<SearchQueryJSON> | undefined {
+    const cacheKey = getBuildSearchQueryJSONCacheKey(query, rawQuery);
     if (buildSearchQueryJSONCache.has(cacheKey)) {
-        const cached = buildSearchQueryJSONCache.get(cacheKey);
-        return cached ? {...cached} : cached;
+        return buildSearchQueryJSONCache.get(cacheKey);
     }
 
     try {
         const result = parseSearchQuery(query) as SearchQueryJSON;
         const flatFilters = getFilters(result);
+        const rawFilterList = rawQuery ? getRawFilterListFromQuery(rawQuery) : result.rawFilterList;
 
         // Add the full input and hash to the results
         result.inputQuery = query;
         result.flatFilters = flatFilters;
+        result.isViewExplicitlySet = rawFilterList?.some((filter) => filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW) ?? false;
 
         if (result.policyID && typeof result.policyID === 'string') {
             // Ensure policyID is always an array for consistency
@@ -481,7 +626,7 @@ function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQuerySt
 
         delete result.rawFilterList;
         if (rawQuery) {
-            result.rawFilterList = getRawFilterListFromQuery(rawQuery);
+            result.rawFilterList = rawFilterList;
         }
 
         if (buildSearchQueryJSONCache.size >= BUILD_SEARCH_QUERY_JSON_CACHE_MAX_SIZE) {
@@ -490,12 +635,18 @@ function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQuerySt
                 buildSearchQueryJSONCache.delete(firstKey);
             }
         }
-        buildSearchQueryJSONCache.set(cacheKey, result);
+        const frozen = Object.freeze(result);
+        buildSearchQueryJSONCache.set(cacheKey, frozen);
 
-        return {...result};
+        return frozen;
     } catch (e) {
         console.error(`Error when parsing SearchQuery: "${query}"`, e);
     }
+}
+
+/** Parses {@link query} (and optionally {@link rawQuery}) into JSON. Repeated calls share the same cached object identity for referential stability. */
+function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQueryString): Readonly<SearchQueryJSON> | undefined {
+    return getCachedSearchQueryJSON(query, rawQuery);
 }
 
 /**
@@ -504,17 +655,13 @@ function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQuerySt
  *
  * In a way this is the reverse of buildSearchQueryJSON()
  */
-function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
+function buildSearchQueryString(queryJSON?: SearchQueryJSON | Readonly<SearchQueryJSON>) {
     const queryParts: string[] = [];
     const defaultQueryJSON = buildSearchQueryJSON('');
-
-    // Check if view was explicitly set by the user (exists in rawFilterList or differs from default)
-    const wasViewExplicitlySet =
-        (queryJSON?.rawFilterList?.some((filter) => filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW) ?? false) || (queryJSON?.view && queryJSON.view !== defaultQueryJSON?.view);
+    const isViewExplicitlySet = wasViewExplicitlySet(queryJSON);
 
     for (const [, key] of Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS)) {
-        // Skip view if it wasn't explicitly set by the user
-        if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW && !wasViewExplicitlySet) {
+        if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW && (!isViewExplicitlySet || !queryJSON?.groupBy)) {
             continue;
         }
 
@@ -565,11 +712,11 @@ function getSanitizedRawFilters(queryJSON: SearchQueryJSON): RawQueryFilter[] | 
 
         const rawValue = rawFilter.value;
         const filterKey = rawFilter.key;
-        const isRecognizedFilterKey = Object.values(CONST.SEARCH.SYNTAX_FILTER_KEYS).includes(filterKey as ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>);
+        const isRecognizedFilterKey = Object.values(CONST.SEARCH.SYNTAX_FILTER_KEYS).includes(filterKey as SyntaxFilterKey);
         let updatedValue: string | string[] = Array.isArray(rawValue) ? rawValue.map((value) => value?.toString() ?? '') : (rawValue?.toString() ?? '');
 
         if (isRecognizedFilterKey) {
-            updatedValue = getUpdatedFilterValue(filterKey as ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>, updatedValue);
+            updatedValue = getUpdatedFilterValue(filterKey as SyntaxFilterKey, updatedValue);
         }
 
         accumulator.push({
@@ -620,6 +767,20 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     // only available for the previous type. Remove all filters that are not allowed for the new type
     const providedFilterKeys = Object.keys(supportedFilterValues) as SearchAdvancedFiltersKey[];
     for (const filter of providedFilterKeys) {
+        const isDateRangeModifier = filter.endsWith(CONST.SEARCH.DATE_MODIFIERS.RANGE);
+        if (isDateRangeModifier) {
+            const dateKey = filter.slice(0, -CONST.SEARCH.DATE_MODIFIERS.RANGE.length);
+            const afterKey = `${dateKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}` as SearchAdvancedFiltersKey;
+            const beforeKey = `${dateKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}` as SearchAdvancedFiltersKey;
+
+            if (
+                isFilterSupported(afterKey, supportedFilterValues.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE) ||
+                isFilterSupported(beforeKey, supportedFilterValues.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE)
+            ) {
+                continue;
+            }
+        }
+
         if (isFilterSupported(filter, supportedFilterValues.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE)) {
             continue;
         }
@@ -719,6 +880,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                 const isFieldNegated = filterKey.startsWith(CONST.SEARCH.REPORT_FIELD.NOT_PREFIX);
                 const isTextBasedReportField = filterKey.startsWith(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX) || isNegated;
                 const fieldPrefix = isFieldNegated ? '-' : '';
+                const isRangeDateField = filterKey.startsWith(CONST.SEARCH.REPORT_FIELD.RANGE_PREFIX);
 
                 if (isTextBasedReportField) {
                     return `${fieldPrefix}${filterKey}:${value}`;
@@ -731,6 +893,25 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                 if (isOnDateField) {
                     const key = filterKey.replace(CONST.SEARCH.REPORT_FIELD.ON_PREFIX, CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX);
                     return `${key}:${value}`;
+                }
+
+                if (isRangeDateField) {
+                    const suffix = filterKey.replace(CONST.SEARCH.REPORT_FIELD.RANGE_PREFIX, '');
+                    const key = `${CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX}${suffix}`;
+                    const rangeBoundaries = parseRangeQueryValue(filterValue as string | undefined);
+                    const rangeFilters: string[] = [];
+                    if (rangeBoundaries.from) {
+                        rangeFilters.push(`${key}${operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO]}${rangeBoundaries.from}`);
+                    }
+                    if (rangeBoundaries.to) {
+                        rangeFilters.push(`${key}${operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO]}${rangeBoundaries.to}`);
+                    }
+
+                    if (rangeFilters.length === 0) {
+                        return undefined;
+                    }
+
+                    return rangeFilters.join(' ');
                 }
 
                 if (isAfterDateField) {
@@ -763,7 +944,8 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.EXPORTER ||
                     filterKey === FILTER_KEYS.EXPORTED_TO ||
                     filterKey === FILTER_KEYS.ATTENDEE ||
-                    filterKey === FILTER_KEYS.COLUMNS) &&
+                    filterKey === FILTER_KEYS.COLUMNS ||
+                    filterKey === FILTER_KEYS.WITHDRAWAL_STATUS) &&
                 Array.isArray(filterValue) &&
                 filterValue.length > 0
             ) {
@@ -793,7 +975,10 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
 
     const limitValue = limit ?? options?.limit;
     if (limitValue) {
-        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT}:${sanitizeSearchValue(limitValue.toString())}`);
+        const num = Number(limitValue);
+        if (Number.isInteger(num) && num > 0) {
+            filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT}:${num}`);
+        }
     }
 
     return filtersString.filter(Boolean).join(' ').trim();
@@ -809,6 +994,56 @@ function getAllPolicyValues<T extends OnyxCollectionKey>(
     }
 
     return policyID.map((id) => policyData?.[`${key}${id}`]).filter((data) => !!data) as Array<OnyxCollectionValuesMapping[T]>;
+}
+
+function getEarlierDate(someDate: string | undefined, otherDate: string | undefined) {
+    if (someDate && otherDate) {
+        return someDate < otherDate ? someDate : otherDate;
+    }
+    return someDate ?? otherDate;
+}
+
+function getLaterDate(someDate: string | undefined, otherDate: string | undefined) {
+    if (someDate && otherDate) {
+        return someDate > otherDate ? someDate : otherDate;
+    }
+    return someDate ?? otherDate;
+}
+
+/**
+ * Returns the start and end date range for a date preset.
+ */
+function getDateRangeForPreset(preset: SearchDatePreset): {start: string; end: string} {
+    const now = new Date();
+    let start: Date;
+    let end: Date;
+    const lastMonth = subMonths(now, 1);
+
+    switch (preset) {
+        case CONST.SEARCH.DATE_PRESETS.THIS_MONTH:
+            start = startOfMonth(now);
+            end = endOfMonth(now);
+            break;
+        case CONST.SEARCH.DATE_PRESETS.LAST_MONTH:
+            start = startOfMonth(lastMonth);
+            end = endOfMonth(lastMonth);
+            break;
+        case CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE:
+            start = startOfYear(now);
+            end = now;
+            break;
+        case CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS:
+            start = startOfMonth(subMonths(now, 11));
+            end = endOfMonth(now);
+            break;
+        default:
+            return {start: '', end: ''};
+    }
+
+    return {
+        start: format(start, 'yyyy-MM-dd'),
+        end: format(end, 'yyyy-MM-dd'),
+    };
 }
 
 /**
@@ -827,6 +1062,7 @@ function buildFilterFormValuesFromQuery(
     reports: OnyxCollection<OnyxTypes.Report>,
     taxRates: Record<string, string[]>,
     exportedToFilterOptions?: string[],
+    currentUserAccountID?: number,
 ) {
     const filters = queryJSON.flatFilters;
     const filtersForm = {} as Partial<SearchAdvancedFiltersForm>;
@@ -857,18 +1093,23 @@ function buildFilterFormValuesFromQuery(
                 actionValue && Object.values(CONST.SEARCH.ACTION_FILTERS).includes(actionValue as ValueOf<typeof CONST.SEARCH.ACTION_FILTERS>) ? actionValue : undefined;
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) {
-            filtersForm[key as typeof filterKey] = filterValues.filter((expenseType) => VALID_EXPENSE_TYPES.has(expenseType as ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>));
+            filtersForm[key as typeof filterKey] = filterValues.filter((expenseType) => VALID_EXPENSE_TYPES.has(expenseType as ExpenseTypeValue)) as ExpenseTypeValues;
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
-            filtersForm[key as typeof filterKey] = filterValues.filter((hasType) => VALID_HAS_TYPES.has(hasType as ValueOf<typeof CONST.SEARCH.HAS_VALUES>));
+            filtersForm[key as typeof filterKey] = filterValues.filter((hasType) => VALID_HAS_TYPES.has(hasType as HasFilterValue)) as HasFilterValues;
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IS) {
-            filtersForm[key as typeof filterKey] = filterValues.filter((isType) => VALID_IS_TYPES.has(isType as ValueOf<typeof CONST.SEARCH.IS_VALUES>));
+            filtersForm[key as typeof filterKey] = filterValues.filter((isType) => VALID_IS_TYPES.has(isType as IsFilterValue)) as IsFilterValues;
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE) {
             filtersForm[key as typeof filterKey] = filterValues.find((withdrawalType): withdrawalType is SearchWithdrawalType =>
                 VALID_WITHDRAWAL_TYPES.has(withdrawalType as ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>),
             );
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS) {
+            filtersForm[key as typeof filterKey] = filterValues.filter((withdrawalStatus) => VALID_WITHDRAWAL_STATUSES.has(withdrawalStatus)) as Array<
+                ValueOf<typeof CONST.SEARCH.SETTLEMENT_STATUS>
+            >;
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
             filtersForm[key as typeof filterKey] = filterValues.filter((card) => cardList?.[card]);
@@ -888,7 +1129,8 @@ function buildFilterFormValuesFromQuery(
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER
         ) {
-            filtersForm[key as typeof filterKey] = filterValues.filter((id) => personalDetails?.[id]);
+            const resolvedValues = filterValues.map((id) => (id === CONST.SEARCH.ME && currentUserAccountID ? currentUserAccountID.toString() : id));
+            filtersForm[key as typeof filterKey] = resolvedValues.filter((id) => personalDetails?.[id]);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE) {
             // Don't filter attendee values by personalDetails - they can be accountIDs OR display names for name-only attendees
@@ -948,9 +1190,12 @@ function buildFilterFormValuesFromQuery(
             const beforeKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.BEFORE}`;
             const afterKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.AFTER}`;
             const onKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.ON}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.ON}`;
+            const rangeKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.RANGE}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.RANGE}`;
 
             const beforeFilter = filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN && isValidDate(filter.value.toString()));
             const afterFilter = filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN && isValidDate(filter.value.toString()));
+            const rangeStartFilter = filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO && isValidDate(filter.value.toString()));
+            const rangeEndFilter = filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO && isValidDate(filter.value.toString()));
 
             // The `On` and `Not on` filter could be either a date or a date preset (e.g. Last month)
             const negatedFilter = filterList.find((filter) => {
@@ -959,11 +1204,22 @@ function buildFilterFormValuesFromQuery(
             const onFilter = filterList.find((filter) => {
                 return filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && (isValidDate(filter.value.toString()) || isSearchDatePreset(filter.value.toString()));
             });
+            const existingRangeBoundaries = parseRangeQueryValue(filtersForm[rangeKey]);
+            const rangeValue = getRangeQueryValue(
+                getLaterDate(rangeStartFilter?.value.toString(), existingRangeBoundaries.from),
+                getEarlierDate(rangeEndFilter?.value.toString(), existingRangeBoundaries.to),
+            );
 
-            filtersForm[beforeKey] = beforeFilter?.value.toString() ?? filtersForm[beforeKey];
-            filtersForm[afterKey] = afterFilter?.value.toString() ?? filtersForm[afterKey];
+            filtersForm[beforeKey] = getEarlierDate(beforeFilter?.value.toString(), filtersForm[beforeKey]);
+            filtersForm[afterKey] = getLaterDate(afterFilter?.value.toString(), filtersForm[afterKey]);
             filtersForm[onKey] = onFilter?.value.toString() ?? filtersForm[onKey];
             filtersForm[negatedKey] = negatedFilter?.value.toString() ?? filtersForm[negatedKey];
+
+            if (rangeValue) {
+                filtersForm[rangeKey] = rangeValue;
+                continue;
+            }
+            filtersForm[rangeKey] = undefined;
         }
 
         if (AMOUNT_FILTER_KEYS.includes(filterKey as SearchAmountFilterKeys)) {
@@ -997,17 +1253,20 @@ function buildFilterFormValuesFromQuery(
         }
 
         if (filterKey.startsWith(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX)) {
-            const suffix = filterKey.replace(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX, '');
+            const suffix = filterKey.replace(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX, '');
 
             const textKey = filterKey as ReportFieldTextKey;
-            const negatedKey = `${CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX}${CONST.SEARCH.NOT_MODIFIER}${suffix}` as ReportFieldNegatedKey;
-            const dateOnKey = `${CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX}${CONST.SEARCH.DATE_MODIFIERS.ON}${suffix}` as ReportFieldDateKey;
-            const dateBeforeKey = `${CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}${suffix}` as ReportFieldDateKey;
-            const dateAfterKey = `${CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX}${CONST.SEARCH.DATE_MODIFIERS.AFTER}${suffix}` as ReportFieldDateKey;
+            const negatedKey: ReportFieldNegatedKey = `${CONST.SEARCH.REPORT_FIELD.NOT_PREFIX}${suffix}`;
+            const dateOnKey: ReportFieldDateKey = `${CONST.SEARCH.REPORT_FIELD.ON_PREFIX}${suffix}`;
+            const dateBeforeKey: ReportFieldDateKey = `${CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX}${suffix}`;
+            const dateAfterKey: ReportFieldDateKey = `${CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX}${suffix}`;
+            const dateRangeKey: ReportFieldDateKey = `${CONST.SEARCH.REPORT_FIELD.RANGE_PREFIX}${suffix}`;
 
             let dateBeforeFilter;
             let dateAfterFilter;
             let dateOnFilter;
+            let dateRangeStartFilter;
+            let dateRangeEndFilter;
             let negatedFilter;
             let textFilter;
 
@@ -1016,6 +1275,10 @@ function buildFilterFormValuesFromQuery(
                     dateBeforeFilter = filter;
                 } else if (filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN && isValidDate(filter.value.toString())) {
                     dateAfterFilter = filter;
+                } else if (filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO && isValidDate(filter.value.toString())) {
+                    dateRangeStartFilter = filter;
+                } else if (filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO && isValidDate(filter.value.toString())) {
+                    dateRangeEndFilter = filter;
                 } else if (filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && (isValidDate(filter.value.toString()) || isSearchDatePreset(filter.value.toString()))) {
                     dateOnFilter = filter;
                 } else if (filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
@@ -1025,12 +1288,52 @@ function buildFilterFormValuesFromQuery(
                 }
             }
 
+            const existingRangeBoundaries = parseRangeQueryValue(filtersForm[dateRangeKey]);
+            const rangeValue = getRangeQueryValue(
+                getLaterDate(dateRangeStartFilter?.value.toString(), existingRangeBoundaries.from),
+                getEarlierDate(dateRangeEndFilter?.value.toString(), existingRangeBoundaries.to),
+            );
+
             filtersForm[textKey] = textFilter?.value.toString() ?? filtersForm[textKey];
             filtersForm[negatedKey] = negatedFilter?.value.toString() ?? filtersForm[negatedKey];
             filtersForm[dateOnKey] = dateOnFilter?.value.toString() ?? filtersForm[dateOnKey];
-            filtersForm[dateBeforeKey] = dateBeforeFilter?.value.toString() ?? filtersForm[dateBeforeKey];
-            filtersForm[dateAfterKey] = dateAfterFilter?.value.toString() ?? filtersForm[dateAfterKey];
+            filtersForm[dateBeforeKey] = getEarlierDate(dateBeforeFilter?.value.toString(), filtersForm[dateBeforeKey]);
+            filtersForm[dateAfterKey] = getLaterDate(dateAfterFilter?.value.toString(), filtersForm[dateAfterKey]);
+
+            if (rangeValue) {
+                filtersForm[dateRangeKey] = rangeValue;
+                continue;
+            }
+            filtersForm[dateRangeKey] = undefined;
         }
+    }
+
+    // The UI doesn't combine date presets with other date modifiers, but a raw query string can.
+    // When that happens, we resolve the preset to a date range, merge with the explicit constraints,
+    // and store as one range.
+    for (const dateKey of DATE_FILTER_KEYS) {
+        const onKey = `${dateKey}${CONST.SEARCH.DATE_MODIFIERS.ON}` as const;
+        const rangeKey = `${dateKey}${CONST.SEARCH.DATE_MODIFIERS.RANGE}` as const;
+        const beforeKey = `${dateKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}` as const;
+        const afterKey = `${dateKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}` as const;
+
+        if (!isSearchDatePreset(filtersForm[onKey]) || !(filtersForm[rangeKey] ?? filtersForm[beforeKey] ?? filtersForm[afterKey])) {
+            continue;
+        }
+
+        const presetRange = getDateRangeForPreset(filtersForm[onKey]);
+        if (!presetRange.start || !presetRange.end) {
+            continue;
+        }
+
+        const existingRange = parseRangeQueryValue(filtersForm[rangeKey]);
+        const newRangeStart = getLaterDate(getLaterDate(presetRange.start, existingRange.from), getInclusiveRangeBoundary(filtersForm[afterKey], 1));
+        const newRangeEnd = getEarlierDate(getEarlierDate(presetRange.end, existingRange.to), getInclusiveRangeBoundary(filtersForm[beforeKey], -1));
+
+        filtersForm[rangeKey] = getRangeQueryValue(newRangeStart, newRangeEnd);
+        filtersForm[onKey] = undefined;
+        filtersForm[beforeKey] = undefined;
+        filtersForm[afterKey] = undefined;
     }
 
     const [typeKey, typeValue] = Object.entries(CONST.SEARCH.DATA_TYPES).find(([, value]) => value === queryJSON.type) ?? [];
@@ -1136,6 +1439,9 @@ function getFilterDisplayValue({
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER ||
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE
     ) {
+        if (filterValue === CONST.SEARCH.ME) {
+            return CONST.SEARCH.ME;
+        }
         return filterValue === currentUserAccountID.toString() ? CONST.SEARCH.ME : getDisplayNameOrDefault(personalDetails?.[filterValue], filterValue, false);
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
@@ -1149,7 +1455,8 @@ function getFilterDisplayValue({
         return getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`], reportAttributes) || filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT) {
-        const frontendAmount = convertToFrontendAmountAsInteger(Number(filterValue));
+        // Added 2 here as this is the maximum number of decimals an amount can have. So, we can run a search with 2 decimals here.
+        const frontendAmount = convertToFrontendAmountAsInteger(Number(filterValue), 2);
         return Number.isNaN(frontendAmount) ? filterValue : frontendAmount.toString();
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) {
@@ -1213,16 +1520,15 @@ function getDisplayQueryFiltersForKey(
         return queryFilter.reduce((acc, filter) => {
             const feedKey = filter.value.toString();
             const plaidFeedName = feedKey?.split(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID)?.at(1);
-            const regularBank = feedKey?.split('_')?.at(1) ?? CONST.DEFAULT_NUMBER_ID;
-            const idPrefix = feedKey?.split('_')?.at(0) ?? CONST.DEFAULT_NUMBER_ID;
-            const plaidValue = cardFeedsForDisplay[`${idPrefix}_${CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID}${plaidFeedName}` as OnyxTypes.CompanyCardFeed]?.name;
             if (plaidFeedName) {
+                const idPrefix = feedKey?.split('_')?.at(0) ?? CONST.DEFAULT_NUMBER_ID;
+                const plaidValue = cardFeedsForDisplay[`${idPrefix}_${CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID}${plaidFeedName}` as OnyxTypes.CompanyCardFeed]?.name;
                 if (plaidValue) {
                     acc.push({operator: filter.operator, value: plaidValue});
                 }
                 return acc;
             }
-            const value = cardFeedsForDisplay[`${idPrefix}_${regularBank}` as OnyxTypes.CompanyCardFeed]?.name ?? feedKey;
+            const value = cardFeedsForDisplay[feedKey as OnyxTypes.CompanyCardFeed]?.name ?? feedKey;
             acc.push({operator: filter.operator, value});
 
             return acc;
@@ -1320,6 +1626,21 @@ function formatDefaultRawFilterSegment(rawFilter: RawQueryFilter, policies: Onyx
  * We try to replace every numeric id value with a display version of this value,
  * So: user IDs get turned into emails, report ids into report names etc.
  */
+type BuildUserReadableQueryStringParams = {
+    queryJSON: SearchQueryJSON;
+    PersonalDetails: OnyxTypes.PersonalDetailsList | undefined;
+    reports: OnyxCollection<OnyxTypes.Report>;
+    taxRates: Record<string, string[]>;
+    cardList: OnyxTypes.CardList | undefined;
+    cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>;
+    policies: OnyxCollection<OnyxTypes.Policy>;
+    currentUserAccountID: number;
+    autoCompleteWithSpace: boolean;
+    translate: LocalizedTranslate;
+    feedKeysWithCards?: FeedKeysWithAssignedCards;
+    reportAttributes: OnyxTypes.ReportAttributesDerivedValue['reports'] | undefined;
+};
+
 function buildUserReadableQueryString({
     queryJSON,
     PersonalDetails,
@@ -1333,21 +1654,8 @@ function buildUserReadableQueryString({
     translate,
     feedKeysWithCards,
     reportAttributes,
-}: {
-    queryJSON: SearchQueryJSON;
-    PersonalDetails: OnyxTypes.PersonalDetailsList | undefined;
-    reports: OnyxCollection<OnyxTypes.Report>;
-    taxRates: Record<string, string[]>;
-    cardList: OnyxTypes.CardList | undefined;
-    cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>;
-    policies: OnyxCollection<OnyxTypes.Policy>;
-    currentUserAccountID: number;
-    autoCompleteWithSpace: boolean;
-    translate: LocalizedTranslate;
-    feedKeysWithCards?: FeedKeysWithAssignedCards;
-    reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'];
-}) {
-    const {type, status, groupBy, columns, policyID, rawFilterList, flatFilters: filters = [], limit} = queryJSON;
+}: BuildUserReadableQueryStringParams) {
+    const {type, status, groupBy, view, columns, policyID, rawFilterList, flatFilters: filters = [], limit} = queryJSON;
 
     if (rawFilterList && rawFilterList.length > 0) {
         const segments: string[] = [];
@@ -1415,6 +1723,10 @@ function buildUserReadableQueryString({
 
     if (groupBy) {
         title += ` group-by:${getUserFriendlyValue(groupBy)}`;
+    }
+
+    if (view && groupBy && wasViewExplicitlySet(queryJSON)) {
+        title += ` view:${getUserFriendlyValue(view)}`;
     }
 
     if (policyID && policyID.length > 0) {
@@ -1496,25 +1808,11 @@ function buildCannedSearchQuery({
     return buildSearchQueryString(normalizedQueryJSON);
 }
 
-/**
- * Returns whether a given search query is a Canned query.
- *
- * Canned queries are simple predefined queries, that are defined only using type and status and no additional filters.
- * In addition, they can contain an optional policyID.
- * For example: "type:trip" is a canned query.
- */
-function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
-    const selectedColumns = [queryJSON.columns ?? []].flat();
-    const defaultColumns = Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE_REPORT);
-    const hasCustomColumns = !arraysEqual(defaultColumns, selectedColumns) && selectedColumns.length > 0;
-    return !queryJSON.filters && !queryJSON.policyID && !queryJSON.status && !queryJSON.groupBy && !hasCustomColumns;
-}
-
-function isDefaultExpensesQuery(queryJSON: SearchQueryJSON) {
+function isDefaultExpensesQuery(queryJSON: SearchQueryJSON | Readonly<SearchQueryJSON>) {
     return queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && !queryJSON.status && !queryJSON.filters && !queryJSON.groupBy && !queryJSON.policyID;
 }
 
-function isDefaultExpenseReportsQuery(queryJSON: SearchQueryJSON) {
+function isDefaultExpenseReportsQuery(queryJSON: SearchQueryJSON | Readonly<SearchQueryJSON>) {
     return queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && !queryJSON.status && !queryJSON.filters && !queryJSON.groupBy && !queryJSON.policyID;
 }
 
@@ -1534,8 +1832,8 @@ const sortOptionsWithEmptyValue = (a: string, b: string, localeCompare: LocaleCo
 /**
  *  Given a search query, this function will standardize the query by replacing display values with their corresponding IDs.
  */
-function traverseAndUpdatedQuery(queryJSON: SearchQueryJSON, computeNodeValue: (left: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>, right: string | string[]) => string | string[]) {
-    const standardQuery = cloneDeep(queryJSON);
+function traverseAndUpdatedQuery(queryJSON: SearchQueryJSON | Readonly<SearchQueryJSON>, computeNodeValue: (left: SyntaxFilterKey, right: string | string[]) => string | string[]) {
+    const standardQuery = cloneDeep(queryJSON) as SearchQueryJSON;
     const filters = standardQuery.filters;
     const traverse = (node: ASTNode) => {
         if (!node.operator) {
@@ -1574,25 +1872,37 @@ function getQueryWithUpdatedValues(query: string, shouldSkipAmountConversion = f
         return;
     }
 
-    const computeNodeValue = (left: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>, right: string | string[]) => getUpdatedFilterValue(left, right, shouldSkipAmountConversion);
+    const computeNodeValue = (left: SyntaxFilterKey, right: string | string[]) => getUpdatedFilterValue(left, right, shouldSkipAmountConversion);
     const standardizedQuery = traverseAndUpdatedQuery(queryJSON, computeNodeValue);
+    const rawFilterList = getRawFilterListFromQuery(query);
+    const hasInFilter = rawFilterList?.some((filter) => !filter.isDefault && filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) ?? false;
+    const hasExplicitType = rawFilterList?.some((filter) => filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE) ?? false;
+
+    if (hasInFilter && !hasExplicitType) {
+        standardizedQuery.type = CONST.SEARCH.DATA_TYPES.CHAT;
+    }
+
     return buildSearchQueryString(standardizedQuery);
 }
 
 function getCurrentSearchQueryJSON() {
     const rootState = navigationRef.getRootState();
-    const lastSearchNavigator = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
-
+    const lastTabNavigator = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
+    const lastSearchNavigator = lastTabNavigator?.state?.routes?.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
     let lastSearchNavigatorState = lastSearchNavigator?.state;
     if (!lastSearchNavigatorState) {
-        lastSearchNavigatorState = lastSearchNavigator && lastSearchNavigator.key ? getPreservedNavigatorState(lastSearchNavigator?.key) : undefined;
+        lastSearchNavigatorState = lastSearchNavigator?.key ? getPreservedNavigatorState(lastSearchNavigator?.key) : undefined;
     }
+
+    // When the SearchFullscreenNavigator has never been mounted (e.g. lazy tab not yet visited),
+    // neither .state nor the preserved state map will have an entry. Fall back to the default
+    // query that the navigator would use as its initialParams.
     if (!lastSearchNavigatorState) {
-        return;
+        return buildSearchQueryJSON(buildSearchQueryString());
     }
 
     const lastSearchRoute = lastSearchNavigatorState.routes.findLast((route) => route.name === SCREENS.SEARCH.ROOT);
-    if (!lastSearchRoute || !lastSearchRoute.params) {
+    if (!lastSearchRoute?.params) {
         return;
     }
 
@@ -1638,54 +1948,76 @@ function shouldHighlight(referenceText: string, searchText: string) {
     return pattern.test(StringUtils.normalizeAccents(referenceText).toLowerCase());
 }
 
+const TIME_BASED_GROUP_BYS = new Set<string>([CONST.SEARCH.GROUP_BY.MONTH, CONST.SEARCH.GROUP_BY.WEEK, CONST.SEARCH.GROUP_BY.YEAR, CONST.SEARCH.GROUP_BY.QUARTER]);
+
 /**
- * Determines whether sortBy and sortOrder should be reset when filters change.
- * Each view/groupBy combination has its own defaults derived by the parser,
- * so we reset on any view or groupBy change to let the parser determine the correct defaults.
+ * Determines whether sortBy and sortOrder should be fully reset (re-derived by
+ * the parser) when filters change.  Returns true only when the groupBy value
+ * changes, because each groupBy has its own default sort column and order.
  */
-function shouldResetSort({
-    newView,
-    oldView,
-    newGroupBy,
-    oldGroupBy,
-}: {
-    newView: string | undefined;
-    oldView: string | undefined;
-    newGroupBy: string | undefined;
-    oldGroupBy: string | undefined;
-}): boolean {
-    const effectiveNewView = newView ?? CONST.SEARCH.VIEW.TABLE;
-    const effectiveOldView = oldView ?? CONST.SEARCH.VIEW.TABLE;
-    return effectiveNewView !== effectiveOldView || newGroupBy !== oldGroupBy;
+function shouldResetSort({newGroupBy, oldGroupBy}: {newGroupBy: string | undefined; oldGroupBy: string | undefined}): boolean {
+    return newGroupBy !== oldGroupBy;
 }
 
 /**
- * Builds a query string from filter form values, resetting sortBy and sortOrder when the view
- * or groupBy has changed so the parser can re-derive the correct defaults. When a reset is needed,
- * the query is round-tripped through the parser so that parser-derived defaults appear in the
- * final query string.
+ * Returns true when the view change requires resetting sort for proper display.
+ * For time-based groupBys (month/week/year/quarter):
+ * - Line charts need chronological (asc) order for left-to-right readability
+ * - Table view defaults to desc (most recent first)
+ * - Bar/Pie charts can display data in any order
+ *
+ * Reset occurs when:
+ * - Switching TO line view (needs chronological asc order)
+ * - Switching TO table view (needs default desc order)
+ * Preserve sort when switching TO bar/pie (any order is fine).
+ */
+function shouldResetSortForViewChange({newView, oldView, groupBy}: {newView: string | undefined; oldView: string | undefined; groupBy: string | undefined}): boolean {
+    if (newView === oldView || !groupBy) {
+        return false;
+    }
+    if (!TIME_BASED_GROUP_BYS.has(groupBy)) {
+        return false;
+    }
+    const isLineView = (view: string | undefined) => view === CONST.SEARCH.VIEW.LINE;
+    const isTableView = (view: string | undefined) => view === CONST.SEARCH.VIEW.TABLE;
+    // Reset when switching to line (asc) or table (desc) - both need their specific defaults
+    // Preserve when switching to bar/pie - they can display any order
+    return isLineView(newView) || isTableView(newView);
+}
+
+/**
+ * Builds a query string from filter form values, resetting sortBy and sortOrder
+ * when the groupBy has changed so the parser can re-derive the correct defaults.
+ * When only the view changes between table and chart with a time-based groupBy,
+ * both sortBy and sortOrder are reset to allow the parser to apply the appropriate
+ * defaults (e.g., groupMonth asc for charts, groupMonth desc for tables).
  *
  * Returns undefined if the parser round-trip fails.
  */
 function buildFilterQueryWithSortDefaults(
     filterValues: Partial<SearchAdvancedFiltersForm>,
     previousState: {view?: string; groupBy?: string},
-    currentQueryOptions: {sortBy?: string; sortOrder?: string; limit?: number},
+    currentQueryOptions: {sortBy?: string; sortOrder?: string},
 ): string | undefined {
     const resetSort = shouldResetSort({
-        newView: filterValues.view,
-        oldView: previousState.view,
         newGroupBy: filterValues.groupBy,
         oldGroupBy: previousState.groupBy,
     });
 
+    const resetSortForViewChange =
+        !resetSort &&
+        shouldResetSortForViewChange({
+            newView: filterValues.view,
+            oldView: previousState.view,
+            groupBy: filterValues.groupBy,
+        });
+
     const queryString = buildQueryStringFromFilterFormValues(filterValues, {
-        sortBy: resetSort ? undefined : currentQueryOptions.sortBy,
-        sortOrder: resetSort ? undefined : currentQueryOptions.sortOrder,
-        limit: currentQueryOptions.limit,
+        sortBy: resetSort || resetSortForViewChange ? undefined : currentQueryOptions.sortBy,
+        sortOrder: resetSort || resetSortForViewChange ? undefined : currentQueryOptions.sortOrder,
     });
 
-    if (!resetSort) {
+    if (!resetSort && !resetSortForViewChange) {
         return queryString;
     }
 
@@ -1695,7 +2027,7 @@ function buildFilterQueryWithSortDefaults(
 /**
  * Builds an optimistic Snapshot update to ensure offline data for Tasks and Chat messages appears in Search.
  */
-function buildOptimisticSnapshotData(type: SearchDataTypes, data: Record<string, unknown>): OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT> | undefined {
+function buildOptimisticSnapshotData(type: SearchDataTypes, data: NullishDeep<SearchResultDataType>): OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT> | undefined {
     const searchQuery = buildCannedSearchQuery({type});
     const searchQueryJSON = buildSearchQueryJSON(searchQuery);
     if (!searchQueryJSON) {
@@ -1705,14 +2037,118 @@ function buildOptimisticSnapshotData(type: SearchDataTypes, data: Record<string,
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchQueryJSON.hash}`,
         value: {
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             data,
         },
     };
 }
 
+/**
+ * Derives the four Onyx form keys used by a date filter from its base `dateKey`.
+ *
+ * - For report-field date keys (starting with `CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX`)
+ *   the prefix is swapped to produce `reportFieldOn-`, `reportFieldBefore-`, etc.
+ * - For standard date-filter keys (e.g. `"date"`, `"submittedDate"`) the modifier
+ *   is appended: `"dateOn"`, `"dateBefore"`, etc.
+ */
+function getDateFilterKeys(dateKey: SearchDateFilterKeys): {
+    dateOnKey: SearchDateKey;
+    dateBeforeKey: SearchDateKey;
+    dateAfterKey: SearchDateKey;
+    dateRangeKey: SearchDateKey;
+} {
+    if (dateKey.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
+        const suffix = dateKey.replace(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX, '');
+        return {
+            dateOnKey: `${CONST.SEARCH.REPORT_FIELD.ON_PREFIX}${suffix}`,
+            dateBeforeKey: `${CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX}${suffix}`,
+            dateAfterKey: `${CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX}${suffix}`,
+            dateRangeKey: `${CONST.SEARCH.REPORT_FIELD.RANGE_PREFIX}${suffix}`,
+        };
+    }
+    return {
+        dateOnKey: `${dateKey}${CONST.SEARCH.DATE_MODIFIERS.ON}`,
+        dateBeforeKey: `${dateKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}`,
+        dateAfterKey: `${dateKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`,
+        dateRangeKey: `${dateKey}${CONST.SEARCH.DATE_MODIFIERS.RANGE}`,
+    };
+}
+
+/** All four date modifier values keyed by their modifier name. */
+type SearchDateValues = Record<ValueOf<typeof CONST.SEARCH.DATE_MODIFIERS>, string | undefined>;
+
+/** Returns a fresh object where all four date modifiers are undefined. */
+function getEmptyDateValues(): SearchDateValues {
+    return {
+        [CONST.SEARCH.DATE_MODIFIERS.ON]: undefined,
+        [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: undefined,
+        [CONST.SEARCH.DATE_MODIFIERS.AFTER]: undefined,
+        [CONST.SEARCH.DATE_MODIFIERS.RANGE]: undefined,
+    };
+}
+
+/**
+ * Set of filter keys that represent free-text fields where the default `:` (eq) operator
+ * should be treated as a substring/partial match (`contains`) when querying the backend.
+ * This allows searches like `merchant:coffee` to match "Coffee shop".
+ */
+const TEXT_SEARCH_FIELDS = new Set<string>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION]);
+
+/**
+ * Recursively traverses a search AST and replaces the `eq` operator with `contains`
+ * for free-text filter fields (merchant, description). This enables partial/substring
+ * matching on the backend for text searches while preserving the user-facing `:` syntax.
+ */
+function applyContainsOperatorToTextFields(node: ASTNode): ASTNode {
+    if (typeof node.left === 'string' && TEXT_SEARCH_FIELDS.has(node.left) && node.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+        return {...node, operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS};
+    }
+
+    return {
+        ...node,
+        left: typeof node.left === 'object' && node.left ? applyContainsOperatorToTextFields(node.left) : node.left,
+        right: typeof node.right === 'object' && !Array.isArray(node.right) && node.right ? applyContainsOperatorToTextFields(node.right) : node.right,
+    };
+}
+
+/**
+ * Returns the display title for the date modifier sub-screen header.
+ * Falls back to `fallbackTitle` when no modifier is selected.
+ */
+function getDateModifierTitle(modifier: ValueOf<typeof CONST.SEARCH.DATE_MODIFIERS> | null, fallbackTitle: string, translate: LocalizedTranslate): string {
+    if (modifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
+        return translate('search.filters.date.customRange');
+    }
+    if (modifier) {
+        return translate('search.filters.date.customDate');
+    }
+    return fallbackTitle;
+}
+
+/**
+ * Serializes a query object to a JSON string for backend commands (Search, export, CSV).
+ * Applies text-field operator normalization (`eq` → `contains`) for `merchant` and `description`
+ * so all backend commands use consistent partial-match semantics — matching what the search view shows.
+ * Do NOT use for saving/persisting query definitions (e.g. saveSearch), where the original operators must be preserved.
+ */
+function serializeQueryJSONForBackend<T extends {filters?: ASTNode | null; rawFilterList?: RawQueryFilter[]}>(queryData: T): string {
+    const normalizedFilters = queryData.filters ? applyContainsOperatorToTextFields(queryData.filters) : queryData.filters;
+    const normalizedRawFilterList = queryData.rawFilterList
+        ? queryData.rawFilterList.map((filter) => {
+              if (TEXT_SEARCH_FIELDS.has(filter.key) && filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+                  return {...filter, operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS};
+              }
+              return filter;
+          })
+        : queryData.rawFilterList;
+    return JSON.stringify({...queryData, filters: normalizedFilters, rawFilterList: normalizedRawFilterList});
+}
+
 export {
+    getDateRangeDisplayValueFromFormValue,
+    getRangeBoundariesFromFormValue,
+    getRangeQueryValue,
     isSearchDatePreset,
+    getDateRangeForPreset,
     isFilterSupported,
     buildSearchQueryJSON,
     buildSearchQueryString,
@@ -1723,7 +2159,6 @@ export {
     buildQueryStringFromFilterFormValues,
     buildFilterFormValuesFromQuery,
     buildCannedSearchQuery,
-    isCannedSearchQuery,
     sanitizeSearchValue,
     getQueryWithUpdatedValues,
     getCurrentSearchQueryJSON,
@@ -1736,6 +2171,16 @@ export {
     getUserFriendlyValue,
     getUserFriendlyKey,
     shouldResetSort,
+    shouldResetSortForViewChange,
     buildFilterQueryWithSortDefaults,
     buildOptimisticSnapshotData,
+    getDateFilterKeys,
+    getEmptyDateValues,
+    getDateModifierTitle,
+    applyContainsOperatorToTextFields,
+    serializeQueryJSONForBackend,
 };
+
+export type {BuildUserReadableQueryStringParams};
+
+export type {SearchDateValues};

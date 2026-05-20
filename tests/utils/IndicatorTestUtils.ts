@@ -1,4 +1,4 @@
-import type {IndicatorStatus} from '@hooks/useNavigationTabBarIndicatorChecks';
+import type IndicatorStatus from '@src/types/utils/IndicatorStatus';
 
 type IndicatorTestCase = {
     name: string;

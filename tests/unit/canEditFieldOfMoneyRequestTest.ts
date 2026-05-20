@@ -68,7 +68,6 @@ describe('canEditFieldOfMoneyRequest', () => {
                 childStateNum: CONST.REPORT.STATE_NUM.OPEN,
                 childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 originalMessage: {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     ...randomReportAction.originalMessage,
                     IOUReportID,
                     IOUTransactionID,
@@ -106,7 +105,12 @@ describe('canEditFieldOfMoneyRequest', () => {
             it('should return false for invoice report action if it is not outstanding report', async () => {
                 const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
 
-                const canEditReportField = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, undefined, outstandingReportsByPolicyID);
+                const canEditReportField = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    outstandingReportsByPolicyID,
+                    transaction: moneyRequestTransaction,
+                });
                 expect(canEditReportField).toBe(false);
             });
 
@@ -115,9 +119,30 @@ describe('canEditFieldOfMoneyRequest', () => {
                 await waitForBatchedUpdates();
                 const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
 
-                const canEditReportField = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, undefined, outstandingReportsByPolicyID);
+                const canEditReportField = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    outstandingReportsByPolicyID,
+                    transaction: moneyRequestTransaction,
+                });
 
                 expect(canEditReportField).toBe(true);
+            });
+
+            it('should return false for invoice report action when billable field is edited on an approved invoice report', async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, {
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                });
+                await waitForBatchedUpdates();
+
+                const canEditBillable = canEditFieldOfMoneyRequest({reportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.BILLABLE, transaction: moneyRequestTransaction});
+                expect(canEditBillable).toBe(false);
+            });
+
+            it('should return true for invoice report action when billable field is edited on an unapproved invoice report', () => {
+                const canEditBillable = canEditFieldOfMoneyRequest({reportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.BILLABLE, transaction: moneyRequestTransaction});
+                expect(canEditBillable).toBe(true);
             });
         });
 
@@ -162,7 +187,6 @@ describe('canEditFieldOfMoneyRequest', () => {
                 childStateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 childStatusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 originalMessage: {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     ...randomReportAction.originalMessage,
                     IOUReportID,
                     IOUTransactionID,
@@ -174,9 +198,9 @@ describe('canEditFieldOfMoneyRequest', () => {
 
             const moneyRequestTransaction = {
                 ...createRandomTransaction(Number(IOUTransactionID)),
-                reportID: IOUReportID,
+                reportID: String(IOUReportID),
                 managedCard: false,
-                transactionID: IOUTransactionID,
+                transactionID: String(IOUTransactionID),
                 amount: EXPENSE_AMOUNT,
             };
 
@@ -208,8 +232,9 @@ describe('canEditFieldOfMoneyRequest', () => {
                 await waitForBatchedUpdates();
 
                 // If it is the submitter of a distance request
-                const canEditReportFieldAmount = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT, undefined, undefined);
-                const canEditReportFieldCurrency = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.CURRENCY, undefined, undefined);
+                const distanceTransaction = {...moneyRequestTransaction, iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE};
+                const canEditReportFieldAmount = canEditFieldOfMoneyRequest({reportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.AMOUNT, transaction: distanceTransaction});
+                const canEditReportFieldCurrency = canEditFieldOfMoneyRequest({reportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.CURRENCY, transaction: distanceTransaction});
 
                 // Then we should allow editing amount and currency fields.
                 expect(canEditReportFieldAmount).toBe(true);
@@ -225,7 +250,12 @@ describe('canEditFieldOfMoneyRequest', () => {
                 const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
 
                 // When the submitter tries to move an expense between reports
-                const canEditReportField = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, undefined, outstandingReportsByPolicyID);
+                const canEditReportField = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    outstandingReportsByPolicyID,
+                    transaction: moneyRequestTransaction,
+                });
 
                 // Then they should be able to move the expense since there are multiple outstanding expense reports
                 expect(canEditReportField).toBe(true);
@@ -247,7 +277,12 @@ describe('canEditFieldOfMoneyRequest', () => {
                 const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
 
                 // When a user tries to move an expense between reports
-                const canEditReportField = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, undefined, outstandingReportsByPolicyID);
+                const canEditReportField = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    outstandingReportsByPolicyID,
+                    transaction: moneyRequestTransaction,
+                });
 
                 // Then they should not be able to move the expense since only the submitter or admin can edit the report when the report is open
                 expect(canEditReportField).toBe(false);
@@ -275,7 +310,12 @@ describe('canEditFieldOfMoneyRequest', () => {
                 const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
 
                 // When trying to move an expense between reports
-                const canEditReportField = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, undefined, outstandingReportsByPolicyID);
+                const canEditReportField = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    outstandingReportsByPolicyID,
+                    transaction: moneyRequestTransaction,
+                });
 
                 // Then they should not be able to move the expense since there's only one outstanding report
                 expect(canEditReportField).toBe(false);
@@ -290,7 +330,12 @@ describe('canEditFieldOfMoneyRequest', () => {
                 const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
 
                 // When the submitter tries to move an expense between reports
-                const canEditReportField = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, undefined, outstandingReportsByPolicyID);
+                const canEditReportField = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    outstandingReportsByPolicyID,
+                    transaction: moneyRequestTransaction,
+                });
 
                 // Then they should be able to move the expense since there are multiple outstanding expense reports
                 expect(canEditReportField).toBe(false);
@@ -353,7 +398,7 @@ describe('canEditFieldOfMoneyRequest', () => {
                 });
                 await waitForBatchedUpdates();
 
-                const canEditReceipt = canEditFieldOfMoneyRequest(dewReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
+                const canEditReceipt = canEditFieldOfMoneyRequest({reportAction: dewReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction: dewTransaction});
 
                 expect(canEditReceipt).toBe(false);
             });
@@ -376,7 +421,7 @@ describe('canEditFieldOfMoneyRequest', () => {
                 });
                 await waitForBatchedUpdates();
 
-                const canEditReceipt = canEditFieldOfMoneyRequest(dewReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
+                const canEditReceipt = canEditFieldOfMoneyRequest({reportAction: dewReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction: dewTransaction});
 
                 expect(canEditReceipt).toBe(true);
             });
@@ -403,9 +448,76 @@ describe('canEditFieldOfMoneyRequest', () => {
                 });
                 await waitForBatchedUpdates();
 
-                const canEditReceipt = canEditFieldOfMoneyRequest(dewReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
+                const canEditReceipt = canEditFieldOfMoneyRequest({reportAction: dewReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction: dewTransaction});
 
                 expect(canEditReceipt).toBe(true);
+            });
+
+            it('should return true for isDeleteAction when user is the requestor on an open report', async () => {
+                const openReport = {
+                    ...createExpenseReport(Number(IOU_REPORT_ID)),
+                    policyID: DEW_POLICY_ID,
+                    ownerAccountID: currentUserAccountID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                };
+
+                const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [dewPolicy], (p) => p.id);
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${IOU_TRANSACTION_ID}`]: dewTransaction,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`]: openReport,
+                    ...policyCollectionDataSet,
+                });
+                await waitForBatchedUpdates();
+
+                const canDeleteReceipt = canEditFieldOfMoneyRequest({
+                    reportAction: dewReportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+                    isDeleteAction: true,
+                    transaction: dewTransaction,
+                });
+
+                expect(canDeleteReceipt).toBe(true);
+            });
+
+            it('should return false for isDeleteAction when user is admin but not the requestor', async () => {
+                const adminPolicy: Policy = {
+                    ...dewPolicy,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                };
+
+                const nonRequestorReportAction = {
+                    ...dewReportAction,
+                    actorAccountID: secondUserAccountID,
+                };
+
+                const openReport = {
+                    ...createExpenseReport(Number(IOU_REPORT_ID)),
+                    policyID: DEW_POLICY_ID,
+                    ownerAccountID: currentUserAccountID,
+                    managerID: currentUserAccountID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                };
+
+                const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [adminPolicy], (p) => p.id);
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${IOU_TRANSACTION_ID}`]: dewTransaction,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`]: openReport,
+                    ...policyCollectionDataSet,
+                });
+                await waitForBatchedUpdates();
+
+                const canDeleteReceipt = canEditFieldOfMoneyRequest({
+                    reportAction: nonRequestorReportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+                    isDeleteAction: true,
+                    transaction: dewTransaction,
+                });
+
+                expect(canDeleteReceipt).toBe(false);
             });
         });
 
@@ -489,7 +601,7 @@ describe('canEditFieldOfMoneyRequest', () => {
                 });
                 await waitForBatchedUpdates();
 
-                const canEditReportField = canEditFieldOfMoneyRequest(perDiemReportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, undefined);
+                const canEditReportField = canEditFieldOfMoneyRequest({reportAction: perDiemReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT, transaction: perDiemTransaction});
 
                 expect(canEditReportField).toBe(true);
             });
@@ -502,7 +614,7 @@ describe('canEditFieldOfMoneyRequest', () => {
                 });
                 await waitForBatchedUpdates();
 
-                const canEditReportField = canEditFieldOfMoneyRequest(perDiemReportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, undefined);
+                const canEditReportField = canEditFieldOfMoneyRequest({reportAction: perDiemReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT, transaction: perDiemTransaction});
 
                 expect(canEditReportField).toBe(false);
             });
@@ -525,7 +637,6 @@ describe('canEditFieldOfMoneyRequest', () => {
             childStateNum: CONST.REPORT.STATE_NUM.OPEN,
             childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
             originalMessage: {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 ...randomReportAction.originalMessage,
                 IOUReportID: RECEIPT_IOU_REPORT_ID,
                 IOUTransactionID: RECEIPT_IOU_TRANSACTION_ID,
@@ -584,7 +695,7 @@ describe('canEditFieldOfMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             // When the admin tries to edit the receipt field
-            const canEditReceipt = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
+            const canEditReceipt = canEditFieldOfMoneyRequest({reportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction: moneyRequestTransaction});
 
             // Then they should not be able to edit the receipt on a closed report
             expect(canEditReceipt).toBe(false);
@@ -605,7 +716,7 @@ describe('canEditFieldOfMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             // When the admin tries to edit the receipt field
-            const canEditReceipt = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
+            const canEditReceipt = canEditFieldOfMoneyRequest({reportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction: moneyRequestTransaction});
 
             // Then they should be able to edit the receipt on an open report
             expect(canEditReceipt).toBe(true);

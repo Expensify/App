@@ -63,7 +63,7 @@ function PersonalCardWarning() {
                         testID="confirmation-secondary-button"
                         style={styles.mt3}
                         onPress={() => {
-                            // TODO - navigate to personal card page
+                            Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_ADD_NEW);
                         }}
                     />
                     <Button

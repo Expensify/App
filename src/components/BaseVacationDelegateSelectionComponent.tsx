@@ -13,6 +13,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
+import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
 import DelegatorList from './DelegatorList';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import UserListItem from './SelectionList/ListItem/UserListItem';
@@ -54,7 +55,7 @@ function BaseVacationDelegateSelectionComponent({
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
 
     const currentVacationDelegate = vacationDelegate?.delegate ?? '';
     const delegatePersonalDetails = getPersonalDetailByEmail(currentVacationDelegate);
@@ -163,33 +164,35 @@ function BaseVacationDelegateSelectionComponent({
                 title={headerTitle}
                 onBackButtonPress={onBackButtonPress}
             />
-            {hasActiveDelegations ? (
-                <View style={styles.mt6}>
-                    <DelegatorList
-                        delegators={vacationDelegate?.delegatorFor}
-                        message={cannotSetDelegateMessage}
-                    />
-                </View>
-            ) : (
-                <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                    <SelectionList
-                        sections={areOptionsInitialized ? sections : []}
-                        ListItem={UserListItem}
-                        onSelectRow={(item) => {
-                            // Clear search to prevent "No results found" after selection
-                            setSearchTerm('');
+            <FullPageOfflineBlockingView>
+                {hasActiveDelegations ? (
+                    <View style={styles.mt6}>
+                        <DelegatorList
+                            delegators={vacationDelegate?.delegatorFor}
+                            message={cannotSetDelegateMessage}
+                        />
+                    </View>
+                ) : (
+                    <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                        <SelectionList
+                            sections={areOptionsInitialized ? sections : []}
+                            ListItem={UserListItem}
+                            onSelectRow={(item) => {
+                                // Clear search to prevent "No results found" after selection
+                                setSearchTerm('');
 
-                            onSelectRow(item);
-                        }}
-                        textInputOptions={textInputOptions}
-                        shouldShowLoadingPlaceholder={!areOptionsInitialized}
-                        isLoadingNewOptions={!!isSearchingForReports}
-                        onEndReached={onListEndReached}
-                        shouldSingleExecuteRowSelect
-                        shouldShowTextInput
-                    />
-                </View>
-            )}
+                                onSelectRow(item);
+                            }}
+                            textInputOptions={textInputOptions}
+                            shouldShowLoadingPlaceholder={!areOptionsInitialized}
+                            isLoadingNewOptions={!!isSearchingForReports}
+                            onEndReached={onListEndReached}
+                            shouldSingleExecuteRowSelect
+                            shouldShowTextInput
+                        />
+                    </View>
+                )}
+            </FullPageOfflineBlockingView>
         </>
     );
 }

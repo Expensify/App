@@ -32,7 +32,8 @@ jobs:
       standalone_patches_hash: ${{ steps.getNewPatchesHash.outputs.STANDALONE_APP_HASH }}
     steps:
       - name: Checkout
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        # v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           submodules: true
           ref: ${{ github.event.before || 'main' }}
@@ -138,7 +139,8 @@ jobs:
       cancel-in-progress: true
     steps:
       - name: Checkout Code
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        # v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           submodules: ${{ matrix.is_hybrid }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
@@ -158,8 +160,9 @@ jobs:
           distribution: oracle
           java-version: ${{ steps.get-java-version.outputs.version }}
 
+      # v6.1.0
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244
+        uses: gradle/actions/setup-gradle@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e
 
       - name: Determine new patched RN version
         id: getNewPatchedVersion

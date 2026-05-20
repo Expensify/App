@@ -13,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
+import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestError} from '@libs/ErrorUtils';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
@@ -128,35 +129,42 @@ function BaseDomainMembersPage({
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const illustrations = useMemoizedLazyIllustrations(['EmptyShelves']);
 
-    const data: MemberOption[] = accountIDs.map((accountID) => {
-        const details = personalDetails?.[accountID];
-        const login = details?.login ?? '';
-        const customProps = getCustomRowProps?.(accountID, login);
-        const isPendingActionDelete = customProps?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
-        return {
-            keyForList: String(accountID),
-            accountID,
-            login,
-            text: formatPhoneNumber(getDisplayNameOrDefault(details)),
-            alternateText: formatPhoneNumber(login),
-            icons: [
-                {
-                    source: details?.avatar ?? icons.FallbackAvatar,
-                    name: formatPhoneNumber(login),
-                    type: CONST.ICON_TYPE_AVATAR,
-                    id: accountID,
-                },
-            ],
-            rightElement: getCustomRightElement?.(accountID),
-            errors: getLatestError(customProps?.errors),
-            pendingAction: customProps?.pendingAction,
-            isInteractive: !isPendingActionDelete && !details?.isOptimisticPersonalDetail,
-            isDisabled: isPendingActionDelete,
-            isDisabledCheckbox: isPendingActionDelete || !!details?.isOptimisticPersonalDetail,
-            brickRoadIndicator: customProps?.brickRoadIndicator,
-        };
-    });
+    const data: MemberOption[] = accountIDs
+        .filter((accountID) => {
+            const details = personalDetails?.[accountID];
+            return !!details?.login || !!details?.displayName;
+        })
+        .map((accountID) => {
+            const details = personalDetails?.[accountID];
+            const login = details?.login ?? '';
+            const customProps = getCustomRowProps?.(accountID, login);
+            const isPendingActionDelete = customProps?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
+            return {
+                keyForList: String(accountID),
+                accountID,
+                login,
+                text: formatPhoneNumber(getDisplayNameOrDefault(details)),
+                alternateText: formatPhoneNumber(login),
+                icons: [
+                    {
+                        source: details?.avatar ?? icons.FallbackAvatar,
+                        name: formatPhoneNumber(login),
+                        type: CONST.ICON_TYPE_AVATAR,
+                        id: accountID,
+                    },
+                ],
+                rightElement: getCustomRightElement?.(accountID),
+                errors: getLatestError(customProps?.errors),
+                pendingAction: customProps?.pendingAction,
+                isInteractive: !isPendingActionDelete && !details?.isOptimisticPersonalDetail,
+                isDisabled: isPendingActionDelete,
+                isDisabledCheckbox: isPendingActionDelete || !!details?.isOptimisticPersonalDetail,
+                brickRoadIndicator: customProps?.brickRoadIndicator,
+            };
+        });
 
     const filterMember = (memberOption: MemberOption, searchQuery: string) => {
         const results = tokenizedSearch([memberOption], searchQuery, (option) => [option.text ?? '', option.alternateText ?? '']);
@@ -210,20 +218,20 @@ function BaseDomainMembersPage({
     const listHeaderContent =
         searchBarAccessory || shouldShowSearchBar ? (
             <View style={styles.flexColumn}>
-                <View style={[styles.mh5, styles.gap3, styles.mb5, shouldUseNarrowLayout ? styles.flexColumn : styles.flexRow]}>
+                <View style={[styles.mh5, styles.gap3, styles.mb5, shouldDisplayButtonsInSeparateLine ? styles.flexColumn : styles.flexRow]}>
                     {!!searchBarAccessory && (
                         <View
                             style={[
-                                shouldUseNarrowLayout && styles.w100,
-                                shouldShowSearchBar && !shouldUseNarrowLayout && styles.h13,
-                                shouldShowSearchBar && !shouldUseNarrowLayout && styles.justifyContentCenter,
+                                shouldDisplayButtonsInSeparateLine && styles.w100,
+                                shouldShowSearchBar && !shouldDisplayButtonsInSeparateLine && styles.h13,
+                                shouldShowSearchBar && !shouldDisplayButtonsInSeparateLine && styles.justifyContentCenter,
                             ]}
                         >
                             {searchBarAccessory}
                         </View>
                     )}
                     {shouldShowSearchBar && (
-                        <View style={[shouldUseNarrowLayout && styles.w100]}>
+                        <View style={[shouldDisplayButtonsInSeparateLine ? styles.w100 : styles.flex1]}>
                             <SearchBar
                                 inputValue={inputValue}
                                 onChangeText={setInputValue}
@@ -265,10 +273,11 @@ function BaseDomainMembersPage({
                     icon={!useSelectionModeHeader ? headerIcon : undefined}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldUseHeadlineHeader={!useSelectionModeHeader}
+                    shouldDisplayHelpButton
                 >
-                    {!shouldUseNarrowLayout && !!headerContent && <View style={[styles.flexRow, styles.gap2]}>{headerContent}</View>}
+                    {!shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.flexRow, styles.gap2]}>{headerContent}</View>}
                 </HeaderWithBackButton>
-                {shouldUseNarrowLayout && !!headerContent && <View style={[styles.ph5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
+                {shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.ph5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
                 <SelectionListWithModal
                     data={filteredData}
                     shouldShowRightCaret
@@ -287,10 +296,11 @@ function BaseDomainMembersPage({
                     showScrollIndicator={false}
                     customListHeader={getFilteredListHeader()}
                     shouldHeaderBeInsideList
-                    customListHeaderContent={listHeaderContent}
                     canSelectMultiple={canSelectMultiple}
+                    selectAllAccessibilityLabel={translate('accessibilityHints.selectAllMembers')}
+                    customListHeaderContent={listHeaderContent}
                     onSelectAll={toggleAllUsers}
-                    onCheckboxPress={toggleUser}
+                    onSelectionButtonPress={toggleUser}
                     selectedItems={selectedMembers}
                     turnOnSelectionModeOnLongPress={turnOnSelectionModeOnLongPress}
                     onTurnOnSelectionMode={(item) => item && toggleUser?.(item)}

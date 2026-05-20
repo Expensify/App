@@ -11,7 +11,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 function DeletedActionRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) {
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowsLeftRight', 'EyeDisabled', 'Trashcan'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowsLeftRight', 'EyeDisabled', 'Trashcan']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const htmlAttribs = tnode.attributes;

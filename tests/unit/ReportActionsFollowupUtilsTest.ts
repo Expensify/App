@@ -88,6 +88,22 @@ describe('ReportActionsFollowupUtils', () => {
             ]);
         });
 
+        it('should preserve HTML formatting in followup-response (bullets, breaks, strong tags)', () => {
+            const html = `<followup-list>
+  <followup>
+    <followup-text>How do I set up QuickBooks?</followup-text>
+    <followup-response>To set up QuickBooks:<br><ul><li><strong>Step 1</strong>: Go to Settings</li><li><strong>Step 2</strong>: Click Integrations</li></ul></followup-response>
+  </followup>
+</followup-list>`;
+            const result = parseFollowupsFromHtml(html);
+            expect(result).toEqual([
+                {
+                    text: 'How do I set up QuickBooks?',
+                    response: 'To set up QuickBooks:<br><ul><li><strong>Step 1</strong>: Go to Settings</li><li><strong>Step 2</strong>: Click Integrations</li></ul>',
+                },
+            ]);
+        });
+
         it('should handle empty followup-response element', () => {
             const html = `<followup-list>
   <followup>

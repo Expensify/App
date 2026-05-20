@@ -1,6 +1,11 @@
 import type {ValueOf} from 'type-fest';
 import type {UnitPosition, UnitWithFallback} from '@components/Charts';
 import type {PaymentMethod} from '@components/KYCWall/types';
+import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
+import type CONST from '@src/CONST';
+import type {Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import type IconAsset from '@src/types/utils/IconAsset';
 import type {
     ReportActionListItemType,
     TaskListItemType,
@@ -16,12 +21,7 @@ import type {
     TransactionWeekGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
-} from '@components/SelectionListWithSections/types';
-import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
-import type CONST from '@src/CONST';
-import type {Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
-import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
-import type IconAsset from '@src/types/utils/IconAsset';
+} from './SearchList/ListItem/types';
 
 /** Model of the selected transaction */
 type SelectedTransactionInfo = {
@@ -76,6 +76,9 @@ type SelectedTransactionInfo = {
     /** The exchange rate of the transaction if the transaction is grouped. Defaults to the exchange rate against the active policy currency if group has no target currency */
     groupExchangeRate?: number;
 
+    /** The currency conversion rate from the transaction currency to the report currency */
+    currencyConversionRate?: string;
+
     /** Whether it is the only expense of the parent expense report */
     isFromOneTransactionReport: boolean;
 
@@ -99,6 +102,11 @@ type SelectedReports = {
     total: number;
     currency?: string;
     chatReportID: string | undefined;
+    managerID?: number;
+    ownerAccountID?: number;
+    parentReportActionID?: string;
+    parentReportID?: string;
+    type?: string;
 };
 
 /** Model of payment data used by Search bulk actions */
@@ -141,7 +149,8 @@ type ChartView = Exclude<SearchView, 'table'>;
 type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
 type SearchDatePreset = ValueOf<typeof CONST.SEARCH.DATE_PRESETS>;
 type SearchWithdrawalType = ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>;
-type SearchAction = ValueOf<typeof CONST.SEARCH.ACTION_FILTERS>;
+type SearchWithdrawalStatus = Array<ValueOf<typeof CONST.SEARCH.SETTLEMENT_STATUS>>;
+type SyntaxFilterKey = ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>;
 
 type SearchCustomColumnIds =
     | ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE>
@@ -161,8 +170,9 @@ type SearchContextData = {
     currentSearchHash: number;
     currentSimilarSearchHash: number;
     currentSearchKey: SearchKey | undefined;
-    currentSearchQueryJSON: SearchQueryJSON | undefined;
+    currentSearchQueryJSON: Readonly<SearchQueryJSON> | undefined;
     currentSearchResults: SearchResults | undefined;
+    currentSelectedTransactionReportID: string | undefined;
     selectedTransactions: SelectedTransactions;
     selectedTransactionIDs: string[];
     selectedReports: SelectedReports[];
@@ -170,6 +180,9 @@ type SearchContextData = {
     isOnSearch: boolean;
     shouldTurnOffSelectionMode: boolean;
     shouldResetSearchQuery: boolean;
+    sortedReportIDs: ReadonlyArray<string | undefined>;
+    /** True when at least one transaction is selected. */
+    hasSelectedTransactions: boolean;
 };
 
 type SearchStateContextValue = SearchContextData & {
@@ -188,6 +201,7 @@ type SearchActionsContextValue = {
         (selectedTransactionIDs: string[], unused?: undefined): void;
         (selectedTransactions: SelectedTransactions, data: TransactionListItemType[] | TransactionGroupListItemType[] | ReportActionListItemType[] | TaskListItemType[]): void;
     };
+    setCurrentSelectedTransactionReportID: (reportID: string | undefined) => void;
     /** If you want to clear `selectedTransactionIDs`, pass `true` as the first argument */
     clearSelectedTransactions: {
         (hash?: number, shouldTurnOffSelectionMode?: boolean): void;
@@ -199,11 +213,12 @@ type SearchActionsContextValue = {
     setShouldShowSelectAllMatchingItems: (shouldShow: boolean) => void;
     selectAllMatchingItems: (on: boolean) => void;
     setShouldResetSearchQuery: (shouldReset: boolean) => void;
+    setSortedReportIDs: (ids: ReadonlyArray<string | undefined>) => void;
 };
 
 type ASTNode = {
     operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
-    left: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS> | ASTNode;
+    left: SyntaxFilterKey | ASTNode;
     right: string | ASTNode | string[];
 };
 
@@ -242,6 +257,8 @@ type SearchDateFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN
     | ReportFieldTextKey;
 
+type SearchDateKey = `${SearchDateFilterKeys}${ValueOf<typeof CONST.SEARCH.DATE_MODIFIERS>}` | ReportFieldDateKey;
+
 type SearchAmountFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT;
 
 type SearchCurrencyFilterKeys =
@@ -250,7 +267,7 @@ type SearchCurrencyFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY;
 
 type SearchFilterKey =
-    | ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>
+    | SyntaxFilterKey
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY
@@ -267,7 +284,7 @@ type QueryFilters = Array<{
     filters: QueryFilter[];
 }>;
 
-type RawFilterKey = ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS> | ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
+type RawFilterKey = SyntaxFilterKey | ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
 
 type RawQueryFilter = {
     key: RawFilterKey;
@@ -300,6 +317,7 @@ type SearchQueryJSON = {
     /** Use similarSearchHash to test if two searchers are similar i.e. have same filters but not necessary same values */
     similarSearchHash: number;
     flatFilters: QueryFilters;
+    isViewExplicitlySet?: boolean;
 } & SearchQueryAST;
 
 type SearchAutocompleteResult = {
@@ -315,7 +333,7 @@ type SearchAutocompleteQueryRange = {
 };
 
 type SearchParams = {
-    queryJSON: SearchQueryJSON;
+    queryJSON: Readonly<SearchQueryJSON>;
     searchKey: SearchKey | undefined;
     offset: number;
     prevReportsLength?: number;
@@ -348,12 +366,6 @@ type SearchChartProps = {
     /** Grouped transaction data from search results */
     data: GroupedItem[];
 
-    /** Chart title */
-    title: string;
-
-    /** Chart title icon */
-    titleIcon: IconAsset;
-
     /** Function to extract label from grouped item */
     getLabel: (item: GroupedItem) => string;
 
@@ -379,6 +391,7 @@ export type {
     SearchColumnType,
     SearchBooleanFilterKeys,
     SearchDateFilterKeys,
+    SearchDateKey,
     SearchAmountFilterKeys,
     SearchStatus,
     SearchQueryJSON,
@@ -394,14 +407,10 @@ export type {
     ASTNode,
     QueryFilter,
     QueryFilters,
-    RawFilterKey,
+    SyntaxFilterKey,
     RawQueryFilter,
     SearchFilterKey,
     UserFriendlyKey,
-    ExpenseSearchStatus,
-    InvoiceSearchStatus,
-    TripSearchStatus,
-    TaskSearchStatus,
     SearchAutocompleteResult,
     PaymentData,
     BulkPaySelectionData,
@@ -414,7 +423,7 @@ export type {
     SingularSearchStatus,
     SearchDatePreset,
     SearchWithdrawalType,
-    SearchAction,
+    SearchWithdrawalStatus,
     SearchCurrencyFilterKeys,
     UserFriendlyValue,
     SelectedReports,

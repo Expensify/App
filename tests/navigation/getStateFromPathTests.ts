@@ -44,11 +44,14 @@ jest.mock('@src/ROUTES', () => ({
             path: 'suffix-b-from-multi',
             entryScreens: ['DynamicMultiSegScreen'],
         },
+        WILDCARD_SUFFIX: {
+            path: 'wildcard-suffix',
+            entryScreens: ['*'],
+        },
     },
 }));
 
 jest.mock('@libs/Navigation/helpers/getMatchingNewRoute', () => jest.fn());
-jest.mock('@libs/Navigation/helpers/getRedirectedPath', () => jest.fn((path: string) => path));
 jest.mock('@libs/Navigation/helpers/dynamicRoutesUtils/getStateForDynamicRoute', () => jest.fn());
 
 describe('getStateFromPath', () => {
@@ -62,6 +65,7 @@ describe('getStateFromPath', () => {
     const dynamicSuffixBState = {routes: [{name: 'DynamicSuffixBScreen'}]};
     const dynamicMultiSegState = {routes: [{name: 'DynamicMultiSegScreen', params: focusedRouteParams}]};
     const dynamicMultiSegLayerState = {routes: [{name: 'DynamicMultiSegLayerScreen'}]};
+    const dynamicWildcardState = {routes: [{name: 'DynamicWildcardScreen'}]};
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -78,6 +82,9 @@ describe('getStateFromPath', () => {
             }
             if (dynamicRouteKey === 'MULTI_SEG_LAYER') {
                 return dynamicMultiSegLayerState;
+            }
+            if (dynamicRouteKey === 'WILDCARD_SUFFIX') {
+                return dynamicWildcardState;
             }
             return {routes: [{name: 'UnknownDynamic'}]};
         });
@@ -157,6 +164,29 @@ describe('getStateFromPath', () => {
             expect(result).toBe(dynamicMultiSegLayerState);
             expect(mockGetStateForDynamicRoute).toHaveBeenCalledWith('/base/deep/suffix-a', 'MULTI_SEG', focusedRouteParams);
             expect(mockGetStateForDynamicRoute).toHaveBeenCalledWith(fullPath, 'MULTI_SEG_LAYER', focusedRouteParams);
+        });
+    });
+
+    describe('wildcard entryScreens', () => {
+        it('should authorize any focused screen when entryScreens contains wildcard', () => {
+            const fullPath = '/base/wildcard-suffix';
+
+            const result = getStateFromPath(fullPath as unknown as Route);
+
+            expect(result).toBe(dynamicWildcardState);
+            expect(mockGetStateForDynamicRoute).toHaveBeenCalledWith(fullPath, 'WILDCARD_SUFFIX', focusedRouteParams);
+            expect(mockLogWarn).not.toHaveBeenCalled();
+        });
+
+        it('should authorize wildcard in a layered scenario where the inner screen is not explicitly listed', () => {
+            const fullPath = '/base/suffix-a/wildcard-suffix';
+
+            const result = getStateFromPath(fullPath as unknown as Route);
+
+            expect(result).toBe(dynamicWildcardState);
+            expect(mockGetStateForDynamicRoute).toHaveBeenCalledWith('/base/suffix-a', 'SUFFIX_A', focusedRouteParams);
+            expect(mockGetStateForDynamicRoute).toHaveBeenCalledWith(fullPath, 'WILDCARD_SUFFIX', focusedRouteParams);
+            expect(mockLogWarn).not.toHaveBeenCalled();
         });
     });
 });

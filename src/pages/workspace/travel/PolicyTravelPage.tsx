@@ -44,8 +44,8 @@ function WorkspaceTravelPage({
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.travel');
-    const icons = useMemoizedLazyExpensifyIcons(['Exit'] as const);
-    const illustrations = useMemoizedLazyIllustrations(['Luggage'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Exit']);
+    const illustrations = useMemoizedLazyIllustrations(['Luggage']);
     const workspaceAccountID = useWorkspaceAccountID(policyID);
 
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();

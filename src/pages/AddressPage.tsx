@@ -1,8 +1,9 @@
 import React, {useCallback, useEffect, useState} from 'react';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import ActivityIndicator from '@components/ActivityIndicator';
 import AddressForm from '@components/AddressForm';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
-import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
@@ -100,10 +101,12 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
                     onBackButtonPress={() => Navigation.goBack(backTo)}
                 />
                 {isLoadingApp ? (
-                    <FullscreenLoadingIndicator
-                        style={[styles.flex1, styles.pRelative]}
-                        reasonAttributes={reasonAttributes}
-                    />
+                    <View style={[styles.flex1, styles.fullScreenLoading]}>
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            reasonAttributes={reasonAttributes}
+                        />
+                    </View>
                 ) : (
                     <AddressForm
                         formID={ONYXKEYS.FORMS.HOME_ADDRESS_FORM}

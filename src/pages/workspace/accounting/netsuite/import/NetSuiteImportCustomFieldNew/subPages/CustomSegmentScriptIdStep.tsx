@@ -12,14 +12,14 @@ import useNetSuiteImportAddCustomSegmentFormSubmit from '@hooks/useNetSuiteImpor
 import useThemeStyles from '@hooks/useThemeStyles';
 import Parser from '@libs/Parser';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
-import type {CustomFieldSubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
+import type {CustomFieldSubPageWithPolicy} from '@pages/workspace/accounting/netsuite/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 
 const STEP_FIELDS = [INPUT_IDS.SCRIPT_ID];
-function CustomSegmentScriptIdStep({customSegmentType, onNext, isEditing, customSegments}: CustomFieldSubStepWithPolicy) {
+function CustomSegmentScriptIdStep({customSegmentType, onNext, isEditing, customSegments}: CustomFieldSubPageWithPolicy) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();

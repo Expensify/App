@@ -66,7 +66,7 @@ function RulesProhibitedDefaultPage({
                                     isOn={policy?.prohibitedExpenses?.[prohibitedExpense] ?? false}
                                     accessibilityLabel={translate(`workspace.rules.individualExpenseRules.${prohibitedExpense}`)}
                                     onToggle={() => {
-                                        setPolicyProhibitedExpense(policyID, prohibitedExpense);
+                                        setPolicyProhibitedExpense(policyID, prohibitedExpense, policy?.prohibitedExpenses);
                                     }}
                                 />
                             </View>

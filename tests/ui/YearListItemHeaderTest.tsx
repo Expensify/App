@@ -2,12 +2,13 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
+import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {SearchActionsContext, SearchStateContext} from '@components/Search/SearchContext';
+import type {TransactionYearGroupListItemType} from '@components/Search/SearchList/ListItem/types';
+import YearListItemHeader from '@components/Search/SearchList/ListItem/YearListItemHeader';
 import type {SearchActionsContextValue, SearchColumnType, SearchStateContextValue} from '@components/Search/types';
-import YearListItemHeader from '@components/SelectionListWithSections/Search/YearListItemHeader';
-import type {TransactionYearGroupListItemType} from '@components/SelectionListWithSections/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,6 +27,7 @@ const mockSearchStateContext = {
     currentSearchKey: undefined,
     currentSearchQueryJSON: undefined,
     currentSearchResults: undefined,
+    currentSelectedTransactionReportID: undefined,
     selectedReports: [],
     selectedTransactionIDs: [],
     selectedTransactions: {},
@@ -39,10 +41,13 @@ const mockSearchStateContext = {
     shouldUseLiveData: false,
     currentSimilarSearchHash: -1,
     suggestedSearches: {} as SearchStateContextValue['suggestedSearches'],
+    sortedReportIDs: [],
+    hasSelectedTransactions: false,
 } satisfies SearchStateContextValue;
 
 const mockSearchActionsContext = {
     setLastSearchType: jest.fn(),
+    setCurrentSelectedTransactionReportID: jest.fn(),
     setSelectedTransactions: jest.fn(),
     removeTransaction: jest.fn(),
     clearSelectedTransactions: jest.fn(),
@@ -50,6 +55,7 @@ const mockSearchActionsContext = {
     setShouldShowSelectAllMatchingItems: jest.fn(),
     selectAllMatchingItems: jest.fn(),
     setShouldResetSearchQuery: jest.fn(),
+    setSortedReportIDs: jest.fn(),
 } satisfies SearchActionsContextValue;
 
 const createYearListItem = (year: number, options: Partial<TransactionYearGroupListItemType> = {}): TransactionYearGroupListItemType => ({
@@ -81,7 +87,7 @@ const renderYearListItemHeader = (
     }> = {},
 ) => {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
             <SearchStateContext.Provider value={mockSearchStateContext}>
                 <SearchActionsContext.Provider value={mockSearchActionsContext}>
                     <YearListItemHeader
@@ -122,6 +128,7 @@ describe('YearListItemHeader', () => {
             isSmallScreen: true,
             isInNarrowPaneModal: false,
             onboardingIsMediumOrLargerScreenWidth: false,
+            isInLandscapeMode: false,
         });
     });
 
@@ -254,6 +261,7 @@ describe('YearListItemHeader', () => {
                 isSmallScreen: false,
                 isInNarrowPaneModal: false,
                 onboardingIsMediumOrLargerScreenWidth: true,
+                isInLandscapeMode: false,
             });
         });
 

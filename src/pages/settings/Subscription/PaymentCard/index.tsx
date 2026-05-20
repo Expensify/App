@@ -1,7 +1,9 @@
+import {useRoute} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import PaymentCardForm from '@components/AddPaymentCard/PaymentCardForm';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -24,17 +26,21 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getMCardNumberString, getMonthFromExpirationDateString, getYearFromExpirationDateString} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getCardForSubscriptionBilling} from '@libs/SubscriptionUtils';
 import CardAuthenticationModal from '@pages/settings/Subscription/CardAuthenticationModal';
 import {addSubscriptionPaymentCard, clearPaymentCardFormErrorAndSubmit} from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 
 function AddPaymentCard() {
+    const route = useRoute();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const privateSubscription = usePrivateSubscription();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
 
     const subscriptionPlan = useSubscriptionPlan();
@@ -45,6 +51,19 @@ function AddPaymentCard() {
     const isCollect = subscriptionPlan === CONST.POLICY.TYPE.TEAM;
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
     const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
+
+    const billingCard = useMemo(() => {
+        const userBillingCard = userBillingFundID ? fundList?.[`${userBillingFundID}`] : undefined;
+        if (userBillingCard?.accountData) {
+            return userBillingCard;
+        }
+
+        return getCardForSubscriptionBilling(fundList);
+    }, [fundList, userBillingFundID]);
+
+    const isSaveTheWorldAddPaymentCardRoute = route.name === SCREENS.SAVE_THE_WORLD.ADD_PAYMENT_CARD;
+    const shouldShowBlockingView = isSaveTheWorldAddPaymentCardRoute && !!billingCard;
+
     const subscriptionPricingInfo =
         hasTeam2025Pricing && isCollect
             ? translate('subscription.yourPlan.pricePerMemberPerMonth', convertToShortDisplayString(subscriptionPrice, preferredCurrency))
@@ -90,43 +109,48 @@ function AddPaymentCard() {
 
     return (
         <ScreenWrapper testID="AddPaymentCard">
-            <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
-                <HeaderWithBackButton title={translate('subscription.paymentCard.addPaymentCard')} />
-                <View style={styles.containerWithSpaceBetween}>
-                    <PaymentCardForm
-                        shouldShowPaymentCardForm
-                        addPaymentCard={addPaymentCard}
-                        showAcceptTerms
-                        showCurrencyField
-                        currencySelectorRoute={ROUTES.SETTINGS_SUBSCRIPTION_CHANGE_PAYMENT_CURRENCY}
-                        submitButtonText={translate('subscription.paymentCard.addPaymentCard')}
-                        headerContent={<Text style={[styles.textHeadline, styles.mt3, styles.mb2, styles.ph5]}>{translate('subscription.paymentCard.enterPaymentCardDetails')}</Text>}
-                        footerContent={
-                            <>
-                                <Section
-                                    icon={ShieldYellow}
-                                    cardLayout={CARD_LAYOUT.ICON_ON_LEFT}
-                                    iconContainerStyles={styles.mr4}
-                                    containerStyles={[styles.mh0, styles.mt5]}
-                                    renderTitle={() => (
-                                        <Text style={[styles.mutedTextLabel]}>
-                                            {translate('subscription.paymentCard.security')}{' '}
-                                            <TextLink
-                                                style={[styles.mutedTextLabel, styles.link]}
-                                                href={CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}
-                                            >
-                                                {translate('subscription.paymentCard.learnMoreAboutSecurity')}
-                                            </TextLink>
-                                        </Text>
-                                    )}
-                                />
-                                <Text style={[styles.textMicroSupporting, styles.mt3, styles.textAlignCenter, styles.mr5, styles.ml5]}>{subscriptionPricingInfo}</Text>
-                            </>
-                        }
-                    />
-                </View>
-                <CardAuthenticationModal headerTitle={translate('subscription.authenticatePaymentCard')} />
-            </DelegateNoAccessWrapper>
+            <FullPageNotFoundView
+                shouldShow={shouldShowBlockingView}
+                onBackButtonPress={Navigation.goBack}
+            >
+                <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
+                    <HeaderWithBackButton title={translate('subscription.paymentCard.addPaymentCard')} />
+                    <View style={styles.containerWithSpaceBetween}>
+                        <PaymentCardForm
+                            shouldShowPaymentCardForm
+                            addPaymentCard={addPaymentCard}
+                            showAcceptTerms
+                            showCurrencyField
+                            currencySelectorRoute={ROUTES.SETTINGS_SUBSCRIPTION_CHANGE_PAYMENT_CURRENCY}
+                            submitButtonText={translate('subscription.paymentCard.addPaymentCard')}
+                            headerContent={<Text style={[styles.textHeadline, styles.mt3, styles.mb2, styles.ph5]}>{translate('subscription.paymentCard.enterPaymentCardDetails')}</Text>}
+                            footerContent={
+                                <>
+                                    <Section
+                                        icon={ShieldYellow}
+                                        cardLayout={CARD_LAYOUT.ICON_ON_LEFT}
+                                        iconContainerStyles={styles.mr4}
+                                        containerStyles={[styles.mh0, styles.mt5]}
+                                        renderTitle={() => (
+                                            <Text style={[styles.mutedTextLabel]}>
+                                                {translate('subscription.paymentCard.security')}{' '}
+                                                <TextLink
+                                                    style={[styles.mutedTextLabel, styles.link]}
+                                                    href={CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}
+                                                >
+                                                    {translate('subscription.paymentCard.learnMoreAboutSecurity')}
+                                                </TextLink>
+                                            </Text>
+                                        )}
+                                    />
+                                    <Text style={[styles.textMicroSupporting, styles.mt3, styles.textAlignCenter, styles.mr5, styles.ml5]}>{subscriptionPricingInfo}</Text>
+                                </>
+                            }
+                        />
+                    </View>
+                    <CardAuthenticationModal headerTitle={translate('subscription.authenticatePaymentCard')} />
+                </DelegateNoAccessWrapper>
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }

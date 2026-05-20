@@ -8,7 +8,6 @@ import {format, formatToParts} from './NumberFormatUtils';
 
 let currencyList: OnyxValues[typeof ONYXKEYS.CURRENCY_LIST] = {};
 
-/* eslint-disable rulesdir/prefer-onyx-connect-in-libs -- may refactor to useOnyx/connectWithoutView later */
 Onyx.connect({
     key: ONYXKEYS.CURRENCY_LIST,
     callback: (val) => {
@@ -19,7 +18,6 @@ Onyx.connect({
         currencyList = val;
     },
 });
-/* eslint-enable rulesdir/prefer-onyx-connect-in-libs */
 
 /**
  * Returns the number of digits after the decimal separator for a specific currency.
@@ -30,7 +28,7 @@ Onyx.connect({
  */
 function getCurrencyDecimals(currency: string = CONST.CURRENCY.USD): number {
     const decimals = currencyList?.[currency]?.decimals;
-    return decimals ?? 2;
+    return decimals ?? CONST.DEFAULT_CURRENCY_DECIMALS;
 }
 
 /**
@@ -74,11 +72,8 @@ function convertToBackendAmount(amountAsFloat: number): number {
 
 /**
  * Takes an amount in "cents" as an integer and converts it to a floating point amount used in the frontend.
- *
- * @note we do not support any currencies with more than two decimal places.
  */
-function convertToFrontendAmountAsInteger(amountAsInt: number, currency: string = CONST.CURRENCY.USD): number {
-    const decimals = getCurrencyDecimals(currency);
+function convertToFrontendAmountAsInteger(amountAsInt: number, decimals: number): number {
     return Number((Math.trunc(amountAsInt) / 100.0).toFixed(decimals));
 }
 
@@ -87,12 +82,11 @@ function convertToFrontendAmountAsInteger(amountAsInt: number, currency: string 
  *
  * @note we do not support any currencies with more than two decimal places.
  */
-function convertToFrontendAmountAsString(amountAsInt: number | null | undefined, currency: string = CONST.CURRENCY.USD, withDecimals = true): string {
+function convertToFrontendAmountAsString(amountAsInt: number | null | undefined, decimals: number): string {
     if (amountAsInt === null || amountAsInt === undefined) {
         return '';
     }
-    const decimals = withDecimals ? getCurrencyDecimals(currency) : 0;
-    return convertToFrontendAmountAsInteger(amountAsInt, currency).toFixed(decimals);
+    return (Math.trunc(amountAsInt) / 100.0).toFixed(decimals);
 }
 
 /**
@@ -103,7 +97,8 @@ function convertToFrontendAmountAsString(amountAsInt: number | null | undefined,
  * @param currency - IOU currency
  */
 function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURRENCY.USD, shouldUseLocalCurrencySymbol = false): string {
-    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency);
+    const decimals = getCurrencyDecimals(currency);
+    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, decimals);
     /**
      * Fallback currency to USD if it empty string or undefined
      */
@@ -118,7 +113,7 @@ function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURR
         if (currencySymbol) {
             const formattedNumber = format(IntlStore.getCurrentLocale(), convertedAmount, {
                 style: 'decimal',
-                minimumFractionDigits: getCurrencyDecimals(currency),
+                minimumFractionDigits: decimals,
                 maximumFractionDigits: 2,
             });
             return `${currencySymbol}${formattedNumber}`;
@@ -131,7 +126,7 @@ function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURR
 
         // We are forcing the number of decimals because we override the default number of decimals in the backend for some currencies
         // See: https://github.com/Expensify/PHP-Libs/pull/834
-        minimumFractionDigits: getCurrencyDecimals(currency),
+        minimumFractionDigits: decimals,
         // For currencies that have decimal places > 2, floor to 2 instead as we don't support more than 2 decimal places.
         maximumFractionDigits: 2,
     });
@@ -153,7 +148,8 @@ function convertToDisplayStringWithExplicitCurrency(amountInCents: number, curre
  * @param currency - IOU currency
  */
 function convertToShortDisplayString(amountInCents = 0, currency: string = CONST.CURRENCY.USD): string {
-    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency);
+    // We want to make sure that we are not showing any decimals in the short display string, so we pass 0 as the decimals parameter
+    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, 0);
 
     return format(IntlStore.getCurrentLocale(), convertedAmount, {
         style: 'currency',
@@ -185,14 +181,15 @@ function convertAmountToDisplayString(amount = 0, currency: string = CONST.CURRE
  * Acts the same as `convertAmountToDisplayString` but the result string does not contain currency
  */
 function convertToDisplayStringWithoutCurrency(amountInCents: number, currency: string = CONST.CURRENCY.USD) {
-    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency);
+    const decimals = getCurrencyDecimals(currency);
+    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, decimals);
     return formatToParts(IntlStore.getCurrentLocale(), convertedAmount, {
         style: 'currency',
         currency,
 
         // We are forcing the number of decimals because we override the default number of decimals in the backend for some currencies
         // See: https://github.com/Expensify/PHP-Libs/pull/834
-        minimumFractionDigits: getCurrencyDecimals(currency),
+        minimumFractionDigits: decimals,
         // For currencies that have decimal places > 2, floor to 2 instead as we don't support more than 2 decimal places.
         maximumFractionDigits: 2,
     })
@@ -200,14 +197,6 @@ function convertToDisplayStringWithoutCurrency(amountInCents: number, currency: 
         .filter((x) => x.type !== 'literal' || x.value.trim().length !== 0)
         .map((x) => x.value)
         .join('');
-}
-
-/**
- * Checks if passed currency code is a valid currency based on currency list
- */
-function isValidCurrencyCode(currencyCode: string): boolean {
-    const currency = currencyList?.[currencyCode];
-    return !!currency;
 }
 
 export {
@@ -222,6 +211,5 @@ export {
     convertAmountToDisplayString,
     convertToDisplayStringWithoutCurrency,
     convertToDisplayStringWithExplicitCurrency,
-    isValidCurrencyCode,
     convertToShortDisplayString,
 };

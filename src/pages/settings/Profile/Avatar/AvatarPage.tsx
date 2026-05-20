@@ -1,47 +1,29 @@
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
-import AttachmentPicker from '@components/AttachmentPicker';
-import Avatar from '@components/Avatar';
 import AvatarCropModal from '@components/AvatarCropModal/AvatarCropModal';
 import AvatarSelector from '@components/AvatarSelector';
 import Button from '@components/Button';
-import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import useAvatarMenu from '@hooks/useAvatarMenu';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLetterAvatars from '@hooks/useLetterAvatars';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getAvatarLocal, getAvatarURL, isPresetAvatarID} from '@libs/Avatars/PresetAvatarCatalog';
-import {validateAvatarImage} from '@libs/AvatarUtils';
+import {getAvatarURL, isPresetAvatarID, resolveAvatarURI} from '@libs/Avatars/PresetAvatarCatalog';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
-import type {AvatarSource} from '@libs/UserAvatarUtils';
-import {getDefaultAvatarName, isLetterAvatar, isPresetAvatar} from '@libs/UserAvatarUtils';
+import {useIsAgentAccount} from '@libs/SessionUtils';
+import type {OnSaveParams} from '@pages/settings/Agents/Fields/EditAgentAvatarPage';
+import {EditAgentAvatarContent} from '@pages/settings/Agents/Fields/EditAgentAvatarPage';
 import {updateAvatar} from '@userActions/PersonalDetails';
-import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {FileObject} from '@src/types/utils/Attachment';
-import AvatarCapture from './AvatarCapture';
 import type {AvatarCaptureHandle} from './AvatarCapture/types';
-
-type ImageData = {
-    uri: string;
-    name: string;
-    type: string;
-    file: File | CustomRNImageManipulatorResult | null;
-};
-
-type ErrorData = {
-    validationError?: TranslationPaths | null | '';
-    phraseParam: Record<string, unknown>;
-};
+import AvatarPreview from './AvatarPreview';
+import type {ErrorData, ImageData} from './types';
 
 const EMPTY_FILE = {uri: '', name: '', type: '', file: null};
 
@@ -53,9 +35,9 @@ function ProfileAvatar() {
     const avatarCaptureRef = useRef<AvatarCaptureHandle>(null);
     const isSavingRef = useRef(false);
 
-    const icons = useMemoizedLazyExpensifyIcons(['Upload']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const isInLandscapeMode = useIsInLandscapeMode();
     const [cropImageData, setCropImageData] = useState<ImageData>({...EMPTY_FILE});
     const [imageData, setImageData] = useState<ImageData>({...EMPTY_FILE});
 
@@ -65,25 +47,8 @@ function ProfileAvatar() {
         getHasUnsavedChanges: () => !isSavingRef.current && isDirty,
     });
 
-    const avatarStyle = [styles.avatarXLarge, styles.alignSelfStart, styles.alignSelfCenter];
-
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {avatarMap: avatars} = useLetterAvatars(currentUserPersonalDetails?.displayName, CONST.AVATAR_SIZE.X_LARGE);
-
-    const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-    // eslint-disable-next-line no-nested-ternary
-    let avatarURL: AvatarSource = '';
-    if (selected && isPresetAvatarID(selected)) {
-        avatarURL = getAvatarLocal(selected);
-    } else if (selected) {
-        avatarURL = avatars[selected];
-    } else if (imageData.uri) {
-        avatarURL = imageData.uri;
-    } else {
-        avatarURL = currentUserPersonalDetails?.avatar ?? '';
-    }
-    // Weather avatar view & edit options should be hidden. False if user uploaded their own avatar.
-    const shouldHideAvatarEdit = (!imageData.uri && (isPresetAvatar(currentUserPersonalDetails?.avatar) || isLetterAvatar(currentUserPersonalDetails?.originalFileName))) || !!selected;
+    const isAgentAccount = useIsAgentAccount();
 
     const setError = (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => {
         setErrorData({
@@ -92,32 +57,7 @@ function ProfileAvatar() {
         });
     };
 
-    /**
-     * Validates an image and opens avatar crop modal if valid
-     */
-    const showAvatarCropModal = useCallback((image: FileObject) => {
-        validateAvatarImage(image)
-            .then((validationResult) => {
-                if (!validationResult.isValid) {
-                    setError(validationResult.errorKey ?? null, validationResult.errorParams ?? {});
-                    return;
-                }
-
-                setIsAvatarCropModalOpen(true);
-                setError(null, {});
-                setCropImageData({
-                    uri: image.uri ?? '',
-                    name: image.name ?? '',
-                    type: image.type ?? '',
-                    file: null,
-                });
-            })
-            .catch(() => {
-                setError('attachmentPicker.errorWhileSelectingCorruptedAttachment', {});
-            });
-    }, []);
-
-    const onImageSelected = useCallback((file: File | CustomRNImageManipulatorResult) => {
+    const onImageSelected = (file: File | CustomRNImageManipulatorResult) => {
         setSelected(undefined);
         setImageData({
             uri: file?.uri ?? '',
@@ -126,33 +66,9 @@ function ProfileAvatar() {
             type: '',
         });
         setIsAvatarCropModalOpen(false);
-    }, []);
+    };
 
-    const onImageRemoved = useCallback(() => {
-        setSelected(
-            getDefaultAvatarName({
-                accountID: currentUserPersonalDetails?.accountID,
-                accountEmail: currentUserPersonalDetails?.email,
-            }),
-        );
-        setImageData({...EMPTY_FILE});
-    }, [currentUserPersonalDetails?.accountID, currentUserPersonalDetails?.email]);
-
-    const clearError = useCallback(() => {
-        setError(null, {});
-    }, []);
-
-    const {createMenuItems} = useAvatarMenu({
-        shouldHideAvatarEdit,
-        accountID,
-        onImageRemoved,
-        showAvatarCropModal,
-        clearError,
-        source: imageData.uri,
-        originalFileName: imageData.name,
-    });
-
-    const onPress = useCallback(() => {
+    const onPress = () => {
         isSavingRef.current = true;
 
         if (imageData.file) {
@@ -187,7 +103,6 @@ function ProfileAvatar() {
             isSavingRef.current = false;
             return;
         }
-        // User selected a letter avatar
         avatarCaptureRef.current
             .capture()
             ?.then((file) => {
@@ -203,7 +118,41 @@ function ProfileAvatar() {
             .catch(() => {
                 isSavingRef.current = false;
             });
-    }, [currentUserPersonalDetails?.accountID, currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.avatarThumbnail, imageData.file, selected]);
+    };
+
+    if (isAgentAccount) {
+        const handleAgentSave = (params: OnSaveParams) => {
+            if ('file' in params) {
+                updateAvatar(params.file, {
+                    avatar: currentUserPersonalDetails?.avatar,
+                    avatarThumbnail: currentUserPersonalDetails?.avatarThumbnail,
+                    accountID: currentUserPersonalDetails?.accountID,
+                });
+            } else {
+                const {customExpensifyAvatarID} = params;
+                const uri = resolveAvatarURI(customExpensifyAvatarID);
+                updateAvatar(
+                    {
+                        uri,
+                        name: customExpensifyAvatarID,
+                        customExpensifyAvatarID,
+                    },
+                    {
+                        avatar: currentUserPersonalDetails?.avatar,
+                        avatarThumbnail: currentUserPersonalDetails?.avatarThumbnail,
+                        accountID: currentUserPersonalDetails?.accountID,
+                    },
+                );
+            }
+            Navigation.dismissModal();
+        };
+        return (
+            <EditAgentAvatarContent
+                accountID={currentUserPersonalDetails.accountID}
+                onSave={handleAgentSave}
+            />
+        );
+    }
 
     return (
         <ScreenWrapper
@@ -215,65 +164,39 @@ function ProfileAvatar() {
             shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton title={translate('avatarPage.title')} />
-            <View style={[styles.flexColumn, styles.gap5, styles.alignItemsCenter, styles.pb10]}>
-                <AvatarCapture
-                    ref={avatarCaptureRef}
-                    fileName={selected ?? 'avatar'}
-                >
-                    <Avatar
-                        containerStyles={avatarStyle}
-                        imageStyles={avatarStyle}
-                        source={avatarURL}
-                        avatarID={accountID}
-                        fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
-                        size={CONST.AVATAR_SIZE.X_LARGE}
-                        type={CONST.ICON_TYPE_AVATAR}
-                    />
-                </AvatarCapture>
-                <AttachmentPicker
-                    type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}
-                    // We need to skip the validation in AttachmentPicker because it is handled in this component itself
-                    shouldValidateImage={false}
-                >
-                    {({openPicker}) => {
-                        const menuItems = createMenuItems(openPicker);
-                        if (menuItems?.length <= 1) {
-                            return (
-                                <Button
-                                    icon={icons.Upload}
-                                    text={translate('avatarPage.uploadPhoto')}
-                                    accessibilityLabel={translate('avatarPage.uploadPhoto')}
-                                    isDisabled={isAvatarCropModalOpen}
-                                    onPress={() => {
-                                        openPicker({
-                                            onPicked: (data) => showAvatarCropModal(data.at(0) ?? {}),
-                                        });
-                                    }}
-                                />
-                            );
-                        }
 
-                        return (
-                            <ButtonWithDropdownMenu
-                                success={false}
-                                shouldUseOptionIcon
-                                isDisabled={isAvatarCropModalOpen}
-                                onPress={() => {}}
-                                anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
-                                customText={translate('common.edit')}
-                                options={menuItems}
-                                isSplitButton={false}
-                            />
-                        );
-                    }}
-                </AttachmentPicker>
-            </View>
+            {!isInLandscapeMode && (
+                <AvatarPreview
+                    selected={selected}
+                    setSelected={setSelected}
+                    avatarCaptureRef={avatarCaptureRef}
+                    imageData={imageData}
+                    setImageData={setImageData}
+                    setError={setError}
+                    setCropImageData={setCropImageData}
+                    setIsAvatarCropModalOpen={setIsAvatarCropModalOpen}
+                    isAvatarCropModalOpen={isAvatarCropModalOpen}
+                />
+            )}
 
             <ScrollView
                 style={styles.flex1}
                 contentContainerStyle={styles.flexGrow1}
                 keyboardShouldPersistTaps="handled"
             >
+                {isInLandscapeMode && (
+                    <AvatarPreview
+                        selected={selected}
+                        setSelected={setSelected}
+                        avatarCaptureRef={avatarCaptureRef}
+                        imageData={imageData}
+                        setImageData={setImageData}
+                        setError={setError}
+                        setCropImageData={setCropImageData}
+                        setIsAvatarCropModalOpen={setIsAvatarCropModalOpen}
+                        isAvatarCropModalOpen={isAvatarCropModalOpen}
+                    />
+                )}
                 <View style={[styles.ph5, styles.pb5, styles.flexColumn, styles.flex1, styles.gap3]}>
                     <AvatarSelector
                         label={translate('avatarPage.choosePresetAvatar')}
@@ -286,6 +209,7 @@ function ProfileAvatar() {
                     />
                 </View>
             </ScrollView>
+
             <FixedFooter style={styles.mtAuto}>
                 {!!errorData.validationError && (
                     <DotIndicatorMessage
@@ -304,6 +228,7 @@ function ProfileAvatar() {
                     pressOnEnter
                 />
             </FixedFooter>
+
             <AvatarCropModal
                 onClose={() => {
                     if (!isAvatarCropModalOpen) {

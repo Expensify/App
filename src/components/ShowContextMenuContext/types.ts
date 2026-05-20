@@ -1,15 +1,16 @@
+import type {RefObject} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import type {Report, ReportAction} from '@src/types/onyx';
 
 type ShowContextMenuStateContextType = {
-    anchor: ContextMenuAnchor;
+    anchor: RefObject<ContextMenuAnchor> | null;
     report: OnyxEntry<Report>;
-    isReportArchived: boolean;
     action: OnyxEntry<ReportAction>;
     transactionThreadReport?: OnyxEntry<Report>;
     isDisabled: boolean;
     shouldDisplayContextMenu?: boolean;
+    originalReportID?: string;
 };
 
 type ShowContextMenuActionsContextType = {

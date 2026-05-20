@@ -5,9 +5,11 @@ import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {NumberWithSymbolFormProps} from '@components/NumberWithSymbolForm';
 import ScrollView from '@components/ScrollView';
 import withNavigationFallback from '@components/withNavigationFallback';
-// eslint-disable-next-line no-restricted-imports
-import {defaultStyles} from '@styles/index';
 import CONST from '@src/CONST';
+import styles from '@src/styles';
+import {defaultTheme} from '@src/styles/theme';
+
+const defaultStyles = styles(defaultTheme);
 
 type NumberWithSymbolFormStory = StoryFn<typeof NumberWithSymbolForm>;
 
@@ -21,7 +23,6 @@ const story: Meta<typeof NumberWithSymbolForm> = {
 function Template(props: NumberWithSymbolFormProps) {
     return (
         <ScrollView contentContainerStyle={defaultStyles.flexGrow1}>
-            {/* eslint-disable-next-line react/jsx-props-no-spreading */}
             <NumberWithSymbolFormWithNavigation {...props} />
         </ScrollView>
     );

@@ -7,7 +7,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
 import {useCompanyCardBankIcons} from '@hooks/useCompanyCardIcons';
 import useLocalize from '@hooks/useLocalize';
@@ -34,7 +34,6 @@ function SelectBankStep() {
     const illustrations = useThemeIllustrations();
     const companyCardBankIcons = useCompanyCardBankIcons();
     const {isOffline} = useNetwork();
-
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const [shouldUseStagingServer = isUsingStagingApi()] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
     const [localBankSelected, setLocalBankSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | null>();
@@ -72,22 +71,30 @@ function SelectBankStep() {
             if (bank === CONST.COMPANY_CARDS.BANKS.MOCK_BANK) {
                 return CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.PRODUCTION || shouldUseStagingServer;
             }
+            if (bank === CONST.COMPANY_CARDS.BANKS.FILE_IMPORT) {
+                return false;
+            }
             return true;
         })
-        .map((bank) => ({
-            value: bank,
-            text: bank === CONST.COMPANY_CARDS.BANKS.OTHER ? translate('workspace.companyCards.addNewCard.other') : bank,
-            keyForList: bank,
-            isSelected: bankSelected === bank,
-            leftElement: (
-                <Icon
-                    src={getBankCardDetailsImage(bank, illustrations, companyCardBankIcons)}
-                    height={variables.iconSizeExtraLarge}
-                    width={variables.iconSizeExtraLarge}
-                    additionalStyles={styles.mr3}
-                />
-            ),
-        }));
+        .map((bank) => {
+            const bankText = bank === CONST.COMPANY_CARDS.BANKS.OTHER ? translate('workspace.companyCards.addNewCard.other') : bank;
+
+            return {
+                value: bank,
+                text: bankText,
+                keyForList: bank,
+                isSelected: bankSelected === bank,
+                leftElement: (
+                    <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.mr3, styles.selectBankStepIconSize]}>
+                        <Icon
+                            src={getBankCardDetailsImage(bank, illustrations, companyCardBankIcons)}
+                            height={variables.iconSizeExtraLarge}
+                            width={variables.iconSizeExtraLarge}
+                        />
+                    </View>
+                ),
+            };
+        });
 
     const confirmButtonOptions = useMemo(
         () => ({
@@ -114,7 +121,7 @@ function SelectBankStep() {
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.addNewCard.whoIsYourBankAccount')}</Text>
             <SelectionList
                 data={data}
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 onSelectRow={({value}) => {
                     setLocalBankSelected(value);
                     setHasError(false);

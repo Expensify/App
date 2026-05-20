@@ -3,9 +3,10 @@ import type DotLottieAnimation from '@components/LottieAnimations/types';
 import useBiometrics from '@components/MultifactorAuthentication/biometrics/useBiometrics';
 import {MULTIFACTOR_AUTHENTICATION_PROMPT_UI} from '@components/MultifactorAuthentication/config';
 import type {MultifactorAuthenticationPromptType} from '@components/MultifactorAuthentication/config/types';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+import {getDeviceBiometricsOnyxKey} from '@libs/actions/MultifactorAuthentication';
 import type {TranslationPaths} from '@src/languages/types';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {useMultifactorAuthenticationState} from './State';
 
@@ -29,8 +30,9 @@ type PromptContent = {
 function usePromptContent(promptType: MultifactorAuthenticationPromptType): PromptContent {
     const state = useMultifactorAuthenticationState();
     const {areLocalCredentialsKnownToServer} = useBiometrics();
+    const {accountID} = useCurrentUserPersonalDetails();
     const [serverHasCredentials, setServerHasCredentials] = useState(false);
-    const [deviceBiometricsState] = useOnyx(ONYXKEYS.DEVICE_BIOMETRICS);
+    const [deviceBiometricsState] = useOnyx(getDeviceBiometricsOnyxKey(accountID));
     const hasEverAcceptedSoftPrompt = deviceBiometricsState?.hasAcceptedSoftPrompt ?? false;
 
     // We need to know if server has this device's credentials specifically
@@ -45,7 +47,7 @@ function usePromptContent(promptType: MultifactorAuthenticationPromptType): Prom
         }
         checkCredentials();
         return () => {
-            // Guard against race condition in case where multifactorAuthenticationPublicKeyIDs gets updated in onyx while a KeyStore.get call is in-flight
+            // Guard against race condition in case where multifactorAuthenticationPublicKeyIDs gets updated in onyx while the call to retrieve the key from device is in-flight
             ignore = true;
         };
     }, [areLocalCredentialsKnownToServer]);

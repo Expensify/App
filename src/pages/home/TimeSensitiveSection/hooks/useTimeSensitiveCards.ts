@@ -1,10 +1,12 @@
 import useOnyx from '@hooks/useOnyx';
-import {isCard, isCardPendingActivate, isCardPendingIssue, isCardWithPotentialFraud, isExpensifyCard} from '@libs/CardUtils';
+import {isCard, isCardPendingActivate, isCardPendingIssue, isCardWithCustomZeroLimit, isCardWithPotentialFraud, isExpensifyCard} from '@libs/CardUtils';
+import {getUnresolvedCardFraudAlertAction} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card} from '@src/types/onyx';
 
 function useTimeSensitiveCards() {
     const [cards] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
 
     const cardsNeedingShippingAddress: Card[] = [];
     const cardsNeedingActivation: Card[] = [];
@@ -19,8 +21,16 @@ function useTimeSensitiveCards() {
             continue;
         }
 
-        if (isCardWithPotentialFraud(card) && card.nameValuePairs?.possibleFraud?.fraudAlertReportID) {
+        const fraudAlertReportID = card.nameValuePairs?.possibleFraud?.fraudAlertReportID;
+        const reportActions = fraudAlertReportID ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fraudAlertReportID}`] : undefined;
+        const hasUnresolvedFraudAction = !!fraudAlertReportID && !!getUnresolvedCardFraudAlertAction(String(fraudAlertReportID), reportActions);
+
+        if (isCardWithPotentialFraud(card) && !!fraudAlertReportID && hasUnresolvedFraudAction) {
             cardsWithFraud.push(card);
+        }
+
+        if (isCardWithCustomZeroLimit(card)) {
+            continue;
         }
 
         const isPhysicalCard = !card.nameValuePairs?.isVirtual;

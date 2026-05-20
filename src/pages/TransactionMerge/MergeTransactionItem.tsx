@@ -3,7 +3,8 @@ import type {View} from 'react-native';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
-import type {ListItem, ListItemProps, TransactionListItemType} from '@components/SelectionListWithSections/types';
+import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+import type {ListItem, ListItemProps} from '@components/SelectionList/ListItem/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useOnyx from '@hooks/useOnyx';
@@ -12,11 +13,10 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-function MergeTransactionItem<TItem extends ListItem>({item, isFocused, showTooltip, isDisabled, onFocus, shouldSyncFocus, onSelectRow}: ListItemProps<TItem>) {
+function MergeTransactionItem<TItem extends ListItem>({item, isFocused, showTooltip, isDisabled, onFocus, shouldSyncFocus, onSelectRow, isLastItem}: ListItemProps<TItem>) {
     const styles = useThemeStyles();
     const transactionItem = item as unknown as TransactionListItemType;
     const theme = useTheme();
@@ -24,7 +24,7 @@ function MergeTransactionItem<TItem extends ListItem>({item, isFocused, showTool
     const policy = usePolicy(report?.policyID);
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: 0,
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
@@ -52,10 +52,11 @@ function MergeTransactionItem<TItem extends ListItem>({item, isFocused, showTool
                 id={item.keyForList ?? ''}
                 style={[
                     styles.transactionListItemStyle,
+                    styles.noBorderRadius,
                     isFocused && StyleUtils.getItemBackgroundColorStyle(false, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                 ]}
                 onFocus={onFocus}
-                wrapperStyle={[styles.mb2, styles.mh5, styles.flex1, animatedHighlightStyle, styles.userSelectNone]}
+                wrapperStyle={[styles.flex1, animatedHighlightStyle, styles.userSelectNone, !isLastItem && styles.borderBottom]}
             >
                 <TransactionItemRow
                     transactionItem={transactionItem}
@@ -69,7 +70,7 @@ function MergeTransactionItem<TItem extends ListItem>({item, isFocused, showTool
                     taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                     shouldHighlightItemWhenSelected={false}
                     shouldShowErrors={false}
-                    style={styles.p3}
+                    style={[styles.p4, styles.noBorderRadius]}
                     shouldShowRadioButton
                     onRadioButtonPress={() => {
                         onSelectRow(item);

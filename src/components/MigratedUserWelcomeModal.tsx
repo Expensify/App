@@ -11,13 +11,14 @@ import {openExternalLink} from '@libs/actions/Link';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import convertToLTR from '@libs/convertToLTR';
 import Log from '@libs/Log';
+import Navigation from '@libs/Navigation/Navigation';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type {FeatureListItem} from './FeatureList';
 import FeatureTrainingModal from './FeatureTrainingModal';
 import Icon from './Icon';
-// eslint-disable-next-line no-restricted-imports
-import * as Illustrations from './Icon/Illustrations';
 import LottieAnimations from './LottieAnimations';
 import RenderHTML from './RenderHTML';
 
@@ -27,17 +28,17 @@ function MigratedUserWelcomeModal() {
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isReduceMotionEnabled = Accessibility.useReducedMotion();
-    const illustrations = useMemoizedLazyIllustrations(['ChatBubbles', 'PlanetWithMobileApp']);
+    const illustrations = useMemoizedLazyIllustrations(['ChatBubbles', 'ConciergeBot', 'PlanetWithMobileApp', 'MagnifyingGlassReceipt']);
     const isCurrentUserPolicyAdmin = useIsPaidPolicyAdmin();
 
     const ExpensifyFeatures = useMemo<FeatureListItem[]>(
         () => [
             {
-                icon: Illustrations.MagnifyingGlassReceipt,
+                icon: illustrations.MagnifyingGlassReceipt,
                 translationKey: 'migratedUserWelcomeModal.features.search',
             },
             {
-                icon: Illustrations.ConciergeBot,
+                icon: illustrations.ConciergeBot,
                 translationKey: 'migratedUserWelcomeModal.features.concierge',
             },
             {
@@ -45,7 +46,7 @@ function MigratedUserWelcomeModal() {
                 translationKey: 'migratedUserWelcomeModal.features.chat',
             },
         ],
-        [illustrations.ChatBubbles],
+        [illustrations.ChatBubbles, illustrations.ConciergeBot, illustrations.MagnifyingGlassReceipt],
     );
 
     const onHelp = () => {
@@ -60,6 +61,7 @@ function MigratedUserWelcomeModal() {
     const onClose = () => {
         Log.hmmm('[MigratedUserWelcomeModal] onClose called, dismissing product training');
         dismissProductTraining(CONST.MIGRATED_USER_WELCOME_MODAL);
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT})}));
     };
 
     const featureListContent = (

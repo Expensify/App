@@ -1,7 +1,6 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import ScrollView from '@components/ScrollView';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
-// eslint-disable-next-line no-restricted-imports
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -22,6 +21,8 @@ function TabSelectorBase({
     tabs,
     activeTabKey,
     onTabPress = () => {},
+    onLongTabPress,
+    onActiveTabPress = () => {},
     position,
     shouldShowLabelWhenInactive = true,
     equalWidth = false,
@@ -96,9 +97,9 @@ function TabSelectorBase({
 
                 const handlePress = () => {
                     if (isActive) {
+                        onActiveTabPress(tab.key);
                         return;
                     }
-
                     setAffectedAnimatedTabs([activeIndex, index]);
                     onTabPress(tab.key);
                 };
@@ -110,6 +111,7 @@ function TabSelectorBase({
                         icon={tab.icon}
                         title={tab.title}
                         onPress={handlePress}
+                        onLongPress={onLongTabPress ? () => onLongTabPress(tab.key) : undefined}
                         activeOpacity={activeOpacity}
                         inactiveOpacity={inactiveOpacity}
                         backgroundColor={backgroundColor}
@@ -120,6 +122,9 @@ function TabSelectorBase({
                         shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}
                         renderProductTrainingTooltip={renderProductTrainingTooltip}
                         equalWidth={equalWidth}
+                        badgeText={tab.badgeText}
+                        pendingAction={tab.pendingAction}
+                        isDisabled={tab.isDisabled}
                     />
                 );
             })}

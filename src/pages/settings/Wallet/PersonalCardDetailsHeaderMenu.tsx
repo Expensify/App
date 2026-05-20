@@ -23,7 +23,6 @@ type PersonalCardDetailsHeaderMenuProps = {
     card: Card;
     cardID: string;
     cardholder: PersonalDetails | null | undefined;
-    displayName: string;
     customCardNames: Record<string, string> | undefined;
     expensifyIcons: Record<string, IconAsset>;
     isCSVImportedPersonalCard: boolean;
@@ -34,13 +33,13 @@ type PersonalCardDetailsHeaderMenuProps = {
     onUpdateCard: () => void;
     onBreakConnection: () => void;
     onUnassignCard: () => void;
+    onDeleteCard?: () => void;
 };
 
 function PersonalCardDetailsHeaderMenu({
     card,
     cardID,
     cardholder,
-    displayName,
     customCardNames,
     expensifyIcons,
     isCSVImportedPersonalCard,
@@ -51,24 +50,15 @@ function PersonalCardDetailsHeaderMenu({
     onUpdateCard,
     onBreakConnection,
     onUnassignCard,
+    onDeleteCard,
 }: PersonalCardDetailsHeaderMenuProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['Hourglass', 'Trashcan'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Table', 'Trashcan']);
     const isLoadingLastUpdatedReasonAttributes: SkeletonSpanReasonAttributes = {context: 'PersonalCardDetailsHeaderMenu', isLoadingLastUpdated: !!card?.isLoadingLastUpdated};
 
     return (
         <>
-            {!cardholder?.validated && (
-                <MenuItem
-                    icon={icons.Hourglass}
-                    iconStyles={styles.mln2}
-                    description={translate('workspace.expensifyCard.cardPending', {name: displayName})}
-                    numberOfLinesDescription={0}
-                    interactive={false}
-                />
-            )}
-
             <OfflineWithFeedback
                 pendingAction={card?.nameValuePairs?.pendingFields?.cardTitle}
                 errorRowStyles={[styles.ph5, styles.mb3]}
@@ -81,8 +71,8 @@ function PersonalCardDetailsHeaderMenu({
                 }}
             >
                 <MenuItemWithTopDescription
-                    description={translate('workspace.moreFeatures.companyCards.cardNumber')}
-                    title={customCardNames?.[cardID] ?? getDefaultCardName(cardholder?.firstName)}
+                    description={translate('workspace.moreFeatures.companyCards.cardName')}
+                    title={customCardNames?.[cardID] ?? card?.cardName ?? getDefaultCardName(cardholder?.firstName)}
                     shouldShowRightIcon
                     brickRoadIndicator={card?.nameValuePairs?.errorFields?.cardTitle ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_EDIT_NAME.getRoute(cardID))}
@@ -147,6 +137,13 @@ function PersonalCardDetailsHeaderMenu({
                     );
                 }}
             />
+            {isCSVImportedPersonalCard && (
+                <MenuItem
+                    icon={icons.Table}
+                    title={translate('spreadsheet.importSpreadsheet')}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_SPREADSHEET.getRoute(Number(cardID)))}
+                />
+            )}
             {!isCSVImportedPersonalCard && (
                 <OfflineWithFeedback
                     pendingAction={card?.pendingFields?.lastScrape}
@@ -176,12 +173,21 @@ function PersonalCardDetailsHeaderMenu({
                     onPress={onBreakConnection}
                 />
             )}
-            <MenuItem
-                icon={expensifyIcons.RemoveMembers}
-                title={translate('workspace.moreFeatures.companyCards.removeCard')}
-                style={styles.mb1}
-                onPress={onUnassignCard}
-            />
+            {isCSVImportedPersonalCard ? (
+                <MenuItem
+                    icon={icons.Trashcan}
+                    title={translate('common.delete')}
+                    style={styles.mb1}
+                    onPress={onDeleteCard}
+                />
+            ) : (
+                <MenuItem
+                    icon={expensifyIcons.RemoveMembers}
+                    title={translate('workspace.moreFeatures.companyCards.removeCard')}
+                    style={styles.mb1}
+                    onPress={onUnassignCard}
+                />
+            )}
         </>
     );
 }

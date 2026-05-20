@@ -24,7 +24,7 @@ function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationEr
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Close', 'DotIndicator'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Close', 'DotIndicator']);
 
     if (!locationErrorCode) {
         return null;

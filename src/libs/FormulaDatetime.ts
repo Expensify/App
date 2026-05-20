@@ -29,7 +29,7 @@ function calculateISOWeekNumber(date: Date): number {
 
     // Set to nearest Thursday: current date + 4 - current day number
     // Make Sunday's day number 7 (getUTCDay returns 0 for Sunday)
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
     const dayNum = target.getUTCDay() || 7;
     target.setUTCDate(target.getUTCDate() + 4 - dayNum);
 
@@ -249,4 +249,4 @@ function formatDate(dateString: string | undefined, format = 'yyyy-MM-dd'): stri
     }
 }
 
-export {formatDate, getOrdinalSuffix, calculateISOWeekNumber, calculateDayOfYear, getLocalizedNames, getUTCTimeComponents, createDateTokens, applyTokenReplacement};
+export default formatDate;

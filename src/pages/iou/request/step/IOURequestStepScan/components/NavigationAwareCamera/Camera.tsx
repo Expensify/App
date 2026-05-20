@@ -11,8 +11,7 @@ function Camera({cameraTabIndex, ref, forceInactive = false, ...props}: Navigati
     return (
         <VisionCamera
             ref={ref}
-            photoQualityBalance="speed"
-            // eslint-disable-next-line react/jsx-props-no-spreading
+            photoQualityBalance="quality"
             {...props}
             isActive={isCameraActive}
         />

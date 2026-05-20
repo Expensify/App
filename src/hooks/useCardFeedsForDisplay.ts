@@ -3,6 +3,7 @@ import type {CardFeedForDisplay} from '@libs/CardFeedUtils';
 import {getCardFeedsForDisplayPerPolicy} from '@libs/CardFeedUtils';
 import {isCustomFeed} from '@libs/CardUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
@@ -12,7 +13,7 @@ import useOnyx from './useOnyx';
 
 const eligiblePoliciesSelector = (policies: OnyxCollection<Policy>): string[] => {
     return Object.values(policies ?? {}).reduce((policiesIDs, policy) => {
-        if (isPaidGroupPolicy(policy) && policy?.areCompanyCardsEnabled) {
+        if (isPaidGroupPolicy(policy) && policy?.areCompanyCardsEnabled && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             policiesIDs.push(policy.id);
         }
         return policiesIDs;
@@ -68,4 +69,4 @@ const useCardFeedsForDisplay = () => {
 };
 
 export default useCardFeedsForDisplay;
-export {getDefaultCardFeed, eligiblePoliciesSelector};
+export {getDefaultCardFeed};

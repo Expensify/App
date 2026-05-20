@@ -132,6 +132,9 @@ type OriginalMessageAddComment = {
 
     /** List accountIDs are mentioned in message */
     mentionedAccountIDs?: number[];
+
+    /** The accountID of the human agent assisting Concierge when "Reply as yourself" is used */
+    humanAgentAccountID?: number;
 };
 
 /** Model of `actionable mention whisper` report action */
@@ -150,6 +153,11 @@ type OriginalMessageActionableMentionWhisper = {
 
     /** Timestamp of when the whisper was deleted (set by the backend when the parent comment is deleted) */
     deleted?: string | null;
+
+    /** The reportActionID of the parent comment that triggered this whisper. Used to find the parent when this
+     *  whisper was created during a message edit (and therefore doesn't follow the parentID+1 ID convention).
+     *  Stored as a string by the backend to preserve full int64 precision. */
+    parentReportActionID?: string;
 };
 
 /** Model of `actionable card fraud alert` report action */
@@ -196,8 +204,9 @@ type OriginalMessageActionableReportMentionWhisper = {
     /** Timestamp of when the whisper was deleted (set by the backend when the parent comment is deleted) */
     deleted?: string | null;
 
-    /** The reportActionID of the parent comment that triggered this whisper */
-    reportActionID?: number;
+    /** The reportActionID of the parent comment that triggered this whisper.
+     *  Stored as a string by the backend to preserve full int64 precision. */
+    parentReportActionID?: string;
 };
 
 /** Model of `welcome whisper` report action */
@@ -475,6 +484,12 @@ type OriginalMessagePolicyChangeLog = {
     /** New value for max expense amount with no receipt */
     newMaxExpenseAmountNoReceipt?: number;
 
+    /** Old value for max expense amount with no itemized receipt */
+    oldMaxExpenseAmountNoItemizedReceipt?: number;
+
+    /** New value for max expense amount with no itemized receipt */
+    newMaxExpenseAmountNoItemizedReceipt?: number;
+
     /** Currency of the policy */
     currency?: string;
 
@@ -728,6 +743,24 @@ type OriginalMessagePolicyChangeLog = {
         /** The accountID of the previous reimburser */
         accountID: number;
     };
+
+    /** Name of company card feed */
+    feedName?: string;
+
+    /** Last four digits of a company card */
+    cardLastFour?: string;
+
+    /** Old name of a company card feed */
+    oldFeedName?: string;
+
+    /** Company card feed liability type */
+    liabilityType?: string;
+
+    /** Statement period end day for a company card feed */
+    statementPeriodEndDay?: string;
+
+    /** Previous statement period end day for a company card feed */
+    previousStatementPeriodEndDay?: string;
 
     /** Whether the user joined the workspace via joining link */
     didJoinPolicy?: boolean;
@@ -1018,6 +1051,8 @@ type OriginalMessageChangePolicy = {
 type OriginalMessageUnreportedTransaction = {
     /** ID of the old report */
     fromReportID: string;
+    /** Reasoning for the automated action, used by Concierge Explain feature */
+    reasoning?: string;
 };
 
 /** Model of MOVED_TRANSACTION report action */
@@ -1076,6 +1111,36 @@ type OriginalMessageMarkedReimbursed = {
 
     /** Optional comment/reason for the manual payment */
     message?: string;
+};
+
+/** Model of `reimbursed` report action */
+type OriginalMessageReimbursed = {
+    /** Whether this action was created from NewDot */
+    isNewDot?: boolean;
+
+    /** Payment method used (e.g., 'Fast_ACH', 'Check', 'StripeConnect', or standard ACH) - set by the openReport path */
+    paymentMethod?: string;
+
+    /** Raw payment method field as stored by Auth (e.g., 'Fast_ACH', 'Check', 'StripeConnect', or standard ACH) - set on real-time Pusher updates */
+    method?: string;
+
+    /** Last 4 digits of the debit bank account used to fund the payment */
+    debitBankAccountLast4?: string;
+
+    /** Last 4 digits of the credit bank account receiving the payment */
+    creditBankAccountLast4?: string;
+
+    /** Expected completion date for the reimbursement */
+    expectedDate?: string;
+
+    /** Whether this is an invoice or bill payment */
+    isInvoiceOrBill?: boolean;
+
+    /** Whether the submitter is adding a bank account */
+    isSubmitterAddingBankAccount?: boolean;
+
+    /** For StripeConnect payments, indicates payment type ('card' or 'bank account') */
+    stripePaymentType?: string;
 };
 
 /** Model of `trip room preview` report action */
@@ -1170,6 +1235,16 @@ type OriginalMessageExportIntegration = {
     reimbursableUrls?: string[];
 
     /**
+     * A list of URLs to the Travel Invoicing Journal Entry records
+     */
+    travelInvoicingUrls?: string[];
+
+    /**
+     * The Concierge reasoning for the action
+     */
+    reasoning?: string;
+
+    /**
      * The type of the export action
      */
     type?: string;
@@ -1225,6 +1300,9 @@ type OriginalMessageIntegrationSyncFailed = {
 
     /** The error message from Integration Server */
     errorMessage: string;
+
+    /** Number of times this identical failure has recurred (set by server-side de-duplication) */
+    recurrenceCount?: number;
 };
 
 /**
@@ -1281,6 +1359,20 @@ type OriginalMessageCard = {
 };
 
 /**
+ * Model of CARDFROZEN action
+ */
+type OriginalMessageCardFrozen = {
+    /** HTML content of the system message */
+    html: string;
+
+    /** Whether the action was generated by NewDot */
+    isNewDot?: boolean;
+
+    /** When the action was last modified */
+    lastModified?: string;
+};
+
+/**
  * Model of PERSONAL_CARD_CONNECTION_BROKEN action
  */
 type OriginalPersonalCard = {
@@ -1318,6 +1410,14 @@ type OriginalMessageTakeControl = {
 };
 
 /**
+ * Model of Reassign Approver action original message (system-generated when approval workflow changes)
+ */
+type OriginalMessageReassignApprover = {
+    /** Account ID of the new approver assigned by the system */
+    newApproverID: number;
+};
+
+/**
  * Minimal transaction data needed to render the MFA authorize transaction preview.
  */
 type OriginalMessageActionableCard3DSTransactionApproval = TransactionPending3DSReview;
@@ -1334,7 +1434,7 @@ type OriginalMessageSettlementAccountLocked = {
 };
 
 /**
- * Original message for CARD_ISSUED, CARD_MISSING_ADDRESS, CARD_ASSIGNED, CARD_ISSUED_VIRTUAL and CARD_ISSUED_VIRTUAL actions
+ * Original message for Expensify Card issue/replacement actions
  */
 type IssueNewCardOriginalMessage = OriginalMessage<
     | typeof CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS
@@ -1411,7 +1511,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION]: OriginalMessageMovedTransaction;
     [CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION]: OriginalMessageUnreportedTransaction;
     [CONST.REPORT.ACTIONS.TYPE.OUTDATED_BANK_ACCOUNT]: never;
-    [CONST.REPORT.ACTIONS.TYPE.REIMBURSED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSED]: OriginalMessageReimbursed;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE]: never;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACCOUNT_CHANGED]: never;
@@ -1451,6 +1551,8 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED_VIRTUAL]: OriginalMessageCard;
     [CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED]: OriginalMessageCard;
     [CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED]: OriginalMessageCard;
+    [CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN]: OriginalMessageCardFrozen;
+    [CONST.REPORT.ACTIONS.TYPE.CARD_UNFROZEN]: OriginalMessageCardFrozen;
     [CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN]: OriginalPersonalCard;
     [CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED]: OriginalMessageIntegrationSyncFailed;
     [CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION]: OriginalMessageDeletedTransaction;
@@ -1464,6 +1566,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.RETRACTED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REOPENED]: never;
     [CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER]: OriginalMessageReassignApprover;
     [CONST.REPORT.ACTIONS.TYPE.REROUTE]: OriginalMessageTakeControl;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED]: OriginalMessageReimbursementDirectorInformationRequired;
     [CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED]: OriginalMessageSettlementAccountLocked;
@@ -1476,7 +1579,6 @@ type OriginalMessage<T extends ReportActionName> = T extends keyof OriginalMessa
 export default OriginalMessage;
 export type {
     DecisionName,
-    OriginalMessageCardFraudAlert,
     OriginalMessageIOU,
     ChronosOOOEvent,
     PaymentMethodType,
@@ -1485,7 +1587,6 @@ export type {
     PolicyRulesModifiedFields,
     PersonalRulesModifiedFields,
     OriginalMessageChangeLog,
-    OriginalMessagePolicyChangeLog,
     JoinWorkspaceResolution,
     OriginalMessageModifiedExpense,
     OriginalMessageExportIntegration,
@@ -1493,12 +1594,8 @@ export type {
     OriginalMessageChangePolicy,
     OriginalMessageUnreportedTransaction,
     OriginalMessageMovedTransaction,
-    PolicyBudgetFrequencyValues,
     PolicyBudgetFrequency,
     OriginalMessageMarkedReimbursed,
-    OriginalMessageConciergeAutoMapMccGroups,
-    OriginalMessageCompanyCardConnectionBroken,
-    OriginalMessagePlaidBalanceFailure,
-    OriginalMessageReimbursementDirectorInformationRequired,
+    OriginalMessageReimbursed,
     OriginalMessageSettlementAccountLocked,
 };

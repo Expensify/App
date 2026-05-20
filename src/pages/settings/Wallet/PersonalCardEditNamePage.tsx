@@ -36,7 +36,7 @@ function PersonalCardEditNamePage({route}: PersonalCardEditNamePageProps) {
     const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardSelector});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
-    const defaultValue = customCardNames?.[cardID] ?? getDefaultCardName(cardholder?.firstName);
+    const defaultValue = customCardNames?.[cardID] ?? card?.cardName ?? getDefaultCardName(cardholder?.firstName);
 
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -69,7 +69,7 @@ function PersonalCardEditNamePage({route}: PersonalCardEditNamePageProps) {
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={translate('workspace.moreFeatures.companyCards.cardNumber')}
+                title={translate('workspace.moreFeatures.companyCards.cardName')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(cardID))}
             />
             <Text style={[styles.mh5, styles.mt3, styles.mb5]}>{translate('workspace.moreFeatures.companyCards.giveItNameInstruction')}</Text>
@@ -85,8 +85,8 @@ function PersonalCardEditNamePage({route}: PersonalCardEditNamePageProps) {
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={INPUT_IDS.NAME}
-                    label={translate('workspace.moreFeatures.companyCards.cardNumber')}
-                    aria-label={translate('workspace.moreFeatures.companyCards.cardNumber')}
+                    label={translate('workspace.moreFeatures.companyCards.cardName')}
+                    aria-label={translate('workspace.moreFeatures.companyCards.cardName')}
                     role={CONST.ROLE.PRESENTATION}
                     defaultValue={defaultValue}
                     ref={inputCallbackRef}
