@@ -18,7 +18,6 @@ type WorkspaceTableColumnKey = 'workspaces' | 'owner' | 'type' | 'actions';
 
 type WorkspaceRowData = {
     keyForList: string;
-    rowType: 'workspace';
     title: string;
     icon: AvatarSource;
     disabled: boolean;

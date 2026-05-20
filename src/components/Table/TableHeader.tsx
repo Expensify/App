@@ -90,13 +90,15 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
             {...props}
         >
             {shouldUseNarrowTableLayout && (
-                <Text
-                    numberOfLines={1}
-                    color={theme.textSupporting}
-                    style={[styles.lh16, styles.textMicroSupporting, styles.pr1]}
-                >
-                    {title}
-                </Text>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.tableHeaderContentHeight]}>
+                    <Text
+                        numberOfLines={1}
+                        color={theme.textSupporting}
+                        style={[styles.lh16, styles.textMicroSupporting, styles.pr1]}
+                    >
+                        {title}
+                    </Text>
+                </View>
             )}
 
             {!shouldUseNarrowTableLayout && (

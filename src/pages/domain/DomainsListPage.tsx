@@ -54,7 +54,6 @@ function DomainsListPage() {
             const domainErrors = allDomainErrors?.[`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domain.accountID}`];
 
             domainRows.push({
-                rowType: 'domain',
                 isAdmin: isDomainAdmin,
                 isValidated: domain.validated,
                 domainAccountID: domain.accountID,

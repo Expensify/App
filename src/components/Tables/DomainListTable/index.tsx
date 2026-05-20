@@ -16,7 +16,6 @@ type DomainTableColumnKey = 'domains' | 'actions';
 
 type DomainRowData = {
     keyForList: string;
-    rowType: 'domain';
     domainAccountID: number;
     title: string;
     isAdmin: boolean;
