@@ -95,7 +95,7 @@ If a member removes their domain email from their contact methods, they’ll no 
 
 ## Why can't I move a member to a domain group?
 
-You must be a Workspace Admin for the Preferred Workspace set on the target domain group. If you're not an admin of that workspace, the move will be blocked. Contact a Workspace Admin for the relevant workspace to get admin access, or ask them to move the member for you.
+You must be a Workspace Admin for the Preferred Workspace set on the target domain group. If you're not a Workspace Admin for that workspace, the move will be blocked. Contact a Workspace Admin for the relevant workspace to get admin access, or ask them to move the member for you.
 
 ## Can Domain Admins be outside the company domain?
 
