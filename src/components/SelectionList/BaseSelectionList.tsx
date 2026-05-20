@@ -204,6 +204,10 @@ function BaseSelectionList<TItem extends ListItem>({
 
     const debouncedScrollToIndex = useDebounce(scrollToIndex, CONST.TIMING.LIST_SCROLLING_DEBOUNCE_TIME, {leading: true, trailing: true});
 
+    const onArrowUpDownCallback = useCallback(() => {
+        setShouldDisableHoverStyle(true);
+    }, [setShouldDisableHoverStyle]);
+
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex,
         maxIndex: data.length - 1,
@@ -222,10 +226,7 @@ function BaseSelectionList<TItem extends ListItem>({
         },
         setHasKeyBeenPressed,
         isFocused,
-        onArrowUpDownCallback: () => {
-            setShouldDisableHoverStyle(true);
-            listRef.current?.announceProgrammaticScroll();
-        },
+        onArrowUpDownCallback,
     });
 
     // Keep the cursor on the restored row so keyboard nav continues from there, but don't scroll to it on the way back.
