@@ -3437,6 +3437,7 @@ describe('actions/Report', () => {
                 formatPhoneNumber: TestHelper.formatPhoneNumber,
                 isReportLastVisibleArchived: undefined,
                 reportNextStep: undefined,
+                reportActionsList: {},
             });
             await waitForBatchedUpdates();
 
@@ -3524,6 +3525,7 @@ describe('actions/Report', () => {
                 formatPhoneNumber: TestHelper.formatPhoneNumber,
                 isReportLastVisibleArchived: false,
                 reportNextStep: undefined,
+                reportActionsList: {},
             });
             await waitForBatchedUpdates();
 
@@ -3566,6 +3568,7 @@ describe('actions/Report', () => {
                 formatPhoneNumber: TestHelper.formatPhoneNumber,
                 isReportLastVisibleArchived: undefined,
                 reportNextStep: undefined,
+                reportActionsList: {},
             });
             await waitForBatchedUpdates();
 
@@ -3594,6 +3597,7 @@ describe('actions/Report', () => {
                 formatPhoneNumber: TestHelper.formatPhoneNumber,
                 isReportLastVisibleArchived: undefined,
                 reportNextStep: undefined,
+                reportActionsList: {},
             });
             await waitForBatchedUpdates();
 
@@ -3621,6 +3625,7 @@ describe('actions/Report', () => {
                 formatPhoneNumber: TestHelper.formatPhoneNumber,
                 isReportLastVisibleArchived: undefined,
                 reportNextStep: undefined,
+                reportActionsList: {},
             });
             await waitForBatchedUpdates();
 
@@ -3648,6 +3653,7 @@ describe('actions/Report', () => {
                 formatPhoneNumber: TestHelper.formatPhoneNumber,
                 isReportLastVisibleArchived: undefined,
                 reportNextStep: undefined,
+                reportActionsList: {},
             });
             await waitForBatchedUpdates();
 
@@ -3677,6 +3683,7 @@ describe('actions/Report', () => {
                 formatPhoneNumber: TestHelper.formatPhoneNumber,
                 isReportLastVisibleArchived: undefined,
                 reportNextStep: undefined,
+                reportActionsList: {},
             });
             await waitForBatchedUpdates();
 
@@ -3727,6 +3734,7 @@ describe('actions/Report', () => {
                 formatPhoneNumber: TestHelper.formatPhoneNumber,
                 isReportLastVisibleArchived: false,
                 reportNextStep: undefined,
+                reportActionsList: {},
             });
             await waitForBatchedUpdates();
 

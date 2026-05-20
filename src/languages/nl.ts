@@ -4301,9 +4301,15 @@ ${amount} voor ${merchant} - ${date}`,
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
-                        return 'Beheerder';
+                        return 'Beheer';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditor';
+                    case CONST.POLICY.ROLE.CARD_ADMIN:
+                        return 'Kaartbeheer';
+                    case CONST.POLICY.ROLE.PEOPLE_ADMIN:
+                        return 'Mensenbeheer';
+                    case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
+                        return 'Beheerder betalingen';
                     case CONST.POLICY.ROLE.USER:
                         return 'Lid';
                     default:
@@ -4339,6 +4345,9 @@ ${amount} voor ${merchant} - ${date}`,
             travelInvoicingPayableAccount: 'Reiscrediteurenrekening',
             hr: 'HR',
             rooms: 'Kamers',
+            cardAdminAlternateText: 'Werkruimtekaarten beheren.',
+            peopleAdminAlternateText: 'Beheer leden en goedkeuringsworkflows.',
+            paymentsAdminAlternateText: 'Workflowsbetalingen beheren.',
         },
         createdForClient: {
             title: 'Je hebt een werkruimte voor je klant aangemaakt!',
@@ -7022,8 +7031,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     description: 'Voor werknemers die onkosten bij hun werkgever willen indienen.',
                 },
             },
-            description: 'Kies een pakket dat bij je past. Voor een gedetailleerd overzicht van functies en prijzen, bekijk onze',
-            subscriptionLink: 'hulppagina voor abonnementstypen en prijzen',
+            description: 'Kies een abonnement dat bij je past.',
+            subscriptionLink: 'Meer informatie',
             lockedPlanDescription: ({count, annualSubscriptionEndDate}: WorkspaceLockedPlanTypeParams) => ({
                 one: `Je hebt je vastgelegd op 1 actief lid in het Control-abonnement tot je jaarlijkse abonnement afloopt op ${annualSubscriptionEndDate}. Je kunt overstappen op een pay-per-use-abonnement en downgraden naar het Collect-abonnement vanaf ${annualSubscriptionEndDate} door automatisch verlengen uit te schakelen in`,
                 other: `Je hebt je vastgelegd op ${count} actieve leden op het Control-abonnement totdat je jaarlijkse abonnement eindigt op ${annualSubscriptionEndDate}. Je kunt overschakelen naar een betaling-per-gebruik-abonnement en downgraden naar het Collect-abonnement vanaf ${annualSubscriptionEndDate} door automatisch verlengen uit te schakelen in`,

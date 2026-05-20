@@ -4275,7 +4275,13 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                     case CONST.POLICY.ROLE.ADMIN:
                         return '管理者';
                     case CONST.POLICY.ROLE.AUDITOR:
-                        return '監査人';
+                        return '監査担当者';
+                    case CONST.POLICY.ROLE.CARD_ADMIN:
+                        return 'カード管理者';
+                    case CONST.POLICY.ROLE.PEOPLE_ADMIN:
+                        return 'メンバー管理';
+                    case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
+                        return '支払管理者';
                     case CONST.POLICY.ROLE.USER:
                         return 'メンバー';
                     default:
@@ -4311,6 +4317,9 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             travelInvoicingPayableAccount: '旅費未払金勘定',
             hr: '人事',
             rooms: 'ルーム',
+            cardAdminAlternateText: 'ワークスペースカードを管理します。',
+            peopleAdminAlternateText: 'メンバーと承認ワークフローを管理します。',
+            paymentsAdminAlternateText: 'ワークフローの支払いを管理します。',
         },
         createdForClient: {
             title: 'クライアントのワークスペースを作成しました！',
@@ -6967,8 +6976,8 @@ ${reportName}
                     description: '雇用主に経費を提出したい従業員向け。',
                 },
             },
-            description: '自分に合ったプランをお選びください。機能と料金の詳細な一覧は、こちらのページをご覧ください',
-            subscriptionLink: 'プランの種類と料金のヘルプページ',
+            description: '自分に合ったプランをお選びください。',
+            subscriptionLink: '詳しく見る',
             lockedPlanDescription: ({count, annualSubscriptionEndDate}: WorkspaceLockedPlanTypeParams) => ({
                 one: `${annualSubscriptionEndDate} までの年間サブスクリプション期間中、Control プランでアクティブメンバー 1 名を利用することに同意しています。${annualSubscriptionEndDate} 以降、 自動更新を無効にすることで、従量課金サブスクリプションに切り替え、Collect プランへダウングレードできます。`,
                 other: `あなたは、年間サブスクリプションが${annualSubscriptionEndDate}に終了するまで、Controlプランでアクティブメンバー${count}名を契約しています。${annualSubscriptionEndDate}以降は、自動更新を無効にすることで、従量課金制サブスクリプションに切り替え、Collectプランへダウングレードできます。その操作は、`,

@@ -4298,6 +4298,12 @@ ${amount} para ${merchant} - ${date}`,
                         return 'Admin';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditor';
+                    case CONST.POLICY.ROLE.CARD_ADMIN:
+                        return 'Admin. do Cartão';
+                    case CONST.POLICY.ROLE.PEOPLE_ADMIN:
+                        return 'Administração de pessoas';
+                    case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
+                        return 'Admin de pagamentos';
                     case CONST.POLICY.ROLE.USER:
                         return 'Membro';
                     default:
@@ -4333,6 +4339,9 @@ ${amount} para ${merchant} - ${date}`,
             travelInvoicingPayableAccount: 'Conta a pagar de viagens',
             hr: 'RH',
             rooms: 'Salas',
+            cardAdminAlternateText: 'Gerenciar cartões do workspace.',
+            peopleAdminAlternateText: 'Gerencie membros e fluxos de aprovação.',
+            paymentsAdminAlternateText: 'Gerencie pagamentos de fluxo de trabalho.',
         },
         createdForClient: {
             title: 'Você criou um espaço de trabalho para seu cliente!',
@@ -7022,8 +7031,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                     description: 'Para funcionários que desejam enviar despesas ao empregador.',
                 },
             },
-            description: 'Escolha o plano ideal para você. Para ver a lista detalhada de recursos e preços, confira nosso',
-            subscriptionLink: 'página de ajuda sobre tipos de plano e preços',
+            description: 'Escolha o plano ideal para você.',
+            subscriptionLink: 'Saiba mais',
             lockedPlanDescription: ({count, annualSubscriptionEndDate}: WorkspaceLockedPlanTypeParams) => ({
                 one: `Você se comprometeu com 1 membro ativo no plano Control até o fim da sua assinatura anual em ${annualSubscriptionEndDate}. Você pode mudar para a assinatura pré-paga por uso e fazer downgrade para o plano Collect a partir de ${annualSubscriptionEndDate}, desativando a renovação automática em`,
                 other: `Você se comprometeu com ${count} membros ativos no plano Control até o fim da sua assinatura anual em ${annualSubscriptionEndDate}. Você pode mudar para a assinatura pós-paga e fazer downgrade para o plano Collect a partir de ${annualSubscriptionEndDate} desativando a renovação automática em`,

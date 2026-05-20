@@ -4296,6 +4296,12 @@ ${amount} dla ${merchant} - ${date}`,
                         return 'Administrator';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Audytor';
+                    case CONST.POLICY.ROLE.CARD_ADMIN:
+                        return 'Administrator karty';
+                    case CONST.POLICY.ROLE.PEOPLE_ADMIN:
+                        return 'Administrator osób';
+                    case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
+                        return 'Administrator płatności';
                     case CONST.POLICY.ROLE.USER:
                         return 'Członek';
                     default:
@@ -4331,6 +4337,9 @@ ${amount} dla ${merchant} - ${date}`,
             travelInvoicingPayableAccount: 'Konto zobowiązań z tytułu podróży',
             hr: 'HR',
             rooms: 'Pokoje',
+            cardAdminAlternateText: 'Zarządzaj kartami przestrzeni roboczej.',
+            peopleAdminAlternateText: 'Zarządzaj członkami i procesami akceptacji.',
+            paymentsAdminAlternateText: 'Zarządzaj płatnościami w przepływie pracy.',
         },
         createdForClient: {
             title: 'Utworzyłeś przestrzeń roboczą dla swojego klienta!',
@@ -7016,8 +7025,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                     description: 'Dla pracowników, którzy chcą przesyłać wydatki do pracodawcy.',
                 },
             },
-            description: 'Wybierz plan odpowiedni dla siebie. Szczegółową listę funkcji i cen znajdziesz w naszej',
-            subscriptionLink: 'strona pomocy dotycząca typów planów i cen',
+            description: 'Wybierz plan odpowiedni dla siebie.',
+            subscriptionLink: 'Dowiedz się więcej',
             lockedPlanDescription: ({count, annualSubscriptionEndDate}: WorkspaceLockedPlanTypeParams) => ({
                 one: `Zobowiązałeś(-aś) się do 1 aktywnego członka w planie Control do końca rocznej subskrypcji ${annualSubscriptionEndDate}. Możesz przejść na subskrypcję z rozliczaniem za użycie i zmienić plan na Collect od ${annualSubscriptionEndDate}, wyłączając automatyczne odnawianie w`,
                 other: `Zobowiązałeś(-aś) się do ${count} aktywnych członków w planie Control do końca rocznej subskrypcji ${annualSubscriptionEndDate}. Możesz przejść na subskrypcję płatną za użycie i zmienić plan na Collect od ${annualSubscriptionEndDate}, wyłączając automatyczne odnawianie w`,

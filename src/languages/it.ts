@@ -4305,9 +4305,15 @@ ${amount} per ${merchant} - ${date}`,
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
-                        return 'Amministrazione';
+                        return 'Amministratore';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Revisore';
+                    case CONST.POLICY.ROLE.CARD_ADMIN:
+                        return 'Amministrazione carta';
+                    case CONST.POLICY.ROLE.PEOPLE_ADMIN:
+                        return 'Amministrazione persone';
+                    case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
+                        return 'Amministrazione pagamenti';
                     case CONST.POLICY.ROLE.USER:
                         return 'Membro';
                     default:
@@ -4343,6 +4349,9 @@ ${amount} per ${merchant} - ${date}`,
             travelInvoicingPayableAccount: 'Conto debiti per viaggi',
             hr: 'Risorse umane',
             rooms: 'Stanze',
+            cardAdminAlternateText: 'Gestisci le carte dello spazio di lavoro.',
+            peopleAdminAlternateText: 'Gestisci i membri e i flussi di approvazione.',
+            paymentsAdminAlternateText: 'Gestisci i pagamenti del flusso di lavoro.',
         },
         createdForClient: {
             title: 'Hai creato uno spazio di lavoro per il tuo cliente!',
@@ -7045,8 +7054,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     description: 'Per i dipendenti che desiderano inviare le spese al proprio datore di lavoro.',
                 },
             },
-            description: 'Scegli il piano più adatto a te. Per un elenco dettagliato di funzionalità e prezzi, consulta la nostra',
-            subscriptionLink: 'pagina di aiuto su tipi di piano e prezzi',
+            description: 'Scegli il piano più adatto a te.',
+            subscriptionLink: 'Scopri di più',
             lockedPlanDescription: ({count, annualSubscriptionEndDate}: WorkspaceLockedPlanTypeParams) => ({
                 one: `Ti sei impegnato per 1 membro attivo nel piano Control fino al termine dell’abbonamento annuale, il ${annualSubscriptionEndDate}. Puoi passare all’abbonamento a consumo e effettuare il downgrade al piano Collect a partire dal ${annualSubscriptionEndDate} disattivando il rinnovo automatico in`,
                 other: `Ti sei impegnato per ${count} membri attivi nel piano Control fino alla fine dell’abbonamento annuale, il ${annualSubscriptionEndDate}. Puoi passare all’abbonamento a consumo e effettuare il downgrade al piano Collect a partire dal ${annualSubscriptionEndDate} disattivando il rinnovo automatico in`,

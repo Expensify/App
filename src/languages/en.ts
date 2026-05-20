@@ -4393,6 +4393,9 @@ const translations = {
             memberAlternateText: 'Submit and approve reports.',
             adminAlternateText: 'Manage reports and workspace settings.',
             auditorAlternateText: 'View and comment on reports.',
+            cardAdminAlternateText: 'Manage workspace cards.',
+            peopleAdminAlternateText: 'Manage members and approval workflows.',
+            paymentsAdminAlternateText: 'Manage workflow payments.',
             reimbursementChoice: {
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES]: 'Direct',
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO]: 'None',
@@ -4404,6 +4407,12 @@ const translations = {
                         return 'Admin';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditor';
+                    case CONST.POLICY.ROLE.CARD_ADMIN:
+                        return 'Card Admin';
+                    case CONST.POLICY.ROLE.PEOPLE_ADMIN:
+                        return 'People Admin';
+                    case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
+                        return 'Payments Admin';
                     case CONST.POLICY.ROLE.USER:
                         return 'Member';
                     default:
@@ -7160,8 +7169,8 @@ const translations = {
                     description: 'For employees looking to submit expenses to their employer.',
                 },
             },
-            description: "Choose a plan that's right for you. For a detailed list of features and pricing, check out our",
-            subscriptionLink: 'plan types and pricing help page',
+            description: "Choose a plan that's right for you.",
+            subscriptionLink: 'Learn more',
             lockedPlanDescription: ({count, annualSubscriptionEndDate}: WorkspaceLockedPlanTypeParams) => ({
                 one: `You've committed to 1 active member on the Control plan until your annual subscription ends on ${annualSubscriptionEndDate}. You can switch to pay-per-use subscription and downgrade to the Collect plan starting ${annualSubscriptionEndDate} by disabling auto-renew in`,
                 other: `You've committed to ${count} active members on the Control plan until your annual subscription ends on ${annualSubscriptionEndDate}. You can switch to pay-per-use subscription and downgrade to the Collect plan starting ${annualSubscriptionEndDate} by disabling auto-renew in`,
