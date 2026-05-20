@@ -47,6 +47,7 @@ function EditAgentPage({route}: EditAgentPageProps) {
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
             danger: true,
+            shouldHandleNavigationBack: false,
         });
         if (result.action !== ModalActions.CONFIRM) {
             return;
