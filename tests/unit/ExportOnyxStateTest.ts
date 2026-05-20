@@ -1,4 +1,4 @@
-import {emailRegex, maskOnyxState} from '@libs/ExportOnyxState/common';
+import {emailRegex, maskOnyxState, ONYX_KEY_EXPORT_RULES, onyxKeysToRemove, safeOnyxKeys} from '@libs/ExportOnyxState/common';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session} from '@src/types/onyx';
 
@@ -156,6 +156,85 @@ describe('maskOnyxState', () => {
         });
     });
 
+    describe('REPORT_ACTIONS export rule', () => {
+        it('should preserve debug-useful fields and mask message content', () => {
+            const mockReportAction = {
+                reportActionID: '456',
+                actionName: 'ADDCOMMENT',
+                created: '2024-06-15T10:00:00Z',
+                actorAccountID: 789,
+                pendingAction: null,
+                errors: null,
+                message: [{type: 'COMMENT', html: '<p>Secret message</p>', text: 'Secret message'}],
+                avatar: 'https://example.com/avatar.png',
+                isLoading: false,
+            };
+
+            const input = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}123`]: {action1: mockReportAction},
+            };
+            const result = maskOnyxState(input) as Record<string, Record<string, Record<string, unknown>>>;
+
+            const processedAction = result[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}123`].action1;
+
+            // Allowed fields should be preserved
+            expect(processedAction.reportActionID).toBe('456');
+            expect(processedAction.actionName).toBe('ADDCOMMENT');
+            expect(processedAction.created).toBe('2024-06-15T10:00:00Z');
+            expect(processedAction.actorAccountID).toBe(789);
+            expect(processedAction.isLoading).toBe(false);
+
+            // Masked fields should be masked
+            expect(processedAction.message).not.toEqual(mockReportAction.message);
+            expect(processedAction.avatar).not.toBe('https://example.com/avatar.png');
+        });
+    });
+
+    describe('wildcard allowList', () => {
+        it('should pass through data as-is for rules with allowList: ["*"]', () => {
+            const mockViolations = [
+                {type: 'violation', name: 'missingCategory', data: {errorIndexes: []}},
+                {type: 'warning', name: 'tagOutOfPolicy', data: {tagName: 'Department'}},
+            ];
+
+            const input = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}txn123`]: mockViolations,
+            };
+            const result = maskOnyxState(input) as Record<string, unknown>;
+
+            // Wildcard rule should pass through data unchanged
+            expect(result[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}txn123`]).toEqual(mockViolations);
+        });
+    });
+
+    describe('safe keys', () => {
+        it('should pass through safe keys without any masking', () => {
+            const input = {
+                session: mockSession,
+                [ONYXKEYS.IS_LOADING_APP]: true,
+                [ONYXKEYS.NETWORK]: {isOffline: false},
+                [ONYXKEYS.PREFERRED_THEME]: 'dark',
+            };
+            const result = maskOnyxState(input) as Record<string, unknown>;
+
+            expect(result[ONYXKEYS.IS_LOADING_APP]).toBe(true);
+            expect(result[ONYXKEYS.NETWORK]).toEqual({isOffline: false});
+            expect(result[ONYXKEYS.PREFERRED_THEME]).toBe('dark');
+        });
+
+        it('should pass through safe keys even when masking is enabled', () => {
+            const input = {
+                session: mockSession,
+                [ONYXKEYS.IS_LOADING_APP]: true,
+                [ONYXKEYS.CURRENT_DATE]: '2024-06-15',
+            };
+            const result = maskOnyxState(input, true) as Record<string, unknown>;
+
+            expect(result[ONYXKEYS.IS_LOADING_APP]).toBe(true);
+            expect(result[ONYXKEYS.CURRENT_DATE]).toBe('2024-06-15');
+        });
+    });
+
     it('should mask session details by default', () => {
         const input = {session: mockSession};
         const result = maskOnyxState(input) as ExampleOnyxState;
@@ -246,5 +325,59 @@ describe('maskOnyxState', () => {
 
         expect(result.edits).toEqual(['***', '***']);
         expect(result.lastMessageHtml).not.toEqual(input.lastMessageHtml);
+    });
+});
+
+describe('Onyx key export coverage', () => {
+    it('every ONYXKEYS value (top-level + collection) must be in ONYX_KEY_EXPORT_RULES, safeOnyxKeys, or onyxKeysToRemove', () => {
+        // Collect all top-level Onyx key string values (excluding sub-objects)
+        const allTopLevelKeys: string[] = (Object.values(ONYXKEYS) as unknown[]).filter((v): v is string => typeof v === 'string');
+
+        // Collect all collection prefix values
+        const allCollectionKeys: string[] = Object.values(ONYXKEYS.COLLECTION);
+
+        // Build the set of all covered keys
+        const coveredKeys = new Set<string>([...Object.keys(ONYX_KEY_EXPORT_RULES), ...(Array.from(onyxKeysToRemove) as string[]), ...safeOnyxKeys]);
+
+        const uncoveredTopLevel = allTopLevelKeys.filter((key) => !coveredKeys.has(key));
+        const uncoveredCollection = allCollectionKeys.filter((key) => !coveredKeys.has(key));
+
+        // These should be empty — if a new key is added to ONYXKEYS without being categorized,
+        // this test will fail and list the uncovered keys.
+        expect(uncoveredTopLevel).toEqual([]);
+        expect(uncoveredCollection).toEqual([]);
+    });
+
+    it('FORMS keys should not need individual export rules (handled by maskFragileData fallback)', () => {
+        // Some top-level ONYXKEYS share string values with FORMS (e.g. personalBankAccount,
+        // reimbursementAccount, walletAdditionalDetails, assignCard). Those are legitimately
+        // in ONYX_KEY_EXPORT_RULES for the top-level key, not the form.
+        const topLevelValues = new Set<string>((Object.values(ONYXKEYS) as unknown[]).filter((v): v is string => typeof v === 'string'));
+
+        const formOnlyValues = Object.values(ONYXKEYS.FORMS).filter((v) => !topLevelValues.has(v));
+        const rulesKeys = new Set(Object.keys(ONYX_KEY_EXPORT_RULES));
+
+        for (const formKey of formOnlyValues) {
+            // Form-only keys should NOT be in export rules — they use the maskFragileData fallback
+            expect(rulesKeys.has(formKey)).toBe(false);
+        }
+    });
+
+    it('DERIVED keys should all be in onyxKeysToRemove', () => {
+        const derivedValues = Object.values(ONYXKEYS.DERIVED);
+        for (const derivedKey of derivedValues) {
+            expect(onyxKeysToRemove.has(derivedKey)).toBe(true);
+        }
+    });
+
+    it('no key should appear in multiple buckets', () => {
+        const rulesKeys = Object.keys(ONYX_KEY_EXPORT_RULES);
+        for (const key of rulesKeys) {
+            expect(safeOnyxKeys.has(key)).toBe(false);
+            expect(onyxKeysToRemove.has(key as never)).toBe(false);
+        }
+        for (const key of safeOnyxKeys) {
+            expect(onyxKeysToRemove.has(key as never)).toBe(false);
+        }
     });
 });
