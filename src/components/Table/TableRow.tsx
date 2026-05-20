@@ -136,7 +136,18 @@ export default function TableRow({
         return children;
     };
 
-    const handleRowPress = () => {};
+    const handleRowPress = (event?: MouseEvent) => {
+        if (!isInteractive) {
+            return;
+        }
+
+        if (shouldUseNarrowLayout && selectionEnabled && isMobileSelectionEnabled) {
+            handleCheckboxPress(event);
+            return;
+        }
+
+        onPress?.();
+    };
 
     const handleCheckboxPress = (event?: MouseEvent) => {
         if (event && event.shiftKey) {
@@ -166,8 +177,8 @@ export default function TableRow({
                 hoverStyle={tableRowPressableHoverStyle}
                 pressDimmingValue={isInteractive ? undefined : 1}
                 role={isInteractive ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
-                onPress={onPress}
                 onLongPress={handleRowLongPress}
+                onPress={(event) => handleRowPress(event as unknown as MouseEvent)}
                 {...props}
             >
                 {(state) => (

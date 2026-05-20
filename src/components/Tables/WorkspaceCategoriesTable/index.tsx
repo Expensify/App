@@ -20,6 +20,7 @@ export type WorkspaceCategoryTableRowData = TableData & {
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
     action: () => void;
+    onToggleEnabled: (enabled: boolean) => void;
 };
 
 type WorkspaceCategoriesTableProps = {

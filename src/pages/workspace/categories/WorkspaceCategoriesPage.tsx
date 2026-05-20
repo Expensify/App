@@ -249,6 +249,14 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
                     Navigation.navigate(path);
                 },
+                onToggleEnabled: (enabled: boolean) => {
+                    if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])) {
+                        showCannotDeleteOrDisableLastCategoryModal();
+                        return;
+                    }
+
+                    updateWorkspaceCategoryEnabled(enabled, value.name);
+                },
             });
 
             return acc;
