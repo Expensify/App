@@ -6,10 +6,10 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearMoneyRequestMerchant, setMoneyRequestMerchant} from '@libs/actions/IOU';
+import {clearMoneyRequestMerchant, setMoneyRequestMerchant} from '@libs/actions/IOU/MoneyRequest';
 import Navigation from '@libs/Navigation/Navigation';
 import {getMerchant, hasReceipt} from '@libs/TransactionUtils';
-import {isValidInputLength} from '@libs/ValidationUtils';
+import {isInvalidMerchantValue, isValidInputLength} from '@libs/ValidationUtils';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -54,7 +54,7 @@ function MerchantField({
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
     const merchantValue = getMerchant(transaction);
-    const displayMerchantValue = !transaction?.isMerchantSet ? '' : merchantValue;
+    const displayMerchantValue = isInvalidMerchantValue(merchantValue) ? '' : merchantValue;
     const isMerchantEmpty = !displayMerchantValue;
 
     // Determine if the merchant error should be displayed

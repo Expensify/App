@@ -1,10 +1,18 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {PersonalDetailsList, Report} from '@src/types/onyx';
+import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 
 const personalDetailsSelector = (accountID: number) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[accountID];
 
 const personalDetailsLoginSelector = (accountID: number) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[accountID]?.login;
+
+const personalDetailByAccountIDSelector =
+    (accountID: number | undefined) =>
+    (personalDetailsList: OnyxEntry<PersonalDetailsList>): OnyxEntry<PersonalDetails> =>
+        accountID ? (personalDetailsList?.[accountID] ?? undefined) : undefined;
+
+const conciergePersonalDetailSelector = personalDetailByAccountIDSelector(CONST.ACCOUNT_ID.CONCIERGE);
 
 const accountIDToLoginSelector = (reportsToArchive: Report[]) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => {
     const map: Record<number, string> = {};
@@ -17,4 +25,4 @@ const accountIDToLoginSelector = (reportsToArchive: Report[]) => (personalDetail
     return map;
 };
 
-export {personalDetailsSelector, personalDetailsLoginSelector, accountIDToLoginSelector};
+export {personalDetailsSelector, personalDetailsLoginSelector, personalDetailByAccountIDSelector, conciergePersonalDetailSelector, accountIDToLoginSelector};

@@ -1,15 +1,17 @@
 import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import type {NativeSyntheticEvent} from 'react-native';
+import type {GestureResponderEvent, NativeSyntheticEvent} from 'react-native';
 import Animated from 'react-native-reanimated';
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
+import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useStableIndexedHandler from '@hooks/useStableIndexedHandler';
 import {isMobileChrome} from '@libs/Browser';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
+import {isFocusRestoreInProgress} from '@libs/NavigationFocusReturn';
 import CONST from '@src/CONST';
 import type BaseSearchListProps from './types';
 
@@ -38,6 +40,7 @@ function BaseSearchList({
 }: BaseSearchListProps) {
     const hasKeyBeenPressed = useRef(false);
     const isFocused = useIsFocused();
+    const {focusedCellId, isEditingCell} = useEditingCellState();
 
     const setHasKeyBeenPressed = useCallback(() => {
         if (hasKeyBeenPressed.current) {
@@ -61,6 +64,10 @@ function BaseSearchList({
     });
 
     const handleFocusByIndex = (index: number, event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
+        // The focus-return restore shouldn't move the keyboard cursor here, or the row gets highlighted and scrolled into view on back nav. The .focus() still restores DOM focus for screen readers.
+        if (isFocusRestoreInProgress()) {
+            return;
+        }
         // Prevent unexpected scrolling on mobile Chrome after the context menu closes by ignoring programmatic focus not triggered by direct user interaction.
         if (isMobileChrome() && event.nativeEvent) {
             if (!event.nativeEvent.sourceCapabilities) {
@@ -81,22 +88,39 @@ function BaseSearchList({
         return renderItem(item, index, isItemFocused, getOnFocus(index));
     };
 
-    const selectFocusedOption = useCallback(() => {
-        const focusedItem = data.at(focusedIndex);
+    const selectFocusedOption = useCallback(
+        (event?: GestureResponderEvent | KeyboardEvent) => {
+            // Allow event propagation during cell editing so Enter can trigger TextInput.onSubmitEditing.
+            // When not editing, stop propagation to prevent unintended button activation and handle row selection.
+            if (isEditingCell) {
+                return;
+            }
 
-        if (!focusedItem) {
-            return;
-        }
+            // If a cell has keyboard focus (via Tab), let the Enter event propagate to trigger the cell's onPress
+            if (focusedCellId) {
+                return;
+            }
 
-        onSelectRow(focusedItem);
-    }, [data, focusedIndex, onSelectRow]);
+            event?.stopPropagation();
+
+            const focusedItem = data.at(focusedIndex);
+
+            if (!focusedItem) {
+                return;
+            }
+
+            onSelectRow(focusedItem);
+        },
+        [data, focusedCellId, focusedIndex, isEditingCell, onSelectRow],
+    );
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         captureOnInputs: true,
         shouldBubble: false,
         shouldPreventDefault: false,
         isActive: isFocused && focusedIndex >= 0,
-        shouldStopPropagation: true,
+        // Propagation is controlled manually in selectFocusedOption based on editing state
+        shouldStopPropagation: false,
     });
 
     useEffect(() => {
