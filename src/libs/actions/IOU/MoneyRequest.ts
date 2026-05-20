@@ -1446,7 +1446,6 @@ export {
     setCustomUnitID,
     setMoneyRequestDistance,
     setMoneyRequestDistanceRate,
-    setMoneyRequestReceiptState,
     setMoneyRequestAmount,
     clearMoneyRequestAmount,
     clearMoneyRequestMerchant,
