@@ -2941,8 +2941,8 @@ describe('SearchQueryUtils', () => {
         it('should strip existing keyword filters from current context before prepending', () => {
             const currentQueryJSON = buildSearchQueryJSON('type:expense status:all existing') as SearchQueryJSON;
 
-            const result = getKeywordQueryWithCurrentSearchContext('newkeyword', currentQueryJSON);
-            expect(result).toContain('newkeyword');
+            const result = getKeywordQueryWithCurrentSearchContext('new-keyword', currentQueryJSON);
+            expect(result).toContain('new-keyword');
             expect(result).not.toContain('existing');
         });
 
