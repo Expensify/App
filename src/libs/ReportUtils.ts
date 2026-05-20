@@ -166,7 +166,6 @@ import {
     isPendingDeletePolicy,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyAuditor,
-    isPolicyFieldListEmpty,
     isPolicyMember,
     isPolicyMemberWithoutPendingDelete,
     isPolicyOwner,
