@@ -7,9 +7,19 @@ import type {OnyxCollection, OnyxEntry, OnyxMergeCollectionInput} from 'react-na
 import type {SearchQueryJSON, SearchStatus} from '@components/Search/types';
 import useOnyx from '@hooks/useOnyx';
 import {clearAllRelatedReportActionErrors} from '@libs/actions/ClearReportActionErrors';
-import {setMoneyRequestAmount, setMoneyRequestBillable, setMoneyRequestCreated, setMoneyRequestDateAttribute, setMoneyRequestMerchant, setMoneyRequestTag} from '@libs/actions/IOU';
 import {putOnHold} from '@libs/actions/IOU/Hold';
-import {initMoneyRequest, resetDraftTransactionsCustomUnit, setMoneyRequestCategory, setMoneyRequestDistanceRate} from '@libs/actions/IOU/MoneyRequest';
+import {
+    initMoneyRequest,
+    resetDraftTransactionsCustomUnit,
+    setMoneyRequestAmount,
+    setMoneyRequestBillable,
+    setMoneyRequestCategory,
+    setMoneyRequestCreated,
+    setMoneyRequestDateAttribute,
+    setMoneyRequestDistanceRate,
+    setMoneyRequestMerchant,
+    setMoneyRequestTag,
+} from '@libs/actions/IOU/MoneyRequest';
 import {calculateDiffAmount} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {handleNavigateAfterExpenseCreate} from '@libs/actions/IOU/NavigationHelpers';
 import {shouldOptimisticallyUpdateSearch} from '@libs/actions/IOU/SearchUpdate';
@@ -5488,6 +5498,7 @@ describe('actions/IOU', () => {
                     introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                     currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                     currentUserEmailParam: CARLOS_EMAIL,
+                    currency: undefined,
                     isSelfTourViewed: false,
                     betas: undefined,
                     hasActiveAdminPolicies: false,
@@ -5666,6 +5677,7 @@ describe('actions/IOU', () => {
                     introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                     currentUserAccountIDParam: RORY_ACCOUNT_ID,
                     currentUserEmailParam: RORY_EMAIL,
+                    currency: undefined,
                     isSelfTourViewed: false,
                     betas: undefined,
                     hasActiveAdminPolicies: false,
@@ -5848,6 +5860,7 @@ describe('actions/IOU', () => {
                     introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                     currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                     currentUserEmailParam: CARLOS_EMAIL,
+                    currency: undefined,
                     isSelfTourViewed: false,
                     betas: undefined,
                     hasActiveAdminPolicies: false,
@@ -6039,6 +6052,7 @@ describe('actions/IOU', () => {
                     introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                     currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                     currentUserEmailParam: CARLOS_EMAIL,
+                    currency: undefined,
                     isSelfTourViewed: false,
                     betas: undefined,
                     hasActiveAdminPolicies: false,

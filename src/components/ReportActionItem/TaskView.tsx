@@ -181,7 +181,19 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                     <OfflineWithFeedback
                         shouldShowErrorMessages
                         errors={report?.errorFields?.editTask ?? report?.errorFields?.createTask}
-                        onClose={() => clearTaskErrors(report, conciergeReportID, accountID, introSelected, betas, isSelfTourViewed)}
+                        onClose={() =>
+                            clearTaskErrors(
+                                report,
+                                conciergeReportID,
+                                accountID,
+                                introSelected,
+                                betas,
+                                isSelfTourViewed,
+                                report?.ownerAccountID ? (personalDetails?.[report.ownerAccountID] ?? undefined) : undefined,
+                                currentUserPersonalDetails,
+                                (personalDetails ? Object.values(personalDetails).find((detail) => detail?.login === CONST.EMAIL.CONCIERGE) : undefined) ?? undefined,
+                            )
+                        }
                         errorRowStyles={styles.ph5}
                     >
                         {isDisableInteractive ? (
