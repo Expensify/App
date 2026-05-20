@@ -75,17 +75,7 @@ function Confirmation() {
         () => TransactionUtils.buildMergeDuplicatesParams(reviewDuplicates, duplicates ?? [], newTransaction),
         [duplicates, reviewDuplicates, newTransaction],
     );
-    const allDuplicateTransactionIDs = useMemo(() => {
-        const ids: string[] = [];
-        if (reviewDuplicates?.transactionID) {
-            ids.push(reviewDuplicates.transactionID);
-        }
-        if (reviewDuplicates?.duplicates) {
-            ids.push(...reviewDuplicates.duplicates);
-        }
-        return ids;
-    }, [reviewDuplicates?.transactionID, reviewDuplicates?.duplicates]);
-    const transactionThreadReportIDMap = useTransactionThreadReportIDs(allDuplicateTransactionIDs);
+    const transactionThreadReportIDMap = useTransactionThreadReportIDs(transactionsMergeParams.transactionIDList);
     const reviewDuplicatesTaxCode = reviewDuplicates?.taxCode;
     const reviewDuplicatesTaxAmount = reviewDuplicates?.taxAmount;
     const duplicatedTransactionTaxCode = duplicatedTransaction?.taxCode;

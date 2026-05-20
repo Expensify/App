@@ -520,7 +520,7 @@ function resolveDuplicates({
         });
     }
 
-    const transactionThreadReportID = transactionThreadReportIDMap[params.transactionID];
+    const transactionThreadReportID = params.reportID ? getIOUActionForTransactions([params.transactionID], params.reportID).at(0)?.childReportID : undefined;
     const optimisticReportAction = buildOptimisticDismissedViolationReportAction({
         reason: 'manual',
         violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
