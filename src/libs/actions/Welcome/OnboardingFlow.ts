@@ -134,6 +134,18 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
         return `/${ROUTES.ONBOARDING_WORK_EMAIL.route}`;
     }
 
+    // Public-domain users should never resume onboarding on the work-email merge-validation screen.
+    // Its wording ("Someone from <your-public-domain> has already created a workspace") makes no sense for gmail-style accounts.
+    if (isUserFromPublicDomain && onboardingInitialPath.includes(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.route)) {
+        if (isVsb) {
+            return `/${ROUTES.ONBOARDING_ACCOUNTING.route}`;
+        }
+        if (isSmb) {
+            return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;
+        }
+        return `/${ROUTES.ONBOARDING_PURPOSE.route}`;
+    }
+
     if (!isUserFromPublicDomain && hasAccessiblePolicies) {
         if (onboardingInitialPath) {
             return onboardingInitialPath;
