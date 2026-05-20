@@ -5157,6 +5157,10 @@ ${amount} para ${merchant} - ${date}`,
                     confirmText: 'Informar problema',
                     cancelText: 'Saltar',
                 },
+                duplicateFeedModal: {
+                    title: 'Feed de tarjeta ya conectado',
+                    prompt: 'No puedes añadir el mismo feed de tarjeta al mismo espacio de trabajo dos veces.',
+                },
                 csvColumns: {
                     cardNumber: 'Número de la tarjeta',
                     postedDate: 'Fecha',
