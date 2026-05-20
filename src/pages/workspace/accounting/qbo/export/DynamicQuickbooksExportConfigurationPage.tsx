@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -50,9 +50,7 @@ function DynamicQuickbooksExportConfigurationPage({policy}: WithPolicyConnection
     );
 
     const dynamicBackPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.path);
-    const goBack = useCallback(() => {
-        return goBackFromExportConnection(shouldShowVendorMenuItems, backTo, dynamicBackPath);
-    }, [backTo, dynamicBackPath, shouldShowVendorMenuItems]);
+    const goBack = () => goBackFromExportConnection(shouldShowVendorMenuItems, backTo, dynamicBackPath);
 
     const menuItems = [
         {
