@@ -97,6 +97,7 @@ export default function WorkspaceCategoriesTable({categories, shouldShowApprover
         <Table
             selectionEnabled
             data={categories}
+            title={translate('workspace.common.categories')}
             columns={categoryTableColumns}
             compareItems={compareItems}
             isItemInSearch={isItemInSearch}

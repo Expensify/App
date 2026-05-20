@@ -12,14 +12,19 @@ export type SelectionMethods = {
     handleMultipleRowSelection: (keyForList: string) => void;
 
     handleSingleRowSelection: (keyForList: string) => void;
+
+    setMobileSelectionEnabled: (enabled: boolean) => void;
 };
 
-export type UseSelectionResult<DataType extends TableData> = MiddlewareHookResult<DataType, SelectionMethods, TableRow<DataType>>;
+export type UseSelectionResult<DataType extends TableData> = MiddlewareHookResult<DataType, SelectionMethods, TableRow<DataType>> & {
+    mobileSelectionEnabled: boolean;
+};
 
 export default function useSelection<DataType extends TableData>({data}: UseSelectionProps<DataType>): UseSelectionResult<DataType> {
     const lastSelectedRowKeyRef = useRef<string | null>(null);
     const lastSelectedRowIsSelectedRef = useRef<boolean>(false);
     const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
+    const [mobileSelectionEnabled, setMobileSelectionEnabled] = useState(false);
 
     const keyForLists = data.map((item) => item.keyForList);
 
@@ -108,10 +113,12 @@ export default function useSelection<DataType extends TableData>({data}: UseSele
 
     return {
         middleware,
+        mobileSelectionEnabled,
         methods: {
             handleSelectAll,
             handleMultipleRowSelection,
             handleSingleRowSelection,
+            setMobileSelectionEnabled,
         },
     };
 }

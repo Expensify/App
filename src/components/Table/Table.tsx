@@ -157,7 +157,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
 
     const {middleware: sortMiddleware, activeSorting, methods: sortMethods} = useSorting<DataType, ColumnKey>({compareItems, initialSortColumn});
 
-    const {middleware: selectionMiddleware, methods: selectionMethods} = useSelection<DataType>({data});
+    const {middleware: selectionMiddleware, methods: selectionMethods, mobileSelectionEnabled} = useSelection<DataType>({data});
 
     // Apply the middleware
     const filteredData = filterMiddleware(data);
@@ -214,7 +214,6 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         title,
         listRef,
         listProps,
-        selectionEnabled,
         processedData,
         originalDataLength,
         columns,
@@ -227,6 +226,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         hasSearchString,
         isEmptyResult,
         shouldUseNarrowTableLayout,
+        selectionEnabled: selectionEnabled && (mobileSelectionEnabled || !shouldUseNarrowLayout),
     };
 
     return <TableContext.Provider value={contextValue as unknown as TableContextValue<DataType, string>}>{children}</TableContext.Provider>;

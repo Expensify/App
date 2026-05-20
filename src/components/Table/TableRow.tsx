@@ -139,6 +139,14 @@ export default function TableRow({
         tableMethods.handleSingleRowSelection(item.keyForList);
     };
 
+    const handleRowLongPress = () => {
+        if (!isInteractive) {
+            return;
+        }
+
+        tableMethods.setMobileSelectionEnabled(true);
+    };
+
     return (
         <OfflineWithFeedback {...offlineWithFeedback}>
             <PressableWithFeedback
@@ -151,6 +159,7 @@ export default function TableRow({
                 pressDimmingValue={isInteractive ? undefined : 1}
                 role={isInteractive ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
                 onPress={onPress}
+                onLongPress={handleRowLongPress}
                 {...props}
             >
                 {(state) => (
@@ -169,13 +178,12 @@ export default function TableRow({
                         ) : (
                             <View style={tableRowContentStyles}>
                                 {selectionEnabled && (
-                                    <View style={styles.flex1}>
-                                        <Checkbox
-                                            isChecked={!!item.selected}
-                                            accessibilityLabel="TEST"
-                                            onPress={(event) => handleCheckboxPress(event as unknown as MouseEvent)}
-                                        />
-                                    </View>
+                                    <Checkbox
+                                        isChecked={!!item.selected}
+                                        accessibilityLabel="TEST"
+                                        onPress={(event) => handleCheckboxPress(event as unknown as MouseEvent)}
+                                        style={styles.flex1}
+                                    />
                                 )}
                                 {renderChildren(state)}
                             </View>
