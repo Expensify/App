@@ -18,11 +18,6 @@ type SecurityGroup = {
     /** ID of the restricted primary policy for this domain security group */
     restrictedPrimaryPolicyID?: string;
 
-    /**
-     * Name of the restricted primary policy, used as a fallback when the viewing admin doesn't have access to the policy's data.
-     */
-    restrictedPrimaryPolicyName?: string;
-
     /** Whether we should prevent a user from submitting a report with policy violations? */
     enableStrictPolicyRules?: boolean;
 
