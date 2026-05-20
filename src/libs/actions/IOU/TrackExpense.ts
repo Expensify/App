@@ -961,6 +961,8 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             policyID: policy?.id,
             expenseReportId: chatReport?.reportID,
             engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+            // TODO: thread currency from caller (https://github.com/Expensify/App/issues/66580)
+            currency: undefined,
             currentUserAccountIDParam,
             currentUserEmailParam,
             introSelected,

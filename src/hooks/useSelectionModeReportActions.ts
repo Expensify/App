@@ -84,7 +84,7 @@ function useSelectionModeReportActions({
     selectedTransactionIDs,
 }: UseSelectionModeReportActionsParams) {
     const {translate, localeCompare} = useLocalize();
-    const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const {accountID: currentUserAccountID, login: currentUserLogin, localCurrencyCode} = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
     const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
@@ -367,6 +367,7 @@ function useSelectionModeReportActions({
                 introSelected,
                 currentUserAccountIDParam: currentUserAccountID,
                 currentUserEmailParam: email,
+                currentUserLocalCurrency: localCurrencyCode ?? CONST.CURRENCY.USD,
                 payAsBusiness,
                 existingB2BInvoiceReport,
                 methodID,

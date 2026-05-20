@@ -50,6 +50,7 @@ type PayInvoiceArgs = {
     invoiceReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
+    currentUserLocalCurrency: string;
     payAsBusiness?: boolean;
     existingB2BInvoiceReport?: OnyxEntry<OnyxTypes.Report>;
     methodID?: number;
@@ -117,6 +118,7 @@ function getPayMoneyRequestParams({
     betas,
     isSelfTourViewed,
     defaultWorkspaceName,
+    currentUserLocalCurrency,
     conciergeReportID,
 }: {
     initialChatReport: OnyxTypes.Report;
@@ -138,6 +140,7 @@ function getPayMoneyRequestParams({
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean | undefined;
     defaultWorkspaceName?: string;
+    currentUserLocalCurrency: string | undefined;
     // TODO: This will be required eventually. Ref: https://github.com/Expensify/App/issues/66411
     conciergeReportID?: string;
 }): PayMoneyRequestData {
@@ -175,6 +178,7 @@ function getPayMoneyRequestParams({
             policyName: defaultWorkspaceName,
             makeMeAdmin: true,
             policyID: payerPolicyID,
+            currency: currentUserLocalCurrency,
             currentUserAccountIDParam: currentUserAccountIDParam ?? CONST.DEFAULT_NUMBER_ID,
             currentUserEmailParam: currentUserEmailParam ?? '',
             introSelected,
@@ -784,6 +788,8 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         iouReportCurrentNextStepDeprecated,
         currentUserAccountIDParam: currentUserAccountID,
         currentUserEmailParam: currentUserLogin,
+        // payMoneyRequest never creates a payer workspace (no payAsBusiness branch), so currency is unused here.
+        currentUserLocalCurrency: undefined,
         betas,
         isSelfTourViewed,
         bankAccountID: paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
@@ -808,6 +814,7 @@ function payInvoice({
     introSelected,
     currentUserAccountIDParam,
     currentUserEmailParam,
+    currentUserLocalCurrency,
     payAsBusiness = false,
     existingB2BInvoiceReport,
     methodID,
@@ -846,6 +853,7 @@ function payInvoice({
         activePolicy,
         currentUserAccountIDParam,
         currentUserEmailParam,
+        currentUserLocalCurrency,
         introSelected,
         betas,
         isSelfTourViewed,
