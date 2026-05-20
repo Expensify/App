@@ -199,7 +199,7 @@ type BuildPolicyDataOptions = {
     policyID?: string;
     expenseReportId?: string;
     engagementChoice?: OnboardingPurpose;
-    currency?: string;
+    currency: string | undefined;
     file?: File;
     shouldAddOnboardingTasks?: boolean;
     companySize?: OnboardingCompanySize;
@@ -2518,7 +2518,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         policyID = generatePolicyID(),
         expenseReportId,
         engagementChoice,
-        currency = '',
+        currency,
         file,
         shouldAddOnboardingTasks = true,
         companySize,
@@ -3054,6 +3054,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
             policyID,
             {[adminParticipant.login]: adminParticipant.accountID ?? CONST.DEFAULT_NUMBER_ID},
             currentUserAccountIDParam,
+            // reportActionsList is intentionally undefined. See https://github.com/Expensify/App/pull/88312#issuecomment-4286942084
             undefined,
             hasOutstandingChildRequest,
         );

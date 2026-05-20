@@ -9,9 +9,8 @@ import type {UpperCaseCharacters} from 'type-fest/source/internal';
 import type {MultifactorAuthenticationPromptType} from './components/MultifactorAuthentication/config/types';
 import type {SearchFilterKey, SearchQueryString, UserFriendlyKey} from './components/Search/types';
 import type CONST from './CONST';
-import type {IOUAction, IOUType, OdometerImageType} from './CONST';
+import type {IOUAction, IOURequestType, IOUType, OdometerImageType} from './CONST';
 import type {ReplacementReason} from './libs/actions/Card';
-import type {IOURequestType} from './libs/actions/IOU';
 import Log from './libs/Log';
 import type {RootNavigatorParamList} from './libs/Navigation/types';
 import type {ReimbursementAccountStepToOpen} from './libs/ReimbursementAccountUtils';
@@ -336,6 +335,14 @@ const DYNAMIC_ROUTES = {
         path: 'purchase-bill-date-select',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_EXPORT],
     },
+    POLICY_ACCOUNTING_XERO_TRAVEL_INVOICING_CONFIGURATION: {
+        path: 'xero-travel-invoicing',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_EXPORT],
+    },
+    POLICY_ACCOUNTING_XERO_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT: {
+        path: 'xero-travel-invoicing-payable-account',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_TRAVEL_INVOICING_CONFIGURATION],
+    },
     POLICY_ACCOUNTING_XERO_AUTO_SYNC: {
         path: 'xero-autosync',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.XERO_ADVANCED, SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION],
@@ -358,7 +365,8 @@ const DYNAMIC_ROUTES = {
     },
     WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS: {
         path: 'account-reconciliation-settings',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION, SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT],
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION, SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT, SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_ADVANCED],
+        queryParams: ['connection', 'reconciliationAccountSettingsType'],
     },
     ADDRESS_COUNTRY: {
         path: 'country',
@@ -528,12 +536,36 @@ const DYNAMIC_ROUTES = {
     },
     SETTINGS_TAG_APPROVER: {
         path: 'tag-approver',
-        entryScreens: [SCREENS.SETTINGS_TAGS.SETTINGS_TAG_SETTINGS],
+        entryScreens: [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_SETTINGS],
     },
     SETTINGS_TAG_LIST_VIEW: {
         path: 'tag-list/:orderWeight',
         entryScreens: [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT],
         getRoute: (orderWeight: number) => `tag-list/${orderWeight}`,
+    },
+    SETTINGS_TAG_SETTINGS: {
+        path: 'tag-settings/:orderWeight/:tagName',
+        entryScreens: [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT, SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_LIST_VIEW],
+        getRoute: (orderWeight: number, tagName: string) => `tag-settings/${orderWeight}/${encodeURIComponent(tagName)}`,
+    },
+    SETTINGS_TAGS_EDIT: {
+        path: 'edit/:orderWeight',
+        entryScreens: [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT, SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_SETTINGS, SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_LIST_VIEW],
+        getRoute: (orderWeight: number) => `edit/${orderWeight}`,
+    },
+    SETTINGS_TAG_EDIT: {
+        path: 'tag-edit/:orderWeight/:tagName',
+        entryScreens: [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_SETTINGS],
+        getRoute: (orderWeight: number, tagName: string) => `tag-edit/${orderWeight}/${encodeURIComponent(tagName)}`,
+    },
+    SETTINGS_TAG_GL_CODE: {
+        path: 'gl-code/:orderWeight/:tagName',
+        entryScreens: [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_SETTINGS],
+        getRoute: (orderWeight: number, tagName: string) => `gl-code/${orderWeight}/${encodeURIComponent(tagName)}`,
+    },
+    SETTINGS_TAG_CREATE: {
+        path: 'tag-new',
+        entryScreens: [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT],
     },
     DETAILS_CONSTANT_PICKER: {
         path: 'constant-picker',
@@ -1675,31 +1707,6 @@ const ROUTES = {
 
         getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/tags/settings` as const, backTo),
     },
-    SETTINGS_TAGS_EDIT: {
-        route: 'settings/:policyID/tags/:orderWeight/edit',
-
-        getRoute: (policyID: string, orderWeight: number, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/tags/${orderWeight}/edit` as const, backTo),
-    },
-    SETTINGS_TAG_CREATE: {
-        route: 'settings/:policyID/tags/new',
-
-        getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/tags/new` as const, backTo),
-    },
-    SETTINGS_TAG_EDIT: {
-        route: 'settings/:policyID/tag/:orderWeight/:tagName/edit',
-        getRoute: (policyID: string, orderWeight: number, tagName: string, backTo = '') =>
-            getUrlWithBackToParam(`settings/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}/edit` as const, backTo),
-    },
-    SETTINGS_TAG_SETTINGS: {
-        route: 'settings/:policyID/tag/:orderWeight/:tagName',
-        getRoute: (policyID: string, orderWeight: number, tagName: string, backTo = '') =>
-            getUrlWithBackToParam(`settings/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}` as const, backTo),
-    },
-    SETTINGS_TAG_GL_CODE: {
-        route: 'settings/:policyID/tag/:orderWeight/:tagName/gl-code',
-        getRoute: (policyID: string, orderWeight: number, tagName: string, backTo = '') =>
-            getUrlWithBackToParam(`settings/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}/gl-code` as const, backTo),
-    },
     SETTINGS_TAGS_IMPORT: {
         route: 'settings/:policyID/tags/import',
 
@@ -2441,6 +2448,14 @@ const ROUTES = {
             }
             return `workspaces/${policyID}/hr/zenefits/final-approver` as const;
         },
+    },
+    WORKSPACE_HR_MERGE_APPROVAL_MODE: {
+        route: 'workspaces/:policyID/hr/merge/approval-mode',
+        getRoute: (policyID: string) => `workspaces/${policyID}/hr/merge/approval-mode` as const,
+    },
+    WORKSPACE_HR_MERGE_FINAL_APPROVER: {
+        route: 'workspaces/:policyID/hr/merge/final-approver',
+        getRoute: (policyID: string) => `workspaces/${policyID}/hr/merge/final-approver` as const,
     },
     WORKSPACE_TAGS: {
         route: 'workspaces/:policyID/tags',

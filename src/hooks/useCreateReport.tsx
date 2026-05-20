@@ -11,8 +11,8 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
-import useHasEmptyReportsForPolicy from './useHasEmptyReportsForPolicy';
 import useOnyx from './useOnyx';
+import useShouldShowEmptyReportConfirmation from './useShouldShowEmptyReportConfirmation';
 
 type UseCreateReportParams = {
     /** Callback that creates the report and navigates after creation */
@@ -47,7 +47,6 @@ export default function useCreateReport({onCreateReport, groupPoliciesWithChatEn
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED);
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
 
     // Gate visibility and routing on policy hydration. Without this, during Onyx cold-start
@@ -60,8 +59,7 @@ export default function useCreateReport({onCreateReport, groupPoliciesWithChatEn
     const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<OnyxTypes.Policy>>, activePolicy);
     const defaultChatEnabledPolicyID = defaultChatEnabledPolicy?.id;
 
-    const hasEmptyReport = useHasEmptyReportsForPolicy(defaultChatEnabledPolicyID);
-    const shouldShowEmptyReportConfirmation = hasEmptyReport && hasDismissedEmptyReportsConfirmation !== true;
+    const shouldShowEmptyReportConfirmation = useShouldShowEmptyReportConfirmation(defaultChatEnabledPolicyID);
 
     const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({
         policyID: defaultChatEnabledPolicyID,

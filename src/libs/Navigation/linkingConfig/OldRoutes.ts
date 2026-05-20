@@ -1,6 +1,11 @@
 const oldRoutes: Record<string, string> = {
     /* eslint-disable @typescript-eslint/naming-convention */
     '/settings/*/category/*/edit': '/settings/$1/category/$2/category-edit',
+    '/settings/*/tags/*/edit': '/settings/$1/tags/settings/edit/$2',
+    '/settings/*/tags/new': '/settings/$1/tags/tag-new',
+    '/settings/*/tag/*/*/edit': '/settings/$1/tags/tag-settings/$2/$3/tag-edit/$2/$3',
+    '/settings/*/tag/*/*/gl-code': '/settings/$1/tags/tag-settings/$2/$3/gl-code/$2/$3',
+    '/settings/*/tag/*/*': '/settings/$1/tags/tag-settings/$2/$3',
     '/workspaces/*/category/*/payroll-code': '/workspaces/$1/categories/category/$2/payroll-code',
     '/workspaces/*/category/*/gl-code': '/workspaces/$1/categories/category/$2/gl-code',
     '/workspaces/*/category/*/edit': '/workspaces/$1/categories/category/$2/edit',

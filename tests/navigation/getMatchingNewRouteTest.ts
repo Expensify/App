@@ -78,6 +78,19 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/settings/abc/category/Meals/edit?backTo=/home')).toBe('/settings/abc/category/Meals/category-edit?backTo=/home');
     });
 
+    it('redirects old settings tag routes to the new dynamic suffix shape', () => {
+        expect(getMatchingNewRoute('/settings/p123/tags/10/edit')).toBe('/settings/p123/tags/settings/edit/10');
+        expect(getMatchingNewRoute('/settings/p123/tags/new')).toBe('/settings/p123/tags/tag-new');
+        expect(getMatchingNewRoute('/settings/p123/tag/10/Meals')).toBe('/settings/p123/tags/tag-settings/10/Meals');
+        expect(getMatchingNewRoute('/settings/p123/tag/10/Meals/edit')).toBe('/settings/p123/tags/tag-settings/10/Meals/tag-edit/10/Meals');
+        expect(getMatchingNewRoute('/settings/p123/tag/10/Meals/gl-code')).toBe('/settings/p123/tags/tag-settings/10/Meals/gl-code/10/Meals');
+    });
+
+    it('preserves query params when redirecting old settings tag routes', () => {
+        expect(getMatchingNewRoute('/settings/p123/tags/10/edit?backTo=/home')).toBe('/settings/p123/tags/settings/edit/10?backTo=/home');
+        expect(getMatchingNewRoute('/settings/p123/tag/10/Meals?parentTagsFilter=Food')).toBe('/settings/p123/tags/tag-settings/10/Meals?parentTagsFilter=Food');
+    });
+
     it('redirects old flag comment path to report-based dynamic route', () => {
         expect(getMatchingNewRoute('/flag/123/456')).toBe('/r/123/flag/123/456');
     });

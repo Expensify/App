@@ -10,8 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearMoneyRequestAmount, setMoneyRequestAmount} from '@libs/actions/IOU';
-import {getMoneyRequestParticipantsFromReport} from '@libs/actions/IOU/MoneyRequest';
+import {clearMoneyRequestAmount, getMoneyRequestParticipantsFromReport, setMoneyRequestAmount} from '@libs/actions/IOU/MoneyRequest';
 import {convertToBackendAmount, convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import {calculateAmount} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -81,7 +80,6 @@ function AmountField({
     const {getCurrencyDecimals} = useCurrencyListActions();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
-    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const amountInputRef = useRef<BaseTextInputRef | null>(null);
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
@@ -159,7 +157,7 @@ function AmountField({
                 return;
             }
             const splitShares = splitDraftTransaction?.splitShares ?? transaction?.splitShares;
-            const accountID = currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
+            const accountID = currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID;
             const newAccountIDs = Object.keys(splitShares ?? {}).map((key) => Number(key));
             const oldAccountIDs = Object.keys(transaction?.splitShares ?? {}).map((key) => Number(key));
             const accountIDs = [...new Set<number>([accountID, ...newAccountIDs, ...oldAccountIDs])];
@@ -193,7 +191,7 @@ function AmountField({
             const participantAccountIDs =
                 shareAccountIDs.length > 0 ? shareAccountIDs : (transaction.participants ?? []).map((p) => p.accountID).filter((id): id is number => id !== undefined);
             if (participantAccountIDs.length > 0) {
-                setSplitShares(transaction, updatedAmount, updatedCurrency, participantAccountIDs);
+                setSplitShares(transaction, updatedAmount, updatedCurrency, participantAccountIDs, currentUserPersonalDetails.accountID);
             }
             return;
         }
