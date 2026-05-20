@@ -6015,6 +6015,9 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             workflowsWithoutMembersConfirm: 'Ohne Mitglieder fortfahren',
             workflowsWithoutMembersPrompt:
                 'Das Kopieren von Workflows ohne Mitglieder kopiert keine Genehmigungs-Workflows. Einreichungs- und Zahlungseinstellungen werden trotzdem kopiert.',
+            confirmTitle: 'Stellen wir sicher, dass alles richtig aussieht.',
+            confirmDescription: ({workspaceName}: {workspaceName: string}) =>
+                `Wir kopieren die folgenden Einstellungen von <strong>${workspaceName}</strong> in die von Ihnen angegebenen Arbeitsbereiche`,
         },
         emptyWorkspace: {
             title: 'Du hast keine Arbeitsbereiche',

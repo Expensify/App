@@ -5836,6 +5836,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             accountingDisabledTooltip: '源工作区和目标工作区未连接到同一会计账户，因此无法安全地复制这些设置。',
             workflowsWithoutMembersConfirm: '继续且无成员',
             workflowsWithoutMembersPrompt: '在不包含成员的情况下复制工作流时，将不会复制审批工作流。但提交和付款设置仍会被复制。',
+            confirmTitle: '让我们确认一切都正确无误。',
+            confirmDescription: ({workspaceName}: {workspaceName: string}) => `我们会将以下设置从 <strong>${workspaceName}</strong> 复制到你指定的工作区`,
         },
         emptyWorkspace: {
             title: '你还没有工作区',

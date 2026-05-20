@@ -6005,6 +6005,9 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             workflowsWithoutMembersConfirm: 'Continua senza membri',
             workflowsWithoutMembersPrompt:
                 'Copiare Flussi di lavoro senza Membri non copierà i flussi di lavoro di approvazione. Le impostazioni di invio e pagamento verranno comunque copiate.',
+            confirmTitle: 'Assicuriamoci che sia tutto corretto.',
+            confirmDescription: ({workspaceName}: {workspaceName: string}) =>
+                `Copieremo le seguenti impostazioni da <strong>${workspaceName}</strong> agli spazi di lavoro che hai specificato`,
         },
         emptyWorkspace: {
             title: 'Non hai nessuna area di lavoro',

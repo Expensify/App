@@ -5935,6 +5935,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             accountingDisabledTooltip: '元となるワークスペースと対象のワークスペースが同じ会計アカウントに接続されていないため、これらの設定を安全にコピーすることはできません。',
             workflowsWithoutMembersConfirm: 'メンバーなしで続行',
             workflowsWithoutMembersPrompt: 'メンバーなしでワークフローをコピーすると、承認ワークフローはコピーされません。提出と支払いの設定は引き続きコピーされます。',
+            confirmTitle: 'すべて正しく表示されているか確認しましょう。',
+            confirmDescription: ({workspaceName}: {workspaceName: string}) => `次の設定を<strong>${workspaceName}</strong>から指定したワークスペースにコピーします`,
         },
         emptyWorkspace: {
             title: 'ワークスペースがありません',

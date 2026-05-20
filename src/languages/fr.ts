@@ -6035,6 +6035,9 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             workflowsWithoutMembersConfirm: 'Continuer sans membres',
             workflowsWithoutMembersPrompt:
                 'La copie d’espaces de travail sans membres ne copiera pas les workflows d’approbation. Les paramètres de soumission et de paiement seront tout de même copiés.',
+            confirmTitle: 'Assurons-nous que tout est correct.',
+            confirmDescription: ({workspaceName}: {workspaceName: string}) =>
+                `Nous copierons les paramètres suivants de <strong>${workspaceName}</strong> vers les espaces de travail que vous avez indiqués`,
         },
         emptyWorkspace: {
             title: 'Vous n’avez aucun espace de travail',

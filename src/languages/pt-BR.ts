@@ -5983,6 +5983,9 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 'Os espaços de trabalho de origem e destino não estão conectados à mesma conta contábil, portanto essas configurações não podem ser copiadas com segurança.',
             workflowsWithoutMembersConfirm: 'Continuar sem membros',
             workflowsWithoutMembersPrompt: 'Copiar fluxos de trabalho sem membros não copiará os fluxos de aprovação. As configurações de envio e pagamento ainda serão copiadas.',
+            confirmTitle: 'Vamos garantir que está tudo certo.',
+            confirmDescription: ({workspaceName}: {workspaceName: string}) =>
+                `Vamos copiar as seguintes configurações de <strong>${workspaceName}</strong> para os espaços de trabalho que você especificou`,
         },
         emptyWorkspace: {
             title: 'Você não tem nenhum workspace',

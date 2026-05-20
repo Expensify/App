@@ -5848,6 +5848,9 @@ ${amount} para ${merchant} - ${date}`,
             accountingDisabledTooltip: 'Los espacios de trabajo de origen y destino no están conectados a la misma cuenta de contabilidad, por lo que no es seguro copiar estos ajustes.',
             workflowsWithoutMembersConfirm: 'Continuar sin miembros',
             workflowsWithoutMembersPrompt: 'Copiar flujos de trabajo sin miembros no copiará los flujos de aprobación. La configuración de envío y pago sí se copiará.',
+            confirmTitle: 'Vamos a asegurarnos de que todo se vea bien.',
+            confirmDescription: ({workspaceName}: {workspaceName: string}) =>
+                `Copiaríamos los siguientes ajustes de <strong>${workspaceName}</strong> a los espacios de trabajo que has especificado`,
         },
         emptyWorkspace: {
             title: 'Aún no hay espacios de trabajo',

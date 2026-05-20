@@ -5982,6 +5982,9 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             accountingDisabledTooltip: 'De bron- en doelwerkruimtes zijn niet gekoppeld aan dezelfde boekhoudrekening, waardoor deze instellingen niet veilig kunnen worden gekopieerd.',
             workflowsWithoutMembersConfirm: 'Doorgaan zonder leden',
             workflowsWithoutMembersPrompt: 'Workflows kopiëren zonder leden zal goedkeuringsworkflows niet kopiëren. Instellingen voor indienen en betalen worden nog steeds gekopieerd.',
+            confirmTitle: 'Laten we controleren of alles er goed uitziet.',
+            confirmDescription: ({workspaceName}: {workspaceName: string}) =>
+                `We kopiëren de volgende instellingen van <strong>${workspaceName}</strong> naar de werkruimtes die je hebt opgegeven`,
         },
         emptyWorkspace: {
             title: 'Je hebt geen werkruimtes',

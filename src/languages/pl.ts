@@ -5976,6 +5976,9 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             accountingDisabledTooltip: 'Źródłowy i docelowy obszar roboczy nie są podłączone do tego samego konta księgowego, więc tych ustawień nie można bezpiecznie skopiować.',
             workflowsWithoutMembersConfirm: 'Kontynuuj bez członków',
             workflowsWithoutMembersPrompt: 'Kopiowanie przepływów pracy bez członków nie skopiuje przepływów zatwierdzania. Ustawienia przesyłania i płatności nadal zostaną skopiowane.',
+            confirmTitle: 'Upewnijmy się, że wszystko wygląda poprawnie.',
+            confirmDescription: ({workspaceName}: {workspaceName: string}) =>
+                `Skopiujemy następujące ustawienia z <strong>${workspaceName}</strong> do wskazanych przez ciebie przestrzeni roboczych`,
         },
         emptyWorkspace: {
             title: 'Nie masz żadnych przestrzeni roboczych',
