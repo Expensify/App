@@ -11,6 +11,7 @@ import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import FontUtils from '@styles/utils/FontUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -125,7 +126,7 @@ function SearchTypeMenuAccordion({title, isExpanded, badgeText, children, onSect
                 hoverStyle={styles.hoveredComponentBG}
             >
                 <Animated.Text
-                    style={[styles.flex1, styles.mutedNormalTextLabel, headerFadeAnimatedStyle]}
+                    style={[styles.flex1, styles.mutedNormalTextLabel, FontUtils.fontFamily.platform.EXP_NEUE, headerFadeAnimatedStyle]}
                     accessibilityRole={CONST.ROLE.HEADER}
                     numberOfLines={1}
                 >
