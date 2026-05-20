@@ -130,7 +130,7 @@
     "expo-font": "14.0.8",
     "expo-image": "55.0.3",
     "expo-image-manipulator": "55.0.2",
-    "expo-location": "^55.1.10",
+    "expo-location": "55.1.10",
     "expo-modules-core": "55.0.16",
     "expo-store-review": "~9.0.8",
     "expo-task-manager": "55.0.2",
