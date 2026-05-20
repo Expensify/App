@@ -1655,16 +1655,17 @@ const staticStyles = (theme: ThemeColors) =>
         searchSplitContainer: {
             flex: 1,
             flexDirection: 'row',
-            marginLeft: variables.sideBarWithLHBWidth,
+            marginLeft: variables.searchSidebarExpandedWidth,
         },
 
         searchSidebar: {
-            width: variables.sideBarWithLHBWidth,
+            width: variables.searchSidebarExpandedWidth,
             height: '100%',
             backgroundColor: theme.sidebar,
             justifyContent: 'space-between',
             borderRightWidth: 1,
             borderColor: theme.border,
+            overflow: 'hidden',
         },
 
         // Sidebar Styles
@@ -6191,7 +6192,8 @@ const dynamicStyles = (theme: ThemeColors) =>
             } satisfies ViewStyle;
         },
 
-        rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWithLHBWidth, flex: 1}) satisfies ViewStyle,
+        rootNavigatorContainerStyles: (isSmallScreenWidth: boolean, sidebarWidth: number = variables.sideBarWithLHBWidth) =>
+            ({marginLeft: isSmallScreenWidth ? 0 : sidebarWidth, flex: 1}) satisfies ViewStyle,
 
         RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}) satisfies ViewStyle,
 
