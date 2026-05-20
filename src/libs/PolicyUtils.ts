@@ -2546,8 +2546,4 @@ export {
     isSubmitPolicy,
 };
 
-<<<<<<< knip-config
-export type {MemberEmailsToAccountIDs};
-=======
-export type {MemberEmailsToAccountIDs, PolicyFeature, PolicyFeatureAccess, HRProviderInfo};
->>>>>>> main
+export type {MemberEmailsToAccountIDs, PolicyFeature};
