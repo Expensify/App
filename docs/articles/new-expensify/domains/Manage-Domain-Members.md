@@ -75,7 +75,7 @@ You can give any member permission to manage domain settings by promoting them t
 
 Domain Admins can move a member from one domain group to another to change which domain-level rules apply to them.
 
-**Note:** If the target domain group has a Preferred Workspace configured, you must be a Workspace Admin for that Workspace. If you are not a Workspace Admin, the move will be blocked.
+**Note:** You must be a Workspace Admin for the target domain group's **Preferred Workspace**. See the FAQ below for details.
 
 1. Go to **Workspaces > Domains**.
 2. Select your domain.
@@ -95,7 +95,7 @@ If a member removes their domain email from their contact methods, they’ll no 
 
 ## Why can't I move a member to a domain group?
 
-You must be a Workspace Admin for the Preferred Workspace set on the target domain group. If you're not a Workspace Admin for that workspace, the move will be blocked. Contact a Workspace Admin for the relevant workspace to get admin access, or ask them to move the member for you.
+You must be a Workspace Admin for the **Preferred Workspace** set on the target domain group. If you're not a Workspace Admin for that workspace, the move will be blocked. Contact a Workspace Admin for the relevant workspace to get admin access, or ask them to move the member for you.
 
 ## Can Domain Admins be outside the company domain?
 
