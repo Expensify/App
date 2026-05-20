@@ -14,7 +14,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setCopyPolicySettingsData} from '@libs/actions/Policy/CopyPolicySettings';
 import type {Part} from '@libs/actions/Policy/CopyPolicySettings';
-import {areAllTargetsAccountingCompatible, isCopyPolicySettingsPartEnabledOnSource} from '@libs/CopyPolicySettingsUtils';
+import {areAllTargetsAccountingCompatible, FEATURE_ROWS, isCopyPolicySettingsPartEnabledOnSource} from '@libs/CopyPolicySettingsUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PolicyCopySettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -40,27 +40,6 @@ const ACCOUNTING_COMPATIBILITY_REQUIRED_PARTS = ['accounting', 'categories', 'ta
  * Selecting accounting also copies coding settings; these parts are auto-selected with accounting.
  */
 const ACCOUNTING_FORCE_ENABLED_PARTS = ['categories', 'tags', 'reports', 'taxes'] as const satisfies readonly Part[];
-
-type FeatureRow = {
-    part: Part;
-    labelKey: Parameters<ReturnType<typeof useLocalize>['translate']>[0];
-};
-
-const FEATURE_ROWS = [
-    {part: 'overview', labelKey: 'workspace.common.profile'},
-    {part: 'members', labelKey: 'workspace.common.members'},
-    {part: 'reports', labelKey: 'workspace.common.reports'},
-    {part: 'accounting', labelKey: 'workspace.common.accounting'},
-    {part: 'categories', labelKey: 'workspace.common.categories'},
-    {part: 'tags', labelKey: 'workspace.common.tags'},
-    {part: 'taxes', labelKey: 'workspace.common.taxes'},
-    {part: 'workflows', labelKey: 'workspace.common.workflows'},
-    {part: 'rules', labelKey: 'workspace.common.rules'},
-    {part: 'distanceRates', labelKey: 'workspace.common.distanceRates'},
-    {part: 'perDiem', labelKey: 'workspace.common.perDiem'},
-    {part: 'invoices', labelKey: 'workspace.common.invoices'},
-    {part: 'travel', labelKey: 'workspace.common.travel'},
-] as const satisfies readonly FeatureRow[];
 
 function CopyPolicySettingsSelectFeaturesPage() {
     const route = useRoute<PlatformStackRouteProp<PolicyCopySettingsNavigatorParamList, typeof SCREENS.POLICY_COPY_SETTINGS.SELECT_FEATURES>>();
