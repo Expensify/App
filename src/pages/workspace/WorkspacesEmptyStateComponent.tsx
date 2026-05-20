@@ -16,7 +16,6 @@ function WorkspacesEmptyStateComponent() {
 
     return (
         <GenericEmptyStateComponent
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...illustration}
             title={translate('workspace.emptyWorkspace.title')}
             subtitle={translate('workspace.emptyWorkspace.subtitle')}

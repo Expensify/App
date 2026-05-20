@@ -434,7 +434,7 @@ const ViolationsUtils = {
         if (customUnitRateID && customUnitRateID.length > 0 && !isSelfDM) {
             const isPerDiem = TransactionUtils.isPerDiemRequest(updatedTransaction);
             const customRate = isPerDiem ? getPerDiemRateCustomUnitRate(policy, customUnitRateID) : getDistanceRateCustomUnitRate(policy, customUnitRateID);
-            if (customRate) {
+            if (customRate && customRate.enabled !== false) {
                 newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
             } else {
                 newTransactionViolations.push({
@@ -716,6 +716,7 @@ const ViolationsUtils = {
             cardID,
             message = '',
             errorIndexes = [],
+            missingFields = [],
         } = violation.data ?? {};
 
         switch (violation.name) {
@@ -801,7 +802,7 @@ const ViolationsUtils = {
                 );
             }
             case 'smartscanFailed':
-                return translate('violations.smartscanFailed', {canEdit});
+                return translate('violations.smartscanFailed', {canEdit, missingFields});
             case 'someTagLevelsRequired':
                 return getTagViolationMessagesForMultiLevelTags(tagName, errorIndexes, tags ?? {}, translate);
             case 'tagOutOfPolicy':
