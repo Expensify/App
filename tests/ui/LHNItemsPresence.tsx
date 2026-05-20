@@ -298,8 +298,8 @@ describe('SidebarLinksData', () => {
 
             await waitForBatchedUpdatesWithAct();
 
-            // Then the RBR icon should be shown
-            expect(screen.getByTestId('RBR Icon', {includeHiddenElements: true})).toBeOnTheScreen();
+            // Then the Fix action badge should be shown (action badges replace the RBR dot)
+            expect(screen.getByText('Fix')).toBeOnTheScreen();
         });
 
         it('should display the GBR on the parent task when it has an open subtask', async () => {
