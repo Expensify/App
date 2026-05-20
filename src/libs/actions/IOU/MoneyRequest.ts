@@ -37,7 +37,7 @@ import {
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import {setTransactionReport} from '@userActions/Transaction';
 import {getRemoveDraftTransactionsByIDsData, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
-import type {IOUType} from '@src/CONST';
+import type {IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
@@ -66,12 +66,12 @@ import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {Comment, Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {GpsPoint, IOURequestType} from './index';
 import {getAllTransactionDrafts} from './index';
 import {createDistanceRequest, resetSplitShares, startSplitBill} from './Split';
 import {submitWithDismissFirst} from './submitWithDismissFirst';
 import type {WriteOverrides} from './submitWithDismissFirst';
 import {requestMoney, trackExpense} from './TrackExpense';
+import type {GPSPoint as GpsPoint} from './types/TrackExpenseTransactionParams';
 
 type CreateTransactionParams = {
     transactions: Transaction[];
