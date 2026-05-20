@@ -41,6 +41,7 @@ const mockSearchStateContext = {
     shouldUseLiveData: false,
     currentSimilarSearchHash: -1,
     suggestedSearches: {} as SearchStateContextValue['suggestedSearches'],
+    sortedReportIDs: [],
     hasSelectedTransactions: false,
 } satisfies SearchStateContextValue;
 
@@ -54,6 +55,7 @@ const mockSearchActionsContext = {
     setShouldShowSelectAllMatchingItems: jest.fn(),
     selectAllMatchingItems: jest.fn(),
     setShouldResetSearchQuery: jest.fn(),
+    setSortedReportIDs: jest.fn(),
 } satisfies SearchActionsContextValue;
 
 const createYearListItem = (year: number, options: Partial<TransactionYearGroupListItemType> = {}): TransactionYearGroupListItemType => ({

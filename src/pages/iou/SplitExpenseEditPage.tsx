@@ -23,7 +23,7 @@ import type {ViolationField} from '@hooks/useViolations';
 import {initDraftSplitExpenseDataForEdit, removeSplitExpenseField, updateSplitExpenseField} from '@libs/actions/IOU/SplitExpenseItems';
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
-import {getDecodedCategoryName, isCategoryDescriptionRequired, isCategoryMissing} from '@libs/CategoryUtils';
+import {getDecodedLeafCategoryName, isCategoryDescriptionRequired, isCategoryMissing} from '@libs/CategoryUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
@@ -311,7 +311,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                                 shouldShowRightIcon
                                 key={translate('common.category')}
                                 description={translate('common.category')}
-                                title={getDecodedCategoryName(splitExpenseDraftTransactionDetails?.category ?? '')}
+                                title={getDecodedLeafCategoryName(splitExpenseDraftTransactionDetails?.category ?? '')}
                                 numberOfLinesTitle={2}
                                 rightLabel={isCategoryRequired ? translate('common.required') : ''}
                                 onPress={() => {

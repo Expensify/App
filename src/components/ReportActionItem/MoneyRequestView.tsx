@@ -45,7 +45,7 @@ import {updateMoneyRequestBillable, updateMoneyRequestReimbursable, updateMoneyR
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {enrichAndSortAttendees, getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {getBrokenConnectionUrlToFixPersonalCard, getCompanyCardDescription} from '@libs/CardUtils';
-import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
+import {getDecodedLeafCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getRateFromMerchant} from '@libs/MergeTransactionUtils';
@@ -113,6 +113,7 @@ import {
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isScanning,
     isTimeRequest as isTimeRequestTransactionUtils,
+    isTransactionPendingDelete,
     shouldShowAttendees as shouldShowAttendeesTransactionUtils,
 } from '@libs/TransactionUtils';
 import {isInvalidMerchantValue} from '@libs/ValidationUtils';
@@ -193,7 +194,6 @@ function MoneyRequestView({
     let [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
     parentReport = parentReport ?? currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(parentReport?.reportID)}`);
-    const [grandParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReport?.parentReportID)}`);
 
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`);
     const parentReportAction = transactionThreadReport?.parentReportActionID ? parentReportActions?.[transactionThreadReport.parentReportActionID] : undefined;
@@ -253,6 +253,10 @@ function MoneyRequestView({
     const isP2PDistanceRequest = isCustomUnitRateIDForP2P(transaction);
     const moneyRequestReport = parentReport;
     const parentReportTransactions = useReportTransactions(moneyRequestReport?.reportID);
+    // Exclude transactions pending deletion so the report is recognized as single-expense immediately after deleting one of its expenses,
+    // instead of waiting for the optimistic delete to be removed from Onyx (https://github.com/Expensify/App/issues/91058).
+    // While offline the deleted expense is still rendered, so keep counting it to stay consistent with the visible transaction list.
+    const visibleParentReportTransactions = parentReportTransactions.filter((t) => isOffline || !isTransactionPendingDelete(t));
     const isApproved = isReportApproved({report: moneyRequestReport});
     const isInvoice = isInvoiceReport(moneyRequestReport);
     const isTrackExpense = !mergeTransactionID && isTrackExpenseReportNew(transactionThreadReport, moneyRequestReport, parentReportAction);
@@ -351,7 +355,7 @@ function MoneyRequestView({
     const isSplitAvailable =
         moneyRequestReport &&
         transaction &&
-        isSplitAction(moneyRequestReport, [transaction], originalTransaction, currentUserPersonalDetails.login ?? '', currentUserPersonalDetails.accountID, policy, grandParentReport);
+        isSplitAction(moneyRequestReport, [transaction], originalTransaction, currentUserPersonalDetails.login ?? '', currentUserPersonalDetails.accountID, policy);
 
     const canEditTaxFields = canEdit && !isDistanceRequest;
     const canEditAmount =
@@ -571,7 +575,7 @@ function MoneyRequestView({
         amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('common.converted')} ${convertToDisplayString(transactionConvertedAmount, moneyRequestReport?.currency)}`;
     }
     const isCurrentTransactionReimbursable = updatedTransaction?.reimbursable ?? !!transactionReimbursable;
-    if (!isCurrentTransactionReimbursable && isSingleTransactionReport(moneyRequestReport, parentReportTransactions)) {
+    if (!isCurrentTransactionReimbursable && isSingleTransactionReport(moneyRequestReport, visibleParentReportTransactions)) {
         amountDescription += ` ${CONST.DOT_SEPARATOR} ${Str.UCFirst(translate('iou.nonReimbursable'))}`;
     }
 
@@ -687,7 +691,7 @@ function MoneyRequestView({
     const merchantCopyValue = !canEditMerchant ? updatedMerchantTitle : undefined;
     const dateCopyValue = !canEditDate ? transactionDate : undefined;
     const categoryValue = updatedTransaction?.category ?? categoryForDisplay;
-    const decodedCategoryName = getDecodedCategoryName(categoryValue);
+    const decodedCategoryName = getDecodedLeafCategoryName(categoryValue);
     const categoryCopyValue = !canEdit ? decodedCategoryName : undefined;
     const cardCopyValue = cardProgramName;
     const taxRateValue = hasTaxValueChanged ? taxValue : (transaction?.taxName ?? taxRateTitle ?? fallbackTaxRateTitle ?? '');
@@ -948,7 +952,7 @@ function MoneyRequestView({
                             }
 
                             if (shouldShowSplitIndicator && isSplitAvailable) {
-                                initSplitExpense(transaction, policy, moneyRequestReport);
+                                initSplitExpense(transaction, policy);
                                 return;
                             }
 

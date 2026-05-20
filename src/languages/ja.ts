@@ -1001,8 +1001,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         freeTrialSection: {
             title: ({days}: {days: number}) => `無料トライアル：あと ${days} ${days === 1 ? '日' : '日数'} 日！`,
-            offer50Body: '初年度が50％オフになります！',
-            offer25Body: '初年度が25％オフになります！',
+            offer50Body: '初年度が50％オフになります',
+            offer25Body: '初年度が25％オフになります',
             addCardBody: '今すぐ追加しましょう！お支払い用カードを登録してください。',
             ctaClaim: '申請',
             ctaAdd: 'カードを追加',
@@ -2449,6 +2449,7 @@ const translations: TranslationDeepObject<typeof en> = {
             expiration: '有効期限',
             cvv: 'CVV',
             address: '住所',
+            reveal: '表示',
             revealDetails: '詳細を表示',
             revealCvv: 'CVV を表示',
             copyCardNumber: 'カード番号をコピー',
@@ -2571,9 +2572,10 @@ ${date} の ${merchant} への ${amount}`,
             approverSubtitle: 'すべての承認者は、既存のワークフローに属しています。',
             bulkApproverSubtitle: '選択されたレポートの条件に一致する承認者がいません。',
         },
-        configureViaGusto: 'Gusto で設定する。',
-        gustoApprovalWorkflowLockedPrompt: '承認はGusto連携によって管理されています。承認ワークフローを更新するには、Gusto接続設定に移動してください。',
-        goToGustoSettings: 'Gusto設定に移動',
+        configureViaHR: ({provider}: {provider: string}) => `${provider} で設定する。`,
+        hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
+            `承認は${provider}連携によって管理されています。承認ワークフローを更新するには、${provider}接続設定に移動してください。`,
+        goToHRSettings: ({provider}: {provider: string}) => `${provider}設定に移動`,
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: '提出頻度を変更できませんでした。もう一度お試しいただくか、サポートまでご連絡ください。',
@@ -4273,7 +4275,13 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                     case CONST.POLICY.ROLE.ADMIN:
                         return '管理者';
                     case CONST.POLICY.ROLE.AUDITOR:
-                        return '監査人';
+                        return '監査担当者';
+                    case CONST.POLICY.ROLE.CARD_ADMIN:
+                        return 'カード管理者';
+                    case CONST.POLICY.ROLE.PEOPLE_ADMIN:
+                        return 'メンバー管理';
+                    case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
+                        return '支払管理者';
                     case CONST.POLICY.ROLE.USER:
                         return 'メンバー';
                     default:
@@ -4304,11 +4312,14 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             budgetFrequency: {monthly: '毎月', yearly: '年次'},
             budgetFrequencyUnit: {monthly: '月', yearly: '年'},
             budgetTypeForNotificationMessage: {tag: 'タグ', category: 'カテゴリ'},
-            travelInvoicing: 'Expensify Travel 買掛金のエクスポート先',
+            travelInvoicing: '出張請求費用を次の形式でエクスポート',
             travelInvoicingVendor: '出張ベンダー',
             travelInvoicingPayableAccount: '旅費未払金勘定',
             hr: '人事',
             rooms: 'ルーム',
+            cardAdminAlternateText: 'ワークスペースカードを管理します。',
+            peopleAdminAlternateText: 'メンバーと承認ワークフローを管理します。',
+            paymentsAdminAlternateText: 'ワークフローの支払いを管理します。',
         },
         createdForClient: {
             title: 'クライアントのワークスペースを作成しました！',
@@ -4624,6 +4635,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             purchaseBill: '仕入請求書',
             exportDeepDiveCompanyCard: 'エクスポートされた経費は、以下のXero銀行口座に銀行取引として記帳され、取引日付は銀行取引明細書の日付と一致します。',
             bankTransactions: '銀行取引',
+            travelInvoicingDescription: '旅費は、以下で指定したXeroアカウントに銀行取引としてエクスポートされます。',
             xeroBankAccount: 'Xero 銀行口座',
             xeroBankAccountDescription: '経費を銀行取引として計上する先を選択してください。',
             exportExpensesDescription: 'レポートは、以下で選択された日付とステータスで仕入請求書としてエクスポートされます。',
@@ -5912,6 +5924,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 `元のワークスペースから ${totalMembers ?? 0} 人のメンバーと一緒に、${newWorkspaceName ?? ''} を作成して共有しようとしています。`,
             error: '新しいワークスペースの複製中にエラーが発生しました。もう一度お試しください。',
         },
+        copyPolicySettings: {error: 'ワークスペース設定のコピー中にエラーが発生しました。もう一度お試しください。'},
         emptyWorkspace: {
             title: 'ワークスペースがありません',
             subtitle: '領収書を管理し、経費を精算し、出張を管理し、請求書を送信するなど、さまざまなことができます。',
@@ -8487,7 +8500,15 @@ ${reportName}
             `<muted-text-label>銀行接続の不具合により領収書が保留されています。<a href="${workspaceCompanyCardRoute}">会社カード</a>で解決してください。</muted-text-label>`,
         memberBrokenConnectionError: '銀行連携の不具合により領収書が保留されています。ワークスペース管理者に対応を依頼してください。',
         markAsCashToIgnore: '現金としてマークして無視し、支払いをリクエストします。',
-        smartscanFailed: ({canEdit = true}) => `レシートのスキャンに失敗しました。${canEdit ? '詳細を手動で入力してください。' : ''}`,
+        smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
+            if (missingFields.length > 0) {
+                const fieldNames: Record<string, string> = {merchant: '加盟店', date: '日付', amount: '金額'};
+                const translated = missingFields.map((f) => fieldNames[f] ?? f);
+                const fieldList = translated.join('、');
+                return `レシートのスキャンに失敗しました — ${fieldList}が見つかりません。${canEdit ? '詳細を手動で入力してください。' : ''}`;
+            }
+            return `レシートのスキャンに失敗しました。${canEdit ? '詳細を手動で入力してください。' : ''}`;
+        },
         receiptGeneratedWithAI: 'AI生成の可能性があるレシート',
         someTagLevelsRequired: (tagName?: string) => `${tagName ?? 'タグ'} が見つかりません`,
         tagOutOfPolicy: (tagName?: string) => `${tagName ?? 'タグ'} は無効になりました`,
