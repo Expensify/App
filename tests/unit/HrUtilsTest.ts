@@ -9,7 +9,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 jest.mock('@libs/actions/connections/Gusto', () => jest.fn(() => 'https://gusto.example.com'));
 jest.mock('@libs/actions/connections/Zenefits', () => jest.fn(() => 'https://zenefits.example.com'));
-jest.mock('@libs/actions/connections/MergeHR', () => ({connectPolicyToMergeHR: jest.fn()}));
+jest.mock('@libs/actions/connections/MergeHR', () => ({__esModule: true, default: jest.fn(() => 'https://merge.example.com')}));
 jest.mock('@libs/actions/Link', () => ({openLink: jest.fn()}));
 jest.mock('@libs/PersonalDetailsUtils', () => ({
     getPersonalDetailByEmail: jest.fn(() => null),
@@ -183,6 +183,7 @@ describe('getHRCardState', () => {
     describe('Merge HR', () => {
         it('returns connected only for the matching slug', () => {
             const policy = makePolicy({
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 connections: {merge_hris: {config: {integration: 'bamboohr'}, data: {}, lastSync: {}}} as unknown as Policy['connections'],
             });
 
@@ -207,6 +208,7 @@ describe('getHRCardState', () => {
 
         it('returns connected for any slug when mergeSlug is not provided', () => {
             const policy = makePolicy({
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 connections: {merge_hris: {config: {integration: 'bamboohr'}, data: {}, lastSync: {}}} as unknown as Policy['connections'],
             });
             const state = getHRCardState({
@@ -220,6 +222,7 @@ describe('getHRCardState', () => {
 
         it('detects sync in progress with stage info', () => {
             const policy = makePolicy({
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 connections: {merge_hris: {config: {integration: 'bamboohr'}, data: {}, lastSync: {}}} as unknown as Policy['connections'],
             });
             const syncProgress = makeSyncProgress(MERGE_HR, CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.MERGE_HR_SYNC_TITLE);
@@ -236,6 +239,7 @@ describe('getHRCardState', () => {
 
         it('ignores sync progress for a different connection', () => {
             const policy = makePolicy({
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 connections: {merge_hris: {config: {integration: 'bamboohr'}, data: {}, lastSync: {}}} as unknown as Policy['connections'],
             });
             const syncProgress = makeSyncProgress(GUSTO, CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.GUSTO_SYNC_TITLE);
@@ -281,6 +285,7 @@ describe('getApprovalModeLabel', () => {
 
     it('returns basic label for Merge HR basic approval mode', () => {
         const policy = makePolicy({
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             connections: {merge_hris: {config: {approvalMode: CONST.MERGE_HR.APPROVAL_MODE.BASIC}}} as unknown as Policy['connections'],
         });
         expect(getApprovalModeLabel(policy, MERGE_HR, stubTranslate)).toBe('workspace.hr.approvalModes.basic.label');
@@ -309,10 +314,10 @@ describe('getHRCards', () => {
         const cards = getHRCards(makeGetHRCardsParams({isBetaEnabled}));
 
         expect(cards).toHaveLength(2);
-        expect(cards[0].key).toBe('gusto');
-        expect(cards[0].connectionName).toBe(GUSTO);
-        expect(cards[1].key).toBe('zenefits');
-        expect(cards[1].connectionName).toBe(ZENEFITS);
+        expect(cards?.at(0)?.key).toBe('gusto');
+        expect(cards?.at(0)?.connectionName).toBe(GUSTO);
+        expect(cards?.at(1)?.key).toBe('zenefits');
+        expect(cards?.at(1)?.connectionName).toBe(ZENEFITS);
     });
 
     it('returns all Merge HR provider cards when merge beta is enabled', () => {
@@ -330,16 +335,16 @@ describe('getHRCards', () => {
         const isBetaEnabled: GetHRCardsParams['isBetaEnabled'] = (beta) => beta === CONST.BETAS.GUSTO;
         const cards = getHRCards(makeGetHRCardsParams({isBetaEnabled}));
 
-        expect(cards[0].approvalModeRoute).toBe(ROUTES.WORKSPACE_HR_GUSTO_APPROVAL_MODE.getRoute(POLICY_ID));
-        expect(cards[0].finalApproverRoute).toBe(ROUTES.WORKSPACE_HR_GUSTO_FINAL_APPROVER.getRoute(POLICY_ID));
+        expect(cards?.at(0)?.approvalModeRoute).toBe(ROUTES.WORKSPACE_HR_GUSTO_APPROVAL_MODE.getRoute(POLICY_ID));
+        expect(cards?.at(0)?.finalApproverRoute).toBe(ROUTES.WORKSPACE_HR_GUSTO_FINAL_APPROVER.getRoute(POLICY_ID));
     });
 
     it('sets correct routes for Zenefits cards', () => {
         const isBetaEnabled: GetHRCardsParams['isBetaEnabled'] = (beta) => beta === CONST.BETAS.ZENEFITS;
         const cards = getHRCards(makeGetHRCardsParams({isBetaEnabled}));
 
-        expect(cards[0].approvalModeRoute).toBe(ROUTES.WORKSPACE_HR_ZENEFITS_APPROVAL_MODE.getRoute(POLICY_ID));
-        expect(cards[0].finalApproverRoute).toBe(ROUTES.WORKSPACE_HR_ZENEFITS_FINAL_APPROVER.getRoute(POLICY_ID));
+        expect(cards?.at(0)?.approvalModeRoute).toBe(ROUTES.WORKSPACE_HR_ZENEFITS_APPROVAL_MODE.getRoute(POLICY_ID));
+        expect(cards?.at(0)?.finalApproverRoute).toBe(ROUTES.WORKSPACE_HR_ZENEFITS_FINAL_APPROVER.getRoute(POLICY_ID));
     });
 
     it('sets correct routes for Merge HR cards', () => {
@@ -365,14 +370,15 @@ describe('getHRCards', () => {
         const isBetaEnabled: GetHRCardsParams['isBetaEnabled'] = (beta) => beta === CONST.BETAS.GUSTO;
         const cards = getHRCards(makeGetHRCardsParams({policy, isBetaEnabled}));
 
-        expect(cards[0].isConnected).toBe(true);
-        expect(cards[0].config).toBeDefined();
-        expect(cards[0].approvalModeLabel).toBe('workspace.hr.approvalModes.basic.label');
+        expect(cards?.at(0)?.isConnected).toBe(true);
+        expect(cards?.at(0)?.config).toBeDefined();
+        expect(cards?.at(0)?.approvalModeLabel).toBe('workspace.hr.approvalModes.basic.label');
     });
 
     it('marks only the matching Merge slug as connected', () => {
         const policy = makePolicy({
             connections: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 merge_hris: {
                     config: {integration: 'bamboohr', approvalMode: CONST.MERGE_HR.APPROVAL_MODE.MANAGER},
                     data: {},
@@ -401,6 +407,7 @@ describe('getHRCards', () => {
     it('connected Merge card gets lastSyncErrorMessage when sync has failed', () => {
         const policy = makePolicy({
             connections: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 merge_hris: {
                     config: {integration: 'bamboohr'},
                     data: {},
@@ -419,6 +426,7 @@ describe('getHRCards', () => {
     it('disconnected Merge cards do not inherit error state from the connection', () => {
         const policy = makePolicy({
             connections: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 merge_hris: {
                     config: {integration: 'bamboohr'},
                     data: {},
@@ -438,6 +446,7 @@ describe('getHRCards', () => {
     it('connected Merge card gets syncStageInProgress during sync', () => {
         const policy = makePolicy({
             connections: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 merge_hris: {
                     config: {integration: 'bamboohr'},
                     data: {},
@@ -467,8 +476,8 @@ describe('getHRCards', () => {
         const isBetaEnabled: GetHRCardsParams['isBetaEnabled'] = (beta) => beta === CONST.BETAS.GUSTO || beta === CONST.BETAS.ZENEFITS;
         const cards = getHRCards(makeGetHRCardsParams({gustoIcon, zenefitsIcon, isBetaEnabled}));
 
-        expect(cards[0].icon).toBe(gustoIcon);
-        expect(cards[1].icon).toBe(zenefitsIcon);
+        expect(cards?.at(0)?.icon).toBe(gustoIcon);
+        expect(cards?.at(1)?.icon).toBe(zenefitsIcon);
     });
 
     it('uses provider iconUrl for Merge cards', () => {
