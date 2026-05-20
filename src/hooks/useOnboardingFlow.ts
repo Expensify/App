@@ -82,8 +82,7 @@ function useOnboardingFlowRouter() {
                 const isMigratedUser = hasBeenAddedToNudgeMigration ?? false;
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 const isInvitedOrGroupMember = (!CONFIG.IS_HYBRID_APP && (hasNonPersonalPolicy || wasInvitedToNewDot)) ?? false;
-                // OD signup sets inviteType + creates a workspace, so invited/group members can still need NewDot onboarding.
-                if (isMigratedUser || (isInvitedOrGroupMember && isOnboardingCompleted)) {
+                if (isMigratedUser || isInvitedOrGroupMember) {
                     return;
                 }
 
