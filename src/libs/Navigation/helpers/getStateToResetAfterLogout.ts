@@ -13,7 +13,7 @@ function getStateToResetAfterLogout(rootState: NavigationState | undefined): Nav
         return undefined;
     }
 
-    // ValidateLogin's /v/ code is spent by logout; keeping it strands the user (#89545).
+    // ValidateLogin's /v/ code is spent by logout; keeping it strands the user.
     // Only this route is special-cased — others (e.g. TransitionBetweenApps) keep their
     // live auth params.
     const isConsumedMagicLink = lastRoute.name === SCREENS.VALIDATE_LOGIN;

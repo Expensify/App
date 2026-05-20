@@ -105,7 +105,7 @@ describe('ValidateLoginPage', () => {
         renderPage({accountID: '1', validateCode: '123456'});
         await waitForBatchedUpdatesWithAct();
 
-        // Protected routes have not mounted yet: navigating now is the exact race #89545 fixes,
+        // Protected routes have not mounted yet: navigating now is the exact race,
         // so navigate must NOT have been called. (This assertion fails for both the old
         // isNavigationReady().then(goBack) and an unguarded navigate.)
         expect(Navigation.navigate).not.toHaveBeenCalled();

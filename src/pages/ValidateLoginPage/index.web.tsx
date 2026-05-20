@@ -55,7 +55,7 @@ function ValidateLoginPage({
 
         if (isUserClickedSignIn) {
             // Just signed in via the magic link with no cached `login` (separate-session
-            // sign-in). goBack() left a blank page (#89545), so go Home: wait for protected
+            // sign-in). goBack() left a blank page, so go Home: wait for protected
             // routes (HOME mounts async) and forceReplace so Home doesn't stack on the
             // consumed `/v/...` route.
             Navigation.waitForProtectedRoutes().then(() => {
@@ -92,7 +92,7 @@ function ValidateLoginPage({
         });
     }, [login, cachedAccountID, is2FARequired, exitTo]);
 
-    // #89545: waitForProtectedRoutes()/authToken can hang (lazy AuthScreens chunk fails, token
+    // waitForProtectedRoutes()/authToken can hang (lazy AuthScreens chunk fails, token
     // never lands). We can't recover the consumed code here, but surface a stuck sign-in to
     // Sentry/Log instead of leaving an indefinitely silent spinner. Observability only — no
     // navigation/UX change. Cleared on unmount (successful redirect) or when the state changes.
