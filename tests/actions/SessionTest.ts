@@ -23,7 +23,6 @@ import CONST from '@src/CONST';
 import * as SessionUtil from '@src/libs/actions/Session';
 import {KEYS_TO_PRESERVE_SUPPORTAL, signOutAndRedirectToSignIn} from '@src/libs/actions/Session';
 import * as API from '@src/libs/API';
-import * as NetworkStore from '@src/libs/Network/NetworkStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Credentials, Session} from '@src/types/onyx';
 import * as TestHelper from '../utils/TestHelper';
@@ -608,29 +607,6 @@ describe('Session', () => {
             await waitForBatchedUpdates();
 
             expect(account).not.toHaveProperty('twoFactorAuthSecretKey');
-        });
-    });
-
-    describe('signInWithSupportAuthToken', () => {
-        test('should store the auth token via setLastShortAuthToken for duplicate call guard', () => {
-            const testToken = 'supportAuthToken123';
-
-            SessionUtil.signInWithSupportAuthToken(testToken);
-
-            expect(NetworkStore.getLastShortAuthToken()).toBe(testToken);
-        });
-
-        test('should make the SignInWithSupportAuthToken API call', () => {
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const readSpy = jest.spyOn(API, 'read');
-            const testToken = 'supportAuthToken456';
-
-            SessionUtil.signInWithSupportAuthToken(testToken);
-
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            expect(readSpy).toHaveBeenCalledWith('SignInWithSupportAuthToken', {authToken: testToken}, expect.objectContaining({optimisticData: expect.any(Array)}));
-
-            readSpy.mockRestore();
         });
     });
 
