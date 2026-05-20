@@ -4932,7 +4932,6 @@ const translations = {
             import: {
                 chartOfAccounts: 'Chart of accounts',
                 chartOfAccountsDescription: 'The chart of accounts is imported into Expensify as categories.',
-                syncTaxDescription: 'Import tax rates from Certinia. When enabled, the workspace-level Tax toggle is locked on.',
                 dimensionMapping: ({n}: {n: number}) => `Dimension ${n}`,
                 dimensions: {
                     dimension1: 'Dimension 1',

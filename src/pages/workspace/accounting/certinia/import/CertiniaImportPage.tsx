@@ -66,8 +66,6 @@ function CertiniaImportPage({policy}: WithPolicyConnectionsProps) {
             <ToggleSettingOptionRow
                 wrapperStyle={[styles.mv3, styles.ph5]}
                 title={translate('common.tax')}
-                subtitle={translate('workspace.certinia.import.syncTaxDescription')}
-                shouldPlaceSubtitleBelowSwitch
                 isActive={!!coding?.syncTax}
                 switchAccessibilityLabel={translate('common.tax')}
                 onToggle={(isEnabled: boolean) => {
