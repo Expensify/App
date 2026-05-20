@@ -468,28 +468,15 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.DYNAMIC_VERIFY_ACCOUNT]: DYNAMIC_ROUTES.VERIFY_ACCOUNT.path,
                         [SCREENS.SETTINGS.DYNAMIC_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT]: DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.path,
-                        [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: {
-                            path: ROUTES.SETTINGS_CONTACT_METHODS.route,
-                            exact: true,
-                        },
+                        [SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHODS]: DYNAMIC_ROUTES.CONTACT_METHODS.path,
                         [SCREENS.SETTINGS.PROFILE.AVATAR]: {
                             path: ROUTES.SETTINGS_AVATAR,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS]: {
-                            path: ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.route,
-                        },
-                        [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD]: {
-                            path: ROUTES.SETTINGS_NEW_CONTACT_METHOD.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE]: {
-                            path: ROUTES.SETTINGS_NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_SET_DEFAULT_CONFIRM]: {
-                            path: ROUTES.SETTINGS_CONTACT_METHOD_SET_DEFAULT_CONFIRM.route,
-                        },
+                        [SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHOD_DETAILS]: DYNAMIC_ROUTES.CONTACT_METHOD_DETAILS.path,
+                        [SCREENS.SETTINGS.PROFILE.DYNAMIC_NEW_CONTACT_METHOD]: DYNAMIC_ROUTES.NEW_CONTACT_METHOD.path,
+                        [SCREENS.SETTINGS.PROFILE.DYNAMIC_NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE]: DYNAMIC_ROUTES.NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE.path,
+                        [SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHOD_SET_DEFAULT_CONFIRM]: DYNAMIC_ROUTES.CONTACT_METHOD_SET_DEFAULT_CONFIRM.path,
                         [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_VERIFY_ACCOUNT]: {
                             path: ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.route,
                             exact: true,

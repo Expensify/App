@@ -285,7 +285,7 @@ function updateNewsletterSubscription(isSubscribed: boolean) {
  * @param contactMethod - the contact method being deleted
  * @param loginList
  */
-function deleteContactMethod(contactMethod: string, loginList: Record<string, Login>, backTo?: string) {
+function deleteContactMethod(contactMethod: string, loginList: Record<string, Login>) {
     const oldLoginData = loginList[contactMethod];
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.LOGIN_LIST>> = [
@@ -334,7 +334,7 @@ function deleteContactMethod(contactMethod: string, loginList: Record<string, Lo
     const parameters: DeleteContactMethodParams = {partnerUserID: contactMethod};
 
     API.write(WRITE_COMMANDS.DELETE_CONTACT_METHOD, parameters, {optimisticData, successData, failureData});
-    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+    Navigation.goBack();
 }
 
 /**
@@ -1120,7 +1120,6 @@ function setContactMethodAsDefault(
     currentUserPersonalDetails: CurrentUserPersonalDetails,
     newDefaultContactMethod: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    backTo: string | undefined,
     skipNavigation: boolean,
     validateCode: string,
 ) {
@@ -1209,7 +1208,7 @@ function setContactMethodAsDefault(
         failureData,
     });
     if (!skipNavigation) {
-        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+        Navigation.goBack();
     }
 }
 

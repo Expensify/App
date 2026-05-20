@@ -18,6 +18,7 @@ import Text from '@components/Text';
 import ValidateCodeActionForm from '@components/ValidateCodeActionForm';
 import type {ValidateCodeFormHandle} from '@components/ValidateCodeActionModal/ValidateCodeForm/BaseValidateCodeForm';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -36,13 +37,14 @@ import {
 import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getEarliestErrorField, getLatestErrorField} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {close} from '@userActions/Modal';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Login} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -50,7 +52,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import KeyboardUtils from '@src/utils/keyboard';
 import getDecodedContactMethodFromUriParam from './utils';
 
-type ContactMethodDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS>;
+type ContactMethodDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHOD_DETAILS>;
 
 function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const [loginList, loginListResult] = useOnyx(ONYXKEYS.LOGIN_LIST);
@@ -70,12 +72,12 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Star', 'Trashcan']);
 
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
-    const backTo = route.params.backTo;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.CONTACT_METHOD_DETAILS.path);
 
     /**
      * Gets the current contact method from the route params
      */
-    const contactMethod: string = useMemo(() => getDecodedContactMethodFromUriParam(route.params.contactMethod), [route.params.contactMethod]);
+    const contactMethod: string = useMemo(() => getDecodedContactMethodFromUriParam(route.params?.contactMethod ?? ''), [route.params?.contactMethod]);
 
     const loginDataRef = useRef<Login | undefined>(undefined);
     const loginData = useMemo(() => {
@@ -91,8 +93,8 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
      * Navigate to the magic code verification page before setting contact method as default
      */
     const navigateToSetDefaultConfirm = useCallback(() => {
-        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_SET_DEFAULT_CONFIRM.getRoute(contactMethod, backTo));
-    }, [contactMethod, backTo]);
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHOD_SET_DEFAULT_CONFIRM.getRoute(contactMethod)));
+    }, [contactMethod]);
 
     /**
      * Determines whether the user's primary login switching is restricted
@@ -150,13 +152,13 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         if (isFocused) {
             // Navigate to methods page on successful magic code verification.
             // The validatedDate property indicates successful magic code verification.
-            Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+            Navigation.goBack(backPath, {compareParams: false});
         } else {
             // Set flag to navigate when screen regains focus
             setShouldNavigateOnFocus(true);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps -- Omitting `isFocused` since we don't want this effect to on focus transitions
-    }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod, backTo]);
+    }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod, backPath]);
 
     // Handle navigation when screen regains focus and flag is set
     useEffect(() => {
@@ -164,9 +166,9 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
             return;
         }
         setShouldNavigateOnFocus(false);
-        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+        Navigation.goBack(backPath, {compareParams: false});
         // eslint-disable-next-line react-hooks/exhaustive-deps -- Only fire on focus transitions
-    }, [isFocused]);
+    }, [isFocused, backPath]);
 
     useEffect(() => {
         setIsValidateCodeFormVisible(!loginData?.validatedDate);
@@ -205,7 +207,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                 return;
             }
 
-            deleteContactMethod(contactMethod, loginList ?? {}, backTo);
+            deleteContactMethod(contactMethod, loginList ?? {});
         };
 
         if (canUseTouchScreen()) {
@@ -218,7 +220,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         }
 
         openDeleteModal();
-    }, [contactMethod, loginList, backTo, showRemoveContactMethodModal]);
+    }, [contactMethod, loginList, showRemoveContactMethodModal]);
 
     const getThreeDotsMenuItems = useCallback(() => {
         const menuItems = [];
@@ -248,8 +250,8 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                 <FullPageNotFoundView
                     shouldShow
                     linkTranslationKey="contacts.goBackContactMethods"
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo))}
-                    onLinkPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo))}
+                    onBackButtonPress={() => Navigation.goBack(backPath, {compareParams: false})}
+                    onLinkPress={() => Navigation.goBack(backPath, {compareParams: false})}
                 />
             </ScreenWrapper>
         );
@@ -343,7 +345,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
             <HeaderWithBackButton
                 title={formattedContactMethod}
                 threeDotsMenuItems={getThreeDotsMenuItems()}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo))}
+                onBackButtonPress={() => Navigation.goBack(backPath, {compareParams: false})}
                 shouldShowThreeDotsButton={getThreeDotsMenuItems().length > 0}
                 shouldOverlayDots
                 onThreeDotsButtonPress={() => {
@@ -365,7 +367,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                         onDismiss={() => {
                             clearContactMethod([contactMethod]);
                             clearUnvalidatedNewContactMethodAction();
-                            Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+                            Navigation.goBack(backPath, {compareParams: false});
                         }}
                     />
                 )}

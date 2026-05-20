@@ -25,7 +25,7 @@ import {openOldDotLink} from '@userActions/Link';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -67,7 +67,13 @@ function MergeResultPage() {
                 heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
                 descriptionComponent: (
                     <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
-                        <RenderHTML html={translate('mergeAccountsPage.mergeFailureUncreatedAccountDescription', login, `${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.route}`)} />
+                        <RenderHTML
+                            html={translate(
+                                'mergeAccountsPage.mergeFailureUncreatedAccountDescription',
+                                login,
+                                `${environmentURL}/${ROUTES.SETTINGS_PROFILE.route}/${DYNAMIC_ROUTES.CONTACT_METHODS.path}`,
+                            )}
+                        />
                     </View>
                 ),
                 onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),

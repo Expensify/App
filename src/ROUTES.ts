@@ -375,6 +375,30 @@ const DYNAMIC_ROUTES = {
         getRoute: (state = '', label = '') => getUrlWithParams('submit/state', {state, label}),
         queryParams: ['state', 'label'],
     },
+    CONTACT_METHODS: {
+        path: 'contact-methods',
+        entryScreens: [SCREENS.SETTINGS.PROFILE.ROOT, SCREENS.I_AM_A_TEACHER],
+    },
+    NEW_CONTACT_METHOD: {
+        path: 'new',
+        entryScreens: [SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHODS],
+    },
+    NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE: {
+        path: 'new/confirm-magic-code',
+        entryScreens: [SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHODS],
+    },
+    CONTACT_METHOD_DETAILS: {
+        path: ':contactMethod/details',
+        entryScreens: [SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHODS],
+        getRoute: (contactMethod: string, shouldSkipInitialValidation?: boolean) =>
+            getUrlWithParams(`${encodeURIComponent(contactMethod)}/details`, shouldSkipInitialValidation ? {shouldSkipInitialValidation: 'true'} : {}),
+        queryParams: ['shouldSkipInitialValidation'],
+    },
+    CONTACT_METHOD_SET_DEFAULT_CONFIRM: {
+        path: ':contactMethod/set-default/confirm',
+        entryScreens: [SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHOD_DETAILS],
+        getRoute: (contactMethod: string) => `${encodeURIComponent(contactMethod)}/set-default/confirm` as const,
+    },
     SETTINGS_CATEGORY_EDIT: {
         path: 'category-edit',
         entryScreens: [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS],
@@ -1132,41 +1156,6 @@ const ROUTES = {
     SETTINGS_DATE_OF_BIRTH: 'settings/profile/date-of-birth',
     SETTINGS_PHONE_NUMBER: 'settings/profile/phone',
     SETTINGS_ADDRESS: 'settings/profile/address',
-    SETTINGS_CONTACT_METHODS: {
-        route: 'settings/profile/contact-methods',
-
-        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile/contact-methods', backTo),
-    },
-    SETTINGS_CONTACT_METHOD_DETAILS: {
-        route: 'settings/profile/contact-methods/:contactMethod/details',
-        getRoute: (contactMethod: string, backTo?: string, shouldSkipInitialValidation?: boolean) => {
-            const encodedMethod = encodeURIComponent(contactMethod);
-
-            return getUrlWithBackToParam(`settings/profile/contact-methods/${encodedMethod}/details${shouldSkipInitialValidation ? `?shouldSkipInitialValidation=true` : ``}`, backTo);
-        },
-    },
-    SETTINGS_NEW_CONTACT_METHOD: {
-        route: 'settings/profile/contact-methods/new',
-
-        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile/contact-methods/new', backTo),
-    },
-    SETTINGS_NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE: {
-        route: 'settings/profile/contact-methods/new/confirm-magic-code',
-        getRoute: (backTo?: string) => {
-            // TODO this backTo comes from drilling it through settings screens
-            // should be removed once https://github.com/Expensify/App/pull/72219 is resolved
-
-            return getUrlWithBackToParam(`settings/profile/contact-methods/new/confirm-magic-code`, backTo);
-        },
-    },
-    SETTINGS_CONTACT_METHOD_SET_DEFAULT_CONFIRM: {
-        route: 'settings/profile/contact-methods/:contactMethod/set-default/confirm',
-        getRoute: (contactMethod: string, backTo?: string) => {
-            const encodedMethod = encodeURIComponent(contactMethod);
-
-            return getUrlWithBackToParam(`settings/profile/contact-methods/${encodedMethod}/set-default/confirm`, backTo);
-        },
-    },
     SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT: {
         route: 'settings/profile/contact-methods/verify',
         getRoute: (backTo?: string, forwardTo?: string) =>

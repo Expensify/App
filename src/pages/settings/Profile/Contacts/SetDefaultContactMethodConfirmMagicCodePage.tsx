@@ -1,27 +1,37 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {clearContactMethodErrors, requestValidateCodeAction, resetValidateActionCodeSent, setContactMethodAsDefault} from '@libs/actions/User';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import findMatchingDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/findMatchingDynamicSuffix';
+import getPathWithoutDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/getPathWithoutDynamicSuffix';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getContactMethod} from '@libs/UserUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import getDecodedContactMethodFromUriParam from './utils';
 
-type SetDefaultContactMethodConfirmMagicCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_SET_DEFAULT_CONFIRM>;
+type SetDefaultContactMethodConfirmMagicCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHOD_SET_DEFAULT_CONFIRM>;
 
 function SetDefaultContactMethodConfirmMagicCodePage({route}: SetDefaultContactMethodConfirmMagicCodePageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
-    const backTo = route.params?.backTo;
-    const contactMethod = getDecodedContactMethodFromUriParam(route.params.contactMethod);
+    const contactMethod = getDecodedContactMethodFromUriParam(route.params?.contactMethod ?? '');
+    const backToDetailsPath = useDynamicBackPath(DYNAMIC_ROUTES.CONTACT_METHOD_SET_DEFAULT_CONFIRM.path);
+    const backToContactMethodsPath = useMemo(() => {
+        const match = findMatchingDynamicSuffix(backToDetailsPath);
+        if (match?.pattern === DYNAMIC_ROUTES.CONTACT_METHOD_DETAILS.path) {
+            return getPathWithoutDynamicSuffix(backToDetailsPath, match.actualSuffix, match.pattern);
+        }
+        return backToDetailsPath;
+    }, [backToDetailsPath]);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
@@ -39,8 +49,8 @@ function SetDefaultContactMethodConfirmMagicCodePage({route}: SetDefaultContactM
         }
 
         resetValidateActionCodeSent();
-        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
-    }, [session?.email, contactMethod, loginData?.pendingFields?.defaultLogin, backTo]);
+        Navigation.goBack(backToContactMethodsPath, {compareParams: false});
+    }, [session?.email, contactMethod, loginData?.pendingFields?.defaultLogin, backToContactMethodsPath]);
 
     useEffect(() => {
         return () => {
@@ -54,8 +64,8 @@ function SetDefaultContactMethodConfirmMagicCodePage({route}: SetDefaultContactM
                 <FullPageNotFoundView
                     shouldShow
                     linkTranslationKey="contacts.goBackContactMethods"
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo))}
-                    onLinkPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo))}
+                    onBackButtonPress={() => Navigation.goBack(backToContactMethodsPath, {compareParams: false})}
+                    onLinkPress={() => Navigation.goBack(backToContactMethodsPath, {compareParams: false})}
                 />
             </ScreenWrapper>
         );
@@ -68,14 +78,14 @@ function SetDefaultContactMethodConfirmMagicCodePage({route}: SetDefaultContactM
             descriptionPrimary={translate('contacts.enterMagicCode', primaryContactMethod)}
             validateCodeActionErrorField="defaultLogin"
             validateError={defaultLoginError}
-            handleSubmitForm={(validateCode) => setContactMethodAsDefault(currentUserPersonalDetails, contactMethod, formatPhoneNumber, backTo, true, validateCode)}
+            handleSubmitForm={(validateCode) => setContactMethodAsDefault(currentUserPersonalDetails, contactMethod, formatPhoneNumber, true, validateCode)}
             isLoading={!!loginData?.pendingFields?.defaultLogin}
             clearError={() => {
                 clearContactMethodErrors(contactMethod, 'defaultLogin');
             }}
             onClose={() => {
                 resetValidateActionCodeSent();
-                Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(contactMethod, backTo));
+                Navigation.goBack(backToDetailsPath, {compareParams: false});
             }}
         />
     );

@@ -27,6 +27,7 @@ import useScrollEnabled from '@hooks/useScrollEnabled';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -39,6 +40,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -84,6 +86,7 @@ function ProfilePage() {
         description: string;
         title: string;
         pageRoute?: Route;
+        onPress?: () => void;
         brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
         testID?: string;
         sentryLabel?: string;
@@ -100,7 +103,7 @@ function ProfilePage() {
                 .map((login) => login?.menuItemTitle)
                 .filter(Boolean)
                 .join(', '),
-            pageRoute: isAgentAccount ? undefined : ROUTES.SETTINGS_CONTACT_METHODS.route,
+            onPress: isAgentAccount ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path)),
             brickRoadIndicator: isAgentAccount ? undefined : contactMethodBrickRoadIndicator,
             testID: isAgentAccount ? undefined : 'contact-method-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.CONTACT_METHODS,
@@ -260,17 +263,18 @@ function ProfilePage() {
                                 )}
                             </View>
                             {publicOptions.map((detail, index) => {
-                                const {pageRoute} = detail;
+                                const {pageRoute, onPress} = detail;
+                                const menuOnPress = onPress ?? (pageRoute ? () => Navigation.navigate(pageRoute) : undefined);
                                 return (
                                     <MenuItemWithTopDescription
                                         // eslint-disable-next-line react/no-array-index-key
                                         key={`${detail.title}_${index}`}
-                                        interactive={!!pageRoute}
-                                        shouldShowRightIcon={!!pageRoute}
+                                        interactive={!!menuOnPress}
+                                        shouldShowRightIcon={!!menuOnPress}
                                         title={detail.title}
                                         description={detail.description}
                                         wrapperStyle={styles.sectionMenuItemTopDescription}
-                                        onPress={pageRoute ? () => Navigation.navigate(pageRoute) : undefined}
+                                        onPress={menuOnPress}
                                         brickRoadIndicator={detail.brickRoadIndicator}
                                         pressableTestID={detail?.testID}
                                         sentryLabel={detail.sentryLabel}
