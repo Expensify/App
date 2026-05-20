@@ -829,7 +829,7 @@ function hasConfiguredRules(policy: OnyxEntry<Policy>): boolean {
         return false;
     }
 
-    if (!!policy.customRules && policy.customRules.trim().length > 0) {
+    if (!!policy.customRules && String(policy.customRules).trim().length > 0) {
         return true;
     }
 

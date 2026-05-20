@@ -33,7 +33,7 @@ function RulesCustomPage({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [customRulesValue, setCustomRulesValue] = useState(() => Parser.htmlToMarkdown(policy?.customRules ?? ''));
+    const [customRulesValue, setCustomRulesValue] = useState(() => Parser.htmlToMarkdown(String(policy?.customRules ?? '')));
 
     const onChangeCustomRules = useCallback((newValue: string) => {
         setCustomRulesValue(newValue);
@@ -57,7 +57,7 @@ function RulesCustomPage({
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.RULES_CUSTOM_FORM}
                     onSubmit={({customRules}) => {
-                        updateCustomRules(policyID, customRules, policy?.customRules);
+                        updateCustomRules(policyID, customRules, policy?.customRules !== undefined ? String(policy.customRules) : undefined);
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     submitButtonText={translate('workspace.editor.save')}
