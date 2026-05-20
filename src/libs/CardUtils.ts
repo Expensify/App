@@ -480,7 +480,7 @@ function getEligibleBankAccountsForUkEuCard(bankAccountsList: OnyxEntry<BankAcco
 }
 
 function getCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, policyMembersAccountIDs: number[]): Card[] {
-    const {cardList, ...cards} = cardsList ?? {};
+    const {cardList, cardListByEncrypted, ...cards} = cardsList ?? {};
     return Object.values(cards).filter((card: Card) => card.accountID && policyMembersAccountIDs.includes(card.accountID));
 }
 
@@ -1584,7 +1584,7 @@ function isCardAlreadyAssigned(cardNumberToCheck: string, workspaceCardFeeds: On
             return false;
         }
 
-        const {cardList, ...assignedCards} = workspaceCards;
+        const {cardList, cardListByEncrypted: _cardListByEncrypted2, ...assignedCards} = workspaceCards;
         return Object.values(assignedCards).some(
             (card) => card && card.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isMatchingCard(card, cardNumberToCheck, cardNumberToCheck),
         );

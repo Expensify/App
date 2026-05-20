@@ -68,7 +68,7 @@ function getCardIDsWithSpendRules(cardRules: Record<string, ExpensifyCardRule> |
 }
 
 function getEligibleCards(cardsList: OnyxEntry<WorkspaceCardsList>, expensifyCardSettings: ExpensifyCardSettings, currentRuleID?: string) {
-    const {cardList, ...cards} = cardsList ?? {};
+    const {cardList, cardListByEncrypted, ...cards} = cardsList ?? {};
     const cardIDsWithSpendRules = getCardIDsWithSpendRules(expensifyCardSettings?.cardRules, currentRuleID);
     return Object.values(cards).filter((card: Card) => !cardIDsWithSpendRules.has(card.cardID));
 }
@@ -82,7 +82,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
-    const {cardList, ...allCards} = cardsList ?? {};
+    const {cardList, cardListByEncrypted, ...allCards} = cardsList ?? {};
     const hasAnyCards = Object.keys(allCards).length > 0;
 
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);

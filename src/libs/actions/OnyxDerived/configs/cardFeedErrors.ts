@@ -171,7 +171,7 @@ export default createOnyxDerivedValueConfig({
                 continue;
             }
 
-            const {cardList, ...filteredCards} = filterInactiveCards(workspaceCardFeedCards);
+            const {cardList, cardListByEncrypted, ...filteredCards} = filterInactiveCards(workspaceCardFeedCards);
             for (const card of Object.values(filteredCards)) {
                 addErrorsForCard(card);
             }
