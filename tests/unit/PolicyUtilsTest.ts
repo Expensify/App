@@ -17,6 +17,7 @@ import {
     getEligibleBankAccountShareRecipients,
     getExpensifyTeamExclusions,
     getManagerAccountID,
+    getNonWorkspaceMemberExclusions,
     getPolicyEmployeeAccountIDs,
     getRateDisplayValue,
     getSubmitToAccountID,
@@ -2679,6 +2680,62 @@ describe('PolicyUtils', () => {
         it('returns empty when shouldExclude flag is false even if other inputs are valid', () => {
             const details = buildPersonalDetails(['am@expensify.com', customerLogin]);
             expect(getExpensifyTeamExclusions(details, customerLogin, false)).toEqual({});
+        });
+    });
+
+    describe('getNonWorkspaceMemberExclusions', () => {
+        const currentUserLogin = 'me@acme.com';
+        const buildPersonalDetails = (logins: string[]): PersonalDetailsList => {
+            const result: PersonalDetailsList = {};
+            for (const [index, login] of logins.entries()) {
+                const accountID = index + 1;
+                result[accountID] = {accountID, login};
+            }
+            return result;
+        };
+        const buildPolicies = (employeeLogins: string[][]): OnyxCollection<Policy> => {
+            const result: OnyxCollection<Policy> = {};
+            employeeLogins.forEach((logins, index) => {
+                const employeeList: PolicyEmployeeList = {};
+                for (const login of logins) {
+                    employeeList[login] = {email: login};
+                }
+                result[`policy_${index + 1}`] = {id: `${index + 1}`, employeeList} as Policy;
+            });
+            return result;
+        };
+
+        it('returns empty record when both policies and personalDetails are empty', () => {
+            expect(getNonWorkspaceMemberExclusions({}, {}, currentUserLogin)).toEqual({});
+        });
+
+        it('excludes personalDetails entries that are not in any policy employeeList', () => {
+            const details = buildPersonalDetails(['outsider@other.com', 'member@acme.com']);
+            const policies = buildPolicies([['member@acme.com']]);
+            expect(getNonWorkspaceMemberExclusions(details, policies, currentUserLogin)).toEqual({'outsider@other.com': true});
+        });
+
+        it('does not exclude entries that are in some policy employeeList', () => {
+            const details = buildPersonalDetails(['member1@acme.com', 'member2@acme.com']);
+            const policies = buildPolicies([['member1@acme.com'], ['member2@acme.com']]);
+            expect(getNonWorkspaceMemberExclusions(details, policies, currentUserLogin)).toEqual({});
+        });
+
+        it('does not exclude the current user login even when not in any policy', () => {
+            const details = buildPersonalDetails([currentUserLogin, 'outsider@other.com']);
+            const policies = buildPolicies([['member@acme.com']]);
+            expect(getNonWorkspaceMemberExclusions(details, policies, currentUserLogin)).toEqual({'outsider@other.com': true});
+        });
+
+        it('handles undefined personalDetails and policies gracefully', () => {
+            expect(getNonWorkspaceMemberExclusions(undefined, undefined, currentUserLogin)).toEqual({});
+            expect(getNonWorkspaceMemberExclusions(null as unknown as OnyxEntry<PersonalDetailsList>, null as unknown as OnyxCollection<Policy>, currentUserLogin)).toEqual({});
+        });
+
+        it('lowercases comparison keys when matching personalDetails to employeeList', () => {
+            const details = buildPersonalDetails(['Member@Acme.com', 'Outsider@Other.com']);
+            const policies = buildPolicies([['member@acme.com']]);
+            expect(getNonWorkspaceMemberExclusions(details, policies, currentUserLogin)).toEqual({'outsider@other.com': true});
         });
     });
 });
