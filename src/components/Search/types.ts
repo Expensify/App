@@ -191,7 +191,6 @@ type SearchStateContextValue = SearchContextData & {
     shouldUseLiveData: boolean;
     shouldShowFiltersBarLoading: boolean;
     lastSearchType: string | undefined;
-    shouldShowSelectAllMatchingItems: boolean;
     areAllMatchingItemsSelected: boolean;
 };
 
@@ -210,7 +209,6 @@ type SearchActionsContextValue = {
     removeTransaction: (transactionID: string | undefined) => void;
     setShouldShowFiltersBarLoading: (shouldShow: boolean) => void;
     setLastSearchType: (type: string | undefined) => void;
-    setShouldShowSelectAllMatchingItems: (shouldShow: boolean) => void;
     selectAllMatchingItems: (on: boolean) => void;
     setShouldResetSearchQuery: (shouldReset: boolean) => void;
     setSortedReportIDs: (ids: ReadonlyArray<string | undefined>) => void;

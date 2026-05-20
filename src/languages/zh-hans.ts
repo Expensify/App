@@ -7738,6 +7738,7 @@ ${reportName}
         exportAll: {
             selectAllMatchingItems: '选择所有匹配的项目',
             allMatchingItemsSelected: '已选择所有匹配的项目',
+            selectAllOnThisPage: '选择此页面上的所有项目',
         },
         errors: {
             pleaseSelectDatesForBothFromAndTo: '请选择起始和结束日期',
