@@ -1296,6 +1296,7 @@ function getReportOrDraftReport(
 ): OnyxEntry<Report> {
     const searchReport = searchReports?.find((searchItem) => searchItem?.reportID === reportID);
     const onyxReport = report ?? deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    // TODO: Remove shouldSkipDraft and deprecatedAllReportsDraft fallback once all callers are migrated (https://github.com/Expensify/App/issues/66414).
     const shouldSkipDraft = reportDraft !== undefined && isEmptyObject(reportDraft);
     const resolvedDraft = shouldSkipDraft ? undefined : ((reportDraft as OnyxEntry<Report>) ?? deprecatedAllReportsDraft?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`]);
     return searchReport ?? onyxReport ?? resolvedDraft ?? fallbackReport;
