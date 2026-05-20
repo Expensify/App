@@ -143,7 +143,15 @@ function IOURequestStepDistanceMap({
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
 
-    const setDistanceRequestData = useDistanceRequestData({policy, personalPolicy, transaction, customUnitRateID, transactionID, isSplitRequest});
+    const setDistanceRequestData = useDistanceRequestData({
+        policy,
+        personalPolicy,
+        transaction,
+        customUnitRateID,
+        transactionID,
+        isSplitRequest,
+        currentUserAccountID: currentUserAccountIDParam,
+    });
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
@@ -222,6 +230,7 @@ function IOURequestStepDistanceMap({
 
     const navigateToNextStep = useDistanceNavigation({
         iouType,
+        action,
         report,
         policy,
         transaction,

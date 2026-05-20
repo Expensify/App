@@ -3,6 +3,7 @@ import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpe
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
+import CONST from '@src/CONST';
 import type {Report, ReportAction} from '@src/types/onyx';
 
 jest.mock('@libs/Navigation/helpers/cleanupAfterExpenseCreate', () => jest.fn());
@@ -27,6 +28,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
         const linkedTrackedExpenseReportAction = {childReportID: 'child-1'} as OnyxEntry<ReportAction>;
 
         cleanupAndNavigateAfterExpenseCreate({
+            action: CONST.IOU.ACTION.CREATE,
             report: chatReport,
             draftTransactionIDs: ['txn-1'],
             transactionID: 'txn-1',
@@ -44,6 +46,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
 
     it('should resolve activeReportID to backToReport when provided', () => {
         cleanupAndNavigateAfterExpenseCreate({
+            action: CONST.IOU.ACTION.CREATE,
             report: expenseReport,
             draftTransactionIDs: [],
             transactionID: 'txn-1',
@@ -61,6 +64,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
 
     it('should resolve activeReportID to report.reportID when report is an expense report', () => {
         cleanupAndNavigateAfterExpenseCreate({
+            action: CONST.IOU.ACTION.CREATE,
             report: expenseReport,
             draftTransactionIDs: [],
             transactionID: 'txn-1',
@@ -76,6 +80,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
 
     it('should resolve activeReportID to report.reportID for a regular (non-expense) chat report', () => {
         cleanupAndNavigateAfterExpenseCreate({
+            action: CONST.IOU.ACTION.CREATE,
             report: chatReport,
             draftTransactionIDs: [],
             transactionID: 'txn-1',
@@ -91,6 +96,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
 
     it('should fall back to optimisticChatReportID when report is undefined', () => {
         cleanupAndNavigateAfterExpenseCreate({
+            action: CONST.IOU.ACTION.CREATE,
             report: undefined,
             draftTransactionIDs: [],
             transactionID: 'txn-1',
@@ -111,6 +117,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
         (getReportOrDraftReport as jest.Mock).mockReturnValue(resolvedFinalReport);
 
         cleanupAndNavigateAfterExpenseCreate({
+            action: CONST.IOU.ACTION.CREATE,
             report: expenseReport,
             draftTransactionIDs: [],
             transactionID: 'txn-1',
@@ -130,6 +137,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
         (getReportOrDraftReport as jest.Mock).mockReturnValue(chatReport);
 
         cleanupAndNavigateAfterExpenseCreate({
+            action: CONST.IOU.ACTION.CREATE,
             report: chatReport,
             draftTransactionIDs: [],
             transactionID: 'txn-1',
@@ -146,6 +154,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
 
     it('should pass isInvoice, isFromGlobalCreate, and transactionID through to navigateAfterExpenseCreate', () => {
         cleanupAndNavigateAfterExpenseCreate({
+            action: CONST.IOU.ACTION.CREATE,
             report: chatReport,
             draftTransactionIDs: [],
             transactionID: 'txn-42',
@@ -159,6 +168,61 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
             isFromGlobalCreate: true,
             isInvoice: true,
             hasMultipleTransactions: false,
+            shouldAddPendingNewTransactionIDs: true,
+        });
+    });
+
+    describe('shouldAddPendingNewTransactionIDs derivation', () => {
+        it('should always be true for CATEGORIZE (move-from-track to a workspace), even with a backToReport diversion', () => {
+            cleanupAndNavigateAfterExpenseCreate({
+                action: CONST.IOU.ACTION.CATEGORIZE,
+                report: chatReport,
+                draftTransactionIDs: [],
+                transactionID: 'txn-1',
+                isFromGlobalCreate: false,
+                backToReport: 'somewhere-else',
+            });
+
+            expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({shouldAddPendingNewTransactionIDs: true}));
+        });
+
+        it('should always be true for SHARE', () => {
+            cleanupAndNavigateAfterExpenseCreate({
+                action: CONST.IOU.ACTION.SHARE,
+                report: chatReport,
+                draftTransactionIDs: [],
+                transactionID: 'txn-1',
+                isFromGlobalCreate: false,
+            });
+
+            expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({shouldAddPendingNewTransactionIDs: true}));
+        });
+
+        it('should be false for CREATE when backToReport diverts navigation away from the receiving chat', () => {
+            cleanupAndNavigateAfterExpenseCreate({
+                action: CONST.IOU.ACTION.CREATE,
+                report: chatReport,
+                draftTransactionIDs: [],
+                transactionID: 'txn-1',
+                isFromGlobalCreate: false,
+                backToReport: 'somewhere-else',
+            });
+
+            expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({shouldAddPendingNewTransactionIDs: false}));
+        });
+
+        it('should be false for CREATE when navigation lands on a money-request (expense) report instead of the chat', () => {
+            (isMoneyRequestReport as jest.Mock).mockReturnValue(true);
+
+            cleanupAndNavigateAfterExpenseCreate({
+                action: CONST.IOU.ACTION.CREATE,
+                report: expenseReport,
+                draftTransactionIDs: [],
+                transactionID: 'txn-1',
+                isFromGlobalCreate: false,
+            });
+
+            expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({shouldAddPendingNewTransactionIDs: false}));
         });
     });
 });

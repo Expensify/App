@@ -8,7 +8,7 @@ import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpe
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import {getIsFromGlobalCreate} from '@libs/TransactionUtils';
-import type {IOUType} from '@src/CONST';
+import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import type {Beta, IntroSelected, PersonalDetailsList, Policy, RecentWaypoint, Report, Transaction} from '@src/types/onyx';
@@ -19,6 +19,9 @@ import type {WaypointCollection} from '@src/types/onyx/Transaction';
 type UseDistanceNavigationParams = {
     /** Type of IOU flow (request, split, track, etc.). */
     iouType: IOUType;
+
+    /** IOU action (CREATE / SUBMIT / CATEGORIZE / SHARE) — forwarded to cleanup helpers. */
+    action: IOUAction;
 
     /** The chat/expense report that owns this transaction. */
     report: OnyxEntry<Report>;
@@ -95,6 +98,7 @@ type UseDistanceNavigationParams = {
 
 function useDistanceNavigation({
     iouType,
+    action,
     report,
     policy,
     transaction,
@@ -174,6 +178,7 @@ function useDistanceNavigation({
                 if (shouldHandleNav) {
                     cleanupAndNavigateAfterExpenseCreate({
                         report,
+                        action,
                         draftTransactionIDs,
                         transactionID: lastTransactionID,
                         isFromGlobalCreate: getIsFromGlobalCreate(transaction),

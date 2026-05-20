@@ -1,6 +1,8 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
+import CONST from '@src/CONST';
 import type {Report, ReportAction} from '@src/types/onyx';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import cleanupAfterExpenseCreate from './cleanupAfterExpenseCreate';
 import navigateAfterExpenseCreate from './navigateAfterExpenseCreate';
 
@@ -13,6 +15,7 @@ type CleanupAndNavigateAfterExpenseCreateParams = {
     optimisticChatReportID?: string;
     isInvoice?: boolean;
     linkedTrackedExpenseReportAction?: OnyxEntry<ReportAction>;
+    action: DeepValueOf<typeof CONST.IOU.ACTION>;
 };
 
 function cleanupAndNavigateAfterExpenseCreate({
@@ -24,17 +27,25 @@ function cleanupAndNavigateAfterExpenseCreate({
     optimisticChatReportID,
     isInvoice,
     linkedTrackedExpenseReportAction,
+    action,
 }: CleanupAndNavigateAfterExpenseCreateParams) {
     cleanupAfterExpenseCreate({draftTransactionIDs, linkedTrackedExpenseReportAction});
 
     const finalActiveReportID = backToReport ?? report?.reportID ?? optimisticChatReportID;
+    const finalActiveReport = finalActiveReportID === report?.reportID ? report : getReportOrDraftReport(finalActiveReportID);
+    const hasMultipleTransactions = isMoneyRequestReport(finalActiveReport);
+    // CATEGORIZE/SHARE always notify the receiving workspace; plain submit only when navigation lands on the chat
+    // (no backToReport diversion, not the money-request report itself).
+    const shouldAddPendingNewTransactionIDs =
+        action === CONST.IOU.ACTION.CATEGORIZE || action === CONST.IOU.ACTION.SHARE ? true : !backToReport && !!finalActiveReport && !hasMultipleTransactions;
 
     navigateAfterExpenseCreate({
         activeReportID: finalActiveReportID,
         transactionID,
         isFromGlobalCreate,
         isInvoice,
-        hasMultipleTransactions: isMoneyRequestReport(getReportOrDraftReport(finalActiveReportID)),
+        hasMultipleTransactions,
+        shouldAddPendingNewTransactionIDs,
     });
 }
 

@@ -157,6 +157,7 @@ function useReceiptScan({
                 if (shouldHandleNav) {
                     cleanupAndNavigateAfterExpenseCreate({
                         report,
+                        action,
                         draftTransactionIDs,
                         transactionID: lastTransactionID ?? initialTransactionID,
                         isFromGlobalCreate: getIsFromGlobalCreate(initialTransaction),

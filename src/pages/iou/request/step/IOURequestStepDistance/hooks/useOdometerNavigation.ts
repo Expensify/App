@@ -8,7 +8,7 @@ import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpe
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import {getIsFromGlobalCreate} from '@libs/TransactionUtils';
-import type {IOUType} from '@src/CONST';
+import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import type {Beta, IntroSelected, OdometerDraft, PersonalDetailsList, Policy, RecentWaypoint, Report, Transaction} from '@src/types/onyx';
@@ -18,6 +18,9 @@ import type {Unit} from '@src/types/onyx/Policy';
 type UseOdometerNavigationParams = {
     /** Type of IOU flow (request, split, track, etc.). */
     iouType: IOUType;
+
+    /** IOU action (CREATE / SUBMIT / CATEGORIZE / SHARE) — forwarded to cleanup helpers. */
+    action: IOUAction;
 
     /** The chat/expense report that owns this transaction. */
     report: OnyxEntry<Report>;
@@ -105,6 +108,7 @@ type NavigateOptions = {
 
 function useOdometerNavigation({
     iouType,
+    action,
     report,
     policy,
     transaction,
@@ -186,6 +190,7 @@ function useOdometerNavigation({
                 if (shouldHandleNav) {
                     cleanupAndNavigateAfterExpenseCreate({
                         report,
+                        action,
                         draftTransactionIDs,
                         transactionID: lastTransactionID,
                         isFromGlobalCreate: getIsFromGlobalCreate(transaction),

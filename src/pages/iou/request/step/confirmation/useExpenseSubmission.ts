@@ -288,6 +288,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         });
         cleanupAndNavigateAfterExpenseCreate({
             report: resolvedReport,
+            action,
             draftTransactionIDs,
             transactionID: lastOptimisticTransactionID,
             isFromGlobalCreate: getIsFromGlobalCreate(lastTransaction),
@@ -539,9 +540,10 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             if (shouldHandleNav && result && activeReportID) {
                 navigateAfterExpenseCreate({
                     activeReportID,
-                    transactionID: transaction.transactionID,
+                    transactionID: result.transactionID,
                     isFromGlobalCreate: transaction.isFromFloatingActionButton ?? transaction.isFromGlobalCreate,
                     hasMultipleTransactions: reportTransactions.length > 0,
+                    shouldAddPendingNewTransactionIDs: activeReportID === chatReportID,
                 });
             }
         }

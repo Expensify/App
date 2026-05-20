@@ -253,6 +253,7 @@ function IOURequestStepDistanceManual({
                 if (shouldHandleNav) {
                     cleanupAndNavigateAfterExpenseCreate({
                         report,
+                        action,
                         draftTransactionIDs,
                         transactionID: lastTransactionID,
                         isFromGlobalCreate: getIsFromGlobalCreate(transaction),

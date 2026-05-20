@@ -485,8 +485,10 @@ describe('useReceiptScan', () => {
             await act(async () => {
                 result.current.navigateToConfirmationStep(files, false, false);
             });
-            const [capturedParams] = mockHandleMoneyRequestStepScanParticipants.mock.calls.at(0) as [{onTransactionsCreated: (id?: string) => void}];
-            act(() => capturedParams.onTransactionsCreated(INITIAL_TRANSACTION_ID));
+            const [capturedParams] = mockHandleMoneyRequestStepScanParticipants.mock.calls.at(0) as [
+                {onTransactionsCreated: (lastTransactionID: string | undefined, optimisticChatReportID: string | undefined, shouldHandleNav: boolean) => void},
+            ];
+            act(() => capturedParams.onTransactionsCreated(INITIAL_TRANSACTION_ID, undefined, true));
             expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledWith(
                 expect.objectContaining({
                     isFromGlobalCreate: true,

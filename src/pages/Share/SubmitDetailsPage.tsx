@@ -300,6 +300,7 @@ function SubmitDetailsPage({
         }
         cleanupAndNavigateAfterExpenseCreate({
             report: isSelfDM(report) ? report : reportToSubmit,
+            action: CONST.IOU.ACTION.CREATE,
             draftTransactionIDs,
             transactionID: transaction.transactionID,
             isFromGlobalCreate: getIsFromGlobalCreate(transaction),
