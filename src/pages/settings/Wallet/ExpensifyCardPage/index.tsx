@@ -41,6 +41,7 @@ import {
     getDomainCards,
     getTranslationKeyForLimitType,
     isCardFrozen,
+    isOfflinePINMarket,
     isTravelCard,
     maskCard,
     maskPin,
@@ -94,6 +95,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const {cardID} = route.params;
     const {convertToDisplayString} = useCurrencyListActions();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
     const cardList = useNonPersonalCardList();
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${cardList?.[cardID]?.fundID}`);
     const styles = useThemeStyles();
@@ -150,8 +152,9 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
 
     const currency = getCardCurrency(currentCard, cardSettings);
     const shouldShowPIN = currency !== CONST.CURRENCY.USD;
-    const canChangePIN = supportsPINManagementFeatures(currentPhysicalCard) && currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
-    const canRevealPIN = canChangePIN && revealedPIN === undefined;
+    const shouldShowChangePINRow = supportsPINManagementFeatures(currentPhysicalCard) && currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
+    const canRevealPIN = shouldShowChangePINRow && revealedPIN === undefined;
+    const isCardPINBlocked = !!currentPhysicalCard?.nameValuePairs?.isPINBlocked;
     const formattedAvailableSpendAmount = convertToDisplayString(currentCard?.availableSpend, currency);
     const {limitTitleKey} = getLimitTypeTranslationKeys(currentCard?.nameValuePairs?.limitType);
     const currentCardLimitTypeTranslationKey = getTranslationKeyForLimitType(currentCard?.nameValuePairs?.limitType);
@@ -362,6 +365,23 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                             </CardDetailsActionButtons>
                         )}
                         <View style={styles.mt3}>
+                            {shouldShowChangePINRow && isCardPINBlocked && (
+                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.ph5, styles.mb5]}>
+                                    <DotIndicatorMessage
+                                        style={[styles.flex1, styles.mr3]}
+                                        messages={{error: translate('cardPage.pinBlocked')}}
+                                        type="error"
+                                    />
+                                    <Button
+                                        danger
+                                        text={translate('cardPage.unblock')}
+                                        onPress={() => {
+                                            Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN.getRoute(String(currentPhysicalCard?.cardID)));
+                                        }}
+                                        small
+                                    />
+                                </View>
+                            )}
                             <MenuItemWithTopDescription
                                 description={translate('cardPage.availableSpend')}
                                 title={formattedAvailableSpendAmount}
@@ -411,14 +431,14 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                             }
                                         />
                                     )}
-                                    {canChangePIN && (
+                                    {shouldShowChangePINRow && (
                                         <MenuItem
                                             title={translate('cardPage.changePin')}
                                             icon={expensifyIcons.Key}
                                             shouldShowRightIcon
                                             onPress={() => {
                                                 const physicalCardID = String(currentPhysicalCard?.cardID);
-                                                if (currentPhysicalCard?.isOfflinePINMarket) {
+                                                if (isOfflinePINMarket(countryByIp)) {
                                                     Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN_ATM.getRoute(physicalCardID));
                                                 } else {
                                                     Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN.getRoute(physicalCardID));
@@ -478,6 +498,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                             }}
                                                             isDisabled={isCardDetailsLoading[card.cardID] || isOffline}
                                                             isLoading={isCardDetailsLoading[card.cardID]}
+                                                            small
                                                         />
                                                     ) : undefined
                                                 }
