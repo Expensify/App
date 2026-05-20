@@ -65,8 +65,9 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getAllPersonalDetails, getAllReportActionsFromIOU, getAllReportNameValuePairs, getAllReports, getCurrentUserPersonalDetails, getUserAccountID} from './index';
-import type {ReplaceReceipt, StartSplitBilActionParams} from './index';
+import type {ReplaceReceipt} from './Receipt';
 import {getSearchOnyxUpdate} from './SearchUpdate';
+import type {StartSplitBilActionParams} from './Split';
 import type BasePolicyParams from './types/BasePolicyParams';
 import type BaseTransactionParams from './types/BaseTransactionParams';
 import type {CreateTrackExpenseParams} from './types/CreateTrackExpenseParams';
@@ -166,11 +167,13 @@ type RequestMoneyInformation = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     existingTransactionDraft: OnyxEntry<OnyxTypes.Transaction>;
+    existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     draftTransactionIDs: string[] | undefined;
     isSelfTourViewed: boolean;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     shouldDeferAutoSubmit?: boolean;
+    shouldDeferForSearch?: boolean;
 };
 
 type MoneyRequestInformationParams = {

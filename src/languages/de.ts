@@ -1027,8 +1027,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         freeTrialSection: {
             title: ({days}: {days: number}) => `Kostenlose Testversion: Noch ${days} ${days === 1 ? 'Tag' : 'Tage'}!`,
-            offer50Body: 'Sparen Sie 50 % im ersten Jahr!',
-            offer25Body: 'Erhalten Sie 25 % Rabatt auf Ihr erstes Jahr!',
+            offer50Body: 'Sparen Sie 50 % im ersten Jahr',
+            offer25Body: 'Erhalten Sie 25 % Rabatt auf Ihr erstes Jahr',
             addCardBody: 'Warten Sie nicht! Fügen Sie jetzt Ihre Zahlungskarte hinzu.',
             ctaClaim: 'Anspruch',
             ctaAdd: 'Karte hinzufügen',
@@ -2475,6 +2475,7 @@ const translations: TranslationDeepObject<typeof en> = {
             expiration: 'Ablauf',
             cvv: 'CVV',
             address: 'Adresse',
+            reveal: 'Anzeigen',
             revealDetails: 'Details anzeigen',
             revealCvv: 'CVV anzeigen',
             copyCardNumber: 'Kartennummer kopieren',
@@ -2601,10 +2602,10 @@ ${amount} für ${merchant} – ${date}`,
             approverSubtitle: 'Alle Genehmigenden gehören zu einem bestehenden Workflow.',
             bulkApproverSubtitle: 'Keine Genehmigenden entsprechen den Kriterien für die ausgewählten Berichte.',
         },
-        configureViaGusto: 'Über Gusto konfigurieren.',
-        gustoApprovalWorkflowLockedPrompt:
-            'Genehmigungen werden über deine Gusto-Integration verwaltet. Um deinen Genehmigungsworkflow zu aktualisieren, gehe zu deinen Gusto-Verbindungseinstellungen.',
-        goToGustoSettings: 'Zu den Gusto-Einstellungen gehen',
+        configureViaHR: ({provider}: {provider: string}) => `Über ${provider} konfigurieren.`,
+        hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
+            `Genehmigungen werden über deine ${provider}-Integration verwaltet. Um deinen Genehmigungsworkflow zu aktualisieren, gehe zu deinen ${provider}-Verbindungseinstellungen.`,
+        goToHRSettings: ({provider}: {provider: string}) => `Zu den ${provider}-Einstellungen gehen`,
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: 'Sendehäufigkeit konnte nicht geändert werden. Bitte versuche es erneut oder kontaktiere den Support.',
@@ -2745,9 +2746,10 @@ ${amount} für ${merchant} – ${date}`,
         emptyAgents: {title: 'Keine Agenten erstellt', subtitle: 'Hör auf, Dinge manuell zu erledigen. Weise stattdessen eine:n Agent:in an und spare dir eine Menge Zeit.'},
         error: {
             genericAdd: 'Beim Hinzufügen dieses Agenten ist ein Problem aufgetreten',
-            genericUpdate: 'Beim Aktualisieren dieses Agents ist ein Problem aufgetreten',
-            updateName: 'Beim Aktualisieren des Namens dieses Agents ist ein Problem aufgetreten',
+            genericUpdate: 'Beim Aktualisieren dieses Agenten ist ein Problem aufgetreten',
+            updateName: 'Beim Aktualisieren des Namens dieser Vertretung ist ein Problem aufgetreten',
             updatePrompt: 'Beim Aktualisieren der Anweisungen dieses Agenten ist ein Problem aufgetreten',
+            updateAvatar: 'Beim Aktualisieren des Avatars dieser Vertretung ist ein Problem aufgetreten',
         },
     },
     addAgentPage: {
@@ -2755,21 +2757,22 @@ ${amount} für ${merchant} – ${date}`,
         agentName: 'Name der Ansprechperson',
         instructions: 'Eigene Anweisungen schreiben',
         createAgent: 'Agent erstellen',
-        switchAvatar: 'Profilbild wechseln',
+        editAvatar: 'Profilbild wechseln',
         defaultAgentName: (displayName: string) => `Agent*in von ${displayName}`,
         defaultPrompt:
             'Lehne Ausgaben ab, die für Glücksspiele, Kinobesuche oder andere offensichtlich nicht geschäftliche Zwecke sind.\n\nErinnere den:die Nutzer:in daran, immer ein Belegfoto beizufügen, auf dem das Trinkgeld klar erkennbar ist.\n\nGenehmige den Bericht, wenn er früheren Berichten derselben Person sehr ähnlich ist.\n\nLehne Berichte mit mehr als 500 $ an Reisekosten ab.',
     },
     editAgentPage: {
         title: 'Agent bearbeiten',
-        agentName: 'Agentenname',
+        agentName: 'Name der Agentin/des Agenten',
         instructions: 'Eigene Anweisungen schreiben',
         deleteAgent: 'Agent löschen',
         deleteAgentTitle: 'Agent löschen?',
-        deleteAgentMessage: 'Sind Sie sicher, dass Sie diese Ansprechperson löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.',
+        deleteAgentMessage: 'Sind Sie sicher, dass Sie diese Vermittlerin/diesen Vermittler löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.',
     },
-    editAgentNamePage: {title: 'Agentenname'},
-    editAgentPromptPage: {title: 'Eigene Anweisungen schreiben', error: {emptyPrompt: 'Bitte gib Anweisungen für deine Agentin/deinen Agenten ein.'}},
+    editAgentAvatarPage: {title: 'Avatar bearbeiten'},
+    editAgentNamePage: {title: 'Name der Agentin/des Agenten'},
+    editAgentPromptPage: {title: 'Eigene Anweisungen schreiben', error: {emptyPrompt: 'Bitte geben Sie Anweisungen für Ihre:n Agent:in ein.'}},
     expenseRulesPage: {
         title: 'Ausgabenregeln',
         findRule: 'Regel finden',
@@ -3305,7 +3308,6 @@ ${amount} für ${merchant} – ${date}`,
         enterPhoneNumber: 'Wie lautet deine Telefonnummer?',
         personalDetails: 'Persönliche Angaben',
         privateDataMessage: 'Diese Angaben werden für Reisen und Zahlungen verwendet. Sie werden niemals in deinem öffentlichen Profil angezeigt.',
-        basicDetails: 'Grundlegende Angaben',
         legalName: 'Rechtlicher Name',
         legalFirstName: 'Rechtlicher Vorname',
         legalLastName: 'Rechtlicher Nachname',
@@ -4320,6 +4322,12 @@ ${amount} für ${merchant} – ${date}`,
                         return 'Admin';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Prüfer';
+                    case CONST.POLICY.ROLE.CARD_ADMIN:
+                        return 'Kartenverwaltung';
+                    case CONST.POLICY.ROLE.PEOPLE_ADMIN:
+                        return 'Personenverwaltung';
+                    case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
+                        return 'Zahlungsadministrator';
                     case CONST.POLICY.ROLE.USER:
                         return 'Mitglied';
                     default:
@@ -4350,10 +4358,14 @@ ${amount} für ${merchant} – ${date}`,
             budgetFrequencyUnit: {monthly: 'Monat', yearly: 'Jahr'},
             budgetTypeForNotificationMessage: {tag: 'Tag', category: 'Kategorie'},
             deepDiveExpensifyCard: `<muted-text-label>Transaktionen der Expensify Karte werden automatisch in ein „Expensify Karte Verbindlichkeitskonto” exportiert, das mit <a href=”${CONST.DEEP_DIVE_EXPENSIFY_CARD}”>unserer Integration</a> erstellt wird.</muted-text-label>`,
-            travelInvoicing: 'Expensify Travel-Verbindlichkeiten exportieren nach',
+            travelInvoicing: 'Reiseabrechnungskosten exportieren als',
             travelInvoicingVendor: 'Reiseanbieter',
             travelInvoicingPayableAccount: 'Reiseverbindlichkeitskonto',
             hr: 'Personalwesen',
+            rooms: 'Räume',
+            cardAdminAlternateText: 'Arbeitsbereichskarten verwalten.',
+            peopleAdminAlternateText: 'Mitglieder und Genehmigungsabläufe verwalten.',
+            paymentsAdminAlternateText: 'Workflow-Zahlungen verwalten.',
         },
         createdForClient: {
             title: 'Du hast einen Workspace für deinen Kunden erstellt!',
@@ -4680,6 +4692,7 @@ ${amount} für ${merchant} – ${date}`,
             exportDeepDiveCompanyCard:
                 'Exportierte Ausgaben werden als Banktransaktionen auf das unten angegebene Xero-Bankkonto gebucht, und die Buchungsdaten entsprechen den Daten auf Ihrem Kontoauszug.',
             bankTransactions: 'Banktransaktionen',
+            travelInvoicingDescription: 'Reisekosten werden als Banktransaktionen auf das unten angegebene Xero-Konto exportiert.',
             xeroBankAccount: 'Xero-Bankkonto',
             xeroBankAccountDescription: 'Wählen Sie, wo Spesen als Banktransaktionen verbucht werden.',
             exportExpensesDescription: 'Berichte werden als Einkaufsrechnung mit dem unten ausgewählten Datum und Status exportiert.',
@@ -5573,8 +5586,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                         subtitle: 'Glückwunsch! Du kannst jetzt in diesem Workspace Reisen buchen und verwalten.',
                         manageTravelLabel: 'Reisen verwalten',
                     },
-                    centralInvoicingSection: {
-                        title: 'Zentrale Rechnungsstellung',
+                    travelInvoicingSection: {
+                        title: 'Reiseabrechnung',
                         subtitle: 'Zentralisiere alle Reisekosten in einer monatlichen Rechnung, statt sie direkt beim Kauf zu bezahlen.',
                         learnHow: 'Mehr erfahren.',
                         subsections: {
@@ -5591,7 +5604,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                             reduceLimitWarning:
                                 'Wenn Sie das Limit reduzieren, können Mitglieder, die diesen Betrag bereits überschritten haben, bis zum nächsten Monat keine neuen Reisebuchungen vornehmen.',
                             provisioningError:
-                                'Wir konnten einige Mitglieder Ihres Arbeitsbereichs nicht für die zentrale Rechnungsstellung einrichten. Bitte versuchen Sie es später erneut oder wenden Sie sich für Unterstützung an Concierge.',
+                                'Wir konnten einige Mitglieder Ihres Workspace nicht für die Reiseabrechnung einrichten. Bitte versuchen Sie es später erneut oder wenden Sie sich für Unterstützung an Concierge.',
                         },
                     },
                     disableModal: {
@@ -5612,7 +5625,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     exportToCSV: 'Als CSV exportieren',
                     selectDateRangeError: 'Bitte wählen Sie einen Datumsbereich für den Export aus',
                     invalidDateRangeError: 'Das Startdatum muss vor dem Enddatum liegen',
-                    enabled: 'Zentrale Rechnungsstellung aktiviert!',
+                    enabled: 'Rechnungsstellung für Reisen aktiviert!',
                     enabledDescription: 'Alle Reisekosten in diesem Workspace werden nun in einer monatlichen Rechnung zentralisiert.',
                 },
                 personalDetailsDescription: 'Um eine Reise zu buchen, gib bitte deinen amtlichen Namen genau so ein, wie er auf deinem amtlichen Ausweis steht.',
@@ -5774,7 +5787,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 subtitle: 'Legen Sie einen abrechnungsfähigen Stundensatz für die Zeiterfassung fest.',
                 defaultHourlyRate: 'Standardstundensatz',
             },
-            hrWarningModal: {disconnectText: 'Um HR zu deaktivieren, trenne bitte zuerst die Verbindung von Gusto mit diesem Workspace.'},
+            hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Um HR zu deaktivieren, trennen Sie bitte zuerst ${integration} von diesem Workspace.`},
         },
         reports: {
             reportsCustomTitleExamples: 'Beispiele:',
@@ -5989,6 +6002,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 `Sie sind dabei, ${newWorkspaceName ?? ''} mit ${totalMembers ?? 0} Mitgliedern aus dem ursprünglichen Workspace zu erstellen und zu teilen.`,
             error: 'Beim Duplizieren deines neuen Workspace ist ein Fehler aufgetreten. Bitte versuche es erneut.',
         },
+        copyPolicySettings: {error: 'Beim Kopieren der Arbeitsbereichseinstellungen ist ein Fehler aufgetreten. Bitte versuche es erneut.'},
         emptyWorkspace: {
             title: 'Du hast keine Arbeitsbereiche',
             subtitle: 'Belege erfassen, Auslagen erstatten, Reisen verwalten, Rechnungen versenden und mehr.',
@@ -6383,7 +6397,11 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 chooseBankAccount: 'Wählen Sie das Bankkonto aus, mit dem Ihre Zahlungen mit der Expensify Karte abgeglichen werden.',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `Stellen Sie sicher, dass dieses Konto mit Ihrem <a href="${settlementAccountUrl}">Expensify Karte-Abrechnungskonto</a> (endend auf ${lastFourPAN}) übereinstimmt, damit die fortlaufende Abstimmung richtig funktioniert.`,
+                chooseTravelInvoicingBankAccount: 'Wählen Sie das Bankkonto aus, mit dem Ihre Zahlungen aus der Reiseabrechnung abgeglichen werden.',
+                travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
+                    `Stellen Sie sicher, dass dieses Konto mit Ihrem Abrechnungskonto für Reiseabrechnungen (endet auf ${lastFourPAN}) übereinstimmt, damit die kontinuierliche Abstimmung ordnungsgemäß funktioniert.`,
             },
+            syncTravelInvoicingSettlements: 'Reiseabrechnungs­abgleiche synchronisieren',
         },
         export: {
             notReadyHeading: 'Nicht bereit zum Export',
@@ -6724,6 +6742,58 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>HR-Integrationen sind nur im Control-Tarif verfügbar, ab <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
             },
+            approvalSubmit: {
+                title: 'Genehmigungen',
+                description: 'Konfigurieren Sie zentral, an wen alle Mitglieder einreichen, indem Sie Genehmigungen aktivieren.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Genehmigungen sind in den Collect- und Control-Tarifen verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
+            },
+            companyCardSubmit: {
+                title: 'Firmenkarten',
+                description: `Bringe deine eigene Firmenkarte zu Expensify, um automatische Importe, automatische Kategorisierung, anpassbare Regeln und integrierte Abstimmung zu erhalten.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Der Import von Firmenkreditkarten ist in den Collect- und Control-Tarifen verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
+            },
+            travelSubmit: {
+                title: 'Expensify Travel',
+                description: 'Buche weltweit vergünstigte Flüge, Hotels, Autos und Züge direkt in Expensify – mit Duty-of-Care-Berichten und integrierter Spesenverwaltung.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Expensify Travel ist in den Collect- und Control-Tarifen verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
+            },
+            roles: {
+                title: 'Rollen',
+                description: 'Weise verschiedenen Mitgliedern unterschiedliche Rollen zu, um Sichtbarkeit und Kontrolle bei Bedarf zu erhöhen oder zu verringern.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Rollen sind in den Collect- und Control-Tarifen verfügbar, beginnend ab <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
+            },
+            payments: {
+                title: 'Zahlungen',
+                description: 'Erstatte Mitarbeitenden direkt von deinem Geschäftskonto.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Zahlungen sind in den Collect- und Control-Tarifen verfügbar, ab <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
+            },
+            accounting: {
+                title: 'Buchhaltung',
+                description:
+                    'Synchronisiere Kategorien, Tags, Steuersätze und mehr aus deinem Buchhaltungssystem mit Expensify und exportiere Spesenberichte sowie Kartentransaktionen – ganz ohne Tippen (oder Tippfehler)!',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Buchhaltung ist in den Tarifen Collect und Control verfügbar, ab <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
+            },
+            expensifyCard: {
+                title: 'Expensify Card',
+                description:
+                    'Gib Firmenkarten (einschließlich virtueller Karten) direkt von deinem eigenen Bankkonto aus, um in Echtzeit die Ausgaben zu kontrollieren – mit einer untrennbaren Verbindung und bis zu 2 % Cashback!',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Die Expensify Card ist in den Collect- und Control-Tarifen verfügbar, ab <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
+                upgradeButton: 'Upgrade durchführen und aktivieren',
+            },
+            invoicing: {
+                title: 'Rechnungsstellung',
+                description:
+                    'Erstelle, versende und verfolge professionelle Rechnungen – alles in Expensify. Erhalte dein Geld schneller mit integrierten Zahlungen und vollständiger Transparenz in Echtzeit.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Die Rechnungsstellung ist in den Collect- und Control-Tarifen verfügbar, beginnend ab <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -7050,8 +7120,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     description: 'Für Mitarbeiter, die Ausgaben bei ihrem Arbeitgeber einreichen möchten.',
                 },
             },
-            description: 'Wähle ein passendes Abo für dich. Eine detaillierte Liste der Funktionen und Preise findest du in unserem',
-            subscriptionLink: 'Hilfeseite zu Plantypen und Preisen',
+            description: 'Wählen Sie das passende Abo für Sie.',
+            subscriptionLink: 'Mehr erfahren',
             lockedPlanDescription: ({count, annualSubscriptionEndDate}: WorkspaceLockedPlanTypeParams) => ({
                 one: `Sie haben sich bis zum Ende Ihres Jahresabonnements am ${annualSubscriptionEndDate} zu 1 aktivem Mitglied im Control-Tarif verpflichtet. Sie können ab dem ${annualSubscriptionEndDate} zu einem nutzungsbasierten Abonnement wechseln und in den Collect-Tarif herabstufen, indem Sie die automatische Verlängerung in`,
                 other: `Sie haben sich bis zum Ende Ihres Jahresabonnements am ${annualSubscriptionEndDate} zu ${count} aktiven Mitgliedern im Control-Tarif verpflichtet. Ab dem ${annualSubscriptionEndDate} können Sie durch Deaktivieren der automatischen Verlängerung in ein nutzungsabhängiges Abonnement wechseln und auf den Collect-Tarif herabstufen in`,
@@ -7065,11 +7135,17 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
                     case 'gustoSyncTitle':
-                        return 'Synchronizing Gusto Employees';
+                        return 'Gusto-Mitarbeitende werden synchronisiert';
                     case 'gustoSyncLoadData':
-                        return 'Loading data from Gusto';
+                        return 'Daten werden von Gusto geladen';
                     case 'gustoSyncProvisioning':
-                        return 'Provisioning employees in policy';
+                        return 'Mitarbeiterbereitstellung in Richtlinie';
+                    case 'zenefitsSyncTitle':
+                        return 'TriNet-Mitarbeitende werden synchronisiert';
+                    case 'zenefitsSyncLoadData':
+                        return 'Lade Daten von TriNet';
+                    case 'zenefitsSyncProvisioning':
+                        return 'Mitarbeiterbereitstellung in Richtlinie';
                     case 'jobDone':
                         return 'Warten auf das Laden der importierten Daten';
                     default: {
@@ -7100,6 +7176,45 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 syncError: 'Verbindung zu Gusto nicht möglich',
                 disconnectTitle: 'Gusto trennen',
                 disconnectPrompt: 'Bist du sicher, dass du Gusto trennen möchtest?',
+                syncResults: {
+                    title: 'Gusto-Synchronisierungsergebnisse',
+                    successTitle: 'Ihre Gusto-Verbindung wurde erfolgreich synchronisiert!',
+                    added: 'Hinzugefügt',
+                    removed: 'Entfernt',
+                    skipped: 'Übersprungen',
+                    employeeCount: () => ({
+                        one: '1 Mitarbeiter',
+                        other: (count: number) => `${count} Mitarbeitende`,
+                    }),
+                },
+            },
+            merge: {
+                approvalMode: 'Genehmigungsmodus',
+                finalApprover: 'Endgültige:r Genehmiger:in',
+            },
+            zenefits: {
+                title: 'TriNet',
+                connect: 'Verbinden',
+                syncNow: 'Jetzt synchronisieren',
+                disconnect: 'Verbindung trennen',
+                lastSync: (relativeDate: string) => `Zuletzt synchronisiert ${relativeDate}`,
+                syncError: 'Verbindung zu TriNet nicht möglich',
+                disconnectTitle: 'TriNet trennen',
+                disconnectPrompt: 'Sind Sie sicher, dass Sie die Verbindung zu TriNet trennen möchten?',
+                connectionDescription: 'Verbinden Sie TriNet, um Mitarbeitergenehmigungen mit Ihrem Workspace zu synchronisieren.',
+                approvalMode: 'Genehmigungsmodus',
+                finalApprover: 'Letzte genehmigende Person',
+                notSet: 'Nicht festgelegt',
+                approvalModeDescription: 'Mitglieder und Manager sind für die Synchronisierung mit TriNet eingerichtet.',
+                approvalModeWarningTitle: 'Genehmigungsmodus ändern?',
+                approvalModeWarningPrompt: (helpSiteURL: string) =>
+                    `Sind Sie sicher, dass Sie den Genehmigungsmodus für diesen Workspace ändern möchten? Erfahren Sie mehr über die verschiedenen TriNet-fähigen Workflow-Modi auf unserer <a href="${helpSiteURL}">Hilfeseite</a>.`,
+                approvalModeWarningConfirm: 'Genehmigungsmodus ändern',
+                approvalModes: {
+                    basic: {label: 'Einfache Genehmigung', description: 'Alle Benutzer reichen an eine einzige Person zur Bearbeitung und Genehmigung ein.'},
+                    manager: {label: 'Managergenehmigung', description: 'Mitarbeitende reichen Berichte bei ihrer in TriNet hinterlegten direkten Führungskraft ein.'},
+                    custom: {label: 'Benutzerdefinierte Genehmigung', description: 'Ich richte Genehmigungsabläufe in Expensify manuell ein.'},
+                },
             },
         },
     },
@@ -7810,7 +7925,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `Alle ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `Alle importierten CSV-Karten${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
-                centralInvoicing: 'Zentrale Rechnungsstellung',
+                travelInvoicing: 'Reiseabrechnung',
             },
             reportField: (name: string, value: string) => `${name} ist ${value}`,
             current: 'Aktuell',
@@ -7842,9 +7957,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             },
             feed: 'Feed',
             withdrawalType: {
-                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Karte',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Erstattung',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Zentrale Rechnungsstellung',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Reiseabrechnung',
             },
             is: 'Ist',
             action: {
@@ -8098,7 +8213,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         oooEventSummaryFullDay: (summary: string, dayCount: number, date: string) => `${summary} für ${dayCount} ${dayCount === 1 ? 'Tag' : 'Tage'} bis ${date}`,
         oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${summary} von ${timePeriod} am ${date}`,
         startTimer: 'Timer starten',
-        stopTimer: 'Timer stoppen',
+        stopTimer: (duration: string) => `Timer stoppen (${duration})`,
         scheduleOOO: 'Abwesenheit planen',
         scheduleOOOTitle: 'Abwesenheit planen',
         date: 'Datum',
@@ -8267,7 +8382,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         personalCard: 'Private Karte',
         companyCard: 'Firmenkarte',
         expensifyCard: 'Expensify Karte',
-        centralInvoicing: 'Zentrale Rechnungsstellung',
+        travelInvoicing: 'Reiseabrechnung',
         travelCard: 'Reisekarte',
     },
     distance: {
@@ -8551,7 +8666,16 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             `<muted-text-label>Beleg ausstehend wegen unterbrochener Bankverbindung. Bitte in <a href="${workspaceCompanyCardRoute}">Firmenkarten</a> beheben.</muted-text-label>`,
         memberBrokenConnectionError: 'Beleg ausstehend aufgrund einer unterbrochenen Bankverbindung. Bitte wende dich an eine Workspace-Admin, um das Problem zu beheben.',
         markAsCashToIgnore: 'Als Barzahlung markieren, um sie zu ignorieren und Zahlung anzufordern.',
-        smartscanFailed: ({canEdit = true}) => `Beleg-Scan fehlgeschlagen.${canEdit ? 'Details manuell eingeben.' : ''}`,
+        smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
+            if (missingFields.length > 0) {
+                const fieldNames: Record<string, string> = {merchant: 'Händler', date: 'Datum', amount: 'Betrag'};
+                const translated = missingFields.map((f) => fieldNames[f] ?? f);
+                const fieldList = translated.join(translated.length > 2 ? ', ' : ' und ');
+                const verb = translated.length === 1 ? 'fehlt' : 'fehlen';
+                return `Beleg-Scan fehlgeschlagen — ${fieldList} ${verb}.${canEdit ? ' Details manuell eingeben.' : ''}`;
+            }
+            return `Beleg-Scan fehlgeschlagen.${canEdit ? 'Details manuell eingeben.' : ''}`;
+        },
         receiptGeneratedWithAI: 'Mögliche KI-generierte Quittung',
         someTagLevelsRequired: (tagName?: string) => `Fehlende ${tagName ?? 'Tag'}`,
         tagOutOfPolicy: (tagName?: string) => `${tagName ?? 'Tag'} nicht mehr gültig`,
@@ -8633,6 +8757,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         bookACallTextBottom:
             'Wir würden uns freuen, mit Ihnen zu telefonieren, um die Gründe besser zu verstehen. Sie können einen Anruf mit einer*m unserer leitenden Produktmanager*innen buchen, um Ihre Bedürfnisse zu besprechen.',
         takeMeToExpensifyClassic: 'Bring mich zu Expensify Classic',
+        goBackJustOnce: 'Nur dieses Mal zurück',
     },
     listBoundary: {
         errorMessage: 'Beim Laden weiterer Nachrichten ist ein Fehler aufgetreten',
@@ -8897,12 +9022,14 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
     },
     delegate: {
         switchAccount: 'Konten wechseln:',
+        switch: 'Wechseln',
+        copilot: 'Copilot',
         copilotDelegatedAccess: 'Copilot: Delegierter Zugriff',
         copilotDelegatedAccessDescription: 'Anderen Mitgliedern erlauben, auf dein Konto zuzugreifen.',
         learnMoreAboutDelegatedAccess: 'Mehr über delegierten Zugriff erfahren',
         addCopilot: 'Copilot hinzufügen',
         membersCanAccessYourAccount: 'Diese Mitglieder haben Zugriff auf Ihr Konto:',
-        youCanAccessTheseAccounts: 'Du kannst auf diese Konten über den Kontowechsel zugreifen:',
+        youCanAccessTheseAccounts: 'Du kannst auf diese Konten zugreifen:',
         role: ({role}: OptionalParam<DelegateRoleParams> = {}) => {
             switch (role) {
                 case CONST.DELEGATE_ROLE.ALL:

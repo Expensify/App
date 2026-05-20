@@ -1001,8 +1001,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         freeTrialSection: {
             title: ({days}: {days: number}) => `無料トライアル：あと ${days} ${days === 1 ? '日' : '日数'} 日！`,
-            offer50Body: '初年度が50％オフになります！',
-            offer25Body: '初年度が25％オフになります！',
+            offer50Body: '初年度が50％オフになります',
+            offer25Body: '初年度が25％オフになります',
             addCardBody: '今すぐ追加しましょう！お支払い用カードを登録してください。',
             ctaClaim: '申請',
             ctaAdd: 'カードを追加',
@@ -2449,6 +2449,7 @@ const translations: TranslationDeepObject<typeof en> = {
             expiration: '有効期限',
             cvv: 'CVV',
             address: '住所',
+            reveal: '表示',
             revealDetails: '詳細を表示',
             revealCvv: 'CVV を表示',
             copyCardNumber: 'カード番号をコピー',
@@ -2571,9 +2572,10 @@ ${date} の ${merchant} への ${amount}`,
             approverSubtitle: 'すべての承認者は、既存のワークフローに属しています。',
             bulkApproverSubtitle: '選択されたレポートの条件に一致する承認者がいません。',
         },
-        configureViaGusto: 'Gusto で設定する。',
-        gustoApprovalWorkflowLockedPrompt: '承認はGusto連携によって管理されています。承認ワークフローを更新するには、Gusto接続設定に移動してください。',
-        goToGustoSettings: 'Gusto設定に移動',
+        configureViaHR: ({provider}: {provider: string}) => `${provider} で設定する。`,
+        hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
+            `承認は${provider}連携によって管理されています。承認ワークフローを更新するには、${provider}接続設定に移動してください。`,
+        goToHRSettings: ({provider}: {provider: string}) => `${provider}設定に移動`,
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: '提出頻度を変更できませんでした。もう一度お試しいただくか、サポートまでご連絡ください。',
@@ -2716,6 +2718,7 @@ ${date} の ${merchant} への ${amount}`,
             genericUpdate: 'このエージェントの更新中に問題が発生しました',
             updateName: 'このエージェント名の更新中に問題が発生しました',
             updatePrompt: 'このエージェントの指示を更新する際に問題が発生しました',
+            updateAvatar: 'このエージェントのアバターを更新する際に問題が発生しました',
         },
     },
     addAgentPage: {
@@ -2723,7 +2726,7 @@ ${date} の ${merchant} への ${amount}`,
         agentName: 'エージェント名',
         instructions: 'カスタム指示を作成',
         createAgent: 'エージェントを作成',
-        switchAvatar: 'アバターを切り替え',
+        editAvatar: 'アバターを切り替え',
         defaultAgentName: (displayName: string) => `${displayName} さんの代理人`,
         defaultPrompt:
             'ギャンブル、映画、またはその他明らかにビジネス目的ではない理由による経費は却下します。\n\nチップの金額が明確にわかるレシート画像を必ず添付するよう、ユーザーにリマインドします。\n\n同じユーザーの過去のレポートと非常によく似ている場合は、そのレポートを承認します。\n\n出張費が500ドルを超えるレポートは却下します。',
@@ -2731,13 +2734,14 @@ ${date} の ${merchant} への ${amount}`,
     editAgentPage: {
         title: 'エージェントを編集',
         agentName: '担当者名',
-        instructions: 'カスタム指示を作成',
+        instructions: 'カスタム手順を作成',
         deleteAgent: 'エージェントを削除',
         deleteAgentTitle: 'エージェントを削除しますか？',
-        deleteAgentMessage: 'このエージェントを削除してもよろしいですか？この操作は取り消せません。',
+        deleteAgentMessage: 'このエージェントを削除してもよろしいですか？この操作は元に戻せません。',
     },
+    editAgentAvatarPage: {title: 'アバターを編集'},
     editAgentNamePage: {title: '担当者名'},
-    editAgentPromptPage: {title: 'カスタム指示を作成', error: {emptyPrompt: '担当者への指示を入力してください。'}},
+    editAgentPromptPage: {title: 'カスタム手順を作成', error: {emptyPrompt: 'エージェントへの指示を入力してください。'}},
     expenseRulesPage: {
         title: '経費ルール',
         findRule: 'ルールを検索',
@@ -3270,7 +3274,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         enterPhoneNumber: '電話番号は何ですか？',
         personalDetails: '個人情報',
         privateDataMessage: 'これらの詳細は出張と支払いに使用されます。公開プロフィールに表示されることは決してありません。',
-        basicDetails: '基本情報',
         legalName: '法的氏名',
         legalFirstName: '法的な名',
         legalLastName: '法的な姓',
@@ -4272,7 +4275,13 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                     case CONST.POLICY.ROLE.ADMIN:
                         return '管理者';
                     case CONST.POLICY.ROLE.AUDITOR:
-                        return '監査人';
+                        return '監査担当者';
+                    case CONST.POLICY.ROLE.CARD_ADMIN:
+                        return 'カード管理者';
+                    case CONST.POLICY.ROLE.PEOPLE_ADMIN:
+                        return 'メンバー管理';
+                    case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
+                        return '支払管理者';
                     case CONST.POLICY.ROLE.USER:
                         return 'メンバー';
                     default:
@@ -4303,10 +4312,14 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             budgetFrequency: {monthly: '毎月', yearly: '年次'},
             budgetFrequencyUnit: {monthly: '月', yearly: '年'},
             budgetTypeForNotificationMessage: {tag: 'タグ', category: 'カテゴリ'},
-            travelInvoicing: 'Expensify Travel 買掛金のエクスポート先',
+            travelInvoicing: '出張請求費用を次の形式でエクスポート',
             travelInvoicingVendor: '出張ベンダー',
             travelInvoicingPayableAccount: '旅費未払金勘定',
             hr: '人事',
+            rooms: 'ルーム',
+            cardAdminAlternateText: 'ワークスペースカードを管理します。',
+            peopleAdminAlternateText: 'メンバーと承認ワークフローを管理します。',
+            paymentsAdminAlternateText: 'ワークフローの支払いを管理します。',
         },
         createdForClient: {
             title: 'クライアントのワークスペースを作成しました！',
@@ -4622,6 +4635,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             purchaseBill: '仕入請求書',
             exportDeepDiveCompanyCard: 'エクスポートされた経費は、以下のXero銀行口座に銀行取引として記帳され、取引日付は銀行取引明細書の日付と一致します。',
             bankTransactions: '銀行取引',
+            travelInvoicingDescription: '旅費は、以下で指定したXeroアカウントに銀行取引としてエクスポートされます。',
             xeroBankAccount: 'Xero 銀行口座',
             xeroBankAccountDescription: '経費を銀行取引として計上する先を選択してください。',
             exportExpensesDescription: 'レポートは、以下で選択された日付とステータスで仕入請求書としてエクスポートされます。',
@@ -5499,8 +5513,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                         subtitle: 'おめでとうございます！このワークスペースで旅行の予約と管理を行う準備ができました。',
                         manageTravelLabel: '出張を管理',
                     },
-                    centralInvoicingSection: {
-                        title: '集中請求',
+                    travelInvoicingSection: {
+                        title: '出張請求書作成',
                         subtitle: '購入時に支払うのではなく、すべての出張費を月次請求書に集約しましょう。',
                         learnHow: '詳しく見る',
                         subsections: {
@@ -5516,7 +5530,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                             reduceLimitTitle: '出張支出上限を引き下げますか？',
                             reduceLimitWarning: 'この上限を引き下げると、すでにこの金額を超えて支出しているメンバーは、翌月まで新しい出張予約ができなくなります。',
                             provisioningError:
-                                'ワークスペース内の一部メンバーを集中請求用にプロビジョニングできませんでした。時間をおいてもう一度お試しいただくか、サポートが必要な場合は Concierge までお問い合わせください。',
+                                'ワークスペース内の一部メンバーを旅行請求用にプロビジョニングできませんでした。時間をおいてもう一度お試しいただくか、サポートが必要な場合は Concierge までご連絡ください。',
                         },
                     },
                     disableModal: {
@@ -5533,7 +5547,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     exportToCSV: 'CSV にエクスポート',
                     selectDateRangeError: 'エクスポートする日付範囲を選択してください',
                     invalidDateRangeError: '開始日は終了日より前でなければなりません',
-                    enabled: '集中請求が有効になりました！',
+                    enabled: '出張請求書機能が有効になりました！',
                     enabledDescription: 'このワークスペースのすべての出張費は、今後、月次請求書で一元管理されます。',
                 },
                 personalDetailsDescription: '旅行を予約するために、政府発行の身分証明書に記載されているとおりの正式な氏名を入力してください。',
@@ -5695,7 +5709,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 subtitle: '時間追跡用の請求可能な時間単価を設定します。',
                 defaultHourlyRate: 'デフォルトの時給率',
             },
-            hrWarningModal: {disconnectText: '人事機能を無効にするには、まずこのワークスペースから Gusto の連携を解除してください。'},
+            hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `HR を無効にするには、まずこのワークスペースから ${integration} を切断してください。`},
         },
         reports: {
             reportsCustomTitleExamples: '例:',
@@ -5910,6 +5924,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 `元のワークスペースから ${totalMembers ?? 0} 人のメンバーと一緒に、${newWorkspaceName ?? ''} を作成して共有しようとしています。`,
             error: '新しいワークスペースの複製中にエラーが発生しました。もう一度お試しください。',
         },
+        copyPolicySettings: {error: 'ワークスペース設定のコピー中にエラーが発生しました。もう一度お試しください。'},
         emptyWorkspace: {
             title: 'ワークスペースがありません',
             subtitle: '領収書を管理し、経費を精算し、出張を管理し、請求書を送信するなど、さまざまなことができます。',
@@ -6302,7 +6317,11 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 chooseBankAccount: 'Expensify カードの支払いを照合する銀行口座を選択してください。',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `継続消込が正しく機能するように、この口座が、末尾が ${lastFourPAN} の<a href="${settlementAccountUrl}">Expensify カード精算口座</a>と一致していることを確認してください。`,
+                chooseTravelInvoicingBankAccount: '出張請求の支払いの消込に使用する銀行口座を選択してください。',
+                travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
+                    `Continuous Reconciliation が正しく機能するように、この口座が、旅行の請求書決済用口座（末尾が ${lastFourPAN} の口座）と一致していることを確認してください。`,
             },
+            syncTravelInvoicingSettlements: '出張請求の精算を同期',
         },
         export: {
             notReadyHeading: 'エクスポートの準備ができていません',
@@ -6634,6 +6653,56 @@ ${reportName}
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>人事システム連携は、<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり、1か月ごと。`}からのControlプランでのみご利用いただけます</muted-text>`,
             },
+            approvalSubmit: {
+                title: '承認',
+                description: '承認機能を有効にして、全メンバーの提出先を一括設定しましょう。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>承認機能は、Collect プランおよび Control プランで利用できます。料金は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からです。</muted-text>`,
+            },
+            companyCardSubmit: {
+                title: '会社カード',
+                description: `お使いの会社カードをExpensifyに連携して、自動取込、自動分類、カスタマイズ可能なルール設定、そして統合された照合機能を利用しましょう。`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>会社カードのインポートは、Collect プランと Control プランで利用できます。料金は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からです。</muted-text>`,
+            },
+            travelSubmit: {
+                title: 'Expensify トラベル',
+                description: 'Expensify から世界中の割引航空券、ホテル、レンタカー、列車を予約し、デューティ・オブ・ケアレポートと経費管理を統合して利用できます。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Expensify Travel は Collect プランと Control プランで利用でき、<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からご利用いただけます</muted-text>`,
+            },
+            roles: {
+                title: 'ロール',
+                description: 'メンバーごとに異なるロールを割り当て、必要に応じて閲覧権限や管理権限を増減させましょう。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>ロールは、Collect および Control プランで利用できます。<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からご利用いただけます</muted-text>`,
+            },
+            payments: {
+                title: '支払い',
+                description: '従業員への精算を、事業用銀行口座から直接行います。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>支払い機能は、Collect プランおよび Control プランで利用できます。料金は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からです</muted-text>`,
+            },
+            accounting: {
+                title: '会計',
+                description: '会計システムからExpensifyへカテゴリ、タグ、税率などを同期し、経費レポートやカード取引をエクスポートできます。手入力も、入力ミスの心配も不要です！',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>会計機能は Collect プランと Control プランでご利用いただけます。<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`}からご利用可能です</muted-text>`,
+            },
+            expensifyCard: {
+                title: 'Expensify カード',
+                description:
+                    '自社の銀行口座から（バーチャルカードを含む）コーポレートカードを直接発行し、途切れない連携によるリアルタイムな支出管理と、最大2%のキャッシュバックを手に入れましょう！',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Expensify Card は Collect プランと Control プランでご利用いただけます。料金は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からです。</muted-text>`,
+                upgradeButton: 'アップグレードして有効化',
+            },
+            invoicing: {
+                title: '請求書発行',
+                description: 'Expensify 内でプロ仕様の請求書を作成・送信・追跡。統合された支払い機能とリアルタイムの可視性で、より早く入金を受けましょう。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>請求書発行機能は、Collect プランと Control プランでご利用いただけます。<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`}からご利用可能です。</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -6957,8 +7026,8 @@ ${reportName}
                     description: '雇用主に経費を提出したい従業員向け。',
                 },
             },
-            description: '自分に合ったプランをお選びください。機能と料金の詳細な一覧は、こちらのページをご覧ください',
-            subscriptionLink: 'プランの種類と料金のヘルプページ',
+            description: '自分に合ったプランをお選びください。',
+            subscriptionLink: '詳しく見る',
             lockedPlanDescription: ({count, annualSubscriptionEndDate}: WorkspaceLockedPlanTypeParams) => ({
                 one: `${annualSubscriptionEndDate} までの年間サブスクリプション期間中、Control プランでアクティブメンバー 1 名を利用することに同意しています。${annualSubscriptionEndDate} 以降、 自動更新を無効にすることで、従量課金サブスクリプションに切り替え、Collect プランへダウングレードできます。`,
                 other: `あなたは、年間サブスクリプションが${annualSubscriptionEndDate}に終了するまで、Controlプランでアクティブメンバー${count}名を契約しています。${annualSubscriptionEndDate}以降は、自動更新を無効にすることで、従量課金制サブスクリプションに切り替え、Collectプランへダウングレードできます。その操作は、`,
@@ -6972,15 +7041,21 @@ ${reportName}
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
                     case 'gustoSyncTitle':
-                        return 'Synchronizing Gusto Employees';
+                        return 'Gusto 従業員を同期中';
                     case 'gustoSyncLoadData':
-                        return 'Loading data from Gusto';
+                        return 'Gusto からデータを読み込んでいます';
                     case 'gustoSyncProvisioning':
-                        return 'Provisioning employees in policy';
+                        return 'ポリシー内で従業員をプロビジョニングする';
+                    case 'zenefitsSyncTitle':
+                        return 'TriNet 従業員を同期しています';
+                    case 'zenefitsSyncLoadData':
+                        return 'TriNet からデータを読み込んでいます';
+                    case 'zenefitsSyncProvisioning':
+                        return 'ポリシー内で従業員をプロビジョニングする';
                     case 'jobDone':
                         return 'インポートしたデータの読み込みを待機しています';
                     default: {
-                        return `ステージの翻訳が見つかりません: ${stage}`;
+                        return `ステージ「${stage}」の翻訳が見つかりません`;
                     }
                 }
             },
@@ -7007,6 +7082,45 @@ ${reportName}
                 syncError: 'Gusto に接続できません',
                 disconnectTitle: 'Gusto の接続を解除',
                 disconnectPrompt: 'Gusto との接続を本当に解除しますか？',
+                syncResults: {
+                    title: 'Gusto 同期結果',
+                    successTitle: 'Gusto との連携が正常に同期されました！',
+                    added: '追加済み',
+                    removed: '削除済み',
+                    skipped: 'スキップ済み',
+                    employeeCount: () => ({
+                        one: '1 従業員',
+                        other: (count: number) => `${count} 従業員`,
+                    }),
+                },
+            },
+            merge: {
+                approvalMode: '承認モード',
+                finalApprover: '最終承認者',
+            },
+            zenefits: {
+                title: 'TriNet',
+                connect: '接続',
+                syncNow: '今すぐ同期',
+                disconnect: '切断する',
+                lastSync: (relativeDate: string) => `最終同期日時：${relativeDate}`,
+                syncError: 'TriNet に接続できません',
+                disconnectTitle: 'TriNet の接続を解除',
+                disconnectPrompt: 'TriNet との接続を解除してもよろしいですか？',
+                connectionDescription: 'TriNet を接続して、従業員の承認をワークスペースと同期させましょう。',
+                approvalMode: '承認モード',
+                finalApprover: '最終承認者',
+                notSet: '未設定',
+                approvalModeDescription: 'メンバーとマネージャーは TriNet と同期するように設定されています。',
+                approvalModeWarningTitle: '承認モードを変更しますか？',
+                approvalModeWarningPrompt: (helpSiteURL: string) =>
+                    `このワークスペースの承認モードを本当に変更してもよろしいですか？TriNet に対応した各種ワークフローモードの詳細は、<a href="${helpSiteURL}">ヘルプサイト</a>をご覧ください。`,
+                approvalModeWarningConfirm: '承認モードを変更',
+                approvalModes: {
+                    basic: {label: '基本承認', description: 'すべてのユーザーが、処理と承認のために 1 人の担当者へ経費を提出します。'},
+                    manager: {label: 'マネージャー承認', description: '従業員は、TriNet で設定された直属のマネージャーにレポートを提出します。'},
+                    custom: {label: 'カスタム承認', description: 'Expensify で承認ワークフローを手動で設定します。'},
+                },
             },
         },
     },
@@ -7707,7 +7821,7 @@ ${reportName}
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `すべての${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `すべてのCSVインポート済みカード${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
-                centralInvoicing: '集中請求',
+                travelInvoicing: '出張請求書作成',
             },
             reportField: (name: string, value: string) => `${name} は ${value} です`,
             current: '現在',
@@ -7739,9 +7853,9 @@ ${reportName}
             },
             feed: 'フィード',
             withdrawalType: {
-                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: '払い戻し',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: '一括請求',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify カード',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: '精算',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: '出張請求書作成',
             },
             is: 'は',
             action: {
@@ -7988,7 +8102,7 @@ ${reportName}
         oooEventSummaryFullDay: (summary: string, dayCount: number, date: string) => `${summary}（${date} までの ${dayCount} ${dayCount === 1 ? '日' : '日数'} 分）`,
         oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${date}の${timePeriod}の${summary}`,
         startTimer: 'タイマー開始',
-        stopTimer: 'タイマーを停止',
+        stopTimer: (duration: string) => `タイマーを停止 (${duration})`,
         scheduleOOO: '不在予定を設定',
         scheduleOOOTitle: '不在予定を設定',
         date: '日付',
@@ -8156,7 +8270,7 @@ ${reportName}
         personalCard: '個人のカード',
         companyCard: '会社カード',
         expensifyCard: 'Expensify カード',
-        centralInvoicing: '集中請求',
+        travelInvoicing: '出張請求書作成',
         travelCard: 'トラベルカード',
     },
     distance: {
@@ -8436,7 +8550,15 @@ ${reportName}
             `<muted-text-label>銀行接続の不具合により領収書が保留されています。<a href="${workspaceCompanyCardRoute}">会社カード</a>で解決してください。</muted-text-label>`,
         memberBrokenConnectionError: '銀行連携の不具合により領収書が保留されています。ワークスペース管理者に対応を依頼してください。',
         markAsCashToIgnore: '現金としてマークして無視し、支払いをリクエストします。',
-        smartscanFailed: ({canEdit = true}) => `レシートのスキャンに失敗しました。${canEdit ? '詳細を手動で入力してください。' : ''}`,
+        smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
+            if (missingFields.length > 0) {
+                const fieldNames: Record<string, string> = {merchant: '加盟店', date: '日付', amount: '金額'};
+                const translated = missingFields.map((f) => fieldNames[f] ?? f);
+                const fieldList = translated.join('、');
+                return `レシートのスキャンに失敗しました — ${fieldList}が見つかりません。${canEdit ? '詳細を手動で入力してください。' : ''}`;
+            }
+            return `レシートのスキャンに失敗しました。${canEdit ? '詳細を手動で入力してください。' : ''}`;
+        },
         receiptGeneratedWithAI: 'AI生成の可能性があるレシート',
         someTagLevelsRequired: (tagName?: string) => `${tagName ?? 'タグ'} が見つかりません`,
         tagOutOfPolicy: (tagName?: string) => `${tagName ?? 'タグ'} は無効になりました`,
@@ -8517,6 +8639,7 @@ ${reportName}
         bookACallTextTop: 'Expensify Classic に切り替えると、次の機能が利用できなくなります：',
         bookACallTextBottom: 'ぜひお電話で理由をお聞かせください。お客様のニーズについて話し合うために、シニアプロダクトマネージャーとの通話を予約できます。',
         takeMeToExpensifyClassic: 'Expensify Classic に移動',
+        goBackJustOnce: '一度だけ戻る',
     },
     listBoundary: {
         errorMessage: 'さらにメッセージを読み込む際にエラーが発生しました',
@@ -8775,12 +8898,14 @@ ${reportName}
     },
     delegate: {
         switchAccount: 'アカウントを切り替え:',
+        switch: '切り替え',
+        copilot: 'Copilot',
         copilotDelegatedAccess: 'Copilot：代理アクセス',
         copilotDelegatedAccessDescription: '他のメンバーがあなたのアカウントにアクセスできるようにする',
         learnMoreAboutDelegatedAccess: '代理アクセスの詳細',
         addCopilot: 'コパイロットを追加',
         membersCanAccessYourAccount: '次のメンバーがあなたのアカウントにアクセスできます:',
-        youCanAccessTheseAccounts: 'これらのアカウントには、アカウント切り替え機能からアクセスできます。',
+        youCanAccessTheseAccounts: 'これらのアカウントにアクセスできます:',
         role: ({role}: OptionalParam<DelegateRoleParams> = {}) => {
             switch (role) {
                 case CONST.DELEGATE_ROLE.ALL:

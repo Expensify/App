@@ -42,6 +42,9 @@ type ButtonProps = Partial<ChildrenProps> &
         /** The icon asset to display to the left of the text */
         icon?: IconAsset | null;
 
+        /** Accessibility label applied to the left icon. When set, the icon is exposed to assistive tech with this label. */
+        iconAccessibilityLabel?: string;
+
         /** The fill color to pass into the icon. */
         iconFill?: string;
 
@@ -239,6 +242,7 @@ function Button({
     iconRightFill,
     iconRightHoverFill,
     icon = null,
+    iconAccessibilityLabel,
     iconFill,
     iconHoverFill,
     iconStyles = [],
@@ -378,6 +382,7 @@ function Button({
                                     medium={medium}
                                     large={large}
                                     isButtonIcon
+                                    accessibilityLabel={iconAccessibilityLabel}
                                 />
                             </View>
                         )}
