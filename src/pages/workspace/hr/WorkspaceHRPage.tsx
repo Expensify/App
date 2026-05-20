@@ -151,7 +151,6 @@ function WorkspaceHRPage({
                                 <>
                                     <MenuItem
                                         title={translate('common.other')}
-                                        shouldShowRightIcon
                                         icon={isOtherExpanded ? icons.UpArrow : icons.DownArrow}
                                         onPress={() => setIsOtherExpanded((prev) => !prev)}
                                         wrapperStyle={[styles.ph0, styles.pv2, styles.mt4]}
