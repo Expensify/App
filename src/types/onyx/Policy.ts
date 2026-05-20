@@ -2453,4 +2453,5 @@ export type {
     HRConnectionConfigBase,
     MergeHRConnectionConfig,
     MergeHRConnectionData,
+    Vendor,
 };
