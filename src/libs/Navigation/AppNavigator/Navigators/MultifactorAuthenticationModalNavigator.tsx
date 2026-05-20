@@ -57,7 +57,6 @@ function useAwaitSidePanelClose(shouldMount: boolean): boolean {
 
     useEffect(() => {
         if (!shouldMount) {
-            setIsSidePanelClosed(false);
             return;
         }
         closeSidePanel();
@@ -67,6 +66,8 @@ function useAwaitSidePanelClose(shouldMount: boolean): boolean {
 
     if (shouldMount && !isSidePanelClosed && shouldHideSidePanel && isSidePanelTransitionEnded) {
         setIsSidePanelClosed(true);
+    } else if (!shouldMount && isSidePanelClosed) {
+        setIsSidePanelClosed(false);
     }
 
     return isSidePanelClosed;
