@@ -57,6 +57,8 @@ import {isPublicDomain, isValidAccountRoute} from './ValidationUtils';
 type MemberEmailsToAccountIDs = Record<string, number>;
 
 type TravelStep = ValueOf<typeof CONST.TRAVEL.STEPS>;
+type PolicyFeature = ValueOf<typeof CONST.POLICY.POLICY_FEATURE>;
+type PolicyFeatureAccess = ValueOf<typeof CONST.POLICY.POLICY_FEATURE_ACCESS>;
 
 type AccountingConnectionName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES>;
 type HRConnectionName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.HR_CONNECTION_NAMES>;
@@ -140,6 +142,69 @@ function getActivePoliciesWithExpenseChatAndTimeEnabled(policies: OnyxCollection
  */
 const isPolicyAdmin = (policy: OnyxInputOrEntry<Policy>, login?: string, shouldCheckGlobalPolicyRole = true): boolean =>
     getPolicyRole(policy, login, shouldCheckGlobalPolicyRole) === CONST.POLICY.ROLE.ADMIN;
+
+const WRITE_ALL_POLICY_FEATURES = Object.fromEntries(Object.values(CONST.POLICY.POLICY_FEATURE).map((feature) => [feature, CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE])) as Record<
+    PolicyFeature,
+    PolicyFeatureAccess
+>;
+
+const READ_ALL_POLICY_FEATURES = Object.fromEntries(Object.values(CONST.POLICY.POLICY_FEATURE).map((feature) => [feature, CONST.POLICY.POLICY_FEATURE_ACCESS.READ])) as Record<
+    PolicyFeature,
+    PolicyFeatureAccess
+>;
+
+const EDITOR_POLICY_FEATURES = Object.fromEntries(
+    Object.values(CONST.POLICY.POLICY_FEATURE)
+        .filter((feature) => feature !== CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES)
+        .map((feature) => [feature, CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE]),
+) as Partial<Record<PolicyFeature, PolicyFeatureAccess>>;
+
+const ROLE_PERMISSION_BUNDLES: Record<string, Partial<Record<PolicyFeature, PolicyFeatureAccess>>> = {
+    [CONST.POLICY.ROLE.ADMIN]: WRITE_ALL_POLICY_FEATURES,
+    [CONST.POLICY.ROLE.EDITOR]: EDITOR_POLICY_FEATURES,
+    [CONST.POLICY.ROLE.AUDITOR]: READ_ALL_POLICY_FEATURES,
+    [CONST.POLICY.ROLE.USER]: {
+        [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.MEMBERS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+    },
+    [CONST.POLICY.ROLE.CARD_ADMIN]: {
+        [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.MEMBERS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
+        [CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
+    },
+    [CONST.POLICY.ROLE.PEOPLE_ADMIN]: {
+        [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.MEMBERS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
+        [CONST.POLICY.POLICY_FEATURE.WORKFLOWS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
+    },
+    [CONST.POLICY.ROLE.PAYMENTS_ADMIN]: {
+        [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.MEMBERS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.WORKFLOWS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
+    },
+};
+
+function hasPolicyFeaturePermission(policy: OnyxInputOrEntry<Policy>, login: string, feature: PolicyFeature, requiredAccess: PolicyFeatureAccess): boolean {
+    const role = getPolicyRole(policy, login, false);
+    const access = role ? ROLE_PERMISSION_BUNDLES[role]?.[feature] : undefined;
+
+    if (requiredAccess === CONST.POLICY.POLICY_FEATURE_ACCESS.READ) {
+        return access === CONST.POLICY.POLICY_FEATURE_ACCESS.READ || access === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE;
+    }
+
+    return access === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE;
+}
+
+function canMemberRead(policy: OnyxInputOrEntry<Policy>, login: string, feature: PolicyFeature): boolean {
+    return hasPolicyFeaturePermission(policy, login, feature, CONST.POLICY.POLICY_FEATURE_ACCESS.READ);
+}
+
+function canMemberWrite(policy: OnyxInputOrEntry<Policy>, login: string, feature: PolicyFeature): boolean {
+    return hasPolicyFeaturePermission(policy, login, feature, CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE);
+}
 
 /**
  * Checks if we have any errors stored within the policy?.employeeList. Determines whether we should show a red brick road error or not.
@@ -946,6 +1011,15 @@ function isSubmitPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.SUBMIT;
 }
 
+/**
+ * We only allow users to access Submit feature if they have the SUBMIT_2026 beta enabled.
+ *
+ * @param isSubmit2026BetaEnabled - Prefer `isBetaEnabled(CONST.BETAS.SUBMIT_2026)` from `usePermissions()`, not raw betas from Onyx.
+ */
+function canAccessSubmitWorkspaceFeatures(policy: OnyxInputOrEntry<Policy>, isSubmit2026BetaEnabled: boolean): boolean {
+    return isSubmitPolicy(policy) && isSubmit2026BetaEnabled;
+}
+
 const isPolicyEditor = (policy: OnyxInputOrEntry<Policy>, login?: string): boolean => getPolicyRole(policy, login) === CONST.POLICY.ROLE.EDITOR;
 
 /**
@@ -976,6 +1050,19 @@ function getOwnedPaidPolicies(policies: OnyxCollection<Policy> | null, currentUs
 
 function isControlPolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.CORPORATE;
+}
+
+/**
+ * For Submit workspaces, certain features require upgrading the plan before enabling.
+ * When conditions match, navigates to the workspace upgrade flow and returns true (caller should not enable the feature).
+ * @returns true if upgrade navigation was performed; false otherwise
+ */
+function tryNavigateToSubmitWorkspaceUpgrade(policy: OnyxEntry<Policy>, isEnabling: boolean, upgradeFeatureAlias: string, isSubmit2026BetaEnabled: boolean): boolean {
+    if (!policy?.id || !isEnabling || !canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled)) {
+        return false;
+    }
+    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policy?.id, upgradeFeatureAlias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policy?.id)));
+    return true;
 }
 
 /**
@@ -2326,6 +2413,8 @@ export {
     getCorrectedAutoReportingFrequency,
     isPaidGroupPolicy,
     canEditWorkspaceSettings,
+    canMemberRead,
+    canMemberWrite,
     isGroupPolicy,
     isPendingDeletePolicy,
     isPolicyAdmin,
@@ -2443,6 +2532,8 @@ export {
     isPolicyTaxEnabled,
     sortPoliciesByName,
     isPolicyApprover,
+    tryNavigateToSubmitWorkspaceUpgrade,
+    canAccessSubmitWorkspaceFeatures,
     getRulesDocumentSourceURL,
     getHRConnectionNames,
     isGustoConnected,
@@ -2455,4 +2546,8 @@ export {
     isSubmitPolicy,
 };
 
+<<<<<<< knip-config
 export type {MemberEmailsToAccountIDs};
+=======
+export type {MemberEmailsToAccountIDs, PolicyFeature, PolicyFeatureAccess, HRProviderInfo};
+>>>>>>> main
