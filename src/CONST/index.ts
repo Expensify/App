@@ -4937,19 +4937,23 @@ const CONST = {
         {
             name: '+1',
             code: '👍',
+            hexcode: '1F44D',
             types: ['👍🏿', '👍🏾', '👍🏽', '👍🏼', '👍🏻'],
         },
         {
             name: 'heart',
             code: '❤️',
+            hexcode: '2764',
         },
         {
             name: 'joy',
             code: '😂',
+            hexcode: '1F602',
         },
         {
             name: 'fire',
             code: '🔥',
+            hexcode: '1F525',
         },
     ],
 
