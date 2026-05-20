@@ -7052,6 +7052,11 @@ const translations = {
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Add ${featureName} to unlock this feature.`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) => `Go to [more features](${moreFeaturesLink}) and enable ${featureName} to unlock this feature.`,
             },
+            agentsPromoBanner: {
+                title: 'Don’t see the rule you need? Add an agent',
+                subtitle: 'Add complex rules and reduce manual approvals with custom agents.',
+                cta: 'Try it out',
+            },
             merchantRules: {
                 title: 'Merchant',
                 subtitle: 'Set merchant rules so expenses arrive correctly coded and require less cleanup.',

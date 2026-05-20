@@ -6978,6 +6978,11 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Gehe zu [weitere Funktionen](${moreFeaturesLink}) und aktiviere ${featureName}, um diese Funktion freizuschalten.`,
             },
+            agentsPromoBanner: {
+                title: 'Fehlt die gewünschte Regel? Füge einen Agenten hinzu',
+                subtitle: 'Füge komplexe Regeln hinzu und reduziere manuelle Genehmigungen mit benutzerdefinierten Agenten.',
+                cta: 'Ausprobieren',
+            },
             merchantRules: {
                 title: 'Händler',
                 subtitle: 'Legen Sie Händlerregeln fest, damit Spesen korrekt codiert ankommen und weniger Nachbearbeitung erfordern.',

@@ -6935,6 +6935,11 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Przejdź do [więcej funkcji](${moreFeaturesLink}) i włącz ${featureName}, aby odblokować tę funkcję.`,
             },
+            agentsPromoBanner: {
+                title: 'Nie widzisz potrzebnej reguły? Dodaj agenta',
+                subtitle: 'Dodaj złożone reguły i ogranicz ręczne akceptacje dzięki niestandardowym agentom.',
+                cta: 'Wypróbuj',
+            },
             merchantRules: {
                 title: 'Sprzedawca',
                 subtitle: 'Skonfiguruj reguły dla sprzedawców, aby wydatki trafiały z prawidłowym kodowaniem i wymagały mniej poprawek.',

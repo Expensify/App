@@ -6892,6 +6892,11 @@ ${amount} para ${merchant} - ${date}`,
                 unlockFeatureEnableWorkflowsSubtitle: (featureName) => `Añade ${featureName} para desbloquear esta función.`,
                 enableFeatureSubtitle: (featureName, moreFeaturesLink) => `Ir a [más características](${moreFeaturesLink}) y habilita ${featureName} para desbloquear esta función.`,
             },
+            agentsPromoBanner: {
+                title: '¿No ves la regla que necesitas? Agrega un agente',
+                subtitle: 'Agrega reglas complejas y reduce las aprobaciones manuales con agentes personalizados.',
+                cta: 'Pruébalo',
+            },
             merchantRules: {
                 title: 'Comerciante',
                 subtitle: 'Configura las reglas de comerciante para que los gastos lleguen correctamente codificados y requieran menos limpieza.',

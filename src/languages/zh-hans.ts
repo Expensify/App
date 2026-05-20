@@ -6756,6 +6756,11 @@ ${reportName}
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `添加 ${featureName} 以解锁此功能。`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) => `前往[更多功能](${moreFeaturesLink})并启用 ${featureName} 以解锁此功能。`,
             },
+            agentsPromoBanner: {
+                title: '没有找到你需要的规则？添加一个代理',
+                subtitle: '使用自定义代理添加复杂规则，并减少人工审批。',
+                cta: '试试看',
+            },
             merchantRules: {
                 title: '商户',
                 subtitle: '设置商户规则，使报销费用自动使用正确的编码，并减少后期清理工作。',

@@ -6940,6 +6940,11 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Vá para [mais recursos](${moreFeaturesLink}) e ative ${featureName} para desbloquear este recurso.`,
             },
+            agentsPromoBanner: {
+                title: 'Não encontrou a regra que precisa? Adicione um agente',
+                subtitle: 'Adicione regras complexas e reduza as aprovações manuais com agentes personalizados.',
+                cta: 'Experimente',
+            },
             merchantRules: {
                 title: 'Estabelecimento',
                 subtitle: 'Defina as regras de estabelecimento para que as despesas cheguem corretamente classificadas e exijam menos retrabalho.',
