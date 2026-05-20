@@ -72,7 +72,7 @@ function WorkspaceHRPage({
     const lastSyncErrorMessage = hasGustoSyncError ? (gustoConnection?.lastSync?.errorMessage ?? translate('workspace.hr.gusto.syncError')) : undefined;
     const connectionDescription = useMemo(() => {
         if (isGustoSyncInProgress && stageInProgress) {
-            return translate('workspace.hr.syncStageName', {stage: stageInProgress});
+            return translate('workspace.hr.syncStageName', stageInProgress);
         }
 
         if (successfulDate && !lastSyncErrorMessage) {

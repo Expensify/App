@@ -74,7 +74,7 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
     return (
         <ConnectionLayout
             displayName="SageIntacctToggleMappingsPage"
-            headerTitleAlreadyTranslated={Str.recapitalize(translate('workspace.intacct.mappingTitle', {mappingName}))}
+            headerTitleAlreadyTranslated={Str.recapitalize(translate('workspace.intacct.mappingTitle', mappingName))}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -84,11 +84,11 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT.getRoute(policyID))}
         >
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mb5, styles.ph5, styles.flexRow]}>
-                <RenderHTML html={translate('workspace.intacct.toggleImportTitle', translate('workspace.intacct.mappingTitle', {mappingName}))} />
+                <RenderHTML html={translate('workspace.intacct.toggleImportTitle', translate('workspace.intacct.mappingTitle', mappingName))} />
             </View>
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.import')}
-                switchAccessibilityLabel={`${translate('workspace.accounting.import')} ${translate('workspace.intacct.mappingTitle', {mappingName})}`}
+                switchAccessibilityLabel={`${translate('workspace.accounting.import')} ${translate('workspace.intacct.mappingTitle', mappingName)}`}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
                 isActive={isImportMappingEnable}

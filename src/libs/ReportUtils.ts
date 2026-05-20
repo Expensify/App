@@ -5475,7 +5475,7 @@ function getReportPreviewMessage(
             return translateLocal(translatePhraseKey, payerDisplayName ?? '');
         }
         if (translatePhraseKey === 'iou.paidElsewhere') {
-            return translateLocal(translatePhraseKey, {payer: payerDisplayName ?? undefined});
+            return translateLocal(translatePhraseKey, payerDisplayName ?? undefined);
         }
         if (translatePhraseKey === 'iou.payerPaidAmount') {
             return translateLocal(translatePhraseKey, formattedAmount, payerDisplayName ?? '');

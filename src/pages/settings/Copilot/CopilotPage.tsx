@@ -218,7 +218,7 @@ function CopilotPage() {
                     </Text>
                     {!!role && (
                         <Badge
-                            text={translate('delegate.role', {role})}
+                            text={translate('delegate.role', role)}
                             isCondensed
                             badgeStyles={[styles.copilotRoleBadge, styles.flexShrink0]}
                         />

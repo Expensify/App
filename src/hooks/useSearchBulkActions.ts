@@ -1021,10 +1021,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     if (areAnyReportsExported) {
                         showConfirmModal({
                             title: translate('workspace.exportAgainModal.title'),
-                            prompt: translate('workspace.exportAgainModal.description', {
-                                connectionName: connectedIntegration,
-                                reportName: exportedReportNames.join('\n'),
-                            }),
+                            prompt: translate('workspace.exportAgainModal.description', exportedReportNames.join('\n'), connectedIntegration),
                             confirmText: translate('workspace.exportAgainModal.confirmText'),
                             cancelText: translate('workspace.exportAgainModal.cancelText'),
                         }).then((result) => {

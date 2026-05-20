@@ -26,10 +26,7 @@ function useExportAgainModal(reportID: string | undefined, policyID: string | un
 
         showConfirmModal({
             title: translate('workspace.exportAgainModal.title'),
-            prompt: translate('workspace.exportAgainModal.description', {
-                connectionName: connectedIntegration ?? connectedIntegrationFallback,
-                reportName,
-            }),
+            prompt: translate('workspace.exportAgainModal.description', reportName, connectedIntegration ?? connectedIntegrationFallback),
             confirmText: translate('workspace.exportAgainModal.confirmText'),
             cancelText: translate('workspace.exportAgainModal.cancelText'),
         }).then((result) => {

@@ -1,7 +1,4 @@
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
-import type {DelegateRole} from '@src/types/onyx/Account';
-import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
-import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
 type EditActionParams = {
     action: OnyxInputOrEntry<ReportAction>;
@@ -24,19 +21,15 @@ type ReportArchiveReasonsMergedParams = {
     oldDisplayName: string;
 };
 
-type ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams = {
-    policyName: string;
-};
-
 type ReportArchiveReasonsRemovedFromPolicyParams = {
     displayName: string;
     policyName: string;
     shouldUseYou?: boolean;
 };
 
-type PaidElsewhereParams = {payer?: string; comment?: string};
-
-type MovedFromPersonalSpaceParams = {workspaceName?: string; reportName?: string};
+type ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams = {
+    policyName: string;
+};
 
 type ResolutionConstraintsParams = {minHeightInPx: number; minWidthInPx: number; maxHeightInPx: number; maxWidthInPx: number};
 
@@ -48,11 +41,7 @@ type StepCounterParams = {step: number; total?: number; text?: string};
 
 type ParentNavigationSummaryParams = {reportName?: string; workspaceName?: string};
 
-type ViolationsModifiedAmountParams = {type?: ViolationDataType; displayPercentVariance?: number};
-
 type ViolationsIncreasedDistanceParams = {formattedRouteDistance?: string};
-
-type OptionalParam<T> = Partial<T>;
 
 type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string};
 
@@ -81,42 +70,8 @@ type UnsupportedFormulaValueErrorParams = {
 
 type UnshareParams = {to: string};
 
-type ConnectionNameParams = {
-    connectionName: AllConnectionName;
-};
-
-type ExportAgainModalDescriptionParams = {
-    reportName: string;
-    connectionName: ConnectionName;
-};
-
-type UpdateRoleParams = {email: string; currentRole: string; newRole: string};
-
-type YourPlanPriceParams = {lower: string; upper: string};
-
-type ExportIntegrationSelectedParams = {connectionName: ConnectionName};
-
-type IntacctMappingTitleParams = {mappingName: SageIntacctMappingName};
-
-type SyncStageNameConnectionsParams = {stage: PolicyConnectionSyncStage};
-
-type DelegateRoleParams = {role: DelegateRole};
-
 type RemovedFromApprovalWorkflowParams = {
     submittersNames: string[];
-};
-
-type MissingPropertyParams = {
-    propertyName: string;
-};
-
-type InvalidPropertyParams = {
-    propertyName: string;
-    expectedType: string;
-};
-
-type InvalidValueParams = {
-    expectedValues: string;
 };
 
 type WorkspaceLockedPlanTypeParams = {
@@ -124,37 +79,20 @@ type WorkspaceLockedPlanTypeParams = {
     annualSubscriptionEndDate: string;
 };
 
-type ConciergeBrokenCardConnectionParams = {
-    cardName: string;
-    connectionLink?: string;
-};
-
 export type {
-    MissingPropertyParams,
-    InvalidPropertyParams,
-    InvalidValueParams,
     RemovedFromApprovalWorkflowParams,
-    DelegateRoleParams,
-    SyncStageNameConnectionsParams,
-    IntacctMappingTitleParams,
-    ExportIntegrationSelectedParams,
-    YourPlanPriceParams,
     DeleteActionParams,
     DeleteConfirmationParams,
     EditActionParams,
-    MovedFromPersonalSpaceParams,
-    NotAllowedExtensionParams,
     ParentNavigationSummaryParams,
-    PaidElsewhereParams,
-    ConciergeBrokenCardConnectionParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
+    NotAllowedExtensionParams,
     ResolutionConstraintsParams,
     SizeExceededParams,
     StepCounterParams,
-    ViolationsModifiedAmountParams,
     ViolationsIncreasedDistanceParams,
     ChangeFieldParams,
     ExportedToIntegrationParams,
@@ -163,9 +101,5 @@ export type {
     ShareParams,
     UnshareParams,
     UnsupportedFormulaValueErrorParams,
-    ConnectionNameParams,
-    ExportAgainModalDescriptionParams,
-    UpdateRoleParams,
-    OptionalParam,
     WorkspaceLockedPlanTypeParams,
 };
