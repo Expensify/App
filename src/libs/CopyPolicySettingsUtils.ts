@@ -1,7 +1,24 @@
+import type {Part} from '@libs/actions/Policy/CopyPolicySettings';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import {isAuthenticationError} from './actions/connections';
+
+type CopyPolicySettingsSourceFeatureContext = {
+    policy: Policy | undefined;
+    memberCount: number;
+    categoriesCount: number;
+    totalTags: number;
+    reportFieldsCount: number;
+    taxesCount: number;
+    distanceRatesCount: number;
+    perDiemCount: number;
+    connectedIntegrationCount: number;
+    hasWorkflowRules: boolean;
+    hasWorkspaceRules: boolean;
+    hasInvoiceConfiguration: boolean;
+    isCollectPolicy: boolean;
+};
 
 /**
  * Identifier for the external account a policy's accounting connection points to. `companyID`
@@ -122,5 +139,44 @@ function areAllTargetsAccountingCompatible(source: Policy | undefined, targets: 
     return targets.every((target) => arePoliciesAccountingCompatible(source, target));
 }
 
-export {getConnectionCompanyID, getAccountingConnectionIdentity, arePoliciesAccountingCompatible, areAllTargetsAccountingCompatible};
-export type {AccountingConnectionIdentity};
+/**
+ * Whether a copy-settings part should appear on the Select Features step for the source policy.
+ * Matches WorkspaceDuplicateSelectFeaturesForm visibility rules.
+ */
+function isCopyPolicySettingsPartEnabledOnSource(part: Part, context: CopyPolicySettingsSourceFeatureContext): boolean {
+    const {policy} = context;
+
+    switch (part) {
+        case 'overview':
+            return true;
+        case 'members':
+            return context.memberCount > 1;
+        case 'reports':
+            return context.reportFieldsCount > 0;
+        case 'accounting':
+            return context.connectedIntegrationCount > 0;
+        case 'categories':
+            return context.categoriesCount > 0;
+        case 'tags':
+            return context.totalTags > 0;
+        case 'taxes':
+            return context.taxesCount > 0;
+        case 'workflows':
+            return context.hasWorkflowRules;
+        case 'rules':
+            return context.hasWorkspaceRules && !context.isCollectPolicy;
+        case 'distanceRates':
+            return context.distanceRatesCount > 0 && !!policy?.areDistanceRatesEnabled;
+        case 'perDiem':
+            return context.perDiemCount > 0;
+        case 'invoices':
+            return !!policy?.areInvoicesEnabled && context.hasInvoiceConfiguration;
+        case 'travel':
+            return !!policy?.isTravelEnabled;
+        default:
+            return false;
+    }
+}
+
+export {getConnectionCompanyID, getAccountingConnectionIdentity, arePoliciesAccountingCompatible, areAllTargetsAccountingCompatible, isCopyPolicySettingsPartEnabledOnSource};
+export type {AccountingConnectionIdentity, CopyPolicySettingsSourceFeatureContext};

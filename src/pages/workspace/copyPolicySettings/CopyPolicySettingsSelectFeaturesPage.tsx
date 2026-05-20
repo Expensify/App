@@ -14,11 +14,11 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setCopyPolicySettingsData} from '@libs/actions/Policy/CopyPolicySettings';
 import type {Part} from '@libs/actions/Policy/CopyPolicySettings';
-import {areAllTargetsAccountingCompatible} from '@libs/CopyPolicySettingsUtils';
+import {areAllTargetsAccountingCompatible, isCopyPolicySettingsPartEnabledOnSource} from '@libs/CopyPolicySettingsUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PolicyCopySettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getDistanceRateCustomUnit, getMemberAccountIDsForWorkspace, getPerDiemCustomUnit} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnit, getMemberAccountIDsForWorkspace, getPerDiemCustomUnit, isCollectPolicy} from '@libs/PolicyUtils';
 import {formatAddressToString} from '@libs/ReportActionsUtils';
 import {getReportFieldsByPolicyID} from '@libs/ReportUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -103,11 +103,34 @@ function CopyPolicySettingsSelectFeaturesPage() {
             ? `${sourcePolicy.invoice.companyName}, ${sourcePolicy.invoice.companyWebsite}`
             : (sourcePolicy?.invoice?.companyName ?? sourcePolicy?.invoice?.companyWebsite ?? '');
 
+    const sourceFeatureContext = {
+        policy: sourcePolicy,
+        memberCount,
+        categoriesCount,
+        totalTags,
+        reportFieldsCount,
+        taxesCount,
+        distanceRatesCount,
+        perDiemCount,
+        connectedIntegrationCount: connectedIntegration?.length ?? 0,
+        hasWorkflowRules: !!workflows?.length,
+        hasWorkspaceRules: !!rules?.length,
+        hasInvoiceConfiguration: !!(bankAccountList && Object.keys(bankAccountList).length) || !!invoiceCompany,
+        isCollectPolicy: isCollectPolicy(sourcePolicy),
+    };
+
+    const availableFeatureRows = FEATURE_ROWS.filter((row) => isCopyPolicySettingsPartEnabledOnSource(row.part, sourceFeatureContext));
+    const availablePartSet = new Set(availableFeatureRows.map((row) => row.part));
+
     const [selectedFeatures, setSelectedFeatures] = useState<readonly Part[]>([]);
 
-    const isAccountingSelected = selectedFeatures.includes('accounting');
+    const selectedAvailableFeatures = selectedFeatures.filter((part) => availablePartSet.has(part));
 
-    const effectiveSelectedFeatures = isAccountingSelected ? Array.from(new Set<Part>([...selectedFeatures, ...ACCOUNTING_FORCE_ENABLED_PARTS])) : selectedFeatures;
+    const isAccountingSelected = selectedAvailableFeatures.includes('accounting');
+
+    const effectiveSelectedFeatures = isAccountingSelected
+        ? Array.from(new Set<Part>([...selectedAvailableFeatures, ...ACCOUNTING_FORCE_ENABLED_PARTS.filter((part) => availablePartSet.has(part))]))
+        : selectedAvailableFeatures;
 
     const isFeatureDisabled = (part: Part) => {
         if (isAccountingSelected && (ACCOUNTING_FORCE_ENABLED_PARTS as readonly Part[]).includes(part)) {
@@ -159,7 +182,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
         }
     };
 
-    const listItems: ListItem[] = FEATURE_ROWS.map((row) => {
+    const listItems: ListItem[] = availableFeatureRows.map((row) => {
         const alternateText = getFeatureAlternateText(row.part);
         const isSelected = effectiveSelectedFeatures.includes(row.part);
         const isDisabled = isFeatureDisabled(row.part);
@@ -181,7 +204,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
         setSelectedFeatures((prev) => (prev.includes(part) ? prev.filter((selectedPart) => selectedPart !== part) : [...prev, part]));
     };
 
-    const selectableFeatures: Part[] = FEATURE_ROWS.filter((row) => !isFeatureDisabled(row.part)).map((row) => row.part);
+    const selectableFeatures: Part[] = availableFeatureRows.filter((row) => !isFeatureDisabled(row.part)).map((row) => row.part);
 
     const toggleAll = () => {
         const selectableSet = new Set(selectableFeatures);

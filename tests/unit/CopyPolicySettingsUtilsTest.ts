@@ -1,4 +1,11 @@
-import {areAllTargetsAccountingCompatible, arePoliciesAccountingCompatible, getAccountingConnectionIdentity, getConnectionCompanyID} from '@libs/CopyPolicySettingsUtils';
+import {
+    areAllTargetsAccountingCompatible,
+    arePoliciesAccountingCompatible,
+    getAccountingConnectionIdentity,
+    getConnectionCompanyID,
+    isCopyPolicySettingsPartEnabledOnSource,
+} from '@libs/CopyPolicySettingsUtils';
+import type {CopyPolicySettingsSourceFeatureContext} from '@libs/CopyPolicySettingsUtils';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
@@ -122,6 +129,63 @@ describe('CopyPolicySettingsUtils', () => {
             const empty = createRandomPolicy(0);
             expect(arePoliciesAccountingCompatible(empty, undefined)).toBe(false);
             expect(arePoliciesAccountingCompatible(undefined, undefined)).toBe(false);
+        });
+    });
+
+    describe('isCopyPolicySettingsPartEnabledOnSource', () => {
+        const baseContext: CopyPolicySettingsSourceFeatureContext = {
+            policy: createRandomPolicy(0),
+            memberCount: 2,
+            categoriesCount: 1,
+            totalTags: 1,
+            reportFieldsCount: 1,
+            taxesCount: 1,
+            distanceRatesCount: 1,
+            perDiemCount: 1,
+            connectedIntegrationCount: 1,
+            hasWorkflowRules: true,
+            hasWorkspaceRules: true,
+            hasInvoiceConfiguration: true,
+            isCollectPolicy: false,
+        };
+
+        it('always shows overview', () => {
+            expect(isCopyPolicySettingsPartEnabledOnSource('overview', baseContext)).toBe(true);
+        });
+
+        it('shows members only when there is more than one member', () => {
+            expect(isCopyPolicySettingsPartEnabledOnSource('members', {...baseContext, memberCount: 1})).toBe(false);
+            expect(isCopyPolicySettingsPartEnabledOnSource('members', baseContext)).toBe(true);
+        });
+
+        it('shows categories when the source has categories', () => {
+            expect(isCopyPolicySettingsPartEnabledOnSource('categories', {...baseContext, categoriesCount: 0})).toBe(false);
+            expect(isCopyPolicySettingsPartEnabledOnSource('categories', baseContext)).toBe(true);
+        });
+
+        it('shows per diem when rates exist', () => {
+            expect(isCopyPolicySettingsPartEnabledOnSource('perDiem', {...baseContext, perDiemCount: 0})).toBe(false);
+            expect(isCopyPolicySettingsPartEnabledOnSource('perDiem', baseContext)).toBe(true);
+        });
+
+        it('hides travel when the source policy does not have travel enabled', () => {
+            expect(isCopyPolicySettingsPartEnabledOnSource('travel', baseContext)).toBe(false);
+            expect(
+                isCopyPolicySettingsPartEnabledOnSource('travel', {
+                    ...baseContext,
+                    policy: {...baseContext.policy, isTravelEnabled: true},
+                }),
+            ).toBe(true);
+        });
+
+        it('hides distance rates when the feature flag is off even if rates exist', () => {
+            expect(isCopyPolicySettingsPartEnabledOnSource('distanceRates', baseContext)).toBe(false);
+            expect(
+                isCopyPolicySettingsPartEnabledOnSource('distanceRates', {
+                    ...baseContext,
+                    policy: {...baseContext.policy, areDistanceRatesEnabled: true},
+                }),
+            ).toBe(true);
         });
     });
 
