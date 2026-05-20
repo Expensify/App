@@ -101,9 +101,6 @@ type ActionContentRouterProps = {
     /** Toggle the hidden state of the message */
     updateHiddenState: (isHiddenValue: boolean) => void;
 
-    /** Whether the room is archived */
-    isArchivedRoom?: boolean;
-
     /** Whether the provided report is a closed expense report with no expenses */
     isClosedExpenseReportWithNoExpenses?: boolean;
 
@@ -139,7 +136,6 @@ function ActionContentRouter({
     hovered,
     isHidden,
     updateHiddenState,
-    isArchivedRoom,
     isClosedExpenseReportWithNoExpenses,
     isHarvestCreatedExpenseReport,
     personalDetails,
@@ -480,9 +476,7 @@ function ActionContentRouter({
     return (
         <ChatMessageContent
             action={action}
-            report={report}
-            actionOwnerReport={actionOwnerReport}
-            actionOwnerReportID={actionOwnerReportID}
+            policyID={policyID}
             reportID={reportID}
             originalReportID={originalReportID}
             displayAsGroup={displayAsGroup}
@@ -490,7 +484,6 @@ function ActionContentRouter({
             index={index}
             isHidden={isHidden}
             updateHiddenState={updateHiddenState}
-            isArchivedRoom={isArchivedRoom}
             isOnSearch={isOnSearch}
         />
     );

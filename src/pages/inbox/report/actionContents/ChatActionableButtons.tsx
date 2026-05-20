@@ -1,6 +1,5 @@
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ActionableItem} from '@components/ReportActionItem/ActionableItemButtons';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 import useActivePolicy from '@hooks/useActivePolicy';
@@ -36,13 +35,16 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 type ChatActionableButtonsProps = {
     action: OnyxTypes.ReportAction;
-    actionOwnerReport: OnyxEntry<OnyxTypes.Report>;
-    actionOwnerReportID: string | undefined;
+    originalReportID: string | undefined;
     reportID: string | undefined;
 };
 
-function ChatActionableButtons({action, actionOwnerReport, actionOwnerReportID, reportID}: ChatActionableButtonsProps) {
+function ChatActionableButtons({action, originalReportID, reportID}: ChatActionableButtonsProps) {
     const styles = useThemeStyles();
+    const actionOwnerReportID = originalReportID ?? reportID;
+    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(originalReportID)}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
+    const actionOwnerReport = originalReport ?? report;
     const personalDetail = useCurrentUserPersonalDetails();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const activePolicy = useActivePolicy();

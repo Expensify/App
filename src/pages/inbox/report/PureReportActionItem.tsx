@@ -147,9 +147,6 @@ type PureReportActionItemProps = {
     /** Original report from which the given reportAction is first created */
     originalReport?: OnyxTypes.Report;
 
-    /** Whether the room is archived */
-    isArchivedRoom?: boolean;
-
     /** Whether the provided report is a closed expense report with no expenses */
     isClosedExpenseReportWithNoExpenses?: boolean;
 
@@ -185,7 +182,6 @@ function PureReportActionItem({
     personalDetails,
     originalReportID = '-1',
     originalReport,
-    isArchivedRoom,
     isClosedExpenseReportWithNoExpenses,
     shouldShowBorder,
     shouldHighlight = false,
@@ -607,7 +603,6 @@ function PureReportActionItem({
                                                                 hovered={isHoveredOrActive}
                                                                 isHidden={isHidden}
                                                                 updateHiddenState={updateHiddenState}
-                                                                isArchivedRoom={isArchivedRoom}
                                                                 isClosedExpenseReportWithNoExpenses={isClosedExpenseReportWithNoExpenses}
                                                                 isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReport}
                                                                 personalDetails={personalDetails}
@@ -699,7 +694,6 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         deepEqual(prevProps.personalDetails, nextProps.personalDetails) &&
         prevProps.originalReportID === nextProps.originalReportID &&
         deepEqual(prevProps.originalReport?.participants, nextProps.originalReport?.participants) &&
-        prevProps.isArchivedRoom === nextProps.isArchivedRoom &&
         prevProps.isClosedExpenseReportWithNoExpenses === nextProps.isClosedExpenseReportWithNoExpenses &&
         prevProps.shouldHighlight === nextProps.shouldHighlight &&
         prevProps.isHarvestCreatedExpenseReport === nextProps.isHarvestCreatedExpenseReport
