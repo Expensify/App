@@ -2,14 +2,15 @@
 import {useEffect, useRef} from 'react';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import type * as OnyxTypes from '@src/types/onyx';
-import {getMeasuredLinkedRowScrollViewOffset} from './InitialViewportUtils';
+import {getMeasuredLinkedRowScrollPosition} from './InitialViewportUtils';
+import type {MeasuredLinkedRowScrollPosition} from './InitialViewportUtils';
 
 const MEASURED_ANCHOR_SCROLL_RETRY_LIMIT = 10;
 const MEASURED_ANCHOR_SCROLL_FOLLOW_UP_FRAMES = 3;
 
 type MeasuredAnchorScrollRef = {
     /** The method to scroll to an index in the list. */
-    scrollToIndex: (params: {index: number; animated: boolean; viewOffset: number}) => Promise<void> | void;
+    scrollToIndex: (params: {index: number; animated: boolean} & MeasuredLinkedRowScrollPosition) => Promise<void> | void;
 };
 
 type UseMeasuredLinkedRowScrollProps = {
@@ -63,7 +64,7 @@ function useMeasuredLinkedRowScroll({
             return;
         }
 
-        const viewOffset = getMeasuredLinkedRowScrollViewOffset(listHeight, layoutHeight);
+        const scrollPosition = getMeasuredLinkedRowScrollPosition(listHeight, layoutHeight);
 
         const schedulePrimaryScroll = () => {
             runtime.pendingFrameId = requestAnimationFrame(performScroll);
@@ -120,7 +121,7 @@ function useMeasuredLinkedRowScroll({
                 scrollResult = flashListRef.scrollToIndex({
                     index: scrollIndex,
                     animated: false,
-                    viewOffset,
+                    ...scrollPosition,
                 });
             } catch {
                 if (isPrimaryScrollAttempt) {

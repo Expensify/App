@@ -16,6 +16,11 @@ type InitialViewportResetSession = {
     initialScrollKey: string | undefined;
 };
 
+type MeasuredLinkedRowScrollPosition = {
+    viewOffset?: number;
+    viewPosition?: number;
+};
+
 function isUnreadMarkerOnlyInitialScrollKeyChange(
     previousSession: InitialViewportResetSession | undefined,
     listID: string,
@@ -59,6 +64,14 @@ function getMeasuredLinkedRowScrollViewOffset(listHeight: number, layoutHeight: 
     return midViewportOffset + layoutHeight / 2;
 }
 
+function getMeasuredLinkedRowScrollPosition(listHeight: number, layoutHeight: number): MeasuredLinkedRowScrollPosition {
+    if (layoutHeight > listHeight) {
+        return {viewOffset: getMeasuredLinkedRowScrollViewOffset(listHeight, layoutHeight)};
+    }
+
+    return {viewPosition: 0.5};
+}
+
 function computeInitialViewportRange(listHeight: number, initialScrollIndex: number, visibleActionCount: number): InitialViewportRange | undefined {
     if (listHeight <= 0 || initialScrollIndex < 0) {
         return undefined;
@@ -84,5 +97,12 @@ function findInitialScrollIndex<T>(sortedVisibleReportActions: T[], keyExtractor
     return sortedVisibleReportActions.findIndex((item) => keyExtractor(item) === initialScrollKey);
 }
 
-export type {InitialViewportRange, InitialViewportResetSession};
-export {computeInitialViewportRange, findInitialScrollIndex, getMeasuredLinkedRowScrollViewOffset, isInitialViewportCovered, isUnreadMarkerOnlyInitialScrollKeyChange};
+export type {InitialViewportRange, InitialViewportResetSession, MeasuredLinkedRowScrollPosition};
+export {
+    computeInitialViewportRange,
+    findInitialScrollIndex,
+    getMeasuredLinkedRowScrollPosition,
+    getMeasuredLinkedRowScrollViewOffset,
+    isInitialViewportCovered,
+    isUnreadMarkerOnlyInitialScrollKeyChange,
+};

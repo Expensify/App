@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 import type {LayoutChangeEvent} from 'react-native';
-import {getMeasuredLinkedRowScrollViewOffset} from '@pages/inbox/report/InitialViewportUtils';
+import {getMeasuredLinkedRowScrollPosition} from '@pages/inbox/report/InitialViewportUtils';
 import useCenteredInitialScrollKeyList from '@pages/inbox/report/useCenteredInitialScrollKeyList';
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -127,13 +127,13 @@ describe('useCenteredInitialScrollKeyList', () => {
         jest.restoreAllMocks();
     });
 
-    describe('getMeasuredLinkedRowScrollViewOffset', () => {
-        it('centers the row vertical midpoint when the row fits within the list', () => {
-            expect(getMeasuredLinkedRowScrollViewOffset(600, 120)).toBe(-240);
+    describe('getMeasuredLinkedRowScrollPosition', () => {
+        it('uses FlashList viewPosition to center rows that fit within the list', () => {
+            expect(getMeasuredLinkedRowScrollPosition(600, 120)).toEqual({viewPosition: 0.5});
         });
 
         it('centers the row top edge when the row is taller than the list', () => {
-            expect(getMeasuredLinkedRowScrollViewOffset(600, 700)).toBe(400);
+            expect(getMeasuredLinkedRowScrollPosition(600, 700)).toEqual({viewOffset: 400});
         });
     });
 
@@ -178,7 +178,7 @@ describe('useCenteredInitialScrollKeyList', () => {
         expect(mockScrollToIndex).toHaveBeenCalledWith({
             index: 1,
             animated: false,
-            viewOffset: -240,
+            viewPosition: 0.5,
         });
         expect(result.current.shouldShowInitialViewportSkeleton).toBe(false);
     });

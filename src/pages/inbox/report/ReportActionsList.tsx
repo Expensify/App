@@ -865,6 +865,7 @@ function ReportActionsList({
 
     const onLayoutInner = useCallback(
         (event: LayoutChangeEvent) => {
+            handleReportActionsListLayout(event);
             onLayout(event);
             if (isScrollToBottomEnabled) {
                 reportScrollManager.scrollToBottom();
@@ -872,7 +873,7 @@ function ReportActionsList({
                 completeLiveTailPruneAfterScrollToBottom();
             }
         },
-        [isScrollToBottomEnabled, onLayout, reportScrollManager, completeLiveTailPruneAfterScrollToBottom, setIsScrollToBottomEnabled],
+        [handleReportActionsListLayout, isScrollToBottomEnabled, onLayout, reportScrollManager, completeLiveTailPruneAfterScrollToBottom, setIsScrollToBottomEnabled],
     );
 
     const retryLoadNewerChatsError = useCallback(() => {
