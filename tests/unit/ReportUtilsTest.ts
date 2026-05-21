@@ -8435,14 +8435,25 @@ describe('ReportUtils', () => {
     });
 
     describe('isReportOutstanding', () => {
-        it('should return true for submitted reports', () => {
+        it('should return true for submitted reports if the report is awaiting for first level approval', async () => {
             const report: Report = {
                 ...createRandomReport(1, undefined),
                 policyID: policy.id,
                 type: CONST.REPORT.TYPE.EXPENSE,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: currentUserAccountID,
             };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                ...policy,
+                approver: currentUserEmail,
+            });
+            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+                [currentUserAccountID]: {
+                    accountID: currentUserAccountID,
+                    login: currentUserEmail,
+                },
+            });
             expect(isReportOutstanding(report, policy.id)).toBe(true);
         });
         it('should return false for submitted reports if we specify it', () => {
@@ -8462,6 +8473,7 @@ describe('ReportUtils', () => {
                 type: CONST.REPORT.TYPE.EXPENSE,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: currentUserAccountID,
             };
             const activeReport: Report = {
                 ...createRandomReport(2, undefined),
@@ -8470,6 +8482,16 @@ describe('ReportUtils', () => {
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                ...policy,
+                approver: currentUserEmail,
+            });
+            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+                [currentUserAccountID]: {
+                    accountID: currentUserAccountID,
+                    login: currentUserEmail,
+                },
+            });
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${activeReport.reportID}`, activeReport);
             expect(isReportOutstanding(report, policy.id)).toBe(true);
         });

@@ -11456,11 +11456,10 @@ function createDraftTransactionAndNavigateToParticipantSelector({
 }
 
 /**
- * Check if a report has any forwarded actions
+ * Check if a report is forwarded or not
  */
-function hasForwardedAction(reportID: string): boolean {
-    const reportActions = getAllReportActions(reportID);
-    return Object.values(reportActions).some((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED);
+function isForwardedReport(report: OnyxEntry<Report>): boolean {
+    return isProcessingReport(report) && !isAwaitingFirstLevelApproval(report);
 }
 
 function isReportOutstanding(
@@ -11476,7 +11475,7 @@ function isReportOutstanding(
         iouReport?.stateNum === undefined ||
         iouReport?.statusNum === undefined ||
         iouReport?.policyID !== policyID ||
-        hasForwardedAction(iouReport.reportID)
+        isForwardedReport(iouReport)
     ) {
         return false;
     }
