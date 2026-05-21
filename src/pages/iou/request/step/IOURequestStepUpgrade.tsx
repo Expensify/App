@@ -28,7 +28,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption} from '@libs/OptionsListUtils';
-import {getPersonalDetailsForAccountID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {getPersonalDetailsForAccountID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import UpgradeConfirmation from '@pages/workspace/upgrade/UpgradeConfirmation';
 import UpgradeIntro from '@pages/workspace/upgrade/UpgradeIntro';
 import {setCustomUnitRateID, setMoneyRequestParticipants} from '@userActions/IOU/MoneyRequest';
@@ -82,6 +82,18 @@ function IOURequestStepUpgrade({
     const {selectedTransactions} = useSearchStateContext();
     const {clearSelectedTransactions} = useSearchActionsContext();
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
+    const originalReport = useMemo(() => {
+        const sourceReportIDs = new Set<string>();
+        for (const selectedTransaction of Object.values(selectedTransactions)) {
+            const sourceReportID = selectedTransaction.reportID;
+            if (sourceReportID && sourceReportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
+                sourceReportIDs.add(sourceReportID);
+            }
+        }
+
+        const originalReportID = sourceReportIDs.size === 1 ? [...sourceReportIDs].at(0) : undefined;
+        return getReportOrDraftReport(originalReportID);
+    }, [selectedTransactions]);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
@@ -145,6 +157,7 @@ function IOURequestStepUpgrade({
                 accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 email: session?.email ?? '',
                 newReport: optimisticReport,
+                originalReport,
                 policy: newPolicy,
                 reportNextStep,
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`],
@@ -236,6 +249,7 @@ function IOURequestStepUpgrade({
         session?.accountID,
         session?.email,
         ownerPersonalDetails,
+        originalReport,
         allTransactions,
         betas,
         iouType,
