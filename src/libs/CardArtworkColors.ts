@@ -14,11 +14,6 @@
  * its fill — either the inline fill="..." attribute or the CSS class it references.
  */
 
-// Feed key → background color mappings.
-// Keys are the runtime string values of CONST.COMPANY_CARD.FEED_BANK_NAME / CONST.EXPENSIFY_CARD.BANK.
-// Lookup uses prefix-matching (see getCardFeedBackgroundColor), so partial feed-name
-// suffixes (e.g. "vcf123") still resolve correctly.
-
 /* eslint-disable @typescript-eslint/naming-convention */
 const CARD_FEED_BACKGROUND_COLORS: Record<string, string> = {
     // assets/images/expensify-card.svg                         (.st0 fill)
