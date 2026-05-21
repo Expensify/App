@@ -2220,11 +2220,11 @@ const translations: TranslationDeepObject<typeof en> = {
         disabled: 'A autenticação em duas etapas está desativada agora',
         noAuthenticatorApp: 'Você não vai mais precisar de um app autenticador para entrar no Expensify.',
         stepCodes: 'Códigos de recuperação',
-        keepCodesSafe: 'Mantenha estes códigos de recuperação em segurança!',
+        keepCodesSafe: 'Mantenha estes códigos em segurança!',
         codesLoseAccess: dedent(`
             Se você perder o acesso ao seu app autenticador e não tiver esses códigos, perderá o acesso à sua conta.
 
-            Observação: Configurar a autenticação em duas etapas desconectará você de todas as outras sessões ativas.
+            <strong>Observação</strong>: Configurar a autenticação em duas etapas vai desconectar você de todas as outras sessões ativas.
         `),
         errorStepCodes: 'Copie ou faça o download dos códigos antes de continuar',
         stepVerify: 'Verificar',
@@ -2253,6 +2253,9 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyOldDeviceDescription: 'Digite o código de seis dígitos do seu aplicativo autenticador atual para confirmar que você tem acesso a ele.',
         verifyNewDeviceTitle: 'Configurar novo dispositivo',
         verifyNewDeviceDescription: 'Escaneie o código QR com seu novo dispositivo e depois insira o código para concluir a configuração.',
+        downloadCodes: 'Baixar códigos',
+        screenshotTip: 'Dica: faça uma captura de tela para salvar na sua galeria de fotos',
+        copyCodes: 'Copiar códigos',
     },
     recoveryCodeForm: {
         error: {

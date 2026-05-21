@@ -2229,11 +2229,11 @@ const translations: TranslationDeepObject<typeof en> = {
         disabled: 'Die Zwei-Faktor-Authentifizierung ist jetzt deaktiviert',
         noAuthenticatorApp: 'Sie benötigen keine Authentifizierungs-App mehr, um sich bei Expensify anzumelden.',
         stepCodes: 'Wiederherstellungscodes',
-        keepCodesSafe: 'Bewahre diese Wiederherstellungscodes sicher auf!',
+        keepCodesSafe: 'Bewahren Sie diese Codes sicher auf!',
         codesLoseAccess: dedent(`
-            Wenn du den Zugriff auf deine Authentifizierungs-App verlierst und diese Codes nicht hast, verlierst du den Zugriff auf dein Konto.
+            Wenn Sie den Zugriff auf Ihre Authentifizierungs-App verlieren und diese Codes nicht haben, verlieren Sie den Zugriff auf Ihr Konto.
 
-            Hinweis: Das Einrichten der Zwei-Faktor-Authentifizierung meldet dich von allen anderen aktiven Sitzungen ab.
+            <strong>Hinweis</strong>: Das Einrichten der Zwei-Faktor-Authentifizierung meldet Sie von allen anderen aktiven Sitzungen ab.
         `),
         errorStepCodes: 'Bitte kopiere oder lade die Codes herunter, bevor du fortfährst',
         stepVerify: 'Bestätigen',
@@ -2262,6 +2262,9 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyOldDeviceDescription: 'Geben Sie den sechsstelligen Code aus Ihrer aktuellen Authentifizierungs-App ein, um zu bestätigen, dass Sie Zugriff darauf haben.',
         verifyNewDeviceTitle: 'Neues Gerät einrichten',
         verifyNewDeviceDescription: 'Scannen Sie den QR-Code mit Ihrem neuen Gerät und geben Sie dann den Code ein, um die Einrichtung abzuschließen.',
+        downloadCodes: 'Codes herunterladen',
+        screenshotTip: 'Tipp: Machen Sie einen Screenshot, um ihn in Ihrer Fotomediathek zu speichern',
+        copyCodes: 'Codes kopieren',
     },
     recoveryCodeForm: {
         error: {

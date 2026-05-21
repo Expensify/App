@@ -2223,11 +2223,11 @@ const translations: TranslationDeepObject<typeof en> = {
         disabled: 'Tweeledige verificatie is nu uitgeschakeld',
         noAuthenticatorApp: 'Je hebt geen authenticator-app meer nodig om in te loggen bij Expensify.',
         stepCodes: 'Herstelcodes',
-        keepCodesSafe: 'Bewaar deze herstercodes goed!',
+        keepCodesSafe: 'Bewaar deze codes goed!',
         codesLoseAccess: dedent(`
-            Als je de toegang tot je authenticator-app kwijtraakt en deze codes niet hebt, verlies je de toegang tot je account.
+            Als je de toegang tot je authenticator-app verliest en deze codes niet hebt, verlies je de toegang tot je account.
 
-            Let op: het instellen van tweeledige verificatie zal je uitloggen bij alle andere actieve sessies.
+            <strong>Let op</strong>: Het instellen van twee-factor-authenticatie zal je bij alle andere actieve sessies afmelden.
         `),
         errorStepCodes: 'Kopieer of download de codes voordat je verdergaat',
         stepVerify: 'Verifiëren',
@@ -2256,6 +2256,9 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyOldDeviceDescription: 'Voer de zescijferige code uit je huidige authenticator-app in om te bevestigen dat je daar toegang toe hebt.',
         verifyNewDeviceTitle: 'Nieuw apparaat instellen',
         verifyNewDeviceDescription: 'Scan de QR-code met je nieuwe apparaat en voer daarna de code in om de installatie te voltooien.',
+        downloadCodes: 'Codes downloaden',
+        screenshotTip: 'Tip: maak een screenshot om dit op te slaan in je fotobibliotheek',
+        copyCodes: 'Codes kopiëren',
     },
     recoveryCodeForm: {
         error: {
