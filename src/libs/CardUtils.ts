@@ -169,6 +169,17 @@ function requiresStrongCustomerAuthentication(card: Card | undefined): boolean {
 }
 
 /**
+ * Checks whether the user's current location is an offline PIN market —
+ * a region where PINs must be changed at an ATM rather than via the in-app flow.
+ */
+function isOfflinePINMarket(countryByIp: string | undefined): boolean {
+    if (!countryByIp) {
+        return false;
+    }
+    return CONST.EXPENSIFY_CARD.OFFLINE_PIN_MARKETS.includes(countryByIp);
+}
+
+/**
  * @param card
  * @param translate
  * @returns string in format %<bank> • <lastFourPAN || Not Activated>%.
@@ -1810,6 +1821,7 @@ export {
     isExpensifyCard,
     supportsPINManagementFeatures,
     requiresStrongCustomerAuthentication,
+    isOfflinePINMarket,
     getDomainCards,
     formatCardExpiration,
     getMonthFromExpirationDateString,

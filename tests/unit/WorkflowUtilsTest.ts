@@ -8,6 +8,7 @@ import {
     convertPolicyEmployeesToApprovalWorkflows,
     getApprovalLimitDescription,
     getOpenConnectedToPolicyBusinessBankAccounts,
+    getOverLimitForwardsToDisplayName,
     mergeWorkflowMembersWithAvailableMembers,
     updateWorkflowDataOnApproverRemoval,
 } from '@src/libs/WorkflowUtils';
@@ -248,6 +249,33 @@ describe('WorkflowUtils', () => {
             const approvers = calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail});
 
             expect(approvers).toEqual([buildApprover(1, {approvalLimit: null, overLimitForwardsTo: ''})]);
+        });
+    });
+
+    describe('getOverLimitForwardsToDisplayName', () => {
+        it('Should return undefined when overLimitForwardsTo is undefined', () => {
+            expect(getOverLimitForwardsToDisplayName(undefined, personalDetailsByEmail)).toBeUndefined();
+        });
+
+        it('Should return undefined when overLimitForwardsTo is an empty string', () => {
+            expect(getOverLimitForwardsToDisplayName('', personalDetailsByEmail)).toBeUndefined();
+        });
+
+        it('Should return the display name from personal details when available', () => {
+            expect(getOverLimitForwardsToDisplayName('2@example.com', personalDetailsByEmail)).toBe('2@example.com User');
+        });
+
+        it('Should fall back to the email when personal details are missing', () => {
+            expect(getOverLimitForwardsToDisplayName('unknown@example.com', personalDetailsByEmail)).toBe('unknown@example.com');
+        });
+
+        it('Should fall back to the email when personal details exist but displayName is missing', () => {
+            const {displayName: omittedDisplayName, ...personalDetailsWithoutDisplayNameEntry} = buildPersonalDetails('custom@example.com', 99);
+            const personalDetailsWithoutDisplayName: PersonalDetailsList = {
+                'custom@example.com': personalDetailsWithoutDisplayNameEntry,
+            };
+
+            expect(getOverLimitForwardsToDisplayName('custom@example.com', personalDetailsWithoutDisplayName)).toBe('custom@example.com');
         });
     });
 

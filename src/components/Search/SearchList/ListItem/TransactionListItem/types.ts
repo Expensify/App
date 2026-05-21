@@ -1,5 +1,4 @@
 import type {MouseEvent} from 'react';
-import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchColumnType} from '@components/Search/types';
 import type {ListItemFocusEventHandler} from '@components/SelectionList/ListItem/types';
 import type {ListItem} from '@components/SelectionList/types';
@@ -27,7 +26,6 @@ type TransactionListItemInlineEditProps = {
 
 type TransactionListItemWideProps<TItem extends ListItem> = {
     item: TItem;
-    transactionItem: TransactionListItemType;
     isDeletedTransaction: boolean;
     isFocused?: boolean;
     showTooltip: boolean;
