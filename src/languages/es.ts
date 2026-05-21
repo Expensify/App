@@ -217,6 +217,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reset: 'Restablecer',
         done: 'Listo',
         more: 'Más',
+        other: 'Otro',
         debitCard: 'Tarjeta de débito',
         bankAccount: 'Cuenta bancaria',
         personalBankAccount: 'Cuenta bancaria personal',
@@ -920,8 +921,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         freeTrialSection: {
             title: ({days}: {days: number}) => `Prueba gratuita: ${days} ${days === 1 ? 'día' : 'días'} restantes!`,
-            offer50Body: '¡Obtén 50% de descuento en tu primer año!',
-            offer25Body: '¡Obtén 25% de descuento en tu primer año!',
+            offer50Body: '¡Obtén 50% de descuento en tu primer año',
+            offer25Body: '¡Obtén 25% de descuento en tu primer año',
             addCardBody: '¡No esperes! Añade tu tarjeta de pago ahora.',
             ctaClaim: 'Reclamar',
             ctaAdd: 'Añadir tarjeta',
@@ -931,8 +932,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 other: (pluralCount: number) => `Tiempo restante: ${pluralCount} días`,
             }),
         },
-        assignedCards: 'Tus tarjetas Expensify',
-        assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} restantes`,
+        yourSpend: {
+            title: 'Tu gasto',
+            awaitingApproval: 'Pendiente de aprobación',
+            repaidLast30Days: 'Reembolsado en los últimos 30 días',
+            recentTransactions: ({lastFour}: {lastFour: string}) => `Transacciones recientes • ${lastFour}`,
+        },
         announcements: 'Anuncios',
         discoverSection: {
             title: 'Descubrir',
@@ -2360,6 +2365,7 @@ const translations: TranslationDeepObject<typeof en> = {
             expiration: 'Expiración',
             cvv: 'CVV',
             address: 'Dirección',
+            reveal: 'Revelar',
             revealDetails: 'Revelar detalles',
             revealCvv: 'Revelar CVV',
             copyCardNumber: 'Copiar número de la tarjeta',
@@ -2394,6 +2400,11 @@ ${amount} para ${merchant} - ${date}`,
         pinChanged: '¡PIN cambiado!',
         pinChangedHeader: 'PIN cambiado',
         pinChangedDescription: 'Ya puedes usar tu nuevo PIN.',
+        cardUnblocked: '¡Tarjeta desbloqueada!',
+        cardUnblockedDescription: 'Es posible que se te pida insertar tu tarjeta en el lector la próxima vez que realices una compra.',
+        pinBlocked: 'Tu tarjeta fue bloqueada por introducir el PIN incorrectamente varias veces.',
+        unblock: 'Desbloquear',
+        unblockCard: 'Desbloquear tarjeta',
         changePinAtATM: 'Cambia tu PIN en cualquier cajero automático',
         changePinAtATMDescription: 'Esto es obligatorio en tu región. <concierge-link>Contacta a Concierge</concierge-link> si tienes alguna pregunta.',
         freezeCard: 'Congelar tarjeta',
@@ -2424,10 +2435,10 @@ ${amount} para ${merchant} - ${date}`,
         addApprovalTip: 'Este flujo de trabajo por defecto se aplica a todos los miembros, a menos que exista un flujo de trabajo más específico.',
         approver: 'Aprobador',
         addApprovalsDescription: 'Requiere una aprobación adicional antes de autorizar un pago.',
-        configureViaGusto: 'Configurar mediante Gusto.',
-        gustoApprovalWorkflowLockedPrompt:
-            'Las aprobaciones se gestionan mediante tu integración de Gusto. Para actualizar tu flujo de aprobación, ve a la configuración de conexión de Gusto.',
-        goToGustoSettings: 'Ir a la configuración de Gusto',
+        configureViaHR: ({provider}: {provider: string}) => `Configurar mediante ${provider}.`,
+        hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
+            `Las aprobaciones se gestionan mediante tu integración de ${provider}. Para actualizar tu flujo de aprobación, ve a la configuración de conexión de ${provider}.`,
+        goToHRSettings: ({provider}: {provider: string}) => `Ir a la configuración de ${provider}`,
         makeOrTrackPaymentsTitle: 'Realizar o seguir pagos',
         makeOrTrackPaymentsDescription: 'Añade un pagador autorizado para los pagos realizados en Expensify o realiza un seguimiento de los pagos realizados en otro lugar.',
         customApprovalWorkflowEnabled:
@@ -2879,6 +2890,8 @@ ${amount} para ${merchant} - ${date}`,
         mergeBlockScreen: {
             title: 'No se pudo añadir el correo electrónico de trabajo',
             subtitle: (workEmail) => `No pudimos añadir ${workEmail}. Por favor, inténtalo de nuevo más tarde en Configuración o chatea con Concierge para obtener ayuda.`,
+            workAccountClosedSubtitle:
+                'La cuenta de trabajo asociada a este correo electrónico está cerrada. Ponte en contacto con el administrador de tu empresa para reactivarla o regístrate con un correo electrónico diferente.',
         },
         tasks: {
             testDriveAdminTask: {
@@ -4119,6 +4132,7 @@ ${amount} para ${merchant} - ${date}`,
             perDiem: 'Per diem',
             travel: 'Viajes',
             members: 'Miembros',
+            rooms: 'Salas',
             accounting: 'Contabilidad',
             hr: 'HR',
             receiptPartners: 'Socios de recibos',
@@ -4198,12 +4212,18 @@ ${amount} para ${merchant} - ${date}`,
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO]: 'Ninguno',
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL]: 'Indirecto',
             },
-            roleName: (role) => {
+            roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
                         return 'Administrador';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditor';
+                    case CONST.POLICY.ROLE.CARD_ADMIN:
+                        return 'Administrador de tarjeta';
+                    case CONST.POLICY.ROLE.PEOPLE_ADMIN:
+                        return 'Administrador de personas';
+                    case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
+                        return 'Administrador de pagos';
                     case CONST.POLICY.ROLE.USER:
                         return 'Miembro';
                     default:
@@ -4238,9 +4258,12 @@ ${amount} para ${merchant} - ${date}`,
             viewTransactions: 'Ver transacciones',
             policyExpenseChatName: (displayName) => `${displayName}'s gastos`,
             deepDiveExpensifyCard: `<muted-text-label>Las transacciones de la Tarjeta Expensify se exportan automáticamente a una "Cuenta de Responsabilidad de la Tarjeta Expensify" creada con <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">nuestra integración</a>.</muted-text-label>`,
-            travelInvoicing: 'Exportar Viajes de Expensify por Pagar a',
+            travelInvoicing: 'Exportar gastos de facturación de viajes como',
             travelInvoicingVendor: 'Proveedor de viajes',
             travelInvoicingPayableAccount: 'Cuenta por pagar de viajes',
+            cardAdminAlternateText: 'Gestiona tarjetas del espacio de trabajo.',
+            peopleAdminAlternateText: 'Gestiona miembros y flujos de aprobación.',
+            paymentsAdminAlternateText: 'Gestiona los pagos del flujo de trabajo.',
         },
         createdForClient: {
             title: '¡Has creado un espacio de trabajo para tu cliente!',
@@ -4564,6 +4587,7 @@ ${amount} para ${merchant} - ${date}`,
             exportDeepDiveCompanyCard:
                 'Cada gasto exportado se contabiliza como una transacción bancaria en la cuenta bancaria de Xero que selecciones a continuación. Las fechas de las transacciones coincidirán con las fechas de el extracto bancario.',
             bankTransactions: 'Transacciones bancarias',
+            travelInvoicingDescription: 'Los gastos de viaje se exportarán como transacciones bancarias a la cuenta de Xero especificada a continuación.',
             xeroBankAccount: 'Cuenta bancaria de Xero',
             xeroBankAccountDescription: 'Elige dónde se contabilizarán los gastos como transacciones bancarias.',
             exportExpensesDescription: 'Los informes se exportarán como una factura de compra utilizando la fecha y el estado que seleccione a continuación',
@@ -5825,6 +5849,9 @@ ${amount} para ${merchant} - ${date}`,
                 `Estás a punto de crear y compartir ${newWorkspaceName ?? ''} con ${totalMembers ?? 0} miembros del espacio de trabajo original.`,
             error: 'Se produjo un error al duplicar tu nuevo espacio de trabajo. Inténtalo de nuevo.',
         },
+        copyPolicySettings: {
+            error: 'Se produjo un error al copiar la configuración del espacio de trabajo. Por favor, inténtalo de nuevo.',
+        },
         emptyWorkspace: {
             title: 'Aún no hay espacios de trabajo',
             subtitle: 'Crea un espacio de trabajo para gestionar tus gastos, reembolsos y tarjetas de empresa.',
@@ -6167,7 +6194,11 @@ ${amount} para ${merchant} - ${date}`,
                 chooseBankAccount: 'Elige la cuenta bancaria con la que se conciliarán los pagos de tu Tarjeta Expensify.',
                 settlementAccountReconciliation: (settlementAccountUrl, lastFourPAN) =>
                     `Asegúrate de que esta cuenta coincide con <a href="${settlementAccountUrl}">la cuenta de liquidación de tu Tarjeta Expensify</a> (que termina en ${lastFourPAN}) para que la conciliación continua funcione correctamente.`,
+                chooseTravelInvoicingBankAccount: 'Elige la cuenta bancaria con la que se reconciliarán los pagos de tus facturas de viaje.',
+                travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
+                    `Asegúrate de que esta cuenta coincida con tu cuenta de liquidación de facturas de viaje (que termina en ${lastFourPAN}) para que la conciliación continua funcione correctamente.`,
             },
+            syncTravelInvoicingSettlements: 'Sincronizar liquidaciones de facturación de viajes',
         },
         card: {
             issueCard: 'Emitir tarjeta',
@@ -6226,8 +6257,32 @@ ${amount} para ${merchant} - ${date}`,
         },
         hr: {
             title: 'HR',
+            connections: 'Conexiones',
             subtitle: 'Conecta herramientas de HR y mantén sincronizadas las aprobaciones de empleados.',
-            settingsTitle: 'Configuración de Gusto',
+            connect: 'Conectar',
+            syncNow: 'Sincronizar ahora',
+            disconnect: 'Desconectar',
+            disconnectTitle: (providerName: string) => `Desconectar ${providerName}`,
+            disconnectPrompt: (providerName: string) => `¿Seguro que quieres desconectar ${providerName}?`,
+            lastSync: (relativeDate: string) => `Última sincronización ${relativeDate}`,
+            syncError: (providerName: string) => `No se puede conectar con ${providerName}`,
+            connectionDescription: (providerName: string) => `Conecta ${providerName} para mantener sincronizadas las aprobaciones de empleados con tu espacio de trabajo.`,
+            approvalMode: 'Modo de aprobación',
+            finalApprover: 'Aprobador final',
+            notSet: 'No configurado',
+            approvalModeDescription: (providerName: string) => `Los miembros y gerentes están configurados para sincronizarse con ${providerName}.`,
+            approvalModeWarningTitle: '¿Cambiar modo de aprobación?',
+            approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
+                `¿Seguro que quieres cambiar el modo de aprobación de este espacio de trabajo? Obtén más información sobre los diferentes modos de flujo de trabajo con ${providerName} en nuestro <a href="${helpSiteURL}">sitio de ayuda</a>.`,
+            approvalModeWarningConfirm: 'Cambiar modo de aprobación',
+            approvalModes: {
+                basic: {label: 'Aprobación básica', description: 'Todos los usuarios envían a una sola persona para su procesamiento y aprobación.'},
+                manager: {
+                    label: 'Aprobación del gerente',
+                    description: (providerName: string) => `Los empleados envían informes a su gerente directo configurado en ${providerName}.`,
+                },
+                custom: {label: 'Aprobación personalizada', description: 'Configuraré manualmente los flujos de aprobación en Expensify.'},
+            },
             syncStageName: ({stage}) => {
                 switch (stage) {
                     case 'gustoSyncTitle':
@@ -6242,6 +6297,8 @@ ${amount} para ${merchant} - ${date}`,
                         return 'Cargando datos desde TriNet';
                     case 'zenefitsSyncProvisioning':
                         return 'Aprovisionar empleados en la política';
+                    case 'mergeHRSyncTitle':
+                        return 'Sincronización de empleados de HR';
                     case 'jobDone':
                         return 'Esperando a que se carguen los datos importados';
                     default: {
@@ -6251,36 +6308,6 @@ ${amount} para ${merchant} - ${date}`,
             },
             gusto: {
                 title: 'Gusto',
-                connect: 'Conectar',
-                syncNow: 'Sincronizar ahora',
-                disconnect: 'Desconectar',
-                lastSync: (relativeDate) => `Última sincronización ${relativeDate}`,
-                syncError: 'No se puede conectar con Gusto',
-                disconnectTitle: 'Desconectar Gusto',
-                disconnectPrompt: '¿Seguro que quieres desconectar Gusto?',
-                connectionDescription: 'Conecta Gusto para mantener sincronizadas las aprobaciones de empleados con tu espacio de trabajo.',
-                approvalMode: 'Modo de aprobación',
-                finalApprover: 'Aprobador final',
-                notSet: 'No configurado',
-                approvalModeDescription: 'Los miembros y gerentes están configurados para sincronizarse con Gusto.',
-                approvalModeWarningTitle: '¿Cambiar modo de aprobación?',
-                approvalModeWarningPrompt: (helpSiteURL: string) =>
-                    `¿Seguro que quieres cambiar el modo de aprobación de este espacio de trabajo? Obtén más información sobre los diferentes modos de flujo de trabajo con Gusto en nuestro <a href="${helpSiteURL}">sitio de ayuda</a>.`,
-                approvalModeWarningConfirm: 'Cambiar modo de aprobación',
-                approvalModes: {
-                    basic: {
-                        label: 'Aprobación básica',
-                        description: 'Todos los usuarios envían a una sola persona para su procesamiento y aprobación.',
-                    },
-                    manager: {
-                        label: 'Aprobación del gerente',
-                        description: 'Los empleados envían informes a su gerente directo configurado en Gusto.',
-                    },
-                    custom: {
-                        label: 'Aprobación personalizada',
-                        description: 'Configuraré manualmente los flujos de aprobación en Expensify.',
-                    },
-                },
                 syncResults: {
                     title: 'Resultados de la sincronización de Gusto',
                     successTitle: '¡Se sincronizó correctamente tu conexión con Gusto!',
@@ -6295,27 +6322,6 @@ ${amount} para ${merchant} - ${date}`,
             },
             zenefits: {
                 title: 'TriNet',
-                connect: 'Conectar',
-                syncNow: 'Sincronizar ahora',
-                disconnect: 'Desconectar',
-                lastSync: (relativeDate: string) => `Última sincronización ${relativeDate}`,
-                syncError: 'No se puede conectar con TriNet',
-                disconnectTitle: 'Desconectar TriNet',
-                disconnectPrompt: '¿Seguro que quieres desconectar TriNet?',
-                connectionDescription: 'Conecta TriNet para mantener las aprobaciones de empleados sincronizadas con tu espacio de trabajo.',
-                approvalMode: 'Modo de aprobación',
-                finalApprover: 'Aprobador final',
-                notSet: 'No establecido',
-                approvalModeDescription: 'Los miembros y gestores están configurados para sincronizarse con TriNet.',
-                approvalModeWarningTitle: '¿Cambiar el modo de aprobación?',
-                approvalModeWarningPrompt: (helpSiteURL: string) =>
-                    `¿Seguro que quieres cambiar el modo de aprobación de este espacio de trabajo? Obtén más información sobre los distintos modos de flujo de trabajo habilitados por TriNet en nuestro <a href="${helpSiteURL}">sitio de ayuda</a>.`,
-                approvalModeWarningConfirm: 'Cambiar el modo de aprobación',
-                approvalModes: {
-                    basic: {label: 'Aprobación básica', description: 'Todos los usuarios envían a una sola persona para su procesamiento y aprobación.'},
-                    manager: {label: 'Aprobación del responsable', description: 'Los empleados envían informes a su responsable directo configurado en TriNet.'},
-                    custom: {label: 'Aprobación personalizada', description: 'Configuraré manualmente los flujos de aprobación en Expensify.'},
-                },
             },
         },
         export: {
@@ -6500,8 +6506,8 @@ ${amount} para ${merchant} - ${date}`,
                     description: 'Para empleados que buscan enviar gastos a su empleador.',
                 },
             },
-            description: 'Elige el plan adecuado para ti. Para ver una lista detallada de funciones y precios, consulta nuestra',
-            subscriptionLink: 'página de ayuda sobre tipos de planes y precios',
+            description: 'Elige el plan adecuado para ti.',
+            subscriptionLink: 'Más información',
             lockedPlanDescription: ({count, annualSubscriptionEndDate}) => ({
                 one: `Tienes un compromiso anual de 1 miembro activo en el plan Controlar hasta el ${annualSubscriptionEndDate}. Puedes cambiar a una suscripción de pago por uso y desmejorar al plan Recopilar a partir del ${annualSubscriptionEndDate} desactivando la renovación automática en`,
                 other: `Tienes un compromiso anual de ${count} miembros activos en el plan Controlar hasta el ${annualSubscriptionEndDate}. Puedes cambiar a una suscripción de pago por uso y desmejorar al plan Recopilar a partir del ${annualSubscriptionEndDate} desactivando la renovación automática en`,
@@ -6539,6 +6545,12 @@ ${amount} para ${merchant} - ${date}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
                     `<muted-text>Las aprobaciones avanzadas sólo están disponibles en el plan Controlar, con precios desde <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
+            approvalSubmit: {
+                title: 'Aprobaciones',
+                description: 'Configura de forma centralizada a quién envían todos los miembros sus gastos al activar las aprobaciones.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
+                    `<muted-text>Las aprobaciones están disponibles en los planes Recopilar y Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+            },
             categories: {
                 title: 'Categorías',
                 description: 'Las categorías te permiten rastrear y organizar gastos. Usa nuestras categorías predeterminadas o añade las tuyas propias.',
@@ -6569,6 +6581,12 @@ ${amount} para ${merchant} - ${date}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
                     `<muted-text>Esto solo está disponible en el plan Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
+            companyCardSubmit: {
+                title: 'Tarjetas de empresa',
+                description: 'Trae tu propia tarjeta de empresa a Expensify para obtener importación automática, categorización automática, reglas personalizables y conciliación integrada.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
+                    `<muted-text>La importación de tarjetas de empresa está disponible en los planes Recopilar y Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+            },
             rules: {
                 title: 'Reglas',
                 description: `Las reglas se ejecutan en segundo plano y mantienen tus gastos bajo control para que no tengas que preocuparte por los detalles pequeños.\n\nExige detalles de los gastos, como recibos y descripciones, establece límites y valores predeterminados, y automatiza las aprobaciones y los pagos, todo en un mismo lugar.`,
@@ -6595,6 +6613,12 @@ ${amount} para ${merchant} - ${date}`,
                     'Expensify Travel es una nueva plataforma corporativa de reserva y gestión de viajes que permite a los miembros reservar alojamientos, vuelos, transporte y mucho más.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
                     `<muted-text>Los viajes están disponibles en el plan Recopilar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+            },
+            travelSubmit: {
+                title: 'Expensify Travel',
+                description: 'Reserva vuelos, hoteles, coches y trenes con descuento en todo el mundo desde Expensify, con informes de duty of care y gestión de gastos integrada.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
+                    `<muted-text>Expensify Travel está disponible en los planes Recopilar y Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
             reports: {
                 title: 'Informes',
@@ -6627,6 +6651,39 @@ ${amount} para ${merchant} - ${date}`,
                     'Los múltiples niveles de aprobación son una herramienta de flujo de trabajo para empresas que requieren que más de una persona apruebe un informe antes de que pueda ser reembolsado.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
                     `<muted-text>Los múltiples niveles de aprobación solo están disponibles en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+            },
+            roles: {
+                title: 'Roles',
+                description: 'Asigna diferentes roles a diferentes miembros para aumentar o disminuir la visibilidad y el control según corresponda.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
+                    `<muted-text>Los roles están disponibles en los planes Recopilar y Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+            },
+            payments: {
+                title: 'Pagos',
+                description: 'Reembolsa a los empleados directamente desde la cuenta bancaria de tu empresa.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
+                    `<muted-text>Los pagos están disponibles en los planes Recopilar y Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+            },
+            accounting: {
+                title: 'Contabilidad',
+                description:
+                    'Sincroniza categorías, etiquetas, tasas de impuestos y más desde tu sistema contable a Expensify, además de exportar informes de gastos y transacciones de tarjetas, ¡sin necesidad de escribir (ni errores tipográficos)!',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
+                    `<muted-text>La contabilidad está disponible en los planes Recopilar y Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+            },
+            expensifyCard: {
+                title: 'Tarjeta Expensify',
+                description:
+                    'Emite tarjetas de empresa (incluidas tarjetas virtuales) directamente desde tu propia cuenta bancaria para obtener control de gastos en tiempo real con una conexión irrompible, ¡y hasta un 2% de reembolso!',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
+                    `<muted-text>La Tarjeta Expensify está disponible en los planes Recopilar y Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+                upgradeButton: 'Actualizar y activar',
+            },
+            invoicing: {
+                title: 'Facturación',
+                description: 'Crea, envía y rastrea facturas profesionales, todo dentro de Expensify. Recibe pagos más rápido con pagos integrados y visibilidad en tiempo real.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
+                    `<muted-text>La facturación está disponible en los planes Recopilar y Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
             note: (subscriptionLink) => `<muted-text>Mejore para acceder a esta función, o <a href="${subscriptionLink}">más información</a> sobre nuestros planes y precios.</muted-text>`,
             pricing: {
@@ -8764,7 +8821,16 @@ ${amount} para ${merchant} - ${date}`,
             `<muted-text-label>Recibo pendiente debido a una conexión bancaria rota. Por favor, resuélvelo en <a href="${workspaceCompanyCardRoute}">Tarjetas de empresa</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Recibo pendiente debido a una conexión bancaria rota. Por favor, pide a un administrador del espacio de trabajo que lo resuelva.',
         markAsCashToIgnore: 'Márcalo como efectivo para ignorar y solicitar el pago.',
-        smartscanFailed: ({canEdit = true}) => `No se pudo escanear el recibo.${canEdit ? ' Introduce los datos manualmente.' : ''}`,
+        smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
+            if (missingFields.length > 0) {
+                const fieldNames: Record<string, string> = {merchant: 'comerciante', date: 'fecha', amount: 'importe'};
+                const translated = missingFields.map((f) => fieldNames[f] ?? f);
+                const fieldList = translated.join(translated.length > 2 ? ', ' : ' y ');
+                const verb = translated.length === 1 ? 'falta' : 'faltan';
+                return `No se pudo escanear el recibo — ${verb} ${fieldList}.${canEdit ? ' Introduce los datos manualmente.' : ''}`;
+            }
+            return `No se pudo escanear el recibo.${canEdit ? ' Introduce los datos manualmente.' : ''}`;
+        },
         receiptGeneratedWithAI: 'Posible recibo generado por IA',
         someTagLevelsRequired: (tagName) => `Falta ${tagName ?? 'Tag'}`,
         tagOutOfPolicy: (tagName) => `La etiqueta ${tagName ? `${tagName} ` : ''}ya no es válida`,
@@ -8845,6 +8911,7 @@ ${amount} para ${merchant} - ${date}`,
         bookACallTextTop: 'Al cambiar a Expensify Classic, se perderá:',
         bookACallTextBottom: 'Nos encantaría hablar con usted para entender por qué. Puede concertar una llamada con uno de nuestros jefes de producto para hablar de sus necesidades.',
         takeMeToExpensifyClassic: 'Llévame a Expensify Classic',
+        goBackJustOnce: 'Volver solo esta vez',
     },
     listBoundary: {
         errorMessage: 'Se ha producido un error al cargar más mensajes',
