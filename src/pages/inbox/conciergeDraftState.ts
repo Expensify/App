@@ -183,14 +183,7 @@ function stripIncompleteMarkdown(markdown: string): string {
     return result;
 }
 
-function buildConciergeDraftReportAction({
-    actorAccountID,
-    bodyMarkdown,
-    created,
-    finalRenderedHTML,
-    reportActionID,
-    reportID,
-}: BuildConciergeDraftReportActionParams): ReportAction | null {
+function buildConciergeDraftReportAction({actorAccountID, bodyMarkdown, created, finalRenderedHTML, reportActionID, reportID}: BuildConciergeDraftReportActionParams): ReportAction | null {
     const html = finalRenderedHTML ?? (bodyMarkdown ? getParsedComment(stripIncompleteMarkdown(bodyMarkdown), {reportID}) : '');
 
     if (!html) {
