@@ -2,7 +2,7 @@ type RGB = {r: number; g: number; b: number};
 
 /**
  * Parses a 6-digit CSS hex color string (with or without leading #) into
- * normalised [0, 1] RGB channels.
+ * normalized [0, 1] RGB channels.
  */
 function hexToRGB(hex: string): RGB {
     const s = hex.replace('#', '');
