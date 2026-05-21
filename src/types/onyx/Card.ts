@@ -190,6 +190,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Date when card expires (YYYY-MM-DD format) */
         validThru?: string;
 
+        /** Whether the card's PIN is currently blocked due to too many incorrect entries */
+        isPINBlocked?: boolean;
+
         /** Collection of errors coming from BE */
         errors?: OnyxCommon.Errors;
 
