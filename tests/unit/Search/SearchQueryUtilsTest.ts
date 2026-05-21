@@ -2920,7 +2920,7 @@ describe('SearchQueryUtils', () => {
             expect(merchantNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
         });
 
-        it('should preserve group drilldown merchant exact match', () => {
+        it('should preserve group drill-down merchant exact match', () => {
             const queryJSON = buildSearchQueryJSON('type:expense merchant:I');
             if (!queryJSON) {
                 throw new Error('Expected queryJSON to be defined');

@@ -179,7 +179,7 @@ filterOperator
 
 alphanumeric "word" = chars:[^ ,\t\n\r\xA0]+ { return chars.join("").trim(); } //handle no-breaking space
 
-logicalAnd = _ { 
+logicalAnd = _ {
   isColumnsContext = false;
   return "and";
 }
