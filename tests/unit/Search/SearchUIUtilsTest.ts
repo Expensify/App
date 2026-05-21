@@ -2554,7 +2554,6 @@ describe('SearchUIUtils', () => {
                 translate: translateLocal,
                 formatPhoneNumber,
                 bankAccountList: {},
-                allReportMetadata: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
             });
@@ -2572,7 +2571,6 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
-                    allReportMetadata: {},
                     conciergeReportID: undefined,
                     convertToDisplayString,
                 })[0],
@@ -2601,7 +2599,6 @@ describe('SearchUIUtils', () => {
                 translate: translateLocal,
                 formatPhoneNumber,
                 bankAccountList: {},
-                allReportMetadata: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
             })[0] as TransactionListItemType[];
@@ -2637,7 +2634,6 @@ describe('SearchUIUtils', () => {
                 translate: translateLocal,
                 formatPhoneNumber,
                 bankAccountList: {},
-                allReportMetadata: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
             })[0] as TransactionGroupListItemType[];
@@ -2667,7 +2663,6 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
-                    allReportMetadata: {},
                     conciergeReportID: undefined,
                     convertToDisplayString,
                 })[0],
@@ -2694,7 +2689,6 @@ describe('SearchUIUtils', () => {
                 translate: translateLocal,
                 formatPhoneNumber,
                 bankAccountList: {},
-                allReportMetadata: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
             })[0] as TransactionReportGroupListItemType[];
@@ -2732,7 +2726,6 @@ describe('SearchUIUtils', () => {
                 translate: translateLocal,
                 formatPhoneNumber,
                 bankAccountList: {},
-                allReportMetadata: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
             }) as [TransactionReportGroupListItemType[], number, boolean];
@@ -2748,7 +2741,6 @@ describe('SearchUIUtils', () => {
                 translate: translateLocal,
                 formatPhoneNumber,
                 bankAccountList: {},
-                allReportMetadata: {},
                 conciergeReportID: undefined,
                 onyxPersonalDetailsList,
                 convertToDisplayString,
@@ -2789,7 +2781,6 @@ describe('SearchUIUtils', () => {
                 translate: translateLocal,
                 formatPhoneNumber,
                 bankAccountList: {},
-                allReportMetadata: {},
                 conciergeReportID: undefined,
                 onyxPersonalDetailsList,
                 convertToDisplayString,
@@ -2833,7 +2824,6 @@ describe('SearchUIUtils', () => {
                 translate: translateLocal,
                 formatPhoneNumber,
                 bankAccountList: {},
-                allReportMetadata: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
             }) as [TransactionReportGroupListItemType[], number, boolean];
@@ -2849,7 +2839,6 @@ describe('SearchUIUtils', () => {
                 translate: translateLocal,
                 formatPhoneNumber,
                 bankAccountList: {},
-                allReportMetadata: {},
                 conciergeReportID: undefined,
                 onyxPersonalDetailsList,
                 convertToDisplayString,
@@ -2884,7 +2873,6 @@ describe('SearchUIUtils', () => {
                 translate: translateLocal,
                 formatPhoneNumber,
                 bankAccountList: {},
-                allReportMetadata: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
             }) as [TransactionReportGroupListItemType[], number, boolean];
@@ -2901,7 +2889,6 @@ describe('SearchUIUtils', () => {
                 translate: translateLocal,
                 formatPhoneNumber,
                 bankAccountList: {},
-                allReportMetadata: {},
                 conciergeReportID: undefined,
                 onyxPersonalDetailsList,
                 convertToDisplayString,
@@ -2944,7 +2931,6 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 conciergeReportID: undefined,
-                allReportMetadata: {},
                 onyxPersonalDetailsList,
                 convertToDisplayString,
             }) as [TransactionReportGroupListItemType[], number, boolean];
@@ -2991,7 +2977,6 @@ describe('SearchUIUtils', () => {
                 translate: translateLocal,
                 formatPhoneNumber,
                 bankAccountList: {},
-                allReportMetadata: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
             })[0];
@@ -3003,7 +2988,6 @@ describe('SearchUIUtils', () => {
                 translate: translateLocal,
                 formatPhoneNumber,
                 bankAccountList: {},
-                allReportMetadata: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
             })[0];
@@ -3029,7 +3013,6 @@ describe('SearchUIUtils', () => {
                     formatPhoneNumber,
                     bankAccountList: {},
                     groupBy: CONST.SEARCH.GROUP_BY.FROM,
-                    allReportMetadata: {},
                     conciergeReportID: undefined,
                     convertToDisplayString,
                 })[0],
@@ -3058,7 +3041,6 @@ describe('SearchUIUtils', () => {
                     bankAccountList: {},
                     groupBy: CONST.SEARCH.GROUP_BY.CARD,
                     cardFeeds: mockCardFeeds,
-                    allReportMetadata: {},
                     conciergeReportID: undefined,
                     convertToDisplayString,
                 })[0],
@@ -3076,7 +3058,6 @@ describe('SearchUIUtils', () => {
                     formatPhoneNumber,
                     bankAccountList: {},
                     groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
-                    allReportMetadata: {},
                     conciergeReportID: undefined,
                     convertToDisplayString,
                 })[0],
@@ -3103,7 +3084,6 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
-                allReportMetadata: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
             }) as [TransactionWithdrawalIDGroupListItemType[], number, boolean];
@@ -3122,7 +3102,6 @@ describe('SearchUIUtils', () => {
                     formatPhoneNumber,
                     bankAccountList: {},
                     groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
-                    allReportMetadata: {},
                     conciergeReportID: undefined,
                     convertToDisplayString,
                 })[0],
@@ -3155,7 +3134,6 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
-                allReportMetadata: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
             }) as [TransactionCategoryGroupListItemType[], number, boolean];
@@ -3221,7 +3199,6 @@ describe('SearchUIUtils', () => {
                     formatPhoneNumber,
                     bankAccountList: {},
                     groupBy: CONST.SEARCH.GROUP_BY.MONTH,
-                    allReportMetadata: {},
                     conciergeReportID: undefined,
                     convertToDisplayString,
                 })[0],
@@ -3256,7 +3233,6 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.MONTH,
-                allReportMetadata: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
             }) as [TransactionMonthGroupListItemType[], number, boolean];
@@ -3276,7 +3252,6 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.MONTH,
-                allReportMetadata: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
             }) as [TransactionMonthGroupListItemType[], number, boolean];
@@ -3358,7 +3333,6 @@ describe('SearchUIUtils', () => {
                     formatPhoneNumber,
                     bankAccountList: {},
                     groupBy: CONST.SEARCH.GROUP_BY.YEAR,
-                    allReportMetadata: {},
                     conciergeReportID: undefined,
                     convertToDisplayString,
                 })[0],
@@ -3391,7 +3365,6 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.YEAR,
-                allReportMetadata: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
             }) as [TransactionYearGroupListItemType[], number, boolean];
@@ -3411,7 +3384,6 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.YEAR,
-                allReportMetadata: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
             }) as [TransactionYearGroupListItemType[], number, boolean];
@@ -3793,7 +3765,6 @@ describe('SearchUIUtils', () => {
                     formatPhoneNumber,
                     bankAccountList: {},
                     groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
-                    allReportMetadata: {},
                     conciergeReportID: undefined,
                     convertToDisplayString,
                 })[0],
@@ -3828,7 +3799,6 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
-                allReportMetadata: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
             }) as [TransactionQuarterGroupListItemType[], number, boolean];
@@ -3848,7 +3818,6 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
-                allReportMetadata: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
             }) as [TransactionQuarterGroupListItemType[], number, boolean];
@@ -3911,7 +3880,6 @@ describe('SearchUIUtils', () => {
                     formatPhoneNumber,
                     bankAccountList: {},
                     groupBy: CONST.SEARCH.GROUP_BY.WEEK,
-                    allReportMetadata: {},
                     conciergeReportID: undefined,
                     convertToDisplayString,
                 })[0],
@@ -3944,7 +3912,6 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.WEEK,
-                allReportMetadata: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
             }) as [TransactionWeekGroupListItemType[], number, boolean];
@@ -3984,7 +3951,6 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
-                allReportMetadata: {},
                 queryJSON: {
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     status: '',
@@ -4046,7 +4012,6 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
-                allReportMetadata: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
             }) as [TransactionCategoryGroupListItemType[], number, boolean];
@@ -4089,7 +4054,6 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
-                allReportMetadata: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
             }) as [TransactionCategoryGroupListItemType[], number, boolean];
@@ -4121,7 +4085,6 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
-                allReportMetadata: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
             }) as [TransactionCategoryGroupListItemType[], number, boolean];
@@ -4158,7 +4121,6 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
-                allReportMetadata: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
             }) as [TransactionCategoryGroupListItemType[], number, boolean];
@@ -4184,7 +4146,6 @@ describe('SearchUIUtils', () => {
                     formatPhoneNumber,
                     bankAccountList: {},
                     groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
-                    allReportMetadata: {},
                     conciergeReportID: undefined,
                     convertToDisplayString,
                 })[0],
@@ -4218,7 +4179,6 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
-                allReportMetadata: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
             }) as [TransactionMerchantGroupListItemType[], number, boolean];
@@ -4249,7 +4209,6 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
-                allReportMetadata: {},
                 queryJSON: {
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     status: '',
@@ -4299,7 +4258,6 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
-                allReportMetadata: {},
                 queryJSON: {
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     status: '',
@@ -4349,7 +4307,6 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
-                allReportMetadata: {},
                 queryJSON: {
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     status: '',
@@ -4399,7 +4356,6 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
-                allReportMetadata: {},
                 queryJSON: {
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     status: '',
@@ -4470,7 +4426,6 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
-                allReportMetadata: {},
                 queryJSON: {
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     status: '',
@@ -4533,7 +4488,6 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
-                allReportMetadata: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
             }) as [TransactionMerchantGroupListItemType[], number, boolean];
@@ -4577,7 +4531,6 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
-                allReportMetadata: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
             }) as [TransactionMerchantGroupListItemType[], number, boolean];
@@ -4600,7 +4553,6 @@ describe('SearchUIUtils', () => {
                     formatPhoneNumber,
                     bankAccountList: {},
                     groupBy: CONST.SEARCH.GROUP_BY.TAG,
-                    allReportMetadata: {},
                     conciergeReportID: undefined,
                     convertToDisplayString,
                 })[0],
@@ -4629,7 +4581,6 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.TAG,
-                allReportMetadata: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
             }) as [TransactionTagGroupListItemType[], number, boolean];
@@ -4666,7 +4617,6 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.TAG,
-                allReportMetadata: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
             }) as [TransactionTagGroupListItemType[], number, boolean];
@@ -4696,7 +4646,6 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.TAG,
-                allReportMetadata: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
             }) as [TransactionTagGroupListItemType[], number, boolean];
@@ -4747,7 +4696,6 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.TAG,
-                allReportMetadata: {},
                 queryJSON: {
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     status: '',
@@ -4822,7 +4770,6 @@ describe('SearchUIUtils', () => {
                 translate: translateLocal,
                 formatPhoneNumber,
                 bankAccountList: {},
-                allReportMetadata: {},
                 conciergeReportID: '999',
                 convertToDisplayString,
             }) as [TaskListItemType[], number, boolean];
@@ -4849,7 +4796,6 @@ describe('SearchUIUtils', () => {
                 translate: translateLocal,
                 formatPhoneNumber,
                 bankAccountList: {},
-                allReportMetadata: {},
                 conciergeReportID: '999',
                 convertToDisplayString,
             }) as [TaskListItemType[], number, boolean];
@@ -4917,7 +4863,6 @@ describe('SearchUIUtils', () => {
                 translate: translateLocal,
                 formatPhoneNumber,
                 bankAccountList: {},
-                allReportMetadata: {},
                 conciergeReportID: '999',
                 convertToDisplayString,
             }) as [TaskListItemType[], number, boolean];
@@ -4972,7 +4917,6 @@ describe('SearchUIUtils', () => {
                 translate: translateLocal,
                 formatPhoneNumber,
                 bankAccountList: {},
-                allReportMetadata: {},
                 conciergeReportID: '999',
                 convertToDisplayString,
             }) as [TaskListItemType[], number, boolean];
@@ -5026,7 +4970,6 @@ describe('SearchUIUtils', () => {
                 translate: translateLocal,
                 formatPhoneNumber,
                 bankAccountList: {},
-                allReportMetadata: {},
                 conciergeReportID: '999',
                 convertToDisplayString,
             }) as [TaskListItemType[], number, boolean];
@@ -5082,7 +5025,6 @@ describe('SearchUIUtils', () => {
                 translate: translateLocal,
                 formatPhoneNumber,
                 bankAccountList: {},
-                allReportMetadata: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
             }) as [TaskListItemType[], number, boolean];
@@ -5132,7 +5074,6 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
-                    allReportMetadata: {},
                     conciergeReportID: undefined,
                     convertToDisplayString,
                 })[0] as TransactionReportGroupListItemType[];
@@ -5247,7 +5188,6 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
-                    allReportMetadata: {},
                     conciergeReportID: undefined,
                     convertToDisplayString,
                 })[0] as TransactionReportGroupListItemType[];
@@ -5373,7 +5313,6 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
-                    allReportMetadata: {},
                     conciergeReportID: undefined,
                     ...options,
                     convertToDisplayString,
@@ -5632,7 +5571,6 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
-                    allReportMetadata: {},
                     conciergeReportID: undefined,
                     ...options,
                     convertToDisplayString,
@@ -6294,7 +6232,6 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.TAG,
-                allReportMetadata: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
             }) as [TransactionTagGroupListItemType[], number, boolean];

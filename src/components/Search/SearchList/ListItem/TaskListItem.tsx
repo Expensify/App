@@ -1,7 +1,9 @@
 import React from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -9,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import FS from '@libs/Fullstory';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 import TaskListItemRow from './TaskListItemRow';
 import type {TaskListItemProps, TaskListItemType} from './types';
 
@@ -31,6 +34,10 @@ function TaskListItem<TItem extends ListItem>({
 }: TaskListItemProps<TItem>) {
     const taskItem = item as unknown as TaskListItemType;
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${taskItem?.parentReportID}`];
+    const parentReportID = taskItem?.parentReportID;
+    const parentReportAttributeNameSelector = (value: OnyxEntry<ReportAttributesDerivedValue>) => (parentReportID ? value?.reports?.[parentReportID]?.reportName : undefined);
+    const [liveParentReportAttributeName] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: parentReportAttributeNameSelector}, [parentReportID]);
+    const liveTaskItem: TaskListItemType = liveParentReportAttributeName ? {...taskItem, parentReportName: liveParentReportAttributeName} : taskItem;
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
@@ -85,7 +92,7 @@ function TaskListItem<TItem extends ListItem>({
             forwardedFSClass={fsClass}
         >
             <TaskListItemRow
-                item={taskItem}
+                item={liveTaskItem}
                 showTooltip={showTooltip}
             />
         </BaseListItem>

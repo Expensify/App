@@ -5,6 +5,7 @@ import {View} from 'react-native';
 // sync immediately when category settings change
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
@@ -28,12 +29,14 @@ import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {getNonHeldAndFullAmount, isInvoiceReport, isOpenExpenseReport, isProcessingReport, isReportPendingDelete} from '@libs/ReportUtils';
+import {getAction, getActions} from '@libs/SearchUIUtils';
 import {isOnHold, isViolationDismissed, shouldShowViolation, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Policy, Report, ReportAction} from '@src/types/onyx';
+import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
 import ExpenseReportListItemRow from './ExpenseReportListItemRow';
 import type {ExpenseReportListItemProps, ExpenseReportListItemType} from './types';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
@@ -97,6 +100,27 @@ function ExpenseReportListItem<TItem extends ListItem>({
         return actionsData ? Object.values(actionsData) : [];
     }, [searchData, reportItem.reportID]);
 
+    const [liveReportActionsCollection] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportItem.reportID)}`);
+    const [liveReportMetadata] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(reportItem.reportID)}`);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+
+    const liveActionsArray = liveReportActionsCollection ? (Object.values(liveReportActionsCollection) as ReportAction[]) : reportActions;
+    const liveAllActions = searchData
+        ? getActions(
+              searchData,
+              searchData as unknown as OnyxCollection<TransactionViolation[]>,
+              `${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`,
+              currentSearchKey ?? CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+              currentUserDetails.email ?? '',
+              currentUserDetails.accountID ?? CONST.DEFAULT_NUMBER_ID,
+              bankAccountList,
+              liveReportMetadata,
+              liveActionsArray,
+          )
+        : (reportItem.allActions ?? []);
+    const liveAction = liveAllActions.length ? getAction(liveAllActions) : reportItem.action;
+    const liveReportItem: ExpenseReportListItemType = {...reportItem, action: liveAction, allActions: liveAllActions};
+
     const isDisabledCheckbox = useMemo(() => {
         return reportItem.isDisabled ?? reportItem.isDisabledCheckbox;
     }, [reportItem.isDisabled, reportItem.isDisabledCheckbox]);
@@ -152,7 +176,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const handleOnButtonPress = useCallback(() => {
         handleActionButtonPress({
             hash: currentSearchHash,
-            item: reportItem,
+            item: liveReportItem,
             goToItem: () => onSelectRow(reportItem as unknown as TItem),
             snapshotReport,
             snapshotPolicy,
@@ -195,6 +219,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     }, [
         currentSearchHash,
         reportItem,
+        liveReportItem,
         onSelectRow,
         snapshotReport,
         snapshotChatReport,
@@ -345,7 +370,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                 <View style={[styles.flex1]}>
                     {!isLargeScreenWidth && (
                         <UserInfoAndActionButtonRow
-                            item={reportItem}
+                            item={liveReportItem}
                             shouldShowUserInfo={!!reportItem?.from}
                             stateNum={reportItem.stateNum}
                             statusNum={reportItem.statusNum}
@@ -353,7 +378,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                         />
                     )}
                     <ExpenseReportListItemRow
-                        item={reportItem}
+                        item={liveReportItem}
                         columns={columns}
                         reportActions={reportActions}
                         isActionLoading={isActionLoading ?? isLoading}

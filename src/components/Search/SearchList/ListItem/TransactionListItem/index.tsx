@@ -7,6 +7,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 // Use the original useOnyx hook to get the real-time data from Onyx and not from the snapshot
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import type {TransactionListItemProps, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
@@ -24,6 +25,7 @@ import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {isInvoiceReport} from '@libs/ReportUtils';
+import {getAction, getActions} from '@libs/SearchUIUtils';
 import {
     isDeletedTransaction as isDeletedTransactionUtil,
     isViolationDismissed,
@@ -99,7 +101,27 @@ function TransactionListItem<TItem extends ListItem>({
     const [parentReportAction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(transactionItem.reportID)}`, {selector: parentReportActionSelector}, [
         transactionItem,
     ]);
+    const [liveReportActions] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(transactionItem.reportID)}`);
+    const [liveReportMetadata] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(transactionItem.reportID)}`);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const currentUserDetails = useCurrentUserPersonalDetails();
+
+    const liveActionsArray = liveReportActions ? (Object.values(liveReportActions) as ReportAction[]) : exportedReportActions;
+    const liveAllActions = currentSearchResults?.data
+        ? getActions(
+              currentSearchResults.data,
+              currentSearchResults.data as unknown as OnyxCollection<TransactionViolation[]>,
+              `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`,
+              currentSearchKey ?? CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+              currentUserDetails.email ?? '',
+              currentUserDetails.accountID ?? CONST.DEFAULT_NUMBER_ID,
+              bankAccountList,
+              liveReportMetadata,
+              liveActionsArray,
+          )
+        : transactionItem.allActions;
+    const liveAction = liveAllActions.length ? getAction(liveAllActions) : transactionItem.action;
+    const liveTransactionItem: TransactionListItemType = {...transactionItem, action: liveAction, allActions: liveAllActions};
     const transactionPreviewData: TransactionPreviewData = {
         hasParentReport: !!parentReport,
         hasTransaction: !!transaction,
@@ -223,7 +245,7 @@ function TransactionListItem<TItem extends ListItem>({
     };
 
     const sharedProps = {
-        item,
+        item: liveTransactionItem as unknown as TItem,
         isDeletedTransaction,
         isFocused,
         showTooltip,
