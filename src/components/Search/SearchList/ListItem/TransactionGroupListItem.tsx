@@ -27,6 +27,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {search} from '@libs/actions/Search';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {getSections} from '@libs/SearchUIUtils';
 import {mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
@@ -274,9 +275,9 @@ function TransactionGroupListItem<TItem extends ListItem>({
         });
     };
 
-    const onPress = () => {
+    const onPress = (event?: ModifiedMouseEvent) => {
         if (isExpenseReportType || transactions.length === 0) {
-            onSelectRow(item, transactionPreviewData);
+            onSelectRow(item, transactionPreviewData, event);
         }
         if (!isExpenseReportType) {
             handleToggle();
@@ -444,7 +445,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             return (
                 <ReportListItemHeader
                     report={groupItem as TransactionReportGroupListItemType}
-                    onSelectRow={(listItem) => onSelectRow(listItem, transactionPreviewData)}
+                    onSelectRow={(listItem, event) => onSelectRow(listItem, transactionPreviewData, event)}
                     onCheckboxPress={handleSelectionButtonPress}
                     isDisabled={isDisabled}
                     isFocused={isFocused}

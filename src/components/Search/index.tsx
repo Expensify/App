@@ -36,6 +36,8 @@ import {setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search
 import {flushDeferredWrite, hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import openInternalRouteInNewTab, {isModifiedMousePress} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
+import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
@@ -1103,6 +1105,7 @@ function Search({
                     currentTransactions
                         .filter((t) => !isTransactionPendingDelete(t))
                         .map((transactionItem) => {
+<<<<<<< HEAD
                             const itemTransaction = (searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] ??
                                 transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`]) as OnyxEntry<Transaction>;
                             const originalItemTransaction =
@@ -1118,13 +1121,18 @@ function Search({
                                 true,
                                 item.keyForList ?? undefined,
                             );
+=======
+                            const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
+                            const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
+                            return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', accountID, outstandingReportsByPolicyID);
+>>>>>>> origin/main
                         }),
                 ),
             };
             setSelectedTransactions(updatedTransactions, filteredData);
             updateSelectAllMatchingItemsState(updatedTransactions);
         },
-        [selectedTransactions, setSelectedTransactions, filteredData, updateSelectAllMatchingItemsState, transactions, email, accountID, outstandingReportsByPolicyID, searchResults?.data],
+        [selectedTransactions, setSelectedTransactions, filteredData, updateSelectAllMatchingItemsState, transactions, email, accountID, outstandingReportsByPolicyID],
     );
 
     const onSelectRowInMobileSelectionMode = (item: SearchListItem) => {
@@ -1136,7 +1144,7 @@ function Search({
     };
 
     const onSelectRow = useCallback(
-        (item: SearchListItem, transactionPreviewData?: TransactionPreviewData) => {
+        (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => {
             if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 return;
             }
@@ -1147,7 +1155,8 @@ function Search({
             if (isTransactionItem && !item?.reportAction?.childReportID) {
                 // If the report is unreported (self DM), we want to open the track expense thread instead of a report with an ID of 0
                 const shouldOpenTransactionThread = !isOneTransactionReport(item.report) || item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-                createAndOpenSearchTransactionThread({
+                const shouldOpenTransactionThreadInNewTab = shouldOpenTransactionThread && isModifiedMousePress(event);
+                const targetReportID = createAndOpenSearchTransactionThread({
                     item,
                     introSelected,
                     backTo,
@@ -1157,8 +1166,11 @@ function Search({
                     isSelfTourViewed,
                     hasCompletedGuidedSetupFlow,
                     IOUTransactionID: item?.reportAction?.childReportID,
-                    shouldNavigate: shouldOpenTransactionThread,
+                    shouldNavigate: shouldOpenTransactionThread && !shouldOpenTransactionThreadInNewTab,
                 });
+                if (shouldOpenTransactionThreadInNewTab && targetReportID) {
+                    openInternalRouteInNewTab(ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID, backTo}), event);
+                }
                 if (shouldOpenTransactionThread) {
                     return;
                 }
@@ -1239,7 +1251,11 @@ function Search({
                     allowPostSearchRecount: true,
                 });
 
-                requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo})));
+                const route = ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo});
+                if (openInternalRouteInNewTab(route, event)) {
+                    return;
+                }
+                requestAnimationFrame(() => Navigation.navigate(route));
                 return;
             }
 
@@ -1250,12 +1266,20 @@ function Search({
                     isCreatedTaskReportAction(reportActionItem) && (isOptimisticCreatedTaskAction || reportActionItem.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
                 const reportActionID = shouldSkipReportActionID ? undefined : reportActionItem.reportActionID;
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, reportActionID, backTo}));
+                const route = ROUTES.SEARCH_REPORT.getRoute({reportID, reportActionID, backTo});
+                if (openInternalRouteInNewTab(route, event)) {
+                    return;
+                }
+                Navigation.navigate(route);
                 return;
             }
 
             if (isTaskListItemType(item)) {
-                requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
+                const route = ROUTES.SEARCH_REPORT.getRoute({reportID, backTo});
+                if (openInternalRouteInNewTab(route, event)) {
+                    return;
+                }
+                requestAnimationFrame(() => Navigation.navigate(route));
                 return;
             }
 
@@ -1265,7 +1289,11 @@ function Search({
                 setOptimisticDataForTransactionThreadPreview(transactionItem, transactionPreviewData, transactionItem?.reportAction?.childReportID);
             }
 
-            requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
+            const route = ROUTES.SEARCH_REPORT.getRoute({reportID, backTo});
+            if (openInternalRouteInNewTab(route, event)) {
+                return;
+            }
+            requestAnimationFrame(() => Navigation.navigate(route));
         },
         [
             markReportIDAsExpense,

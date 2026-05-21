@@ -7177,6 +7177,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             connectionDescription: (providerName: string) => `Connectez ${providerName} pour synchroniser les approbations des employés avec votre espace de travail.`,
             approvalMode: "Mode d'approbation",
             finalApprover: 'Approbateur final',
+            providerFinalApprover: (providerName: string) => `Approbateur final ${providerName}`,
             notSet: 'Non défini',
             approvalModeDescription: (providerName: string) => `Les membres et les responsables sont configurés pour se synchroniser avec ${providerName}.`,
             approvalModeWarningTitle: 'Changer le mode d’approbation ?',
