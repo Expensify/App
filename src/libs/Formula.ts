@@ -567,16 +567,17 @@ function formatAmount(amount: number | undefined, currency: string | undefined, 
     const absoluteAmount = Math.abs(amount);
 
     try {
+        const trimmedCurrency = currency?.trim().toUpperCase();
         const trimmedDisplayCurrency = displayCurrency?.trim().toUpperCase();
         if (trimmedDisplayCurrency) {
             if (trimmedDisplayCurrency === 'NOSYMBOL') {
-                return convertToDisplayStringWithoutCurrency(absoluteAmount, currency);
+                return convertToDisplayStringWithoutCurrency(absoluteAmount, trimmedCurrency);
             }
 
             // If a currency conversion is needed (displayCurrency differs from the source),
             // return null so the backend can compute it.
             // We can only compute the value optimistically when the amount is 0.
-            if (absoluteAmount !== 0 && currency !== trimmedDisplayCurrency) {
+            if (absoluteAmount !== 0 && trimmedCurrency !== trimmedDisplayCurrency) {
                 return null;
             }
 
@@ -588,12 +589,12 @@ function formatAmount(amount: number | undefined, currency: string | undefined, 
             return convertToDisplayString(absoluteAmount, trimmedDisplayCurrency);
         }
 
-        if (currency) {
+        if (trimmedCurrency) {
             // Return empty string for an unrecognized source currency so the placeholder is preserved upstream.
-            if (!isValidCurrencyCode(currency)) {
+            if (!isValidCurrencyCode(trimmedCurrency)) {
                 return '';
             }
-            return convertToDisplayString(absoluteAmount, currency, true);
+            return convertToDisplayString(absoluteAmount, trimmedCurrency, true);
         }
 
         return convertToDisplayStringWithoutCurrency(absoluteAmount, currency);
