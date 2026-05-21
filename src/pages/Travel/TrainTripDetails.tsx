@@ -104,6 +104,7 @@ function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps)
                     description={personalDetails?.login ?? reservation.travelerPersonalInfo?.email}
                     interactive={false}
                     wrapperStyle={styles.pb3}
+                    labelStyle={styles.mb2}
                 />
             )}
         </>
