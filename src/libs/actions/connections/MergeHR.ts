@@ -184,6 +184,10 @@ function updateMergeHRFinalApprover(policyID: string, finalApprover: string | nu
     );
 }
 
-export {syncMergeHR, updateMergeHRApprovalMode, updateMergeHRFinalApprover};
+function setMergeHRInitialSyncModalShown(policyID: string, timestamp: string) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN}${policyID}`, timestamp);
+}
+
+export {syncMergeHR, updateMergeHRApprovalMode, updateMergeHRFinalApprover, setMergeHRInitialSyncModalShown};
 
 export default getMergeHRSetupLink;

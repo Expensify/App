@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {removePolicyConnection, syncConnection} from '@libs/actions/connections';
+import {syncMergeHR} from '@libs/actions/connections/MergeHR';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import type Policy from '@src/types/onyx/Policy';
@@ -59,7 +60,16 @@ function HRProviderCard({card, policy, handleConnect}: HRProviderCardProps) {
         {
             icon: icons.Sync,
             text: translate('workspace.hr.syncNow'),
-            onSelected: () => syncConnection(policy, card.connectionName),
+            onSelected: () => {
+                if (card.connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR) {
+                    if (!policy?.id) {
+                        return;
+                    }
+                    syncMergeHR(policy.id);
+                } else {
+                    syncConnection(policy, card.connectionName);
+                }
+            },
             disabled: isOffline,
         },
         {

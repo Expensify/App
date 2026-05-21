@@ -11,6 +11,7 @@ import Text from '@components/Text';
 import useGustoSyncResultsModal from '@hooks/useGustoSyncResultsModal';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useMergeHRInitialSyncingModal from '@hooks/useMergeHRInitialSyncingModal';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -59,6 +60,7 @@ function WorkspaceHRPage({
     }, [policyID]);
 
     useGustoSyncResultsModal(policyID, connectionSyncProgress, isFocused);
+    useMergeHRInitialSyncingModal(policyID, connectionSyncProgress, isFocused);
 
     const cards = getHRCards({
         policy,
