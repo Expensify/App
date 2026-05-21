@@ -133,11 +133,12 @@ function BaseSelectionList<TItem extends ListItem>({
             (acc: {disabledIndexes: number[]; disabledArrowKeyIndexes: number[]; selectedOptions: TItem[]}, item: TItem, index: number) => {
                 const idx = item.index ?? index;
                 const isItemDisabled = isDisabled || (!!item?.isDisabled && !isItemSelected(item));
+                const isEffectivelyDisabled = isItemDisabled || !!item?.isDisabledCheckbox;
 
-                if (isItemSelected(item) && (canSelectMultiple || acc.selectedOptions.length === 0)) {
+                if (isItemSelected(item) && !isEffectivelyDisabled && (canSelectMultiple || acc.selectedOptions.length === 0)) {
                     acc.selectedOptions.push(item);
                 }
-                if (isItemDisabled || item?.isDisabledCheckbox) {
+                if (isEffectivelyDisabled) {
                     acc.disabledIndexes.push(idx);
 
                     if (isItemDisabled) {
