@@ -6,6 +6,8 @@ import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 import Navigation from '@libs/Navigation/Navigation';
+import getCurrencyForNonUSDBankAccount from '@pages/ReimbursementAccount/NonUSD/utils/getCurrencyForNonUSDBankAccount';
+import getNeededDocumentsStatusForBeneficialOwner from '@pages/ReimbursementAccount/NonUSD/utils/getNeededDocumentsStatusForBeneficialOwner';
 import {clearErrors, setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -59,6 +61,9 @@ type BeneficialOwnerDetailsFormPagesProps = {
 function BeneficialOwnerDetailsFormPages({stepNames, policyID, onFinished, backTo}: BeneficialOwnerDetailsFormPagesProps) {
     const {translate} = useLocalize();
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const accountPolicyID = reimbursementAccount?.achData?.policyID;
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${accountPolicyID}`);
 
     const ownerBeingModifiedID = reimbursementAccountDraft?.ownerBeingModifiedID ?? CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY;
     const isUserEnteringHisOwnData = ownerBeingModifiedID === CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY;
@@ -78,20 +83,24 @@ function BeneficialOwnerDetailsFormPages({stepNames, policyID, onFinished, backT
         }),
     );
 
+    const {currency} = getCurrencyForNonUSDBankAccount(policy, reimbursementAccountDraft, reimbursementAccount);
+
     const skipPages = useMemo(() => {
         const pagesToSkip: string[] = [];
         if (beneficialOwnerNationality !== CONST.COUNTRY.US) {
             pagesToSkip.push(SUB_PAGE_NAMES.LAST_4_SSN);
         }
-        if (
-            countryStepCountryValue === CONST.COUNTRY.GB &&
-            beneficialOwnerNationality === CONST.COUNTRY.GB &&
-            (!beneficialOwnerAddressCountry || beneficialOwnerAddressCountry === CONST.COUNTRY.GB)
-        ) {
+        const {isProofOfOwnershipNeeded, isCopyOfIDNeeded, isProofOfAddressNeeded, isCodiceFiscaleNeeded} = getNeededDocumentsStatusForBeneficialOwner(
+            currency,
+            countryStepCountryValue,
+            beneficialOwnerNationality,
+            beneficialOwnerAddressCountry,
+        );
+        if (!isProofOfOwnershipNeeded && !isCopyOfIDNeeded && !isProofOfAddressNeeded && !isCodiceFiscaleNeeded) {
             pagesToSkip.push(SUB_PAGE_NAMES.DOCUMENTS);
         }
         return pagesToSkip;
-    }, [beneficialOwnerNationality, beneficialOwnerAddressCountry, countryStepCountryValue]);
+    }, [beneficialOwnerNationality, beneficialOwnerAddressCountry, countryStepCountryValue, currency]);
 
     const buildRoute = useCallback(
         (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: pageName, action, backTo}),
