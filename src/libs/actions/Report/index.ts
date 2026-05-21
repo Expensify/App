@@ -2237,8 +2237,12 @@ function navigateToReport(reportID: string | undefined, options?: {shouldDismiss
     // In some cases when RHP modal gets hidden and then we navigate to report Composer focus breaks, wrapping navigation in setTimeout fixes this
     setTimeout(() => {
         Navigation.isNavigationReady().then(() => {
-            const navigateOptions = shouldDismissModal ? undefined : {afterTransition: options?.afterTransition};
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID), navigateOptions);
+            const route = ROUTES.REPORT_WITH_ID.getRoute(reportID);
+            if (!shouldDismissModal && options?.afterTransition) {
+                Navigation.navigate(route, {afterTransition: options.afterTransition});
+            } else {
+                Navigation.navigate(route);
+            }
         });
     }, 0);
 }
@@ -3917,7 +3921,12 @@ function navigateToConciergeChat(
             );
         });
     } else if (shouldDismissModal) {
-        Navigation.dismissModalWithReport({reportID: conciergeReportID, reportActionID}, undefined, linkToOptions);
+        const reportParams = {reportID: conciergeReportID, reportActionID};
+        if (linkToOptions?.afterTransition) {
+            Navigation.dismissModalWithReport(reportParams, undefined, {afterTransition: linkToOptions.afterTransition});
+        } else {
+            Navigation.dismissModalWithReport(reportParams);
+        }
     } else {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID), linkToOptions);
     }
