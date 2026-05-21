@@ -192,7 +192,7 @@ function putOnHold(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: transactionViolations,
+            value: transactionViolations ?? null,
         },
     ];
 
