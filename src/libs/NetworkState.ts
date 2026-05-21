@@ -348,12 +348,12 @@ function configureAndSubscribe() {
 }
 
 // Subscribe to NetInfo once getEnvironment() resolves so the first ping uses the correct root.
-// ApiUtils is imported above, so its getEnvironment().then() is registered first and runs before
-// this one — by the time we configure, ApiUtils' shouldUseStagingServer is already settled.
-// On web/dev/adhoc this resolves on the next microtask; on native staging/prod it may wait on the
-// betaChecker network call (Android) or a bridge call (iOS).
+// queueMicrotask defers configureAndSubscribe past the current tick so ApiUtils' own
+// SHOULD_USE_STAGING_SERVER Onyx callback — which is the source of truth for getApiRoot() — has
+// already updated its cached flag. Without this defer, configureAndSubscribe samples ApiUtils'
+// stale module-level flag and bakes the wrong reachabilityUrl into NetInfo.
 getEnvironment().then(() => {
-    configureAndSubscribe();
+    queueMicrotask(configureAndSubscribe);
 });
 
 // --- Onyx subscriptions (inputs for state computation) ---
@@ -371,10 +371,14 @@ Onyx.connectWithoutView({
 });
 
 // Re-target the reachability ping when the in-app staging-server toggle flips at runtime.
+// queueMicrotask defers configureAndSubscribe so ApiUtils' Onyx callback for the same key —
+// registered later and therefore firing later on the same tick — has already updated
+// shouldUseStagingServer before we re-sample getApiRoot(). Removing the defer causes
+// configureAndSubscribe to read the previous toggle state and invert the URL on every flip.
 Onyx.connectWithoutView({
     key: ONYXKEYS.SHOULD_USE_STAGING_SERVER,
     callback: () => {
-        configureAndSubscribe();
+        queueMicrotask(configureAndSubscribe);
     },
 });
 

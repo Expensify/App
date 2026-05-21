@@ -32,7 +32,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Domain, DomainSecurityGroup, UserSecurityGroupData} from '@src/types/onyx';
+import type {DomainSecurityGroup, UserSecurityGroupData} from '@src/types/onyx';
 import type {SecurityGroupKey} from '@src/types/onyx/Domain';
 import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
@@ -93,20 +93,20 @@ describe('actions/Domain', () => {
         const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
         const domainAccountID = 123;
         const domainName = 'test.com';
-        const domain = {
-            accountID: domainAccountID,
-        } as Domain;
 
-        resetDomain(domainAccountID, domainName, domain);
+        resetDomain(domainAccountID, domainName);
 
         expect(apiWriteSpy).toHaveBeenCalledWith(
             WRITE_COMMANDS.DELETE_DOMAIN,
             {domainAccountID, domainName},
             {
-                optimisticData: [expect.objectContaining({value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}}), expect.objectContaining({value: null})],
-                successData: [expect.objectContaining({value: {pendingAction: null}}), expect.objectContaining({value: {errors: null}})],
+                optimisticData: [
+                    expect.objectContaining({value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}}),
+                    expect.objectContaining({value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}}),
+                ],
+                successData: [expect.objectContaining({value: null}), expect.objectContaining({value: {pendingAction: null}}), expect.objectContaining({value: {errors: null}})],
                 failureData: [
-                    expect.objectContaining({value: domain}),
+                    expect.objectContaining({value: {pendingAction: null}}),
                     expect.objectContaining({value: {pendingAction: null}}),
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                     expect.objectContaining({value: {errors: expect.any(Object)}}),

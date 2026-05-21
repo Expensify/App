@@ -298,6 +298,7 @@ export default {
 
     cardPreviewHeight: 148,
     cardPreviewWidth: 235,
+    cardDetailsActionButtonMinWidth: 140,
     cardScarfOverlayWidth: 264,
     cardScarfOverlayHeight: 172,
     cardScarfOverlayZIndex: 2,
@@ -391,6 +392,7 @@ export default {
     w80: 80,
     w92: 92,
     w96: 96,
+    w102: 102,
     w130: 130,
     w184: 184,
     w191: 191,
