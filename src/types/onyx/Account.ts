@@ -116,9 +116,6 @@ type Account = {
     /** The email of the partner manager */
     partnerManagerEmail?: string;
 
-    /** The account ID of the account executive (Approved! partners only) */
-    accountExecutiveAccountID?: number;
-
     /** The message to be displayed when code requested */
     message?: string;
 

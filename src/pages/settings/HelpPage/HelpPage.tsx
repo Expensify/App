@@ -38,7 +38,6 @@ function HelpPage() {
     const isApprovedAccountant = !!account?.isApprovedAccountant;
     const accountManagerDetails = account?.accountManagerAccountID ? personalDetails?.[account.accountManagerAccountID] : null;
     const partnerManagerDetails = account?.partnerManagerAccountID ? personalDetails?.[account.partnerManagerAccountID] : null;
-    const accountExecutiveDetails = account?.accountExecutiveAccountID ? personalDetails?.[account.accountExecutiveAccountID] : null;
     const guideDetails = account?.guideDetails?.email ? getPersonalDetailByEmail(account.guideDetails.email) : null;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
@@ -61,7 +60,7 @@ function HelpPage() {
     const helpSiteItem = {
         key: 'initialSettingsPage.helpPage.helpSite',
         title: translate('initialSettingsPage.helpPage.helpSite'),
-        description: isApprovedAccountant ? translate('initialSettingsPage.helpPage.helpSiteDescription') : undefined,
+        description: translate('initialSettingsPage.helpPage.helpSiteDescription'),
         icon: illustrations.Chalkboard,
         iconType: CONST.ICON_TYPE_AVATAR,
         iconRight: icons.NewWindow,
@@ -71,56 +70,6 @@ function HelpPage() {
         link: CONST.NEWHELP_URL,
         sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.HELP_DOCS,
     };
-
-    const menuItems = [
-        conciergeItem,
-        ...(accountManagerDetails && isPaidPolicyAdmin
-            ? [
-                  {
-                      key: accountManagerDetails.login,
-                      title: accountManagerDetails.displayName,
-                      description: translate('initialSettingsPage.helpPage.accountManagerDescription'),
-                      icon: accountManagerDetails.avatar,
-                      iconType: CONST.ICON_TYPE_AVATAR,
-                      onPress: () => navigateToAndOpenReportWithAccountIDs([accountManagerDetails.accountID], currentUserAccountID, introSelected, isSelfTourViewed, betas),
-                      shouldShowRightIcon: true,
-                      wrapperStyle: [styles.sectionMenuItemTopDescription],
-                      sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.ACCOUNT_MANAGER,
-                  },
-              ]
-            : []),
-        ...(partnerManagerDetails && isPaidPolicyAdmin
-            ? [
-                  {
-                      key: partnerManagerDetails.login,
-                      title: partnerManagerDetails.displayName,
-                      description: translate('initialSettingsPage.helpPage.partnerManagerDescription'),
-                      icon: partnerManagerDetails.avatar,
-                      iconType: CONST.ICON_TYPE_AVATAR,
-                      onPress: () => navigateToAndOpenReportWithAccountIDs([partnerManagerDetails.accountID], currentUserAccountID, introSelected, isSelfTourViewed, betas),
-                      shouldShowRightIcon: true,
-                      wrapperStyle: [styles.sectionMenuItemTopDescription],
-                      sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.PARTNER_MANAGER,
-                  },
-              ]
-            : []),
-        ...(guideDetails && isPaidPolicyAdmin
-            ? [
-                  {
-                      key: guideDetails.login,
-                      title: guideDetails.displayName,
-                      description: translate('initialSettingsPage.helpPage.guideDescription'),
-                      icon: guideDetails.avatar,
-                      iconType: CONST.ICON_TYPE_AVATAR,
-                      onPress: () => navigateToAndOpenReportWithAccountIDs([guideDetails.accountID], currentUserAccountID, introSelected, isSelfTourViewed, betas),
-                      shouldShowRightIcon: true,
-                      wrapperStyle: [styles.sectionMenuItemTopDescription],
-                      sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.GUIDE,
-                  },
-              ]
-            : []),
-        helpSiteItem,
-    ];
 
     const partnerManagerItem = partnerManagerDetails
         ? {
@@ -136,14 +85,14 @@ function HelpPage() {
           }
         : null;
 
-    const accountExecutiveItem = accountExecutiveDetails
+    const accountExecutiveItem = guideDetails
         ? {
-              key: accountExecutiveDetails.login,
-              title: accountExecutiveDetails.displayName,
+              key: `accountExecutive-${guideDetails.login}`,
+              title: guideDetails.displayName,
               description: translate('initialSettingsPage.helpPage.accountExecutiveDescription'),
-              icon: accountExecutiveDetails.avatar,
+              icon: guideDetails.avatar,
               iconType: CONST.ICON_TYPE_AVATAR,
-              onPress: () => navigateToAndOpenReportWithAccountIDs([accountExecutiveDetails.accountID], currentUserAccountID, introSelected, isSelfTourViewed, betas),
+              onPress: () => navigateToAndOpenReportWithAccountIDs([guideDetails.accountID], currentUserAccountID, introSelected, isSelfTourViewed, betas),
               shouldShowRightIcon: true,
               wrapperStyle: [styles.sectionMenuItemTopDescription],
               sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.ACCOUNT_EXECUTIVE,
@@ -237,12 +186,70 @@ function HelpPage() {
                                 />
                             </>
                         ) : (
-                            <View style={[styles.flex1, styles.mt5]}>
+                            <>
+                                <View style={[styles.flex1, styles.mt8, styles.gap5]}>
+                                    <View>
+                                        <Text style={[styles.textLabelSupportingNormal]}>{translate('initialSettingsPage.helpPage.conciergeChatDescription')}</Text>
+                                        <MenuItemList
+                                            menuItems={[conciergeItem]}
+                                            shouldUseSingleExecution
+                                        />
+                                    </View>
+                                    {!!guideDetails && isPaidPolicyAdmin && (
+                                        <View>
+                                            <Text style={[styles.textLabelSupportingNormal]}>{translate('initialSettingsPage.helpPage.guideDescription')}</Text>
+                                            <MenuItemList
+                                                menuItems={[
+                                                    {
+                                                        key: guideDetails.login,
+                                                        title: guideDetails.displayName,
+                                                        icon: guideDetails.avatar,
+                                                        iconType: CONST.ICON_TYPE_AVATAR,
+                                                        onPress: () =>
+                                                            navigateToAndOpenReportWithAccountIDs([guideDetails.accountID], currentUserAccountID, introSelected, isSelfTourViewed, betas),
+                                                        shouldShowRightIcon: true,
+                                                        wrapperStyle: [styles.sectionMenuItemTopDescription],
+                                                        sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.GUIDE,
+                                                    },
+                                                ]}
+                                                shouldUseSingleExecution
+                                            />
+                                        </View>
+                                    )}
+                                    {!!accountManagerDetails && isPaidPolicyAdmin && (
+                                        <View>
+                                            <Text style={[styles.textLabelSupportingNormal]}>{translate('initialSettingsPage.helpPage.yourAccountManager')}</Text>
+                                            <MenuItemList
+                                                menuItems={[
+                                                    {
+                                                        key: accountManagerDetails.login,
+                                                        title: accountManagerDetails.displayName,
+                                                        icon: accountManagerDetails.avatar,
+                                                        iconType: CONST.ICON_TYPE_AVATAR,
+                                                        onPress: () =>
+                                                            navigateToAndOpenReportWithAccountIDs(
+                                                                [accountManagerDetails.accountID],
+                                                                currentUserAccountID,
+                                                                introSelected,
+                                                                isSelfTourViewed,
+                                                                betas,
+                                                            ),
+                                                        shouldShowRightIcon: true,
+                                                        wrapperStyle: [styles.sectionMenuItemTopDescription],
+                                                        sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.ACCOUNT_MANAGER,
+                                                    },
+                                                ]}
+                                                shouldUseSingleExecution
+                                            />
+                                        </View>
+                                    )}
+                                </View>
+                                <Text style={[styles.textLabelSupportingNormal, styles.mt5, styles.mb2]}>{translate('initialSettingsPage.helpPage.moreResources')}</Text>
                                 <MenuItemList
-                                    menuItems={menuItems}
+                                    menuItems={[helpSiteItem]}
                                     shouldUseSingleExecution
                                 />
-                            </View>
+                            </>
                         )}
                     </Section>
                 </View>

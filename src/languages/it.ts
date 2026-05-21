@@ -2113,6 +2113,7 @@ const translations: TranslationDeepObject<typeof en> = {
             conciergeChat: 'Concierge',
             conciergeChatDescription: 'Il tuo assistente IA personale',
             accountManager: 'Account Manager',
+            yourAccountManager: 'Il tuo account manager',
             accountManagerDescription: 'Fai domande e ottieni assistenza clienti',
             partnerManager: 'Partner Manager',
             partnerManagerDescription: 'Massimizza la tua partnership e aumenta le segnalazioni',
