@@ -118,11 +118,18 @@ function CopyPolicySettingsSelectFeaturesPage() {
         isCollectPolicy: isCollectPolicy(sourcePolicy),
     };
 
-    const isPartVisible = (part: Part): boolean => {
-        if (part === 'accounting' && !isAccountingPartCompatible) {
-            return true;
+    const isPartIncompatible = (part: Part): boolean => {
+        if (part === 'accounting') {
+            return !isAccountingPartCompatible;
         }
-        if (!isCodingCompatible && (CODING_PARTS_TIED_TO_CONNECTION as readonly Part[]).includes(part)) {
+        if ((CODING_PARTS_TIED_TO_CONNECTION as readonly Part[]).includes(part)) {
+            return !isCodingCompatible;
+        }
+        return false;
+    };
+
+    const isPartVisible = (part: Part): boolean => {
+        if (isPartIncompatible(part)) {
             return true;
         }
         return isCopyPolicySettingsPartEnabledOnSource(part, sourceFeatureContext);
@@ -140,23 +147,13 @@ function CopyPolicySettingsSelectFeaturesPage() {
         : selectedAvailableFeatures;
 
     const isFeatureDisabled = (part: Part): boolean => {
-        if (part === 'accounting' && !isAccountingPartCompatible) {
-            return true;
-        }
-        if (!isCodingCompatible && (CODING_PARTS_TIED_TO_CONNECTION as readonly Part[]).includes(part)) {
+        if (isPartIncompatible(part)) {
             return true;
         }
         if (isAccountingSelected && (ACCOUNTING_FORCE_ENABLED_PARTS as readonly Part[]).includes(part)) {
             return true;
         }
         return false;
-    };
-
-    const isAccountingMismatch = (part: Part): boolean => {
-        if (part === 'accounting') {
-            return !isAccountingPartCompatible;
-        }
-        return !isCodingCompatible && (CODING_PARTS_TIED_TO_CONNECTION as readonly Part[]).includes(part);
     };
 
     const getSourceDescription = (part: Part): string | undefined => {
@@ -200,7 +197,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
     };
 
     const getAlternateText = (part: Part): string | undefined => {
-        if (isAccountingMismatch(part)) {
+        if (isPartIncompatible(part)) {
             return translate('workspace.copyPolicySettings.accountingMismatch', {
                 part: translate(FEATURE_ROWS.find((row) => row.part === part)?.labelKey ?? 'workspace.common.accounting').toLowerCase(),
             });
