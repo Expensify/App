@@ -55,6 +55,19 @@ import {arePersonalDetailsMissing, getDisplayNameOrDefault} from './PersonalDeta
 import StringUtils from './StringUtils';
 
 /**
+ * Background luminance at which colors.productLight900 and white produce equal contrast.
+ * Backgrounds above this value pair better with dark text; below it, white text wins.
+ *
+ * Derived from the WCAG crossover formula:
+ *   L_crossover = √(1.05 × (L_dark + 0.05)) − 0.05
+ * where L_dark is the relative luminance of colors.productLight900 (#002E22).
+ *
+ * This intentionally differs from the 0.179 black/white crossover — our dark
+ * text is not black, so the crossover point is higher (~0.222).
+ */
+const CARD_TEXT_LUMINANCE_CROSSOVER = Math.sqrt(1.05 * (getRelativeLuminance(colors.productLight900) + 0.05)) - 0.05;
+
+/**
  * Returns a design-system text color (white or near-black) that meets WCAG 2.1 AA contrast
  * against the given card background hex color.
  * These colors are intentionally theme-independent: card artwork never changes with the app theme,
@@ -62,8 +75,7 @@ import StringUtils from './StringUtils';
  * which can flip in high-contrast mode.
  */
 function getCardHolderTextColor(cardBackgroundHex: string): string {
-    // WCAG crossover luminance: above this threshold dark text has better contrast; below, light text does.
-    return getRelativeLuminance(cardBackgroundHex) > 0.179 ? colors.productLight900 : colors.white;
+    return getRelativeLuminance(cardBackgroundHex) > CARD_TEXT_LUMINANCE_CROSSOVER ? colors.productLight900 : colors.white;
 }
 
 /**
