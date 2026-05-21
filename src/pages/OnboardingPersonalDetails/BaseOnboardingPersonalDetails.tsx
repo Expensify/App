@@ -83,9 +83,11 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
 
     const completeOnboarding = useCallback(
         async (firstName: string, lastName: string) => {
-            if (!onboardingPurposeSelected) {
+            if (!onboardingPurposeSelected || isLoading) {
                 return;
             }
+
+            setIsLoading(true);
             try {
                 await completeOnboardingReport({
                     engagementChoice: onboardingPurposeSelected,
@@ -117,6 +119,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             }
         },
         [
+            isLoading,
             onboardingPurposeSelected,
             onboardingAdminsChatReportID,
             onboardingMessages,
@@ -160,9 +163,8 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 return;
             }
 
-            setIsLoading(true);
-
             if (isTrackOnboardingChoice(onboardingPurposeSelected)) {
+                setIsLoading(true);
                 updateDisplayName(firstName, lastName, formatPhoneNumber, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
                 autoCreateTrackWorkspace(firstName, lastName, onboardingPurposeSelected);
                 return;
