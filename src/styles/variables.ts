@@ -298,6 +298,7 @@ export default {
 
     cardPreviewHeight: 148,
     cardPreviewWidth: 235,
+    cardDetailsActionButtonMinWidth: 140,
     cardScarfOverlayWidth: 264,
     cardScarfOverlayHeight: 172,
     cardScarfOverlayZIndex: 2,
@@ -452,6 +453,8 @@ export default {
     runOutOfTimeWidth: 218,
     runOutOfTimeHeight: 200,
     humptyDumptyWidth: 245,
+    cardReaderWidth: 224,
+    cardReaderHeight: 260,
     humptyDumptyHeight: 165,
     magnifyingGlassSpyMouthClosedWidth: 161,
     magnifyingGlassSpyMouthClosedHeight: 169,

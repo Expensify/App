@@ -21,7 +21,6 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {GpsPoint} from '@libs/actions/IOU';
 import {
     getIOURequestPolicyID,
     getMoneyRequestParticipantsFromReport,
@@ -33,9 +32,11 @@ import {
 } from '@libs/actions/IOU/MoneyRequest';
 import {setMoneyRequestReceipt} from '@libs/actions/IOU/Receipt';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
+import type {GPSPoint as GpsPoint} from '@libs/actions/IOU/types/TrackExpenseTransactionParams';
 import DateUtils from '@libs/DateUtils';
 import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getExistingTransactionID, resolveReportForMoneyRequest} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
@@ -209,6 +210,8 @@ function SubmitDetailsPage({
     const transactionTaxValue = transaction?.taxValue ?? getTaxValue(policy, transaction, transactionTaxCode) ?? '';
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+    const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
+    const [storedTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(existingTransactionID)}`);
 
     const finishRequestAndNavigate = (participant: Participant, receipt: Receipt, gpsPoint?: GpsPoint) => {
         if (!transaction) {
@@ -244,8 +247,7 @@ function SubmitDetailsPage({
                     gpsPoint,
                 },
                 isASAPSubmitBetaEnabled,
-                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                currentUser: {accountID: currentUserPersonalDetails.accountID, email: currentUserPersonalDetails.login ?? ''},
                 introSelected,
                 quickAction,
                 recentWaypoints,
@@ -254,7 +256,6 @@ function SubmitDetailsPage({
                 isSelfTourViewed,
             });
         } else {
-            const existingTransactionID = getExistingTransactionID(transaction.linkedTrackedExpenseReportAction);
             const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
 
             requestMoney({
@@ -291,6 +292,7 @@ function SubmitDetailsPage({
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 quickAction,
                 existingTransactionDraft,
+                existingTransaction: storedTransaction,
                 draftTransactionIDs,
                 isSelfTourViewed,
                 betas,
