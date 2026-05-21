@@ -35,7 +35,6 @@ type CreateTrackExpenseParams = {
     isSelfTourViewed: boolean;
     defaultWorkspaceName?: string;
     previousOdometerDraft?: OnyxEntry<OnyxTypes.OdometerDraft>;
-    // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66578
     reportActionsList?: OnyxCollection<OnyxTypes.ReportActions>;
 };
 

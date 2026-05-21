@@ -820,10 +820,9 @@ function buildAddMembersToWorkspaceOnyxData(
     role: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     currentUser: CurrentUser,
-    approverEmail?: string,
-    policyExpenseChatNotificationPreference?: NotificationPreference,
-    // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66578
-    reportActionsList?: OnyxCollection<ReportActions>,
+    approverEmail: string | undefined,
+    policyExpenseChatNotificationPreference: NotificationPreference | undefined,
+    reportActionsList: OnyxCollection<ReportActions> | undefined,
 ) {
     const policyID = policy.id;
     const logins = Object.keys(invitedEmailsToAccountIDs).map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
@@ -956,9 +955,8 @@ function addMembersToWorkspace(
     role: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     currentUserAccountID: number,
-    approverEmail?: string,
-    // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66578
-    reportActionsList?: OnyxCollection<ReportActions>,
+    approverEmail: string | undefined,
+    reportActionsList: OnyxCollection<ReportActions> | undefined,
 ) {
     if (!policy?.id) {
         Log.warn('addMembersToWorkspace: Policy ID is undefined');

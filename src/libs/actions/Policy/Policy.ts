@@ -273,15 +273,6 @@ type SetWorkspaceApprovalModeAdditionalData = {
     betas?: Beta[];
 };
 
-let deprecatedAllReportActions: OnyxCollection<ReportActions>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    waitForCollectionCallback: true,
-    callback: (actions) => {
-        deprecatedAllReportActions = actions;
-    },
-});
-
 let deprecatedSessionAccountID = 0;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -1578,8 +1569,7 @@ function createPolicyExpenseChats(
     policyID: string,
     invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs,
     currentUser: CurrentUser,
-    // TODO: Remove optional (?) once all is updated (https://github.com/Expensify/App/issues/66578)
-    reportActionsList?: OnyxCollection<ReportActions>,
+    reportActionsList: OnyxCollection<ReportActions> | undefined,
     hasOutstandingChildRequest = false,
     notificationPreference: NotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
 ): WorkspaceMembersChats {
@@ -1619,7 +1609,7 @@ function createPolicyExpenseChats(
                 },
             });
             const currentTime = DateUtils.getDBTime();
-            const reportActions = (reportActionsList ?? deprecatedAllReportActions)?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChat.reportID}`] ?? {};
+            const reportActions = reportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChat.reportID}`] ?? {};
             for (const action of Object.values(reportActions)) {
                 if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                     continue;
@@ -3060,8 +3050,10 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
             policyID,
             {[adminParticipant.login]: adminParticipant.accountID ?? CONST.DEFAULT_NUMBER_ID},
             {accountID: currentUserAccountIDParam},
-            // reportActionsList is intentionally undefined. See https://github.com/Expensify/App/pull/88312#issuecomment-4286942084
-            undefined,
+            // reportActionsList is empty here because buildPolicyData always uses a fresh policyID (generatePolicyID()),
+            // so the `if (oldChat)` branch in createPolicyExpenseChats — the sole reader of reportActionsList — is never entered.
+            // See https://github.com/Expensify/App/pull/88312#issuecomment-4286942084.
+            {},
             hasOutstandingChildRequest,
         );
         params.memberData = JSON.stringify({
