@@ -8,7 +8,7 @@ import DecisionModal from '@components/DecisionModal';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
-import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
+import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import Text from '@components/Text';
 import useClearSelectedDomainMembersOnMoveComplete from '@hooks/useClearSelectedDomainMembersOnMoveComplete';
@@ -31,7 +31,6 @@ import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
 import BaseDomainMembersPage from '@pages/domain/BaseDomainMembersPage';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -73,26 +72,23 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
         selector: memberAccountIDsSelector,
     });
 
-    const {groupPreFilter, groupOptions, selectedGroup, handleGroupChange, dropdownLabel, groups} = useDomainGroupFilter(domainAccountID);
+    const {groupPreFilter, groupOptions, selectedGroups, handleGroupChange, dropdownLabel, groups} = useDomainGroupFilter(domainAccountID);
 
-    const groupPopoverComponent = ({closeOverlay, isExpanded}: PopoverComponentProps) => (
-        <SingleSelectPopup
+    const groupPopoverComponent = ({closeOverlay}: PopoverComponentProps) => (
+        <MultiSelectPopup
             label={translate('common.group')}
             items={groupOptions}
-            value={selectedGroup ?? groupOptions.at(0)}
+            value={selectedGroups}
             closeOverlay={closeOverlay}
             onChange={handleGroupChange}
-            defaultValue={groupOptions.at(0)?.value}
-            itemHeight={variables.optionRowHeightCompact}
-            shouldShowList={isExpanded}
         />
     );
 
     const groupFilterDropdown =
-        groupOptions.length > 1 ? (
+        groupOptions.length > 0 ? (
             <DropdownButton
                 label={dropdownLabel}
-                value={null}
+                value={selectedGroups.map((g) => g.text)}
                 PopoverComponent={groupPopoverComponent}
                 innerStyles={[styles.gap2, shouldUseNarrowLayout && styles.mw100]}
                 wrapperStyle={shouldUseNarrowLayout && styles.w100}
