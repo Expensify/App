@@ -8896,19 +8896,19 @@ const CONST = {
         EVENT: {
             SIGN_UP: {
                 NAME: 'sign_up',
-                META: 'SignUp',
+                META: 'CompleteRegistration',
                 REDDIT: 'SignUp',
                 LINKEDIN: 507587661,
             },
             WORKSPACE_CREATED: {
                 NAME: 'workspace_created',
-                META: 'WorkspaceCreated',
+                META: 'Lead',
                 REDDIT: 'Lead',
                 LINKEDIN: 25474804,
             },
             PAID_ADOPTION: {
                 NAME: 'paid_adoption',
-                META: 'PaidAdoption',
+                META: 'Purchase',
                 REDDIT: 'Purchase',
                 LINKEDIN: 25474820,
             },
