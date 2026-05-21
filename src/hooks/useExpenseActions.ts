@@ -256,8 +256,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 recentWaypoints,
                 targetPolicyTags,
                 conciergeReportID,
-                currentUserAccountID: currentUserPersonalDetails?.accountID,
-                currentUserLogin: currentUserPersonalDetails?.email ?? '',
+                currentUser: {accountID: currentUserPersonalDetails?.accountID, email: currentUserPersonalDetails?.email ?? ''},
             });
         }
     };
@@ -322,7 +321,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
             iconFill: isDuplicateActive ? undefined : theme.icon,
             value: CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE,
             onSelected: () => {
-                if (defaultExpensePolicy && shouldRestrictUserBillableActions(defaultExpensePolicy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+                if (defaultExpensePolicy && shouldRestrictUserBillableActions(defaultExpensePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
                     onDuplicateReset?.();
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(defaultExpensePolicy.id));
                     return;
@@ -383,7 +382,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 const isSourcePolicyValid = !!policy && isPolicyAccessible(policy, currentUserLogin ?? '');
                 const targetPolicyForDuplicate = isSourcePolicyValid ? policy : defaultExpensePolicy;
 
-                if (targetPolicyForDuplicate && shouldRestrictUserBillableActions(targetPolicyForDuplicate.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+                if (targetPolicyForDuplicate && shouldRestrictUserBillableActions(targetPolicyForDuplicate, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
                     onDuplicateReset?.();
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(targetPolicyForDuplicate.id));
                     return;
