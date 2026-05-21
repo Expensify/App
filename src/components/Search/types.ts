@@ -7,12 +7,8 @@ import type {Report, ReportAction, SearchResults, Transaction} from '@src/types/
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {
-    ReportActionListItemType,
-    TaskListItemType,
     TransactionCardGroupListItemType,
     TransactionCategoryGroupListItemType,
-    TransactionGroupListItemType,
-    TransactionListItemType,
     TransactionMemberGroupListItemType,
     TransactionMerchantGroupListItemType,
     TransactionMonthGroupListItemType,
