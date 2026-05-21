@@ -33,7 +33,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {freezeCard, unfreezeCard} from '@libs/actions/Card';
 import {resetValidateActionCodeSent} from '@libs/actions/User';
 import navigateToCardTransactions from '@libs/CardNavigationUtils';
-import {clearRevealedPIN, useRevealedPIN} from '@libs/CardPINStore';
 import {
     formatCardExpiration,
     getCardCurrency,
@@ -43,17 +42,16 @@ import {
     isCardFrozen,
     isOfflinePINMarket,
     isTravelCard,
+    isUkEuExpensifyCard,
     maskCard,
     maskPin,
-    requiresStrongCustomerAuthentication,
-    supportsPINManagementFeatures,
 } from '@libs/CardUtils';
-import {clearRevealedCardDetails, useAllRevealedCardDetails} from '@libs/ExpensifyCardDetailsStore';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DomainCardNavigatorParamList, SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
+import {clearRevealedPhysicalCardPin, clearRevealedVirtualCardDetails, useAllRevealedVirtualCardDetails, useRevealedPhysicalCardPin} from '@libs/RevealedCardSecretsStore';
 import {getSpendRuleByCardID, getSpendRuleSummaryText} from '@libs/SpendRulesUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CardDetailsActionButtons, {CardDetailsActionButton} from '@pages/settings/Wallet/CardDetailsActionButtons';
@@ -131,16 +129,16 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const {cardsDetails, isCardDetailsLoading, cardsDetailsErrors} = useExpensifyCardState();
     const {setCardsDetails} = useExpensifyCardActions();
     const currentPhysicalCard = useMemo(() => physicalCards?.find((card) => String(card?.cardID) === cardID) ?? physicalCards?.at(0), [physicalCards, cardID]);
-    const revealedPIN = useRevealedPIN(String(currentPhysicalCard?.cardID));
-    const scaRevealedCardDetails = useAllRevealedCardDetails();
+    const revealedPIN = useRevealedPhysicalCardPin(String(currentPhysicalCard?.cardID));
+    const scaRevealedCardDetails = useAllRevealedVirtualCardDetails();
 
     // Resets card details and revealed PIN when navigating away from the page.
     useFocusEffect(
         useCallback(() => {
             return () => {
                 setCardsDetails((oldCardDetails) => ({...oldCardDetails, [cardID]: null}));
-                clearRevealedPIN();
-                clearRevealedCardDetails();
+                clearRevealedPhysicalCardPin();
+                clearRevealedVirtualCardDetails();
             };
         }, [cardID, setCardsDetails]),
     );
@@ -156,7 +154,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
 
     const currency = getCardCurrency(currentCard, cardSettings);
     const shouldShowPIN = currency !== CONST.CURRENCY.USD;
-    const shouldShowChangePINRow = supportsPINManagementFeatures(currentPhysicalCard) && currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
+    const shouldShowChangePINRow = isUkEuExpensifyCard(currentPhysicalCard) && currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
     const canRevealPIN = shouldShowChangePINRow && revealedPIN === undefined;
     const isCardPINBlocked = !!currentPhysicalCard?.nameValuePairs?.isPINBlocked;
     const formattedAvailableSpendAmount = convertToDisplayString(currentCard?.availableSpend, currency);
@@ -496,7 +494,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                                     return;
                                                                 }
 
-                                                                if (requiresStrongCustomerAuthentication(card)) {
+                                                                if (isUkEuExpensifyCard(card)) {
                                                                     executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.REVEAL_CARD_DETAILS, {
                                                                         cardID: String(card.cardID),
                                                                     });

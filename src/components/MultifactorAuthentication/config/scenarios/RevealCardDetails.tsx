@@ -7,8 +7,8 @@ import type {
     MultifactorAuthenticationScenarioCustomConfig,
 } from '@components/MultifactorAuthentication/config/types';
 import {revealCardDetailsWithSCA} from '@libs/actions/MultifactorAuthentication';
-import {setRevealedCardDetails} from '@libs/ExpensifyCardDetailsStore';
 import Navigation from '@libs/Navigation/Navigation';
+import {setRevealedVirtualCardDetails} from '@libs/RevealedCardSecretsStore';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -30,7 +30,8 @@ function isRevealCardDetailsPayload(payload: MultifactorAuthenticationScenarioAd
 const ClientFailureScreen = createScreenWithDefaults(
     DefaultClientFailureScreen,
     {
-        subtitle: 'cardPage.cardDetailsLoadingFailure',
+        subtitle: 'multifactorAuthentication.revealCardDetail.couldNotReveal',
+
     },
     'ClientFailureScreen',
 );
@@ -38,7 +39,8 @@ const ClientFailureScreen = createScreenWithDefaults(
 const ServerFailureScreen = createScreenWithDefaults(
     DefaultServerFailureScreen,
     {
-        subtitle: 'cardPage.cardDetailsLoadingFailure',
+        subtitle: 'multifactorAuthentication.revealCardDetail.couldNotReveal',
+
     },
     'ServerFailureScreen',
 );
@@ -49,7 +51,7 @@ const ServerFailureScreen = createScreenWithDefaults(
  * via Strong Customer Authentication instead of the email magic-code flow.
  *
  * Callback behavior:
- * - Success: Store the revealed details in ExpensifyCardDetailsStore and return SKIP_OUTCOME_SCREEN
+ * - Success: Store the revealed details in RevealedCardSecretsStore and return SKIP_OUTCOME_SCREEN
  * - Authentication failure: Return SHOW_OUTCOME_SCREEN to show failure screen
  */
 export default {
@@ -60,7 +62,7 @@ export default {
             const pan = typeof callbackInput.body?.pan === 'string' ? callbackInput.body.pan : '';
             const expiration = typeof callbackInput.body?.expiration === 'string' ? callbackInput.body.expiration : '';
             const cvv = typeof callbackInput.body?.cvv === 'string' ? callbackInput.body.cvv : '';
-            setRevealedCardDetails(payload.cardID, {pan, expiration, cvv});
+            setRevealedVirtualCardDetails(payload.cardID, {pan, expiration, cvv});
             Navigation.closeRHPFlow();
             Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(String(payload.cardID)));
             return CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SKIP_OUTCOME_SCREEN;
