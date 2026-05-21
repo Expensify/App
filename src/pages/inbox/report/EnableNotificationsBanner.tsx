@@ -34,7 +34,7 @@ function EnableNotificationsBanner() {
         >
             <Banner
                 text={translate('concierge.enableNotifications.prompt')}
-                textStyles={[styles.textNormal]}
+                textStyles={[styles.textNormal, styles.mr3, styles.breakWord]}
                 containerStyles={[styles.pt3, styles.pr3, styles.pl4, containerOverrideStyle]}
                 shouldShowButton
                 shouldUseSmallButtons
