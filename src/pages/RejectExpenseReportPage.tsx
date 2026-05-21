@@ -26,6 +26,7 @@ import variables from '@styles/variables';
 import {rejectExpenseReport} from '@userActions/IOU/RejectMoneyRequest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/ReportRejectForm';
 
@@ -145,7 +146,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
             currentUserPersonalDetails?.displayName,
             currentUserPersonalDetails?.avatar,
         );
-        Navigation.goBack();
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.chatReportID));
     };
 
     return (
