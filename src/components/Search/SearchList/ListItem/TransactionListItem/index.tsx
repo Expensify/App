@@ -212,7 +212,6 @@ function TransactionListItem<TItem extends ListItem>({
 
     const sharedProps = {
         item,
-        transactionItem,
         isDeletedTransaction,
         isFocused,
         showTooltip,
