@@ -1132,7 +1132,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         badgeHigher: {
-            position: 'relative',
+            position: Platform.OS === 'web' ? 'relative' : 'static',
             top: -2,
         },
 
