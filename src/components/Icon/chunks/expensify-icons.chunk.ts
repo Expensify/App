@@ -238,6 +238,7 @@ import Task from '@assets/images/task.svg';
 import Thread from '@assets/images/thread.svg';
 import ThreeDots from '@assets/images/three-dots.svg';
 import ThumbsDown from '@assets/images/thumbs-down.svg';
+import ThumbsUpHourglass from '@assets/images/thumbs-up-hourglass.svg';
 import ThumbsUp from '@assets/images/thumbs-up.svg';
 import TrainCircleSlash from '@assets/images/train-circle-slash.svg';
 import Train from '@assets/images/train.svg';
@@ -449,6 +450,7 @@ const Expensicons = {
     Sync,
     Task,
     ThumbsUp,
+    ThumbsUpHourglass,
     ThreeDots,
     Transfer,
     Trashcan,
