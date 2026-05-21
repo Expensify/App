@@ -2229,8 +2229,13 @@ function navigateToReport(reportID: string | undefined, options?: {shouldDismiss
     const shouldDismissModal = options?.shouldDismissModal ?? true;
 
     if (shouldDismissModal) {
-        Navigation.dismissModal({afterTransition: options?.afterTransition});
+        if (!reportID) {
+            Navigation.dismissModal({afterTransition: options?.afterTransition});
+            return;
+        }
+        Navigation.dismissModal();
     }
+
     if (!reportID) {
         return;
     }
@@ -2238,7 +2243,7 @@ function navigateToReport(reportID: string | undefined, options?: {shouldDismiss
     setTimeout(() => {
         Navigation.isNavigationReady().then(() => {
             const route = ROUTES.REPORT_WITH_ID.getRoute(reportID);
-            if (!shouldDismissModal && options?.afterTransition) {
+            if (options?.afterTransition) {
                 Navigation.navigate(route, {afterTransition: options.afterTransition});
             } else {
                 Navigation.navigate(route);
