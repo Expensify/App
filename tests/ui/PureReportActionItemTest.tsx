@@ -107,7 +107,6 @@ describe('PureReportActionItem', () => {
                                 action={action}
                                 displayAsGroup={false}
                                 shouldDisplayNewMarker={false}
-                                index={0}
                                 isFirstVisibleReportAction={false}
                             />
                         </PortalProvider>
@@ -393,7 +392,6 @@ describe('PureReportActionItem', () => {
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -441,7 +439,6 @@ describe('PureReportActionItem', () => {
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -493,7 +490,6 @@ describe('PureReportActionItem', () => {
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -537,7 +533,6 @@ describe('PureReportActionItem', () => {
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -606,7 +601,6 @@ describe('PureReportActionItem', () => {
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -662,7 +656,6 @@ describe('PureReportActionItem', () => {
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -745,7 +738,6 @@ describe('PureReportActionItem', () => {
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -924,7 +916,6 @@ describe('PureReportActionItem', () => {
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -971,7 +962,6 @@ describe('PureReportActionItem', () => {
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -1125,7 +1115,6 @@ describe('PureReportActionItem', () => {
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -1304,7 +1293,6 @@ describe('PureReportActionItem', () => {
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -1395,7 +1383,6 @@ describe('PureReportActionItem', () => {
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                     isClosedExpenseReportWithNoExpenses
                                 />
@@ -1431,7 +1418,6 @@ describe('PureReportActionItem', () => {
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -1468,7 +1454,6 @@ describe('PureReportActionItem', () => {
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -1516,7 +1501,6 @@ describe('PureReportActionItem', () => {
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -1552,7 +1536,6 @@ describe('PureReportActionItem', () => {
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -1592,7 +1575,6 @@ describe('PureReportActionItem', () => {
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -1630,7 +1612,6 @@ describe('PureReportActionItem', () => {
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -1667,7 +1648,6 @@ describe('PureReportActionItem', () => {
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -1707,7 +1687,6 @@ describe('PureReportActionItem', () => {
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -1748,7 +1727,6 @@ describe('PureReportActionItem', () => {
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -1873,7 +1851,6 @@ describe('PureReportActionItem', () => {
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -1910,7 +1887,6 @@ describe('PureReportActionItem', () => {
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -2489,7 +2465,6 @@ describe('PureReportActionItem', () => {
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                 />
                             </PortalProvider>
@@ -2577,7 +2552,6 @@ describe('PureReportActionItem', () => {
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                     reportNameValuePairsOrigin="harvest"
                                     reportNameValuePairsOriginalID="origReport123"
@@ -2625,7 +2599,6 @@ describe('PureReportActionItem', () => {
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
-                                    index={0}
                                     isFirstVisibleReportAction={false}
                                     isThreadReportParentAction
                                 />

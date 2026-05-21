@@ -66,8 +66,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {getStableReportSelector} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
 import FloatingMessageCounter from './FloatingMessageCounter';
+import ReportActionIndexContext from './ReportActionIndexContext';
 import ReportActionsListHeader from './ReportActionsListHeader';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 import {getUnreadMarkerReportAction} from './shouldDisplayNewMarkerOnReportAction';
@@ -211,6 +213,8 @@ function ReportActionsList({
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report.reportID}`);
     const prevIsLoadingInitialReportActions = usePrevious(reportLoadingState?.isLoadingInitialReportActions);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
+
+    const [reportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {selector: getStableReportSelector});
 
     const backTo = route?.params?.backTo as string;
     const linkedReportActionID = route?.params?.reportActionID;
@@ -733,13 +737,12 @@ function ReportActionsList({
             const safeIndex = actionIndexMap.get(reportAction.reportActionID) ?? index;
 
             return (
-                <>
+                <ReportActionIndexContext.Provider value={index}>
                     <ReportActionsListItemRenderer
                         reportAction={reportAction}
                         parentReportAction={parentReportAction}
                         parentReportActionForTransactionThread={parentReportActionForTransactionThread}
-                        index={index}
-                        report={report}
+                        report={reportStable}
                         transactionThreadReport={transactionThreadReport}
                         linkedReportActionID={linkedReportActionID}
                         displayAsGroup={
@@ -758,14 +761,16 @@ function ReportActionsList({
                         reportNameValuePairsOrigin={reportNameValuePairs?.origin}
                         reportNameValuePairsOriginalID={reportNameValuePairs?.originalID}
                     />
-                    <ShowPreviousMessagesButton
-                        reportID={report.reportID}
-                        actionType={reportAction.actionName}
-                        hasPreviousMessages={!!hasPreviousMessages}
-                        showFullHistory={!showHiddenHistory}
-                        onPress={onShowPreviousMessages}
-                    />
-                </>
+                    {!!reportStable?.reportID && (
+                        <ShowPreviousMessagesButton
+                            reportID={reportStable.reportID}
+                            actionType={reportAction.actionName}
+                            hasPreviousMessages={!!hasPreviousMessages}
+                            showFullHistory={!showHiddenHistory}
+                            onPress={onShowPreviousMessages}
+                        />
+                    )}
+                </ReportActionIndexContext.Provider>
             );
         },
         [
@@ -781,7 +786,7 @@ function ReportActionsList({
             parentReportActionForTransactionThread,
             personalDetailsList,
             renderedVisibleReportActions,
-            report,
+            reportStable,
             reportNameValuePairs?.origin,
             reportNameValuePairs?.originalID,
             shouldHideThreadDividerLine,

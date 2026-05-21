@@ -4,10 +4,12 @@ import type {OnyxEntry} from 'react-native-onyx';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import type {ActionableItem} from '@components/ReportActionItem/ActionableItemButtons';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
+import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {resolveActionableMentionConfirmWhisper} from '@libs/actions/Report';
 import ReportActionItemMessage from '@pages/inbox/report/ReportActionItemMessage';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
 
 type ConfirmWhisperContentProps = {
@@ -19,16 +21,19 @@ type ConfirmWhisperContentProps = {
 };
 
 function ConfirmWhisperContent({action, reportID, originalReportID, report, originalReport}: ConfirmWhisperContentProps) {
-    const reportActionReport = originalReport ?? report;
+    const actionReportStable = originalReport ?? report;
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const mentionReportContextValue = {currentReportID: report?.reportID, exactlyMatch: true};
+
+    // Subscribe to the full report here — the resolve action needs heartbeat fields for its failure-revert payload.
+    const [actionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${actionReportStable?.reportID}`);
 
     const buttons: ActionableItem[] = [
         {
             text: 'common.buttonConfirm',
             key: `${action.reportActionID}-actionableReportMentionConfirmWhisper-${CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER.DONE}`,
             onPress: () =>
-                resolveActionableMentionConfirmWhisper(reportActionReport, action, CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER.DONE, isOriginalReportArchived),
+                resolveActionableMentionConfirmWhisper(actionReport, action, CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER.DONE, isOriginalReportArchived),
             isPrimary: true,
         },
     ];

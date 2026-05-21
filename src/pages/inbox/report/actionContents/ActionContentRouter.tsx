@@ -127,9 +127,6 @@ type ActionContentRouterProps = {
     /** User payment card ID */
     userBillingFundID?: number;
 
-    /** Position index of the report action in the overall report FlatList view */
-    index: number;
-
     /** Toggle whether the payment method popover is active */
     setIsPaymentMethodPopoverActive: (value: boolean) => void;
 };
@@ -156,7 +153,6 @@ function ActionContentRouter({
     shouldShowBorder,
     isOnSearch,
     userBillingFundID,
-    index,
     setIsPaymentMethodPopoverActive,
 }: ActionContentRouterProps): React.JSX.Element | null {
     const {translate, formatTravelDate} = useLocalize();
@@ -487,7 +483,6 @@ function ActionContentRouter({
             originalReportID={originalReportID}
             displayAsGroup={displayAsGroup}
             draftMessage={draftMessage}
-            index={index}
             isHidden={isHidden}
             updateHiddenState={updateHiddenState}
             isArchivedRoom={isArchivedRoom}

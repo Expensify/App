@@ -34,7 +34,6 @@ type ChatMessageContentProps = {
     originalReportID: string;
     displayAsGroup: boolean;
     draftMessage: string | undefined;
-    index: number;
     isHidden: boolean;
     updateHiddenState: (isHiddenValue: boolean) => void;
     isArchivedRoom?: boolean;
@@ -50,7 +49,6 @@ function ChatMessageContent({
     originalReportID,
     displayAsGroup,
     draftMessage,
-    index,
     isHidden,
     updateHiddenState,
     isArchivedRoom,
@@ -87,7 +85,6 @@ function ChatMessageContent({
                         reportID={reportID}
                         originalReportID={originalReportID}
                         policyID={report?.policyID}
-                        index={index}
                         shouldDisableEmojiPicker={(chatIncludesConcierge(report) && isBlockedFromConcierge(blockedFromConcierge)) || isArchivedNonExpenseReport(report, isArchivedRoom)}
                         isGroupPolicyReport={!!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE}
                     />

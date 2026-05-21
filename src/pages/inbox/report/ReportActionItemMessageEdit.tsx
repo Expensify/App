@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {MeasureInWindowOnSuccessCallback, TextInputKeyPressEvent, TextInputScrollEvent} from 'react-native';
@@ -47,6 +47,7 @@ import Suggestions from './ReportActionCompose/Suggestions';
 import useDebouncedCommentMaxLengthValidation from './ReportActionCompose/useDebouncedCommentMaxLengthValidation';
 import useEditMessage from './ReportActionCompose/useEditMessage';
 import {useReportActionActiveEdit, useReportActionActiveEditActions} from './ReportActionEditMessageContext';
+import ReportActionIndexContext from './ReportActionIndexContext';
 import shouldUseEmojiPickerSelection from './shouldUseEmojiPickerSelection';
 import useDebouncedSaveDraft from './useDebouncedSaveDraft';
 import useDraftMessageVideoAttributeCache from './useDraftMessageVideoAttributeCache';
@@ -63,9 +64,6 @@ type ReportActionItemMessageEditProps = {
 
     /** PolicyID of the policy the report belongs to */
     policyID?: string;
-
-    /** Position index of the report action in the overall report FlatList view */
-    index: number;
 
     /** Whether or not the emoji picker is disabled */
     shouldDisableEmojiPicker?: boolean;
@@ -84,7 +82,8 @@ const DEFAULT_MODAL_VALUE = {
     isVisible: false,
 };
 
-function ReportActionItemMessageEdit({action, reportID, originalReportID, policyID, index, isGroupPolicyReport, shouldDisableEmojiPicker = false, ref}: ReportActionItemMessageEditProps) {
+function ReportActionItemMessageEdit({action, reportID, originalReportID, policyID, isGroupPolicyReport, shouldDisableEmojiPicker = false, ref}: ReportActionItemMessageEditProps) {
+    const index = useContext(ReportActionIndexContext);
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();

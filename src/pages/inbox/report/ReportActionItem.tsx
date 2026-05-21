@@ -7,6 +7,7 @@ import useReportTransactions from '@hooks/useReportTransactions';
 import {getIOUReportIDFromReportActionPreview, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {isArchivedNonExpenseReport, isClosedExpenseReportWithNoExpenses} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {getStableReportSelector} from '@src/selectors/Report';
 import type {PersonalDetailsList, Transaction} from '@src/types/onyx';
 import type {PureReportActionItemProps} from './PureReportActionItem';
 import PureReportActionItem from './PureReportActionItem';
@@ -39,7 +40,7 @@ function ReportActionItem({
     const reportID = report?.reportID;
     const originalReportID = useOriginalReportID(reportID, action);
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
-    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`);
+    const [stableOriginalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`, {selector: getStableReportSelector});
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getIOUReportIDFromReportActionPreview(action)}`);
 
     const transactionsOnIOUReport = useReportTransactions(iouReport?.reportID);
@@ -68,8 +69,8 @@ function ReportActionItem({
             linkedTransactionRouteError={linkedTransactionRouteError}
             personalDetails={personalDetails}
             originalReportID={originalReportID}
-            originalReport={originalReport}
-            isArchivedRoom={isArchivedNonExpenseReport(originalReport, isOriginalReportArchived)}
+            originalReport={stableOriginalReport}
+            isArchivedRoom={isArchivedNonExpenseReport(stableOriginalReport, isOriginalReportArchived)}
             isClosedExpenseReportWithNoExpenses={isClosedExpenseReportWithNoExpenses(iouReport, transactionsOnIOUReport)}
             userBillingFundID={userBillingFundID}
             isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}

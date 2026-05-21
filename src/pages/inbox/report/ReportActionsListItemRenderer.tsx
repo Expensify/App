@@ -17,9 +17,6 @@ type ReportActionsListItemRendererProps = {
     /** The transaction thread report's parentReportAction */
     parentReportActionForTransactionThread: OnyxEntry<ReportAction>;
 
-    /** Position index of the report action in the overall report FlatList view */
-    index: number;
-
     /** Report for this action */
     report: OnyxEntry<Report>;
 
@@ -71,7 +68,6 @@ type ReportActionsListItemRendererProps = {
 function ReportActionsListItemRenderer({
     reportAction,
     parentReportAction,
-    index,
     report,
     transactionThreadReport,
     displayAsGroup,
@@ -175,7 +171,6 @@ function ReportActionsListItemRenderer({
                 report={report}
                 action={action}
                 transactionThreadReport={transactionThreadReport}
-                index={index}
                 isFirstVisibleReportAction={isFirstVisibleReportAction}
                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                 personalDetails={personalDetails}
@@ -197,7 +192,6 @@ function ReportActionsListItemRenderer({
             linkedReportActionID={linkedReportActionID}
             displayAsGroup={displayAsGroup}
             shouldDisplayNewMarker={shouldDisplayNewMarker}
-            index={index}
             isFirstVisibleReportAction={isFirstVisibleReportAction}
             shouldUseThreadDividerLine={shouldUseThreadDividerLine}
             shouldHighlight={shouldHighlight}
