@@ -623,15 +623,30 @@ const DYNAMIC_ROUTES = {
     },
     PRIVATE_NOTES_LIST: {
         path: 'notes',
-        entryScreens: [SCREENS.REPORT_DETAILS.ROOT, SCREENS.PROFILE_ROOT],
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.REPORT_DETAILS.ROOT,
+            SCREENS.PROFILE_ROOT,
+        ],
         getRoute: (reportID?: string) => getUrlWithParams('notes', reportID ? {reportID} : {}),
         queryParams: ['reportID'],
     },
     PRIVATE_NOTES_EDIT: {
-        path: 'notes/:accountID/edit',
-        entryScreens: [SCREENS.REPORT_DETAILS.ROOT, SCREENS.PROFILE_ROOT, SCREENS.DYNAMIC_PRIVATE_NOTES_LIST],
+        path: 'notes-edit/:accountID',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.REPORT_DETAILS.ROOT,
+            SCREENS.PROFILE_ROOT,
+            SCREENS.DYNAMIC_PRIVATE_NOTES_LIST,
+        ],
         getRoute: (accountID: number, reportID?: string) => {
-            const path = `notes/${accountID}/edit`;
+            const path = `notes-edit/${accountID}`;
             return reportID ? getUrlWithParams(path, {reportID}) : path;
         },
         queryParams: ['reportID'],
