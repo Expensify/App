@@ -49,7 +49,7 @@ function AgentPromotionalBanner({title, subtitle, onDismiss, dismissSentryLabel,
 
     const titleNode = useMemo(
         () => (
-            <View style={[styles.flexRow, styles.flexShrink1, styles.alignItemsCenter]}>
+            <View style={[styles.flexRow, styles.flexShrink1]}>
                 <Text style={[styles.textStrong, styles.agentsPromoBannerText]}>
                     {title}{' '}
                     <Badge
