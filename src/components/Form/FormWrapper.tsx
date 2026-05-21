@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Accessibility from '@libs/Accessibility';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import getPlatform from '@libs/getPlatform';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import CONST from '@src/CONST';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import type {Form} from '@src/types/form';
@@ -223,10 +224,12 @@ function FormWrapper({
                 if (!shouldScrollToEnd) {
                     return;
                 }
-                InteractionManager.runAfterInteractions(() => {
-                    requestAnimationFrame(() => {
-                        formRef.current?.scrollToEnd({animated: true});
-                    });
+                TransitionTracker.runAfterTransitions({
+                    callback: () => {
+                        requestAnimationFrame(() => {
+                            formRef.current?.scrollToEnd({animated: true});
+                        });
+                    },
                 });
             }}
         >
