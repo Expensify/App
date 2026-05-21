@@ -697,6 +697,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     policyCategories: {},
                     currentUserAccountIDParam: 123,
                     currentUserEmailParam: 'existing@example.com',
+                    delegateAccountID: undefined,
                     isASAPSubmitBetaEnabled: false,
                     policyRecentlyUsedCurrencies: [],
                     parentReportNextStep: undefined,
