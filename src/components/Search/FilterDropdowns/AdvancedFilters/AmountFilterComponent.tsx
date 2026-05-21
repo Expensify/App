@@ -8,13 +8,13 @@ import type {SearchAmountFilterKeys, SearchAmountValues} from '@components/Searc
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import useFullscreenAdvancedFilters from './useFullscreenAdvancedFilters';
-import useStyleUtils from '@hooks/useStyleUtils';
 
 const BETWEEN_MODIFIER = 'Between';
 
