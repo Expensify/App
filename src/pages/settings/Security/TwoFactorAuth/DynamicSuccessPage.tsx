@@ -10,6 +10,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TwoFactorAuthNavigatorParamList} from '@libs/Navigation/types';
 import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
+import {openReimbursementAccountPage} from '@userActions/BankAccounts';
 import {closeReactNativeApp} from '@userActions/HybridApp';
 import {openLink} from '@userActions/Link';
 import {clearTwoFactorAuthData, quitAndNavigateBack} from '@userActions/TwoFactorAuthActions';
@@ -38,7 +39,16 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
 
     const goBack = () => {
         if (isUSDBankAccountFlow) {
-            Navigation.dismissModal({afterTransition: clearTwoFactorAuthData});
+            Navigation.goBack(dynamicBackPath, {
+                afterTransition: () => {
+                    clearTwoFactorAuthData();
+                    // Re-fetch bank account data so ReimbursementAccountPage reflects the latest state after 2FA setup.
+                    openReimbursementAccountPage({
+                        policyID: route.params?.policyID,
+                        stepToOpen: '',
+                    });
+                },
+            });
             return;
         }
         quitAndNavigateBack(dynamicBackPath);
