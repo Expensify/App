@@ -49,7 +49,6 @@ import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {ExpenseRuleForm, MerchantRuleForm, SpendRuleForm} from '@src/types/form';
 import type {AppReview, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, NewLogin, ReportAttributesDerivedValue} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';

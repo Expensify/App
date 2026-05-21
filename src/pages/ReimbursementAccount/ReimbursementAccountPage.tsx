@@ -52,8 +52,7 @@ import {clearReimbursementAccount, clearReimbursementAccountDraft} from '@userAc
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {InputID} from '@src/types/form/ReimbursementAccountForm';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';

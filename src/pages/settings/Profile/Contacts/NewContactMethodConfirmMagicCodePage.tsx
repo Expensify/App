@@ -7,14 +7,9 @@ import {clearPendingContactActionErrors, requestValidateCodeAction, resetValidat
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getContactMethod} from '@libs/UserUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
-
-type NewContactMethodConfirmMagicCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.DYNAMIC_NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE>;
 
 function NewContactMethodConfirmMagicCodePage() {
     const {translate} = useLocalize();

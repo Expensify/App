@@ -19,7 +19,8 @@ import {getFieldRequiredErrors, isValidAddress, isValidDebitCard, isValidExpirat
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/AddPaymentCardForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
