@@ -2914,6 +2914,9 @@ const CONST = {
             MANAGER: 'manager',
             CUSTOM: 'custom',
         },
+        SYNC_TYPE: {
+            INITIAL: 'initial',
+        },
     },
 
     QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {

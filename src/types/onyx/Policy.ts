@@ -300,6 +300,9 @@ type ConnectionLastSync = {
      * show an error message
      */
     isConnected?: boolean;
+
+    /** Type of the sync, only populated for Merge HR connections */
+    syncType?: ValueOf<typeof CONST.MERGE_HR.SYNC_TYPE>;
 };
 
 /**
@@ -2373,9 +2376,6 @@ type PolicyConnectionSyncProgress = {
 
     /** Optional result payload shown after a completed sync */
     result?: GustoSyncResult;
-
-    /** Whether this is the initial sync after the connection was established */
-    isInitialSync?: boolean;
 };
 
 export default Policy;
