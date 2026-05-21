@@ -15,15 +15,9 @@ type AttachmentViewVideoProps = Pick<AttachmentViewProps, 'duration' | 'isHovere
 
     /** Callback function to call when the video is tap */
     onTap?: (shouldShowArrows?: boolean) => void;
-
-    /** Callback function to call when the video preview is ready */
-    onLoad?: () => void;
-
-    /** Callback function to call when the video fails to load */
-    onError?: () => void;
 };
 
-function AttachmentViewVideo({source, isHovered = false, shouldUseSharedVideoElement = false, duration = 0, reportID, onTap, onLoad, onError}: AttachmentViewVideoProps) {
+function AttachmentViewVideo({source, isHovered = false, shouldUseSharedVideoElement = false, duration = 0, reportID, onTap}: AttachmentViewVideoProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
 
@@ -36,9 +30,6 @@ function AttachmentViewVideo({source, isHovered = false, shouldUseSharedVideoEle
             style={[styles.w100, styles.h100, styles.pb5]}
             reportID={reportID}
             onTap={onTap}
-            onSourceLoaded={onLoad}
-            onReadyToPlay={onLoad}
-            onError={onError}
         />
     );
 }

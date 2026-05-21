@@ -15,9 +15,6 @@ type ImageViewProps = Pick<Attachment, 'attachmentID'> & {
     /** Handles errors while displaying the image */
     onError?: () => void;
 
-    /** Handles successful image load */
-    onLoad?: () => void;
-
     /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;
 

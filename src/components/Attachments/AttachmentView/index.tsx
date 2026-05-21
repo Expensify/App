@@ -364,9 +364,6 @@ function AttachmentView({
                         loadComplete={loadComplete}
                         isImage={isImage}
                         onPress={onPress}
-                        onLoad={() => {
-                            handleAttachmentLoaded(source);
-                        }}
                         onError={() => {
                             if (isOffline) {
                                 return;
@@ -395,12 +392,6 @@ function AttachmentView({
                 duration={duration}
                 reportID={reportID}
                 onTap={onTap}
-                onLoad={() => {
-                    handleAttachmentLoaded(source);
-                }}
-                onError={() => {
-                    handleAttachmentError(source);
-                }}
             />
         );
     }

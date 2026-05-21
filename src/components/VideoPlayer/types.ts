@@ -16,16 +16,6 @@ type VideoPlayerProps = {
     onSourceLoaded?: (event: SourceLoadEventPayload) => void;
 
     /**
-     * Callback fired when the video player is ready to display.
-     */
-    onReadyToPlay?: () => void;
-
-    /**
-     * Callback fired when the video player reports an error status.
-     */
-    onError?: () => void;
-
-    /**
      * Whether the video should automatically replay after it ends.
      */
     isLooping?: boolean;

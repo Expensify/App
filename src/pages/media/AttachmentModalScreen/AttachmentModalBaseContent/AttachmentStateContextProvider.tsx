@@ -18,14 +18,12 @@ type AttachmentStateContextType = {
     setAttachmentLoaded: (key: AttachmentSource, state?: boolean) => void;
     clearAttachmentLoaded: () => void;
     isAttachmentLoaded: (key: AttachmentSource) => boolean;
-    getAttachmentLoadedState: (key: AttachmentSource) => boolean | undefined;
 };
 
 const AttachmentStateContext = createContext<AttachmentStateContextType>({
     setAttachmentLoaded: () => {},
     clearAttachmentLoaded: () => {},
     isAttachmentLoaded: () => false,
-    getAttachmentLoadedState: () => undefined,
 });
 
 type Props = {
@@ -49,12 +47,8 @@ function AttachmentStateContextProvider({children}: Props) {
         setAttachmentLoadedState({});
     }, []);
 
-    const isAttachmentLoaded = useCallback((key: AttachmentSource) => attachmentLoaded?.[convertSourceToString(key)] !== false, [attachmentLoaded]);
-    const getAttachmentLoadedState = useCallback((key: AttachmentSource) => attachmentLoaded?.[convertSourceToString(key)], [attachmentLoaded]);
-    const value = useMemo(
-        () => ({setAttachmentLoaded, clearAttachmentLoaded, isAttachmentLoaded, getAttachmentLoadedState}),
-        [setAttachmentLoaded, clearAttachmentLoaded, isAttachmentLoaded, getAttachmentLoadedState],
-    );
+    const isAttachmentLoaded = useCallback((key: AttachmentSource) => attachmentLoaded?.[convertSourceToString(key)] === true, [attachmentLoaded]);
+    const value = useMemo(() => ({setAttachmentLoaded, clearAttachmentLoaded, isAttachmentLoaded}), [setAttachmentLoaded, clearAttachmentLoaded, isAttachmentLoaded]);
     return <AttachmentStateContext.Provider value={value}>{children}</AttachmentStateContext.Provider>;
 }
 

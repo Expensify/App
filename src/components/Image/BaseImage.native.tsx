@@ -9,10 +9,10 @@ import type {BaseImageProps} from './types';
 function BaseImage({onLoad, source, style, ...props}: BaseImageProps) {
     const isLoadedRef = useRef(false);
     const attachmentContext = useContext(AttachmentStateContext);
-    const {setAttachmentLoaded, getAttachmentLoadedState} = attachmentContext || {};
+    const {setAttachmentLoaded, isAttachmentLoaded} = attachmentContext || {};
 
     useEffect(() => {
-        if (getAttachmentLoadedState?.(source as AttachmentSource) === true) {
+        if (isAttachmentLoaded?.(source as AttachmentSource)) {
             return;
         }
         setAttachmentLoaded?.(source as AttachmentSource, false);

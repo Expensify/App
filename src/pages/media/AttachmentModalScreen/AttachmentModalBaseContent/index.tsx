@@ -187,7 +187,7 @@ function AttachmentModalBaseContent({
         };
     }, [clearAttachmentErrors]);
 
-    const {isAttachmentLoaded, getAttachmentLoadedState} = useContext(AttachmentStateContext);
+    const {isAttachmentLoaded} = useContext(AttachmentStateContext);
     const isEReceipt = transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction);
     const shouldShowDownloadButton = useMemo(() => {
         const isValidContext = !isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH || shouldAllowDownloadOutsideReportContext;
@@ -199,13 +199,14 @@ function AttachmentModalBaseContent({
         const attachmentSource = source as AttachmentSource;
         const isImageSource = typeof source === 'number' || (typeof source === 'string' && Str.isImage(source)) || (!!fileName && Str.isImage(fileName));
         const isVideoSource = typeof source === 'string' && Str.isVideo(source);
-        const shouldWaitForPreviewLoad = typeof source !== 'function' && !maybeIcon && (isImageSource || isVideoSource || (!!fileName && Str.isVideo(fileName)));
-        const isAttachmentReadyToDownload = shouldWaitForPreviewLoad ? getAttachmentLoadedState?.(attachmentSource) === true : isAttachmentLoaded?.(attachmentSource);
+        const isPDFSource = typeof source === 'string' && Str.isPDF(source);
+        const shouldWaitForPreviewLoad =
+            typeof source !== 'function' && !maybeIcon && (isImageSource || isVideoSource || isPDFSource || (!!fileName && (Str.isVideo(fileName) || Str.isPDF(fileName))));
+        const isAttachmentReadyToDownload = shouldWaitForPreviewLoad ? isAttachmentLoaded?.(attachmentSource) : true;
 
         return !!onDownloadAttachment && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isOffline && !isLocalSource && isAttachmentReadyToDownload;
     }, [
         fileToDisplay?.name,
-        getAttachmentLoadedState,
         isAttachmentLoaded,
         isDownloadButtonReadyToBeShown,
         isErrorInAttachment,

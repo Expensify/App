@@ -11,9 +11,9 @@ function BaseImage({onLoad, onLoadStart, source, style, ...props}: BaseImageProp
     const cachedSource = useCachedImageSource(typeof source === 'object' && !Array.isArray(source) ? source : undefined);
     const resolvedSource = cachedSource !== undefined ? cachedSource : source;
 
-    const {setAttachmentLoaded, getAttachmentLoadedState} = useContext(AttachmentStateContext);
+    const {setAttachmentLoaded, isAttachmentLoaded} = useContext(AttachmentStateContext);
     useEffect(() => {
-        if (getAttachmentLoadedState?.(source as AttachmentSource) === true) {
+        if (isAttachmentLoaded?.(source as AttachmentSource)) {
             return;
         }
 
