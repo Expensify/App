@@ -6934,6 +6934,7 @@ ${reportName}
             connectionDescription: (providerName: string) => `连接 ${providerName}，以在您的工作区中同步员工审批。`,
             approvalMode: '审批模式',
             finalApprover: '最终审批人',
+            providerFinalApprover: (providerName: string) => `${providerName} 最终审批人`,
             notSet: '未设置',
             approvalModeDescription: (providerName: string) => `成员和管理员已设置为与 ${providerName} 同步。`,
             approvalModeWarningTitle: '更改审批模式？',
