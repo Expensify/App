@@ -6042,9 +6042,9 @@ const translations = {
             searchPlaceholder: 'Search workspaces',
             selectFeatures: 'Select features to copy',
             whichFeatures: 'Select the settings to overwrite on your existing workspaces.',
-            accountingDisabledTooltip: 'The source and target workspaces are not connected to the same accounting account, so these settings can’t be safely copied.',
             workflowsWithoutMembersConfirm: 'Continue without members',
             workflowsWithoutMembersPrompt: 'Copying Workflows without Members will not copy approval workflows. Submission and payment settings will still be copied.',
+            accountingMismatch: ({part}: {part: string}) => `You can only copy ${part} if all workspaces use the same accounting system and company connection.`,
         },
         emptyWorkspace: {
             title: 'No workspaces yet',

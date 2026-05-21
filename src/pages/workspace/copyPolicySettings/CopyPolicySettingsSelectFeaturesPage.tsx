@@ -150,6 +150,12 @@ function CopyPolicySettingsSelectFeaturesPage() {
     };
 
     const getFeatureAlternateText = (part: Part): string | undefined => {
+        if (!isAccountingCompatible && (ACCOUNTING_COMPATIBILITY_REQUIRED_PARTS as readonly Part[]).includes(part)) {
+            return translate('workspace.copyPolicySettings.accountingMismatch', {
+                part: translate(FEATURE_ROWS.find((row) => row.part === part)?.labelKey ?? 'workspace.common.accounting').toLowerCase(),
+            });
+        }
+
         switch (part) {
             case 'overview': {
                 const currencyText = sourcePolicy?.outputCurrency ? `${sourcePolicy.outputCurrency} ${translate('common.currency')}` : '';
