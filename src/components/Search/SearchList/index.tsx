@@ -492,7 +492,10 @@ function SearchList({
 
     const tableHeaderVisible = canSelectMultiple || !!SearchTableHeader;
     const selectAllButtonVisible = canSelectMultiple && !SearchTableHeader;
-    const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === totalItems && hasLoadedAllTransactions;
+    const selectionIncludesUnloadedGroups = Object.entries(selectedTransactions).some(
+        ([key, selectedTransaction]) => key.startsWith(CONST.SEARCH.GROUP_PREFIX) && !selectedTransaction?.transaction,
+    );
+    const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === totalItems && (selectionIncludesUnloadedGroups || !!hasLoadedAllTransactions);
 
     const content = (
         <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
@@ -507,7 +510,7 @@ function SearchList({
                         <Checkbox
                             accessibilityLabel={translate('accessibilityHints.selectAllItems')}
                             isChecked={isSelectAllChecked}
-                            isIndeterminate={selectedItemsLength > 0 && (selectedItemsLength !== totalItems || !hasLoadedAllTransactions)}
+                            isIndeterminate={selectedItemsLength > 0 && (selectedItemsLength !== totalItems || (!selectionIncludesUnloadedGroups && !hasLoadedAllTransactions))}
                             onPress={() => {
                                 onAllCheckboxPress();
                             }}

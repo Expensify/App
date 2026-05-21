@@ -88,6 +88,9 @@ type SelectedTransactionInfo = {
     reportAction?: ReportAction;
 
     report?: Report;
+
+    /** The keyForList of the parent group this transaction was selected from, if any */
+    groupKey?: string;
 };
 
 /** Model of selected transactions */
