@@ -321,7 +321,7 @@ function endRequestAndRemoveFromQueue<TKey extends OnyxKey>(requestToRemove: Req
             });
         })
         .finally(() => {
-            pendingOwnOngoingRequestWrites--;
+            pendingOwnOngoingRequestWrites = Math.max(0, pendingOwnOngoingRequestWrites - 1);
         });
 }
 
@@ -369,13 +369,13 @@ function updateOngoingRequest<TKey extends OnyxKey>(newRequest: Request<TKey>) {
     pendingOwnOngoingRequestWrites++;
     if (shouldPersistOngoingRequest(ongoingRequest)) {
         trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, newRequest as AnyRequest)).finally(() => {
-            pendingOwnOngoingRequestWrites--;
+            pendingOwnOngoingRequestWrites = Math.max(0, pendingOwnOngoingRequestWrites - 1);
         });
         return;
     }
 
     trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, null)).finally(() => {
-        pendingOwnOngoingRequestWrites--;
+        pendingOwnOngoingRequestWrites = Math.max(0, pendingOwnOngoingRequestWrites - 1);
         ongoingRequest = newRequest as AnyRequest;
     });
 }
@@ -432,7 +432,7 @@ function processNextRequest(): AnyRequest | null {
                 [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: ongoingRequest,
             }),
         ).finally(() => {
-            pendingOwnOngoingRequestWrites--;
+            pendingOwnOngoingRequestWrites = Math.max(0, pendingOwnOngoingRequestWrites - 1);
         });
     } else {
         trackOnyxWrite(
@@ -441,7 +441,7 @@ function processNextRequest(): AnyRequest | null {
                 [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: null,
             }),
         ).finally(() => {
-            pendingOwnOngoingRequestWrites--;
+            pendingOwnOngoingRequestWrites = Math.max(0, pendingOwnOngoingRequestWrites - 1);
             ongoingRequest = nextRequest;
         });
     }
@@ -493,7 +493,7 @@ function rollbackOngoingRequest() {
             [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: null,
         }),
     ).finally(() => {
-        pendingOwnOngoingRequestWrites--;
+        pendingOwnOngoingRequestWrites = Math.max(0, pendingOwnOngoingRequestWrites - 1);
     });
 }
 
