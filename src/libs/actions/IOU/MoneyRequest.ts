@@ -676,6 +676,17 @@ function setMoneyRequestDistance(transactionID: string, distanceAsFloat: number,
 }
 
 /**
+ * Remember the most recently selected distance rate for a policy so the rate picker
+ * defaults to it on the next distance expense for that workspace.
+ */
+function setLastSelectedDistanceRate(policy: OnyxEntry<Policy>, customUnitRateID: string) {
+    if (!policy) {
+        return;
+    }
+    Onyx.merge(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {[policy.id]: customUnitRateID});
+}
+
+/**
  * Set the distance rate of a transaction.
  * Used when creating a new transaction or moving an existing one from Self DM
  */
@@ -684,9 +695,7 @@ function setMoneyRequestDistanceRate(currentTransaction: OnyxEntry<Transaction>,
         Log.warn('setMoneyRequestDistanceRate is called without a valid transaction, skipping setting distance rate.');
         return;
     }
-    if (policy) {
-        Onyx.merge(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {[policy.id]: customUnitRateID});
-    }
+    setLastSelectedDistanceRate(policy, customUnitRateID);
 
     const newDistanceUnit = getDistanceRateCustomUnit(policy)?.attributes?.unit;
     const transactionID = currentTransaction?.transactionID;
@@ -833,4 +842,5 @@ export {
     setMoneyRequestBillable,
     setMoneyRequestReimbursable,
     setMoneyRequestReportID,
+    setLastSelectedDistanceRate,
 };

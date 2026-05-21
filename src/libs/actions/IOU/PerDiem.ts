@@ -265,7 +265,7 @@ type PerDiemExpenseInformationForSelfDM = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
-    /** UI-controlled ID for the optimistic self-DM build so post-submit nav lands where the action wrote. */
+    /** UI-controlled id so post-submit nav lands on the report the action wrote. */
     optimisticChatReportID: string;
 };
 

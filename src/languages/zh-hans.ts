@@ -6932,6 +6932,7 @@ ${reportName}
             syncError: (providerName: string) => `无法连接到 ${providerName}`,
             connectionDescription: (providerName: string) => `连接 ${providerName}，以在您的工作区中同步员工审批。`,
             approvalMode: '审批模式',
+            providerApprovalMode: (providerName: string) => `${providerName} 审批模式`,
             finalApprover: '最终审批人',
             providerFinalApprover: (providerName: string) => `${providerName} 最终审批人`,
             notSet: '未设置',
@@ -6969,19 +6970,19 @@ ${reportName}
                     }
                 }
             },
+            syncResults: {
+                title: (provider: string) => `${provider} 同步完成`,
+                successTitle: (provider: string) => `已成功同步您的 ${provider} 连接！`,
+                added: '已添加',
+                removed: '已移除',
+                skipped: '已跳过',
+                employeeCount: () => ({
+                    one: '1 员工',
+                    other: (count: number) => `${count} 员工`,
+                }),
+            },
             gusto: {
                 title: 'Gusto',
-                syncResults: {
-                    title: 'Gusto 同步结果',
-                    successTitle: '已成功同步你的 Gusto 连接！',
-                    added: '已添加',
-                    removed: '已移除',
-                    skipped: '已跳过',
-                    employeeCount: () => ({
-                        one: '1 员工',
-                        other: (count: number) => `${count} 员工`,
-                    }),
-                },
             },
             zenefits: {
                 title: 'TriNet',

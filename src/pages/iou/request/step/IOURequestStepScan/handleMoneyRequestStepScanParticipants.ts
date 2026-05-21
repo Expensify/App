@@ -83,15 +83,13 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
     optimisticTransactionIDs: string[];
     optimisticChatReportID: string | undefined;
-
-    /** IOU action (CREATE / SUBMIT / TRACK / CATEGORIZE / SHARE) — drives post-create nav targeting. */
     action: IOUAction;
     /** Resolved chat report ID that cleanup nav should land on (existing chat or the optimistic one). */
     chatReportID: string | undefined;
     draftTransactionIDs: string[];
     /** UI pre-computes `getIsFromGlobalCreate(initialTransaction)` so InitialTransactionParams doesn't have to widen to a full Transaction. */
     initialIsFromGlobalCreate: boolean | undefined;
-    /** Source tracked-expense action when this is a move-from-track submission; used by post-create cleanup. */
+    /** Source tracked-expense action, set only on a move-from-track submission. */
     linkedTrackedExpenseReportAction?: OnyxEntry<ReportAction>;
 };
 

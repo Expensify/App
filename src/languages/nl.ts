@@ -7115,6 +7115,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             syncError: (providerName: string) => `Kan geen verbinding maken met ${providerName}`,
             connectionDescription: (providerName: string) => `Verbind ${providerName} om goedkeuringen van werknemers gesynchroniseerd te houden met je werkruimte.`,
             approvalMode: 'Goedkeuringsmodus',
+            providerApprovalMode: (providerName: string) => `${providerName}-goedkeuringsmodus`,
             finalApprover: 'Eindgoedkeurder',
             providerFinalApprover: (providerName: string) => `Laatste ${providerName}-fiatteur`,
             notSet: 'Niet ingesteld',
@@ -7152,19 +7153,19 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     }
                 }
             },
+            syncResults: {
+                title: (provider: string) => `Synchronisatie met ${provider} voltooid`,
+                successTitle: (provider: string) => `Je ${provider}-verbinding is succesvol gesynchroniseerd!`,
+                added: 'Toegevoegd',
+                removed: 'Verwijderd',
+                skipped: 'Overgeslagen',
+                employeeCount: () => ({
+                    one: '1 werknemer',
+                    other: (count: number) => `${count} medewerkers`,
+                }),
+            },
             gusto: {
                 title: 'Gusto',
-                syncResults: {
-                    title: 'Gusto-synchronisatieresultaten',
-                    successTitle: 'Je Gusto-verbinding is succesvol gesynchroniseerd!',
-                    added: 'Toegevoegd',
-                    removed: 'Verwijderd',
-                    skipped: 'Overgeslagen',
-                    employeeCount: () => ({
-                        one: '1 werknemer',
-                        other: (count: number) => `${count} medewerkers`,
-                    }),
-                },
             },
             zenefits: {
                 title: 'TriNet',

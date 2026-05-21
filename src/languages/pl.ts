@@ -7110,6 +7110,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             syncError: (providerName: string) => `Nie można połączyć z ${providerName}`,
             connectionDescription: (providerName: string) => `Połącz ${providerName}, aby synchronizować akceptacje pracowników z Twoim miejscem pracy.`,
             approvalMode: 'Tryb zatwierdzania',
+            providerApprovalMode: (providerName: string) => `Tryb zatwierdzania ${providerName}`,
             finalApprover: 'Ostateczny zatwierdzający',
             providerFinalApprover: (providerName: string) => `Ostateczny zatwierdzający ${providerName}`,
             notSet: 'Nie ustawiono',
@@ -7147,19 +7148,19 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                     }
                 }
             },
+            syncResults: {
+                title: (provider: string) => `Synchronizacja z ${provider} zakończona`,
+                successTitle: (provider: string) => `Pomyślnie zsynchronizowano twoje połączenie z ${provider}!`,
+                added: 'Dodano',
+                removed: 'Usunięto',
+                skipped: 'Pominięto',
+                employeeCount: () => ({
+                    one: '1 pracownik',
+                    other: (count: number) => `${count} pracownicy`,
+                }),
+            },
             gusto: {
                 title: 'Gusto',
-                syncResults: {
-                    title: 'Wyniki synchronizacji Gusto',
-                    successTitle: 'Pomyślnie zsynchronizowano Twoje połączenie z Gusto!',
-                    added: 'Dodano',
-                    removed: 'Usunięto',
-                    skipped: 'Pominięto',
-                    employeeCount: () => ({
-                        one: '1 pracownik',
-                        other: (count: number) => `${count} pracownicy`,
-                    }),
-                },
             },
             zenefits: {
                 title: 'TriNet',

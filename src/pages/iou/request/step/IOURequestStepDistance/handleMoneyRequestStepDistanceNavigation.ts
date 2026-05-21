@@ -96,8 +96,6 @@ type MoneyRequestStepDistanceNavigationParams = {
     optimisticTransactionID: string;
     optimisticChatReportID: string | undefined;
     reportDraft: OnyxEntry<Report> | undefined;
-
-    /** IOU action (CREATE / SUBMIT / TRACK / CATEGORIZE / SHARE) — drives post-create nav targeting. */
     action: IOUAction;
 };
 
