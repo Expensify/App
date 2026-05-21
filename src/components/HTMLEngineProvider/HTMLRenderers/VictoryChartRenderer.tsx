@@ -104,7 +104,7 @@ function processNode(tnode: TNode, typeface: SkTypeface | null) {
     const labelItems: LabelItem[] = [];
     const legendItems: LegendItem[] = [];
 
-    if (tnode.tagName === 'victorybar' || tnode.tagName === 'victorychart') {
+    if (tnode.tagName === 'victorybar' || tnode.tagName === 'victoryline') {
         const points = parseAttribute<RawData[]>(tnode.attributes.data);
         const yKey = Y_KEY_PREFIX + getHierarchyID(tnode);
         yKeys.push(yKey);
