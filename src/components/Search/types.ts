@@ -223,14 +223,11 @@ type SearchSelectionActionsValue = {
     selectAllMatchingItems: (on: boolean) => void;
 };
 
-/** Composed shape returned by the legacy `useSearchStateContext()` shim. Prefer the narrow hooks. */
+/** Composed value of all three Search state contexts. Kept as a union for callers that need the full bag shape (e.g. test fixtures, action `searchContext` payloads). */
 type SearchStateContextValue = SearchQueryContextValue & SearchResultsContextValue & SearchSelectionContextValue;
 
-/** Composed shape returned by the legacy `useSearchActionsContext()` shim. Prefer the narrow hooks. */
+/** Composed value of all three Search actions contexts. See `SearchStateContextValue`. */
 type SearchActionsContextValue = SearchQueryActionsValue & SearchResultsActionsValue & SearchSelectionActionsValue;
-
-// Back-compat alias. Prefer the narrow context value types.
-type SearchContextData = SearchStateContextValue;
 
 type ASTNode = {
     operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
@@ -419,7 +416,6 @@ export type {
     SortOrder,
     SearchStateContextValue,
     SearchActionsContextValue,
-    SearchContextData,
     SearchQueryContextValue,
     SearchQueryActionsValue,
     SearchResultsContextValue,
