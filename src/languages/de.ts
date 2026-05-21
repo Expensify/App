@@ -1515,6 +1515,7 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Einige dieser Duplikate wurden bereits genehmigt oder bezahlt.',
         reviewDuplicates: 'Duplikate prüfen',
         keepAll: 'Alle behalten',
+        keepSelected: 'Auswahl behalten',
         noDuplicatesTitle: 'Alles erledigt!',
         noDuplicatesDescription: 'Es gibt hier keine doppelten Transaktionen zur Überprüfung.',
         confirmApprove: 'Genehmigungsbetrag bestätigen',
@@ -6014,7 +6015,13 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 `Sie sind dabei, ${newWorkspaceName ?? ''} mit ${totalMembers ?? 0} Mitgliedern aus dem ursprünglichen Workspace zu erstellen und zu teilen.`,
             error: 'Beim Duplizieren deines neuen Workspace ist ein Fehler aufgetreten. Bitte versuche es erneut.',
         },
-        copyPolicySettings: {error: 'Beim Kopieren der Arbeitsbereichseinstellungen ist ein Fehler aufgetreten. Bitte versuche es erneut.'},
+        copyPolicySettings: {
+            error: 'Beim Kopieren der Arbeitsbereichseinstellungen ist ein Fehler aufgetreten. Bitte versuche es erneut.',
+            title: 'Einstellungen kopieren',
+            selectWorkspaces: 'Arbeitsbereiche auswählen',
+            description: 'Wählen Sie die Arbeitsbereiche aus, in die Sie Einstellungen kopieren möchten, und wählen Sie dann die Einstellungen aus, die Sie kopieren möchten.',
+            searchPlaceholder: 'Workspaces durchsuchen',
+        },
         emptyWorkspace: {
             title: 'Du hast keine Arbeitsbereiche',
             subtitle: 'Belege erfassen, Auslagen erstatten, Reisen verwalten, Rechnungen versenden und mehr.',
@@ -6494,7 +6501,13 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             errors: {
                 rateNameRequired: 'Ratenname ist erforderlich',
                 existingRateName: 'Ein Distanzsatz mit diesem Namen existiert bereits',
+                nameRequired: 'Name ist erforderlich',
+                startDateMustBeBeforeEndDate: 'Das Startdatum muss vor dem Enddatum liegen',
+                amountRequired: 'Betrag ist erforderlich',
             },
+            amountPerUnit: (unit: string) => `Betrag pro ${unit}`,
+            startDate: 'Startdatum',
+            endDate: 'Enddatum',
         },
         editor: {
             descriptionInputLabel: 'Beschreibung',

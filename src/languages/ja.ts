@@ -1495,6 +1495,7 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'これらの重複の一部は、すでに承認または支払い済みです。',
         reviewDuplicates: '重複を確認',
         keepAll: 'すべて保持',
+        keepSelected: '選択したものを保持',
         noDuplicatesTitle: '準備完了！',
         noDuplicatesDescription: '確認が必要な重複取引はありません。',
         confirmApprove: '承認金額を確認',
@@ -5936,7 +5937,13 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 `元のワークスペースから ${totalMembers ?? 0} 人のメンバーと一緒に、${newWorkspaceName ?? ''} を作成して共有しようとしています。`,
             error: '新しいワークスペースの複製中にエラーが発生しました。もう一度お試しください。',
         },
-        copyPolicySettings: {error: 'ワークスペース設定のコピー中にエラーが発生しました。もう一度お試しください。'},
+        copyPolicySettings: {
+            error: 'ワークスペース設定のコピー中にエラーが発生しました。もう一度お試しください。',
+            title: '設定をコピー',
+            selectWorkspaces: 'ワークスペースを選択',
+            description: '設定をコピーしたいワークスペースを選択し、その後、コピーしたい設定を選びます。',
+            searchPlaceholder: 'ワークスペースを検索',
+        },
         emptyWorkspace: {
             title: 'ワークスペースがありません',
             subtitle: '領収書を管理し、経費を精算し、出張を管理し、請求書を送信するなど、さまざまなことができます。',
@@ -6412,7 +6419,13 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             errors: {
                 rateNameRequired: 'レート名は必須です',
                 existingRateName: 'この名前の距離レートはすでに存在します',
+                nameRequired: '名前は必須です',
+                startDateMustBeBeforeEndDate: '開始日は終了日より前でなければなりません',
+                amountRequired: '金額は必須です',
             },
+            amountPerUnit: (unit: string) => `${unit}あたりの金額`,
+            startDate: '開始日',
+            endDate: '終了日',
         },
         editor: {
             descriptionInputLabel: '説明',

@@ -1462,6 +1462,7 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: '其中一些重复项已被批准或支付。',
         reviewDuplicates: '审核重复项',
         keepAll: '全部保留',
+        keepSelected: '保留所选项',
         noDuplicatesTitle: '全部完成！',
         noDuplicatesDescription: '这里没有需要审核的重复交易。',
         confirmApprove: '确认批准金额',
@@ -5831,7 +5832,13 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 `您即将创建并共享 ${newWorkspaceName ?? ''}，其中包含来自原始工作区的 ${totalMembers ?? 0} 位成员。`,
             error: '复制您的新工作区时发生错误。请重试。',
         },
-        copyPolicySettings: {error: '复制工作区设置时发生错误。请重试。'},
+        copyPolicySettings: {
+            error: '复制工作区设置时发生错误。请重试。',
+            title: '复制设置',
+            selectWorkspaces: '选择工作区',
+            description: '选择要复制设置到的工作区，然后选择你想复制的设置。',
+            searchPlaceholder: '搜索工作区',
+        },
         emptyWorkspace: {
             title: '你还没有工作区',
             subtitle: '跟踪收据、报销费用、管理差旅、发送发票等。',
@@ -6298,7 +6305,13 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             errors: {
                 rateNameRequired: '费率名称为必填项',
                 existingRateName: '已存在同名的里程费率',
+                nameRequired: '姓名为必填项',
+                startDateMustBeBeforeEndDate: '开始日期必须早于结束日期',
+                amountRequired: '金额为必填项',
             },
+            amountPerUnit: (unit: string) => `每${unit}金额`,
+            startDate: '开始日期',
+            endDate: '结束日期',
         },
         editor: {
             descriptionInputLabel: '描述',

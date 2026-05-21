@@ -1509,6 +1509,7 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Niektóre z tych duplikatów zostały już zatwierdzone lub opłacone.',
         reviewDuplicates: 'Przejrzyj duplikaty',
         keepAll: 'Zachowaj wszystko',
+        keepSelected: 'Zachowaj wybrane',
         noDuplicatesTitle: 'Wszystko gotowe!',
         noDuplicatesDescription: 'Nie ma tutaj zduplikowanych transakcji do sprawdzenia.',
         confirmApprove: 'Potwierdź kwotę zatwierdzenia',
@@ -5977,7 +5978,13 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 `Za chwilę utworzysz i udostępnisz ${newWorkspaceName ?? ''} ${totalMembers ?? 0} członkom oryginalnego obszaru roboczego.`,
             error: 'Wystąpił błąd podczas duplikowania Twojego nowego obszaru roboczego. Spróbuj ponownie.',
         },
-        copyPolicySettings: {error: 'Wystąpił błąd podczas kopiowania ustawień przestrzeni roboczej. Spróbuj ponownie.'},
+        copyPolicySettings: {
+            error: 'Wystąpił błąd podczas kopiowania ustawień przestrzeni roboczej. Spróbuj ponownie.',
+            title: 'Skopiuj ustawienia',
+            selectWorkspaces: 'Wybierz przestrzenie robocze',
+            description: 'Wybierz przestrzenie robocze, do których chcesz skopiować ustawienia, a potem zaznacz ustawienia, które chcesz skopiować.',
+            searchPlaceholder: 'Szukaj przestrzeni roboczych',
+        },
         emptyWorkspace: {
             title: 'Nie masz żadnych przestrzeni roboczych',
             subtitle: 'Śledź paragony, rozliczaj wydatki, zarządzaj podróżami, wysyłaj faktury i wiele więcej.',
@@ -6453,7 +6460,13 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             errors: {
                 rateNameRequired: 'Nazwa stawki jest wymagana',
                 existingRateName: 'Stawka za odległość o tej nazwie już istnieje',
+                nameRequired: 'Imię jest wymagane',
+                startDateMustBeBeforeEndDate: 'Data początkowa musi być wcześniejsza niż data końcowa',
+                amountRequired: 'Kwota jest wymagana',
             },
+            amountPerUnit: (unit: string) => `Kwota za ${unit}`,
+            startDate: 'Data rozpoczęcia',
+            endDate: 'Data zakończenia',
         },
         editor: {
             descriptionInputLabel: 'Opis',

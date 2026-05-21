@@ -924,6 +924,7 @@ const CONST = {
         BULK_EDIT: 'bulkEdit',
         NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
         SUBMIT_2026: 'submit2026',
+        DATE_BOUND_MILEAGE_RATE: 'dateBoundMileageRate',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         WORKSPACE_ROOMS_PAGE: 'workspaceRoomsPage',
         CERTINIA: 'financialForceNewDot',
@@ -2624,7 +2625,6 @@ const CONST = {
         WIDTH: 320,
         HEIGHT: 416,
     },
-    SEARCH_ITEM_LIMIT: 15,
     CATEGORY_SHORTCUT_BAR_HEIGHT: 32,
     SMALL_EMOJI_PICKER_SIZE: {
         WIDTH: '100%',
@@ -6495,7 +6495,6 @@ const CONST = {
         DENIED_ACCESS_VARIANTS: {
             DELEGATE: 'delegate',
             SUBMITTER: 'submitter',
-            AGENT: 'agent',
         },
     },
     DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK: 'https://help.expensify.com/expensify-classic/hubs/copilots-and-delegates/',
@@ -8897,19 +8896,19 @@ const CONST = {
         EVENT: {
             SIGN_UP: {
                 NAME: 'sign_up',
-                META: 'SignUp',
+                META: 'CompleteRegistration',
                 REDDIT: 'SignUp',
                 LINKEDIN: 507587661,
             },
             WORKSPACE_CREATED: {
                 NAME: 'workspace_created',
-                META: 'WorkspaceCreated',
+                META: 'Lead',
                 REDDIT: 'Lead',
                 LINKEDIN: 25474804,
             },
             PAID_ADOPTION: {
                 NAME: 'paid_adoption',
-                META: 'PaidAdoption',
+                META: 'Purchase',
                 REDDIT: 'Purchase',
                 LINKEDIN: 25474820,
             },

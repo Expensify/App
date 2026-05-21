@@ -1567,6 +1567,7 @@ const translations = {
         someDuplicatesArePaid: 'Some of these duplicates have been approved or paid already.',
         reviewDuplicates: 'Review duplicates',
         keepAll: 'Keep all',
+        keepSelected: 'Keep selected',
         noDuplicatesTitle: 'All set!',
         noDuplicatesDescription: 'There are no duplicate transactions for review here.',
         confirmApprove: 'Confirm approval amount',
@@ -6036,6 +6037,10 @@ const translations = {
         },
         copyPolicySettings: {
             error: 'An error occurred while copying workspace settings. Please try again.',
+            title: 'Copy settings',
+            selectWorkspaces: 'Select workspaces',
+            description: 'Choose the workspaces you want to copy settings to, then select the settings you’d like to copy.',
+            searchPlaceholder: 'Search workspaces',
         },
         emptyWorkspace: {
             title: 'No workspaces yet',
@@ -6587,9 +6592,15 @@ const translations = {
                 one: 'Are you sure you want to delete this rate?',
                 other: 'Are you sure you want to delete these rates?',
             }),
+            amountPerUnit: (unit: string) => `Amount per ${unit}`,
+            startDate: 'Start date',
+            endDate: 'End date',
             errors: {
                 rateNameRequired: 'Rate name is required',
                 existingRateName: 'A distance rate with this name already exists',
+                nameRequired: 'Name is required',
+                amountRequired: 'Amount is required',
+                startDateMustBeBeforeEndDate: 'Start date must be before end date',
             },
         },
         editor: {

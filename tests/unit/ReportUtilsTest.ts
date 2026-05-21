@@ -119,6 +119,7 @@ import {
     getWorkspaceNameUpdatedMessage,
     hasActionWithErrorsForTransaction,
     hasEmptyReportsForPolicy,
+    hasExportError,
     hasReceiptError,
     hasSmartscanError,
     hasVisibleReportFieldViolations,
@@ -17702,6 +17703,41 @@ describe('ReportUtils', () => {
 
             expect(transactionThread).toBeUndefined();
             expect(createdActionForThread).toBeNull();
+        });
+    });
+
+    describe('hasExportError', () => {
+        it('returns true when report.hasExportError is true', () => {
+            const report = {hasExportError: true} as Report;
+            expect(hasExportError([], report)).toBe(true);
+        });
+
+        it('returns true when errorFields.export is populated but hasExportError is false', () => {
+            const report = {
+                hasExportError: false,
+                errorFields: {export: {'1708946640843000': 'export failed'}},
+            } as unknown as Report;
+            expect(hasExportError([], report)).toBe(true);
+        });
+
+        it('returns false when errorFields.export is cleared', () => {
+            const report = {
+                hasExportError: false,
+                errorFields: {export: null},
+            } as unknown as Report;
+            expect(hasExportError([], report)).toBe(false);
+        });
+
+        it('returns true when an integration message action exists in reportActions', () => {
+            const report = {hasExportError: false} as Report;
+            const reportActions = [
+                {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
+                    reportActionID: '1',
+                    created: '2024-01-01',
+                },
+            ] as ReportAction[];
+            expect(hasExportError(reportActions, report)).toBe(true);
         });
     });
 });

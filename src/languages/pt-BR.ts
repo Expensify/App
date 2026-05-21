@@ -1508,6 +1508,7 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Alguns desses duplicados já foram aprovados ou pagos.',
         reviewDuplicates: 'Revisar duplicados',
         keepAll: 'Manter tudo',
+        keepSelected: 'Manter selecionados',
         noDuplicatesTitle: 'Tudo pronto!',
         noDuplicatesDescription: 'Não há transações duplicadas para revisar aqui.',
         confirmApprove: 'Confirmar valor da aprovação',
@@ -5983,7 +5984,13 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 `Você está prestes to criar e compartilhar ${newWorkspaceName ?? ''} com ${totalMembers ?? 0} membros do workspace original.`,
             error: 'Ocorreu um erro ao duplicar seu novo espaço de trabalho. Tente novamente.',
         },
-        copyPolicySettings: {error: 'Ocorreu um erro ao copiar as configurações do workspace. Tente novamente.'},
+        copyPolicySettings: {
+            error: 'Ocorreu um erro ao copiar as configurações do workspace. Tente novamente.',
+            title: 'Copiar configurações',
+            selectWorkspaces: 'Selecionar espaços de trabalho',
+            description: 'Escolha os espaços de trabalho para os quais você quer copiar as configurações e, em seguida, selecione quais configurações deseja copiar.',
+            searchPlaceholder: 'Buscar espaços de trabalho',
+        },
         emptyWorkspace: {
             title: 'Você não tem nenhum workspace',
             subtitle: 'Controle recibos, reembolse despesas, gerencie viagens, envie faturas e muito mais.',
@@ -6461,7 +6468,13 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             errors: {
                 rateNameRequired: 'Nome da tarifa é obrigatório',
                 existingRateName: 'Já existe uma tarifa de distância com este nome',
+                nameRequired: 'Nome é obrigatório',
+                startDateMustBeBeforeEndDate: 'A data de início deve ser anterior à data de término',
+                amountRequired: 'O valor é obrigatório',
             },
+            amountPerUnit: (unit: string) => `Valor por ${unit}`,
+            startDate: 'Data de início',
+            endDate: 'Data de término',
         },
         editor: {
             descriptionInputLabel: 'Descrição',

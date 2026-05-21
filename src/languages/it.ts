@@ -1514,6 +1514,7 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Alcuni di questi duplicati sono già stati approvati o pagati.',
         reviewDuplicates: 'Controlla duplicati',
         keepAll: 'Mantieni tutto',
+        keepSelected: 'Mantieni selezionati',
         noDuplicatesTitle: 'Tutto a posto!',
         noDuplicatesDescription: 'Non ci sono transazioni duplicate da verificare qui.',
         confirmApprove: 'Conferma l’importo approvato',
@@ -6004,7 +6005,13 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 `Stai per creare e condividere ${newWorkspaceName ?? ''} con ${totalMembers ?? 0} membri dello spazio di lavoro originale.`,
             error: 'Si è verificato un errore durante la duplicazione del tuo nuovo workspace. Riprova.',
         },
-        copyPolicySettings: {error: 'Si è verificato un errore durante la copia delle impostazioni dello spazio di lavoro. Riprova.'},
+        copyPolicySettings: {
+            error: 'Si è verificato un errore durante la copia delle impostazioni dello spazio di lavoro. Riprova.',
+            title: 'Copia impostazioni',
+            selectWorkspaces: 'Seleziona gli spazi di lavoro',
+            description: 'Scegli gli spazi di lavoro a cui vuoi copiare le impostazioni, poi seleziona le impostazioni che desideri copiare.',
+            searchPlaceholder: 'Cerca spazio di lavoro',
+        },
         emptyWorkspace: {
             title: 'Non hai nessuna area di lavoro',
             subtitle: 'Tieni traccia delle ricevute, rimborsa le spese, gestisci i viaggi, invia le fatture e altro ancora.',
@@ -6482,7 +6489,13 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             errors: {
                 rateNameRequired: 'Il nome della tariffa è obbligatorio',
                 existingRateName: 'Esiste già una tariffa distanza con questo nome',
+                nameRequired: 'Il nome è obbligatorio',
+                startDateMustBeBeforeEndDate: 'La data di inizio deve essere precedente alla data di fine',
+                amountRequired: "L'importo è obbligatorio",
             },
+            amountPerUnit: (unit: string) => `Importo per ${unit}`,
+            startDate: 'Data di inizio',
+            endDate: 'Data di fine',
         },
         editor: {
             descriptionInputLabel: 'Descrizione',

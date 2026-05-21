@@ -1518,6 +1518,7 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Certains de ces doublons ont déjà été approuvés ou payés.',
         reviewDuplicates: 'Examiner les doublons',
         keepAll: 'Tout garder',
+        keepSelected: 'Garder la sélection',
         noDuplicatesTitle: 'Tout est en ordre !',
         noDuplicatesDescription: "Il n'y a aucune transaction en double à vérifier ici.",
         confirmApprove: 'Confirmer le montant approuvé',
@@ -6034,7 +6035,13 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 `Vous êtes sur le point de créer et de partager ${newWorkspaceName ?? ''} avec ${totalMembers ?? 0} membres de l’espace de travail d’origine.`,
             error: 'Une erreur s’est produite lors de la duplication de votre nouvel espace de travail. Veuillez réessayer.',
         },
-        copyPolicySettings: {error: 'Une erreur s’est produite lors de la copie des paramètres de l’espace de travail. Veuillez réessayer.'},
+        copyPolicySettings: {
+            error: 'Une erreur s’est produite lors de la copie des paramètres de l’espace de travail. Veuillez réessayer.',
+            title: 'Copier les paramètres',
+            selectWorkspaces: 'Sélectionner des espaces de travail',
+            description: 'Choisissez les espaces de travail vers lesquels vous souhaitez copier les paramètres, puis sélectionnez les paramètres que vous souhaitez copier.',
+            searchPlaceholder: 'Rechercher des espaces de travail',
+        },
         emptyWorkspace: {
             title: 'Vous n’avez aucun espace de travail',
             subtitle: 'Suivez les reçus, remboursez les dépenses, gérez les voyages, envoyez des factures, et plus encore.',
@@ -6516,7 +6523,13 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             errors: {
                 rateNameRequired: 'Le nom du taux est obligatoire',
                 existingRateName: 'Un taux kilométrique portant ce nom existe déjà',
+                nameRequired: 'Le nom est obligatoire',
+                startDateMustBeBeforeEndDate: 'La date de début doit être antérieure à la date de fin',
+                amountRequired: 'Le montant est obligatoire',
             },
+            amountPerUnit: (unit: string) => `Montant par ${unit}`,
+            startDate: 'Date de début',
+            endDate: 'Date de fin',
         },
         editor: {
             descriptionInputLabel: 'Description',
