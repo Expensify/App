@@ -302,6 +302,10 @@ function SubmitExpenseOrchestrator({
 
     const handleDefaultSubmit = (listOfParticipants: Participant[]) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DEFAULT);
+        // A global-create submit off the inbox lands on Search — reserve the channel so the optimistic write defers behind the skeleton.
+        if (isFromGlobalCreate && !isReportTopmostSplitNavigator()) {
+            reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+        }
         requestAnimationFrame(() => {
             createTransaction(listOfParticipants);
             requestAnimationFrame(() => {
