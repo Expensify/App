@@ -154,6 +154,7 @@ describe('ConciergeDraftContext', () => {
         // Then final HTML waits until the banked text is visible
         expect(getFirstMessageText(result.current.draftReportAction)).toBe('He');
         expect(getFirstMessageText(result.current.draftReportAction)).not.toBe('Server final response');
+        expect(result.current.isDraftPendingCompletion).toBe(true);
 
         unmount();
     });
@@ -192,6 +193,7 @@ describe('ConciergeDraftContext', () => {
         await waitFor(() => {
             expect(getCachedDraft(REPORT_ID)?.status).toBe('completed');
             expect(getFirstMessageText(result.current.draftReportAction)).toBe('Server final response');
+            expect(result.current.isDraftPendingCompletion).toBe(false);
         });
 
         unmount();
@@ -217,6 +219,7 @@ describe('ConciergeDraftContext', () => {
         });
 
         expect(getFirstMessageText(result.current.draftReportAction)).toBe('He');
+        expect(result.current.isDraftPendingCompletion).toBe(true);
 
         // Then the completed markdown becomes fully visible
         await waitFor(() => {

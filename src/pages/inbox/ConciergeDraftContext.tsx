@@ -10,6 +10,7 @@ import usePusherDraftPacing from './usePusherDraftPacing';
 type ConciergeDraftState = {
     draftReportAction: ReportAction | null;
     hasActiveDraft: boolean;
+    isDraftPendingCompletion: boolean;
 };
 
 type ConciergeDraftActions = {
@@ -25,6 +26,7 @@ type ConciergeDraftActions = {
 const defaultState: ConciergeDraftState = {
     draftReportAction: null,
     hasActiveDraft: false,
+    isDraftPendingCompletion: false,
 };
 
 const defaultActions: ConciergeDraftActions = {
@@ -61,6 +63,7 @@ function ConciergeDraftGate({reportID, children}: React.PropsWithChildren<{repor
     const stateValue: ConciergeDraftState = {
         draftReportAction: draft?.reportAction ?? null,
         hasActiveDraft: !!draft?.reportAction,
+        isDraftPendingCompletion: !!draft?.pusherPendingCompletionEvent,
     };
     const actionsValue: ConciergeDraftActions = {
         clearDraft,
