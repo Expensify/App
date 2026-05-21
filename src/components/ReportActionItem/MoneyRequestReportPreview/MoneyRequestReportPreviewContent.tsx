@@ -15,7 +15,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
 import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
-import {showContextMenuForReport} from '@components/ShowContextMenuContext';
+import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
 import StatusBadge from '@components/StatusBadge';
 import Text from '@components/Text';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -86,10 +86,8 @@ function MoneyRequestReportPreviewContent({
     chatReportID,
     action,
     containerStyles,
-    contextMenuAnchor,
     isHovered = false,
     isWhisper = false,
-    checkIfContextMenuActive = () => {},
     onPaymentOptionsShow,
     onPaymentOptionsHide,
     chatReport,
@@ -104,12 +102,12 @@ function MoneyRequestReportPreviewContent({
     onWrapperLayout,
     currentWidth,
     reportPreviewStyles,
-    shouldDisplayContextMenu = true,
     shouldShowBorder = false,
     onPress,
     forwardedFSClass,
-    originalReportID,
 }: MoneyRequestReportPreviewContentProps) {
+    const {anchor: contextMenuAnchorRef, shouldDisplayContextMenu = true, originalReportID} = useShowContextMenuState();
+    const {checkIfContextMenuActive} = useShowContextMenuActions();
     const [chatReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`);
     const [chatReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${chatReportID}`);
 
@@ -187,7 +185,7 @@ function MoneyRequestReportPreviewContent({
     const [requestType, setRequestType] = useState<ActionHandledType>();
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const [shouldShowPayButton, setShouldShowPayButton] = useState(false);
-    const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(iouReport?.reportID);
+    const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions);
 
     const handleHoldMenuOpen = (holdRequestType: string, holdPaymentType?: PaymentMethodType, canPay?: boolean) => {
         setRequestType(holdRequestType as ActionHandledType);
@@ -436,7 +434,7 @@ function MoneyRequestReportPreviewContent({
                 viewOffset: -2 * styles.gap2.gap,
                 animated: true,
             });
-        }, CONST.ANIMATED_TRANSITION);
+        }, CONST.PENDING_TRANSACTION_SCROLL_DELAY);
 
         // We only want to scroll to a new transaction when the set of new transaction IDs changes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -632,7 +630,7 @@ function MoneyRequestReportPreviewContent({
                             if (!shouldDisplayContextMenu) {
                                 return;
                             }
-                            showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive, originalReportID);
+                            showContextMenuForReport(event, contextMenuAnchorRef, chatReportID, action, checkIfContextMenuActive, originalReportID);
                         }}
                         shouldUseHapticsOnLongPress
                         style={[
@@ -774,7 +772,7 @@ function MoneyRequestReportPreviewContent({
                     !!iouReport &&
                     !!requestType &&
                     (() => {
-                        const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(iouReport, shouldShowPayButton);
+                        const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(iouReport, shouldShowPayButton, transactions);
                         return (
                             <ProcessMoneyReportHoldMenu
                                 nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
