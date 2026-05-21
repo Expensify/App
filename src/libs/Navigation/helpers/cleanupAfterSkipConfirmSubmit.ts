@@ -3,14 +3,8 @@ import cleanupAndNavigateAfterExpenseCreate from './cleanupAndNavigateAfterExpen
 import type {CleanupAndNavigateAfterExpenseCreateParams} from './cleanupAndNavigateAfterExpenseCreate';
 
 /**
- * Skip-confirmation cleanup dispatcher for the `submitWithDismissFirst` `executeWrite` callback.
- *
- * `submitWithDismissFirst` passes `shouldHandleNavigation`:
- *   - `false` — the orchestrator already revealed/dismissed to the destination, so only run cleanup.
- *   - `true`  — the fallback path ran no fast-path nav, so cleanup AND navigate.
- *
- * Mirrors `useExpenseSubmission`'s `performPostBatchCleanup` branching so every skip-confirm call
- * site shares one source of truth instead of repeating the if/else inline.
+ * Skip-confirmation cleanup dispatcher: `shouldHandleNavigation` (from `submitWithDismissFirst`) picks
+ * cleanup-only vs cleanup-and-navigate. The skip-confirm analog of `useExpenseSubmission`'s `performPostBatchCleanup`.
  */
 function cleanupAfterSkipConfirmSubmit(shouldHandleNavigation: boolean, params: CleanupAndNavigateAfterExpenseCreateParams) {
     if (shouldHandleNavigation) {

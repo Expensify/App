@@ -11,7 +11,7 @@ import {createDistanceRequest, resetSplitShares} from '@libs/actions/IOU/Split';
 import {trackExpense} from '@libs/actions/IOU/TrackExpense';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {calculateDefaultReimbursable, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
+import {calculateDefaultReimbursable, getExistingTransactionID, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import cleanupAfterSkipConfirmSubmit from '@libs/Navigation/helpers/cleanupAfterSkipConfirmSubmit';
 import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
@@ -288,7 +288,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             report,
                             action,
                             draftTransactionIDs,
-                            transactionID: optimisticTransactionID,
+                            transactionID: getExistingTransactionID(transactionLinkedTrackedExpenseReportAction) ?? optimisticTransactionID,
                             isFromGlobalCreate: transactionIsFromGlobalCreate,
                             backToReport,
                             optimisticChatReportID,

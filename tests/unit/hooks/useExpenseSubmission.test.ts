@@ -188,6 +188,49 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             // cleanupAndNavigate is mocked here, so it never calls through to the real cleanupAfterExpenseCreate.
             expect(mockCleanupAfterExpenseCreate).not.toHaveBeenCalled();
         });
+
+        it('passes the existing tracked transaction ID (not a fresh optimistic id) to cleanup for a move-from-track SUBMIT', async () => {
+            // Move-from-track SUBMIT: the action writes the transaction under the EXISTING tracked transaction id,
+            // so cleanup must reference that same id — not a fresh rand64() optimistic one.
+            const EXISTING_TRACKED_TRANSACTION_ID = 'tracked-transaction-99';
+            const linkedTrackedExpenseReportAction = {
+                reportActionID: 'linked-action-1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: '2026-04-24',
+                originalMessage: {
+                    IOUTransactionID: EXISTING_TRACKED_TRANSACTION_ID,
+                    IOUReportID: 'tracked-report-1',
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            } as unknown as ReportAction;
+            const movedTransaction = buildTransaction({
+                linkedTrackedExpenseReportAction,
+                linkedTrackedExpenseReportID: 'tracked-report-1',
+            });
+
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        action: CONST.IOU.ACTION.SUBMIT,
+                        transaction: movedTransaction,
+                        transactions: [movedTransaction],
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(PARTICIPANTS, false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledTimes(1);
+            expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionID: EXISTING_TRACKED_TRANSACTION_ID,
+                }),
+            );
+        });
     });
 
     describe('trackExpense path', () => {

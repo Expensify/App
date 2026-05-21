@@ -10,7 +10,7 @@ type CleanupAfterExpenseCreateParams = {
     linkedTrackedExpenseReportAction?: OnyxEntry<ReportAction>;
 };
 
-/** Drops expense drafts and the linked tracked-expense RHP after a submit. Use `cleanupAndNavigateAfterExpenseCreate` when the flow also needs navigation. */
+/** Cleanup-only after a submit. Use `cleanupAndNavigateAfterExpenseCreate` when the flow also needs navigation. */
 function cleanupAfterExpenseCreate({draftTransactionIDs, linkedTrackedExpenseReportAction}: CleanupAfterExpenseCreateParams) {
     // Defer past the modal-dismiss animation so it doesn't block the JS thread.
     // eslint-disable-next-line @typescript-eslint/no-deprecated -- InteractionManager is widely used across the codebase and kept alive via a dedicated RN patch

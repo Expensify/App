@@ -2,7 +2,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {createTransaction, setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport, setMultipleMoneyRequestParticipantsFromReport} from '@libs/actions/IOU/MoneyRequest';
 import {startSplitBill} from '@libs/actions/IOU/Split';
 import getCurrentPosition from '@libs/getCurrentPosition';
-import {calculateDefaultReimbursable, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
+import {calculateDefaultReimbursable, getExistingTransactionID, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import cleanupAfterSkipConfirmSubmit from '@libs/Navigation/helpers/cleanupAfterSkipConfirmSubmit';
 import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
@@ -87,7 +87,6 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     /** Resolved chat report ID that cleanup nav should land on (existing chat or the optimistic one). */
     chatReportID: string | undefined;
     draftTransactionIDs: string[];
-    /** UI pre-computes `getIsFromGlobalCreate(initialTransaction)` so InitialTransactionParams doesn't have to widen to a full Transaction. */
     initialIsFromGlobalCreate: boolean | undefined;
     /** Source tracked-expense action, set only on a move-from-track submission. */
     linkedTrackedExpenseReportAction?: OnyxEntry<ReportAction>;
@@ -220,7 +219,7 @@ function handleMoneyRequestStepScanParticipants({
                             report,
                             action,
                             draftTransactionIDs,
-                            transactionID: lastOptimisticTransactionID,
+                            transactionID: getExistingTransactionID(linkedTrackedExpenseReportAction) ?? lastOptimisticTransactionID,
                             isFromGlobalCreate: initialIsFromGlobalCreate,
                             backToReport,
                             optimisticChatReportID: chatReportID,

@@ -111,6 +111,28 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
         );
     });
 
+    it('should set shouldAddPendingNewTransactionIDs=true for CREATE into a brand-new optimistic chat that is not yet in the report cache', () => {
+        // A brand-new optimistic chat created the same tick is NOT in the report cache, so getReportOrDraftReport returns undefined.
+        (getReportOrDraftReport as jest.Mock).mockReturnValue(undefined);
+
+        cleanupAndNavigateAfterExpenseCreate({
+            action: CONST.IOU.ACTION.CREATE,
+            report: undefined,
+            draftTransactionIDs: [],
+            transactionID: 'txn-1',
+            isFromGlobalCreate: false,
+            optimisticChatReportID: 'optimistic-chat-not-in-cache',
+        });
+
+        // Gating must use the resolved destination ID, not the (empty) cached report.
+        expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(
+            expect.objectContaining({
+                activeReportID: 'optimistic-chat-not-in-cache',
+                shouldAddPendingNewTransactionIDs: true,
+            }),
+        );
+    });
+
     it('should derive hasMultipleTransactions=true when the resolved activeReportID points to a money-request report', () => {
         const resolvedFinalReport = {reportID: 'expense-1'} as Report;
         (isMoneyRequestReport as jest.Mock).mockReturnValue(true);

@@ -63,9 +63,22 @@ jest.mock('@libs/getCurrentPosition');
 
 // Bypass submitWithDismissFirst's nav orchestration in tests — fire executeWrite synchronously so downstream writes can be asserted.
 jest.mock('@libs/Navigation/helpers/submitWithDismissFirst', () => jest.requireActual<typeof SubmitWithDismissFirstMock>('../../__mocks__/submitWithDismissFirst'));
-// Cleanup helpers are no-ops here — these tests focus on the underlying write, not the post-write nav side effects.
-jest.mock('@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate', () => ({__esModule: true, default: jest.fn()}));
-jest.mock('@libs/Navigation/helpers/cleanupAfterExpenseCreate', () => ({__esModule: true, default: jest.fn()}));
+// Cleanup helpers are jest.fn() spies — they return undefined just like a no-op (runtime behavior unchanged for the
+// write-focused tests), but the call arguments are now assertable for the move-from-track cleanup-id contract tests.
+const mockCleanupAndNavigateAfterExpenseCreate = jest.fn();
+const mockCleanupAfterExpenseCreate = jest.fn();
+jest.mock('@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate', () => ({
+    __esModule: true,
+    default: (...args: unknown[]): void => {
+        mockCleanupAndNavigateAfterExpenseCreate(...args);
+    },
+}));
+jest.mock('@libs/Navigation/helpers/cleanupAfterExpenseCreate', () => ({
+    __esModule: true,
+    default: (...args: unknown[]): void => {
+        mockCleanupAfterExpenseCreate(...args);
+    },
+}));
 
 describe('MoneyRequest', () => {
     const currentUserAccountID = 111;
@@ -737,6 +750,43 @@ describe('MoneyRequest', () => {
             );
         });
 
+        it('should pass the existing tracked transaction ID (not the optimistic id) to cleanup for a move-from-track SPLIT', async () => {
+            // Move-from-track reuses the tracked transaction's id — cleanup must reference it, not a fresh optimistic id.
+            const EXISTING_TRACKED_TRANSACTION_ID = 'tracked-transaction-77';
+            const linkedTrackedExpenseReportAction = {
+                reportActionID: 'linked-action-1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: '',
+                originalMessage: {
+                    IOUTransactionID: EXISTING_TRACKED_TRANSACTION_ID,
+                    IOUReportID: 'tracked-report-1',
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+
+            handleMoneyRequestStepScanParticipants({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.SPLIT,
+                shouldSkipConfirmation: true,
+                initialTransaction: {
+                    ...baseParams.initialTransaction,
+                    isFromGlobalCreate: false,
+                },
+                allTransactionDrafts: {},
+                optimisticTransactionIDs: ['optimistic-should-be-ignored'],
+                linkedTrackedExpenseReportAction,
+            });
+
+            await waitForBatchedUpdates();
+
+            expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledTimes(1);
+            expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionID: EXISTING_TRACKED_TRANSACTION_ID,
+                }),
+            );
+        });
+
         it('should return if no participants found for non-SPLIT iouType when not from global create menu and skipping confirmation', async () => {
             const report = {
                 ...fakeReport,
@@ -1225,6 +1275,44 @@ describe('MoneyRequest', () => {
 
             // The function must return after trackExpense and not call createDistanceRequest
             expect(Split.createDistanceRequest).not.toHaveBeenCalled();
+        });
+
+        it('should pass the existing tracked transaction ID (not the optimistic id) to cleanup for a move-from-track distance submission', async () => {
+            // Move-from-track reuses the tracked transaction's id — cleanup must reference it, not the optimistic id.
+            const EXISTING_TRACKED_TRANSACTION_ID = 'tracked-transaction-88';
+            const linkedTrackedExpenseReportAction = {
+                reportActionID: 'linked-action-1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: '',
+                originalMessage: {
+                    IOUTransactionID: EXISTING_TRACKED_TRANSACTION_ID,
+                    IOUReportID: 'tracked-report-1',
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+            const movedTransaction = {
+                ...fakeTransaction,
+                linkedTrackedExpenseReportAction,
+            };
+
+            handleMoneyRequestStepDistanceNavigation({
+                ...baseParams,
+                transaction: movedTransaction,
+                manualDistance: 20,
+                shouldSkipConfirmation: true,
+                iouType: CONST.IOU.TYPE.TRACK,
+                optimisticTransactionID: 'optimistic-should-be-ignored',
+                draftTransactionIDs: [baseParams.transactionID],
+            });
+
+            await waitForBatchedUpdates();
+
+            expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledTimes(1);
+            expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionID: EXISTING_TRACKED_TRANSACTION_ID,
+                }),
+            );
         });
 
         it('should call trackExpense for TRACK iouType with valid waypoints when not from manual distance step and skipping confirmation', async () => {
