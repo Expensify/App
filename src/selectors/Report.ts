@@ -30,12 +30,13 @@ function getReportOwnerAccountID(report: OnyxEntry<Report>) {
     return report?.ownerAccountID;
 }
 
-const policyIDsWithEmptyReportsSelector = (accountID: number | undefined, transactionsByReportID: Record<string, Transaction[]>) => (reports: OnyxCollection<Report>) => {
-    if (!accountID) {
-        return {};
-    }
-    return getPolicyIDsWithEmptyReportsForAccount(reports, accountID, transactionsByReportID);
-};
+const policyIDsWithEmptyReportsSelector =
+    (accountID: number | undefined, transactionsByReportID: Record<string, Transaction[]>, hasDismissedEmptyReportsConfirmation: boolean) => (reports: OnyxCollection<Report>) => {
+        if (hasDismissedEmptyReportsConfirmation || !accountID) {
+            return {};
+        }
+        return getPolicyIDsWithEmptyReportsForAccount(reports, accountID, transactionsByReportID);
+    };
 
 function openExpenseReportIDsSelector(reports: OnyxCollection<Report>): OpenExpenseReportIDMap {
     if (!reports) {

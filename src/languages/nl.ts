@@ -261,6 +261,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reset: 'Opnieuw instellen',
         done: 'Klaar',
         more: 'Meer',
+        other: 'Overig',
         debitCard: 'Debetkaart',
         bankAccount: 'Bankrekening',
         personalBankAccount: 'Persoonlijke bankrekening',
@@ -956,8 +957,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 personalSubtitle: 'Portemonnee',
             },
         },
-        assignedCards: 'Je Expensify Kaarten',
-        assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} resterend`,
         announcements: 'Aankondigingen',
         discoverSection: {
             title: 'Ontdekken',
@@ -1016,8 +1015,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         freeTrialSection: {
             title: ({days}: {days: number}) => `Proefperiode: nog ${days} ${days === 1 ? 'dag' : 'dagen'}!`,
-            offer50Body: 'Krijg 50% korting op je eerste jaar!',
-            offer25Body: 'Krijg 25% korting op je eerste jaar!',
+            offer50Body: 'Krijg 50% korting op je eerste jaar',
+            offer25Body: 'Krijg 25% korting op je eerste jaar',
             addCardBody: 'Wacht niet! Voeg nu je betaalkaart toe.',
             ctaClaim: 'Declareren',
             ctaAdd: 'Kaart toevoegen',
@@ -1036,6 +1035,12 @@ const translations: TranslationDeepObject<typeof en> = {
             linkCompanyCards: 'Bedrijfspassen koppelen',
             setupRules: 'Uitgavenregels instellen',
             inviteAccountant: 'Nodig je accountant uit',
+        },
+        yourSpend: {
+            title: 'Je uitgaven',
+            awaitingApproval: 'In afwachting van goedkeuring',
+            repaidLast30Days: 'Terugbetaald in de afgelopen 30 dagen',
+            recentTransactions: ({lastFour}: {lastFour: string}) => `Recente transacties • ${lastFour}`,
         },
     },
     allSettingsScreen: {
@@ -2469,6 +2474,7 @@ const translations: TranslationDeepObject<typeof en> = {
             expiration: 'Vervaldatum',
             cvv: 'CVV',
             address: 'Adres',
+            reveal: 'Weergeven',
             revealDetails: 'Details weergeven',
             revealCvv: 'CVV weergeven',
             copyCardNumber: 'Kaartnummer kopiëren',
@@ -2532,6 +2538,11 @@ ${amount} voor ${merchant} - ${date}`,
         frozenByAdminNeedsUnfreeze: ({person}: {person: string}) => `Deze kaart is bevroren door ${person}. Neem contact op met een beheerder om deze te deblokkeren.`,
         spendRules: 'Bestedingsregels',
         editSpendRules: 'Uitgavenregels bewerken',
+        cardUnblocked: 'Kaart gedeblokkeerd!',
+        cardUnblockedDescription: 'Mogelijk wordt je de volgende keer dat je een aankoop doet gevraagd om je kaart in de lezer te steken.',
+        pinBlocked: 'Je kaart is geblokkeerd vanwege onjuiste pincode-invoer.',
+        unblock: 'Deblokkeren',
+        unblockCard: 'Kaart deblokkeren',
     },
     workflowsPage: {
         workflowTitle: 'Uitgaven',
@@ -2593,9 +2604,10 @@ ${amount} voor ${merchant} - ${date}`,
             approverSubtitle: 'Alle fiatteurs behoren tot een bestaand workflow.',
             bulkApproverSubtitle: 'Geen goedkeurders komen overeen met de criteria voor de geselecteerde rapporten.',
         },
-        configureViaGusto: 'Configureren via Gusto.',
-        gustoApprovalWorkflowLockedPrompt: 'Goedkeuringen worden beheerd door je Gusto-integratie. Ga naar je Gusto-verbindingsinstellingen om je goedkeuringsworkflow bij te werken.',
-        goToGustoSettings: 'Ga naar Gusto-instellingen',
+        configureViaHR: ({provider}: {provider: string}) => `Configureren via ${provider}.`,
+        hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
+            `Goedkeuringen worden beheerd door je ${provider}-integratie. Ga naar je ${provider}-verbindingsinstellingen om je goedkeuringsworkflow bij te werken.`,
+        goToHRSettings: ({provider}: {provider: string}) => `Ga naar ${provider}-instellingen`,
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: 'Indienfrequentie kon niet worden gewijzigd. Probeer het opnieuw of neem contact op met support.',
@@ -2998,6 +3010,8 @@ ${amount} voor ${merchant} - ${date}`,
         mergeBlockScreen: {
             title: 'Werkmail kon niet worden toegevoegd',
             subtitle: (workEmail: string | undefined) => `We konden ${workEmail} niet toevoegen. Probeer het later opnieuw in Instellingen of chat met Concierge voor hulp.`,
+            workAccountClosedSubtitle:
+                'De zakelijke account die aan dit e-mailadres is gekoppeld, is gesloten. Neem contact op met de beheerder van je bedrijf om het opnieuw te activeren, of meld je aan met een ander e-mailadres.',
         },
         tasks: {
             testDriveAdminTask: {
@@ -4299,9 +4313,15 @@ ${amount} voor ${merchant} - ${date}`,
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
-                        return 'Beheerder';
+                        return 'Beheer';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditor';
+                    case CONST.POLICY.ROLE.CARD_ADMIN:
+                        return 'Kaartbeheer';
+                    case CONST.POLICY.ROLE.PEOPLE_ADMIN:
+                        return 'Mensenbeheer';
+                    case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
+                        return 'Beheerder betalingen';
                     case CONST.POLICY.ROLE.USER:
                         return 'Lid';
                     default:
@@ -4332,11 +4352,14 @@ ${amount} voor ${merchant} - ${date}`,
             budgetFrequencyUnit: {monthly: 'maand', yearly: 'jaar'},
             budgetTypeForNotificationMessage: {tag: 'tag', category: 'categorie'},
             deepDiveExpensifyCard: `<muted-text-label>Transacties met de Expensify Kaart worden automatisch geëxporteerd naar een "Expensify Kaart Passivarekening" dat wordt aangemaakt via <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">onze integratie</a>.</muted-text-label>`,
-            travelInvoicing: 'Expensify Travel-tegoed exporteren naar',
+            travelInvoicing: 'Reisfacturatiekosten exporteren als',
             travelInvoicingVendor: 'Reisaanbieder',
             travelInvoicingPayableAccount: 'Reiscrediteurenrekening',
             hr: 'HR',
             rooms: 'Kamers',
+            cardAdminAlternateText: 'Werkruimtekaarten beheren.',
+            peopleAdminAlternateText: 'Beheer leden en goedkeuringsworkflows.',
+            paymentsAdminAlternateText: 'Workflowsbetalingen beheren.',
         },
         createdForClient: {
             title: 'Je hebt een werkruimte voor je klant aangemaakt!',
@@ -4657,6 +4680,7 @@ ${amount} voor ${merchant} - ${date}`,
             exportDeepDiveCompanyCard:
                 'Geëxporteerde uitgaven worden als banktransacties geboekt op de onderstaande Xero-bankrekening, en transactiedata komen overeen met de data op je bankafschrift.',
             bankTransactions: 'Banktransacties',
+            travelInvoicingDescription: 'Reiskosten worden als banktransacties geëxporteerd naar het hieronder opgegeven Xero-account.',
             xeroBankAccount: 'Xero-bankrekening',
             xeroBankAccountDescription: 'Kies waar onkosten als banktransacties worden geboekt.',
             exportExpensesDescription: 'Rapporten worden geëxporteerd als een inkoopfactuur met de datum en status die hieronder zijn geselecteerd.',
@@ -5959,6 +5983,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 `Je staat op het punt ${newWorkspaceName ?? ''} te maken en te delen met ${totalMembers ?? 0} leden van de oorspronkelijke werkruimte.`,
             error: 'Er is een fout opgetreden bij het dupliceren van je nieuwe werkruimte. Probeer het opnieuw.',
         },
+        copyPolicySettings: {error: 'Er is een fout opgetreden bij het kopiëren van de werkruimtainstellingen. Probeer het opnieuw.'},
         emptyWorkspace: {
             title: 'Je hebt geen werkruimtes',
             subtitle: 'Volg bonnen, vergoed uitgaven, beheer reizen, verstuur facturen en meer.',
@@ -6353,7 +6378,11 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 chooseBankAccount: 'Kies de bankrekening waarop de betalingen met je Expensify Kaart worden afgestemd.',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `Zorg ervoor dat deze rekening overeenkomt met je <a href="${settlementAccountUrl}">Expensify Kaart-afwikkelingsrekening</a> (eindigend op ${lastFourPAN}), zodat Continue Afstemming goed werkt.`,
+                chooseTravelInvoicingBankAccount: 'Kies de bankrekening waarop de betalingen van je reiskostenfacturen worden afgeletterd.',
+                travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
+                    `Zorg ervoor dat deze rekening overeenkomt met je afwikkelingsrekening voor reiskostenfacturatie (die eindigt op ${lastFourPAN}), zodat Continue Afstemming goed werkt.`,
             },
+            syncTravelInvoicingSettlements: 'Reisfactureringsafrekeningen synchroniseren',
         },
         export: {
             notReadyHeading: 'Niet klaar om te exporteren',
@@ -6689,6 +6718,57 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>HR-integraties zijn alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
             },
+            approvalSubmit: {
+                title: 'Goedkeuringen',
+                description: 'Configureer centraal naar wie alle leden indienen door goedkeuringen in te schakelen.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Goedkeuringen zijn beschikbaar in de Collect- en Control-abonnementen, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+            },
+            companyCardSubmit: {
+                title: 'Bedrijfskaarten',
+                description: `Neem je eigen bedrijfskaart mee naar Expensify voor automatische import, automatische categorisatie, ondersteuning voor aangepaste regels en geïntegreerde afstemming.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Bedrijfskaartimport is beschikbaar in de Collect- en Control-abonnementen, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+            },
+            travelSubmit: {
+                title: 'Expensify Travel',
+                description: 'Boek wereldwijd voordelige vluchten, hotels, auto’s en treinen vanuit Expensify, met duty-of-carerapportage en geïntegreerd onkostbeheer.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Expensify Travel is beschikbaar in de Collect- en Control-abonnementen, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+            },
+            roles: {
+                title: 'Rollen',
+                description: 'Wijs verschillende rollen toe aan verschillende leden om de zichtbaarheid en controle naar behoefte te verhogen of te verlagen.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Rollen zijn beschikbaar in de Collect- en Control-abonnementen, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+            },
+            payments: {
+                title: 'Betalingen',
+                description: 'Vergoed medewerkers rechtstreeks vanaf je zakelijke bankrekening.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Betalingen zijn beschikbaar in de abonnementen Collect en Control, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+            },
+            accounting: {
+                title: 'Boekhouding',
+                description:
+                    'Synchroniseer categorieën, labels, belastingtarieven en meer van je boekhoudsysteem naar Expensify, en exporteer onkostendeclaraties en kaarttransacties – zonder typwerk (of tikfouten)!',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Boekhouding is beschikbaar in de Collect- en Control-abonnementen, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+            },
+            expensifyCard: {
+                title: 'Expensify Card',
+                description:
+                    'Geef bedrijfskaarten (inclusief virtuele kaarten) direct uit vanaf je eigen bankrekening voor realtime controle over uitgaven met een onbreekbare koppeling en tot 2% cashback!',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>De Expensify Card is beschikbaar bij de Collect- en Control-abonnementen, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+                upgradeButton: 'Upgrade en inschakelen',
+            },
+            invoicing: {
+                title: 'Facturatie',
+                description: 'Maak, verstuur en volg professionele facturen, allemaal in Expensify. Laat je sneller betalen met geïntegreerde betalingen en realtime inzicht.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Facturatie is beschikbaar in de Collect- en Control-abonnementen, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -6904,10 +6984,10 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                     title: 'Expensify Kaarten bieden altijd ingebouwde bescherming',
                     description: `Expensify weigert deze uitgaven altijd:
 
-  • Services voor volwassenen  
-  • Geldautomaten (ATM's)  
-  • Gokken  
-  • Geldoverschrijvingen  
+  • Services voor volwassenen
+  • Geldautomaten (ATM's)
+  • Gokken
+  • Geldoverschrijvingen
 er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 },
                 addSpendRule: 'Uitgaveregel toevoegen',
@@ -7014,8 +7094,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     description: 'Voor werknemers die onkosten bij hun werkgever willen indienen.',
                 },
             },
-            description: 'Kies een pakket dat bij je past. Voor een gedetailleerd overzicht van functies en prijzen, bekijk onze',
-            subscriptionLink: 'hulppagina voor abonnementstypen en prijzen',
+            description: 'Kies een abonnement dat bij je past.',
+            subscriptionLink: 'Meer informatie',
             lockedPlanDescription: ({count, annualSubscriptionEndDate}: WorkspaceLockedPlanTypeParams) => ({
                 one: `Je hebt je vastgelegd op 1 actief lid in het Control-abonnement tot je jaarlijkse abonnement afloopt op ${annualSubscriptionEndDate}. Je kunt overstappen op een pay-per-use-abonnement en downgraden naar het Collect-abonnement vanaf ${annualSubscriptionEndDate} door automatisch verlengen uit te schakelen in`,
                 other: `Je hebt je vastgelegd op ${count} actieve leden op het Control-abonnement totdat je jaarlijkse abonnement eindigt op ${annualSubscriptionEndDate}. Je kunt overschakelen naar een betaling-per-gebruik-abonnement en downgraden naar het Collect-abonnement vanaf ${annualSubscriptionEndDate} door automatisch verlengen uit te schakelen in`,
@@ -7024,8 +7104,32 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         },
         hr: {
             title: 'HR',
+            connections: 'Verbindingen',
             subtitle: 'Koppel HR-tools en houd goedkeuringen van medewerkers gesynchroniseerd.',
-            settingsTitle: 'Gusto-instellingen',
+            connect: 'Verbinden',
+            syncNow: 'Nu synchroniseren',
+            disconnect: 'Ontkoppelen',
+            disconnectTitle: (providerName: string) => `${providerName} ontkoppelen`,
+            disconnectPrompt: (providerName: string) => `Weet je zeker dat je ${providerName} wilt ontkoppelen?`,
+            lastSync: (relativeDate: string) => `Laatst gesynchroniseerd ${relativeDate}`,
+            syncError: (providerName: string) => `Kan geen verbinding maken met ${providerName}`,
+            connectionDescription: (providerName: string) => `Verbind ${providerName} om goedkeuringen van werknemers gesynchroniseerd te houden met je werkruimte.`,
+            approvalMode: 'Goedkeuringsmodus',
+            finalApprover: 'Eindgoedkeurder',
+            notSet: 'Niet ingesteld',
+            approvalModeDescription: (providerName: string) => `Leden en managers zijn ingesteld om te synchroniseren met ${providerName}.`,
+            approvalModeWarningTitle: 'Goedkeuringsmodus wijzigen?',
+            approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
+                `Weet je zeker dat je de goedkeuringsmodus voor deze werkruimte wilt wijzigen? Lees meer over de verschillende ${providerName}-ondersteunde workflowmodi op onze <a href="${helpSiteURL}">help-site</a>.`,
+            approvalModeWarningConfirm: 'Goedkeuringsmodus wijzigen',
+            approvalModes: {
+                basic: {label: 'Basisgoedkeuring', description: 'Alle gebruikers dienen bij één persoon in voor verwerking en goedkeuring.'},
+                manager: {
+                    label: 'Managergoedkeuring',
+                    description: (providerName: string) => `Werknemers dienen rapporten in bij hun direct leidinggevende die is ingesteld in ${providerName}.`,
+                },
+                custom: {label: 'Aangepaste goedkeuring', description: 'Ik stel goedkeuringsworkflows handmatig in in Expensify.'},
+            },
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
                     case 'gustoSyncTitle':
@@ -7049,27 +7153,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             },
             gusto: {
                 title: 'Gusto',
-                approvalMode: 'Goedkeuringsmodus',
-                finalApprover: 'Laatste fiatteur',
-                notSet: 'Niet ingesteld',
-                approvalModeDescription: 'Leden en managers zijn ingesteld om te synchroniseren met Gusto.',
-                approvalModeWarningTitle: 'Goedkeuringsmodus wijzigen?',
-                approvalModeWarningPrompt: (helpSiteURL: string) =>
-                    `Weet je zeker dat je de goedkeuringsmodus voor deze werkruimte wilt wijzigen? Lees meer over de verschillende Gusto-ondersteunde workflowmodi op onze <a href="${helpSiteURL}">help-site</a>.`,
-                approvalModeWarningConfirm: 'Goedkeuringsmodus wijzigen',
-                approvalModes: {
-                    basic: {label: 'Basisgoedkeuring', description: 'Alle gebruikers dienen bij één persoon in voor verwerking en goedkeuring.'},
-                    manager: {label: 'Goedkeuring manager', description: 'Werknemers dienen rapporten in bij hun direct leidinggevende die is ingesteld in Gusto.'},
-                    custom: {label: 'Aangepaste goedkeuring', description: 'Ik stel goedkeuringsworkflows handmatig in in Expensify.'},
-                },
-                connect: 'Verbinden',
-                connectionDescription: 'Verbind Gusto om goedkeuringen van werknemers gesynchroniseerd te houden met je workspace.',
-                syncNow: 'Nu synchroniseren',
-                disconnect: 'Verbreken',
-                lastSync: (relativeDate: string) => `Laatste synchronisatie ${relativeDate}`,
-                syncError: 'Kan geen verbinding maken met Gusto',
-                disconnectTitle: 'Verbinding met Gusto verbreken',
-                disconnectPrompt: 'Weet je zeker dat je de verbinding met Gusto wilt verbreken?',
                 syncResults: {
                     title: 'Gusto-synchronisatieresultaten',
                     successTitle: 'Je Gusto-verbinding is succesvol gesynchroniseerd!',
@@ -7084,27 +7167,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             },
             zenefits: {
                 title: 'TriNet',
-                connect: 'Verbinden',
-                syncNow: 'Nu synchroniseren',
-                disconnect: 'Verbinding verbreken',
-                lastSync: (relativeDate: string) => `Laatst gesynchroniseerd ${relativeDate}`,
-                syncError: 'Kan geen verbinding maken met TriNet',
-                disconnectTitle: 'Koppeling met TriNet verbreken',
-                disconnectPrompt: 'Weet je zeker dat je TriNet wilt loskoppelen?',
-                connectionDescription: 'Verbind TriNet om goedkeuringen van medewerkers synchroon te houden met je werkruimte.',
-                approvalMode: 'Goedkeuringsmodus',
-                finalApprover: 'Laatste fiatteur',
-                notSet: 'Niet ingesteld',
-                approvalModeDescription: 'Leden en managers zijn ingesteld om te synchroniseren met TriNet.',
-                approvalModeWarningTitle: 'Goedkeuringsmodus wijzigen?',
-                approvalModeWarningPrompt: (helpSiteURL: string) =>
-                    `Weet je zeker dat je de goedkeuringsmodus voor deze workspace wilt wijzigen? Lees meer over de verschillende TriNet-ondersteunde workflowmodi op onze <a href="${helpSiteURL}">help-pagina</a>.`,
-                approvalModeWarningConfirm: 'Goedkeuringsmodus wijzigen',
-                approvalModes: {
-                    basic: {label: 'Eenvoudige goedkeuring', description: 'Alle gebruikers dienen in bij één persoon voor verwerking en goedkeuring.'},
-                    manager: {label: 'Goedkeuring door manager', description: 'Werknemers dienen rapporten in bij hun direct leidinggevende die is ingesteld in TriNet.'},
-                    custom: {label: 'Aangepaste goedkeuring', description: 'Ik stel handmatig goedkeuringsworkflows in Expensify in.'},
-                },
             },
         },
     },
@@ -8556,7 +8618,16 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             `<muted-text-label>Bon in behandeling vanwege een verbroken bankverbinding. Los dit op in <a href="${workspaceCompanyCardRoute}">Bedrijfspassen</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Bon wordt vastgehouden vanwege een verbroken bankkoppeling. Vraag een werkruimtebeheerder om dit op te lossen.',
         markAsCashToIgnore: 'Markeren als contant om te negeren en betaling aan te vragen.',
-        smartscanFailed: ({canEdit = true}) => `Bon scannen mislukt.${canEdit ? 'Voer gegevens handmatig in.' : ''}`,
+        smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
+            if (missingFields.length > 0) {
+                const fieldNames: Record<string, string> = {merchant: 'handelaar', date: 'datum', amount: 'bedrag'};
+                const translated = missingFields.map((f) => fieldNames[f] ?? f);
+                const fieldList = translated.join(translated.length > 2 ? ', ' : ' en ');
+                const verb = translated.length === 1 ? 'ontbreekt' : 'ontbreken';
+                return `Bon scannen mislukt — ${fieldList} ${verb}.${canEdit ? ' Voer gegevens handmatig in.' : ''}`;
+            }
+            return `Bon scannen mislukt.${canEdit ? 'Voer gegevens handmatig in.' : ''}`;
+        },
         receiptGeneratedWithAI: 'Mogelijke AI-gegenereerde bon',
         someTagLevelsRequired: (tagName?: string) => `Ontbreekt ${tagName ?? 'Label'}`,
         tagOutOfPolicy: (tagName?: string) => `${tagName ?? 'Label'} niet meer geldig`,
@@ -8637,6 +8708,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         bookACallTextTop: 'Als je overschakelt naar Expensify Classic, loop je het volgende mis:',
         bookACallTextBottom: 'We spreken graag met je om te begrijpen waarom. Je kunt een gesprek inplannen met een van onze senior productmanagers om je behoeften te bespreken.',
         takeMeToExpensifyClassic: 'Breng me naar Expensify Classic',
+        goBackJustOnce: 'Eenmalig teruggaan',
     },
     listBoundary: {
         errorMessage: 'Er is een fout opgetreden bij het laden van meer berichten',

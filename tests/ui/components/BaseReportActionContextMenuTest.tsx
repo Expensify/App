@@ -47,6 +47,7 @@ jest.mock('@components/FocusTrap/FocusTrapForModal', () => {
 
 jest.mock('@components/OnyxListItemProvider', () => ({
     useSession: () => ({encryptedAuthToken: 'token'}),
+    usePersonalDetails: () => ({}),
 }));
 
 jest.mock('@hooks/useArrowKeyFocusManager', () => () => [-1, jest.fn()] as const);
