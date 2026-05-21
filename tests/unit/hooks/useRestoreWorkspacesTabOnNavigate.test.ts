@@ -1,7 +1,9 @@
+import {StackActions, TabActions} from '@react-navigation/native';
 import {renderHook} from '@testing-library/react-native';
-import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
+// eslint-disable-next-line no-restricted-imports -- TransitionTracker is mocked here to assert the tab-jump sequencing after popToTop in navigateToWorkspacesPage.
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -10,10 +12,6 @@ import createRandomPolicy from '../../utils/collections/policies';
 
 jest.mock('@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState', () => ({
     getPreservedNavigatorState: jest.fn(() => undefined),
-}));
-
-jest.mock('@libs/Navigation/helpers/lastVisitedTabPathUtils', () => ({
-    getWorkspacesTabStateFromSessionStorage: jest.fn(() => undefined),
 }));
 
 const mockResponsiveLayout = jest.fn(() => ({shouldUseNarrowLayout: false}));
@@ -35,7 +33,10 @@ jest.mock('@libs/Navigation/navigationRef', () => ({
 jest.mock('@react-navigation/native', () => ({
     findFocusedRoute: jest.fn(() => ({name: 'some-screen'})),
     StackActions: {
-        pop: jest.fn((count: number) => ({type: 'POP', payload: {count}})),
+        popToTop: jest.fn(() => ({type: 'POP_TO_TOP'})),
+    },
+    TabActions: {
+        jumpTo: jest.fn((name: string) => ({type: 'JUMP_TO', payload: {name}})),
     },
 }));
 
@@ -44,9 +45,16 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
 }));
 
-jest.mock('@libs/Navigation/helpers/getPathFromState', () => ({
+jest.mock('@libs/Navigation/TransitionTracker', () => ({
     __esModule: true,
-    default: jest.fn(),
+    default: {
+        runAfterTransitions: jest.fn(({callback}: {callback: () => void}) => {
+            callback();
+            return {cancel: () => {}};
+        }),
+        startTransition: jest.fn(),
+        endTransition: jest.fn(),
+    },
 }));
 
 jest.mock('@libs/PolicyUtils', () => ({
@@ -58,7 +66,7 @@ const fakePolicyID = 'ABCD1234';
 const mockPolicy = {...createRandomPolicy(0), id: fakePolicyID};
 const fakeDomainAccountID = 4242;
 const mockDomain = {accountID: fakeDomainAccountID, validated: true, email: 'admin@example.com'};
-const mockedGetPathFromState = getPathFromState as jest.MockedFunction<typeof getPathFromState>;
+const TAB_NAV_STATE_KEY = 'tab-nav-1';
 /* eslint-disable @typescript-eslint/unbound-method -- jest.fn() mocks don't rely on `this` binding */
 const mockedGetRootState = navigationRef.getRootState as unknown as jest.Mock<{routes: unknown[]} | undefined>;
 const mockedDispatch = jest.mocked(navigationRef.dispatch);
@@ -67,8 +75,6 @@ const mockedDispatch = jest.mocked(navigationRef.dispatch);
 const useRestoreWorkspacesTabOnNavigate = (require('@hooks/useRestoreWorkspacesTabOnNavigate') as {default: () => () => void}).default;
 
 const PolicyUtils = require('@libs/PolicyUtils') as {shouldShowPolicy: jest.Mock; isPendingDeletePolicy: jest.Mock};
-
-const lastVisitedTabPathUtils = require('@libs/Navigation/helpers/lastVisitedTabPathUtils') as {getWorkspacesTabStateFromSessionStorage: jest.Mock};
 
 function setupOnyxForPolicy() {
     mockUseOnyx.mockImplementation((key: unknown) => {
@@ -94,6 +100,7 @@ function buildStateWithUserOnDifferentTab(workspaceRoutes: unknown[]) {
             {
                 name: NAVIGATORS.TAB_NAVIGATOR,
                 state: {
+                    key: TAB_NAV_STATE_KEY,
                     index: 0,
                     routes: [
                         {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
@@ -113,17 +120,13 @@ describe('useRestoreWorkspacesTabOnNavigate', () => {
         jest.clearAllMocks();
         mockUseOnyx.mockReturnValue([undefined]);
         mockResponsiveLayout.mockReturnValue({shouldUseNarrowLayout: false});
-        lastVisitedTabPathUtils.getWorkspacesTabStateFromSessionStorage.mockReturnValue(undefined);
         PolicyUtils.shouldShowPolicy.mockReturnValue(true);
         PolicyUtils.isPendingDeletePolicy.mockReturnValue(false);
-        mockedGetPathFromState.mockReset();
         mockedGetRootState.mockReturnValue({routes: []});
     });
 
     it('restores to the last visited workspace when re-entering the Workspaces tab', () => {
         setupOnyxForPolicy();
-        const restoredPath = `/workspaces/${fakePolicyID}` as const;
-        mockedGetPathFromState.mockReturnValue(restoredPath);
         mockedGetRootState.mockReturnValue(
             buildStateWithUserOnDifferentTab([
                 {
@@ -136,7 +139,11 @@ describe('useRestoreWorkspacesTabOnNavigate', () => {
         const {result} = renderHook(() => useRestoreWorkspacesTabOnNavigate());
         result.current();
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(restoredPath);
+        expect(mockedDispatch).toHaveBeenCalledWith({
+            ...TabActions.jumpTo(NAVIGATORS.WORKSPACE_NAVIGATOR),
+            target: TAB_NAV_STATE_KEY,
+        });
+        expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
     it('falls back to the workspaces list when no workspace was previously visited', () => {
@@ -174,12 +181,11 @@ describe('useRestoreWorkspacesTabOnNavigate', () => {
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACES_LIST.route);
     });
 
-    // Regression: clicking the Workspaces tab from any other tab should land the user on the *exact* sub-page
-    // they had open inside the workspace (e.g. Workflows), not the workspace's initial page.
-    it('preserves the focused workspace sub-page (Workflows) when restoring on a wide layout', () => {
+    // Regression: clicking the Workspaces tab from any other tab should restore the user's last
+    // workspace sub-page via an in-place TabActions.jumpTo against the topmost TAB_NAVIGATOR,
+    // not by pushing a fresh TAB_NAVIGATOR through Navigation.navigate.
+    it('jumps to the existing WORKSPACE_NAVIGATOR tab when restoring on a wide layout', () => {
         setupOnyxForPolicy();
-        const restoredPath = `/workspaces/${fakePolicyID}/workflows` as const;
-        mockedGetPathFromState.mockReturnValue(restoredPath);
         mockedGetRootState.mockReturnValue(
             buildStateWithUserOnDifferentTab([
                 {
@@ -198,17 +204,24 @@ describe('useRestoreWorkspacesTabOnNavigate', () => {
         const {result} = renderHook(() => useRestoreWorkspacesTabOnNavigate());
         result.current();
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(restoredPath);
+        expect(mockedDispatch).toHaveBeenCalledWith({
+            ...TabActions.jumpTo(NAVIGATORS.WORKSPACE_NAVIGATOR),
+            target: TAB_NAV_STATE_KEY,
+        });
+        expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
-    // Regression for the original bug (#89106): when an RHP-driven navigation pushes a fresh TabNavigator above
-    // the modal, the new TabNavigator's WORKSPACE_NAVIGATOR is empty. The hook must reach into the *older*
-    // TabNavigator instance still alive in the root stack to recover the user's last workspace sub-page.
-    it('reads workspace state from an older TabNavigator instance when the topmost one is empty', () => {
+    // Inverted contract for the topmost-only behavior: the consumer restores via TabActions.jumpTo
+    // against the topmost TAB_NAVIGATOR's state key, so workspace state held by older TAB_NAVIGATOR
+    // instances kept alive by ensureTabNavigatorRoutes is intentionally ignored — guards against a
+    // regression to flat-walking all tabs. With an empty topmost workspace slot the hook still jumps
+    // to the topmost tab (rather than pushing a new TAB_NAVIGATOR via Navigation.navigate); cold-start
+    // hydration is then handled by WorkspaceRouter.getInitialState from sessionStorage.
+    it('jumps to the topmost TabNavigator even when its workspace slot is empty', () => {
         setupOnyxForPolicy();
         mockedGetRootState.mockReturnValue({
             routes: [
-                // Older TabNavigator: still holds the workspace state with WORKFLOWS focused.
+                // Older TabNavigator with workspace state. Should be ignored.
                 {
                     name: NAVIGATORS.TAB_NAVIGATOR,
                     state: {
@@ -235,10 +248,11 @@ describe('useRestoreWorkspacesTabOnNavigate', () => {
                         ],
                     },
                 },
-                // Newer TabNavigator pushed above the modal: WORKSPACE_NAVIGATOR is empty.
+                // Topmost TabNavigator with empty WORKSPACE_NAVIGATOR.
                 {
                     name: NAVIGATORS.TAB_NAVIGATOR,
                     state: {
+                        key: TAB_NAV_STATE_KEY,
                         index: 0,
                         routes: [{name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}, {name: NAVIGATORS.WORKSPACE_NAVIGATOR}],
                     },
@@ -249,22 +263,26 @@ describe('useRestoreWorkspacesTabOnNavigate', () => {
         const {result} = renderHook(() => useRestoreWorkspacesTabOnNavigate());
         result.current();
 
-        // The older TabNavigator is reached via StackActions.pop (popping the newer empty one off the root stack),
-        // not via a fresh Navigation.navigate. Verify dispatch was called with a POP action.
-        expect(mockedDispatch).toHaveBeenCalledWith(expect.objectContaining({type: 'POP'}));
+        expect(mockedDispatch).toHaveBeenCalledWith({
+            ...TabActions.jumpTo(NAVIGATORS.WORKSPACE_NAVIGATOR),
+            target: TAB_NAV_STATE_KEY,
+        });
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
-    // On narrow layouts (mobile), the URL-based restore is skipped: we always land on the workspace's
-    // initial page so the user can navigate inward via the side-list — matches mobile UX and the docs.
-    it('falls back to the workspace initial page on narrow layouts even when a sub-page is focused', () => {
+    // On narrow layouts (mobile), the consumer pops the workspace split to its initial page
+    // *before* jumping to the tab to prevent a sub-page from flashing in. We assert both dispatches
+    // fire in order. TransitionTracker is mocked to invoke its callback synchronously.
+    it('pops the workspace split to its initial page, then jumps to the tab, on narrow layouts', () => {
         mockResponsiveLayout.mockReturnValue({shouldUseNarrowLayout: true});
         setupOnyxForPolicy();
+        const WORKSPACE_SPLIT_STATE_KEY = 'workspace-split-1';
         mockedGetRootState.mockReturnValue(
             buildStateWithUserOnDifferentTab([
                 {
                     name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
                     state: {
+                        key: WORKSPACE_SPLIT_STATE_KEY,
                         index: 1,
                         routes: [
                             {name: SCREENS.WORKSPACE.INITIAL, params: {policyID: fakePolicyID}},
@@ -278,55 +296,16 @@ describe('useRestoreWorkspacesTabOnNavigate', () => {
         const {result} = renderHook(() => useRestoreWorkspacesTabOnNavigate());
         result.current();
 
-        expect(mockedGetPathFromState).not.toHaveBeenCalled();
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_INITIAL.getRoute(fakePolicyID));
+        expect(mockedDispatch).toHaveBeenNthCalledWith(1, {...StackActions.popToTop(), target: WORKSPACE_SPLIT_STATE_KEY});
+        expect(mockedDispatch).toHaveBeenNthCalledWith(2, {...TabActions.jumpTo(NAVIGATORS.WORKSPACE_NAVIGATOR), target: TAB_NAV_STATE_KEY});
+        expect(TransitionTracker.runAfterTransitions).toHaveBeenCalledWith(expect.objectContaining({waitForUpcomingTransition: true}));
+        expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
-    // Cold-start path: when no workspace route exists anywhere in the live nav tree, fall back to the
-    // sessionStorage-persisted state so a fresh page-load still restores the user's last workspace sub-page.
-    it('hydrates from sessionStorage when the live navigation tree has no workspace route', () => {
-        setupOnyxForPolicy();
-        const restoredPath = `/workspaces/${fakePolicyID}/workflows` as const;
-        mockedGetPathFromState.mockReturnValue(restoredPath);
-        mockedGetRootState.mockReturnValue({
-            routes: [
-                {
-                    name: NAVIGATORS.TAB_NAVIGATOR,
-                    state: {index: 0, routes: [{name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}]},
-                },
-            ],
-        });
-        lastVisitedTabPathUtils.getWorkspacesTabStateFromSessionStorage.mockReturnValue({
-            routes: [
-                {
-                    name: NAVIGATORS.WORKSPACE_NAVIGATOR,
-                    state: {
-                        routes: [
-                            {
-                                name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
-                                state: {
-                                    index: 1,
-                                    routes: [
-                                        {name: SCREENS.WORKSPACE.INITIAL, params: {policyID: fakePolicyID}},
-                                        {name: SCREENS.WORKSPACE.WORKFLOWS, params: {policyID: fakePolicyID}},
-                                    ],
-                                },
-                            },
-                        ],
-                    },
-                },
-            ],
-        });
-
-        const {result} = renderHook(() => useRestoreWorkspacesTabOnNavigate());
-        result.current();
-
-        expect(Navigation.navigate).toHaveBeenCalledWith(restoredPath);
-    });
-
-    // Domain restore: when the last workspace-tab route is a DOMAIN_SPLIT_NAVIGATOR with a domainAccountID,
-    // resolve the matching Domain via useOnyx(ONYXKEYS.COLLECTION.DOMAIN) and navigate to the domain page.
-    it('restores to the last visited domain when re-entering the Workspaces tab', () => {
+    // Domain restore: when the last workspace-tab route is a DOMAIN_SPLIT_NAVIGATOR with an
+    // accessible accountID, jump to the existing WORKSPACE_NAVIGATOR tab so the preserved
+    // DOMAIN_SPLIT_NAVIGATOR state is shown without pushing a new TAB_NAVIGATOR.
+    it('jumps to the existing WORKSPACE_NAVIGATOR tab when restoring a domain', () => {
         setupOnyxForDomain();
         mockedGetRootState.mockReturnValue(
             buildStateWithUserOnDifferentTab([
@@ -340,7 +319,11 @@ describe('useRestoreWorkspacesTabOnNavigate', () => {
         const {result} = renderHook(() => useRestoreWorkspacesTabOnNavigate());
         result.current();
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.DOMAIN_INITIAL.getRoute(fakeDomainAccountID));
+        expect(mockedDispatch).toHaveBeenCalledWith({
+            ...TabActions.jumpTo(NAVIGATORS.WORKSPACE_NAVIGATOR),
+            target: TAB_NAV_STATE_KEY,
+        });
+        expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
     // If the last route was a domain but it's no longer present in the Onyx domain collection

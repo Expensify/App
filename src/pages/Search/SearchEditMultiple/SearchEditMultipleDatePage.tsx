@@ -66,7 +66,6 @@ function SearchEditMultipleDatePage() {
                         autoFocus
                         defaultValue={currentDate}
                         maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                        minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                     />
                 </View>
             </FormProvider>
