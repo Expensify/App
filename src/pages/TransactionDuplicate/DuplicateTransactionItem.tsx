@@ -15,13 +15,12 @@ import type {Transaction} from '@src/types/onyx';
 
 type DuplicateTransactionItemProps = {
     transaction: OnyxEntry<Transaction>;
-    index: number;
     onPreviewPressed: (reportID: string) => void;
 };
 
 const linkedTransactionRouteErrorSelector = (transaction: OnyxEntry<Transaction>) => transaction?.errorFields?.route ?? null;
 
-function DuplicateTransactionItem({transaction, index, onPreviewPressed}: DuplicateTransactionItemProps) {
+function DuplicateTransactionItem({transaction, onPreviewPressed}: DuplicateTransactionItemProps) {
     const styles = useThemeStyles();
     const personalDetails = usePersonalDetails();
 
@@ -65,7 +64,6 @@ function DuplicateTransactionItem({transaction, index, onPreviewPressed}: Duplic
                         action={action}
                         report={report}
                         parentReportAction={getReportAction(report?.parentReportID, report?.parentReportActionID)}
-                        index={index}
                         displayAsGroup={false}
                         shouldDisplayNewMarker={false}
                         isFirstVisibleReportAction={false}
