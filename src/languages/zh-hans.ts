@@ -2050,7 +2050,7 @@ const translations: TranslationDeepObject<typeof en> = {
         account: '账户',
         general: '常规',
         helpPage: {
-            title: '有疑问吗？',
+            title: '你的个人 AI 助手',
             description: '我们全天候为您提供帮助。',
             helpSite: '帮助网站',
             helpSiteDescription: '文章、教程等',

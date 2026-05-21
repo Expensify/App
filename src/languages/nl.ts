@@ -2101,7 +2101,7 @@ const translations: TranslationDeepObject<typeof en> = {
         account: 'Account',
         general: 'Algemeen',
         helpPage: {
-            title: 'Vragen?',
+            title: 'Je persoonlijke AI-assistent',
             description: 'We zijn er 24/7 om je te helpen.',
             helpSite: 'Helppagina',
             helpSiteDescription: 'Artikelen, tutorials en meer',

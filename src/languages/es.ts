@@ -1991,7 +1991,7 @@ const translations: TranslationDeepObject<typeof en> = {
         readTheTermsAndPrivacy: `Leer los <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Términos de Servicio</a> y <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacidad</a>.`,
         help: 'Ayuda',
         helpPage: {
-            title: '¿Tienes preguntas?',
+            title: 'Tu asistente personal de IA',
             description: 'Estamos aquí para ayudarte en todo momento.',
             helpSite: 'Sitio de ayuda',
             helpSiteDescription: 'Artículos, tutoriales y más',
