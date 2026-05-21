@@ -127,12 +127,14 @@ function CopyPolicySettingsConfirmPage() {
                             description={translate('common.settings')}
                             onPress={navigateToSelectFeatures}
                             shouldShowRightIcon
+                            numberOfLinesTitle={0}
                         />
                         <MenuItemWithTopDescription
                             title={targetPolicies.map((policy) => policy?.name).join(', ')}
                             description={translate('common.workspaces')}
                             onPress={navigateToSelectWorkspaces}
                             shouldShowRightIcon
+                            numberOfLinesTitle={0}
                         />
                     </View>
                 </ScrollView>
