@@ -46,7 +46,7 @@ function GustoFinalApproverPage({
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.hr.gusto.finalApprover')}
+                    title={translate('workspace.hr.finalApprover')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_HR.getRoute(policyID))}
                 />
                 <WorkspaceMembersSelectionList
