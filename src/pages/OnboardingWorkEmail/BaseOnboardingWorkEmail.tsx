@@ -118,6 +118,13 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         setOnboardingErrorMessage(null);
     }, [onboardingErrorMessageTranslationKey]);
 
+    const shouldRenderOfflineFeedback = useCallback((errorTranslation: string) => {
+        if (errorTranslation !== 'onboarding.workEmail2FAError' && errorTranslation !== 'onboarding.mergeBlockScreen.workAccountClosedSubtitle') {
+            return true;
+        }
+        return false;
+    }, []);
+
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
         if (!shouldValidateOnChange) {
             setShouldValidateOnChange(true);
@@ -199,7 +206,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                             shouldDisplayErrorAbove
                             style={styles.mb3}
                             errors={
-                                onboardingErrorMessageTranslationKey && onboardingErrorMessageTranslationKey !== 'onboarding.workEmail2FAError'
+                                onboardingErrorMessageTranslationKey && shouldRenderOfflineFeedback(onboardingErrorMessageTranslationKey)
                                     ? {addWorkEmailError: translate(onboardingErrorMessageTranslationKey)}
                                     : undefined
                             }
