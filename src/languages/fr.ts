@@ -6026,18 +6026,19 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             error: 'Une erreur s’est produite lors de la copie des paramètres de l’espace de travail. Veuillez réessayer.',
             title: 'Copier les paramètres',
             selectWorkspaces: 'Sélectionner des espaces de travail',
-            description: 'Choisissez les espaces de travail vers lesquels vous souhaitez copier les paramètres, puis sélectionnez les paramètres que vous voulez copier.',
+            description: 'Choisissez les espaces de travail vers lesquels vous voulez copier les paramètres, puis sélectionnez les paramètres que vous souhaitez copier.',
             searchPlaceholder: 'Rechercher des espaces de travail',
             selectFeatures: 'Sélectionner les fonctionnalités à copier',
-            whichFeatures: 'Sélectionnez les paramètres à remplacer dans vos espaces de travail existants.',
-            accountingDisabledTooltip:
-                'Les espaces de travail source et cible ne sont pas connectés au même compte comptable, ces paramètres ne peuvent donc pas être copiés en toute sécurité.',
+            whichFeatures: 'Sélectionnez les paramètres à écraser sur vos espaces de travail existants.',
             workflowsWithoutMembersConfirm: 'Continuer sans membres',
             workflowsWithoutMembersPrompt:
                 'La copie d’espaces de travail sans membres ne copiera pas les workflows d’approbation. Les paramètres de soumission et de paiement seront tout de même copiés.',
             confirmTitle: 'Assurons-nous que tout est correct.',
             confirmDescription: ({workspaceName}: {workspaceName: string}) =>
                 `Nous copierons les paramètres suivants de <strong>${workspaceName}</strong> vers les espaces de travail que vous avez indiqués`,
+                'La copie d’espaces de travail sans membres ne copiera pas les workflows d’approbation. Les paramètres de soumission et de paiement seront néanmoins copiés.',
+            accountingMismatch: ({part}: {part: string}) =>
+                `Vous ne pouvez copier ${part} que si tous les espaces de travail utilisent le même système de comptabilité et la même connexion d’entreprise.`,
         },
         emptyWorkspace: {
             title: 'Vous n’avez aucun espace de travail',

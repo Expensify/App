@@ -5974,17 +5974,18 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
         copyPolicySettings: {
             error: 'Er is een fout opgetreden bij het kopiëren van de werkruimtainstellingen. Probeer het opnieuw.',
             title: 'Instellingen kopiëren',
-            selectWorkspaces: 'Workspaces selecteren',
-            description: 'Kies de werkruimtes waarnaar je instellingen wilt kopiëren en selecteer vervolgens de instellingen die je wilt kopiëren.',
+            selectWorkspaces: 'Werkruimtes selecteren',
+            description: 'Kies de werkruimtes waarnaar je de instellingen wilt kopiëren en selecteer daarna de instellingen die je wilt kopiëren.',
             searchPlaceholder: 'Werkruimtes zoeken',
             selectFeatures: 'Selecteer functies om te kopiëren',
             whichFeatures: 'Selecteer de instellingen die je wilt overschrijven in je bestaande werkruimtes.',
-            accountingDisabledTooltip: 'De bron- en doelwerkruimtes zijn niet gekoppeld aan dezelfde boekhoudrekening, waardoor deze instellingen niet veilig kunnen worden gekopieerd.',
             workflowsWithoutMembersConfirm: 'Doorgaan zonder leden',
             workflowsWithoutMembersPrompt: 'Workflows kopiëren zonder leden zal goedkeuringsworkflows niet kopiëren. Instellingen voor indienen en betalen worden nog steeds gekopieerd.',
             confirmTitle: 'Laten we controleren of alles er goed uitziet.',
             confirmDescription: ({workspaceName}: {workspaceName: string}) =>
                 `We kopiëren de volgende instellingen van <strong>${workspaceName}</strong> naar de werkruimtes die je hebt opgegeven`,
+            workflowsWithoutMembersPrompt: 'Workflows kopiëren zonder leden kopieert geen goedkeuringsworkflows. Instellingen voor indienen en betalen worden nog steeds gekopieerd.',
+            accountingMismatch: ({part}: {part: string}) => `Je kunt ${part} alleen kopiëren als alle werkruimtes hetzelfde boekhoudsysteem en dezelfde bedrijfsverbinding gebruiken.`,
         },
         emptyWorkspace: {
             title: 'Je hebt geen werkruimtes',
