@@ -207,10 +207,6 @@ function useSearchSelectorBase({
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
-    const onListEndReached = useDebounce(() => {
-        setMaxResults((previous) => previous + maxResultsPerPage);
-    }, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
-
     const computedSearchTerm = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode);
     const trimmedSearchInput = debouncedSearchTerm.trim();
 
@@ -335,6 +331,32 @@ function useSearchSelectorBase({
                 return getEmptyOptions();
         }
     })();
+
+    const optionsCounters: Required<Record<keyof Options, (options: Options) => number>> = {
+        recentReports: (options) => options.recentReports?.length ?? 0,
+        personalDetails: (options) => options.personalDetails?.length ?? 0,
+        userToInvite: (options) => (options.userToInvite ? 1 : 0),
+        currentUserOption: (options) => (options.currentUserOption ? 1 : 0),
+        workspaceChats: (options) => options.workspaceChats?.length ?? 0,
+        selfDMChat: (options) => (options.selfDMChat ? 1 : 0),
+    };
+
+    const onListEndReached = useDebounce(() => {
+        if (!areOptionsInitialized) {
+            return;
+        }
+
+        let optionsCount = 0;
+        for (const optionsCounter of Object.values(optionsCounters)) {
+            optionsCount += optionsCounter(baseOptions);
+        }
+
+        if (optionsCount < maxResults) {
+            return;
+        }
+
+        setMaxResults((previous) => previous + maxResultsPerPage);
+    }, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
 
     const isOptionSelected = (option: OptionData) => selectedOptions.some((selected) => doOptionsMatch(selected, option));
 
