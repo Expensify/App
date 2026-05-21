@@ -116,9 +116,11 @@ function processNode(tnode: TNode, typeface: SkTypeface | null) {
         });
     } else if (tnode.tagName === 'victoryaxis') {
         const isDependentAxis = 'dependentaxis' in tnode.attributes && tnode.attributes.dependentaxis !== 'false';
+        const orientation = parseAttribute<string>(tnode.attributes.orientation);
         const tickCount = parseAttribute<number>(tnode.attributes.tickcount);
         const tickValues = parseAttribute<number[]>(tnode.attributes.tickvalues);
-        const orientation = parseAttribute<string>(tnode.attributes.orientation);
+        const tickFormat = parseAttribute<string[]>(tnode.attributes.tickformat);
+        const formatLabel = (value: number) => tickFormat?.[tickValues?.indexOf(value) ?? -1] ?? String(value);
         const style = parseAttribute<StyleObject>(tnode.attributes.style);
         const lineColor = style?.grid?.stroke !== undefined ? (style.grid.stroke as Color) : undefined;
         const lineWidth = style?.grid?.strokeWidth !== undefined ? Number(style.grid.strokeWidth) : 0; // 0 Not to draw the lines for compatibility with VictoryChart
@@ -131,6 +133,7 @@ function processNode(tnode: TNode, typeface: SkTypeface | null) {
                 {
                     tickCount,
                     tickValues,
+                    formatYLabel: formatLabel,
                     axisSide: orientation === 'right' ? 'right' : 'left',
                     lineColor,
                     lineWidth,
@@ -143,6 +146,7 @@ function processNode(tnode: TNode, typeface: SkTypeface | null) {
             xAxis = {
                 tickCount,
                 tickValues,
+                formatXLabel: formatLabel,
                 axisSide: orientation === 'top' ? 'top' : 'bottom',
                 lineColor,
                 lineWidth,
