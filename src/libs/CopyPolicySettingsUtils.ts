@@ -97,13 +97,9 @@ function getAccountingConnectionIdentity(policy: Policy | undefined): Accounting
 }
 
 /**
- * Two policies are accounting-compatible when:
- *  - both have no accounting connection, OR
- *  - both have the same connection name AND a non-empty matching companyID.
- *
- * Anything else (different connections, one side missing, unknown/empty companyID on either
- * side) is treated as incompatible — Categories/Tags/Reports/Taxes can't be safely copied
- * across mismatched external accounts.
+ * Returns true when source and target share the same accounting connection (or both have
+ * none). Categories/Tags/Reports/Taxes IDs are only valid against the
+ * target's existing connection, so the connections must already match.
  */
 function arePoliciesAccountingCompatible(source: Policy | undefined, target: Policy | undefined): boolean {
     if (!target) {
@@ -129,12 +125,44 @@ function arePoliciesAccountingCompatible(source: Policy | undefined, target: Pol
 }
 
 /**
- * Returns true when every target policy is accounting-compatible with the source. If any
- * target is incompatible, accounting-dependent parts (Categories, Tags, Reports, Taxes) must
- * be shown as disabled in the Select Features step.
+ * Copying accounting settings is allowed when the target is unconnected or already matches the source. 
+ * Swap (target connected to a different account) and wipe (source connected,s target unconnected) are rejected.
+ */
+function isTargetCompatibleForAccountingPart(source: Policy | undefined, target: Policy | undefined): boolean {
+    if (!target) {
+        return false;
+    }
+
+    const targetIdentity = getAccountingConnectionIdentity(target);
+    if (!targetIdentity || !targetIdentity.companyID) {
+        return true;
+    }
+
+    const sourceIdentity = getAccountingConnectionIdentity(source);
+    if (!sourceIdentity || !sourceIdentity.companyID) {
+        return false;
+    }
+    if (sourceIdentity.connectionName !== targetIdentity.connectionName) {
+        return false;
+    }
+    return sourceIdentity.companyID === targetIdentity.companyID;
+}
+
+/**
+ * Returns true when every target shares the same accounting connection as the source (or all
+ * are unconnected). Used to gate Categories/Tags/Reports/Taxes when "accounting" is not also
+ * being copied.
  */
 function areAllTargetsAccountingCompatible(source: Policy | undefined, targets: ReadonlyArray<Policy | undefined>): boolean {
     return targets.every((target) => arePoliciesAccountingCompatible(source, target));
+}
+
+/**
+ * Returns true when every target accepts the source's accounting connection (install or
+ * already matching). Used to gate the "accounting" feature row.
+ */
+function areAllTargetsCompatibleForAccountingPart(source: Policy | undefined, targets: ReadonlyArray<Policy | undefined>): boolean {
+    return targets.every((target) => isTargetCompatibleForAccountingPart(source, target));
 }
 
 /**
@@ -176,5 +204,13 @@ function isCopyPolicySettingsPartEnabledOnSource(part: Part, context: CopyPolicy
     }
 }
 
-export {getConnectionCompanyID, getAccountingConnectionIdentity, arePoliciesAccountingCompatible, areAllTargetsAccountingCompatible, isCopyPolicySettingsPartEnabledOnSource};
+export {
+    getConnectionCompanyID,
+    getAccountingConnectionIdentity,
+    arePoliciesAccountingCompatible,
+    areAllTargetsAccountingCompatible,
+    isTargetCompatibleForAccountingPart,
+    areAllTargetsCompatibleForAccountingPart,
+    isCopyPolicySettingsPartEnabledOnSource,
+};
 export type {AccountingConnectionIdentity, CopyPolicySettingsSourceFeatureContext};
