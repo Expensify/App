@@ -2206,7 +2206,7 @@ const translations: TranslationDeepObject<typeof en> = {
     deviceManagementPage: {
         title: 'Gerenciamento de dispositivos',
         description:
-            'Gerencie todos os dispositivos nos quais você fez login com sua conta do Expensify. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Saiba mais</a>',
+            'Gerencie todos os dispositivos nos quais você fez login com sua conta Expensify. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Saiba mais</a>',
         revoke: 'Revogar',
         unknownDevice: 'Dispositivo Desconhecido',
     },
