@@ -1,7 +1,7 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {getOriginalMessage, isClosedAction} from '@libs/ReportActionsUtils';
-import {getPolicyIDsWithEmptyReportsForAccount, isOpenExpenseReport} from '@libs/ReportUtils';
+import {getPolicyIDsWithEmptyReportsForAccount, isChatRoom, isOpenExpenseReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {Report, ReportActions, Transaction} from '@src/types/onyx';
 import {getLastClosedReportAction} from './ReportAction';
@@ -30,12 +30,31 @@ function getReportOwnerAccountID(report: OnyxEntry<Report>) {
     return report?.ownerAccountID;
 }
 
-const policyIDsWithEmptyReportsSelector =
-    (accountID: number | undefined, transactionsByReportID: Record<string, Transaction[]>, hasDismissedEmptyReportsConfirmation: boolean) => (reports: OnyxCollection<Report>) => {
-        if (hasDismissedEmptyReportsConfirmation || !accountID) {
-            return {};
+const policyIDsWithEmptyReportsSelector = (accountID: number | undefined, transactionsByReportID: Record<string, Transaction[]>) => (reports: OnyxCollection<Report>) => {
+    if (!accountID) {
+        return {};
+    }
+    return getPolicyIDsWithEmptyReportsForAccount(reports, accountID, transactionsByReportID);
+};
+
+const policyChatRoomsSelector =
+    (policyID: string | undefined) =>
+    (reports: OnyxCollection<Report>): Report[] => {
+        if (!policyID || !reports) {
+            return [];
         }
-        return getPolicyIDsWithEmptyReportsForAccount(reports, accountID, transactionsByReportID);
+
+        const list: Report[] = [];
+        for (const report of Object.values(reports)) {
+            if (!report || report.policyID !== policyID) {
+                continue;
+            }
+            if (!isChatRoom(report) && !isPolicyExpenseChat(report)) {
+                continue;
+            }
+            list.push(report);
+        }
+        return list;
     };
 
 function openExpenseReportIDsSelector(reports: OnyxCollection<Report>): OpenExpenseReportIDMap {
@@ -55,4 +74,4 @@ function openExpenseReportIDsSelector(reports: OnyxCollection<Report>): OpenExpe
     return openExpenseReportIDMap;
 }
 
-export {getArchiveReason, getReportChatType, getReportOwnerAccountID, getReportPolicyID, policyIDsWithEmptyReportsSelector, openExpenseReportIDsSelector};
+export {getArchiveReason, getReportChatType, getReportOwnerAccountID, getReportPolicyID, policyIDsWithEmptyReportsSelector, policyChatRoomsSelector, openExpenseReportIDsSelector};
