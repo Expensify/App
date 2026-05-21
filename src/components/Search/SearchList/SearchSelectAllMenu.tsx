@@ -4,13 +4,13 @@ import Checkbox from '@components/Checkbox';
 import PopoverMenu from '@components/PopoverMenu';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {PressableWithFeedback} from '@components/Pressable';
+import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import {useSearchActionsContext, useSearchStateContext} from '../SearchContext';
 
 type SearchSelectAllMenuProps = {
     isSelectAllChecked: boolean | undefined;
