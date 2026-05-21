@@ -34,8 +34,9 @@ function cleanupAndNavigateAfterExpenseCreate({
     const finalActiveReportID = backToReport ?? report?.reportID ?? optimisticChatReportID;
     const finalActiveReport = finalActiveReportID === report?.reportID ? report : getReportOrDraftReport(finalActiveReportID);
     const hasMultipleTransactions = isMoneyRequestReport(finalActiveReport);
+    // Gate on the destination ID, not the cached report — a brand-new optimistic chat isn't in the report cache yet this tick.
     const shouldAddPendingNewTransactionIDs =
-        action === CONST.IOU.ACTION.CATEGORIZE || action === CONST.IOU.ACTION.SHARE ? true : !backToReport && !!finalActiveReport && !hasMultipleTransactions;
+        action === CONST.IOU.ACTION.CATEGORIZE || action === CONST.IOU.ACTION.SHARE ? true : !backToReport && !!finalActiveReportID && !hasMultipleTransactions;
 
     navigateAfterExpenseCreate({
         activeReportID: finalActiveReportID,
