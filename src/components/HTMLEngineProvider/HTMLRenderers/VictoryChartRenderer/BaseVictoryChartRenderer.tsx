@@ -7,13 +7,13 @@ import React, {ComponentProps, Fragment, useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ViewStyle} from 'react-native';
 import {TNode} from 'react-native-render-html';
-import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import type {CartesianChartRenderArg, RoundedCorners} from 'victory-native';
 import {Bar, CartesianChart, Line} from 'victory-native';
 import {BAR_INNER_PADDING} from '@components/Charts/BarChart/BarChartContent';
 import {useChartDefaultTypeface} from '@components/Charts/hooks';
 import {DEFAULT_CHART_COLOR} from '@components/Charts/utils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {VictoryChartRendererProps} from './types';
 
 const X_KEY = 'x';
 const Y_KEY_PREFIX = 'y';
@@ -341,7 +341,7 @@ function parseStyles(tnode: TNode) {
     return {nodeStyles, parentNodeStyles};
 }
 
-function BaseVictoryChartRenderer({tnode}: CustomRendererProps<TBlock>) {
+function BaseVictoryChartRenderer({tnode}: VictoryChartRendererProps) {
     const styles = useThemeStyles();
     const {regular: regularTypeface, bold: boldTypeface} = useChartDefaultTypeface();
     const {data, xKey, yKeys, xAxis, yAxis, labelItems, legendItems} = useMemo(() => processNode(tnode, regularTypeface), [tnode, regularTypeface]);
@@ -364,9 +364,7 @@ function BaseVictoryChartRenderer({tnode}: CustomRendererProps<TBlock>) {
                         innerPadding={BAR_INNER_PADDING}
                         roundedCorners={parseCornerRadius(tnode.attributes.cornerradius)}
                         barWidth={parseAttribute(tnode.attributes.barwidth)}
-                    >
-                        {tnode.children.map((child, childIndex) => renderCartesianChartChild(child, childIndex, renderArgs))}
-                    </Bar>
+                    />
                 );
             case 'victoryline':
                 return (
@@ -376,9 +374,7 @@ function BaseVictoryChartRenderer({tnode}: CustomRendererProps<TBlock>) {
                         color={nodeStyles.stroke ?? DEFAULT_CHART_COLOR}
                         strokeWidth={nodeStyles.strokeWidth !== undefined ? Number(nodeStyles.strokeWidth) : undefined}
                         curveType={parseAttribute(tnode.attributes.interpolation)}
-                    >
-                        {tnode.children.map((child, childIndex) => renderCartesianChartChild(child, childIndex, renderArgs))}
-                    </Line>
+                    />
                 );
             default:
                 return null;
