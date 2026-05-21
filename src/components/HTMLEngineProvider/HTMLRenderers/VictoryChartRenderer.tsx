@@ -117,7 +117,7 @@ function processNode(tnode: TNode, typeface: SkTypeface | null) {
     } else if (tnode.tagName === 'victoryaxis') {
         const isDependentAxis = 'dependentaxis' in tnode.attributes && tnode.attributes.dependentaxis !== 'false';
         const orientation = parseAttribute<string>(tnode.attributes.orientation);
-        const tickCount = parseAttribute<number>(tnode.attributes.tickcount);
+        const tickCount = parseAttribute<number>(tnode.attributes.tickcount) ?? 0;
         const tickValues = parseAttribute<number[]>(tnode.attributes.tickvalues);
         const tickFormat = parseAttribute<string[]>(tnode.attributes.tickformat);
         const formatLabel = (value: number) => tickFormat?.[tickValues?.indexOf(value) ?? -1] ?? String(value);
