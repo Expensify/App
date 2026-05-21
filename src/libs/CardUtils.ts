@@ -6,8 +6,8 @@ import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {CombinedCardFeed, CombinedCardFeeds} from '@hooks/useCardFeeds';
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
-import type IllustrationsType from '@styles/theme/illustrations/types';
 import colors from '@styles/theme/colors';
+import type IllustrationsType from '@styles/theme/illustrations/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -47,11 +47,11 @@ import type {Connections} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
+import {CARD_FEED_BACKGROUND_COLORS, GENERIC_CARD_BACKGROUND_COLOR} from './CardArtworkColors';
 import DateUtils from './DateUtils';
 import {filterObject} from './ObjectUtils';
 import {arePersonalDetailsMissing, getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import StringUtils from './StringUtils';
-import {CARD_FEED_BACKGROUND_COLORS, GENERIC_CARD_BACKGROUND_COLOR} from './CardArtworkColors';
 
 /**
  * Compute the WCAG 2.1 relative luminance of a hex color.

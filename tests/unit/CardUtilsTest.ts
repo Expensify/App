@@ -1,8 +1,7 @@
-import * as fs from 'fs';
-import * as path from 'path';
-import type * as CardArtworkColorsModule from '@src/libs/CardArtworkColors';
 import {buildFeedKeysWithAssignedCards, isExpensifyCardUkEuSupportedSelector} from '@selectors/Card';
+import * as fs from 'fs';
 import lodashSortBy from 'lodash/sortBy';
+import * as path from 'path';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
@@ -10,6 +9,7 @@ import type IllustrationsType from '@styles/theme/illustrations/types';
 import CONST from '@src/CONST';
 import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import IntlStore from '@src/languages/IntlStore';
+import type * as CardArtworkColorsModule from '@src/libs/CardArtworkColors';
 import {
     doesCardFeedExist,
     feedHasCards,
@@ -4370,14 +4370,11 @@ describe('CardArtworkColors drift detection', () => {
         expect(GENERIC_CARD_BACKGROUND_COLOR).toBe(actual);
     });
 
-    it.each(FEED_ARTWORK.flatMap(({keys, svgPath}) => keys.map((key) => ({key, svgPath}))))(
-        'CARD_FEED_BACKGROUND_COLORS[$key] matches $svgPath',
-        ({key, svgPath}) => {
-            const {CARD_FEED_BACKGROUND_COLORS} = jest.requireActual<typeof CardArtworkColorsModule>('@src/libs/CardArtworkColors');
-            const svg = fs.readFileSync(path.join(ROOT, svgPath), 'utf-8');
-            const actual = extractBackgroundFill(svg);
-            expect(actual).not.toBeNull();
-            expect(CARD_FEED_BACKGROUND_COLORS[key]).toBe(actual);
-        },
-    );
+    it.each(FEED_ARTWORK.flatMap(({keys, svgPath}) => keys.map((key) => ({key, svgPath}))))('CARD_FEED_BACKGROUND_COLORS[$key] matches $svgPath', ({key, svgPath}) => {
+        const {CARD_FEED_BACKGROUND_COLORS} = jest.requireActual<typeof CardArtworkColorsModule>('@src/libs/CardArtworkColors');
+        const svg = fs.readFileSync(path.join(ROOT, svgPath), 'utf-8');
+        const actual = extractBackgroundFill(svg);
+        expect(actual).not.toBeNull();
+        expect(CARD_FEED_BACKGROUND_COLORS[key]).toBe(actual);
+    });
 });
