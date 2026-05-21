@@ -215,6 +215,10 @@ function canIOUBePaid(
         return true;
     }
 
+    if (isExpenseReport(iouReport) && !isPaidGroupPolicy(policy)) {
+        return false;
+    }
+
     return (
         isPayer &&
         isReportFinished &&
