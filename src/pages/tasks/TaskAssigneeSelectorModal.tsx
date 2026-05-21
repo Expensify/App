@@ -43,7 +43,8 @@ function TaskAssigneeSelectorModal() {
         | PlatformStackRouteProp<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.TASK_ASSIGNEE_SELECTOR>
     >();
     const {translate} = useLocalize();
-    const backTo = route.params?.backTo;
+    const reportID = route.params && 'reportID' in route.params ? route.params.reportID : undefined;
+    const backTo = route.params && 'backTo' in route.params ? route.params.backTo : undefined;
     const taskEditBackPath = useDynamicBackPath(DYNAMIC_ROUTES.TASK_ASSIGNEE.path);
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [task] = useOnyx(ONYXKEYS.TASK);
@@ -87,16 +88,16 @@ function TaskAssigneeSelectorModal() {
     const allPersonalDetails = usePersonalDetails();
 
     const report: OnyxEntry<Report> = (() => {
-        if (!route.params?.reportID) {
+        if (!reportID) {
             return;
         }
-        const reportOnyx = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${route.params?.reportID}`];
+        const reportOnyx = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
         if (reportOnyx && !isTaskReport(reportOnyx)) {
             Navigation.isNavigationReady().then(() => {
                 Navigation.dismissModalWithReport({reportID: reportOnyx.reportID});
             });
         }
-        return reports?.[`${ONYXKEYS.COLLECTION.REPORT}${route.params?.reportID}`];
+        return reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     })();
 
     const parentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
@@ -206,7 +207,7 @@ function TaskAssigneeSelectorModal() {
     };
 
     const handleBackButtonPress = () => {
-        if (!route.params?.reportID) {
+        if (!reportID) {
             Navigation.goBack(ROUTES.NEW_TASK.getRoute(backTo));
             return;
         }
