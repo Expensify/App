@@ -8,12 +8,11 @@ import Modal from '@components/Modal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getZenefitsSetupLink from '@libs/actions/connections/Zenefits';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type ConnectToZenefitsFlowProps from './types';
+import type ConnectToHRFlowProps from './types';
 
-function ConnectToZenefitsFlow({policyID}: ConnectToZenefitsFlowProps) {
+function ConnectToHRFlow({setupLink}: ConnectToHRFlowProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const webViewRef = useRef<WebView>(null);
@@ -24,7 +23,7 @@ function ConnectToZenefitsFlow({policyID}: ConnectToZenefitsFlowProps) {
         <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
             <ActivityIndicator
                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                reasonAttributes={{context: 'ConnectToZenefitsFlow'}}
+                reasonAttributes={{context: 'ConnectToHRFlow'}}
             />
         </View>
     );
@@ -46,7 +45,7 @@ function ConnectToZenefitsFlow({policyID}: ConnectToZenefitsFlowProps) {
                 <WebView
                     ref={webViewRef}
                     source={{
-                        uri: getZenefitsSetupLink(policyID),
+                        uri: setupLink,
                         headers: {
                             Cookie: `authToken=${authToken}`,
                         },
@@ -60,4 +59,4 @@ function ConnectToZenefitsFlow({policyID}: ConnectToZenefitsFlowProps) {
     );
 }
 
-export default ConnectToZenefitsFlow;
+export default ConnectToHRFlow;

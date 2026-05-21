@@ -5503,7 +5503,7 @@ describe('OptionsListUtils', () => {
                 reportID,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, {}, undefined);
+            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, report);
 
             expect(option.isDisabled).toBe(true);
         });
@@ -5640,10 +5640,6 @@ describe('OptionsListUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}19`, draftReport);
             await waitForBatchedUpdates();
 
-            const draftReports = {
-                '19': draftReport,
-            };
-
             const participant: Participant = {
                 reportID: '19',
                 selected: false,
@@ -5659,7 +5655,7 @@ describe('OptionsListUtils', () => {
             });
             await waitForBatchedUpdates();
 
-            const option = getReportOption(participant, !!reportNameValuePair?.private_isArchived, POLICY, {}, undefined, {}, draftReports);
+            const option = getReportOption(participant, !!reportNameValuePair?.private_isArchived, POLICY, {}, undefined, {}, draftReport);
 
             expect(option.isDisabled).toBe(true);
         });
