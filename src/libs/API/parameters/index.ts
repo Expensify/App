@@ -28,7 +28,7 @@ export type {default as ConnectPolicyToZenefitsParams} from './ConnectPolicyToZe
 export type {default as OpenPolicyProfilePageParams} from './OpenPolicyProfilePageParams';
 export type {default as OpenPolicyInitialPageParams} from './OpenPolicyInitialPageParams';
 export type {default as SyncPolicyToGustoParams} from './SyncPolicyToGustoParams';
-export type {default as SyncPolicyToMergeHRParams} from './SyncPolicyToMergeHRParams';
+export type {default as SyncPolicyToMergeParams} from './SyncPolicyToMergeParams';
 export type {default as SyncPolicyToZenefitsParams} from './SyncPolicyToZenefitsParams';
 export type {default as SyncPolicyToQuickbooksOnlineParams} from './SyncPolicyToQuickbooksOnlineParams';
 export type {default as SyncPolicyToXeroParams} from './SyncPolicyToXeroParams';
