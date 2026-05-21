@@ -17,6 +17,7 @@ import {clearAgentAvatarUpdateError, clearAgentNameUpdateError, clearAgentPrompt
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -29,9 +30,11 @@ function EditAgentPage({route}: EditAgentPageProps) {
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const accountID = route.params.accountID;
-    const [agent] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (list) => list?.[accountID]});
+    const [agent, agentMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
+    const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (list) => list?.[accountID]});
     const {showConfirmModal} = useConfirmModal();
+    const isOnyxLoaded = agentMetadata.status === 'loaded' && personalDetailsMetadata.status === 'loaded';
+    const shouldShowNotFoundPage = isOnyxLoaded && !agent && !personalDetails;
 
     const handleBackPress = () => Navigation.goBack();
     const handleEditAvatarPress = () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT_AVATAR.getRoute(accountID));
@@ -44,12 +47,17 @@ function EditAgentPage({route}: EditAgentPageProps) {
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
             danger: true,
+            shouldHandleNavigationBack: false,
         });
         if (result.action !== ModalActions.CONFIRM) {
             return;
         }
         deleteAgent(accountID);
     };
+
+    if (shouldShowNotFoundPage) {
+        return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_AGENTS)} />;
+    }
 
     return (
         <ScreenWrapper

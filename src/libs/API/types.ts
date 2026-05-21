@@ -390,8 +390,9 @@ const WRITE_COMMANDS = {
     UPGRADE_TO_CORPORATE: 'UpgradeToCorporate',
     UPDATE_GUSTO_APPROVAL_MODE: 'UpdateGustoApprovalMode',
     UPDATE_GUSTO_FINAL_APPROVER: 'UpdateGustoFinalApprover',
-    UPDATE_MERGE_HR_APPROVAL_MODE: 'UpdateMergeHRApprovalMode',
-    UPDATE_MERGE_HR_FINAL_APPROVER: 'UpdateMergeHRFinalApprover',
+    UPDATE_MERGE_APPROVAL_MODE: 'UpdateMergeApprovalMode',
+    UPDATE_MERGE_FINAL_APPROVER: 'UpdateMergeFinalApprover',
+    SYNC_POLICY_TO_MERGE: 'SyncPolicyToMerge',
     UPDATE_ZENEFITS_APPROVAL_MODE: 'UpdateZenefitsApprovalMode',
     UPDATE_ZENEFITS_FINAL_APPROVER: 'UpdateZenefitsFinalApprover',
     DOWNGRADE_TO_TEAM: 'Policy_DowngradeToTeam',
@@ -577,7 +578,6 @@ const WRITE_COMMANDS = {
     SAVE_CORPAY_ONBOARDING_COMPANY_DETAILS: 'SaveCorpayOnboardingCompanyDetails',
     SAVE_CORPAY_ONBOARDING_BENEFICIAL_OWNER: 'SaveCorpayOnboardingBeneficialOwner',
     DELETE_APP_REPORT: 'DeleteAppReport',
-    ADD_WORK_EMAIL: 'AddWorkEmail',
     SAVE_CORPAY_ONBOARDING_DIRECTOR_INFORMATION: 'SaveCorpayOnboardingDirectorInformation',
     ASK_FOR_CORPAY_SIGNER_INFORMATION: 'AskForCorpaySignerInformation',
     SEND_REMINDER_FOR_CORPAY_SINGER_INFORMATION: 'SendReminderForCorpaySignerInformation',
@@ -626,6 +626,8 @@ const WRITE_COMMANDS = {
     UPDATE_AGENT_PROMPT: 'UpdateAgentPrompt',
     UPDATE_AGENT_AVATAR: 'UpdateAgentAvatar',
     DELETE_AGENT: 'DeleteAgent',
+    SEND_EXPORT_FILE_FROM_CONCIERGE: 'SendExportFileFromConcierge',
+    CLEAR_EXPORT_DOWNLOAD: 'ClearExportDownload',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -1028,8 +1030,9 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_PROMO_CODE]: Parameters.SetPromoCodeParams;
     [WRITE_COMMANDS.UPDATE_GUSTO_APPROVAL_MODE]: Parameters.UpdateGustoApprovalModeParams;
     [WRITE_COMMANDS.UPDATE_GUSTO_FINAL_APPROVER]: Parameters.UpdateGustoFinalApproverParams;
-    [WRITE_COMMANDS.UPDATE_MERGE_HR_APPROVAL_MODE]: Parameters.UpdateMergeHRApprovalModeParams;
-    [WRITE_COMMANDS.UPDATE_MERGE_HR_FINAL_APPROVER]: Parameters.UpdateMergeHRFinalApproverParams;
+    [WRITE_COMMANDS.UPDATE_MERGE_APPROVAL_MODE]: Parameters.UpdateMergeApprovalModeParams;
+    [WRITE_COMMANDS.UPDATE_MERGE_FINAL_APPROVER]: Parameters.UpdateMergeFinalApproverParams;
+    [WRITE_COMMANDS.SYNC_POLICY_TO_MERGE]: Parameters.SyncPolicyToMergeParams;
     [WRITE_COMMANDS.UPDATE_ZENEFITS_APPROVAL_MODE]: Parameters.UpdateZenefitsApprovalModeParams;
     [WRITE_COMMANDS.UPDATE_ZENEFITS_FINAL_APPROVER]: Parameters.UpdateZenefitsFinalApproverParams;
     [WRITE_COMMANDS.REQUEST_TAX_EXEMPTION]: null;
@@ -1226,7 +1229,6 @@ type WriteCommandParameters = {
     // Dismiss Product Training
     [WRITE_COMMANDS.DISMISS_PRODUCT_TRAINING]: Parameters.DismissProductTrainingParams;
     [WRITE_COMMANDS.DELETE_APP_REPORT]: Parameters.DeleteAppReportParams;
-    [WRITE_COMMANDS.ADD_WORK_EMAIL]: Parameters.AddWorkEmailParams;
 
     // Merge accounts API
     [WRITE_COMMANDS.GET_VALIDATE_CODE_FOR_ACCOUNT_MERGE]: Parameters.GetValidateCodeForAccountMergeParams;
@@ -1274,6 +1276,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_AGENT_PROMPT]: Parameters.UpdateAgentPromptParams;
     [WRITE_COMMANDS.UPDATE_AGENT_AVATAR]: Parameters.UpdateAgentAvatarParams;
     [WRITE_COMMANDS.DELETE_AGENT]: Parameters.DeleteAgentParams;
+    [WRITE_COMMANDS.SEND_EXPORT_FILE_FROM_CONCIERGE]: Parameters.SendExportFileFromConciergeParams;
+    [WRITE_COMMANDS.CLEAR_EXPORT_DOWNLOAD]: Parameters.ClearExportDownloadParams;
 };
 
 const READ_COMMANDS = {
@@ -1283,7 +1287,6 @@ const READ_COMMANDS = {
     CONNECT_POLICY_TO_GUSTO: 'ConnectPolicyToGusto',
     CONNECT_POLICY_TO_ZENEFITS: 'ConnectPolicyToZenefits',
     CONNECT_POLICY_TO_MERGE: 'ConnectPolicyToMerge',
-    SYNC_POLICY_TO_MERGE_HR: 'SyncPolicyToMergeHR',
     SYNC_POLICY_TO_QUICKBOOKS_ONLINE: 'SyncPolicyToQuickbooksOnline',
     SYNC_POLICY_TO_XERO: 'SyncPolicyToXero',
     SYNC_POLICY_TO_NETSUITE: 'SyncPolicyToNetSuite',
@@ -1387,7 +1390,6 @@ type ReadCommandParameters = {
     [READ_COMMANDS.CONNECT_POLICY_TO_GUSTO]: Parameters.ConnectPolicyToGustoParams;
     [READ_COMMANDS.CONNECT_POLICY_TO_ZENEFITS]: Parameters.ConnectPolicyToZenefitsParams;
     [READ_COMMANDS.CONNECT_POLICY_TO_MERGE]: Parameters.ConnectPolicyToMergeParams;
-    [READ_COMMANDS.SYNC_POLICY_TO_MERGE_HR]: Parameters.SyncPolicyToMergeHRParams;
     [READ_COMMANDS.CONNECT_POLICY_TO_FINANCIAL_FORCE]: Parameters.ConnectPolicyToFinancialForceParams;
     [READ_COMMANDS.SYNC_POLICY_TO_QUICKBOOKS_ONLINE]: Parameters.SyncPolicyToQuickbooksOnlineParams;
     [READ_COMMANDS.SYNC_POLICY_TO_XERO]: Parameters.SyncPolicyToXeroParams;
@@ -1497,6 +1499,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     COMPLETE_HYBRID_APP_ONBOARDING: 'CompleteHybridAppOnboarding',
     CONNECT_POLICY_TO_QUICKBOOKS_DESKTOP: 'ConnectPolicyToQuickbooksDesktop',
     MERGE_INTO_ACCOUNT_AND_LOGIN: 'MergeIntoAccountAndLogIn',
+    ADD_WORK_EMAIL: 'AddWorkEmail',
     SEARCH: 'Search',
     GET_SCIM_TOKEN: 'GetSCIMToken',
 
@@ -1542,6 +1545,7 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.CONNECT_POLICY_TO_QUICKBOOKS_DESKTOP]: Parameters.ConnectPolicyToQuickBooksDesktopParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.PAY_MONEY_REQUEST_ON_SEARCH]: Parameters.PayMoneyRequestOnSearchParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.MERGE_INTO_ACCOUNT_AND_LOGIN]: Parameters.MergeIntoAccountAndLogInParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.ADD_WORK_EMAIL]: Parameters.AddWorkEmailParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.LOG_OUT]: Parameters.LogOutParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.CREATE_DIGITAL_WALLET]: Parameters.CreateDigitalWalletParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.VERIFY_TEST_DRIVE_RECIPIENT]: Parameters.VerifyTestDriveRecipientParams;
