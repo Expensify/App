@@ -388,8 +388,9 @@ const WRITE_COMMANDS = {
     UPGRADE_TO_CORPORATE: 'UpgradeToCorporate',
     UPDATE_GUSTO_APPROVAL_MODE: 'UpdateGustoApprovalMode',
     UPDATE_GUSTO_FINAL_APPROVER: 'UpdateGustoFinalApprover',
-    UPDATE_MERGE_HR_APPROVAL_MODE: 'UpdateMergeHRApprovalMode',
+    UPDATE_MERGE_APPROVAL_MODE: 'UpdateMergeApprovalMode',
     UPDATE_MERGE_FINAL_APPROVER: 'UpdateMergeFinalApprover',
+    SYNC_POLICY_TO_MERGE: 'SyncPolicyToMerge',
     UPDATE_ZENEFITS_APPROVAL_MODE: 'UpdateZenefitsApprovalMode',
     UPDATE_ZENEFITS_FINAL_APPROVER: 'UpdateZenefitsFinalApprover',
     DOWNGRADE_TO_TEAM: 'Policy_DowngradeToTeam',
@@ -1020,8 +1021,9 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_PROMO_CODE]: Parameters.SetPromoCodeParams;
     [WRITE_COMMANDS.UPDATE_GUSTO_APPROVAL_MODE]: Parameters.UpdateGustoApprovalModeParams;
     [WRITE_COMMANDS.UPDATE_GUSTO_FINAL_APPROVER]: Parameters.UpdateGustoFinalApproverParams;
-    [WRITE_COMMANDS.UPDATE_MERGE_HR_APPROVAL_MODE]: Parameters.UpdateMergeHRApprovalModeParams;
-    [WRITE_COMMANDS.UPDATE_MERGE_FINAL_APPROVER]: Parameters.UpdateMergeHRFinalApproverParams;
+    [WRITE_COMMANDS.UPDATE_MERGE_APPROVAL_MODE]: Parameters.UpdateMergeApprovalModeParams;
+    [WRITE_COMMANDS.UPDATE_MERGE_FINAL_APPROVER]: Parameters.UpdateMergeFinalApproverParams;
+    [WRITE_COMMANDS.SYNC_POLICY_TO_MERGE]: Parameters.SyncPolicyToMergeParams;
     [WRITE_COMMANDS.UPDATE_ZENEFITS_APPROVAL_MODE]: Parameters.UpdateZenefitsApprovalModeParams;
     [WRITE_COMMANDS.UPDATE_ZENEFITS_FINAL_APPROVER]: Parameters.UpdateZenefitsFinalApproverParams;
     [WRITE_COMMANDS.REQUEST_TAX_EXEMPTION]: null;
@@ -1278,7 +1280,6 @@ const READ_COMMANDS = {
     SYNC_POLICY_TO_QUICKBOOKS_DESKTOP: 'SyncPolicyToQuickbooksDesktop',
     SYNC_POLICY_TO_GUSTO: 'SyncPolicyToGusto',
     SYNC_POLICY_TO_ZENEFITS: 'SyncPolicyToZenefits',
-    SYNC_POLICY_TO_MERGE_HR: 'SyncPolicyToMergeHR',
     SYNC_POLICY_TO_FINANCIAL_FORCE: 'SyncPolicyToFinancialForce',
     CONNECT_POLICY_TO_FINANCIAL_FORCE: 'ConnectPolicyToFinancialForce',
     OPEN_REIMBURSEMENT_ACCOUNT_PAGE: 'OpenReimbursementAccountPage',
@@ -1382,7 +1383,6 @@ type ReadCommandParameters = {
     [READ_COMMANDS.SYNC_POLICY_TO_QUICKBOOKS_DESKTOP]: Parameters.SyncPolicyToQuickbooksDesktopParams;
     [READ_COMMANDS.SYNC_POLICY_TO_GUSTO]: Parameters.SyncPolicyToGustoParams;
     [READ_COMMANDS.SYNC_POLICY_TO_ZENEFITS]: Parameters.SyncPolicyToZenefitsParams;
-    [READ_COMMANDS.SYNC_POLICY_TO_MERGE_HR]: Parameters.SyncPolicyToMergeHRParams;
     [READ_COMMANDS.SYNC_POLICY_TO_FINANCIAL_FORCE]: {policyID: string};
     [READ_COMMANDS.OPEN_REIMBURSEMENT_ACCOUNT_PAGE]: Parameters.OpenReimbursementAccountPageParams;
     [READ_COMMANDS.OPEN_WORKSPACE_VIEW]: Parameters.OpenWorkspaceViewParams;

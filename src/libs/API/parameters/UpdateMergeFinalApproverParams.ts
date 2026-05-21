@@ -1,4 +1,4 @@
-type UpdateMergeHRFinalApproverParams = {
+type UpdateMergeFinalApproverParams = {
     /** The ID of the policy to update */
     policyID: string;
 
@@ -6,4 +6,4 @@ type UpdateMergeHRFinalApproverParams = {
     finalApprover: string | null;
 };
 
-export default UpdateMergeHRFinalApproverParams;
+export default UpdateMergeFinalApproverParams;
