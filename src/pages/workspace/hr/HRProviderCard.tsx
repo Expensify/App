@@ -148,7 +148,7 @@ function HRProviderCard({card, policy, handleConnect}: HRProviderCardProps) {
             {card.isConnected && !!finalApproverRoute && (
                 <OfflineWithFeedback
                     pendingAction={card.config?.pendingFields?.finalApprover}
-                    errors={card.config?.errorFields?.approvalMode}
+                    errors={card.config?.errorFields?.finalApprover}
                     onClose={() => clearHRConnectionErrorField(policy?.id, card.connectionName, 'finalApprover')}
                 >
                     <MenuItemWithTopDescription
