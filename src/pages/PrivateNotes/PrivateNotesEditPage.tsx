@@ -21,7 +21,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PrivateNotesNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
-import {goBackFromPrivateNotes} from '@libs/ReportUtils';
+import {goBackFromPrivateNotes, goBackToDetailsPage} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import type {WithReportAndPrivateNotesOrNotFoundProps} from '@pages/inbox/report/withReportAndPrivateNotesOrNotFound';
 import withReportAndPrivateNotesOrNotFound from '@pages/inbox/report/withReportAndPrivateNotesOrNotFound';
@@ -49,8 +49,7 @@ type PrivateNotesEditPageInternalProps = PrivateNotesEditPageProps & {
 };
 
 function PrivateNotesEditPageInternal({route, report, accountID, privateNoteDraft}: PrivateNotesEditPageInternalProps) {
-    const notesListBackPath = useDynamicBackPath(DYNAMIC_ROUTES.PRIVATE_NOTES_EDIT.path);
-    const detailsBackPath = useDynamicBackPath(DYNAMIC_ROUTES.PRIVATE_NOTES_LIST.path);
+    const privateNotesListBackPath = useDynamicBackPath(DYNAMIC_ROUTES.PRIVATE_NOTES_EDIT.path);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const personalDetailsList = usePersonalDetails();
@@ -106,9 +105,10 @@ function PrivateNotesEditPageInternal({route, report, accountID, privateNoteDraf
 
         const hasNewNoteBeenAdded = !originalNote && editedNote;
         if (!Object.values<Note>({...report.privateNotes, [route.params.accountID]: {note: editedNote}}).some((item) => item.note) || hasNewNoteBeenAdded) {
-            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(detailsBackPath));
+            // First note (or no notes left): user opened edit directly, not via the list — return to details/profile.
+            Navigation.setNavigationActionToMicrotaskQueue(() => goBackToDetailsPage(report, undefined, true));
         } else {
-            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(notesListBackPath));
+            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(privateNotesListBackPath));
         }
     };
 
