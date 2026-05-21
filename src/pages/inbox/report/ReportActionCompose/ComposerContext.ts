@@ -82,6 +82,7 @@ type ComposerMeta = {
     actionButtonRef: RefObject<View | HTMLDivElement | null>;
     isNextModalWillOpenRef: RefObject<boolean>;
     attachmentFileRef: RefObject<FileObject | FileObject[] | null>;
+    textRef: RefObject<string>;
 };
 
 const noop = () => {};

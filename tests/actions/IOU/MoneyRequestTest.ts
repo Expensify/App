@@ -56,6 +56,9 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
 }));
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-return -- jest.requireActual returns `any` by design
+jest.mock('@libs/actions/IOU/submitWithDismissFirst', () => jest.requireActual('../../__mocks__/submitWithDismissFirst'));
+
 jest.mock('@libs/getCurrentPosition');
 
 describe('MoneyRequest', () => {
@@ -597,6 +600,8 @@ describe('MoneyRequest', () => {
                 baseParams.personalDetails,
                 undefined,
                 undefined,
+                undefined,
+                undefined,
             );
             await getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
@@ -716,7 +721,16 @@ describe('MoneyRequest', () => {
                 ...fakeReport,
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
             };
-            baseParams.participants = getMoneyRequestParticipantOptions(baseParams.currentUserAccountID, report, baseParams.policy, baseParams.personalDetails, undefined, undefined);
+            baseParams.participants = getMoneyRequestParticipantOptions(
+                baseParams.currentUserAccountID,
+                report,
+                baseParams.policy,
+                baseParams.personalDetails,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+            );
 
             await getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
@@ -855,8 +869,7 @@ describe('MoneyRequest', () => {
                         gpsPoint: undefined,
                     }),
                     isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
-                    currentUserAccountIDParam: baseParams.currentUserAccountID,
-                    currentUserEmailParam: baseParams.currentUserLogin,
+                    currentUser: {accountID: baseParams.currentUserAccountID, email: baseParams.currentUserLogin},
                     quickAction: baseParams.quickAction,
                     shouldHandleNavigation: true,
                     recentWaypoints,
@@ -1089,6 +1102,7 @@ describe('MoneyRequest', () => {
             draftTransactionIDs: undefined,
             userBillingGracePeriodEnds: undefined,
             conciergeReportID: undefined,
+            reportDraft: undefined,
         };
         const splitShares: SplitShares = {
             [firstSplitParticipantID]: {
@@ -1204,9 +1218,10 @@ describe('MoneyRequest', () => {
                     taxCode: '',
                     taxAmount: 0,
                 },
+                shouldHandleNavigation: true,
+                shouldDeferForSearch: false,
                 isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
-                currentUserAccountIDParam: baseParams.currentUserAccountID,
-                currentUserEmailParam: baseParams.currentUserLogin,
+                currentUser: {accountID: baseParams.currentUserAccountID, email: baseParams.currentUserLogin},
                 quickAction: baseParams.quickAction,
                 recentWaypoints: baseParams.recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -1301,8 +1316,7 @@ describe('MoneyRequest', () => {
                         }),
                     }),
                     isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
-                    currentUserAccountIDParam: baseParams.currentUserAccountID,
-                    currentUserEmailParam: baseParams.currentUserLogin,
+                    currentUser: {accountID: baseParams.currentUserAccountID, email: baseParams.currentUserLogin},
                     quickAction: baseParams.quickAction,
                     recentWaypoints: baseParams.recentWaypoints,
                 }),
@@ -1543,6 +1557,44 @@ describe('MoneyRequest', () => {
             await waitForBatchedUpdates();
             expect(baseParams.setDistanceRequestData).toHaveBeenCalled();
         });
+
+        it('should pass reportDraft to getMoneyRequestParticipantOptions and mark participant as disabled', async () => {
+            let capturedParticipants: Participant[] = [];
+            handleMoneyRequestStepDistanceNavigation({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.SUBMIT,
+                shouldSkipConfirmation: false,
+                isArchivedExpenseReport: false,
+                draftTransactionIDs: [baseParams.transactionID],
+                reportDraft: fakeReport,
+                setDistanceRequestData: (participants) => {
+                    capturedParticipants = participants;
+                },
+            });
+
+            await waitForBatchedUpdates();
+            expect(capturedParticipants.length).toBeGreaterThan(0);
+            expect(capturedParticipants.at(0)).toMatchObject({isDisabled: true});
+        });
+
+        it('should not mark participant as disabled when reportDraft is undefined', async () => {
+            let capturedParticipants: Participant[] = [];
+            handleMoneyRequestStepDistanceNavigation({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.SUBMIT,
+                shouldSkipConfirmation: false,
+                isArchivedExpenseReport: false,
+                draftTransactionIDs: [baseParams.transactionID],
+                reportDraft: undefined,
+                setDistanceRequestData: (participants) => {
+                    capturedParticipants = participants;
+                },
+            });
+
+            await waitForBatchedUpdates();
+            expect(capturedParticipants.length).toBeGreaterThan(0);
+            expect(capturedParticipants.at(0)).toMatchObject({isDisabled: false});
+        });
     });
 
     describe('getMoneyRequestParticipantOptions', () => {
@@ -1566,17 +1618,17 @@ describe('MoneyRequest', () => {
         });
 
         it('should return participants when conciergeReportID is undefined', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined);
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, undefined);
             expect(Array.isArray(participants)).toBe(true);
         });
 
         it('should return participants when conciergeReportID is provided', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, 'concierge123');
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, 'concierge123', undefined, undefined, undefined);
             expect(Array.isArray(participants)).toBe(true);
         });
 
         it('should pass conciergeReportID through to getReportOption for policy expense chat participants', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, 'concierge456');
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, 'concierge456', undefined, undefined, undefined);
             // For policy expense chat, participants have accountID 0 and go through getReportOption
             // which uses conciergeReportID for identifying concierge chat
             expect(Array.isArray(participants)).toBe(true);
@@ -1584,7 +1636,7 @@ describe('MoneyRequest', () => {
         });
 
         it('should return participants with privateIsArchived passed through', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, true);
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, true, undefined, undefined);
             expect(Array.isArray(participants)).toBe(true);
         });
 
@@ -1593,8 +1645,31 @@ describe('MoneyRequest', () => {
                 ...createRandomReport(2, undefined),
                 participants: {},
             };
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, dmReport, fakePolicy, {}, undefined);
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, dmReport, fakePolicy, {}, undefined, undefined, undefined, undefined);
             expect(Array.isArray(participants)).toBe(true);
+        });
+
+        it('should mark policy expense chat participant as disabled when reportDrafts contains the report', () => {
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, fakeReport);
+            expect(Array.isArray(participants)).toBe(true);
+            expect(participants.length).toBeGreaterThan(0);
+            expect(participants.at(0)).toMatchObject({isDisabled: true});
+        });
+
+        it('should not mark participant as disabled when reportDraft is undefined', () => {
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, undefined);
+            expect(Array.isArray(participants)).toBe(true);
+            expect(participants.length).toBeGreaterThan(0);
+            expect(participants.at(0)).toMatchObject({isDisabled: false});
+        });
+
+        it('should not mark participant as disabled when reportDrafts is undefined', () => {
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, undefined);
+            expect(Array.isArray(participants)).toBe(true);
+            expect(participants.length).toBeGreaterThan(0);
+            // When reportDrafts is undefined, isDraftReport is called which checks Onyx directly
+            // and since no draft is set, isDisabled should be false
+            expect(participants.at(0)).toMatchObject({isDisabled: false});
         });
     });
 
