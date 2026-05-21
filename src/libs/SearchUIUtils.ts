@@ -2122,6 +2122,7 @@ function getTransactionsSections({
             const transactionAttendees = getAttendees(transactionItem, currentUserPersonalDetails);
             const isUnreported = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
             const shouldShowAttendees = shouldShowAttendeesUtils(CONST.IOU.TYPE.SUBMIT, isUnreported ? policyForMovingExpenses : policy) && transactionAttendees.length > 0;
+            const shouldHideSubmitAsPrimaryAction = report?.ownerAccountID !== currentAccountID;
 
             const transactionSection: TransactionListItemType = {
                 ...transactionItem,
@@ -2135,7 +2136,7 @@ function getTransactionsSections({
                       }
                     : {}),
                 keyForList: transactionItem.transactionID,
-                action: getAction(allActions, report?.ownerAccountID !== currentAccountID ? [CONST.SEARCH.ACTION_TYPES.SUBMIT] : []),
+                action: getAction(allActions, shouldHideSubmitAsPrimaryAction ? [CONST.SEARCH.ACTION_TYPES.SUBMIT] : []),
                 allActions,
                 report,
                 policy,
@@ -2849,10 +2850,11 @@ function getReportSections({
             const transactionReportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
             const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, transactionReportMetadata, actions);
             const transactionPendingAction = getTransactionPendingAction(transactionItem);
+            const shouldHideSubmitAsPrimaryAction = report?.ownerAccountID !== currentAccountID;
             const transaction = {
                 ...transactionItem,
                 ...(transactionPendingAction ? {pendingAction: transactionPendingAction} : {}),
-                action: getAction(allActions, report?.ownerAccountID !== currentAccountID ? [CONST.SEARCH.ACTION_TYPES.SUBMIT] : []),
+                action: getAction(allActions, shouldHideSubmitAsPrimaryAction ? [CONST.SEARCH.ACTION_TYPES.SUBMIT] : []),
                 allActions,
                 report,
                 reportAction,
