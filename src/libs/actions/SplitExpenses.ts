@@ -88,8 +88,8 @@ Onyx.connectWithoutView({
  */
 function initSplitExpense(
     transaction: OnyxEntry<Transaction>,
-    policy?: OnyxEntry<Policy>,
-    report?: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    report: OnyxEntry<Report>,
     {navigateToEditSplitExpense = false}: {navigateToEditSplitExpense?: boolean} = {},
 ): void {
     if (!transaction) {
