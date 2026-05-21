@@ -1,8 +1,8 @@
 ---
 title: Navigating New Expensify
 description: Learn how to move around New Expensify using the navigation tabs, including Home, Inbox, Spend, Workspaces, and Account on web and mobile.
-keywords: [New Expensify, navigation tabs, navigation, Home tab, Inbox tab, Spend tab, Workspaces tab, Account tab, Scan button, Create button, workspace filter]
-internalScope: Audience is all Expensify members. Covers how to navigate Expensify using the navigation tabs and primary action buttons. Does not explain the detailed behavior of the Home tab sections.
+keywords: [New Expensify, navigation tabs, navigation, Home tab, Inbox tab, Spend tab, Workspaces tab, Account tab, Scan button, Create button, workspace filter, CMD click, new tab, open in new tab]
+internalScope: Audience is all Expensify members. Covers how to navigate Expensify using the navigation tabs, primary action buttons, and CMD/Ctrl+click to open items in new browser tabs. Does not explain the detailed behavior of the Home tab sections.
 ---
 
 # Navigating New Expensify 
@@ -132,6 +132,19 @@ The **Scan** and **Create** buttons are available from all screens so you can qu
 
 ---
 
+## How to open items in a new browser tab on web
+
+On web, you can hold **CMD** (Mac) or **Ctrl** (Windows/Linux) while clicking an item to open it in a new browser tab. This works on:
+
+- Expense and report rows on the **Spend** page
+- Workspace rows on the **Workspaces** page
+
+This lets you keep your current view open while reviewing an expense, report, or workspace in a separate tab.
+
+This feature is not available on mobile.
+
+---
+
 ## How to navigate New Expensify quickly
 
 If you’re not sure where to go:
@@ -178,3 +191,7 @@ If no contacts are assigned, these options will not appear on the **Help** page.
 ## How do I get an Account Manager assigned?
 
 Account Managers are typically assigned to accounts with subscriptions that include 10 or more members. Contact **Concierge** if you believe your account qualifies.
+
+## Can I CMD+click to open expenses or workspaces in a new tab?
+
+Yes, on web. Hold **CMD** (Mac) or **Ctrl** (Windows/Linux) while clicking an expense row, report row, or workspace row to open it in a new browser tab. This is not available on mobile.
