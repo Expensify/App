@@ -4,8 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
-import type {PersonalDetailsList, Policy, Report} from '@src/types/onyx';
-import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
+import type {Report} from '@src/types/onyx';
 
 type OptionMode = ValueOf<typeof CONST.OPTION_MODE>;
 
@@ -38,20 +37,8 @@ type OptionRowLHNDataProps = {
     /** Whether row should be focused */
     isOptionFocused?: boolean;
 
-    /** List of users' personal details */
-    personalDetails?: PersonalDetailsList;
-
     /** The full data of the report */
     fullReport: OnyxEntry<Report>;
-
-    /** The transaction thread report associated with the current report, if any */
-    oneTransactionThreadReport: OnyxEntry<Report>;
-
-    /** The policy which the user has access to and which the report could be tied to */
-    policy?: OnyxEntry<Policy>;
-
-    /** Invoice receiver policy */
-    invoiceReceiverPolicy?: OnyxEntry<Policy>;
 
     /** The reportID of the report */
     reportID: string;
@@ -64,12 +51,6 @@ type OptionRowLHNDataProps = {
 
     /** Callback to execute when the OptionList lays out */
     onLayout?: (event: LayoutChangeEvent) => void;
-
-    /** The report attributes for the report */
-    reportAttributes: OnyxEntry<ReportAttributes>;
-
-    /** The derived report attributes for all reports */
-    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
 
     /** TestID of the row, indicating order */
     testID: number;

@@ -3,12 +3,14 @@ import type {ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {OptionRowLHNDataProps} from '@components/LHNOptionsList/types';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportPreviewSenderID';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromReportAction';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useReportAttributesByID} from '@hooks/useReportAttributes';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getLastVisibleActionIncludingTransactionThread, getOriginalMessage, isActionableTrackExpense, isInviteOrRemovedAction} from '@libs/ReportActionsUtils';
@@ -18,7 +20,7 @@ import CONST from '@src/CONST';
 import {getMovedReportID} from '@src/libs/ModifiedExpenseMessage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions as ReportActionsType} from '@src/types/onyx';
-import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
+import type {ReportAttributes, VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import OptionRowLHN from './OptionRowLHN';
 
@@ -28,26 +30,34 @@ import OptionRowLHN from './OptionRowLHN';
  * OptionRowLHN is auto-memoized by React Compiler, so it will
  * only re-render when the inputs derived from this wrapper change.
  */
-function OptionRowLHNData({
-    isOptionFocused = false,
-    fullReport,
-    reportAttributes,
-    reportAttributesDerived,
-    oneTransactionThreadReport,
-    personalDetails = {},
-    policy,
-    invoiceReceiverPolicy,
-    viewMode = 'default',
-    reportID,
-    ...propsToForward
-}: OptionRowLHNDataProps) {
+function OptionRowLHNData({isOptionFocused = false, fullReport, viewMode = 'default', reportID, ...propsToForward}: OptionRowLHNDataProps) {
     const styles = useThemeStyles();
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const isReportFocused = isOptionFocused && currentReportIDValue === reportID;
     const {translate, localeCompare} = useLocalize();
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
 
-    const oneTransactionThreadReportID = oneTransactionThreadReport?.reportID;
+    const reportAttributes = useReportAttributesByID(reportID) as ReportAttributes | undefined;
+    const oneTransactionThreadReportIDFromAttributes = reportAttributes?.oneTransactionThreadReportID;
+    const [oneTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(oneTransactionThreadReportIDFromAttributes)}`);
+    const oneTransactionThreadReportID = oneTransactionThreadReport?.reportID ?? oneTransactionThreadReportIDFromAttributes;
+
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(fullReport?.parentReportID)}`);
+
+    const invoiceReceiverPolicyID = useMemo(() => {
+        if (fullReport?.invoiceReceiver && 'policyID' in fullReport.invoiceReceiver) {
+            return fullReport.invoiceReceiver.policyID;
+        }
+        if (parentReport?.invoiceReceiver && 'policyID' in parentReport.invoiceReceiver) {
+            return parentReport.invoiceReceiver.policyID;
+        }
+        return undefined;
+    }, [fullReport?.invoiceReceiver, parentReport?.invoiceReceiver]);
+
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(fullReport?.policyID)}`);
+    const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(invoiceReceiverPolicyID)}`);
+
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     // Per-item report actions subscriptions (scoped by specific report ID)
@@ -121,6 +131,29 @@ function OptionRowLHNData({
     const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.FROM)}`);
     const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fullReport?.policyID}`);
+
+    const lastActionReportAttributes = useReportAttributesByID(lastActionReportID ? String(lastActionReportID) : undefined) as ReportAttributes | undefined;
+    const movedFromReportAttributes = useReportAttributesByID(movedFromReport?.reportID) as ReportAttributes | undefined;
+    const movedToReportAttributes = useReportAttributesByID(movedToReport?.reportID) as ReportAttributes | undefined;
+
+    const reportAttributesDerived = (() => {
+        const derived: NonNullable<Parameters<typeof SidebarUtils.getOptionData>[0]['reportAttributesDerived']> = {};
+
+        if (reportAttributes) {
+            derived[reportID] = reportAttributes;
+        }
+        if (lastActionReport?.reportID && lastActionReportAttributes) {
+            derived[lastActionReport.reportID] = lastActionReportAttributes;
+        }
+        if (movedFromReport?.reportID && movedFromReportAttributes) {
+            derived[movedFromReport.reportID] = movedFromReportAttributes;
+        }
+        if (movedToReport?.reportID && movedToReportAttributes) {
+            derived[movedToReport.reportID] = movedToReportAttributes;
+        }
+
+        return Object.keys(derived).length > 0 ? derived : undefined;
+    })();
 
     const card = useGetExpensifyCardFromReportAction({reportAction: lastAction, policyID: fullReport?.policyID});
 
