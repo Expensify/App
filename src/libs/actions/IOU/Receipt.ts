@@ -1,5 +1,6 @@
 import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import type {DetachReceiptParams, ReplaceReceiptParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -20,9 +21,19 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {ReplaceReceipt} from '.';
 import {getAllReports, getAllTransactions, getAllTransactionViolations} from '.';
 import {getReceiptError} from './MoneyRequestBuilder';
+
+type ReplaceReceipt = {
+    transactionID: string;
+    file?: File;
+    source: string;
+    state?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
+    transactionPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
+    transactionPolicy: OnyxEntry<OnyxTypes.Policy>;
+    isSameReceipt?: boolean;
+    transactionPolicyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
+};
 
 function detachReceipt(
     transactionID: string | undefined,
@@ -347,3 +358,4 @@ function checkIfLocalFileIsAccessible(
 }
 
 export {checkIfLocalFileIsAccessible, detachReceipt, navigateToStartStepIfScanFileCannotBeRead, replaceReceipt, setMoneyRequestReceipt};
+export type {ReplaceReceipt};

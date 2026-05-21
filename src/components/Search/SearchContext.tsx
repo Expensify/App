@@ -55,6 +55,7 @@ const defaultSearchContextData: SearchContextData = {
     currentSearchHash: -1,
     currentSimilarSearchHash: -1,
     suggestedSearches: {} as Record<SearchKey, SearchTypeMenuItem>,
+    sortedReportIDs: CONST.EMPTY_ARRAY,
 };
 
 const defaultSearchStateContext: SearchStateContextValue = {
@@ -77,6 +78,7 @@ const defaultSearchActionsContext: SearchActionsContextValue = {
     setShouldShowSelectAllMatchingItems: () => {},
     selectAllMatchingItems: () => {},
     setShouldResetSearchQuery: () => {},
+    setSortedReportIDs: () => {},
 };
 
 const SearchStateContext = React.createContext<SearchStateContextValue>(defaultSearchStateContext);
@@ -316,6 +318,15 @@ function SearchContextProvider({children}: SearchContextProps) {
         }));
     };
 
+    const setSortedReportIDs = (newIDs: ReadonlyArray<string | undefined>) => {
+        setSearchContextData((prev) => {
+            // ensure that we don't save the same report IDs unless they are really different
+            const hasChanged = prev.sortedReportIDs.length !== newIDs.length || prev.sortedReportIDs.some((id, i) => id !== newIDs.at(i));
+
+            return hasChanged ? {...prev, sortedReportIDs: newIDs} : prev;
+        });
+    };
+
     const searchStateContextValue: SearchStateContextValue = {
         ...searchContextData,
         suggestedSearches,
@@ -342,6 +353,7 @@ function SearchContextProvider({children}: SearchContextProps) {
         setShouldShowSelectAllMatchingItems,
         selectAllMatchingItems,
         setShouldResetSearchQuery,
+        setSortedReportIDs,
     };
 
     return (
