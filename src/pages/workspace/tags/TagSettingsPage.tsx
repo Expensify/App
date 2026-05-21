@@ -41,7 +41,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 type TagSettingsPageProps =
-    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_SETTINGS>
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_SETTINGS>
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_SETTINGS>;
 
 function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
@@ -57,7 +57,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock', 'Trashcan']);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_SETTINGS;
-    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_TAG_SETTINGS.path);
+    const backPath = useDynamicBackPath(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAG_SETTINGS.path : DYNAMIC_ROUTES.WORKSPACE_TAG_SETTINGS.path);
     const tagApprover = getTagApproverRule(policy, route.params?.tagName)?.approver ?? '';
     const approver = getPersonalDetailByEmail(tagApprover);
     const approverText = formatPhoneNumber(approver?.displayName ?? tagApprover);
@@ -93,37 +93,22 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     };
 
     const navigateToEditTag = () => {
-        Navigation.navigate(
-            isQuickSettingsFlow
-                ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_EDIT.getRoute(orderWeight, currentPolicyTag.name))
-                : ROUTES.WORKSPACE_TAG_EDIT.getRoute(policyID, orderWeight, currentPolicyTag.name),
-        );
+        Navigation.navigate(createDynamicRoute((isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAG_EDIT : DYNAMIC_ROUTES.WORKSPACE_TAG_EDIT).getRoute(orderWeight, currentPolicyTag.name)));
     };
 
     const navigateToEditGlCode = () => {
+        const glCodeRoute = createDynamicRoute(
+            (isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAG_GL_CODE : DYNAMIC_ROUTES.WORKSPACE_TAG_GL_CODE).getRoute(orderWeight, currentPolicyTag.name),
+        );
         if (!isControlPolicy(policy)) {
-            Navigation.navigate(
-                ROUTES.WORKSPACE_UPGRADE.getRoute(
-                    policyID,
-                    CONST.UPGRADE_FEATURE_INTRO_MAPPING.glCodes.alias,
-                    isQuickSettingsFlow
-                        ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_GL_CODE.getRoute(orderWeight, tagName))
-                        : ROUTES.WORKSPACE_TAG_GL_CODE.getRoute(policyID, orderWeight, tagName),
-                ),
-            );
+            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.glCodes.alias, glCodeRoute));
             return;
         }
-        Navigation.navigate(
-            isQuickSettingsFlow
-                ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_GL_CODE.getRoute(orderWeight, currentPolicyTag.name))
-                : ROUTES.WORKSPACE_TAG_GL_CODE.getRoute(policyID, orderWeight, currentPolicyTag.name),
-        );
+        Navigation.navigate(glCodeRoute);
     };
 
     const navigateToEditTagApprover = () => {
-        Navigation.navigate(
-            isQuickSettingsFlow ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_APPROVER.path) : ROUTES.WORKSPACE_TAG_APPROVER.getRoute(policyID, orderWeight, currentPolicyTag.name),
-        );
+        Navigation.navigate(createDynamicRoute((isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAG_APPROVER : DYNAMIC_ROUTES.WORKSPACE_TAG_APPROVER).path));
     };
 
     const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
@@ -147,7 +132,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                 <HeaderWithBackButton
                     title={getCleanedTagName(tagName)}
                     shouldSetModalVisibility={false}
-                    onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? backPath : undefined)}
+                    onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
 
                 <ScrollView>
