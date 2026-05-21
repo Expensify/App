@@ -1,5 +1,6 @@
 import {findFocusedRoute, useFocusEffect} from '@react-navigation/native';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
+import {FlashList} from '@shopify/flash-list';
 import isEmpty from 'lodash/isEmpty';
 import React, {memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -122,6 +123,8 @@ type TransactionWithOptionalHighlight = OnyxTypes.Transaction & {
     /** Whether the transaction should be highlighted, when it is added to the report */
     shouldBeHighlighted?: boolean;
 };
+
+type TransactionListItemData = {type: 'section-header'; groupKey: string; group: OnyxTypes.GroupedTransactions} | {type: 'transaction'; transaction: TransactionWithOptionalHighlight};
 
 type ReportScreenNavigationProps = ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
 
@@ -597,85 +600,111 @@ function MoneyRequestReportTransactionList({
         [groupByOptions, reportLayoutGroupBy, styles, windowHeight, isInLandscapeMode],
     );
 
-    const isDesktopTableLayout = !shouldUseNarrowLayout;
+    const listItems = useMemo<TransactionListItemData[]>(() => {
+        if (shouldShowGroupedTransactions) {
+            const items: TransactionListItemData[] = [];
+            for (const group of groupedTransactions) {
+                items.push({type: 'section-header', groupKey: group.groupKey, group});
+                for (const transaction of group.transactions) {
+                    items.push({type: 'transaction', transaction});
+                }
+            }
+            return items;
+        }
+        return resolvedTransactions.map((transaction) => ({type: 'transaction', transaction}));
+    }, [shouldShowGroupedTransactions, groupedTransactions, resolvedTransactions]);
 
-    const lastTransactionID = useMemo(() => {
-        const allTransactions = shouldShowGroupedTransactions ? groupedTransactions.flatMap((group) => group.transactions) : resolvedTransactions;
-        const visibleTransactions = allTransactions.filter((t) => isOffline || !isTransactionPendingDelete(t));
-        return visibleTransactions.at(-1)?.transactionID;
-    }, [shouldShowGroupedTransactions, groupedTransactions, resolvedTransactions, isOffline]);
+    const keyExtractor = useCallback((item: TransactionListItemData) => {
+        if (item.type === 'section-header') {
+            return `group-${item.groupKey}`;
+        }
+        return item.transaction.transactionID;
+    }, []);
 
-    const renderTransactionItem = (transaction: TransactionWithOptionalHighlight) => (
-        <MoneyRequestReportTransactionItem
-            key={transaction.transactionID}
-            transaction={transaction}
-            shouldBeHighlighted={highlightedTransactionIDs.has(transaction.transactionID)}
-            columns={columnsToShow}
-            report={report}
-            policy={policy}
-            isSelectionModeEnabled={isMobileSelectionModeEnabled}
-            toggleTransaction={toggleTransaction}
-            isSelected={isTransactionSelected(transaction.transactionID)}
-            handleOnPress={handleOnPress}
-            handleLongPress={handleLongPress}
-            dateColumnSize={dateColumnSize}
-            amountColumnSize={amountColumnSize}
-            taxAmountColumnSize={taxAmountColumnSize}
-            scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
-            onArrowRightPress={handleArrowRightPress}
-            nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards ?? {}}
-            isLastItem={!showPendingExpensePlaceholder && transaction.transactionID === lastTransactionID}
-            shouldScrollHorizontally={shouldScrollHorizontally}
-        />
+    const renderItem = useCallback(
+        ({item}: {item: TransactionListItemData}) => {
+            if (item.type === 'section-header') {
+                const selectionState = groupSelectionState.get(item.groupKey) ?? {
+                    isSelected: false,
+                    isIndeterminate: false,
+                    isDisabled: false,
+                    pendingAction: undefined,
+                };
+                return (
+                    <MoneyRequestReportGroupHeader
+                        group={item.group}
+                        groupKey={item.groupKey}
+                        currency={report?.currency ?? ''}
+                        isGroupedByTag={currentGroupBy === CONST.REPORT_LAYOUT.GROUP_BY.TAG}
+                        isSelectionModeEnabled={isMobileSelectionModeEnabled}
+                        isSelected={selectionState.isSelected}
+                        isIndeterminate={selectionState.isIndeterminate}
+                        isDisabled={selectionState.isDisabled}
+                        onToggleSelection={toggleGroupSelection}
+                        pendingAction={selectionState.pendingAction}
+                    />
+                );
+            }
+            const transaction = item.transaction;
+            return (
+                <MoneyRequestReportTransactionItem
+                    transaction={transaction}
+                    shouldBeHighlighted={highlightedTransactionIDs.has(transaction.transactionID)}
+                    columns={columnsToShow}
+                    report={report}
+                    policy={policy}
+                    isSelectionModeEnabled={isMobileSelectionModeEnabled}
+                    toggleTransaction={toggleTransaction}
+                    isSelected={isTransactionSelected(transaction.transactionID)}
+                    handleOnPress={handleOnPress}
+                    handleLongPress={handleLongPress}
+                    dateColumnSize={dateColumnSize}
+                    amountColumnSize={amountColumnSize}
+                    taxAmountColumnSize={taxAmountColumnSize}
+                    scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
+                    onArrowRightPress={handleArrowRightPress}
+                    nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards ?? {}}
+                />
+            );
+        },
+        [
+            groupSelectionState,
+            report,
+            currentGroupBy,
+            isMobileSelectionModeEnabled,
+            toggleGroupSelection,
+            highlightedTransactionIDs,
+            columnsToShow,
+            policy,
+            toggleTransaction,
+            isTransactionSelected,
+            handleOnPress,
+            handleLongPress,
+            dateColumnSize,
+            amountColumnSize,
+            taxAmountColumnSize,
+            newTransactions,
+            scrollToNewTransaction,
+            handleArrowRightPress,
+            nonPersonalAndWorkspaceCards,
+        ],
     );
 
-    const transactionItems = shouldShowGroupedTransactions
-        ? groupedTransactions.map((group) => {
-              const selectionState = groupSelectionState.get(group.groupKey) ?? {
-                  isSelected: false,
-                  isIndeterminate: false,
-                  isDisabled: false,
-                  pendingAction: undefined,
-              };
-              return (
-                  <View key={group.groupKey}>
-                      <MoneyRequestReportGroupHeader
-                          group={group}
-                          groupKey={group.groupKey}
-                          currency={report?.currency ?? ''}
-                          isGroupedByTag={currentGroupBy === CONST.REPORT_LAYOUT.GROUP_BY.TAG}
-                          isSelectionModeEnabled={isMobileSelectionModeEnabled}
-                          isSelected={selectionState.isSelected}
-                          isIndeterminate={selectionState.isIndeterminate}
-                          isDisabled={selectionState.isDisabled}
-                          onToggleSelection={toggleGroupSelection}
-                          pendingAction={selectionState.pendingAction}
-                          shouldUseNarrowLayout={shouldUseNarrowLayout}
-                      />
-                      {group.transactions.map((transaction) => renderTransactionItem(transaction))}
-                  </View>
-              );
-          })
-        : resolvedTransactions.map((transaction) => renderTransactionItem(transaction));
-
-    const narrowListWrapper = shouldUseNarrowLayout ? [styles.highlightBG, styles.tableTopRadius, styles.tableBottomRadius, styles.overflowHidden] : undefined;
+    const listHeight = Math.min(listItems.length * 65, windowHeight * 0.65);
 
     const transactionListContent = (
         <View
             style={[listHorizontalPadding, shouldUseNarrowLayout ? styles.pb2 : styles.pb4]}
             onLayout={onLayout}
         >
-            {narrowListWrapper ? <View style={narrowListWrapper}>{transactionItems}</View> : transactionItems}
-            {showPendingExpensePlaceholder && (
-                <SearchRowSkeleton
-                    shouldAnimate
-                    fixedNumItems={1}
-                    isLoadMore
-                    containerStyle={styles.mhn5}
-                    shouldUseNarrowLayout={false}
-                    reasonAttributes={PENDING_EXPENSE_REASON_ATTRIBUTES}
+            <View style={{height: listHeight}}>
+                <FlashList
+                    data={listItems}
+                    renderItem={renderItem}
+                    estimatedItemSize={65}
+                    keyExtractor={keyExtractor}
                 />
-            )}
+            </View>
         </View>
     );
 
