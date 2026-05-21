@@ -186,7 +186,7 @@ function updateMergeHRFinalApprover(policyID: string, finalApprover: string | nu
 
 type HRProviderName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.HR_CONNECTION_NAMES>;
 
-function clearMergeHRErrorField(policyID?: string, provider?: HRProviderName) {
+function clearHRConnectionErrorField(policyID?: string, provider?: HRProviderName) {
     if (!policyID || !provider) {
         return;
     }
@@ -200,6 +200,6 @@ function clearMergeHRErrorField(policyID?: string, provider?: HRProviderName) {
         },
     });
 }
-export {syncMergeHR, updateMergeHRApprovalMode, updateMergeHRFinalApprover, clearMergeHRErrorField};
+export {syncMergeHR, updateMergeHRApprovalMode, updateMergeHRFinalApprover, clearHRConnectionErrorField as clearMergeHRErrorField};
 
 export default getMergeHRSetupLink;

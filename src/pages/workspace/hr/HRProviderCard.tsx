@@ -137,7 +137,7 @@ function HRProviderCard({card, policy, handleConnect}: HRProviderCardProps) {
                 <OfflineWithFeedback
                     pendingAction={card.config?.pendingFields?.approvalMode}
                     errors={card.config?.errorFields?.approvalMode}
-                    onClose={() => clearMergeHRErrorField(policy?.id)}
+                    onClose={() => clearMergeHRErrorField(policy?.id, card.connectionName)}
                 >
                     <MenuItemWithTopDescription
                         description={translate('workspace.hr.approvalMode')}
