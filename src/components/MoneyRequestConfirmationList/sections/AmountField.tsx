@@ -89,9 +89,14 @@ function AmountField({
 
     const isAmountFieldDisabled = didConfirm || isReadOnly || shouldShowTimeRequestFields || isDistanceRequest;
     const firstParticipant = transaction?.participants?.at(0);
-    const isP2P = isNewManualExpenseFlowEnabled
-        ? isParticipantP2P(getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID).at(0))
-        : !!(firstParticipant?.accountID && !firstParticipant?.isPolicyExpenseChat);
+    const participantForAmountValidation =
+        isNewManualExpenseFlowEnabled && firstParticipant ? firstParticipant : getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID).at(0);
+    const isSelfDMParticipant = !!participantForAmountValidation?.isSelfDM;
+    const isP2P = isSelfDMParticipant
+        ? false
+        : isNewManualExpenseFlowEnabled
+          ? isParticipantP2P(participantForAmountValidation)
+          : !!(firstParticipant?.accountID && !firstParticipant?.isPolicyExpenseChat);
     const shouldShowAmountRequiredError = formError === 'common.error.fieldRequired';
     const shouldShowAmountInvalidError = formError === 'common.error.invalidAmount';
 
@@ -237,7 +242,7 @@ function AmountField({
             return;
         }
 
-        const isInlineAmountInvalid = !isDistanceRequest && !shouldShowTimeRequestFields && !isValidMoneyRequestAmount(parsedAmount, iouType, allowNegative, isP2P);
+        const isInlineAmountInvalid = !isDistanceRequest && !shouldShowTimeRequestFields && !isValidMoneyRequestAmount(parsedAmount, iouType, allowNegative, isP2P, isSelfDMParticipant);
 
         if (isInlineAmountInvalid && shouldDisplayFieldError) {
             setFormError('common.error.invalidAmount');

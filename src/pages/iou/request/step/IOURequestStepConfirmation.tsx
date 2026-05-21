@@ -75,6 +75,7 @@ import {
 } from '@libs/TransactionUtils';
 import {getIOURequestPolicyID, getMoneyRequestParticipantsFromReport, setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
 import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
+import {setTransactionReport} from '@userActions/Transaction';
 import {removeDraftTransaction, replaceDefaultDraftTransaction} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
@@ -114,6 +115,7 @@ function IOURequestStepConfirmation({
     report: reportReal,
     reportDraft,
     route,
+    navigation,
     transaction: initialTransaction,
     isLoadingTransaction,
     shouldHideHeader = false,
@@ -343,12 +345,28 @@ function IOURequestStepConfirmation({
             if (!activeTransactionID) {
                 return;
             }
+
+            const firstParticipant = participantsList.at(0);
+            if (isNewManualExpenseFlowEnabled && firstParticipant?.isSelfDM && selfDMReport?.reportID && iouType !== CONST.IOU.TYPE.SPLIT) {
+                for (const draftTransaction of transactions) {
+                    const selfDMParticipants = getMoneyRequestParticipantsFromReport(selfDMReport, currentUserPersonalDetails.accountID).map((participant) => ({
+                        ...participant,
+                        iouType: CONST.IOU.TYPE.TRACK,
+                    }));
+                    setMoneyRequestParticipants(draftTransaction.transactionID, selfDMParticipants);
+                    setTransactionReport(draftTransaction.transactionID, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}, true);
+                }
+                Navigation.setParams({iouType: CONST.IOU.TYPE.TRACK, reportID: selfDMReport.reportID}, route.key, navigation.getState()?.key);
+                closeParticipantPicker();
+                return;
+            }
+
             setMoneyRequestParticipants(activeTransactionID, participantsList);
             if (participantsList.length > 0) {
                 closeParticipantPicker();
             }
         },
-        [activeTransactionID, closeParticipantPicker],
+        [activeTransactionID, closeParticipantPicker, currentUserPersonalDetails.accountID, isNewManualExpenseFlowEnabled, iouType, navigation, route.key, selfDMReport, transactions],
     );
 
     useEffect(() => {

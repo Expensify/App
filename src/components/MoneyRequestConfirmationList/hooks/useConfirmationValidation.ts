@@ -157,11 +157,12 @@ function useConfirmationValidation({
         }
 
         const firstParticipant = transaction?.participants?.at(0);
-        const isP2P = !!(firstParticipant?.accountID && !firstParticipant?.isPolicyExpenseChat);
+        const isSelfDM = !!firstParticipant?.isSelfDM;
+        const isP2P = !!(firstParticipant?.accountID && !firstParticipant?.isPolicyExpenseChat && !isSelfDM);
 
         // Zero or invalid amounts are blocked for invoice, pay, split, and P2P submit/request flows.
         // Scan, time, distance, and per-diem requests have their own amount rules below.
-        if (!isScanRequestUtil(transaction) && !isTimeRequest && !isDistanceRequest && !isPerDiemRequest && !isValidMoneyRequestAmount(iouAmount, iouType, true, isP2P)) {
+        if (!isScanRequestUtil(transaction) && !isTimeRequest && !isDistanceRequest && !isPerDiemRequest && !isValidMoneyRequestAmount(iouAmount, iouType, true, isP2P, isSelfDM)) {
             return {errorKey: 'common.error.invalidAmount'};
         }
         if (isNewManualExpenseFlowEnabled && !transaction?.isAmountSet) {

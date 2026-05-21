@@ -136,8 +136,9 @@ const nonZeroMoneyRequestTypes = new Set<ValueOf<typeof CONST.IOU.TYPE>>([CONST.
  * @param allowNegative - Whether negative amounts are allowed
  * @param isIOUReport - Whether this is an IOU report (zero amounts not allowed)
  * @param isP2P - Whether this is a peer-to-peer transaction
+ * @param isSelfDM - Whether the expense is being sent to the user's self DM
  */
-function isValidMoneyRequestAmount(amount: number | undefined, iouType: ValueOf<typeof CONST.IOU.TYPE>, allowNegative = true, isP2P = false): boolean {
+function isValidMoneyRequestAmount(amount: number | undefined, iouType: ValueOf<typeof CONST.IOU.TYPE>, allowNegative = true, isP2P = false, isSelfDM = false): boolean {
     if (amount === undefined || amount === null || Number.isNaN(amount)) {
         return false;
     }
@@ -148,7 +149,7 @@ function isValidMoneyRequestAmount(amount: number | undefined, iouType: ValueOf<
 
     const absoluteAmount = Math.abs(amount);
 
-    if ((iouType === CONST.IOU.TYPE.REQUEST || iouType === CONST.IOU.TYPE.SUBMIT) && isP2P) {
+    if ((iouType === CONST.IOU.TYPE.REQUEST || iouType === CONST.IOU.TYPE.SUBMIT) && isP2P && !isSelfDM) {
         return absoluteAmount >= 1;
     }
 
