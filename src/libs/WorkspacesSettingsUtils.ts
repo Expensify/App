@@ -136,4 +136,4 @@ function getOwnershipChecksDisplayText(
 }
 
 export {getChatTabBrickRoadReportID, getBrickRoadForPolicy, getChatTabBrickRoad, getUnitTranslationKey, getOwnershipChecksDisplayText, getWorkspaceAddressStreetLines};
-export type {BrickRoad, WorkspaceAddressStreetLines};
+export type {BrickRoad};

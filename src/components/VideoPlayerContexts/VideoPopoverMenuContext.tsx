@@ -1,10 +1,7 @@
 import type {VideoPlayer} from 'expo-video';
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {use, useEffect, useRef, useState} from 'react';
 import {useSession} from '@components/OnyxListItemProvider';
-import type {PopoverMenuItem} from '@components/PopoverMenu';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import fileDownload from '@libs/fileDownload';
 import CONST from '@src/CONST';
@@ -16,30 +13,24 @@ const VideoPopoverMenuStateContext = React.createContext<VideoPopoverMenuStateCo
 const VideoPopoverMenuActionsContext = React.createContext<VideoPopoverMenuActionsContextType | null>(null);
 
 function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Meter']);
     const {translate} = useLocalize();
     const {currentVideoPlayerRef, originalParent} = usePlaybackStateContext();
     const [source, setSource] = useState('');
     const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState<PlaybackSpeed>(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS[3]);
-    const {isOffline} = useNetwork();
-    const isLocalFile = source && CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => source.startsWith(prefix));
+    const isLocalFile = !!source && CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => source.startsWith(prefix));
     const videoPopoverMenuPlayerRef = useRef<VideoPlayer>(null);
     const session = useSession();
     const encryptedAuthToken = session?.encryptedAuthToken ?? '';
 
-    const updatePlaybackSpeed = useCallback(
-        (speed: PlaybackSpeed) => {
-            setCurrentPlaybackSpeed(speed);
+    const updatePlaybackSpeed = (speed: PlaybackSpeed) => {
+        setCurrentPlaybackSpeed(speed);
 
-            // We check if the player ref exists and if the playback rate is already set to the new speed to avoid redundant updates.
-            // On iOS, setting the playback rate can cause the video to resume playback if it was paused.
-            if (!videoPopoverMenuPlayerRef.current || videoPopoverMenuPlayerRef.current.playbackRate === speed) {
-                return;
-            }
-            videoPopoverMenuPlayerRef.current.playbackRate = speed;
-        },
-        [videoPopoverMenuPlayerRef],
-    );
+        // Setting the playback rate on iOS can resume playback if it was paused, so skip when already set.
+        if (!videoPopoverMenuPlayerRef.current || videoPopoverMenuPlayerRef.current.playbackRate === speed) {
+            return;
+        }
+        videoPopoverMenuPlayerRef.current.playbackRate = speed;
+    };
 
     // Apply stored playback speed when the active player changes (e.g. navigating from parent to thread).
     // Same pattern as VolumeContext which re-applies volume on originalParent change.
@@ -51,49 +42,26 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
         if (currentVideoPlayerRef.current.playbackRate !== currentPlaybackSpeed) {
             currentVideoPlayerRef.current.playbackRate = currentPlaybackSpeed;
         }
-    }, [originalParent, currentPlaybackSpeed]);
+    }, [originalParent, currentPlaybackSpeed, currentVideoPlayerRef]);
 
     const updateVideoPopoverMenuPlayerRef = (videoPlayer: VideoPlayer | null) => {
         videoPopoverMenuPlayerRef.current = videoPlayer;
     };
 
-    const downloadAttachment = useCallback(() => {
+    const downloadAttachment = () => {
         if (typeof source === 'number' || !source) {
             return;
         }
         fileDownload(translate, addEncryptedAuthTokenToURL(source, encryptedAuthToken));
-    }, [source, translate, encryptedAuthToken]);
+    };
 
-    const menuItems = useMemo(() => {
-        const items: PopoverMenuItem[] = [];
-
-        if (!isOffline && !isLocalFile) {
-            items.push({
-                icon: icons.Download,
-                text: translate('common.download'),
-                onSelected: () => {
-                    downloadAttachment();
-                },
-            });
-        }
-
-        items.push({
-            icon: icons.Meter,
-            text: translate('videoPlayer.playbackSpeed'),
-            shouldShowRadioButton: true,
-            subMenuItems: CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS.map((speed) => ({
-                text: speed === 1 ? translate('videoPlayer.normal') : speed.toString(),
-                onSelected: () => {
-                    updatePlaybackSpeed(speed);
-                },
-                isSelected: currentPlaybackSpeed === speed,
-            })),
-        });
-        return items;
-    }, [icons.Download, icons.Meter, currentPlaybackSpeed, downloadAttachment, translate, updatePlaybackSpeed, isOffline, isLocalFile]);
-
-    const stateValue = {menuItems};
-    const actionsValue = {updateVideoPopoverMenuPlayerRef, updatePlaybackSpeed, updateSource: setSource};
+    const stateValue = {currentPlaybackSpeed, isLocalFile};
+    const actionsValue = {
+        updateVideoPopoverMenuPlayerRef,
+        updatePlaybackSpeed,
+        updateSource: setSource,
+        downloadAttachment,
+    };
 
     return (
         <VideoPopoverMenuStateContext.Provider value={stateValue}>
@@ -103,7 +71,7 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
 }
 
 function useVideoPopoverMenuState() {
-    const context = useContext(VideoPopoverMenuStateContext);
+    const context = use(VideoPopoverMenuStateContext);
     if (!context) {
         throw new Error('useVideoPopoverMenuState must be used within a VideoPopoverMenuContextProvider');
     }
@@ -111,7 +79,7 @@ function useVideoPopoverMenuState() {
 }
 
 function useVideoPopoverMenuActions() {
-    const context = useContext(VideoPopoverMenuActionsContext);
+    const context = use(VideoPopoverMenuActionsContext);
     if (!context) {
         throw new Error('useVideoPopoverMenuActions must be used within a VideoPopoverMenuContextProvider');
     }
