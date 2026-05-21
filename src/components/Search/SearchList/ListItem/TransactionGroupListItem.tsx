@@ -147,7 +147,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             cardFeeds,
             conciergeReportID,
             convertToDisplayString,
-            reportAttributesDerivedValue: reportAttributes ?? {},
+            reportAttributesDerivedValue: reportAttributes,
         }) as [TransactionListItemType[], number, boolean];
         transactions = sectionData.map((transactionItem) => ({
             ...transactionItem,

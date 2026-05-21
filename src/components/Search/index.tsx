@@ -532,7 +532,7 @@ function Search({
             conciergeReportID,
             onyxPersonalDetailsList,
             policyForMovingExpenses,
-            reportAttributesDerivedValue: reportAttributesDerivedValue ?? {},
+            reportAttributesDerivedValue,
             convertToDisplayString,
             optimisticTransactionID: optimisticTrackingState.optimisticWatchKey?.toString().replace(ONYXKEYS.COLLECTION.TRANSACTION, ''),
         });
@@ -608,7 +608,7 @@ function Search({
                 allReportMetadata,
                 conciergeReportID,
                 convertToDisplayString,
-                reportAttributesDerivedValue: reportAttributesDerivedValue ?? {},
+                reportAttributesDerivedValue,
             });
             return {
                 ...item,

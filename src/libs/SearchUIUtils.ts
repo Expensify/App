@@ -600,7 +600,7 @@ type GetSectionsParams = {
     onyxPersonalDetailsList?: OnyxTypes.PersonalDetailsList;
     policyForMovingExpenses?: OnyxTypes.Policy;
     optimisticTransactionID?: string;
-    reportAttributesDerivedValue: OnyxTypes.ReportAttributesDerivedValue['reports'];
+    reportAttributesDerivedValue: OnyxTypes.ReportAttributesDerivedValue['reports'] | undefined;
 };
 
 /**
@@ -3481,7 +3481,7 @@ function getSections({
     conciergeReportID,
     onyxPersonalDetailsList,
     policyForMovingExpenses,
-    reportAttributesDerivedValue,
+    reportAttributesDerivedValue = {},
     convertToDisplayString,
     optimisticTransactionID,
 }: GetSectionsParams): GetSectionsResult {

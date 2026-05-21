@@ -63,7 +63,7 @@ function useSearchSections(): UseSearchSectionsResult {
             cardFeeds,
             allReportMetadata,
             conciergeReportID,
-            reportAttributesDerivedValue: reportAttributesDerivedValue ?? {},
+            reportAttributesDerivedValue,
             convertToDisplayString,
         });
         results = getSortedSections(type, status ?? '', searchData, localeCompare, translate, sortBy, sortOrder, groupBy).map((value) => value.reportID);

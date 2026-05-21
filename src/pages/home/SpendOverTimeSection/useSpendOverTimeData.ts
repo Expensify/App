@@ -103,7 +103,7 @@ function useSpendOverTimeData() {
                       allReportMetadata: undefined,
                       conciergeReportID: undefined,
                       convertToDisplayString,
-                      reportAttributesDerivedValue: reportAttributes ?? {},
+                      reportAttributesDerivedValue: reportAttributes,
                   })[0],
                   localeCompare,
                   translate,

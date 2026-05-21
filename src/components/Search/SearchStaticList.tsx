@@ -105,7 +105,7 @@ function SearchStaticList({
             allReportMetadata: undefined,
             conciergeReportID: undefined,
             convertToDisplayString,
-            reportAttributesDerivedValue: reportAttributes ?? {},
+            reportAttributesDerivedValue: reportAttributes,
         });
 
         return getSortedSections(type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy)
