@@ -101,7 +101,18 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         });
     }, [invitedEmailsToAccountIDsDraft, personalDetails]);
 
-    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, onListEndReached, searchOptions} = useSearchSelector({
+    const {
+        searchTerm,
+        debouncedSearchTerm,
+        setSearchTerm,
+        availableOptions,
+        selectedOptions,
+        selectedOptionsForDisplay,
+        toggleSelection,
+        areOptionsInitialized,
+        onListEndReached,
+        searchOptions,
+    } = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
         includeUserToInvite: true,
@@ -113,6 +124,12 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         shouldKeepSelectedInAvailableOptions: true,
     });
 
+    // Selected non-existing users that aren't in the Contacts section (e.g. typed email addresses)
+    const selectedNonExistingUsers = useMemo(() => {
+        const personalDetailLogins = new Set(availableOptions.personalDetails.map((option) => option.login).filter(Boolean));
+        return selectedOptionsForDisplay.filter((option) => !personalDetailLogins.has(option.login));
+    }, [selectedOptionsForDisplay, availableOptions.personalDetails]);
+
     const sections: Array<Section<OptionData>> = useMemo(() => {
         const sectionsArr = [];
 
@@ -120,12 +137,21 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             return [];
         }
 
+        // Selected non-existing users section (top)
+        if (selectedNonExistingUsers.length > 0) {
+            sectionsArr.push({
+                title: undefined,
+                data: selectedNonExistingUsers,
+                sectionIndex: 0,
+            });
+        }
+
         // Contacts section (includes both selected and unselected items)
         if (availableOptions.personalDetails.length > 0) {
             sectionsArr.push({
                 title: translate('common.contacts'),
                 data: availableOptions.personalDetails,
-                sectionIndex: 0,
+                sectionIndex: selectedNonExistingUsers.length > 0 ? 1 : 0,
             });
         }
 
@@ -134,12 +160,12 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             sectionsArr.push({
                 title: undefined,
                 data: [availableOptions.userToInvite],
-                sectionIndex: 1,
+                sectionIndex: selectedNonExistingUsers.length > 0 ? 2 : 1,
             });
         }
 
         return sectionsArr;
-    }, [areOptionsInitialized, availableOptions.personalDetails, availableOptions.userToInvite, translate]);
+    }, [areOptionsInitialized, selectedNonExistingUsers, availableOptions.personalDetails, availableOptions.userToInvite, translate]);
 
     const initiallyFocusedKey = useInitiallyFocusedKey(() => availableOptions.personalDetails.find((item) => item.isSelected)?.keyForList);
 
