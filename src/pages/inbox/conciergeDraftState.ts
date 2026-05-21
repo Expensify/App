@@ -14,7 +14,6 @@ type ConciergeDraft = {
 
 type BuildConciergeDraftReportActionParams = {
     actorAccountID?: number;
-    actorDisplayName?: string;
     bodyMarkdown?: string;
     created: string;
     finalRenderedHTML?: string;
@@ -186,7 +185,6 @@ function stripIncompleteMarkdown(markdown: string): string {
 
 function buildConciergeDraftReportAction({
     actorAccountID,
-    actorDisplayName,
     bodyMarkdown,
     created,
     finalRenderedHTML,
@@ -201,14 +199,13 @@ function buildConciergeDraftReportAction({
 
     // Default to Concierge so existing call sites that don't pass an actor stay byte-identical.
     const resolvedActorAccountID = actorAccountID ?? CONST.ACCOUNT_ID.CONCIERGE;
-    const resolvedDisplayName = actorDisplayName ?? CONST.CONCIERGE_DISPLAY_NAME;
 
     return {
         reportActionID,
         reportID,
         actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
         actorAccountID: resolvedActorAccountID,
-        person: [{style: 'strong', text: resolvedDisplayName, type: 'TEXT'}],
+        person: [{style: 'strong', text: CONST.CONCIERGE_DISPLAY_NAME, type: 'TEXT'}],
         created,
         message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html, text: Parser.htmlToText(html)}],
         originalMessage: {html, whisperedTo: []},

@@ -37,12 +37,6 @@ type ConciergeReasoningEvent = {
     reasoning: string;
     agentZeroRequestID: string;
     loopCount: number;
-    /**
-     * Persona accountID this reasoning bubble should be attributed to (Concierge for Concierge
-     * runs, the custom agent's accountID for agent runs). Optional for backward compatibility —
-     * absent payloads keep the legacy Concierge attribution.
-     */
-    actorAccountID?: number;
 };
 
 type ConciergeDraftEvent = {
@@ -57,7 +51,11 @@ type ConciergeDraftEvent = {
     startedAt?: string;
     terminalReason?: string;
     updatedAt?: string;
-    /** Persona accountID the streamed draft should be attributed to. See ConciergeReasoningEvent.actorAccountID. */
+    /**
+     * Persona accountID the streamed draft should be attributed to — Concierge for Concierge
+     * runs, the custom agent's accountID for agent runs. Optional for backward compatibility;
+     * absent payloads default to Concierge.
+     */
     actorAccountID?: number;
 };
 

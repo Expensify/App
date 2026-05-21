@@ -1,4 +1,4 @@
-import {getAgentAccountIDFlags, getAgentLoginAccountIDFlags, getReportParticipantAccountIDs} from '@selectors/AgentZeroChat';
+import {getAgentAccountIDFlags, getReportParticipantAccountIDs} from '@selectors/AgentZeroChat';
 import {getReportChatType} from '@selectors/Report';
 import React, {createContext, useContext, useEffect, useState} from 'react';
 import useOnyx from '@hooks/useOnyx';
@@ -44,14 +44,13 @@ function ConciergeDraftProvider({reportID, children}: React.PropsWithChildren<{r
     const [chatType] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getReportChatType});
     const [participantAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getReportParticipantAccountIDs});
     const [agentAccountIDFlags] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT, {selector: getAgentAccountIDFlags});
-    const [agentLoginAccountIDFlags] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: getAgentLoginAccountIDFlags});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const isConciergeChat = reportID === conciergeReportID;
     const isAdmin = chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
-    // See AgentZeroStatusContext for the rationale: agentAccountIDFlags covers agents the
-    // user owns (and only after Agents has loaded); the email pattern covers cold-start cases.
-    const isCustomAgentChat = participantAccountIDs?.some((accountID) => !!(agentAccountIDFlags?.[accountID] ?? agentLoginAccountIDFlags?.[accountID]));
+    // See AgentZeroStatusContext for the rationale: agentAccountIDFlags reflects agents the
+    // user owns (populated by `OpenAgentsPage`).
+    const isCustomAgentChat = participantAccountIDs?.some((accountID) => !!agentAccountIDFlags?.[accountID]);
     const isAgentZeroChat = isConciergeChat || isAdmin || isCustomAgentChat;
 
     if (!reportID || !isAgentZeroChat) {
