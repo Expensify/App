@@ -163,7 +163,8 @@ function useConfirmationValidation({
         if (!isScanRequestUtil(transaction) && !isTimeRequest && !isDistanceRequest && iouAmount === 0 && isP2P) {
             return {errorKey: 'common.error.invalidAmount'};
         }
-        if (isNewManualExpenseFlowEnabled && !transaction?.isAmountSet) {
+        // isAmountSet only applies to manual expenses — scan, per diem, distance, and time set amount programmatically.
+        if (isNewManualExpenseFlowEnabled && transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL && !transaction?.isAmountSet) {
             return {errorKey: 'common.error.fieldRequired'};
         }
         const merchantValue = iouMerchant ?? '';

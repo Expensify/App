@@ -105,8 +105,10 @@ function AmountField({
     const decimals = getCurrencyDecimals(effectiveCurrency);
     // In the new manual expense flow the amount field starts empty (transaction.amount defaults to 0 before the user
     // touches it). Once the user explicitly sets an amount – including 0 – isAmountSet becomes true and we show the
-    // real value. This avoids showing "$0.00" as a pre-filled default.
-    const transactionAmount = isNewManualExpenseFlowEnabled && !transaction?.isAmountSet ? '' : convertToFrontendAmountAsString(amount, decimals);
+    // real value. This avoids showing "$0.00" as a pre-filled default. Scan and other non-manual flows populate
+    // amount programmatically and never set isAmountSet.
+    const shouldShowEmptyAmount = isNewManualExpenseFlowEnabled && !transaction?.isAmountSet && transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
+    const transactionAmount = shouldShowEmptyAmount ? '' : convertToFrontendAmountAsString(amount, decimals);
     const allowNegative = shouldEnableNegative(report, policy, iouType, transaction?.participants);
 
     // `autoFocus` on our TextInput only runs on mount. Closing and reopening the RHP often keeps the same mounted
