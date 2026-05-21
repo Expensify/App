@@ -151,10 +151,6 @@ function AttachmentView({
     const actions = useAttachmentCarouselPagerActions();
     const {onAttachmentError, onTap} = actions ?? {};
     const {setAttachmentLoaded} = useContext(AttachmentStateContext);
-    const handleAttachmentLoaded = (attachmentSource: AttachmentSource) => {
-        setAttachmentLoaded(attachmentSource, true);
-        onAttachmentError?.(attachmentSource, false);
-    };
 
     const handleAttachmentError = (attachmentSource: AttachmentSource) => {
         setAttachmentLoaded(attachmentSource, false);
@@ -244,7 +240,6 @@ function AttachmentView({
         const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source as string, encryptedAuthToken) : (source as string);
 
         const onPDFLoadComplete = (path: string) => {
-            handleAttachmentLoaded(source);
             const id = transaction?.transactionID ?? reportActionID;
             if (path && id) {
                 addCachedPDFPaths(id, path);
@@ -255,7 +250,6 @@ function AttachmentView({
         };
 
         const onPDFLoadError = () => {
-            handleAttachmentError(source);
             setHasPDFFailedToLoad(true);
             onPDFLoadErrorProp();
         };
