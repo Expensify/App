@@ -1,0 +1,223 @@
+name: Publish React Native iOS Artifacts
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_standalone:
+        description: 'Build Standalone artifacts'
+        required: false
+        type: boolean
+      build_hybridapp:
+        description: 'Build HybridApp artifacts'
+        required: false
+        type: boolean
+  push:
+    branches:
+      - main
+    paths:
+      - package.json
+      - patches/react-native+*.patch
+      - patches/@react-native+*.patch
+      - patches/react-native/react-native+*.patch
+      - patches/react-native/@react-native+*.patch
+      - Mobile-Expensify
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
+
+jobs:
+  verifyPatches:
+    uses: ./.github/workflows/verifyReactNativePatches.yml
+    with:
+      platform: ios
+      ref_before: ${{ github.event.before || '' }}
+      ref_after: ${{ github.event.after || '' }}
+      build_standalone: ${{ github.event_name == 'workflow_dispatch' && inputs.build_standalone || false }}
+      build_hybridapp: ${{ github.event_name == 'workflow_dispatch' && inputs.build_hybridapp || false }}
+    secrets:
+      OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+  buildSlice:
+    name: Build iOS Slice
+    runs-on: blacksmith-12vcpu-macos-latest
+    needs: verifyPatches
+    if: needs.verifyPatches.outputs.build_targets != ''
+    strategy:
+      fail-fast: false
+      matrix:
+        is_hybrid: ${{ fromJSON(needs.verifyPatches.outputs.build_targets) }}
+        flavor: ['Debug', 'Release']
+        platform: ['ios', 'ios-simulator']
+    concurrency:
+      group: ${{ github.workflow }}-slice-${{ matrix.is_hybrid }}-${{ matrix.flavor }}-${{ matrix.platform }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout Code
+        # v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          submodules: ${{ matrix.is_hybrid }}
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+        with:
+          IS_HYBRID_BUILD: ${{ matrix.is_hybrid }}
+
+      - name: Resolve Hermes version
+        id: hermes
+        run: echo "VERSION=$(sed 's/^hermes-v\{0,1\}//' node_modules/react-native/sdks/.hermesversion)" >> "$GITHUB_OUTPUT"
+
+      - name: Fetch prebuild files from upstream RN
+        uses: ./.github/actions/composite/fetchReactNativePrebuild
+
+      - name: Setup prebuild workspace
+        working-directory: node_modules/react-native
+        run: node scripts/ios-prebuild.js -s -f ${{ matrix.flavor }}
+        env:
+          HERMES_VERSION: ${{ steps.hermes.outputs.VERSION }}
+
+      - name: Build slice
+        working-directory: node_modules/react-native
+        run: node scripts/ios-prebuild.js -b -f ${{ matrix.flavor }} -p ${{ matrix.platform }}
+
+      - name: Upload slice artifact
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: slice-${{ matrix.is_hybrid }}-${{ matrix.flavor }}-${{ matrix.platform }}
+          path: node_modules/react-native/.build/output/spm/${{ matrix.flavor }}/Build/Products
+          retention-days: 1
+
+      - name: Upload headers
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: headers-${{ matrix.is_hybrid }}-${{ matrix.flavor }}-${{ matrix.platform }}
+          path: node_modules/react-native/.build/headers
+          retention-days: 1
+
+  composeXCFramework:
+    name: Compose XCFramework
+    runs-on: blacksmith-12vcpu-macos-latest
+    needs: [verifyPatches, buildSlice]
+    strategy:
+      fail-fast: false
+      matrix:
+        is_hybrid: ${{ fromJSON(needs.verifyPatches.outputs.build_targets) }}
+        flavor: ['Debug', 'Release']
+    concurrency:
+      group: ${{ github.workflow }}-compose-${{ matrix.is_hybrid }}-${{ matrix.flavor }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout Code
+        # v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          submodules: ${{ matrix.is_hybrid }}
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+        with:
+          IS_HYBRID_BUILD: ${{ matrix.is_hybrid }}
+
+      - name: Fetch prebuild files from upstream RN
+        uses: ./.github/actions/composite/fetchReactNativePrebuild
+
+      - name: Download slice artifacts
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
+        with:
+          pattern: slice-${{ matrix.is_hybrid }}-${{ matrix.flavor }}-*
+          path: node_modules/react-native/.build/output/spm/${{ matrix.flavor }}/Build/Products
+          merge-multiple: true
+
+      - name: Download headers
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
+        with:
+          pattern: headers-${{ matrix.is_hybrid }}-${{ matrix.flavor }}-*
+          path: node_modules/react-native/.build/headers
+          merge-multiple: true
+
+      - name: Compose XCFramework
+        working-directory: node_modules/react-native
+        run: node scripts/ios-prebuild.js -c -f ${{ matrix.flavor }}
+
+      - name: Compress and rename XCFramework
+        run: |
+          cd node_modules/react-native/.build/output/xcframeworks/${{ matrix.flavor }}
+          tar -czf reactnative-core-${{ matrix.flavor == 'Debug' && 'debug' || 'release' }}.tar.gz React.xcframework
+
+      - name: Compress and rename dSYM
+        run: |
+          cd node_modules/react-native/.build/output/xcframeworks/${{ matrix.flavor }}/Symbols
+          tar -czf ../reactnative-core-dSYM-${{ matrix.flavor == 'Debug' && 'debug' || 'release' }}.tar.gz .
+
+      - name: Upload XCFramework artifact
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: reactnative-core-${{ matrix.flavor == 'Debug' && 'debug' || 'release' }}-${{ matrix.is_hybrid }}
+          path: node_modules/react-native/.build/output/xcframeworks/${{ matrix.flavor }}/reactnative-core-${{ matrix.flavor == 'Debug' && 'debug' || 'release' }}.tar.gz
+          retention-days: 1
+
+      - name: Upload dSYM artifact
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: reactnative-core-dSYM-${{ matrix.flavor == 'Debug' && 'debug' || 'release' }}-${{ matrix.is_hybrid }}
+          path: node_modules/react-native/.build/output/xcframeworks/${{ matrix.flavor }}/reactnative-core-dSYM-${{ matrix.flavor == 'Debug' && 'debug' || 'release' }}.tar.gz
+          retention-days: 1
+
+  publishReactNativeiOSArtifacts:
+    name: Publish React Native iOS Artifacts
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    needs: [verifyPatches, composeXCFramework]
+    strategy:
+      fail-fast: false
+      matrix:
+        is_hybrid: ${{ fromJSON(needs.verifyPatches.outputs.build_targets) }}
+    concurrency:
+      # Publish runs sequentially per is_hybrid. Cancelling an in-flight publish
+      # can leave Maven metadata out of sync with the uploaded artifact, so we
+      # let the current run finish and queue the next one instead.
+      group: ${{ github.workflow }}-publish-${{ matrix.is_hybrid }}
+      cancel-in-progress: false
+    steps:
+      - name: Checkout Code
+        # v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          submodules: ${{ matrix.is_hybrid }}
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+        with:
+          IS_HYBRID_BUILD: ${{ matrix.is_hybrid }}
+
+      - name: Determine new patched RN version
+        id: getNewPatchedVersion
+        uses: ./.github/actions/composite/determineNewPatchedRNVersion
+        with:
+          artifact_id: react-native-artifacts
+          is_hybrid_build: ${{ matrix.is_hybrid }}
+
+      - name: Download artifacts
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
+        with:
+          pattern: reactnative-core-*-${{ matrix.is_hybrid }}
+          path: /tmp/ios-artifacts
+          merge-multiple: true
+
+      - name: Publish to GitHub Packages Maven
+        run: ./android/gradlew -p scripts/artifacts-utils/ios/publish publish -PartifactsDir="/tmp/ios-artifacts" -PpatchedVersion="${PATCHED_VERSION}" -PpatchesHash="${PATCHES_HASH}" -PpackageName="${PACKAGE_NAME}"
+        env:
+          GH_PUBLISH_ACTOR: ${{ github.actor }}
+          GH_PUBLISH_TOKEN: ${{ github.token }}
+          PATCHED_VERSION: ${{ steps.getNewPatchedVersion.outputs.NEW_PATCHED_VERSION }}
+          PATCHES_HASH: ${{ matrix.is_hybrid == 'true' && needs.verifyPatches.outputs.hybrid_app_patches_hash || needs.verifyPatches.outputs.standalone_patches_hash }}
+          PACKAGE_NAME: ${{ matrix.is_hybrid == 'true' && 'react-hybrid' || 'react-standalone' }}
+
+      - name: Announce failed workflow in Slack
+        if: ${{ failure() }}
+        uses: ./.github/actions/composite/announceFailedWorkflowInSlack
+        with:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          CHANNEL: '#expensify-open-source'

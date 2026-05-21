@@ -1,0 +1,46 @@
+apply from: "ExpensiUtils.gradle"
+
+class PatchedArtifactsConfig {
+    String version = null
+    String packageName = null
+    String githubUsername = null
+    String githubToken = null
+    Boolean buildFromSource = true
+}
+
+settings.getExtensions().create('patchedArtifacts', PatchedArtifactsConfig)
+
+def getNewDotRootDir() {
+    return "${rootDir}/${hasProperty('newDotRoot') ? getProperty('newDotRoot') : "/.."}"
+}
+
+settings.extensions.configure(PatchedArtifactsConfig) { config ->
+    ExpensiLog.setPrefix("PatchedArtifacts")
+    config.buildFromSource = getProperty('patchedArtifacts.forceBuildFromSource') == 'true'
+    if (config.buildFromSource) {
+        ExpensiLog.lifecycle("Forcing build from source.")
+        return
+    }
+
+    def credentials = ExpensiUtils.getCredentials()
+    config.packageName = getProperty('patchedArtifacts.packageName')
+
+    if (credentials != null) {
+        config.githubUsername = credentials.githubUsername
+        config.githubToken = credentials.githubToken
+        config.version = ExpensiUtils.findMatchingArtifactsVersion(
+            config.packageName,
+            config.githubToken,
+            getNewDotRootDir(),
+            hasProperty('newDotRoot')
+        )
+    }
+
+    if (config.version == null || config.packageName == null || config.githubUsername == null || config.githubToken == null) {
+        config.buildFromSource = true
+        ExpensiLog.error("No matching artifacts version found for ${config.packageName}. Building react-native from source.")
+    } else {
+        config.buildFromSource = false
+        ExpensiLog.lifecycle("Using patched react-native artifacts: ${config.packageName}:${config.version}")
+    }
+}

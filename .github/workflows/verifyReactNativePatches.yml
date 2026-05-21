@@ -1,0 +1,152 @@
+name: Verify React Native Patches
+
+on:
+  workflow_call:
+    inputs:
+      platform:
+        description: Platform being verified (android or ios)
+        required: true
+        type: string
+      ref_before:
+        description: Git ref to compare against (typically github.event.before); leave empty for workflow_dispatch
+        required: false
+        type: string
+        default: ''
+      ref_after:
+        description: Git ref to compare to (typically github.event.after); leave empty for workflow_dispatch
+        required: false
+        type: string
+        default: ''
+      build_standalone:
+        description: Force Standalone build (from workflow_dispatch)
+        required: false
+        type: boolean
+        default: false
+      build_hybridapp:
+        description: Force HybridApp build (from workflow_dispatch)
+        required: false
+        type: boolean
+        default: false
+
+    outputs:
+      build_targets:
+        description: JSON array of `is_hybrid` values to build (empty string when nothing to build)
+        value: ${{ jobs.verify.outputs.build_targets }}
+      hybrid_app_patches_hash:
+        description: Patches hash for HybridApp
+        value: ${{ jobs.verify.outputs.hybrid_app_patches_hash }}
+      standalone_patches_hash:
+        description: Patches hash for Standalone
+        value: ${{ jobs.verify.outputs.standalone_patches_hash }}
+
+    secrets:
+      OS_BOTIFY_TOKEN:
+        description: Token used to checkout private submodules
+        required: true
+
+jobs:
+  verify:
+    name: Verify React Native Patches
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    outputs:
+      build_targets: ${{ steps.getArtifactBuildTargets.outputs.BUILD_TARGETS }}
+      hybrid_app_patches_hash: ${{ steps.getNewPatchesHash.outputs.HYBRID_APP_HASH }}
+      standalone_patches_hash: ${{ steps.getNewPatchesHash.outputs.STANDALONE_APP_HASH }}
+    steps:
+      - name: Checkout
+        # v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          submodules: true
+          ref: ${{ inputs.ref_before || 'main' }}
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Get previous patches hash
+        if: ${{ inputs.ref_after != '' }}
+        id: getOldPatchesHash
+        run: |
+          HYBRID_HERMES_FLAG=$(./.github/scripts/resolve-hermes-flag.sh "${{ inputs.platform }}" hybrid)
+          STANDALONE_HERMES_FLAG=$(./.github/scripts/resolve-hermes-flag.sh "${{ inputs.platform }}" standalone)
+          echo "HYBRID_APP_HASH=$(./scripts/artifacts-utils/compute-patches-hash.sh $HYBRID_HERMES_FLAG patches Mobile-Expensify/patches)" >> "$GITHUB_OUTPUT"
+          echo "STANDALONE_APP_HASH=$(./scripts/artifacts-utils/compute-patches-hash.sh $STANDALONE_HERMES_FLAG patches)" >> "$GITHUB_OUTPUT"
+
+      - name: Get previous react-native version
+        if: ${{ inputs.ref_after != '' }}
+        id: getOldVersion
+        run: echo "VERSION=$(jq -r '.dependencies["react-native"]' package.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout new ref
+        if: ${{ inputs.ref_after != '' }}
+        run: |
+          git fetch origin ${{ inputs.ref_after }} --depth=1
+          git checkout ${{ inputs.ref_after }}
+          git submodule update
+
+      - name: Get new patches hash
+        id: getNewPatchesHash
+        run: |
+          HYBRID_HERMES_FLAG=$(./.github/scripts/resolve-hermes-flag.sh "${{ inputs.platform }}" hybrid)
+          STANDALONE_HERMES_FLAG=$(./.github/scripts/resolve-hermes-flag.sh "${{ inputs.platform }}" standalone)
+          echo "HYBRID_APP_HASH=$(./scripts/artifacts-utils/compute-patches-hash.sh $HYBRID_HERMES_FLAG patches Mobile-Expensify/patches)" >> "$GITHUB_OUTPUT"
+          echo "STANDALONE_APP_HASH=$(./scripts/artifacts-utils/compute-patches-hash.sh $STANDALONE_HERMES_FLAG patches)" >> "$GITHUB_OUTPUT"
+
+      - name: Get new react-native version
+        if: ${{ inputs.ref_after != '' }}
+        id: getNewVersion
+        run: echo "VERSION=$(jq -r '.dependencies["react-native"]' package.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Check if version changed
+        if: ${{ inputs.ref_after != '' }}
+        id: didVersionChange
+        run: |
+          readonly DID_VERSION_CHANGE=${{ steps.getOldVersion.outputs.VERSION != steps.getNewVersion.outputs.VERSION && 'true' || 'false' }}
+          echo "DID_VERSION_CHANGE=$DID_VERSION_CHANGE" >> "$GITHUB_OUTPUT"
+          if [[ "$DID_VERSION_CHANGE" == 'true' ]]; then
+            echo "::notice::Detected react-native version bump (${{ steps.getOldVersion.outputs.VERSION }} -> ${{ steps.getNewVersion.outputs.VERSION }})"
+          fi
+
+      - name: Check if patches changed
+        if: ${{ inputs.ref_after != '' }}
+        id: didPatchesChange
+        run: |
+          readonly DID_HYBRID_APP_PATCHES_CHANGE=${{ steps.getOldPatchesHash.outputs.HYBRID_APP_HASH != steps.getNewPatchesHash.outputs.HYBRID_APP_HASH && 'true' || 'false' }}
+          readonly DID_STANDALONE_APP_PATCHES_CHANGE=${{ steps.getOldPatchesHash.outputs.STANDALONE_APP_HASH != steps.getNewPatchesHash.outputs.STANDALONE_APP_HASH && 'true' || 'false' }}
+          echo "DID_HYBRID_APP_PATCHES_CHANGE=$DID_HYBRID_APP_PATCHES_CHANGE" >> "$GITHUB_OUTPUT"
+          echo "DID_STANDALONE_APP_PATCHES_CHANGE=$DID_STANDALONE_APP_PATCHES_CHANGE" >> "$GITHUB_OUTPUT"
+
+          if [[ "$DID_HYBRID_APP_PATCHES_CHANGE" == 'true' ]]; then
+            echo "::notice::Detected changes in HybridApp patches (${{ steps.getOldPatchesHash.outputs.HYBRID_APP_HASH }} -> ${{ steps.getNewPatchesHash.outputs.HYBRID_APP_HASH }})"
+          fi
+
+          if [[ "$DID_STANDALONE_APP_PATCHES_CHANGE" == 'true' ]]; then
+            echo "::notice::Detected changes in Standalone NewDot patches (${{ steps.getOldPatchesHash.outputs.STANDALONE_APP_HASH }} -> ${{ steps.getNewPatchesHash.outputs.STANDALONE_APP_HASH }})"
+          fi
+
+      - name: Get artifact build targets
+        id: getArtifactBuildTargets
+        run: |
+          # workflow_dispatch path: caller leaves ref_after empty and passes explicit toggles.
+          if [[ '${{ inputs.ref_after }}' == '' ]]; then
+            BUILD_TARGETS=()
+
+            if [[ '${{ inputs.build_standalone }}' == 'true' ]]; then
+              BUILD_TARGETS+=(false)
+            fi
+
+            if [[ '${{ inputs.build_hybridapp }}' == 'true' ]]; then
+              BUILD_TARGETS+=(true)
+            fi
+
+            if [[ ${#BUILD_TARGETS[@]} -ne 0 ]]; then
+              echo "BUILD_TARGETS=$(printf '%s\n' "${BUILD_TARGETS[@]}" | jq -R . | jq -c -s .)" >> "$GITHUB_OUTPUT"
+            fi
+            exit 0
+          fi
+
+          # push path: derive targets from what actually changed between ref_before and ref_after.
+          # Version change or standalone patch change forces a full rebuild of both hybrid and standalone.
+          if [[ '${{ steps.didVersionChange.outputs.DID_VERSION_CHANGE }}' == 'true' || '${{ steps.didPatchesChange.outputs.DID_STANDALONE_APP_PATCHES_CHANGE }}' == 'true' ]]; then
+            echo "BUILD_TARGETS=[\"true\", \"false\"]" >> "$GITHUB_OUTPUT"
+          elif [[ '${{ steps.didPatchesChange.outputs.DID_HYBRID_APP_PATCHES_CHANGE }}' == 'true' ]]; then
+            echo "BUILD_TARGETS=[\"true\"]" >> "$GITHUB_OUTPUT"
+          fi

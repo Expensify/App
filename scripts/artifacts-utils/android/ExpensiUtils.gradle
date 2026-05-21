@@ -1,0 +1,152 @@
+import groovy.json.JsonSlurper
+import groovy.xml.XmlSlurper
+import java.util.concurrent.TimeUnit
+
+ext.ExpensiLog = new Object() {
+    private final String BLUE = "\u001B[34m"
+    private final String YELLOW = "\u001B[33m"
+    private final String RED = "\u001B[31m"
+    private final String RESET = "\u001B[0m"
+
+    private String prefix = ""
+    void setPrefix(String newPrefix) { this.prefix = newPrefix }
+
+    private String format(String color, String message) {
+        return "${color}[${prefix}] ${message}${this.RESET}"
+    }
+
+    void lifecycle(String message) { logger.lifecycle(format(this.BLUE, message)) }
+    void warn(String message)      { logger.warn(format(this.YELLOW, message)) }
+    void error(String message)     { logger.error(format(this.RED, message)) }
+}
+
+ext.ExpensiUtils = new Object() {
+    String GITHUB_REPO = 'Expensify/App'
+    String GITHUB_OWNER = 'Expensify'
+    String ARTIFACT_ID = 'react-android'
+
+    String mavenPomUrl(String packageName, String version) {
+        return "https://maven.pkg.github.com/${GITHUB_REPO}/com/expensify/${packageName}/${ARTIFACT_ID}/${version}/${ARTIFACT_ID}-${version}.pom"
+    }
+
+    String mavenVersionsApiUrl(String packageName) {
+        return "/orgs/${GITHUB_OWNER}/packages/maven/com.expensify.${packageName}.${ARTIFACT_ID}/versions"
+    }
+
+    Map runCommand(List command) {
+        def process = command.execute()
+        process.waitFor(10, TimeUnit.SECONDS)
+        return [output: process.in.text?.trim(), exitCode: process.exitValue()]
+    }
+
+    // GitHub Packages returns 302 to a signed S3 URL, don't forward the token there.
+    InputStream fetch(String url, String githubToken) {
+        def conn = new URL(url).openConnection()
+        conn.setInstanceFollowRedirects(false)
+        conn.setRequestProperty("Authorization", "Bearer ${githubToken}")
+        if (conn.responseCode == 302) {
+            return new URL(conn.getHeaderField("Location")).openConnection().getInputStream()
+        }
+        return conn.getInputStream()
+    }
+
+    boolean hasGithubCLI() {
+        return runCommand(["which", "gh"]).exitCode == 0
+    }
+
+    boolean isCIEnvironment() {
+        return System.getenv("CI") != null
+    }
+
+    boolean hasRequiredScopes() {
+        def scopes = runCommand(["gh", "auth", "status"]).output
+        return ['read:packages', 'write:packages'].any { scope -> scopes.contains(scope) }
+    }
+
+    String getGithubUsername() {
+        if (isCIEnvironment()) return System.getenv("GITHUB_ACTOR")
+        return new JsonSlurper().parseText(runCommand(["gh", "api", "user"]).output).login
+    }
+
+    String getGithubToken() {
+        if (isCIEnvironment()) return System.getenv("GITHUB_TOKEN")
+        return runCommand(["gh", "auth", "token"]).output
+    }
+
+    Map getCredentials() {
+        try {
+            if (!hasGithubCLI()) {
+                warnNotConfigured("No Github CLI found.")
+                return null
+            }
+            if (isCIEnvironment() && !(System.getenv("GITHUB_ACTOR") && System.getenv("GITHUB_TOKEN"))) {
+                warnNotConfigured("Missing required CI environment variables GITHUB_ACTOR and/or GITHUB_TOKEN.")
+                return null
+            }
+            if (!isCIEnvironment() && !hasRequiredScopes()) {
+                warnNotConfigured("Github token does not have required scope read:packages.")
+                return null
+            }
+            return [githubUsername: getGithubUsername(), githubToken: getGithubToken()]
+        } catch (Exception e) {
+            warnNotConfigured("Failed to get Github credentials. This might be due to an expired token or not being logged in.")
+            return null
+        }
+    }
+
+    private void warnNotConfigured(String reason) {
+        ExpensiLog.warn(reason)
+        ExpensiLog.warn("For setup instructions, refer to: https://github.com/${GITHUB_REPO}/blob/main/contributingGuides/SETUP_ANDROID.md#enabling-prebuilt-react-native-artifacts")
+    }
+
+    String getReactNativeVersion(String newDotRootDir) {
+        def packageJson = new File("${newDotRootDir}/package.json")
+        return new JsonSlurper().parse(packageJson).dependencies.'react-native'
+    }
+
+    String computePatchesHash(String newDotRootDir, boolean isHybrid) {
+        def script = "${newDotRootDir}/scripts/artifacts-utils/compute-patches-hash.sh"
+        def args = [script]
+
+        def propsFile = isHybrid
+            ? new File("${newDotRootDir}/Mobile-Expensify/Android/gradle.properties")
+            : new File("${newDotRootDir}/android/gradle.properties")
+        def props = new Properties()
+        if (propsFile.exists()) { propsFile.withInputStream { props.load(it) } }
+        if (props.getProperty('hermesV1Enabled') == 'true') {
+            args << "--hermes-v1"
+        }
+
+        args += isHybrid
+            ? ["${newDotRootDir}/patches", "${newDotRootDir}/Mobile-Expensify/patches"]
+            : ["${newDotRootDir}/patches"]
+        return runCommand(args).output.trim()
+    }
+
+    List getArtifactsCandidates(String packageName, String newDotRootDir) {
+        def rnVersion = getReactNativeVersion(newDotRootDir)
+        def result = runCommand(["gh", "api", "--paginate", mavenVersionsApiUrl(packageName), "--jq", ".[].name"])
+        return result.output.split("\n").findAll { it.startsWith(rnVersion) } as List
+    }
+
+    def getPomFile(String packageName, String version, String githubToken) {
+        return new XmlSlurper().parse(fetch(mavenPomUrl(packageName, version), githubToken))
+    }
+
+    String findMatchingArtifactsVersion(String packageName, String githubToken, String newDotRootDir, boolean isHybrid) {
+        try {
+            def localPatchesHash = computePatchesHash(newDotRootDir, isHybrid)
+            def candidates = getArtifactsCandidates(packageName, newDotRootDir)
+            for (candidate in candidates) {
+                def remoteHash = getPomFile(packageName, candidate, githubToken).properties.patchesHash.text().trim()
+                if (remoteHash == localPatchesHash) {
+                    return candidate
+                }
+            }
+            return null
+        } catch (Exception e) {
+            ExpensiLog.error("Failed to find matching artifacts version for ${packageName}. Reason: $e")
+            return null
+        }
+    }
+}
