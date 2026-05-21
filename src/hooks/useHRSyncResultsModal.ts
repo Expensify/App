@@ -3,11 +3,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
 import HRSyncResultsModal from '@components/HRSyncResultsModal';
 import {useModal} from '@components/Modal/Global/ModalContext';
-import {getConnectedHRProvider} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
-import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
 
 /**
@@ -19,12 +16,6 @@ function useHRSyncResultsModal(policyID: string, connectionSyncProgress: OnyxEnt
     const previousSyncProgress = usePrevious(connectionSyncProgress);
 
     const connectionName = connectionSyncProgress?.connectionName;
-    const [providerDisplayName] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-        selector: (policy) => {
-            const hrProvider = getConnectedHRProvider(policy);
-            return hrProvider?.displayName ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName as keyof typeof CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY] ?? connectionName ?? '';
-        },
-    });
 
     useEffect(() => {
         const syncResult = connectionSyncProgress?.result;
@@ -41,7 +32,7 @@ function useHRSyncResultsModal(policyID: string, connectionSyncProgress: OnyxEnt
 
         modal.showModal({
             component: HRSyncResultsModal,
-            props: {result: syncResult, providerDisplayName: providerDisplayName ?? ''},
+            props: {result: syncResult, policyID},
             id: `${connectionName}-sync-results-${policyID}`,
         });
     }, [
@@ -50,7 +41,6 @@ function useHRSyncResultsModal(policyID: string, connectionSyncProgress: OnyxEnt
         connectionSyncProgress?.stageInProgress,
         connectionSyncProgress?.timestamp,
         isFocused,
-        providerDisplayName,
         policyID,
         previousSyncProgress?.connectionName,
         previousSyncProgress?.stageInProgress,

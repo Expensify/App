@@ -2,10 +2,13 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {HrSyncResult} from '@libs/API/HrSyncResult';
+import {getConnectedHRProvider} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import Button from './Button';
 import FixedFooter from './FixedFooter';
 import HeaderWithBackButton from './HeaderWithBackButton';
@@ -20,11 +23,11 @@ type HRSyncResultsModalProps = ModalProps & {
     /** Sync result returned by the completed HR sync job */
     result: HrSyncResult;
 
-    /** Human-readable display name for the HR provider (e.g. "Gusto") */
-    providerDisplayName: string;
+    /** ID of the policy associated with this sync */
+    policyID: string;
 };
 
-function HRSyncResultsModal({result, providerDisplayName, closeModal}: HRSyncResultsModalProps) {
+function HRSyncResultsModal({result, policyID, closeModal}: HRSyncResultsModalProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -33,6 +36,9 @@ function HRSyncResultsModal({result, providerDisplayName, closeModal}: HRSyncRes
     const [isSkippedSectionExpanded, setIsSkippedSectionExpanded] = useState(false);
     const [isVisible, setIsVisible] = useState(true);
 
+    const [providerDisplayName = ''] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        selector: (policy) => getConnectedHRProvider(policy)?.displayName ?? '',
+    });
     const addedCount = result.addedEmployeesCount ?? 0;
     const removedCount = result.removedEmployeesCount ?? 0;
     const skippedCount = result.skippedEmployees?.length ?? 0;
