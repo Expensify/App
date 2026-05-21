@@ -36,7 +36,7 @@ function getDefaultInitialValueForReportFieldType(type: PolicyReportFieldType): 
 
 function TypeSelectorPage({
     route: {
-        params: {policyID, currentType}, 
+        params: {policyID, currentType},
     },
 }: TypeSelectorPageProps) {
     const styles = useThemeStyles();
