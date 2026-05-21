@@ -3195,6 +3195,10 @@ function getWorkspaceCustomUnitRateUpdatedMessage(translate: LocalizedTranslate,
         return translate('workspaceActions.updatedCustomUnitRateEnabled', customUnitName, customUnitRateName, newValue);
     }
 
+    if (customUnitName && updatedField === 'name' && typeof oldValue === 'string' && typeof newValue === 'string') {
+        return translate('workspaceActions.renamedCustomUnitRate', customUnitName, oldValue, newValue);
+    }
+
     return getReportActionText(action);
 }
 
