@@ -1,3 +1,7 @@
+jest.mock('react-native-key-command', () => ({
+    constants: {},
+}));
+
 import CONST from '@src/CONST';
 import type {Pages} from '@src/types/onyx';
 import {getContinuousChain, mergeAndSortContinuousPages, mergePagesByIDOverlap, prunePagesToNewestWindow, selectNewestPageWithIndex} from '../../src/libs/PaginationUtils';
@@ -603,6 +607,32 @@ describe('PaginationUtils', () => {
             const result = mergeAndSortContinuousPages(sortedItems, pages, getID);
             expect(result).toStrictEqual(expectedResult);
         });
+
+        it('does not merge disjoint pages only because both were marked as the newest page at different times', () => {
+            const sortedItems = createItems([
+                // Newer page fetched after the app was closed for a while
+                '300',
+                '299',
+                '298',
+                // Gap: many actions between 298 and 200 are not loaded locally yet
+                '200',
+                '199',
+                '198',
+            ]);
+            const pages = [
+                // Fresh OpenReport response for the live tail
+                [CONST.PAGINATION_START_ID, '300', '299', '298'],
+                // Stale cached page that used to be the live tail before newer messages arrived
+                [CONST.PAGINATION_START_ID, '200', '199', '198', CONST.PAGINATION_END_ID],
+            ];
+            const expectedResult = [
+                [CONST.PAGINATION_START_ID, '300', '299', '298'],
+                // The stale start marker should be ignored because this page is no longer the newest local window.
+                ['200', '199', '198', CONST.PAGINATION_END_ID],
+            ];
+            const result = mergeAndSortContinuousPages(sortedItems, pages, getID);
+            expect(result).toStrictEqual(expectedResult);
+        });
     });
 
     describe('mergePagesByIDOverlap', () => {
@@ -669,6 +699,7 @@ describe('PaginationUtils', () => {
         it('returns the only page when there is a single page', () => {
             const only = {
                 ids: ['3', '2', '1'],
+                sourceIDs: ['3', '2', '1'],
                 firstID: '3',
                 firstIndex: 0,
                 lastID: '1',
@@ -680,6 +711,7 @@ describe('PaginationUtils', () => {
         it('prefers the page whose firstID is the pagination start marker', () => {
             const withStart = {
                 ids: [CONST.PAGINATION_START_ID, '2', '1'],
+                sourceIDs: [CONST.PAGINATION_START_ID, '2', '1'],
                 firstID: CONST.PAGINATION_START_ID,
                 firstIndex: 2,
                 lastID: '1',
@@ -687,6 +719,7 @@ describe('PaginationUtils', () => {
             };
             const newerByIndex = {
                 ids: ['5', '4'],
+                sourceIDs: ['5', '4'],
                 firstID: '5',
                 firstIndex: 0,
                 lastID: '4',
@@ -699,6 +732,7 @@ describe('PaginationUtils', () => {
         it('when no start marker, picks the page with the smallest firstIndex (chronologically newest in descending-sorted data)', () => {
             const olderWindow = {
                 ids: ['2', '1'],
+                sourceIDs: ['2', '1'],
                 firstID: '2',
                 firstIndex: 3,
                 lastID: '1',
@@ -706,6 +740,7 @@ describe('PaginationUtils', () => {
             };
             const newerWindow = {
                 ids: ['5', '4'],
+                sourceIDs: ['5', '4'],
                 firstID: '5',
                 firstIndex: 0,
                 lastID: '4',

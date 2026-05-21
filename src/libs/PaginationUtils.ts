@@ -19,6 +19,9 @@ type PageWithIndex = {
     /** The IDs we store in Onyx and which make up the page. */
     ids: string[];
 
+    /** The IDs that were originally stored for the page before expanding indexes against sortedItems. */
+    sourceIDs: string[];
+
     /** The first ID in the page. */
     firstID: string;
 
@@ -122,6 +125,7 @@ function getPagesWithIndexes<TResource>(sortedItems: TResource[], pages: Pages, 
 
             return {
                 ids,
+                sourceIDs: page,
                 firstID: firstItem.id,
                 firstIndex: firstItem.index,
                 lastID: lastItem.id,
@@ -142,6 +146,11 @@ function mergeAndSortContinuousPages<TResource>(sortedItems: TResource[], pages:
 
     // Pages need to be sorted by firstIndex ascending then by lastIndex descending
     const sortedPages = pagesWithIndexes.sort((a, b) => {
+        const areDisjointStartPages = a.firstID === CONST.PAGINATION_START_ID && b.firstID === CONST.PAGINATION_START_ID && !pagesShareAnyNonMarkerID(a.sourceIDs, b.sourceIDs);
+        if (areDisjointStartPages) {
+            return a.lastIndex - b.lastIndex;
+        }
+
         if (a.firstIndex !== b.firstIndex || a.firstID !== b.firstID) {
             if (a.firstID === CONST.PAGINATION_START_ID) {
                 return -1;
@@ -163,14 +172,22 @@ function mergeAndSortContinuousPages<TResource>(sortedItems: TResource[], pages:
             continue;
         }
 
+        const areDisjointStartPages =
+            page.firstID === CONST.PAGINATION_START_ID && prevPage.firstID === CONST.PAGINATION_START_ID && !pagesShareAnyNonMarkerID(prevPage.sourceIDs, page.sourceIDs);
+
         // Current page is inside the previous page, skip
-        if (page.lastIndex <= prevPage.lastIndex && page.lastID !== CONST.PAGINATION_END_ID) {
+        if (!areDisjointStartPages && page.lastIndex <= prevPage.lastIndex && page.lastID !== CONST.PAGINATION_END_ID) {
             continue;
         }
 
+        const hasSharedBoundaryID = page.firstID === prevPage.lastID && !isPaginationMarker(page.firstID);
+        const hasIndexOverlap = page.firstIndex < prevPage.lastIndex;
+
         // Current page overlaps with the previous page, merge.
-        // This happens if the ids from the current page and previous page are the same or if the indexes overlap
-        if (page.firstID === prevPage.lastID || page.firstIndex < prevPage.lastIndex) {
+        // This happens if the ids from the current page and previous page are the same or if the indexes overlap.
+        // Two disjoint pages can both contain PAGINATION_START_ID when each was fetched as the live tail at different times;
+        // that marker alone is not evidence that the pages are continuous.
+        if (hasSharedBoundaryID || (!areDisjointStartPages && hasIndexOverlap)) {
             result[result.length - 1] = {
                 firstID: prevPage.firstID,
                 firstIndex: prevPage.firstIndex,
@@ -178,12 +195,17 @@ function mergeAndSortContinuousPages<TResource>(sortedItems: TResource[], pages:
                 lastIndex: page.lastIndex,
                 // Only add items from prevPage that are not included in page in case of overlap.
                 ids: prevPage.ids.slice(0, prevPage.ids.indexOf(page.firstID)).concat(page.ids),
+                sourceIDs: prevPage.sourceIDs.concat(page.sourceIDs),
             };
             continue;
         }
 
-        // No overlap, add the current page as is.
-        result.push(page);
+        // No overlap, add the current page as is. If this page only looks newest because of a stale start marker,
+        // preserve its original IDs but drop that stale marker so it doesn't cover newer actions.
+        result.push({
+            ...page,
+            ids: areDisjointStartPages && page.sourceIDs.at(0) === CONST.PAGINATION_START_ID ? page.sourceIDs.slice(1) : page.ids,
+        });
     }
 
     return result.map((page) => page?.ids ?? []);
@@ -396,6 +418,7 @@ function getContinuousChain<TResource>(sortedItems: TResource[], pages: Pages, g
 
     let page: PageWithIndex = {
         ids: [],
+        sourceIDs: [],
         firstID: '',
         firstIndex: 0,
         lastID: '',
