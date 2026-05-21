@@ -854,6 +854,7 @@ const SCREENS = {
         CREATE_DISTANCE_RATE: 'Create_Distance_Rate',
         CREATE_DISTANCE_RATE_UPGRADE: 'Create_Distance_Rate_Upgrade',
         DISTANCE_RATES_SETTINGS: 'Distance_Rates_Settings',
+        DISTANCE_RATES_UNIT: 'Distance_Rates_Unit',
         DISTANCE_RATE_DETAILS: 'Distance_Rate_Details',
         DISTANCE_RATE_EDIT: 'Distance_Rate_Edit',
         DISTANCE_RATE_NAME_EDIT: 'Distance_Rate_Name_Edit',
