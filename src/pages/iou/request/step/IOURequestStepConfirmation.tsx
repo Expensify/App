@@ -175,6 +175,8 @@ function IOURequestStepConfirmation({
         () => resolveReportForMoneyRequest({transaction, transactionReport, routeReport: reportWithDraftFallback, policy: policyReal}),
         [transaction, transactionReport, reportWithDraftFallback, policyReal],
     );
+    const participantReportIDToCheck = isMoneyRequestReport(report) ? report?.chatReportID : report?.reportID;
+    const [participantReportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${participantReportIDToCheck}`);
 
     const {policy} = usePolicyForTransaction({
         transaction: initialTransaction,
@@ -263,11 +265,9 @@ function IOURequestStepConfirmation({
                 const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
                 return participant.accountID
                     ? getParticipantsOption(participant, personalDetails)
-                    : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived);
+                    : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, participantReportDraft);
             }) ?? [],
-        // getReportOrDraftReport (called inside getReportOption) falls back to its module-level allReportsDraft
-        // connection, so we don't need to subscribe to COLLECTION.REPORT_DRAFT here.
-        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, privateIsArchivedMap, policy, conciergeReportID],
+        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, privateIsArchivedMap, policy, conciergeReportID, participantReportDraft],
     );
 
     const defaultParticipants = useMemo(() => {

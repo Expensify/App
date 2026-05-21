@@ -144,7 +144,6 @@ import {
     isArchivedNonExpenseReport,
     isChatThread,
     isDM,
-    isDraftReport,
     isExpenseReport,
     isHiddenForCurrentUser,
     isInvoiceRoom,
@@ -1220,7 +1219,7 @@ function getReportOption(
             }
         }
     }
-    option.isDisabled = !!reportDraft || isDraftReport(participant.reportID);
+    option.isDisabled = !!reportDraft;
     option.isSelected = participant.selected;
     option.selected = participant.selected; // Keep for backwards compatibility
     option.brickRoadIndicator = null;

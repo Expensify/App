@@ -5636,6 +5636,61 @@ describe('OptionsListUtils', () => {
 
             expect(option.isDisabled).toBe(true);
         });
+
+        it('should not disable option when reportDraft is undefined for a regular report', async () => {
+            const reportID = '200';
+            const report: Report = {
+                reportID,
+                reportName: 'Regular Report',
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await waitForBatchedUpdates();
+
+            const participant: Participant = {reportID, selected: false};
+
+            // Pass reportDraft = undefined → not a draft, should NOT be disabled
+            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined);
+
+            expect(option.isDisabled).toBeFalsy();
+        });
+
+        it('should disable option when reportDraft is explicitly passed', async () => {
+            const reportID = '201';
+            const draftReport: Report = {
+                reportID,
+                reportName: 'Explicit Draft Report',
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            const participant: Participant = {reportID, selected: false};
+
+            // Pass reportDraft explicitly → should be disabled regardless of Onyx state
+            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, draftReport);
+
+            expect(option.isDisabled).toBe(true);
+        });
+
+        it('should not disable option when reportDraft param is undefined even if report exists in REPORT_DRAFT', async () => {
+            const reportID = '202';
+            const draftReport: Report = {
+                reportID,
+                reportName: 'Global Draft Report',
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            // Draft exists in Onyx but is NOT passed as param
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`, draftReport);
+            await waitForBatchedUpdates();
+
+            const participant: Participant = {reportID, selected: false};
+
+            // Callers are responsible for passing reportDraft explicitly — undefined means not disabled
+            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined);
+
+            expect(option.isDisabled).toBeFalsy();
+        });
     });
 
     describe('getReportDisplayOption', () => {
