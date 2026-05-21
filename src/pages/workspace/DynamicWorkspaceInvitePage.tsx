@@ -106,7 +106,7 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         setSearchTerm,
         availableOptions,
         selectedOptions,
-        selectedOptionsForDisplay,
+        selectedNonExistingOptions,
         toggleSelection,
         areOptionsInitialized,
         onListEndReached,
@@ -121,12 +121,10 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         shouldInitialize: didScreenTransitionEnd,
         initialSelected: initiallySelectedOptions,
         shouldKeepSelectedInAvailableOptions: true,
+        shouldSeparateNonExistingSelectedOptions: true,
     });
 
     const sections: Array<Section<OptionData>> = useMemo(() => {
-        // Selected non-existing users that aren't in the Contacts section (e.g. typed email addresses)
-        const personalDetailLogins = new Set(availableOptions.personalDetails.map((option) => option.login).filter(Boolean));
-        const selectedNonExistingUsers = selectedOptionsForDisplay.filter((option) => !personalDetailLogins.has(option.login));
         const sectionsArr = [];
 
         if (!areOptionsInitialized) {
@@ -134,10 +132,10 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         }
 
         // Selected non-existing users section (top)
-        if (selectedNonExistingUsers.length > 0) {
+        if (selectedNonExistingOptions.length > 0) {
             sectionsArr.push({
                 title: undefined,
-                data: selectedNonExistingUsers,
+                data: selectedNonExistingOptions,
                 sectionIndex: 0,
             });
         }
@@ -147,7 +145,7 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             sectionsArr.push({
                 title: translate('common.contacts'),
                 data: availableOptions.personalDetails,
-                sectionIndex: selectedNonExistingUsers.length > 0 ? 1 : 0,
+                sectionIndex: selectedNonExistingOptions.length > 0 ? 1 : 0,
             });
         }
 
@@ -156,12 +154,12 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             sectionsArr.push({
                 title: undefined,
                 data: [availableOptions.userToInvite],
-                sectionIndex: selectedNonExistingUsers.length > 0 ? 2 : 1,
+                sectionIndex: selectedNonExistingOptions.length > 0 ? 2 : 1,
             });
         }
 
         return sectionsArr;
-    }, [areOptionsInitialized, selectedOptionsForDisplay, availableOptions.personalDetails, availableOptions.userToInvite, translate]);
+    }, [areOptionsInitialized, selectedNonExistingOptions, availableOptions.personalDetails, availableOptions.userToInvite, translate]);
 
     const handleToggleSelection = useCallback(
         (option: OptionData) => {
