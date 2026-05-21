@@ -23,6 +23,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {getUserFriendlyWorkspaceType} from '@libs/PolicyUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
@@ -90,7 +91,7 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
     disabled?: boolean;
 
     /** Callback when the row is pressed */
-    onPress?: () => void;
+    onPress?: (event?: ModifiedMouseEvent) => void;
 };
 
 type BrickRoadIndicatorIconProps = {
