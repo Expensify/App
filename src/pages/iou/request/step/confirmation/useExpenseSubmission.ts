@@ -288,11 +288,13 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             fallbackOptimisticChatReportID,
             action,
         });
+        // Move-from-track (SUBMIT/CATEGORIZE/SHARE) reuses the tracked transaction's ID — mirror the builder's `existingTransactionID ?? optimisticTransactionID`.
+        const lastTransactionID = getExistingTransactionID(lastTransaction?.linkedTrackedExpenseReportAction) ?? lastOptimisticTransactionID;
         cleanupAndNavigateAfterExpenseCreate({
             report: resolvedReport,
             action,
             draftTransactionIDs,
-            transactionID: lastOptimisticTransactionID,
+            transactionID: lastTransactionID,
             isFromGlobalCreate: getIsFromGlobalCreate(lastTransaction),
             backToReport: navigateBackToReport,
             optimisticChatReportID: chatReportID,
