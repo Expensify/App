@@ -258,7 +258,7 @@ const EXISTING_CONTACT: OptionData = {
     keyForList: 'alice@expensify.com',
 } as OptionData;
 
-const ANOTHER_CONTACT: OptionData = {
+const SECOND_CONTACT: OptionData = {
     text: 'Bob Jones',
     login: 'bob@expensify.com',
     accountID: 200,
@@ -306,7 +306,7 @@ describe('useSearchSelector selection and non-existing options', () => {
     it('keeps selected contacts in availableOptions.personalDetails when shouldKeepSelectedInAvailableOptions is true', async () => {
         const optionsWithSelected = {
             recentReports: [],
-            personalDetails: [{...EXISTING_CONTACT, isSelected: true}, ANOTHER_CONTACT],
+            personalDetails: [{...EXISTING_CONTACT, isSelected: true}, SECOND_CONTACT],
             userToInvite: null,
             currentUserOption: null,
         };
@@ -331,7 +331,7 @@ describe('useSearchSelector selection and non-existing options', () => {
     it('filters out selected contacts from availableOptions.personalDetails when shouldKeepSelectedInAvailableOptions is false', async () => {
         const optionsWithSelected = {
             recentReports: [],
-            personalDetails: [{...EXISTING_CONTACT, isSelected: true}, ANOTHER_CONTACT],
+            personalDetails: [{...EXISTING_CONTACT, isSelected: true}, SECOND_CONTACT],
             userToInvite: null,
             currentUserOption: null,
         };
@@ -409,7 +409,7 @@ describe('useSearchSelector selection and non-existing options', () => {
     it('does not include existing contacts in selectedNonExistingOptions', async () => {
         const optionsWithContacts = {
             recentReports: [],
-            personalDetails: [{...EXISTING_CONTACT, isSelected: true}, ANOTHER_CONTACT],
+            personalDetails: [{...EXISTING_CONTACT, isSelected: true}, SECOND_CONTACT],
             userToInvite: null,
             currentUserOption: null,
         };
@@ -465,7 +465,7 @@ describe('useSearchSelector selection and non-existing options', () => {
 
         // Now the non-existing user should be in selectedOptions and selectedNonExistingOptions
         expect(result.current.selectedOptions).toHaveLength(1);
-        expect(result.current.selectedOptions[0].login).toBe('newuser@gmail.com');
+        expect(result.current.selectedOptions.at(0)?.login).toBe('newuser@gmail.com');
         expect(result.current.selectedNonExistingOptions).toHaveLength(1);
         expect(result.current.selectedNonExistingOptions?.[0].login).toBe('newuser@gmail.com');
     });
