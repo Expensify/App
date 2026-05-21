@@ -17,9 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import {createNewReport} from '@libs/actions/Report';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getCreateReportRoute, {getReportsRootRoute, navigateToCreateReportWorkspaceSelection} from '@libs/Navigation/helpers/getCreateReportRoute';
-import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 import Permissions from '@libs/Permissions';
@@ -28,7 +26,7 @@ import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import {primaryLoginSelector} from '@src/selectors/Account';
 import {groupPaidPoliciesWithExpenseChatEnabledSelector} from '@src/selectors/Policy';
 import type * as OnyxTypes from '@src/types/onyx';
