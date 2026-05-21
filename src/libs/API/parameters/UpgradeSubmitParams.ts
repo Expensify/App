@@ -1,4 +1,4 @@
-import type Policy from "@src/types/onyx/Policy";
+import type Policy from '@src/types/onyx/Policy';
 
 type UpgradeSubmitParams = {
     policyID: string;
