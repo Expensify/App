@@ -5,14 +5,17 @@ import {
     createDisplayName,
     createPersonalDetailsLookupByAccountID,
     getAccountIDsByLogins,
+    getDisplayNameOrYou,
     getEffectiveDisplayName,
     getPersonalDetailByEmail,
     getPersonalDetailsOnyxDataForOptimisticUsers,
     newGetPersonalDetailsByIDs,
 } from '@libs/PersonalDetailsUtils';
+import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
-import {formatPhoneNumber} from '../../utils/TestHelper';
+import {formatPhoneNumber, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 type PersonalDetailsForDisplayName = Pick<PersonalDetails, 'firstName' | 'lastName'> & {
@@ -25,6 +28,7 @@ describe('PersonalDetailsUtils', () => {
         Onyx.init({
             keys: ONYXKEYS,
         });
+        return IntlStore.load(CONST.LOCALES.EN);
     });
 
     afterEach(() => Onyx.clear());
@@ -733,6 +737,18 @@ describe('PersonalDetailsUtils', () => {
         it('should filter out accountIDs that do not have corresponding personal details', () => {
             const result = newGetPersonalDetailsByIDs([accountID1, 999], personalDetails);
             expect(result).toEqual([personalDetails[accountID1]]);
+        });
+    });
+
+    describe('getDisplayNameOrYou', () => {
+        test('should return "you" translation when accountID is the same as currentUserAccountID', () => {
+            const result = getDisplayNameOrYou('John Doe', 123, 123, translateLocal);
+            expect(result).toBe('You');
+        });
+
+        test('should return displayName when accountID is not the same as currentUserAccountID', () => {
+            const result = getDisplayNameOrYou('John Doe', 123, 456, translateLocal);
+            expect(result).toBe('John Doe');
         });
     });
 });
