@@ -257,7 +257,7 @@ export type {default as EnablePolicyReportFieldsParams} from './EnablePolicyRepo
 export type {default as EnablePolicyExpensifyCardsParams} from './EnablePolicyExpensifyCardsParams';
 export type {default as UpdateGustoApprovalModeParams} from './UpdateGustoApprovalModeParams';
 export type {default as UpdateGustoFinalApproverParams} from './UpdateGustoFinalApproverParams';
-export type {default as UpdateMergeHRApprovalModeParams} from './UpdateMergeHRApprovalModeParams';
+export type {default as UpdateMergeApprovalModeParams} from './UpdateMergeApprovalModeParams';
 export type {default as UpdateMergeHRFinalApproverParams} from './UpdateMergeHRFinalApproverParams';
 export type {default as UpdateZenefitsApprovalModeParams} from './UpdateZenefitsApprovalModeParams';
 export type {default as UpdateZenefitsFinalApproverParams} from './UpdateZenefitsFinalApproverParams';

@@ -106,7 +106,7 @@ function updateMergeHRApprovalMode(policyID: string, approvalMode: ValueOf<typeo
     ];
 
     write(
-        WRITE_COMMANDS.UPDATE_MERGE_HR_APPROVAL_MODE,
+        WRITE_COMMANDS.UPDATE_MERGE_APPROVAL_MODE,
         {
             policyID,
             approvalMode,
