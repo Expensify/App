@@ -6932,6 +6932,7 @@ ${reportName}
             syncError: (providerName: string) => `无法连接到 ${providerName}`,
             connectionDescription: (providerName: string) => `连接 ${providerName}，以在您的工作区中同步员工审批。`,
             approvalMode: '审批模式',
+            providerApprovalMode: (providerName: string) => `${providerName} 审批模式`,
             finalApprover: '最终审批人',
             providerFinalApprover: (providerName: string) => `${providerName} 最终审批人`,
             notSet: '未设置',

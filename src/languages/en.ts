@@ -6455,6 +6455,7 @@ const translations = {
             syncError: (providerName: string) => `Can't connect to ${providerName}`,
             connectionDescription: (providerName: string) => `Connect ${providerName} to keep employee approvals in sync with your workspace.`,
             approvalMode: 'Approval mode',
+            providerApprovalMode: (providerName: string) => `${providerName} approval mode`,
             finalApprover: 'Final approver',
             providerFinalApprover: (providerName: string) => `${providerName} final approver`,
             notSet: 'Not set',
