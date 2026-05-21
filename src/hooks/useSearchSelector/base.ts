@@ -130,7 +130,7 @@ type UseSearchSelectorReturn = {
     selectedOptionsForDisplay: OptionData[];
 
     /** Selected options that are not present in availableOptions.personalDetails (e.g. non-existing users invited by email). Only populated when shouldSeparateNonExistingSelectedOptions is true */
-    selectedNonExistingOptions: OptionData[];
+    selectedNonExistingOptions?: OptionData[];
 
     /** Function to set selected options */
     setSelectedOptions: (options: OptionData[]) => void;

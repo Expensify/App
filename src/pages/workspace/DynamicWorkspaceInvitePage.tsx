@@ -106,7 +106,7 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         setSearchTerm,
         availableOptions,
         selectedOptions,
-        selectedNonExistingOptions,
+        selectedNonExistingOptions = [],
         toggleSelection,
         areOptionsInitialized,
         onListEndReached,
