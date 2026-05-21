@@ -120,8 +120,8 @@ function processNode(tnode: TNode, typeface: SkTypeface | null) {
         const tickValues = parseAttribute<number[]>(tnode.attributes.tickvalues);
         const orientation = parseAttribute<string>(tnode.attributes.orientation);
         const style = parseAttribute<StyleObject>(tnode.attributes.style);
-        const lineColor = style?.axis?.stroke !== undefined ? (style.axis.stroke as Color) : undefined;
-        const lineWidth = style?.axis?.strokeWidth !== undefined ? Number(style.axis.strokeWidth) : undefined;
+        const lineColor = style?.grid?.stroke !== undefined ? (style.grid.stroke as Color) : undefined;
+        const lineWidth = style?.grid?.strokeWidth !== undefined ? Number(style.grid.strokeWidth) : 0; // 0 Not to draw the lines for compatibility with VictoryChart
         const labelColor = style?.tickLabels?.fill !== undefined ? String(style.tickLabels.fill) : undefined;
         const labelOffset = style?.tickLabels?.padding !== undefined ? Number(style.tickLabels.padding) : undefined;
         const fontSize = style?.tickLabels?.fontSize !== undefined ? Number(style.tickLabels.fontSize) : undefined;
