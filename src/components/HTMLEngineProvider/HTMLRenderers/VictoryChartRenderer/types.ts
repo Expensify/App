@@ -1,6 +1,6 @@
 import type {Color} from '@shopify/react-native-skia';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
-import {X_KEY, Y_KEY_PREFIX} from './constants';
+import type {X_KEY, Y_KEY_PREFIX} from './constants';
 
 type VictoryChartRendererProps = CustomRendererProps<TBlock>;
 

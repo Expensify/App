@@ -20,6 +20,7 @@ type CustomWebpackConfig = {
     resolve: {
         alias: Record<string, string>;
         extensions: string[];
+        fallback: Record<string, string | false | string[]>;
     };
     module: {
         rules: RuleSetRule[];
