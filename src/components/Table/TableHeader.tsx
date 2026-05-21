@@ -7,6 +7,8 @@ import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -52,7 +54,10 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {columns, isEmptyResult, title, shouldUseNarrowTableLayout, tableMethods, processedData, selectionEnabled} = useTableContext<DataType, ColumnKey>();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const isMobileSelectionEnabled = useMobileSelectionMode();
+    const {columns, isEmptyResult, title, shouldUseNarrowTableLayout, tableMethods, selectionEnabled, processedData} = useTableContext<DataType, ColumnKey>();
+    const isSelectionCheckboxVisible = selectionEnabled && (isMobileSelectionEnabled || !shouldUseNarrowLayout);
 
     if (shouldUseNarrowTableLayout && !title) {
         return null;
@@ -64,7 +69,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
 
     const gridTemplateColumns = columns.map((column) => (column.width ? `${column.width}px` : '1fr'));
 
-    if (selectionEnabled) {
+    if (isSelectionCheckboxVisible) {
         gridTemplateColumns.unshift(`${variables.tableCheckboxColumnWidth}px`);
     }
 
@@ -90,7 +95,16 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
             {...props}
         >
             {shouldUseNarrowTableLayout && (
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.tableHeaderContentHeight]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.tableHeaderContentHeight, styles.gap3]}>
+                    {isSelectionCheckboxVisible && (
+                        <Checkbox
+                            isChecked={false}
+                            onPress={tableMethods.handleSelectAll}
+                            accessibilityLabel={translate('workspace.common.selectAll')}
+                            style={styles.pl1}
+                        />
+                    )}
+
                     <Text
                         numberOfLines={1}
                         color={theme.textSupporting}
