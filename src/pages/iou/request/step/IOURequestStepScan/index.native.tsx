@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import {View} from 'react-native';
+import {Platform, View} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 import {useCameraFormat} from 'react-native-vision-camera';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -15,6 +15,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
@@ -53,6 +54,7 @@ function IOURequestStepScan({
     const {translate} = useLocalize();
     const isInLandscapeMode = useIsInLandscapeMode();
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
+    const {windowWidth, windowHeight} = useWindowDimensions();
 
     // Ref bridging resetCapturingState (from useCapturePhoto) into onFocusStart (used by useNativeCamera).
     // Both hooks depend on each other's outputs, so we use a ref to break the initialization cycle.
@@ -83,14 +85,19 @@ function IOURequestStepScan({
         },
     });
 
-    // Prioritize photoResolution over videoResolution so the format selector picks the configured
-    // PHOTO_WIDTH/PHOTO_HEIGHT format. videoResolution targets the same dimensions because iOS
-    // `takeSnapshot` grabs from the video pipeline — setting it any smaller (e.g. screen dimensions)
-    // would degrade the snapshot capture quality on iOS.
+    // Prioritize photoResolution so the format selector picks the configured PHOTO_WIDTH/PHOTO_HEIGHT
+    // format. videoResolution is platform-specific:
+    //  - iOS: match the photo target — `takeSnapshot` reads from the video pipeline, so a smaller
+    //    video resolution would degrade the snapshot capture quality.
+    //  - Android: keep screen dimensions — `takeSnapshot` is a GPU screenshot of the preview surface
+    //    and doesn't depend on video resolution; constraining to screen size avoids burning GPU on a
+    //    higher-than-needed preview.
     const format = useCameraFormat(device, [
         {photoAspectRatio: CONST.RECEIPT_CAMERA.PHOTO_ASPECT_RATIO},
         {photoResolution: {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT}},
-        {videoResolution: {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT}},
+        Platform.OS === 'ios'
+            ? {videoResolution: {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT}}
+            : {videoResolution: {width: windowHeight, height: windowWidth}},
     ]);
 
     // Format dimensions are in landscape orientation, so height/width gives portrait aspect ratio
