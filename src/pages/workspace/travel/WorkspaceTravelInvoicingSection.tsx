@@ -13,6 +13,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {
@@ -53,16 +54,13 @@ import TravelInvoicingSubtitleWrapper from './TravelInvoicingSubtitleWrapper';
 type WorkspaceTravelInvoicingSectionProps = {
     /** The ID of the policy */
     policyID: string;
-
-    /** Whether the current user can edit More features backed travel settings. */
-    canWriteMoreFeatures: boolean;
 };
 
 /**
  * Displays the Travel Invoicing section within the Workspace Travel page.
  * Shows a setup CTA if Travel Invoicing is not configured, otherwise shows the settings.
  */
-function WorkspaceTravelInvoicingSection({policyID, canWriteMoreFeatures}: WorkspaceTravelInvoicingSectionProps) {
+function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSectionProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -85,6 +83,7 @@ function WorkspaceTravelInvoicingSection({policyID, canWriteMoreFeatures}: Works
     const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const {canWrite: canWriteMoreFeatures, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
@@ -154,15 +153,6 @@ function WorkspaceTravelInvoicingSection({policyID, canWriteMoreFeatures}: Works
      */
     const handlePayBalance = () => {
         setIsPayBalanceModalVisible(true);
-    };
-
-    const showReadOnlyModal = () => {
-        showConfirmModal({
-            title: translate('workspace.common.readOnlyActionTitle'),
-            prompt: translate('workspace.common.readOnlyActionPrompt'),
-            confirmText: translate('common.buttonConfirm'),
-            shouldShowCancelButton: false,
-        });
     };
 
     /**

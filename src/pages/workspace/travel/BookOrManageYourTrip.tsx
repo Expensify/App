@@ -1,11 +1,11 @@
 import React from 'react';
 import MenuItem from '@components/MenuItem';
 import Section from '@components/Section';
-import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setPolicyTravelSettings} from '@libs/actions/Policy/Travel';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
@@ -15,14 +15,13 @@ import WorkspaceTravelInvoicingSection from './WorkspaceTravelInvoicingSection';
 
 type GetStartedTravelProps = {
     policyID: string;
-    canWriteMoreFeatures: boolean;
 };
 
-function GetStartedTravel({policyID, canWriteMoreFeatures}: GetStartedTravelProps) {
+function GetStartedTravel({policyID}: GetStartedTravelProps) {
     const {translate} = useLocalize();
-    const {showConfirmModal} = useConfirmModal();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
+    const {canWrite: canWriteMoreFeatures, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
     const icons = useMemoizedLazyExpensifyIcons(['LuggageWithLines', 'NewWindow']);
     const {isBetaEnabled} = usePermissions();
     const isTravelInvoicingEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_INVOICING);
@@ -32,15 +31,6 @@ function GetStartedTravel({policyID, canWriteMoreFeatures}: GetStartedTravelProp
 
     const toggleAutoAddTripName = (enabled: boolean) => {
         setPolicyTravelSettings(policy, {autoAddTripName: enabled});
-    };
-
-    const showReadOnlyModal = () => {
-        showConfirmModal({
-            title: translate('workspace.common.readOnlyActionTitle'),
-            prompt: translate('workspace.common.readOnlyActionPrompt'),
-            confirmText: translate('common.buttonConfirm'),
-            shouldShowCancelButton: false,
-        });
     };
 
     const handleManageTravel = () => {
@@ -85,12 +75,7 @@ function GetStartedTravel({policyID, canWriteMoreFeatures}: GetStartedTravelProp
                     wrapperStyle={styles.mt3}
                 />
             </Section>
-            {isTravelInvoicingEnabled && (
-                <WorkspaceTravelInvoicingSection
-                    policyID={policyID}
-                    canWriteMoreFeatures={canWriteMoreFeatures}
-                />
-            )}
+            {isTravelInvoicingEnabled && <WorkspaceTravelInvoicingSection policyID={policyID} />}
         </>
     );
 }

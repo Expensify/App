@@ -17,12 +17,12 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
@@ -38,7 +38,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {
     canEditTaxRate as canEditTaxRatePolicyUtils,
-    canMemberWrite,
     getConnectedIntegration,
     getCurrentConnectionName,
     hasAccountingConnections as hasAccountingConnectionsPolicyUtils,
@@ -74,8 +73,7 @@ function WorkspaceTaxesPage({
     const [selectedTaxesIDs, setSelectedTaxesIDs] = useState<string[]>([]);
     const {showConfirmModal} = useConfirmModal();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
-    const canWriteTaxes = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.TAXES);
+    const {canWrite: canWriteTaxes, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAXES);
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
@@ -137,15 +135,6 @@ function WorkspaceTaxesPage({
         },
         onNavigationCallBack: () => Navigation.goBack(),
     });
-
-    const showReadOnlyModal = useCallback(() => {
-        showConfirmModal({
-            title: translate('workspace.common.readOnlyActionTitle'),
-            prompt: translate('workspace.common.readOnlyActionPrompt'),
-            confirmText: translate('common.buttonConfirm'),
-            shouldShowCancelButton: false,
-        });
-    }, [showConfirmModal, translate]);
 
     const textForDefault = useCallback(
         (taxID: string, taxRate: TaxRate): string => {
