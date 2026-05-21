@@ -3,7 +3,7 @@ import type {SkTypeface} from '@shopify/react-native-skia';
 import JSON5 from 'json5';
 import lodashIsObject from 'lodash/isObject';
 import lodashMerge from 'lodash/merge';
-import React, {Fragment, useCallback, useMemo} from 'react';
+import React, {Fragment} from 'react';
 import type {ComponentProps} from 'react';
 import {View} from 'react-native';
 import type {ViewStyle} from 'react-native';
@@ -328,11 +328,11 @@ function parseStyles(tnode: TNode) {
 function BaseVictoryChartRenderer({tnode}: VictoryChartRendererProps) {
     const styles = useThemeStyles();
     const {regular: regularTypeface, bold: boldTypeface} = useChartDefaultTypeface();
-    const {data, xKey, yKeys, xAxis, yAxis, labelItems, legendItems} = useMemo(() => processNode(tnode, regularTypeface), [tnode, regularTypeface]);
-    const {nodeStyles: chartContentStyles, parentNodeStyles: chartContainerStyles} = useMemo(() => parseStyles(tnode), [tnode]);
-    const [isCartesianChart, isPolarChart] = useMemo(() => [Object.keys(data).length > 0, false], [data]);
+    const {data, xKey, yKeys, xAxis, yAxis, labelItems, legendItems} = processNode(tnode, regularTypeface);
+    const {nodeStyles: chartContentStyles, parentNodeStyles: chartContainerStyles} = parseStyles(tnode);
+    const [isCartesianChart, isPolarChart] = [Object.keys(data).length > 0, false];
 
-    const renderCartesianChartChild = useCallback((tnodeChild: TNode, index: number, renderArgs: CartesianChartRenderArg<CartesianChartData, YKey>) => {
+    const renderCartesianChartChild = (tnodeChild: TNode, index: number, renderArgs: CartesianChartRenderArg<CartesianChartData, YKey>) => {
         const key = `${tnodeChild.tagName ?? 'node'}-${index}`;
         const yKey = getYKey(tnodeChild);
         const {points, chartBounds} = renderArgs;
@@ -363,9 +363,9 @@ function BaseVictoryChartRenderer({tnode}: VictoryChartRendererProps) {
             default:
                 return null;
         }
-    }, []);
+    };
 
-    const renderCartesianChartOutside = useCallback(() => {
+    const renderCartesianChartOutside = () => {
         return (
             <>
                 {labelItems.map(({x, y, text, color, fontSize, fontWeight}) => {
@@ -416,7 +416,7 @@ function BaseVictoryChartRenderer({tnode}: VictoryChartRendererProps) {
                 })}
             </>
         );
-    }, [labelItems, legendItems, regularTypeface, boldTypeface]);
+    };
 
     // Invalid chart (no charts or mixed charts)
     if (isCartesianChart === isPolarChart) {
