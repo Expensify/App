@@ -43,7 +43,7 @@ function TaskAssigneeSelectorModal() {
         | PlatformStackRouteProp<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.TASK_ASSIGNEE_SELECTOR>
     >();
     const {translate} = useLocalize();
-    const backTo = 'backTo' in route.params ? route.params.backTo : undefined;
+    const backTo = route.params?.backTo;
     const taskEditBackPath = useDynamicBackPath(DYNAMIC_ROUTES.TASK_ASSIGNEE.path);
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [task] = useOnyx(ONYXKEYS.TASK);
