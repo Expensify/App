@@ -221,7 +221,7 @@ function SearchContextProvider({children}: SearchContextProps) {
         currentSearchResults = snapshotSearchResults ?? undefined;
     }
 
-    const setSelectedTransactions: SearchActionsContextValue['setSelectedTransactions'] = (transactionIDs) => {
+    const setSelectedTransactions: SearchActionsContextValue['setSelectedTransactions'] = (transactionIDs, data) => {
         if (transactionIDs instanceof Array) {
             if (!transactionIDs.length && areTransactionsEmpty.current) {
                 areTransactionsEmpty.current = true;
@@ -231,6 +231,19 @@ function SearchContextProvider({children}: SearchContextProps) {
             setSearchContextData((prevState) => ({
                 ...prevState,
                 selectedTransactionIDs: transactionIDs,
+            }));
+            return;
+        }
+
+        // When the caller provides `data`, derive `selectedReports` in the same commit so the
+        // two state slices can't diverge for a render. Used by callers (e.g. the refresh-selection
+        // effect) that already have `filteredData` in scope and react to it changing.
+        if (data) {
+            setSearchContextData((prevState) => ({
+                ...prevState,
+                selectedTransactions: transactionIDs,
+                selectedReports: deriveSelectedReports(transactionIDs, data),
+                shouldTurnOffSelectionMode: false,
             }));
             return;
         }
@@ -398,14 +411,23 @@ function useSearchActionsContext() {
 /**
  * Derives `selectedReports` from the current selection + visible rows and syncs it into context.
  * Used by the Search component so `toggleTransaction` can stay independent of `filteredData`.
+ *
+ * `data` is read via a ref so this effect only fires when `selectedTransactions` changes.
+ * Without that, a `data` change (e.g. Onyx push) would fire this effect with a stale
+ * `selectedTransactions` from closure and clobber any atomic update made in the same commit.
  */
 function useSyncSelectedReports(data: TransactionListItemType[] | TransactionGroupListItemType[] | ReportActionListItemType[] | TaskListItemType[]) {
     const {selectedTransactions} = useSearchStateContext();
     const {setSelectedReports} = useSearchActionsContext();
 
+    const dataRef = useRef(data);
     useEffect(() => {
-        setSelectedReports(deriveSelectedReports(selectedTransactions, data));
-    }, [selectedTransactions, data, setSelectedReports]);
+        dataRef.current = data;
+    });
+
+    useEffect(() => {
+        setSelectedReports(deriveSelectedReports(selectedTransactions, dataRef.current));
+    }, [selectedTransactions, setSelectedReports]);
 }
 
 export {SearchContextProvider, useSearchStateContext, useSearchActionsContext, useSyncSelectedReports, SearchStateContext, SearchActionsContext};

@@ -891,7 +891,11 @@ function Search({
             return;
         }
 
-        setSelectedTransactions(newTransactionList);
+        // Pass `filteredData` so `selectedReports` is updated atomically with `selectedTransactions`.
+        // Otherwise a stale `useSyncSelectedReports` derivation in the same commit can briefly clear
+        // `selectedReports` while an Onyx push expands the selection, which can close screens like
+        // SearchChangeApproverPage that auto-dismiss when `selectedReports` is empty.
+        setSelectedTransactions(newTransactionList, filteredData);
 
         isRefreshingSelection.current = true;
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1384,7 +1388,7 @@ function Search({
                     }),
             );
         }
-        setSelectedTransactions(updatedTransactions);
+        setSelectedTransactions(updatedTransactions, filteredData);
         updateSelectAllMatchingItemsState(updatedTransactions);
     }, [
         areItemsGrouped,
