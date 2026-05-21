@@ -27,14 +27,21 @@ function AgentAIPromptSection({accountID}: AgentAIPromptSectionProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [isEditing, setIsEditing] = useState(false);
     const [draftPrompt, setDraftPrompt] = useState('');
     const [showEmptyError, setShowEmptyError] = useState(false);
     const inputRef = useRef<BaseTextInputRef>(null);
 
+    // Delegate.connect seeds IS_LOADING_APP=true via clearOnyxForDelegateTransition and OpenApp's optimisticData,
+    // then flips it back to false in OpenApp's finallyData. By that point NetworkStore.authToken is the delegate.
+    // Waiting on this transition prevents firing OpenProfilePage with the owner authToken during a copilot switch.
     useEffect(() => {
+        if (isLoadingApp) {
+            return;
+        }
         openProfilePage();
-    }, []);
+    }, [isLoadingApp, accountID]);
 
     useEffect(() => {
         if (!isEditing || !agentPrompt?.promptErrors) {
