@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {removePolicyConnection, syncConnection} from '@libs/actions/connections';
+import {clearHRConnectionErrorField} from '@libs/actions/connections/MergeHR';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import type Policy from '@src/types/onyx/Policy';
@@ -138,7 +139,11 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures}: HRP
                 fallbackIcon={fallbackIcon}
             />
             {card.isConnected && !!approvalModeRoute && (
-                <OfflineWithFeedback pendingAction={card.config?.pendingFields?.approvalMode}>
+                <OfflineWithFeedback
+                    pendingAction={card.config?.pendingFields?.approvalMode}
+                    errors={card.config?.errorFields?.approvalMode}
+                    onClose={() => clearHRConnectionErrorField(policy?.id, card.connectionName, 'approvalMode')}
+                >
                     <MenuItemWithTopDescription
                         description={translate('workspace.hr.approvalMode')}
                         title={card.approvalModeLabel}
@@ -150,7 +155,11 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures}: HRP
                 </OfflineWithFeedback>
             )}
             {card.isConnected && !!finalApproverRoute && (
-                <OfflineWithFeedback pendingAction={card.config?.pendingFields?.finalApprover}>
+                <OfflineWithFeedback
+                    pendingAction={card.config?.pendingFields?.finalApprover}
+                    errors={card.config?.errorFields?.finalApprover}
+                    onClose={() => clearHRConnectionErrorField(policy?.id, card.connectionName, 'finalApprover')}
+                >
                     <MenuItemWithTopDescription
                         description={translate('workspace.hr.finalApprover')}
                         title={card.finalApproverDisplayName}

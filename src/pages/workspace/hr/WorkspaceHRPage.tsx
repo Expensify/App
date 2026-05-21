@@ -9,7 +9,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useGustoSyncResultsModal from '@hooks/useGustoSyncResultsModal';
+import useHRSyncResultsModal from '@hooks/useHRSyncResultsModal';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -49,7 +49,7 @@ function WorkspaceHRPage({
     const policy = usePolicy(policyID);
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
-    const icons = useMemoizedLazyExpensifyIcons(['GustoSquare', 'ZenefitsSquare']);
+    const icons = useMemoizedLazyExpensifyIcons(['GustoSquare', 'TriNetSquare']);
     const illustrations = useMemoizedLazyIllustrations(['NewUser']);
     const [activeHRFlow, setActiveHRFlow] = useState<{setupLink: string; key: number} | undefined>();
 
@@ -61,7 +61,7 @@ function WorkspaceHRPage({
         openPolicyHRPage(policyID);
     }, [policyID]);
 
-    useGustoSyncResultsModal(policyID, connectionSyncProgress, isFocused);
+    useHRSyncResultsModal(policyID, connectionSyncProgress, isFocused);
 
     const cards = getHRCards({
         policy,
@@ -71,7 +71,7 @@ function WorkspaceHRPage({
         translate,
         policyID,
         gustoIcon: icons.GustoSquare,
-        zenefitsIcon: icons.ZenefitsSquare,
+        trinetIcon: icons.TriNetSquare,
     });
 
     const connectedCards: HRCardDescriptor[] = [];
