@@ -1,11 +1,12 @@
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {policyCollectionWithoutLoadingFlagsSelector} from '@src/selectors/Policy';
 import type {Policy} from '@src/types/onyx';
 import useCardFeedErrors from './useCardFeedErrors';
 import useOnyx from './useOnyx';
 
 function usePoliciesWithCardFeedErrors() {
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policyCollectionWithoutLoadingFlagsSelector});
     const [session] = useOnyx(ONYXKEYS.SESSION);
 
     // If a policy was just deleted from Onyx, then Onyx will pass a null value to the props, and

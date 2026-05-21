@@ -146,6 +146,35 @@ const iouRequestPolicyCollectionSelector = (policies: OnyxCollection<Policy>): O
     return result;
 };
 
+// Strips transient `isLoading*` flags merged onto policies by per-page reads (e.g.
+// openPolicyWorkflowsPage), so useOnyx's deepEqual elides re-renders when another screen flips them.
+// Flag-free policies are returned by reference (Onyx keeps unchanged entries stable, so deepEqual
+// short-circuits on `===` instead of deep-traversing all fields). We strip whenever a flag is present
+// (true OR false) so the output stays flag-free across a true->false merge.
+const policyCollectionWithoutLoadingFlagsSelector = (policies: OnyxCollection<Policy>): OnyxCollection<Policy> => {
+    if (!policies) {
+        return undefined;
+    }
+
+    const result: Record<string, Policy> = {};
+
+    for (const [id, policyItem] of Object.entries(policies)) {
+        if (!policyItem) {
+            continue;
+        }
+
+        if (policyItem.isLoading === undefined && policyItem.isLoadingReceiptPartners === undefined && policyItem.isLoadingWorkspaceReimbursement === undefined) {
+            result[id] = policyItem;
+            continue;
+        }
+
+        const {isLoading, isLoadingReceiptPartners, isLoadingWorkspaceReimbursement, ...rest} = policyItem;
+        result[id] = rest as Policy;
+    }
+
+    return result;
+};
+
 const hasOnlyPersonalPoliciesSelector = (policies: OnyxCollection<Policy>): boolean => {
     return !Object.values(policies ?? {}).some((policy) => policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 };
@@ -261,6 +290,7 @@ export {
     hasMultipleOutputCurrenciesSelector,
     groupPaidPoliciesWithExpenseChatEnabledSelector,
     iouRequestPolicyCollectionSelector,
+    policyCollectionWithoutLoadingFlagsSelector,
     policyMapper,
     adminPoliciesConnectedToQBDSelector,
     reusablePoliciesConnectedToSelector,
