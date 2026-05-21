@@ -1131,7 +1131,7 @@ const staticStyles = (theme: ThemeColors) =>
             ...whiteSpace.noWrap,
         },
 
-        badgeHigher: {
+        agentPromotionalBannerBadge: {
             position: Platform.OS === 'web' ? 'relative' : 'static',
             top: -2,
         },

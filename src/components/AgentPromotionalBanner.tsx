@@ -63,14 +63,13 @@ function AgentPromotionalBanner({title, subtitle, onDismiss, dismissSentryLabel,
                 <View style={[styles.flex1, styles.gap1]}>
                     <Text style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
                         <Text style={[styles.textStrong, styles.agentsPromoBannerText, styles.flexShrink1]}>{title}</Text>
-                        <View style={[styles.badgeHigher]}>
-                            <Badge
-                                success
-                                isStrong
-                                isCondensed
-                                text={translate('common.new')}
-                            />
-                        </View>
+                        <Badge
+                            badgeStyles={styles.agentPromotionalBannerBadge}
+                            success
+                            isStrong
+                            isCondensed
+                            text={translate('common.new')}
+                        />
                     </Text>
                     <Text style={[styles.textLabel, styles.agentsPromoBannerText]}>{subtitle}</Text>
                 </View>
