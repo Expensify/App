@@ -2135,7 +2135,7 @@ function getTransactionsSections({
                       }
                     : {}),
                 keyForList: transactionItem.transactionID,
-                action: getAction(allActions),
+                action: getAction(allActions, report?.ownerAccountID !== currentAccountID ? [CONST.SEARCH.ACTION_TYPES.SUBMIT] : []),
                 allActions,
                 report,
                 policy,
@@ -2784,7 +2784,11 @@ function getReportSections({
                     reportItem.ownerAccountID === currentAccountID &&
                     reportItem.nextStep?.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT;
                 const shouldHidePayAsPrimaryAction = hasOnlyNonReimbursableTransactions(reportItem.reportID, allReportTransactions);
-                const primaryActionExclusions: SearchTransactionAction[] = shouldHidePayAsPrimaryAction ? [CONST.SEARCH.ACTION_TYPES.PAY] : [];
+                const shouldHideSubmitAsPrimaryAction = reportItem.ownerAccountID !== currentAccountID;
+                const primaryActionExclusions: SearchTransactionAction[] = [
+                    ...(shouldHidePayAsPrimaryAction ? [CONST.SEARCH.ACTION_TYPES.PAY] : []),
+                    ...(shouldHideSubmitAsPrimaryAction ? [CONST.SEARCH.ACTION_TYPES.SUBMIT] : []),
+                ];
 
                 reportIDToTransactions[reportKey] = {
                     ...reportItem,
@@ -2848,7 +2852,7 @@ function getReportSections({
             const transaction = {
                 ...transactionItem,
                 ...(transactionPendingAction ? {pendingAction: transactionPendingAction} : {}),
-                action: getAction(allActions),
+                action: getAction(allActions, report?.ownerAccountID !== currentAccountID ? [CONST.SEARCH.ACTION_TYPES.SUBMIT] : []),
                 allActions,
                 report,
                 reportAction,
