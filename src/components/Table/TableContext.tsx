@@ -25,7 +25,7 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     selectionEnabled?: boolean;
 
     /** The data array after filtering, searching, and sorting have been applied. */
-    processedData: TableRow<DataType>[];
+    processedData: Array<TableRow<DataType>>;
 
     /** The original length of the data array before any processing. */
     originalDataLength: number;
@@ -79,8 +79,6 @@ const defaultTableContextValue: TableContextValue<TableData, string> = {
     hasSearchString: false,
     isEmptyResult: false,
     shouldUseNarrowTableLayout: false,
-    handleShiftRowSelection: () => {},
-    handleRowSelection: () => {},
 };
 
 const TableContext = createContext(defaultTableContextValue);

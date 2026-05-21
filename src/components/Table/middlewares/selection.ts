@@ -1,16 +1,16 @@
-import {Dispatch, SetStateAction, useRef, useState} from 'react';
-import {TableData, TableRow} from '../types';
-import {MiddlewareHookResult} from './types';
+import {useRef, useState} from 'react';
+import type {TableData, TableRow} from '@components/Table/types';
+import type {MiddlewareHookResult} from './types';
 
-export type UseSelectionProps<DataType extends TableData> = {
+type UseSelectionProps<DataType extends TableData> = {
     /** The data being used in the table */
     data: DataType[];
 
     /** Callback that is fired when the selection of rows in the table changes */
-    onRowSelectionChange?: (selectedRows: TableRow<DataType>[]) => void;
+    onRowSelectionChange?: (selectedRows: Array<TableRow<DataType>>) => void;
 };
 
-export type SelectionMethods = {
+type SelectionMethods = {
     /** Callback to either select or unselect all rows in the table */
     handleSelectAll: () => void;
 
@@ -24,7 +24,7 @@ export type SelectionMethods = {
     clearSelection: () => void;
 };
 
-export type UseSelectionResult<DataType extends TableData> = MiddlewareHookResult<DataType, SelectionMethods, TableRow<DataType>>;
+type UseSelectionResult<DataType extends TableData> = MiddlewareHookResult<DataType, SelectionMethods, TableRow<DataType>>;
 
 export default function useSelection<DataType extends TableData>({data, onRowSelectionChange}: UseSelectionProps<DataType>): UseSelectionResult<DataType> {
     const keyForLists = data.map((item) => item.keyForList);
@@ -34,7 +34,7 @@ export default function useSelection<DataType extends TableData>({data, onRowSel
     const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
 
     let areAllRowsSelected = true;
-    let modifiedData: TableRow<DataType>[] = [];
+    const modifiedData: Array<TableRow<DataType>> = [];
 
     for (const item of data) {
         const isSelected = selectedKeys.includes(item.keyForList);
@@ -82,6 +82,22 @@ export default function useSelection<DataType extends TableData>({data, onRowSel
     };
 
     /**
+     * When a single row is selected in the table, update the selection state
+     */
+    const handleSingleRowSelection = (keyForList: string) => {
+        lastSelectedRowKeyRef.current = keyForList;
+        lastSelectedRowIsSelectedRef.current = !selectedKeys.includes(keyForList);
+
+        updateSelectedKeys((prevSelectedKeys) => {
+            if (prevSelectedKeys.includes(keyForList)) {
+                return prevSelectedKeys.filter((key) => key !== keyForList);
+            }
+
+            return [...prevSelectedKeys, keyForList];
+        });
+    };
+
+    /**
      * When a row is selected, while holding shift, select all of the rows in-between
      * the last selected row and the current row
      */
@@ -115,7 +131,12 @@ export default function useSelection<DataType extends TableData>({data, onRowSel
             const newSelectedKeys = [...prevSelectedKeys];
 
             for (let i = startIndex; i <= endIndex; i++) {
-                const key = keyForLists[i];
+                const key = keyForLists.at(i);
+
+                if (!key) {
+                    continue;
+                }
+
                 if (lastSelectedRowIsSelected) {
                     if (!newSelectedKeys.includes(key)) {
                         newSelectedKeys.push(key);
@@ -129,22 +150,6 @@ export default function useSelection<DataType extends TableData>({data, onRowSel
             }
 
             return newSelectedKeys;
-        });
-    };
-
-    /**
-     * When a single row is selected in the table, update the selection state
-     */
-    const handleSingleRowSelection = (keyForList: string) => {
-        lastSelectedRowKeyRef.current = keyForList;
-        lastSelectedRowIsSelectedRef.current = !selectedKeys.includes(keyForList);
-
-        updateSelectedKeys((prevSelectedKeys) => {
-            if (prevSelectedKeys.includes(keyForList)) {
-                return prevSelectedKeys.filter((key) => key !== keyForList);
-            } else {
-                return [...prevSelectedKeys, keyForList];
-            }
         });
     };
 
@@ -162,3 +167,5 @@ export default function useSelection<DataType extends TableData>({data, onRowSel
         },
     };
 }
+
+export type {SelectionMethods, UseSelectionProps, UseSelectionResult};

@@ -12,7 +12,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import {WorkspaceCategoryTableRowData} from '.';
+import type {WorkspaceCategoryTableRowData} from '.';
 
 type WorkspaceCategoriesTableRowProps = {
     /** Data about the category */
@@ -61,7 +61,7 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
 
                     {!shouldUseNarrowTableLayout && shouldShowApproverColumn && (
                         <View style={[styles.flex1, styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
-                            {item.approverDisplayName && item.approverAccountID && (
+                            {!!item.approverDisplayName && !!item.approverAccountID && (
                                 <>
                                     <Avatar
                                         name={item.approverDisplayName}

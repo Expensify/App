@@ -1,15 +1,16 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
-import Table, {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table/';
+import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table/';
+import Table from '@components/Table/';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import {AvatarSource} from '@libs/UserAvatarUtils';
-import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import WorkspaceCategoriesTableRow from './WorkspaceCategoriesTableRow';
 
-export type WorkspaceCategoryTableColumnKey = 'name' | 'glCode' | 'approver' | 'enabled' | 'actions';
+type WorkspaceCategoryTableColumnKey = 'name' | 'glCode' | 'approver' | 'enabled' | 'actions';
 
-export type WorkspaceCategoryTableRowData = TableData & {
+type WorkspaceCategoryTableRowData = TableData & {
     name: string;
     glCode?: string;
     enabled: boolean;
@@ -73,13 +74,17 @@ export default function WorkspaceCategoriesTable({ref, categories, shouldShowApp
         const orderMultiplier = activeSorting.order === 'asc' ? 1 : -1;
 
         if (activeSorting.columnKey === 'approver') {
-            const approver1 = item1.approverDisplayName || '';
-            const approver2 = item2.approverDisplayName || '';
+            const approver1 = item1.approverDisplayName ?? '';
+            const approver2 = item2.approverDisplayName ?? '';
             return localeCompare(approver1, approver2) * orderMultiplier;
         }
 
         if (activeSorting.columnKey === 'enabled') {
-            return (item1.isDisabled === item2.isDisabled ? 0 : item1.isDisabled ? 1 : -1) * orderMultiplier;
+            if (item1.enabled === item2.enabled) {
+                return 0;
+            }
+
+            return (item1.enabled ? -1 : 1) * orderMultiplier;
         }
 
         return localeCompare(item1.name, item2.name) * orderMultiplier;
@@ -116,3 +121,5 @@ export default function WorkspaceCategoriesTable({ref, categories, shouldShowApp
         </Table>
     );
 }
+
+export type {WorkspaceCategoryTableRowData, WorkspaceCategoryTableColumnKey};

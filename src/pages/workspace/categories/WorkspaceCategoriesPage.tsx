@@ -14,8 +14,9 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
 import type {ListItem} from '@components/SelectionList/types';
-import {TableHandle} from '@components/Table';
-import WorkspaceCategoriesTable, {WorkspaceCategoryTableColumnKey, WorkspaceCategoryTableRowData} from '@components/Tables/WorkspaceCategoriesTable';
+import type {TableHandle} from '@components/Table';
+import type {WorkspaceCategoryTableColumnKey, WorkspaceCategoryTableRowData} from '@components/Tables/WorkspaceCategoriesTable';
+import WorkspaceCategoriesTable from '@components/Tables/WorkspaceCategoriesTable';
 import Text from '@components/Text';
 import useAutoTurnSelectionModeOffWhenHasNoActiveOption from '@hooks/useAutoTurnSelectionModeOffWhenHasNoActiveOption';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
@@ -34,13 +35,11 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {getCategoryApproverRule, getDecodedCategoryName} from '@libs/CategoryUtils';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -52,14 +51,13 @@ import {getConnectedIntegration, getCurrentConnectionName, hasAccountingConnecti
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import variables from '@styles/variables';
 import {close} from '@userActions/Modal';
 import {clearCategoryErrors, deleteWorkspaceCategories, downloadCategoriesCSV, openPolicyCategoriesPage, setWorkspaceCategoryEnabled} from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import {PolicyCategories} from '@src/types/onyx';
+import type {PolicyCategories} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 type WorkspaceCategoriesPageProps =
@@ -72,7 +70,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {translate, localeCompare} = useLocalize();
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const {showConfirmModal} = useConfirmModal();
@@ -213,26 +210,28 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         ],
     );
 
-    const glCodeContainerStyle = useMemo(() => [styles.flex1], [styles.flex1]);
-    const glCodeTextStyle = useMemo(() => [styles.alignSelfStart], [styles.alignSelfStart]);
-    const switchContainerStyle = useMemo(() => [StyleUtils.getMinimumWidth(variables.w72)], [StyleUtils]);
+    const navigateToCategory = useCallback(
+        (category: PolicyCategories[string]) => {
+            const path = isQuickSettingsFlow
+                ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(policyId, category.name, backTo)
+                : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(category.name));
 
-    const navigateToCategory = (category: PolicyCategories[string]) => {
-        const path = isQuickSettingsFlow
-            ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(policyId, category.name, backTo)
-            : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(category.name));
+            Navigation.navigate(path);
+        },
+        [backTo, isQuickSettingsFlow, policyId],
+    );
 
-        Navigation.navigate(path);
-    };
+    const handleCategoryToggle = useCallback(
+        (enabled: boolean, category: PolicyCategories[string]) => {
+            if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [category])) {
+                showCannotDeleteOrDisableLastCategoryModal();
+                return;
+            }
 
-    const handleCategoryToggle = (enabled: boolean, category: PolicyCategories[string]) => {
-        if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [category])) {
-            showCannotDeleteOrDisableLastCategoryModal();
-            return;
-        }
-
-        updateWorkspaceCategoryEnabled(enabled, category.name);
-    };
+            updateWorkspaceCategoryEnabled(enabled, category.name);
+        },
+        [policy, policyCategories, showCannotDeleteOrDisableLastCategoryModal, updateWorkspaceCategoryEnabled],
+    );
 
     const categoryRows = useMemo<WorkspaceCategoryTableRowData[]>(() => {
         const categories = Object.values(policyCategories ?? {});
@@ -267,22 +266,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
             return acc;
         }, []);
-    }, [
-        showCannotDeleteOrDisableLastCategoryModal,
-        policyCategories,
-        isOffline,
-        translate,
-        updateWorkspaceCategoryEnabled,
-        policy,
-        isControlPolicyWithWideLayout,
-        glCodeContainerStyle,
-        glCodeTextStyle,
-        switchContainerStyle,
-        shouldShowApproverColumn,
-        styles.alignItemsCenter,
-        styles.flexRow,
-        styles.mr3,
-    ]);
+    }, [policyCategories, isOffline, shouldShowApproverColumn, policy?.rules?.approvalRules, navigateToCategory, handleCategoryToggle, policyId]);
 
     const filterCategory = useCallback((categoryOption: ListItem, searchInput: string) => {
         const results = tokenizedSearch([categoryOption], searchInput, (option) => [option.text ?? '', option.alternateText ?? '']);
@@ -310,10 +294,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const navigateToCreateCategoryPage = () => {
         Navigation.navigate(createDynamicRoute(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_CATEGORY_CREATE.path : DYNAMIC_ROUTES.WORKSPACE_CATEGORY_CREATE.path));
-    };
-
-    const dismissError = (item: ListItem) => {
-        clearCategoryErrors(policyId, item.keyForList, policyCategories);
     };
 
     const handleDeleteCategories = () => {

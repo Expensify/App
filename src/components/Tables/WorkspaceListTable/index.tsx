@@ -7,7 +7,7 @@ import Table from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
+import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {AvatarSource} from '@libs/UserUtils';
 import WorkspacesEmptyStateComponent from '@pages/workspace/WorkspacesEmptyStateComponent';
 import variables from '@styles/variables';

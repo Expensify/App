@@ -68,7 +68,7 @@ export default function TableRow({
     const isMobileSelectionEnabled = useMobileSelectionMode();
     const {processedData, columns, shouldUseNarrowTableLayout, tableMethods, selectionEnabled} = useTableContext();
 
-    const item = processedData[rowIndex];
+    const item = processedData.at(rowIndex);
     const rowCount = processedData.length;
     const isFirstRow = rowIndex === 0;
     const isLastRow = rowIndex === rowCount - 1;
@@ -87,6 +87,10 @@ export default function TableRow({
         backgroundColor: theme.transparent,
         shouldApplyOtherStyles: true,
     });
+
+    if (!item) {
+        return null;
+    }
 
     const tableRowPressableStyles = [
         styles.mh5,
@@ -121,11 +125,11 @@ export default function TableRow({
     const tableRowPressableHoverStyle = (() => {
         if (!isInteractive) {
             return undefined;
-        } else if (item.selected) {
-            return styles.activeComponentBG;
-        } else {
-            return styles.hoveredComponentBG;
         }
+        if (item.selected) {
+            return styles.activeComponentBG;
+        }
+        return styles.hoveredComponentBG;
     })();
 
     const renderChildren = (state: PressableStateCallbackType) => {
@@ -134,6 +138,15 @@ export default function TableRow({
         }
 
         return children;
+    };
+
+    const handleCheckboxPress = (event?: MouseEvent) => {
+        if (event && event.shiftKey) {
+            tableMethods.handleMultipleRowSelection(item.keyForList);
+            return;
+        }
+
+        tableMethods.handleSingleRowSelection(item.keyForList);
     };
 
     const handleRowPress = (event?: MouseEvent) => {
@@ -147,15 +160,6 @@ export default function TableRow({
         }
 
         onPress?.();
-    };
-
-    const handleCheckboxPress = (event?: MouseEvent) => {
-        if (event && event.shiftKey) {
-            tableMethods.handleMultipleRowSelection(item.keyForList);
-            return;
-        }
-
-        tableMethods.handleSingleRowSelection(item.keyForList);
     };
 
     const handleRowLongPress = () => {
@@ -196,7 +200,7 @@ export default function TableRow({
                             </View>
                         ) : (
                             <View style={tableRowContentStyles}>
-                                {isSelectionCheckboxVisible && (
+                                {!!isSelectionCheckboxVisible && (
                                     <Checkbox
                                         isChecked={!!item.selected}
                                         accessibilityLabel="TEST"

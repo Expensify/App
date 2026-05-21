@@ -106,7 +106,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         >
             {shouldUseNarrowTableLayout && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.tableHeaderContentHeight, styles.gap3]}>
-                    {isSelectionCheckboxVisible && (
+                    {!!isSelectionCheckboxVisible && (
                         <Checkbox
                             isChecked={isEveryRowSelected}
                             isIndeterminate={isSelectionIndeterminate && !isEveryRowSelected}
@@ -128,7 +128,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
 
             {!shouldUseNarrowTableLayout && (
                 <>
-                    {selectionEnabled && (
+                    {!!selectionEnabled && (
                         <View style={styles.flex1}>
                             <Checkbox
                                 isChecked={isEveryRowSelected}
