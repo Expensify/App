@@ -10768,7 +10768,7 @@ describe('ReportUtils', () => {
     });
 
     describe('updateReportPreview', () => {
-        it('refreshes childLastActorAccountID when a new non-pay expense is added', () => {
+        it('refreshes childLastActorAccountID when a new expense request is added', () => {
             const chatReport: Report = {
                 ...createRandomReport(100, undefined),
                 type: CONST.REPORT.TYPE.CHAT,

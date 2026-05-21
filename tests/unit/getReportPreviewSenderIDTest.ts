@@ -156,7 +156,7 @@ describe('getReportPreviewSenderID', () => {
             originalMessage: {
                 type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
                 IOUDetails: {amount: 100, comment: '', currency: 'USD'},
-                IOUTransactionID: 'tr-1',
+                IOUTransactionID: '111',
                 amount: 100,
                 currency: 'USD',
             },
@@ -232,9 +232,9 @@ describe('getReportPreviewSenderID', () => {
             action: makeAction({childMoneyRequestCount: 2}),
             iouActions: [],
             transactions: [
-                makeTransaction(1200, 'user@test.com', {transactionID: 'tr-1'}),
+                makeTransaction(1200, 'user@test.com', {transactionID: '567'}),
                 makeTransaction(0, 'user@test.com', {
-                    transactionID: 'tr-2',
+                    transactionID: '890',
                     iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
                     modifiedAmount: 50000,
                     modifiedCreated: '2021-03-18 00:00:00',
@@ -258,7 +258,7 @@ describe('getReportPreviewSenderID', () => {
                     actorAccountID: 10,
                     originalMessage: {
                         type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                        IOUTransactionID: 'tr-1',
+                        IOUTransactionID: '111',
                         amount: 100,
                         currency: 'USD',
                     },
@@ -267,17 +267,17 @@ describe('getReportPreviewSenderID', () => {
                     actorAccountID: 10,
                     originalMessage: {
                         type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                        IOUTransactionID: 'tr-2',
+                        IOUTransactionID: '222',
                         amount: 100,
                         currency: 'USD',
                     },
                 }),
             ],
             transactions: [
-                makeTransaction(1200, 'user@test.com', {transactionID: 'tr-1'}),
-                makeTransaction(0, 'user@test.com', {transactionID: 'tr-2', modifiedAmount: 50000, receipt: {source: 'receipt.jpg'}}),
+                makeTransaction(1200, 'user@test.com', {transactionID: '111'}),
+                makeTransaction(0, 'user@test.com', {transactionID: '222', modifiedAmount: 50000, receipt: {source: 'receipt.jpg'}}),
                 makeTransaction(0, 'user@test.com', {
-                    transactionID: 'tr-3',
+                    transactionID: '333',
                     receipt: {source: 'receipt.jpg', state: CONST.IOU.RECEIPT_STATE.SCANNING},
                 }),
             ],
@@ -296,7 +296,7 @@ describe('getReportPreviewSenderID', () => {
                     actorAccountID: 10,
                     originalMessage: {
                         type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                        IOUTransactionID: 'tr-1',
+                        IOUTransactionID: '111',
                         amount: 100,
                         currency: 'USD',
                     },
@@ -305,17 +305,17 @@ describe('getReportPreviewSenderID', () => {
                     actorAccountID: 10,
                     originalMessage: {
                         type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                        IOUTransactionID: 'tr-2',
+                        IOUTransactionID: '222',
                         amount: 100,
                         currency: 'USD',
                     },
                 }),
             ],
             transactions: [
-                makeTransaction(1200, 'user@test.com', {transactionID: 'tr-1'}),
-                makeTransaction(0, 'user@test.com', {transactionID: 'tr-2', modifiedAmount: 50000, receipt: {source: 'receipt.jpg'}}),
+                makeTransaction(1200, 'user@test.com', {transactionID: '111'}),
+                makeTransaction(0, 'user@test.com', {transactionID: '222', modifiedAmount: 50000, receipt: {source: 'receipt.jpg'}}),
                 makeTransaction(0, 'user@test.com', {
-                    transactionID: 'tr-3',
+                    transactionID: '333',
                     receipt: {source: 'receipt.jpg', state: CONST.IOU.RECEIPT_STATE.SCANNING},
                 }),
             ],
@@ -345,16 +345,16 @@ describe('getReportPreviewSenderID', () => {
                     actorAccountID: OWNER_ACCOUNT_ID,
                     originalMessage: {
                         type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                        IOUTransactionID: 'tr-1',
+                        IOUTransactionID: '111',
                         amount: 100,
                         currency: 'USD',
                     },
                 }),
             ],
             transactions: [
-                makeTransaction(1200, 'user@test.com', {transactionID: 'tr-1'}),
+                makeTransaction(1200, 'user@test.com', {transactionID: '111'}),
                 makeTransaction(0, 'user@test.com', {
-                    transactionID: 'tr-2',
+                    transactionID: '222',
                     receipt: {source: 'receipt.jpg', state: CONST.IOU.RECEIPT_STATE.SCANNING},
                 }),
             ],
@@ -377,7 +377,7 @@ describe('getReportPreviewSenderID', () => {
                     actorAccountID: MANAGER_ACCOUNT_ID,
                     originalMessage: {
                         type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                        IOUTransactionID: 'tr-2',
+                        IOUTransactionID: '222',
                         amount: 0,
                         currency: 'USD',
                     },
@@ -385,10 +385,10 @@ describe('getReportPreviewSenderID', () => {
             ],
             transactions: [
                 makeTransaction(1200, 'user@test.com', {
-                    transactionID: 'tr-1',
+                    transactionID: '111',
                 }),
                 makeTransaction(0, 'user@test.com', {
-                    transactionID: 'tr-2',
+                    transactionID: '222',
                     receipt: {source: 'receipt.jpg', state: CONST.IOU.RECEIPT_STATE.SCAN_READY},
                 }),
             ],
@@ -452,7 +452,7 @@ describe('getReportPreviewSenderID', () => {
                     actorAccountID: 10,
                     originalMessage: {
                         type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                        IOUTransactionID: 'tr-active',
+                        IOUTransactionID: '444',
                         amount: 100,
                         currency: 'USD',
                     },
@@ -468,7 +468,7 @@ describe('getReportPreviewSenderID', () => {
                     message: [{type: 'COMMENT', text: '', deleted: '2026-04-12 04:48:48.212'}],
                 }),
             ],
-            transactions: [makeTransaction(100, 'user@test.com', {transactionID: 'tr-active'})],
+            transactions: [makeTransaction(100, 'user@test.com', {transactionID: '444'})],
         });
 
         expect(result).toBe(OWNER_ACCOUNT_ID);
@@ -479,7 +479,7 @@ describe('getReportPreviewSenderID', () => {
         // Since getPersonalDetailByEmail returns undefined in test (no Onyx), attendeesIDs will be filtered out
         // and the set size will be 0, which is <= 1, so we need to use splits to create multiple attendees
         const splitTr1: Transaction = {
-            transactionID: 'tr-1',
+            transactionID: '111',
             amount: 100,
             comment: {
                 source: CONST.IOU.TYPE.SPLIT,
@@ -489,7 +489,7 @@ describe('getReportPreviewSenderID', () => {
         } as Transaction;
 
         const splitTr2: Transaction = {
-            transactionID: 'tr-2',
+            transactionID: '222',
             amount: 100,
             comment: {
                 source: CONST.IOU.TYPE.SPLIT,
@@ -537,7 +537,7 @@ describe('getReportPreviewSenderID', () => {
 
     it('returns childOwnerAccountID for split transaction with single author', () => {
         const splitTr: Transaction = {
-            transactionID: 'tr-1',
+            transactionID: '111',
             amount: 100,
             comment: {
                 source: CONST.IOU.TYPE.SPLIT,
