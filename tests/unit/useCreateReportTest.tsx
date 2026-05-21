@@ -15,9 +15,9 @@ jest.mock('@hooks/useLocalize', () => () => ({translate: jest.fn((key: string) =
 jest.mock('@hooks/useOnyx', () => jest.fn());
 const mockUseOnyx = useOnyx as jest.MockedFunction<typeof useOnyx>;
 
-jest.mock('@hooks/useHasEmptyReportsForPolicy', () => jest.fn(() => false));
+jest.mock('@hooks/useShouldShowEmptyReportConfirmation', () => jest.fn(() => false));
 
-const mockUseHasEmptyReportsForPolicy = require('@hooks/useHasEmptyReportsForPolicy') as jest.Mock;
+const mockUseShouldShowEmptyReportConfirmation = require('@hooks/useShouldShowEmptyReportConfirmation') as jest.Mock;
 
 const mockOpenCreateReportConfirmation = jest.fn();
 jest.mock('@hooks/useCreateEmptyReportConfirmation', () =>
@@ -92,7 +92,7 @@ describe('useCreateReport', () => {
         jest.clearAllMocks();
         reportIDCounter.value = 100;
         mockShouldRestrictUserBillableActions.mockReturnValue(false);
-        mockUseHasEmptyReportsForPolicy.mockReturnValue(false);
+        mockUseShouldShowEmptyReportConfirmation.mockReturnValue(false);
         setupUseOnyx();
     });
 
@@ -267,7 +267,7 @@ describe('useCreateReport', () => {
         });
 
         it('opens empty report confirmation when policy has empty reports', () => {
-            mockUseHasEmptyReportsForPolicy.mockReturnValue(true);
+            mockUseShouldShowEmptyReportConfirmation.mockReturnValue(true);
             const onCreateReport = jest.fn();
             const policies = [makePaidPolicy()];
 
@@ -358,7 +358,7 @@ describe('useCreateReport', () => {
 
     describe('empty report confirmation dismissed', () => {
         it('calls onCreateReport directly when confirmation was previously dismissed', () => {
-            mockUseHasEmptyReportsForPolicy.mockReturnValue(true);
+            mockUseShouldShowEmptyReportConfirmation.mockReturnValue(false);
             setupUseOnyx({
                 [ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED]: true,
             });

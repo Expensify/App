@@ -84,7 +84,10 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
     const [todos] = useOnyx(ONYXKEYS.DERIVED.TODOS);
     const transactionsByReportID = todos?.transactionsByReportID;
 
-    const policiesWithEmptyReportsForAccountSelector = useMemo(() => policyIDsWithEmptyReportsSelector(accountID, transactionsByReportID ?? {}), [accountID, transactionsByReportID]);
+    const policiesWithEmptyReportsForAccountSelector = useMemo(
+        () => policyIDsWithEmptyReportsSelector(accountID, transactionsByReportID ?? {}, !!hasDismissedEmptyReportsConfirmation),
+        [accountID, transactionsByReportID, hasDismissedEmptyReportsConfirmation],
+    );
     const [policiesWithEmptyReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policiesWithEmptyReportsForAccountSelector});
 
     const navigateToNewReport = (optimisticReportID: string) => {
@@ -180,7 +183,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
             return;
         }
 
-        const shouldShowEmptyReportConfirmation = !!policiesWithEmptyReports?.[policy.policyID] && hasDismissedEmptyReportsConfirmation !== true;
+        const shouldShowEmptyReportConfirmation = !!policiesWithEmptyReports?.[policy.policyID];
         if (!shouldShowEmptyReportConfirmation) {
             createReport(policy.policyID, false);
             return;

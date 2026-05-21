@@ -386,6 +386,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
         categoryName: string;
     };
+    [SCREENS.WORKSPACE.DYNAMIC_IMPORTED_MEMBERS_ROLE]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_DESCRIPTION_HINT]: {
         policyID: string;
         categoryName: string;
@@ -466,10 +469,8 @@ type SettingsNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
-    [SCREENS.SETTINGS_TAGS.SETTINGS_TAG_CREATE]: {
+    [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_CREATE]: {
         policyID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.DISTANCE_RATE_DETAILS]: {
         policyID: string;
@@ -544,12 +545,10 @@ type SettingsNavigatorParamList = {
         backTo?: Routes;
         parentTagsFilter?: string;
     };
-    [SCREENS.SETTINGS_TAGS.SETTINGS_TAG_SETTINGS]: {
+    [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_SETTINGS]: {
         policyID: string;
         orderWeight: number;
         tagName: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
         parentTagsFilter?: string;
     };
     [SCREENS.WORKSPACE.TAG_LIST_VIEW]: {
@@ -568,11 +567,9 @@ type SettingsNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
-    [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_EDIT]: {
+    [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAGS_EDIT]: {
         policyID: string;
         orderWeight: number;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.TAG_EDIT]: {
         policyID: string;
@@ -581,12 +578,15 @@ type SettingsNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
-    [SCREENS.SETTINGS_TAGS.SETTINGS_TAG_EDIT]: {
+    [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_EDIT]: {
         policyID: string;
         orderWeight: number;
         tagName: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
+    };
+    [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_GL_CODE]: {
+        policyID: string;
+        orderWeight: number;
+        tagName: string;
     };
     [SCREENS.WORKSPACE.TAG_APPROVER]: {
         policyID: string;
@@ -601,13 +601,6 @@ type SettingsNavigatorParamList = {
         tagName: string;
     };
     [SCREENS.WORKSPACE.TAG_GL_CODE]: {
-        policyID: string;
-        orderWeight: number;
-        tagName: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
-    };
-    [SCREENS.SETTINGS_TAGS.SETTINGS_TAG_GL_CODE]: {
         policyID: string;
         orderWeight: number;
         tagName: string;
@@ -867,6 +860,12 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_EXPORT_PURCHASE_BILL_DATE_SELECT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_TRAVEL_INVOICING_CONFIGURATION]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_ADVANCED]: {
