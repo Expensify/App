@@ -87,7 +87,12 @@ function WorkspaceTravelPage({
             case CONST.TRAVEL.STEPS.REVIEWING_REQUEST:
                 return <ReviewingRequest />;
             default:
-                return <GetStartedTravel policyID={policyID} />;
+                return (
+                    <GetStartedTravel
+                        policyID={policyID}
+                        canWriteMoreFeatures={canWriteMoreFeatures}
+                    />
+                );
         }
     })();
 

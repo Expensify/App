@@ -479,8 +479,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
         // Show GL Code column only on wide screens for control policies. Approver column additionally requires rules to be enabled
         if (isControlPolicyWithWideLayout && !isMultiLevelTags) {
-            return (
-                <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, canSelectMultiple ? styles.pl3 : styles.pl9]}>
+            const header = (
+                <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, canSelectMultiple && styles.pl3]}>
                     <View style={[styles.flex1, StyleUtils.getPaddingRight(variables.w52 + variables.w12)]}>
                         <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.name')}</Text>
                     </View>
@@ -497,6 +497,12 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     </View>
                 </View>
             );
+
+            if (canSelectMultiple) {
+                return header;
+            }
+
+            return <View style={[styles.flexRow, styles.baseListHeaderWrapperStyle]}>{header}</View>;
         }
 
         return (

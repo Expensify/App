@@ -798,7 +798,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             >
                 <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {optionItems.map(renderOptionItem)}
-                    <ExpenseReportRulesSection policyID={route.params.policyID} />
+                    <ExpenseReportRulesSection
+                        policyID={route.params.policyID}
+                        canWriteApprovals={canWriteApprovals}
+                        canWritePayments={canWritePayments}
+                        showReadOnlyModal={showReadOnlyModal}
+                    />
                 </View>
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>

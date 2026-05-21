@@ -77,7 +77,7 @@ function PolicyDistanceRatesPage({
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const canWriteDistanceRates = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.DISTANCE_RATES);
 
-    const canSelectMultiple = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true;
+    const canSelectMultiple = canWriteDistanceRates && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
     const {asset: CarIce} = useMemoizedLazyAsset(() => loadIllustration('CarIce' as IllustrationName));
     const customUnit = useMemo(() => getDistanceRateCustomUnit(policy), [policy]);
     const customUnitRates: Record<string, Rate> = useMemo(() => customUnit?.rates ?? {}, [customUnit?.rates]);
@@ -567,7 +567,7 @@ function PolicyDistanceRatesPage({
                         onSelectAll={canWriteDistanceRates && filteredDistanceRatesList.length > 0 ? toggleAllRates : undefined}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         customListHeaderContent={headerContent}
-                        canSelectMultiple={canWriteDistanceRates && canSelectMultiple}
+                        canSelectMultiple={canSelectMultiple}
                         selectAllAccessibilityLabel={translate('accessibilityHints.selectAllDistanceRates')}
                         onDismissError={dismissError}
                         shouldShowListEmptyContent={false}
