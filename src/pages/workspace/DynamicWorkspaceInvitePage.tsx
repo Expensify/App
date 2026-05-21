@@ -146,7 +146,7 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             sectionsArr.push({
                 title: translate('common.contacts'),
                 data: availableOptions.personalDetails,
-                sectionIndex: selectedNonExistingOptions.length > 0 ? 1 : 0,
+                sectionIndex: 1,
             });
         }
 
@@ -155,7 +155,7 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             sectionsArr.push({
                 title: undefined,
                 data: [availableOptions.userToInvite],
-                sectionIndex: selectedNonExistingOptions.length > 0 ? 2 : 1,
+                sectionIndex: 2,
             });
         }
 
