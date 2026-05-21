@@ -15,6 +15,7 @@ import ScrollView from '@components/ScrollView';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 import Text from '@components/Text';
+import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
 import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -292,6 +293,7 @@ function SearchList({
     const [longPressedItem, setLongPressedItem] = useState<SearchListItem>();
 
     const hasItemsBeingRemoved = prevDataLength && prevDataLength > data.length;
+    const {isEditingCell, wasRecentlyEditingCell} = useEditingCellState();
 
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
@@ -385,9 +387,16 @@ function SearchList({
                 return;
             }
 
+            // Don't scroll while a cell is being edited
+            // as it can cause unwanted scrolling when the edit is dismissed
+            // See: https://github.com/Expensify/App/pull/83127#issuecomment-4064533155
+            if (isEditingCell || wasRecentlyEditingCell) {
+                return;
+            }
+
             listRef.current.scrollToIndex({index, animated, viewOffset: -variables.contentHeaderHeight});
         },
-        [data],
+        [data, isEditingCell, wasRecentlyEditingCell],
     );
 
     useFocusEffect(

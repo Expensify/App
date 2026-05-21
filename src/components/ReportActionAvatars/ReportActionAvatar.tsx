@@ -71,10 +71,7 @@ function ProfileAvatar(props: Parameters<typeof Avatar>[0] & {useProfileNavigati
     const {avatarID, useProfileNavigationWrapper, type, name, reportID} = props;
 
     if (!useProfileNavigationWrapper) {
-        return (
-            /* eslint-disable-next-line react/jsx-props-no-spreading */
-            <Avatar {...{...props, useProfileNavigationWrapper: undefined}} />
-        );
+        return <Avatar {...{...props, useProfileNavigationWrapper: undefined}} />;
     }
 
     const isWorkspace = type === CONST.ICON_TYPE_WORKSPACE;
@@ -98,7 +95,6 @@ function ProfileAvatar(props: Parameters<typeof Avatar>[0] & {useProfileNavigati
             accessibilityRole={CONST.ROLE.BUTTON}
             sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_AVATAR}
         >
-            {/* eslint-disable-next-line react/jsx-props-no-spreading */}
             <Avatar {...{...props, useProfileNavigationWrapper: undefined}} />
         </PressableWithoutFocus>
     );
