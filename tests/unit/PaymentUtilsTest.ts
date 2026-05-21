@@ -406,6 +406,31 @@ describe('PaymentUtils', () => {
             expect(result.at(1)?.methodID).toBe(2);
         });
 
+        it('returns all valid accounts when no currency is specified', () => {
+            const methods: PaymentMethod[] = [
+                createMockPaymentMethod({title: 'USD Account', bankCurrency: CONST.CURRENCY.USD}),
+                createMockPaymentMethod({title: 'EUR Account', bankCurrency: 'EUR', methodID: 789}),
+            ];
+            const result = getBusinessBankAccountOptions(methods);
+            expect(result).toHaveLength(2);
+        });
+
+        it('filters accounts by matching currency', () => {
+            const methods: PaymentMethod[] = [
+                createMockPaymentMethod({title: 'USD Account', bankCurrency: CONST.CURRENCY.USD}),
+                createMockPaymentMethod({title: 'EUR Account', bankCurrency: 'EUR', methodID: 789}),
+            ];
+            const result = getBusinessBankAccountOptions(methods, 'EUR');
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.text).toBe('EUR Account');
+        });
+
+        it('excludes accounts with non-matching currency', () => {
+            const methods: PaymentMethod[] = [createMockPaymentMethod({title: 'USD Account', bankCurrency: CONST.CURRENCY.USD})];
+            const result = getBusinessBankAccountOptions(methods, 'GBP');
+            expect(result).toHaveLength(0);
+        });
+
         it('filters to only valid BUSINESS OPEN or LOCKED with methodID and maps rest correctly', () => {
             const methods: PaymentMethod[] = [
                 createMockPaymentMethod({accountData: {type: CONST.BANK_ACCOUNT.TYPE.PERSONAL, state: CONST.BANK_ACCOUNT.STATE.OPEN}, title: 'Personal'}),
