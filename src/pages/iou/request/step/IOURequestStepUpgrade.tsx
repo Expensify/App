@@ -24,6 +24,7 @@ import {createNewReport} from '@libs/actions/Report';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import type CreateWorkspaceParams from '@libs/API/parameters/CreateWorkspaceParams';
 import getPlatform from '@libs/getPlatform';
+import {navigateToCreatedReportInReports} from '@libs/Navigation/helpers/getCreateReportRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
@@ -197,12 +198,11 @@ function IOURequestStepUpgrade({
             }
             case CONST.UPGRADE_PATHS.REPORTS:
                 if (action === CONST.IOU.ACTION.CREATE && policyID) {
-                    // Coming from "Create report" (no workspace) — create directly with the just-created
-                    // workspace. forceReplace removes the upgrade screen from history so back returns to
-                    // the originating screen, not the upgrade step.
                     const {reportID: newReportID} = createReportForCurrentUser(policyID);
+                    Navigation.goBack();
+                    // Wait until the upgrade RHP is closed before opening the created report from Reports.
                     Navigation.setNavigationActionToMicrotaskQueue(() => {
-                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newReportID), {forceReplace: true});
+                        navigateToCreatedReportInReports(newReportID);
                     });
                 } else {
                     Navigation.goBack();

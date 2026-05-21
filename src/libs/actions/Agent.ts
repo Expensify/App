@@ -282,7 +282,7 @@ function deleteAgent(accountID: number) {
     ];
 
     write(WRITE_COMMANDS.DELETE_AGENT, {agentAccountID: accountID}, {optimisticData, successData, failureData});
-    Navigation.navigate(ROUTES.SETTINGS_AGENTS);
+    Navigation.goBack(ROUTES.SETTINGS_AGENTS);
 }
 
 export {

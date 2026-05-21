@@ -394,6 +394,7 @@ function MoneyRequestConfirmationList({
         transaction,
         iouAmount,
         iouCurrencyCode,
+        currentUserAccountID: currentUserPersonalDetails.accountID,
     });
 
     const canEditParticipant = isFromGlobalCreateAndCanEditParticipant && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice);
@@ -615,6 +616,7 @@ function MoneyRequestConfirmationList({
                 isDistanceRequestWithPendingRoute={isDistanceRequestWithPendingRoute}
                 shouldCalculateDistanceAmount={shouldCalculateDistanceAmount}
                 distanceRequestAmount={distanceRequestAmount}
+                currentUserAccountID={currentUserPersonalDetails.accountID}
                 setFormError={setFormError}
                 clearFormErrors={clearFormErrors}
             />
