@@ -7176,6 +7176,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             syncError: (providerName: string) => `Impossible de se connecter à ${providerName}`,
             connectionDescription: (providerName: string) => `Connectez ${providerName} pour synchroniser les approbations des employés avec votre espace de travail.`,
             approvalMode: "Mode d'approbation",
+            providerApprovalMode: (providerName: string) => `Mode d'approbation ${providerName}`,
             finalApprover: 'Approbateur final',
             providerFinalApprover: (providerName: string) => `Approbateur final ${providerName}`,
             notSet: 'Non défini',
@@ -7219,19 +7220,19 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     }
                 }
             },
+            syncResults: {
+                title: (provider: string) => `Synchronisation ${provider} terminée`,
+                successTitle: (provider: string) => `Connexion ${provider} synchronisée avec succès !`,
+                added: 'Ajouté',
+                removed: 'Supprimé',
+                skipped: 'Ignoré',
+                employeeCount: () => ({
+                    one: '1 employé',
+                    other: (count: number) => `${count} employés`,
+                }),
+            },
             gusto: {
                 title: 'Gusto',
-                syncResults: {
-                    title: 'Résultats de la synchronisation Gusto',
-                    successTitle: 'Connexion Gusto synchronisée avec succès !',
-                    added: 'Ajouté',
-                    removed: 'Supprimé',
-                    skipped: 'Ignoré',
-                    employeeCount: () => ({
-                        one: '1 employé',
-                        other: (count: number) => `${count} employés`,
-                    }),
-                },
             },
             zenefits: {
                 title: 'TriNet',

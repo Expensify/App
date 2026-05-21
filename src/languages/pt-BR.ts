@@ -7115,6 +7115,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             syncError: (providerName: string) => `Não é possível conectar ao ${providerName}`,
             connectionDescription: (providerName: string) => `Conecte ${providerName} para manter as aprovações de funcionários sincronizadas com seu workspace.`,
             approvalMode: 'Modo de aprovação',
+            providerApprovalMode: (providerName: string) => `Modo de aprovação do ${providerName}`,
             finalApprover: 'Aprovador final',
             providerFinalApprover: (providerName: string) => `Aprovador final de ${providerName}`,
             notSet: 'Não definido',
@@ -7152,19 +7153,19 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                     }
                 }
             },
+            syncResults: {
+                title: (provider: string) => `Sincronização com ${provider} concluída`,
+                successTitle: (provider: string) => `Conexão com ${provider} sincronizada com sucesso!`,
+                added: 'Adicionado',
+                removed: 'Removido',
+                skipped: 'Ignorado',
+                employeeCount: () => ({
+                    one: '1 funcionário',
+                    other: (count: number) => `${count} funcionários`,
+                }),
+            },
             gusto: {
                 title: 'Gusto',
-                syncResults: {
-                    title: 'Resultados da sincronização com Gusto',
-                    successTitle: 'Sua conexão com o Gusto foi sincronizada com sucesso!',
-                    added: 'Adicionado',
-                    removed: 'Removido',
-                    skipped: 'Ignorado',
-                    employeeCount: () => ({
-                        one: '1 funcionário',
-                        other: (count: number) => `${count} funcionários`,
-                    }),
-                },
             },
             zenefits: {
                 title: 'TriNet',
