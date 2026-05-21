@@ -96,8 +96,9 @@ function AddressForm({
 
     const validator = useCallback(
         (rawValues: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>): Errors => {
-            // When hidden, the country input is unregistered so fall back to the country prop.
-            const values = shouldHideCountrySelector ? {...rawValues, country: rawValues.country || country} : rawValues;
+            // `country` is controlled by the parent so AddressSearch/CountrySelector changes immediately update
+            // the zip validation and hint even if the form draft still contains the previous country.
+            const values = {...rawValues, country: country || rawValues.country};
 
             const errors: Errors & {
                 zipPostCode?: string | string[];
