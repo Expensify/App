@@ -31,7 +31,6 @@ const ClientFailureScreen = createScreenWithDefaults(
     DefaultClientFailureScreen,
     {
         subtitle: 'multifactorAuthentication.revealCardDetail.couldNotReveal',
-
     },
     'ClientFailureScreen',
 );
@@ -40,7 +39,6 @@ const ServerFailureScreen = createScreenWithDefaults(
     DefaultServerFailureScreen,
     {
         subtitle: 'multifactorAuthentication.revealCardDetail.couldNotReveal',
-
     },
     'ServerFailureScreen',
 );
