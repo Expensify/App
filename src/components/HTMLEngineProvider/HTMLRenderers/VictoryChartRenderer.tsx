@@ -33,13 +33,13 @@ type LabelItem = {
     text: string;
 
     /** The color of the text */
-    color: Color;
+    color?: Color;
 
     /** Font size */
-    fontSize: number;
+    fontSize?: number;
 
     /** Font weight */
-    fontWeight: 'normal' | 'bold';
+    fontWeight?: 'normal' | 'bold';
 };
 
 type LegendItemEntry = {
@@ -47,19 +47,19 @@ type LegendItemEntry = {
     text: string;
 
     /** The color of the text */
-    color: Color;
+    color?: Color;
 
     /** Font size */
-    fontSize: number;
+    fontSize?: number;
 
     /** Font weight */
-    fontWeight: 'normal' | 'bold';
+    fontWeight?: 'normal' | 'bold';
 
     /** The color of the symbol */
-    symbolColor: Color;
+    symbolColor?: Color;
 
     /** Symbol size */
-    symbolSize: number;
+    symbolSize?: number;
 };
 
 type LegendItem = {
@@ -73,10 +73,10 @@ type LegendItem = {
     entries: LegendItemEntry[];
 
     /** Space between entries */
-    gutter: number;
+    gutter?: number;
 
     /** Space between entry's text and symbol */
-    symbolSpacer: number;
+    symbolSpacer?: number;
 };
 
 /**
@@ -156,9 +156,9 @@ function processNode(tnode: TNode, typeface: SkTypeface | null) {
         const y = parseAttribute<number>(tnode.attributes.y) ?? 0;
         const text = parseAttribute<string>(tnode.attributes.text) ?? '';
         const style = parseAttribute<StyleObject>(tnode.attributes.style);
-        const color = style?.fill !== undefined ? (style.fill as Color) : 'black';
-        const fontSize = style?.fontSize !== undefined ? Number(style.fontSize) : 16;
-        const fontWeight = Number(style?.fontWeight) === 700 ? 'bold' : 'normal';
+        const color = style?.fill !== undefined ? (style.fill as Color) : undefined;
+        const fontSize = style?.fontSize !== undefined ? Number(style.fontSize) : undefined;
+        const fontWeight = Number(style?.fontWeight) === 700 ? 'bold' : undefined;
         labelItems.push({
             x,
             y,
@@ -170,17 +170,16 @@ function processNode(tnode: TNode, typeface: SkTypeface | null) {
     } else if (tnode.tagName === 'victorylegend') {
         const x = parseAttribute<number>(tnode.attributes.x) ?? 0;
         const y = parseAttribute<number>(tnode.attributes.y) ?? 0;
-        const gutter = parseAttribute<number>(tnode.attributes.gutter) ?? 32;
-        const symbolSpacer = parseAttribute<number>(tnode.attributes.symbolspacer) ?? 8;
-        const data = parseAttribute(tnode.attributes.data);
+        const gutter = parseAttribute<number>(tnode.attributes.gutter) ?? undefined;
+        const symbolSpacer = parseAttribute<number>(tnode.attributes.symbolspacer) ?? undefined;
         const style = parseAttribute<StyleObject>(tnode.attributes.style);
-        const color = style?.labels?.fill !== undefined ? (style.labels.fill as Color) : 'black';
-        const fontSize = style?.labels?.fontSize !== undefined ? Number(style.labels.fontSize) : 12;
-        const fontWeight = Number(style?.labels?.fontWeight) === 700 ? 'bold' : 'normal';
+        const color = style?.labels?.fill !== undefined ? (style.labels.fill as Color) : undefined;
+        const fontSize = style?.labels?.fontSize !== undefined ? Number(style.labels.fontSize) : undefined;
+        const fontWeight = Number(style?.labels?.fontWeight) === 700 ? 'bold' : undefined;
         const entries: LegendItemEntry[] = (parseAttribute<RawData[]>(tnode.attributes.data) ?? []).map((entry) => {
             const text = entry.name !== undefined ? String(entry.name) : '';
-            const symbolColor = entry.symbol?.fill !== undefined ? (entry.symbol.fill as Color) : 'black';
-            const symbolSize = entry.symbol?.size !== undefined ? Number(entry.symbol.size) : 4;
+            const symbolColor = entry.symbol?.fill !== undefined ? (entry.symbol.fill as Color) : undefined;
+            const symbolSize = entry.symbol?.size !== undefined ? Number(entry.symbol.size) : undefined;
             return {
                 text,
                 color,
@@ -407,17 +406,19 @@ function VictoryChartRenderer({tnode}: CustomRendererProps<TBlock>) {
                         const fontMetrics = font?.getMetrics();
                         const lineHeight = fontMetrics ? fontMetrics.ascent + fontMetrics.descent + fontMetrics.leading : 0;
                         const symbolX = x;
-                        x += symbolSize + symbolSpacer;
+                        x += (symbolSize ?? 0) + (symbolSpacer ?? 0);
                         const textX = x;
-                        x += (font?.getGlyphWidths(font.getGlyphIDs(text)).reduce((acc, width) => acc + width, 0) ?? 0) + gutter;
+                        x += (font?.getGlyphWidths(font.getGlyphIDs(text)).reduce((acc, width) => acc + width, 0) ?? 0) + (gutter ?? 0);
                         return (
                             <Fragment key={`legend-${legendIndex}-${x}-${y}`}>
-                                <Circle
-                                    cx={symbolX}
-                                    cy={y}
-                                    r={symbolSize}
-                                    color={symbolColor}
-                                />
+                                {!!symbolSize && (
+                                    <Circle
+                                        cx={symbolX}
+                                        cy={y}
+                                        r={symbolSize}
+                                        color={symbolColor}
+                                    />
+                                )}
                                 <SkText
                                     x={textX}
                                     y={y - lineHeight / 2}
