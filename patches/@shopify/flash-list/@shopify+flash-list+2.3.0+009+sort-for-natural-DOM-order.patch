@@ -129,7 +129,7 @@ index c37c4f3..fd2ff94 100644
  /**
   * Ref interface for ViewHolderCollection that exposes methods to control layout updates
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js b/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js
-index 8e3db51..8e23c83 100644
+index 8e3db51..e66d406 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js
 @@ -3,17 +3,81 @@
@@ -216,7 +216,7 @@ index 8e3db51..8e23c83 100644
      const [renderId, setRenderId] = React.useState(0);
      const containerLayout = getChildContainerLayout();
      const fixedContainerSize = horizontal
-@@ -72,9 +136,126 @@ export const ViewHolderCollection = (props) => {
+@@ -72,9 +136,160 @@ export const ViewHolderCollection = (props) => {
      //     return `${index} => ${reactKey}`;
      //   })
      // );
@@ -227,6 +227,11 @@ index 8e3db51..8e23c83 100644
 +    const lastFocusedDepthRef = useRef(null);
 +    const shouldSortOnNextFocusRef = useRef(false);
 +    const renderEntriesRef = useRef(Array.from(renderStack.entries()));
++    // Tracks the modality of the user's most recent input ("pointer" vs
++    // "keyboard"). Pointer interactions defer the sync sort to avoid
++    // re-rendering between `mousedown` and `click` (which makes the browser
++    // drop the click).
++    const lastInputModalityRef = useRef("pointer");
 +    const [, bumpSortVersion] = useReducer((x) => x + 1, 0);
 +    const sortItems = useCallback(() => {
 +        const entries = renderEntriesRef.current;
@@ -243,6 +248,14 @@ index 8e3db51..8e23c83 100644
 +        clearPendingSort();
 +        if (isScrollingProgrammatically()) {
 +            runAfterProgrammaticScroll(schedulePendingSort);
++            return;
++        }
++        // Pointer-driven focus: defer the sync sort so we don't reorder the
++        // DOM between `mousedown` and `click` (the browser would drop the
++        // click). The pending sort will commit later via the timer.
++        if (shouldSortOnNextFocusRef.current &&
++            lastInputModalityRef.current === "pointer") {
++            schedulePendingSort();
 +            return;
 +        }
 +        if (shouldSortOnNextFocusRef.current) {
@@ -338,6 +351,27 @@ index 8e3db51..8e23c83 100644
 +        return clearPendingSort;
 +        // eslint-disable-next-line react-hooks/exhaustive-deps
 +    }, [renderStack, renderId]);
++    // Track input modality globally. Capture-phase document listeners so
++    // we observe events before any handler can call `stopPropagation()`.
++    // `pointerdown` covers mouse/touch/pen; `keydown` covers Tab and
++    // assistive technologies (e.g. VoiceOver injects keydowns).
++    useEffect(() => {
++        if (Platform.OS !== "web") {
++            return;
++        }
++        const onDocKeyDown = () => {
++            lastInputModalityRef.current = "keyboard";
++        };
++        const onDocPointerDown = () => {
++            lastInputModalityRef.current = "pointer";
++        };
++        document.addEventListener("keydown", onDocKeyDown, true);
++        document.addEventListener("pointerdown", onDocPointerDown, true);
++        return () => {
++            document.removeEventListener("keydown", onDocKeyDown, true);
++            document.removeEventListener("pointerdown", onDocPointerDown, true);
++        };
++    }, []);
 +    return (React.createElement(CompatView, { ref: containerRef, style: hasData && containerStyle }, containerLayout &&
          hasData &&
 -        Array.from(renderStack.entries(), ([reactKey, { index }]) => {
@@ -364,7 +398,7 @@ index 62d55cd..b715484 100644
  //# sourceMappingURL=useRecyclerViewController.d.ts.map
 \ No newline at end of file
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
-index 51b6f8c..a081498 100644
+index 3e28f14..3a2707e 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
 @@ -25,6 +25,21 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
