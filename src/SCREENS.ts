@@ -457,7 +457,7 @@ const SCREENS = {
         SETTINGS_CATEGORY_GL_CODE: 'Settings_Category_GL_Code',
     },
     EXPENSIFY_CARD: {
-        EXPENSIFY_CARD_DETAILS: 'Expensify_Card_Details',
+        DYNAMIC_EXPENSIFY_CARD_DETAILS: 'Dynamic_Expensify_Card_Details',
         DYNAMIC_EXPENSIFY_CARD_NAME: 'Dynamic_Expensify_Card_Name',
         DYNAMIC_EXPENSIFY_CARD_LIMIT: 'Dynamic_Expensify_Card_Limit',
         DYNAMIC_EXPENSIFY_CARD_LIMIT_TYPE: 'Dynamic_Expensify_Card_Limit_Type',
@@ -854,6 +854,7 @@ const SCREENS = {
         CREATE_DISTANCE_RATE: 'Create_Distance_Rate',
         CREATE_DISTANCE_RATE_UPGRADE: 'Create_Distance_Rate_Upgrade',
         DISTANCE_RATES_SETTINGS: 'Distance_Rates_Settings',
+        DISTANCE_RATES_UNIT: 'Distance_Rates_Unit',
         DISTANCE_RATE_DETAILS: 'Distance_Rate_Details',
         DISTANCE_RATE_EDIT: 'Distance_Rate_Edit',
         DISTANCE_RATE_NAME_EDIT: 'Distance_Rate_Name_Edit',
