@@ -64,3 +64,11 @@
 - Upstream PR/issue: TBD
 - E/App issue: https://github.com/Expensify/App/issues/89768
 - PR introducing patch: https://github.com/Expensify/App/pull/90218
+
+### [@shopify+flash-list+2.3.0+009+fix-validate-item-size-out-of-bounds.patch](@shopify+flash-list+2.3.0+009+fix-validate-item-size-out-of-bounds.patch)
+
+- Reason: Fixes uncaught `Error: index out of bounds, not enough layouts` thrown from `RecyclerView.validateItemSize`. The handler is wired to each `ViewHolder.onLayout` as `onSizeChanged`, and the ViewHolder closes over `index` at render time. The `onLayout` callback fires asynchronously — so when the list data shrinks between scheduling the layout pass and the browser firing the callback (rapid search-bar typing, participant list edits on the money request confirmation screen, currency switches), the captured `index` is now past `layoutCount`. `validateItemSize` called `recyclerViewManager.getLayout(index)`, which throws when out of bounds, and the throw escaped as an unhandled error. The fix switches to `recyclerViewManager.tryGetLayout(index)` (an API the library already exposes for exactly this scenario — see its existing use in the layout-effect path at `dist/recyclerview/RecyclerView.js:174`) and bails early when it returns `undefined`. The same dimension-comparison path runs unchanged when the layout exists.
+- Files changed: `dist/recyclerview/RecyclerView.js` only. The `src/recyclerview/RecyclerView.tsx` source is not modified — if upstream restructures `validateItemSize` in a future release, refer to this entry to re-apply the equivalent bounds-safe accessor.
+- Upstream PR/issue: TBD
+- E/App issue: https://github.com/Expensify/App/issues/90756
+- PR introducing patch: TBD
