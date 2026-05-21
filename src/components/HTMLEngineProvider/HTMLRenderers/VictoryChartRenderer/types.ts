@@ -17,6 +17,32 @@ type RawLegendData = {
     };
 };
 
+type RawAxisStyle = {
+    grid?: {
+        stroke?: Color;
+        strokeWidth?: string | number;
+    };
+    tickLabels?: {
+        fill?: Color;
+        padding?: string | number;
+        fontSize?: string | number;
+    };
+};
+
+type RawLabelStyle = {
+    fill?: Color;
+    fontSize?: string | number;
+    fontWeight?: string | number;
+};
+
+type RawLegendStyle = {
+    labels?: {
+        fill?: Color;
+        fontSize?: string | number;
+        fontWeight?: string | number;
+    };
+};
+
 type xKey = typeof X_KEY;
 type yKey = `${typeof Y_KEY_PREFIX}${string}`;
 
@@ -24,9 +50,6 @@ type CartesianChartData = {
     [X_KEY]: string | number;
     [key: `${yKey}`]: number;
 };
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type StyleObject = Record<string, any>;
 
 type LabelItem = {
     /** Position on the X-axis */
@@ -85,4 +108,4 @@ type LegendItem = {
     symbolSpacer?: number;
 };
 
-export type {VictoryChartRendererProps, RawChartData, RawLegendData, xKey, yKey, CartesianChartData, StyleObject, LabelItem, LegendItemEntry, LegendItem};
+export type {VictoryChartRendererProps, RawChartData, RawLegendData, RawAxisStyle, RawLabelStyle, RawLegendStyle, xKey, yKey, CartesianChartData, LabelItem, LegendItemEntry, LegendItem};

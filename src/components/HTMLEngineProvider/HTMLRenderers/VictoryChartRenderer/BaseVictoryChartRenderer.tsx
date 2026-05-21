@@ -15,7 +15,19 @@ import {useChartDefaultTypeface} from '@components/Charts/hooks';
 import {DEFAULT_CHART_COLOR} from '@components/Charts/utils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {X_KEY, Y_KEY_PREFIX} from './constants';
-import type {CartesianChartData, LabelItem, LegendItem, LegendItemEntry, RawChartData, RawLegendData, StyleObject, VictoryChartRendererProps, yKey} from './types';
+import type {
+    CartesianChartData,
+    LabelItem,
+    LegendItem,
+    LegendItemEntry,
+    RawAxisStyle,
+    RawChartData,
+    RawLabelStyle,
+    RawLegendData,
+    RawLegendStyle,
+    VictoryChartRendererProps,
+    yKey,
+} from './types';
 
 /**
  * Get node unique ID based on hierarchy
@@ -63,8 +75,8 @@ function processNode(tnode: TNode, typeface: SkTypeface | null) {
         const tickValues = parseAttribute<number[]>(tnode.attributes.tickvalues);
         const tickFormat = parseAttribute<string[]>(tnode.attributes.tickformat);
         const formatLabel = (label: string | number) => tickFormat?.[tickValues?.indexOf(Number(label)) ?? -1] ?? String(label);
-        const style = parseAttribute<StyleObject>(tnode.attributes.style);
-        const lineColor = style?.grid?.stroke !== undefined ? (style.grid.stroke as Color) : undefined;
+        const style = parseAttribute<RawAxisStyle>(tnode.attributes.style);
+        const lineColor = style?.grid?.stroke;
         const lineWidth = style?.grid?.strokeWidth !== undefined ? Number(style.grid.strokeWidth) : 0; // 0 Not to draw the lines for compatibility with VictoryChart
         const labelColor = style?.tickLabels?.fill !== undefined ? String(style.tickLabels.fill) : undefined;
         const labelOffset = style?.tickLabels?.padding !== undefined ? Number(style.tickLabels.padding) : undefined;
@@ -101,8 +113,8 @@ function processNode(tnode: TNode, typeface: SkTypeface | null) {
         const x = parseAttribute<number>(tnode.attributes.x) ?? 0;
         const y = parseAttribute<number>(tnode.attributes.y) ?? 0;
         const text = parseAttribute<string>(tnode.attributes.text) ?? '';
-        const style = parseAttribute<StyleObject>(tnode.attributes.style);
-        const color = style?.fill !== undefined ? (style.fill as Color) : undefined;
+        const style = parseAttribute<RawLabelStyle>(tnode.attributes.style);
+        const color = style?.fill;
         const fontSize = style?.fontSize !== undefined ? Number(style.fontSize) : undefined;
         const fontWeight = Number(style?.fontWeight) === 700 ? 'bold' : undefined;
         labelItems.push({
@@ -118,8 +130,8 @@ function processNode(tnode: TNode, typeface: SkTypeface | null) {
         const y = parseAttribute<number>(tnode.attributes.y) ?? 0;
         const gutter = parseAttribute<number>(tnode.attributes.gutter) ?? undefined;
         const symbolSpacer = parseAttribute<number>(tnode.attributes.symbolspacer) ?? undefined;
-        const style = parseAttribute<StyleObject>(tnode.attributes.style);
-        const color = style?.labels?.fill !== undefined ? (style.labels.fill as Color) : undefined;
+        const style = parseAttribute<RawLegendStyle>(tnode.attributes.style);
+        const color = style?.labels?.fill;
         const fontSize = style?.labels?.fontSize !== undefined ? Number(style.labels.fontSize) : undefined;
         const fontWeight = Number(style?.labels?.fontWeight) === 700 ? 'bold' : undefined;
         const entries: LegendItemEntry[] = (parseAttribute<RawLegendData[]>(tnode.attributes.data) ?? []).map((entry) => {
