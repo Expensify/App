@@ -140,8 +140,8 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             });
         }
 
-        // User to invite section
-        if (availableOptions.userToInvite) {
+        // User to invite section (hide if already selected and shown in the top section)
+        if (availableOptions.userToInvite && !availableOptions.userToInvite.isSelected) {
             sectionsArr.push({
                 title: undefined,
                 data: [availableOptions.userToInvite],
