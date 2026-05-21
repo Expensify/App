@@ -166,8 +166,29 @@ function mapTransactionItemToSelectedEntry(
 }
 
 function mapEmptyReportToSelectedEntry(item: TransactionReportGroupListItemType | TransactionGroupListItemType): [string, SelectedTransactionInfo] {
-    const currency = isTransactionReportGroupListItemType(item) ? item.currency : '';
-    const amount = isTransactionReportGroupListItemType(item) ? (item.totalDisplaySpend ?? 0) : (item as TransactionReportGroupListItemType).total;
+    if (isTransactionReportGroupListItemType(item)) {
+        const currency = item.currency ?? '';
+        return [
+            item.keyForList ?? '',
+            {
+                isFromOneTransactionReport: false,
+                isSelected: true,
+                canHold: false,
+                canSplit: false,
+                canReject: false,
+                hasBeenSplit: false,
+                isHeld: false,
+                canUnhold: false,
+                canChangeReport: false,
+                action: item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW,
+                reportID: item.reportID,
+                policyID: item.policyID ?? CONST.POLICY.ID_FAKE,
+                amount: item.totalDisplaySpend ?? item.total ?? 0,
+                currency,
+                ...(currency ? {groupCurrency: currency} : {}),
+            },
+        ];
+    }
 
     return [
         item.keyForList ?? '',
@@ -181,12 +202,11 @@ function mapEmptyReportToSelectedEntry(item: TransactionReportGroupListItemType 
             isHeld: false,
             canUnhold: false,
             canChangeReport: false,
-            action: (item as TransactionReportGroupListItemType).action ?? CONST.SEARCH.ACTION_TYPES.VIEW,
+            action: CONST.SEARCH.ACTION_TYPES.VIEW,
             reportID: item.reportID,
             policyID: item.policyID ?? CONST.POLICY.ID_FAKE,
-            amount: amount ?? 0,
-            currency: currency ?? '',
-            ...(currency ? {groupCurrency: currency} : {}),
+            amount: 0,
+            currency: '',
         },
     ];
 }
@@ -1009,7 +1029,7 @@ function Search({
                 const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
                 const parentGroupKey =
                     validGroupBy && !isExpenseReportType
-                        ? (filteredData as TransactionGroupListItemType[]).find((group) => group.transactions.some((t) => t.keyForList === item.keyForList))?.keyForList ?? undefined
+                        ? ((filteredData as TransactionGroupListItemType[]).find((group) => group.transactions.some((t) => t.keyForList === item.keyForList))?.keyForList ?? undefined)
                         : undefined;
                 const updatedTransactions = prepareTransactionsList(
                     item,
@@ -1080,7 +1100,16 @@ function Search({
                             const originalItemTransaction =
                                 searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`] ??
                                 transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                            return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', accountID, outstandingReportsByPolicyID, true, item.keyForList ?? undefined);
+                            return mapTransactionItemToSelectedEntry(
+                                transactionItem,
+                                itemTransaction,
+                                originalItemTransaction,
+                                email ?? '',
+                                accountID,
+                                outstandingReportsByPolicyID,
+                                true,
+                                item.keyForList ?? undefined,
+                            );
                         }),
                 ),
             };
@@ -1371,7 +1400,16 @@ function Search({
                     .map((transactionItem) => {
                         const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                         const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                        return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', accountID, outstandingReportsByPolicyID, true, item.keyForList ?? undefined);
+                        return mapTransactionItemToSelectedEntry(
+                            transactionItem,
+                            itemTransaction,
+                            originalItemTransaction,
+                            email ?? '',
+                            accountID,
+                            outstandingReportsByPolicyID,
+                            true,
+                            item.keyForList ?? undefined,
+                        );
                     });
             });
             updatedTransactions = Object.fromEntries(allSelections);
