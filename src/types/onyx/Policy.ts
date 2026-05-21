@@ -703,6 +703,9 @@ type XeroExportConfig = {
 
     /** The accounting Method for Xero connection config */
     accountingMethod?: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
+
+    /** Account ID that receives the exported travel payable */
+    travelInvoicingPayableAccountID?: string;
 };
 
 /** TODO: Will be handled in another issue */
@@ -1540,13 +1543,14 @@ type GustoConnectionConfig = HRConnectionConfigBase & {
 type MergeHRConnectionData = Record<string, never>;
 
 /** Merge HR connection config */
-type MergeHRConnectionConfig = HRConnectionConfigBase & {
-    /** Integration provider slug */
-    integration: MergeHRProviderSlug;
+type MergeHRConnectionConfig = HRConnectionConfigBase &
+    OnyxCommon.OnyxValueWithOfflineFeedback<{
+        /** Integration provider slug identifying which HR system is linked */
+        integration: MergeHRProviderSlug;
 
-    /** Approval mode */
-    approvalMode: ValueOf<typeof CONST.MERGE_HR.APPROVAL_MODE> | null;
-};
+        /** Approval mode controlling how reports are routed for approval */
+        approvalMode: ValueOf<typeof CONST.MERGE_HR.APPROVAL_MODE> | null;
+    }>;
 
 /** TriNet (Zenefits) connection data */
 type ZenefitsConnectionData = Record<string, never>;
@@ -2435,4 +2439,9 @@ export type {
     Subrate,
     ProhibitedExpenses,
     NetSuiteConnectionData,
+    HRConnectionConfigBase,
+    MergeHRConnectionConfig,
+    GustoConnectionConfig,
+    ZenefitsConnectionConfig,
+    MergeHRConnectionData,
 };
