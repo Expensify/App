@@ -1,6 +1,6 @@
 import lodashFindLast from 'lodash/findLast';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {filterOutDeprecatedReportActions, getLinkedTransactionID, getSortedReportActions, isActionOfType, wasActionTakenByCurrentUser} from '@libs/ReportActionsUtils';
+import {filterOutDeprecatedReportActions, getLinkedTransactionID, getSortedReportActions, isActionOfType} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
@@ -90,12 +90,12 @@ function getReceiptScanFailedIouActionDataSelector(
     isIouReport: boolean,
     parentReportActionID: string | undefined,
     actionReportID: string | undefined,
-): {transactionID: string | undefined; canEdit: boolean} {
+): {transactionID: string | undefined; actorAccountID: number | undefined} {
     const iouAction = findIouActionForReceiptScanFailed(reportActions, isIouReport, parentReportActionID, actionReportID);
 
     return {
         transactionID: getLinkedTransactionID(iouAction),
-        canEdit: wasActionTakenByCurrentUser(iouAction),
+        actorAccountID: iouAction?.actorAccountID,
     };
 }
 
