@@ -1,4 +1,6 @@
+import {useRoute} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {conciergePersonalDetailSelector, personalDetailByAccountIDSelector} from '@selectors/PersonalDetails';
 import mapValues from 'lodash/mapValues';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -37,7 +39,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {getBrokenConnectionUrlToFixPersonalCard} from '@libs/CardUtils';
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
-import {getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from '@libs/ErrorUtils';
+import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, isMoneyRequestAction, wasActionTakenByCurrentUser} from '@libs/ReportActionsUtils';
@@ -64,7 +66,7 @@ import variables from '@styles/variables';
 import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
 import {cleanUpMoneyRequest} from '@userActions/IOU/DeleteMoneyRequest';
 import {replaceReceipt} from '@userActions/IOU/Receipt';
-import {addAttachmentWithComment, navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
+import {addAttachmentWithComment, navigateToConciergeChatAndDeleteReport, setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 import {clearError, getLastModifiedExpense, revert} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -125,6 +127,8 @@ function MoneyRequestReceiptView({
     const {environmentURL} = useEnvironment();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
     const {getReportRHPActiveRoute} = useActiveRoute();
+    const route = useRoute();
+    const routeBackTo = (route.params as {backTo?: string} | undefined)?.backTo;
     const parentReportID = report?.parentReportID;
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReportID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReport?.parentReportID)}`);
@@ -133,6 +137,11 @@ function MoneyRequestReceiptView({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergePersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: conciergePersonalDetailSelector});
+    const reportOwnerSelector = useMemo(() => personalDetailByAccountIDSelector(report?.ownerAccountID), [report?.ownerAccountID]);
+    const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: reportOwnerSelector}, [reportOwnerSelector]);
+    const chatReportOwnerSelector = useMemo(() => personalDetailByAccountIDSelector(chatReport?.ownerAccountID), [chatReport?.ownerAccountID]);
+    const [chatReportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: chatReportOwnerSelector}, [chatReportOwnerSelector]);
     const delegateAccountID = useDelegateAccountID();
 
     const [isLoading, setIsLoading] = useState(true);
@@ -161,7 +170,8 @@ function MoneyRequestReceiptView({
     const didReceiptScanSucceed = hasReceipt && didReceiptScanSucceedTransactionUtils(transaction);
     const isInvoice = isInvoiceReport(moneyRequestReport);
     const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);
-    const {login: currentUserLogin, accountID: currentUserAccountID, timezone: currentUserTimezone} = useCurrentUserPersonalDetails();
+    const currentUserPersonalDetail = useCurrentUserPersonalDetails();
+    const {login: currentUserLogin, accountID: currentUserAccountID, timezone: currentUserTimezone} = currentUserPersonalDetail;
     const theme = useTheme();
     const ancestors = useAncestors(report);
     const {hovered, bind: hoverBind} = useHover();
@@ -184,14 +194,15 @@ function MoneyRequestReceiptView({
         }
     }, [isLoading, hoverBind]);
 
-    const prevSource = usePrevious(transaction?.receipt?.source);
+    const displayedReceiptSource = transaction?.receipt?.localSource ?? transaction?.receipt?.source;
+    const prevDisplayedReceiptSource = usePrevious(displayedReceiptSource);
 
     useEffect(() => {
-        if (!transaction?.receipt?.source || prevSource === transaction?.receipt?.source) {
+        if (!displayedReceiptSource || prevDisplayedReceiptSource === displayedReceiptSource) {
             return;
         }
         setIsLoading(true);
-    }, [transaction?.receipt?.source, prevSource]);
+    }, [displayedReceiptSource, prevDisplayedReceiptSource]);
 
     // Flags for allowing or disallowing editing an expense
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
@@ -297,15 +308,6 @@ function MoneyRequestReceiptView({
     const itemizedReceiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
     const customRulesViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_RULES);
 
-    // Whether to show receipt audit result (e.g.`Verified`, `Issue Found`) and messages (e.g. `Receipt not verified. Please confirm accuracy.`)
-    // `!!(receiptViolations.length || didReceiptScanSucceed)` is for not showing `Verified` when `receiptViolations` is empty and `didReceiptScanSucceed` is false.
-    const shouldShowAuditMessage =
-        !isTransactionScanning &&
-        (hasReceipt || !!receiptRequiredViolation || !!itemizedReceiptRequiredViolation || !!customRulesViolation) &&
-        !!(receiptViolations.length || didReceiptScanSucceed) &&
-        isPaidGroupPolicy(report);
-    const shouldShowReceiptAudit = !isInvoice && (shouldShowReceiptEmptyState || hasReceipt);
-
     const errorsWithoutReportCreation = useMemo(
         () => ({
             ...(transaction?.errorFields?.route ?? transaction?.errorFields?.waypoints ?? transaction?.errors),
@@ -314,7 +316,38 @@ function MoneyRequestReceiptView({
         [transaction?.errorFields?.route, transaction?.errorFields?.waypoints, transaction?.errors, parentReportAction?.errors],
     );
     const reportCreationError = useMemo(() => (getCreationReportErrors(report) ? getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage') : {}), [report]);
-    const errors = useMemo(() => ({...errorsWithoutReportCreation, ...reportCreationError}), [errorsWithoutReportCreation, reportCreationError]);
+    const hasReceiptUploadError = Object.values(errorsWithoutReportCreation).some((error) => isReceiptError(error));
+
+    // Whether to show receipt audit result (e.g.`Verified`, `Issue Found`) and messages (e.g. `Receipt not verified. Please confirm accuracy.`)
+    // `!!(receiptViolations.length || didReceiptScanSucceed)` is for not showing `Verified` when `receiptViolations` is empty and `didReceiptScanSucceed` is false.
+    const shouldShowAuditMessage =
+        !isTransactionScanning &&
+        (hasReceipt || !!receiptRequiredViolation || !!itemizedReceiptRequiredViolation || !!customRulesViolation) &&
+        !!(receiptViolations.length || didReceiptScanSucceed) &&
+        isPaidGroupPolicy(report);
+    const shouldShowReceiptAudit = !isInvoice && (shouldShowReceiptEmptyState || hasReceipt || hasReceiptUploadError);
+
+    const fallbackReceiptError = useMemo(() => {
+        if (hasReceiptUploadError || isEmptyObject(reportCreationError) || !hasReceipt || !transaction?.receipt) {
+            return {};
+        }
+
+        return getMicroSecondOnyxErrorObject({
+            error: CONST.IOU.RECEIPT_ERROR,
+            source: transaction.receipt.source?.toString() ?? '',
+            filename: transaction.receipt.filename ?? '',
+        });
+    }, [hasReceiptUploadError, reportCreationError, hasReceipt, transaction]);
+
+    const errors = useMemo(() => {
+        if (hasReceiptUploadError) {
+            return errorsWithoutReportCreation;
+        }
+        if (!isEmptyObject(fallbackReceiptError)) {
+            return {...errorsWithoutReportCreation, ...fallbackReceiptError};
+        }
+        return {...errorsWithoutReportCreation, ...reportCreationError};
+    }, [hasReceiptUploadError, fallbackReceiptError, errorsWithoutReportCreation, reportCreationError]);
     const showReceiptErrorWithEmptyState = shouldShowReceiptEmptyState && !hasReceipt && !isEmptyObject(errors);
 
     const {showConfirmModal} = useConfirmModal();
@@ -368,10 +401,24 @@ function MoneyRequestReceiptView({
         }
         if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             if (chatReport?.reportID && getCreationReportErrors(chatReport)) {
-                navigateToConciergeChatAndDeleteReport(chatReport.reportID, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, betas, true, true);
+                navigateToConciergeChatAndDeleteReport(
+                    chatReport.reportID,
+                    conciergeReportID,
+                    currentUserAccountID,
+                    introSelected,
+                    isSelfTourViewed,
+                    betas,
+                    chatReportOwnerPersonalDetail,
+                    currentUserPersonalDetail,
+                    conciergePersonalDetail,
+                    true,
+                    true,
+                );
                 return;
             }
             if (parentReportAction) {
+                const backToRoute = routeBackTo ?? Navigation.getActiveRoute();
+                setDeleteTransactionNavigateBackUrl(backToRoute);
                 cleanUpMoneyRequest(
                     transaction?.transactionID ?? linkedTransactionID,
                     parentReportAction,
@@ -405,7 +452,19 @@ function MoneyRequestReceiptView({
             if (isInNarrowPaneModal) {
                 Navigation.goBack();
             }
-            navigateToConciergeChatAndDeleteReport(report.reportID, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, betas, true, true);
+            navigateToConciergeChatAndDeleteReport(
+                report.reportID,
+                conciergeReportID,
+                currentUserAccountID,
+                introSelected,
+                isSelfTourViewed,
+                betas,
+                reportOwnerPersonalDetail,
+                currentUserPersonalDetail,
+                conciergePersonalDetail,
+                true,
+                true,
+            );
         }
     };
 
@@ -462,6 +521,7 @@ function MoneyRequestReceiptView({
                     <ReceiptAudit
                         notes={receiptViolations}
                         shouldShowAuditResult={!!shouldShowAuditMessage}
+                        hasReceiptUploadError={hasReceiptUploadError}
                     />
                 </OfflineWithFeedback>
             )}
@@ -620,11 +680,11 @@ function MoneyRequestReceiptView({
                     )}
                     {/* For WideRHP (fillSpace is true), we need to wait for the image to load to get the correct size, then display the violation message to avoid the jumping issue.
                         Otherwise (when fillSpace is false), we use a fixed size, so there's no need to wait for the image to load. */}
-                    {!!shouldShowAuditMessage && hasReceipt && (!isLoading || !fillSpace) && receiptAuditMessagesRow}
+                    {!hasReceiptUploadError && !!shouldShowAuditMessage && hasReceipt && (!isLoading || !fillSpace) && receiptAuditMessagesRow}
                 </OfflineWithFeedback>
             )}
             {!shouldShowReceiptEmptyState && !hasReceipt && <View style={{marginVertical: 6}} />}
-            {!!shouldShowAuditMessage && !hasReceipt && receiptAuditMessagesRow}
+            {!hasReceiptUploadError && !!shouldShowAuditMessage && !hasReceipt && receiptAuditMessagesRow}
             {AttachmentErrorModal}
             {PDFValidationComponent}
         </View>

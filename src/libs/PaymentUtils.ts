@@ -154,10 +154,18 @@ function isAccountData(data: unknown): data is AccountData {
 }
 
 /**
+ * Returns whether a payment method's bank currency matches the given currency.
+ * When no currency is provided, all methods are considered a match.
+ */
+function matchesCurrency(method: PaymentMethod, currency?: string): boolean {
+    return !currency || ('bankCurrency' in method && method.bankCurrency === currency);
+}
+
+/**
  * Returns all valid business bank accounts for the pay menu.
  * Allows admins to pay with any business bank account they have access to, not only the workspace-linked one.
  */
-function getBusinessBankAccountOptions(formattedPaymentMethods: PaymentMethod[]): BusinessBankAccountOption[] {
+function getBusinessBankAccountOptions(formattedPaymentMethods: PaymentMethod[], currency?: string): BusinessBankAccountOption[] {
     return formattedPaymentMethods
         .filter((method) => {
             if (!isAccountData(method?.accountData)) {
@@ -169,7 +177,8 @@ function getBusinessBankAccountOptions(formattedPaymentMethods: PaymentMethod[])
                 accountData.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
                 (accountData.state === CONST.BANK_ACCOUNT.STATE.OPEN || accountData.state === CONST.BANK_ACCOUNT.STATE.LOCKED) &&
                 method?.methodID != null &&
-                !isPartiallySetup
+                !isPartiallySetup &&
+                matchesCurrency(method, currency)
             );
         })
         .map((formattedPaymentMethod) => ({
@@ -361,6 +370,7 @@ export {
     getPaymentMethodDescription,
     formatPaymentMethods,
     getBusinessBankAccountOptions,
+    matchesCurrency,
     calculateWalletTransferBalanceFee,
     handleUnvalidatedAccount,
     selectPaymentType,
@@ -369,4 +379,4 @@ export {
     getActivePaymentType,
     getBankAccountLastFourDigits,
 };
-export type {KYCFlowEvent, TriggerKYCFlow, PaymentOrApproveOption, PaymentOption, SelectPaymentTypeParams, BusinessBankAccountOption, WorkspacePolicyPaymentOption};
+export type {KYCFlowEvent, TriggerKYCFlow, PaymentOrApproveOption, SelectPaymentTypeParams, WorkspacePolicyPaymentOption};

@@ -7,20 +7,19 @@ import type {OnyxCollection, OnyxEntry, OnyxMergeCollectionInput} from 'react-na
 import type {SearchQueryJSON, SearchStatus} from '@components/Search/types';
 import useOnyx from '@hooks/useOnyx';
 import {clearAllRelatedReportActionErrors} from '@libs/actions/ClearReportActionErrors';
+import {putOnHold} from '@libs/actions/IOU/Hold';
 import {
+    initMoneyRequest,
     resetDraftTransactionsCustomUnit,
     setMoneyRequestAmount,
     setMoneyRequestBillable,
     setMoneyRequestCategory,
     setMoneyRequestCreated,
     setMoneyRequestDateAttribute,
-    setMoneyRequestDescription,
     setMoneyRequestDistanceRate,
     setMoneyRequestMerchant,
     setMoneyRequestTag,
-} from '@libs/actions/IOU';
-import {putOnHold} from '@libs/actions/IOU/Hold';
-import {initMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
+} from '@libs/actions/IOU/MoneyRequest';
 import {calculateDiffAmount} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {handleNavigateAfterExpenseCreate} from '@libs/actions/IOU/NavigationHelpers';
 import {shouldOptimisticallyUpdateSearch} from '@libs/actions/IOU/SearchUpdate';
@@ -1734,8 +1733,7 @@ describe('actions/IOU', () => {
                     billable: false,
                 },
                 isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                currentUserEmailParam: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
@@ -1802,8 +1800,7 @@ describe('actions/IOU', () => {
                     accountant,
                 },
                 isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                currentUserEmailParam: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
@@ -2326,8 +2323,7 @@ describe('actions/IOU', () => {
                     billable: false,
                 },
                 isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                currentUserEmailParam: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
@@ -2427,6 +2423,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 isSelfTourViewed: false,
                 existingTransactionDraft: transaction,
+                existingTransaction: transaction,
                 draftTransactionIDs: [],
                 personalDetails: {},
                 betas: [CONST.BETAS.ALL],
@@ -4897,8 +4894,7 @@ describe('actions/IOU', () => {
                 },
                 accountantParams: action === CONST.IOU.ACTION.SHARE ? {accountant: {accountID: VIT_ACCOUNT_ID, login: VIT_EMAIL}} : undefined,
                 isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                currentUserEmailParam: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
@@ -5370,8 +5366,7 @@ describe('actions/IOU', () => {
                     reimbursable: false,
                 },
                 isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                currentUserEmailParam: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
@@ -5499,6 +5494,7 @@ describe('actions/IOU', () => {
                     introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                     currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                     currentUserEmailParam: CARLOS_EMAIL,
+                    currency: undefined,
                     isSelfTourViewed: false,
                     betas: undefined,
                     hasActiveAdminPolicies: false,
@@ -5677,6 +5673,7 @@ describe('actions/IOU', () => {
                     introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                     currentUserAccountIDParam: RORY_ACCOUNT_ID,
                     currentUserEmailParam: RORY_EMAIL,
+                    currency: undefined,
                     isSelfTourViewed: false,
                     betas: undefined,
                     hasActiveAdminPolicies: false,
@@ -5859,6 +5856,7 @@ describe('actions/IOU', () => {
                     introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                     currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                     currentUserEmailParam: CARLOS_EMAIL,
+                    currency: undefined,
                     isSelfTourViewed: false,
                     betas: undefined,
                     hasActiveAdminPolicies: false,
@@ -6050,6 +6048,7 @@ describe('actions/IOU', () => {
                     introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                     currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                     currentUserEmailParam: CARLOS_EMAIL,
+                    currency: undefined,
                     isSelfTourViewed: false,
                     betas: undefined,
                     hasActiveAdminPolicies: false,
@@ -6732,13 +6731,6 @@ describe('actions/IOU', () => {
             const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
             expect(draft?.comment?.customUnit?.attributes?.dates?.start).toBe('2024-01-01');
             expect(draft?.comment?.customUnit?.attributes?.dates?.end).toBe('2024-01-31');
-        });
-
-        it('setMoneyRequestDescription should set comment on transaction draft', async () => {
-            setMoneyRequestDescription(transactionID, '  Lunch with team  ', true);
-            await waitForBatchedUpdates();
-            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
-            expect(draft?.comment?.comment).toBe('Lunch with team');
         });
 
         it('setMoneyRequestMerchant should set merchant on transaction draft', async () => {

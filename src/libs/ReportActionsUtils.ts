@@ -24,6 +24,7 @@ import type {
     PersonalDetailsList,
     Policy,
     PrivatePersonalDetails,
+    ReportAttributesDerivedValue,
     ReportMetadata,
     ReportNameValuePairs,
     VisibleReportActionsDerivedValue,
@@ -35,7 +36,6 @@ import type {
     OriginalMessageExportIntegration,
     OriginalMessageMarkedReimbursed,
     OriginalMessageReimbursed,
-    OriginalMessageUnreportedTransaction,
     PolicyBudgetFrequency,
 } from '@src/types/onyx/OriginalMessage';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
@@ -61,7 +61,8 @@ import {getIsOffline, subscribe as subscribeNetworkState} from './NetworkState';
 import Parser from './Parser';
 import {arePersonalDetailsMissing, createPersonalDetailsLookupByAccountID, getEffectiveDisplayName, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowupListFromHtml';
-import type {getReportName, OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
+import type {getReportName} from './ReportNameUtils';
+import type {OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {getReportFieldTypeTranslationKey} from './WorkspaceReportFieldUtils';
 import {getWorkspaceAddressStreetLines} from './WorkspacesSettingsUtils';
@@ -1187,7 +1188,7 @@ function isResolvedConciergeDescriptionOptions(reportAction: OnyxEntry<ReportAct
  * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
  * and supported type, it's not deleted and also not closed.
  */
-function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key: string | number, canUserPerformWriteAction?: boolean, reportsParam?: OnyxCollection<Report>): boolean {
+function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key: string | number, canUserPerformWriteAction?: boolean): boolean {
     if (!reportAction) {
         return false;
     }
@@ -1203,30 +1204,13 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         return false;
     }
 
-    const reports = reportsParam ?? allReports;
-
-    if (actionName === CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION) {
-        const unreportedTransactionOriginalMessage = getOriginalMessage(reportAction as OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION>>) ?? {};
-        const {fromReportID, reasoning} = unreportedTransactionOriginalMessage as OriginalMessageUnreportedTransaction;
-        if (reasoning) {
-            return !!fromReportID;
-        }
-        const fromReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
-        return !!fromReport;
-    }
-
     if (isMovedTransactionAction(reportAction)) {
         const movedTransactionOriginalMessage = getOriginalMessage(reportAction);
-        const toReportID = movedTransactionOriginalMessage?.toReportID;
         const fromReportID = movedTransactionOriginalMessage?.fromReportID;
 
         if (fromReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
             return false;
         }
-
-        const toReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`];
-        const fromReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
-        return !!fromReport || !!toReport;
     }
 
     // Ignore closed action here since we're already displaying a footer that explains why the report was closed
@@ -1648,6 +1632,14 @@ function isNewerReportAction(a: ReportAction, b: ReportAction): boolean {
 }
 
 /**
+ * Returns true if action `a` is older than action `b`.
+ * This is the inverse of isNewerReportAction.
+ */
+function isOlderReportAction(a: ReportAction, b: ReportAction): boolean {
+    return isNewerReportAction(b, a);
+}
+
+/**
  * The first visible action is the second last action in sortedReportActions which satisfy following conditions:
  * 1. That is not pending deletion as pending deletion actions are kept in sortedReportActions in memory.
  * 2. That has at least one visible child action.
@@ -1981,6 +1973,7 @@ function getMemberChangeMessageElements(
     translate: LocalizedTranslate,
     reportAction: OnyxEntry<ReportAction>,
     getReportNameCallback: typeof getReportName,
+    reportAttributes?: ReportAttributesDerivedValue['reports'],
 ): readonly MemberChangeMessageElement[] {
     const isInviteAction = isInviteMemberAction(reportAction);
     const isLeaveAction = isLeavePolicyAction(reportAction);
@@ -2016,7 +2009,7 @@ function getMemberChangeMessageElements(
     });
 
     const buildRoomElements = (): readonly MemberChangeMessageElement[] => {
-        const roomName = getReportNameCallback({report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalMessage?.reportID}`]}) || originalMessage?.roomName;
+        const roomName = getReportNameCallback(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalMessage?.reportID}`], reportAttributes) || originalMessage?.roomName;
         if (roomName && originalMessage) {
             const preposition = isInviteAction ? ` ${translate('workspace.invite.to')} ` : ` ${translate('workspace.invite.from')} `;
 
@@ -2321,8 +2314,13 @@ function getDynamicExternalWorkflowApproveFailedActionMessage(translate: Localiz
     return failedApproveReason;
 }
 
-function getMemberChangeMessageFragment(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>, getReportNameCallback: typeof getReportName): Message {
-    const messageElements: readonly MemberChangeMessageElement[] = getMemberChangeMessageElements(translate, reportAction, getReportNameCallback);
+function getMemberChangeMessageFragment(
+    translate: LocalizedTranslate,
+    reportAction: OnyxEntry<ReportAction>,
+    getReportNameCallback: typeof getReportName,
+    reportAttributes?: ReportAttributesDerivedValue['reports'],
+): Message {
+    const messageElements: readonly MemberChangeMessageElement[] = getMemberChangeMessageElements(translate, reportAction, getReportNameCallback, reportAttributes);
     const html = messageElements
         .map((messageElement) => {
             switch (messageElement.kind) {
@@ -2737,7 +2735,7 @@ function getExportIntegrationActionFragments(translate: LocalizedTranslate, repo
                     url = NETSUITE_NON_REIMBURSABLE_EXPENSES_URL_PREFIX;
                     url += wasExportedAfterBase62 ? base62ReportID : reportID;
                     break;
-                case CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.financialForce:
+                case CONST.EXPORT_LABELS.CERTINIA:
                     // The first three characters in a Salesforce ID is the expense type
                     url = nonReimbursableUrls.at(0)?.substring(0, SALESFORCE_EXPENSES_URL_PREFIX.length + 3) ?? '';
                     break;
@@ -4624,6 +4622,7 @@ export {
     isApprovedOrSubmittedReportAction,
     isIOURequestReportAction,
     isNewerReportAction,
+    isOlderReportAction,
     isClosedAction,
     isConsecutiveActionMadeByPreviousActor,
     isExportedToIntegrationAction,
@@ -4684,7 +4683,6 @@ export {
     shouldHideNewMarker,
     shouldReportActionBeVisible,
     isReportActionVisible,
-    isReportActionVisibleAsLastAction,
     wasActionTakenByCurrentUser,
     isInviteOrRemovedAction,
     isActionableAddPaymentCard,

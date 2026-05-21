@@ -8,7 +8,6 @@ function OnboardingEmployees(props: OnboardingEmployeesProps) {
         <OnboardingWrapper>
             <BaseOnboardingEmployees
                 shouldUseNativeStyles={false}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             />
         </OnboardingWrapper>

@@ -144,4 +144,3 @@ function AmountForm({
 }
 
 export default AmountForm;
-export type {AmountFormProps, NumberWithSymbolFormRef};
