@@ -373,9 +373,9 @@ function BaseVictoryChartRenderer({tnode}: CustomRendererProps<TBlock>) {
                     <Line
                         key={key}
                         points={points[yKey]}
-                        color={nodeStyles.fill ?? DEFAULT_CHART_COLOR}
-                        strokeWidth={2}
-                        curveType="linear"
+                        color={nodeStyles.stroke ?? DEFAULT_CHART_COLOR}
+                        strokeWidth={nodeStyles.strokeWidth !== undefined ? Number(nodeStyles.strokeWidth) : undefined}
+                        curveType={parseAttribute(tnode.attributes.interpolation)}
                     >
                         {tnode.children.map((child, childIndex) => renderCartesianChartChild(child, childIndex, renderArgs))}
                     </Line>
