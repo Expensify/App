@@ -54,7 +54,7 @@ function MerchantField({
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
     const merchantValue = getMerchant(transaction);
-    const displayMerchantValue = isInvalidMerchantValue(merchantValue) ? '' : merchantValue;
+    const displayMerchantValue = !transaction?.isMerchantSet && isInvalidMerchantValue(merchantValue) ? '' : merchantValue;
     const isMerchantEmpty = !displayMerchantValue;
 
     // Determine if the merchant error should be displayed
