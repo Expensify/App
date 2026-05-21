@@ -36,8 +36,11 @@ function EditTagPage({route}: EditTagPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
-    const currentTagName = getCleanedTagName(route.params.tagName);
-    const backPath = useDynamicBackPath(route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_EDIT ? DYNAMIC_ROUTES.SETTINGS_TAG_EDIT.path : DYNAMIC_ROUTES.WORKSPACE_TAG_EDIT.path);
+    const routeTagName = route.params.tagName;
+    const currentTagName = getCleanedTagName(routeTagName);
+    const isSettingsDynamicFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_EDIT;
+    const dynamicTagEditSuffix = isSettingsDynamicFlow ? DYNAMIC_ROUTES.SETTINGS_TAG_EDIT.path : DYNAMIC_ROUTES.WORKSPACE_TAG_EDIT.path;
+    const backPath = useDynamicBackPath(dynamicTagEditSuffix);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
@@ -63,15 +66,15 @@ function EditTagPage({route}: EditTagPageProps) {
 
     const editTag = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
-            const tagName = values.tagName.trim();
+            const updatedTagName = values.tagName.trim();
             // Do not call the API if the edited tag name is the same as the current tag name
-            if (currentTagName !== tagName) {
-                renamePolicyTag(policyData, {oldName: route.params.tagName, newName: values.tagName.trim()}, orderWeight);
+            if (currentTagName !== updatedTagName) {
+                renamePolicyTag(policyData, {oldName: routeTagName, newName: updatedTagName}, orderWeight);
             }
             Keyboard.dismiss();
             Navigation.goBack(backPath);
         },
-        [policyData, currentTagName, backPath],
+        [policyData, currentTagName, routeTagName, orderWeight, backPath],
     );
 
     return (
