@@ -81,10 +81,6 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
     const hasEverDetectedNewFeed = useRef(false);
     const hasShownDuplicateModal = useRef(false);
-    if (newFeed) {
-        hasEverDetectedNewFeed.current = true;
-    }
-    const isDuplicateFeed = isNewFeedConnected && !newFeed && isPlaid && !hasEverDetectedNewFeed.current;
     const {showConfirmModal} = useConfirmModal();
 
     const onOpenBankConnectionFlow = useCallback(() => {
@@ -161,16 +157,20 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
             setShouldBlockWindowOpen(true);
             customWindow?.close();
 
+            // Track whether we've ever seen a new feed to distinguish duplicates
+            if (newFeed) {
+                hasEverDetectedNewFeed.current = true;
+            }
+            const isDuplicateFeed = !newFeed && isPlaid && !hasEverDetectedNewFeed.current;
             if (isDuplicateFeed && !hasShownDuplicateModal.current) {
                 hasShownDuplicateModal.current = true;
+                Navigation.closeRHPFlow();
+                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
                 showConfirmModal({
                     title: translate('workspace.companyCards.addNewCard.duplicateFeedModal.title'),
                     prompt: translate('workspace.companyCards.addNewCard.duplicateFeedModal.prompt'),
                     confirmText: translate('common.buttonConfirm'),
                     shouldShowCancelButton: false,
-                }).then(() => {
-                    Navigation.closeRHPFlow();
-                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
                 });
                 return;
             }
@@ -197,7 +197,6 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
         isAllFeedsResultLoading,
         shouldBlockWindowOpen,
         isBlockedToAddNewFeeds,
-        isDuplicateFeed,
         newFeed,
         policyID,
         url,
