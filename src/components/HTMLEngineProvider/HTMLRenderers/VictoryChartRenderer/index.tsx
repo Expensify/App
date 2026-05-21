@@ -30,4 +30,6 @@ function VictoryChartRenderer(props: VictoryChartRendererProps) {
     );
 }
 
+VictoryChartRenderer.displayName = 'VictoryChartRenderer';
+
 export default VictoryChartRenderer;

@@ -6,4 +6,6 @@ function VictoryChartRenderer(props: VictoryChartRendererProps) {
     return <BaseVictoryChartRenderer {...props} />;
 }
 
+VictoryChartRenderer.displayName = 'VictoryChartRenderer';
+
 export default VictoryChartRenderer;
