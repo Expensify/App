@@ -217,6 +217,11 @@ describe('ReportActionsUtils', () => {
                 expect(isValidMoneyRequestAmount(0, CONST.IOU.TYPE.SUBMIT, allowNegative, isP2P)).toBe(false);
             });
 
+            it('should allow zero amount for self DM', () => {
+                expect(isValidMoneyRequestAmount(0, CONST.IOU.TYPE.SUBMIT, allowNegative, isP2P, true)).toBe(true);
+                expect(isValidMoneyRequestAmount(0, CONST.IOU.TYPE.REQUEST, allowNegative, isP2P, true)).toBe(true);
+            });
+
             it('should return true for amounts >= 1 cent', () => {
                 expect(isValidMoneyRequestAmount(1, CONST.IOU.TYPE.REQUEST, allowNegative, isP2P)).toBe(true);
                 expect(isValidMoneyRequestAmount(100, CONST.IOU.TYPE.REQUEST, allowNegative, isP2P)).toBe(true);

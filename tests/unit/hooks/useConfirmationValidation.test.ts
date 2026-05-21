@@ -138,6 +138,23 @@ describe('useConfirmationValidation', () => {
         expect(result.current.validate()).toEqual({errorKey: 'common.error.invalidAmount'});
     });
 
+    it('allows zero amount for self DM submit expense', () => {
+        const {result} = renderHook(() =>
+            useConfirmationValidation({
+                ...baseParams,
+                iouAmount: 0,
+                transaction: {
+                    transactionID: 'txn1',
+                    amount: 0,
+                    isAmountSet: true,
+                    comment: {},
+                    participants: [{accountID: 0, reportID: 'self-dm', isSelfDM: true, selected: true}],
+                } as unknown as OnyxTypes.Transaction,
+            }),
+        );
+        expect(result.current.validate()).toEqual({errorKey: null});
+    });
+
     it('returns errorKey: null on successful non-PAY validation', () => {
         const {result} = renderHook(() => useConfirmationValidation(baseParams));
         expect(result.current.validate()).toEqual({errorKey: null});
