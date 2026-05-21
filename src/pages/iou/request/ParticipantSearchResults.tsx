@@ -28,7 +28,6 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import goToSettings from '@libs/goToSettings';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {formatSectionsFromSearchTerm, getHeaderMessage, getParticipantsOption, getPolicyExpenseReportOption, isCurrentUser} from '@libs/OptionsListUtils';
 import type {Option} from '@libs/OptionsListUtils';
 import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
@@ -422,11 +421,6 @@ function ParticipantSearchResults({
 
     const shouldShowListEmptyContent = optionLength === 0 && !shouldShowLoadingPlaceholder;
 
-    const initiateContactImportAndSetState = () => {
-        setContactPermissionState(RESULTS.GRANTED);
-        TransitionTracker.runAfterTransitions({callback: importAndSaveContacts});
-    };
-
     const footerContent =
         isDismissedReferralBanner && !shouldShowSplitBillErrorMessage && !selectedOptions.length ? undefined : (
             <ParticipantSelectorFooter
@@ -500,7 +494,7 @@ function ParticipantSearchResults({
     return (
         <>
             <ContactPermissionModal
-                onGrant={contactState?.importContacts ?? initiateContactImportAndSetState}
+                onGrant={contactState?.importContacts ?? (() => {})}
                 onDeny={contactState?.setContactPermissionState ?? setContactPermissionState}
                 onFocusTextInput={() => {
                     setTextInputAutoFocus(true);

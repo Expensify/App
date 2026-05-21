@@ -1,7 +1,6 @@
-import {useCallback, useMemo} from 'react';
+import {useMemo} from 'react';
 import {RESULTS} from 'react-native-permissions';
 import useContactImport from '@hooks/useContactImport';
-import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {ContactState, UseSearchSelectorConfig, UseSearchSelectorReturn} from './base';
 import useSearchSelectorBase from './base';
 
@@ -21,11 +20,6 @@ function useSearchSelector(config: UseSearchSelectorConfig): UseSearchSelectorRe
     const memoizedContacts = useMemo(() => (contacts.length ? contacts : []), [contacts]);
     const showImportContacts = enablePhoneContacts && !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED);
 
-    const initiateContactImportAndSetState = useCallback(() => {
-        setContactPermissionState(RESULTS.GRANTED);
-        TransitionTracker.runAfterTransitions({callback: importAndSaveContacts});
-    }, [importAndSaveContacts, setContactPermissionState]);
-
     // Use base hook with contact options
     const baseResult = useSearchSelectorBase({
         ...config,
@@ -39,7 +33,6 @@ function useSearchSelector(config: UseSearchSelectorConfig): UseSearchSelectorRe
               contactOptions: contacts,
               showImportUI: showImportContacts,
               importContacts: importAndSaveContacts,
-              initiateContactImportAndSetState,
               setContactPermissionState,
           }
         : undefined;
