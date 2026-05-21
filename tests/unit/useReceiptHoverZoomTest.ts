@@ -122,34 +122,43 @@ describe('useReceiptHoverZoom', () => {
     });
 
     describe('pointer interactions', () => {
-        it('applies scale transform on pointerenter', () => {
-            mount({isEnabled: true, scale: 2.5});
-            act(() => {
-                wrapper().dispatchEvent(new Event('pointerenter'));
-            });
-            expect(inner().style.transform).toBe('scale(2.5)');
-        });
-
-        it('resets scale to 1 on pointerleave', () => {
-            mount({isEnabled: true, scale: 3});
-            act(() => {
-                wrapper().dispatchEvent(new Event('pointerenter'));
-                wrapper().dispatchEvent(new Event('pointerleave'));
-            });
-            expect(inner().style.transform).toBe('scale(1)');
-        });
-
-        it('updates transformOrigin on pointermove using the cached rect', () => {
+        it('applies scale and transformOrigin on the first pointermove', () => {
             mount({isEnabled: true, scale: 2.5});
             const target = wrapper();
             target.getBoundingClientRect = jest.fn(() => makeRect({width: 200, height: 100}));
 
             act(() => {
-                target.dispatchEvent(new Event('pointerenter'));
                 target.dispatchEvent(new MouseEvent('pointermove', {clientX: 50, clientY: 25}));
             });
 
+            expect(inner().style.transform).toBe('scale(2.5)');
             expect(inner().style.transformOrigin).toBe('25% 25%');
+        });
+
+        it('does not apply zoom until pointermove fires (no zoom on mount, no pointerenter listener)', () => {
+            mount({isEnabled: true, scale: 2.5});
+            // Mount-time `:hover` would previously trigger zoom from center; now it should stay idle.
+            jest.spyOn(HTMLElement.prototype, 'matches').mockImplementation((selector: string) => selector === ':hover');
+            expect(inner().style.transform).toBe('');
+            expect(inner().style.transformOrigin).toBe('');
+
+            act(() => {
+                wrapper().dispatchEvent(new Event('pointerenter'));
+            });
+            expect(inner().style.transform).toBe('');
+            expect(inner().style.transformOrigin).toBe('');
+        });
+
+        it('resets scale to 1 on pointerleave', () => {
+            mount({isEnabled: true, scale: 3});
+            const target = wrapper();
+            target.getBoundingClientRect = jest.fn(() => makeRect({width: 200, height: 100}));
+
+            act(() => {
+                target.dispatchEvent(new MouseEvent('pointermove', {clientX: 50, clientY: 25}));
+                target.dispatchEvent(new Event('pointerleave'));
+            });
+            expect(inner().style.transform).toBe('scale(1)');
         });
 
         it('skips pointermove updates when the cached rect has no area', () => {
@@ -157,20 +166,10 @@ describe('useReceiptHoverZoom', () => {
             const target = wrapper();
             // jsdom default rect is all zeros — exercise the early return.
             act(() => {
-                target.dispatchEvent(new Event('pointerenter'));
                 target.dispatchEvent(new MouseEvent('pointermove', {clientX: 10, clientY: 10}));
             });
+            expect(inner().style.transform).toBe('');
             expect(inner().style.transformOrigin).toBe('');
-        });
-    });
-
-    describe('mount-while-hovered kickoff', () => {
-        it('engages zoom immediately when matches(":hover") is true at mount', () => {
-            // `jest.spyOn` is auto-restored by `jest.restoreAllMocks()` in afterEach.
-            jest.spyOn(HTMLElement.prototype, 'matches').mockImplementation((selector: string) => selector === ':hover');
-
-            mount({isEnabled: true, scale: 2.5});
-            expect(inner().style.transform).toBe('scale(2.5)');
         });
     });
 
@@ -183,7 +182,6 @@ describe('useReceiptHoverZoom', () => {
             const removeSpy = jest.spyOn(target, 'removeEventListener');
 
             act(() => {
-                target.dispatchEvent(new Event('pointerenter'));
                 target.dispatchEvent(new MouseEvent('pointermove', {clientX: 100, clientY: 50}));
             });
             expect(innerEl.style.transform).toBe('scale(2.5)');
@@ -194,7 +192,6 @@ describe('useReceiptHoverZoom', () => {
             // Re-create the root so the shared afterEach can unmount cleanly.
             root = createRoot(container);
 
-            expect(removeSpy).toHaveBeenCalledWith('pointerenter', expect.any(Function));
             expect(removeSpy).toHaveBeenCalledWith('pointerleave', expect.any(Function));
             expect(removeSpy).toHaveBeenCalledWith('pointermove', expect.any(Function));
             expect(innerEl.style.transform).toBe('');
@@ -212,13 +209,12 @@ describe('useReceiptHoverZoom', () => {
                 const externalRef = {current: external} as unknown as RefObject<View | null>;
                 mount({isEnabled: true, scale: 2.5, hoverContainerRef: externalRef});
 
-                expect(externalAdd).toHaveBeenCalledWith('pointerenter', expect.any(Function));
                 expect(externalAdd).toHaveBeenCalledWith('pointerleave', expect.any(Function));
                 expect(externalAdd).toHaveBeenCalledWith('pointermove', expect.any(Function));
 
                 external.getBoundingClientRect = jest.fn(() => makeRect());
                 act(() => {
-                    external.dispatchEvent(new Event('pointerenter'));
+                    external.dispatchEvent(new MouseEvent('pointermove', {clientX: 100, clientY: 50}));
                 });
                 expect(inner().style.transform).toBe('scale(2.5)');
             } finally {
@@ -229,9 +225,11 @@ describe('useReceiptHoverZoom', () => {
         it('falls back to the auto-wrapper when the external ref has no current element', () => {
             const externalRef = {current: null} as unknown as RefObject<View | null>;
             mount({isEnabled: true, scale: 2.5, hoverContainerRef: externalRef});
+            const target = wrapper();
+            target.getBoundingClientRect = jest.fn(() => makeRect());
 
             act(() => {
-                wrapper().dispatchEvent(new Event('pointerenter'));
+                target.dispatchEvent(new MouseEvent('pointermove', {clientX: 100, clientY: 50}));
             });
             expect(inner().style.transform).toBe('scale(2.5)');
         });

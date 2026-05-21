@@ -42,10 +42,6 @@ function useReceiptHoverZoom({isEnabled, scale, hoverContainerRef}: UseReceiptHo
 
         let bounds: DOMRect | null = null;
 
-        const startZoom = () => {
-            bounds = target.getBoundingClientRect();
-            inner.style.transform = `scale(${scale})`;
-        };
         const endZoom = () => {
             bounds = null;
             inner.style.transform = 'scale(1)';
@@ -61,19 +57,13 @@ function useReceiptHoverZoom({isEnabled, scale, hoverContainerRef}: UseReceiptHo
             const x = ((event.clientX - left) / width) * 100;
             const y = ((event.clientY - top) / height) * 100;
             inner.style.transformOrigin = `${x}% ${y}%`;
+            inner.style.transform = `scale(${scale})`;
         };
 
-        target.addEventListener('pointerenter', startZoom);
         target.addEventListener('pointerleave', endZoom);
         target.addEventListener('pointermove', updateZoomOrigin);
 
-        // Browsers don't fire pointerenter when an element mounts under the cursor — kick off manually.
-        if (target.matches?.(':hover')) {
-            startZoom();
-        }
-
         return () => {
-            target.removeEventListener('pointerenter', startZoom);
             target.removeEventListener('pointerleave', endZoom);
             target.removeEventListener('pointermove', updateZoomOrigin);
             inner.style.transform = '';
