@@ -643,9 +643,10 @@ function signUpUser(preferredLocale: Locale | undefined) {
         },
     ];
 
-    const params: SignUpUserParams = {email: credentials.login, preferredLocale: preferredLocale ?? null};
-
-    API.write(WRITE_COMMANDS.SIGN_UP_USER, params, {optimisticData, successData, failureData});
+    Device.getDeviceInfoWithID().then((deviceInfo) => {
+        const params: SignUpUserParams = {email: credentials.login, preferredLocale: preferredLocale ?? null, deviceInfo};
+        API.write(WRITE_COMMANDS.SIGN_UP_USER, params, {optimisticData, successData, failureData});
+    });
 }
 
 function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettings, tryNewDot?: TryNewDot) {
@@ -1459,7 +1460,7 @@ const canAnonymousUserAccessRoute = (route: string) => {
 };
 
 function AddWorkEmail(workEmail: string) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM | typeof ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
@@ -1467,6 +1468,11 @@ function AddWorkEmail(workEmail: string) {
                 onboardingWorkEmail: workEmail,
                 isLoading: true,
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY,
+            value: null,
         },
     ];
 
@@ -1497,15 +1503,24 @@ function AddWorkEmail(workEmail: string) {
         },
     ];
 
-    API.write(
-        WRITE_COMMANDS.ADD_WORK_EMAIL,
+    // We need to inspect the response to detect the closed-account error and surface a specific translation key, which API.write cannot do.
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects(
+        SIDE_EFFECT_REQUEST_COMMANDS.ADD_WORK_EMAIL,
         {workEmail},
         {
             optimisticData,
             successData,
             failureData,
         },
-    );
+    ).then((response) => {
+        if (response?.jsonCode !== CONST.JSON_CODE.EXP_ERROR) {
+            return;
+        }
+        if (response?.message === CONST.WORK_ACCOUNT_CLOSED_ERROR || response?.title === CONST.WORK_ACCOUNT_CLOSED_ERROR) {
+            Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'onboarding.mergeBlockScreen.workAccountClosedSubtitle');
+        }
+    });
 }
 
 function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: string, accountID: number | undefined) {
