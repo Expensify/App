@@ -37,7 +37,6 @@ function HRSyncResultsModal({result, providerDisplayName, closeModal}: HRSyncRes
     const removedCount = result.removedEmployeesCount ?? 0;
     const skippedCount = result.skippedEmployees?.length ?? 0;
 
-    // Starts the exit animation; closeModal (passed via onModalHide) is called once the animation finishes.
     const hideModal = () => setIsVisible(false);
 
     const renderResultSummary = (label: string, count: number) => (
