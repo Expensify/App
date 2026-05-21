@@ -1,5 +1,5 @@
 import {Circle, Skia, Text as SkText} from '@shopify/react-native-skia';
-import type {Color, SkTypeface} from '@shopify/react-native-skia';
+import type {SkTypeface} from '@shopify/react-native-skia';
 import JSON5 from 'json5';
 import lodashIsObject from 'lodash/isObject';
 import lodashMerge from 'lodash/merge';
@@ -42,6 +42,9 @@ function getHierarchyID(tnode: TNode): string {
     return id;
 }
 
+/**
+ * Get the Y-axis key for a given node
+ */
 function getYKey(tnode: TNode): yKey {
     return `${Y_KEY_PREFIX}${getHierarchyID(tnode)}`;
 }
@@ -156,7 +159,7 @@ function processNode(tnode: TNode, typeface: SkTypeface | null) {
         });
     }
 
-    tnode.children.forEach((child) => {
+    for (const child of tnode.children) {
         const childData = processNode(child, typeface);
         yKeys.push(...childData.yKeys);
         if (childData.xAxis) {
@@ -172,7 +175,7 @@ function processNode(tnode: TNode, typeface: SkTypeface | null) {
         labelItems.push(...childData.labelItems);
         legendItems.push(...childData.legendItems);
         lodashMerge(data, childData.data);
-    });
+    }
 
     return {
         data,
@@ -216,11 +219,35 @@ function parseCornerRadius(attribute: string): RoundedCorners | undefined {
         };
     }
     if (lodashIsObject(cornerRadius)) {
+        let topLeft: number | undefined;
+        let topRight: number | undefined;
+        let bottomLeft: number | undefined;
+        let bottomRight: number | undefined;
+        if ('topLeft' in cornerRadius) {
+            topLeft = Number(cornerRadius.topLeft);
+        } else if ('top' in cornerRadius) {
+            topLeft = Number(cornerRadius.top);
+        }
+        if ('topRight' in cornerRadius) {
+            topLeft = Number(cornerRadius.topRight);
+        } else if ('top' in cornerRadius) {
+            topRight = Number(cornerRadius.top);
+        }
+        if ('bottomLeft' in cornerRadius) {
+            bottomLeft = Number(cornerRadius.bottomLeft);
+        } else if ('bottom' in cornerRadius) {
+            bottomLeft = Number(cornerRadius.bottom);
+        }
+        if ('bottomRight' in cornerRadius) {
+            bottomRight = Number(cornerRadius.bottomRight);
+        } else if ('bottom' in cornerRadius) {
+            bottomRight = Number(cornerRadius.bottom);
+        }
         return {
-            topLeft: 'topLeft' in cornerRadius ? Number(cornerRadius.topLeft) : 'top' in cornerRadius ? Number(cornerRadius.top) : undefined,
-            topRight: 'topRight' in cornerRadius ? Number(cornerRadius.topRight) : 'top' in cornerRadius ? Number(cornerRadius.top) : undefined,
-            bottomLeft: 'bottomLeft' in cornerRadius ? Number(cornerRadius.bottomLeft) : 'bottom' in cornerRadius ? Number(cornerRadius.bottom) : undefined,
-            bottomRight: 'bottomRight' in cornerRadius ? Number(cornerRadius.bottomRight) : 'bottom' in cornerRadius ? Number(cornerRadius.bottom) : undefined,
+            topLeft,
+            topRight,
+            bottomLeft,
+            bottomRight,
         };
     }
     return undefined;
@@ -236,25 +263,28 @@ function parseDomainPadding(attribute: string): ComponentProps<typeof CartesianC
     }
     if (Array.isArray(domainPadding)) {
         return {
-            left: domainPadding[0],
-            right: domainPadding[1],
+            left: Number(domainPadding.at(0)),
+            right: Number(domainPadding.at(1)),
         };
     }
     if (lodashIsObject(domainPadding)) {
-        let left: number | undefined, right: number | undefined, top: number | undefined, bottom: number | undefined;
+        let left: number | undefined;
+        let right: number | undefined;
+        let top: number | undefined;
+        let bottom: number | undefined;
         if ('x' in domainPadding && typeof domainPadding.x === 'number') {
             left = domainPadding.x;
             right = domainPadding.x;
         } else if ('x' in domainPadding && Array.isArray(domainPadding.x)) {
-            left = domainPadding.x[0];
-            right = domainPadding.x[1];
+            left = Number(domainPadding.x.at(0));
+            right = Number(domainPadding.x.at(1));
         }
         if ('y' in domainPadding && typeof domainPadding.y === 'number') {
             top = domainPadding.y;
             bottom = domainPadding.y;
         } else if ('y' in domainPadding && Array.isArray(domainPadding.y)) {
-            top = domainPadding.y[1];
-            bottom = domainPadding.y[0];
+            top = Number(domainPadding.y.at(1));
+            bottom = Number(domainPadding.y.at(0));
         }
         return {
             left,
@@ -299,15 +329,15 @@ function BaseVictoryChartRenderer({tnode}: VictoryChartRendererProps) {
     const styles = useThemeStyles();
     const {regular: regularTypeface, bold: boldTypeface} = useChartDefaultTypeface();
     const {data, xKey, yKeys, xAxis, yAxis, labelItems, legendItems} = useMemo(() => processNode(tnode, regularTypeface), [tnode, regularTypeface]);
-    const {nodeStyles, parentNodeStyles} = useMemo(() => parseStyles(tnode), [tnode]);
+    const {nodeStyles: chartContentStyles, parentNodeStyles: chartContainerStyles} = useMemo(() => parseStyles(tnode), [tnode]);
     const [isCartesianChart, isPolarChart] = useMemo(() => [Object.keys(data).length > 0, false], [data]);
 
-    const renderCartesianChartChild = useCallback((tnode: TNode, index: Number, renderArgs: CartesianChartRenderArg<CartesianChartData, yKey>) => {
-        const key = `${tnode.tagName ?? 'node'}-${index}`;
-        const yKey = getYKey(tnode);
+    const renderCartesianChartChild = useCallback((tnodeChild: TNode, index: number, renderArgs: CartesianChartRenderArg<CartesianChartData, yKey>) => {
+        const key = `${tnodeChild.tagName ?? 'node'}-${index}`;
+        const yKey = getYKey(tnodeChild);
         const {points, chartBounds} = renderArgs;
-        const {nodeStyles} = parseStyles(tnode);
-        switch (tnode.tagName) {
+        const {nodeStyles} = parseStyles(tnodeChild);
+        switch (tnodeChild.tagName) {
             case 'victorybar':
                 return (
                     <Bar
@@ -316,8 +346,8 @@ function BaseVictoryChartRenderer({tnode}: VictoryChartRendererProps) {
                         chartBounds={chartBounds}
                         color={nodeStyles.fill ?? DEFAULT_CHART_COLOR}
                         innerPadding={BAR_INNER_PADDING}
-                        roundedCorners={parseCornerRadius(tnode.attributes.cornerradius)}
-                        barWidth={parseAttribute(tnode.attributes.barwidth)}
+                        roundedCorners={parseCornerRadius(tnodeChild.attributes.cornerradius)}
+                        barWidth={parseAttribute(tnodeChild.attributes.barwidth)}
                     />
                 );
             case 'victoryline':
@@ -327,7 +357,7 @@ function BaseVictoryChartRenderer({tnode}: VictoryChartRendererProps) {
                         points={points[yKey]}
                         color={nodeStyles.stroke ?? DEFAULT_CHART_COLOR}
                         strokeWidth={nodeStyles.strokeWidth !== undefined ? Number(nodeStyles.strokeWidth) : undefined}
-                        curveType={parseAttribute(tnode.attributes.interpolation)}
+                        curveType={parseAttribute(tnodeChild.attributes.interpolation)}
                     />
                 );
             default:
@@ -352,7 +382,7 @@ function BaseVictoryChartRenderer({tnode}: VictoryChartRendererProps) {
                         />
                     );
                 })}
-                {legendItems.map(({x: startX, y, entries, gutter, symbolSpacer}, legendIndex) => {
+                {legendItems.map(({x: startX, y, entries, gutter, symbolSpacer}) => {
                     let x = startX;
                     return entries.map(({text, color, fontSize, fontWeight, symbolColor, symbolSize}) => {
                         const typeface = fontWeight === 'bold' ? boldTypeface : regularTypeface;
@@ -364,7 +394,7 @@ function BaseVictoryChartRenderer({tnode}: VictoryChartRendererProps) {
                         const textX = x;
                         x += (font?.getGlyphWidths(font.getGlyphIDs(text)).reduce((acc, width) => acc + width, 0) ?? 0) + (gutter ?? 0);
                         return (
-                            <Fragment key={`legend-${legendIndex}-${x}-${y}`}>
+                            <Fragment key={`legend-${x}-${y}`}>
                                 {!!symbolSize && (
                                     <Circle
                                         cx={symbolX}
@@ -394,8 +424,8 @@ function BaseVictoryChartRenderer({tnode}: VictoryChartRendererProps) {
     }
 
     return (
-        <View style={[styles.chartContainer, styles.mw100, parentNodeStyles]}>
-            <View style={[styles.chartContent, styles.mw100, nodeStyles]}>
+        <View style={[styles.chartContainer, styles.mw100, chartContainerStyles]}>
+            <View style={[styles.chartContent, styles.mw100, chartContentStyles]}>
                 <CartesianChart
                     data={Object.values(data)}
                     xKey={xKey}
