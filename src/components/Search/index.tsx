@@ -1107,14 +1107,34 @@ function Search({
                         .map((transactionItem) => {
                             const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                             const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                            return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', accountID, outstandingReportsByPolicyID, true, item.keyForList ?? undefined);
+                            return mapTransactionItemToSelectedEntry(
+                                transactionItem,
+                                itemTransaction,
+                                originalItemTransaction,
+                                email ?? '',
+                                accountID,
+                                outstandingReportsByPolicyID,
+                                true,
+                                item.keyForList ?? undefined,
+                            );
                         }),
                 ),
             };
             setSelectedTransactions(updatedTransactions, filteredData);
             updateSelectAllMatchingItemsState(updatedTransactions);
         },
-        [selectedTransactions, setSelectedTransactions, filteredData, updateSelectAllMatchingItemsState, transactions, email, accountID, outstandingReportsByPolicyID, isExpenseReportType, validGroupBy],
+        [
+            selectedTransactions,
+            setSelectedTransactions,
+            filteredData,
+            updateSelectAllMatchingItemsState,
+            transactions,
+            email,
+            accountID,
+            outstandingReportsByPolicyID,
+            isExpenseReportType,
+            validGroupBy,
+        ],
     );
 
     const onSelectRowInMobileSelectionMode = (item: SearchListItem) => {
