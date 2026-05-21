@@ -13,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearMoneyRequestAmount, getMoneyRequestParticipantsFromReport, setMoneyRequestAmount} from '@libs/actions/IOU/MoneyRequest';
 import {convertToBackendAmount, convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import {calculateAmount} from '@libs/IOUUtils';
+import {isValidMoneyRequestAmount} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldEnableNegative} from '@libs/ReportUtils';
 import {isAmountMissing} from '@libs/TransactionUtils';
@@ -236,7 +237,7 @@ function AmountField({
             return;
         }
 
-        const isInlineAmountInvalid = parsedAmount === 0 && isP2P;
+        const isInlineAmountInvalid = !isDistanceRequest && !shouldShowTimeRequestFields && !isValidMoneyRequestAmount(parsedAmount, iouType, allowNegative, isP2P);
 
         if (isInlineAmountInvalid && shouldDisplayFieldError) {
             setFormError('common.error.invalidAmount');

@@ -2,7 +2,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {isValidPerDiemExpenseAmount} from '@libs/actions/IOU/PerDiem';
 import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
-import {validateAmount} from '@libs/MoneyRequestUtils';
+import {isValidMoneyRequestAmount, validateAmount} from '@libs/MoneyRequestUtils';
 import type {getTagLists as getTagListsFn} from '@libs/PolicyUtils';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {hasEnabledTags, hasMatchingTag} from '@libs/TagsOptionsListUtils';
@@ -159,8 +159,9 @@ function useConfirmationValidation({
         const firstParticipant = transaction?.participants?.at(0);
         const isP2P = !!(firstParticipant?.accountID && !firstParticipant?.isPolicyExpenseChat);
 
-        // P2P manual submit: $0 is invalid unless scan/time/distance (same guard as legacy inline confirm).
-        if (!isScanRequestUtil(transaction) && !isTimeRequest && !isDistanceRequest && iouAmount === 0 && isP2P) {
+        // Zero or invalid amounts are blocked for invoice, pay, split, and P2P submit/request flows.
+        // Scan, time, distance, and per-diem requests have their own amount rules below.
+        if (!isScanRequestUtil(transaction) && !isTimeRequest && !isDistanceRequest && !isPerDiemRequest && !isValidMoneyRequestAmount(iouAmount, iouType, true, isP2P)) {
             return {errorKey: 'common.error.invalidAmount'};
         }
         if (isNewManualExpenseFlowEnabled && !transaction?.isAmountSet) {
