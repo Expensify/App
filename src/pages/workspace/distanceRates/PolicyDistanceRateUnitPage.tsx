@@ -47,7 +47,7 @@ function PolicyDistanceRateUnitPage({route}: PolicyDistanceRateUnitPageProps) {
             <ScreenWrapper
                 style={styles.pb0}
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={PolicyDistanceRateUnitPage.displayName}
+                testID="PolicyDistanceRateUnitPage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.distanceRates.unit')}
@@ -65,7 +65,5 @@ function PolicyDistanceRateUnitPage({route}: PolicyDistanceRateUnitPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-PolicyDistanceRateUnitPage.displayName = 'PolicyDistanceRateUnitPage';
 
 export default PolicyDistanceRateUnitPage;
