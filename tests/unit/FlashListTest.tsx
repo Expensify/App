@@ -1,6 +1,6 @@
 import {FlashList} from '@shopify/flash-list';
-import {act, render} from '@testing-library/react-native';
-import React, {forwardRef} from 'react';
+import {render} from '@testing-library/react-native';
+import React from 'react';
 import type {LayoutChangeEvent, View as RNView, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 
@@ -16,7 +16,7 @@ describe('FlashList - stale onLayout after rapid data change', () => {
         // Map of index -> captured onLayout handler from each ViewHolder render
         const capturedLayoutHandlers = new Map<number, (event: LayoutChangeEvent) => void>();
 
-        const CapturingCell = forwardRef<RNView, CellProps>(({index, onLayout, style, children}, ref) => {
+        const CapturingCell = React.forwardRef<RNView, CellProps>(({index, onLayout, style, children}, ref) => {
             capturedLayoutHandlers.set(index, onLayout);
             return (
                 <View
@@ -64,7 +64,7 @@ describe('FlashList - stale onLayout after rapid data change', () => {
         // queued ResizeObserver callback after the data shrunk.
         const staleIndex = [...capturedLayoutHandlers.keys()].find((idx) => idx >= shrunkData.length);
         expect(staleIndex).toBeDefined();
-        const staleOnLayout = capturedLayoutHandlers.get(staleIndex!);
+        const staleOnLayout = staleIndex ? capturedLayoutHandlers.get(staleIndex) : undefined;
         expect(staleOnLayout).toBeDefined();
 
         // Pre-fix: this throws "index out of bounds, not enough layouts"
