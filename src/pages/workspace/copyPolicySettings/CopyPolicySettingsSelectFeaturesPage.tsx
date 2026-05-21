@@ -94,8 +94,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
         isCollectPolicy: isCollectPolicy(sourcePolicy),
     };
 
-    const isPartVisible = (part: Part) => {
-        // When targets have mismatched accounting, show these rows as disabled — do not hide them.
+    const isPartVisible = (part: Part): boolean => {
         if (!isAccountingCompatible && (ACCOUNTING_COMPATIBILITY_REQUIRED_PARTS as readonly Part[]).includes(part)) {
             return true;
         }
@@ -116,24 +115,27 @@ function CopyPolicySettingsSelectFeaturesPage() {
     }, [copyPolicySettings?.parts]);
 
     const selectedAvailableFeatures = selectedFeatures.filter((part) => availablePartSet.has(part));
-
     const isAccountingSelected = selectedAvailableFeatures.includes('accounting');
 
     const effectiveSelectedFeatures = isAccountingSelected
         ? Array.from(new Set<Part>([...selectedAvailableFeatures, ...ACCOUNTING_FORCE_ENABLED_PARTS.filter((part) => availablePartSet.has(part))]))
         : selectedAvailableFeatures;
 
-    const isFeatureDisabled = (part: Part) => {
-        if (isAccountingSelected && (ACCOUNTING_FORCE_ENABLED_PARTS as readonly Part[]).includes(part)) {
+    const isFeatureDisabled = (part: Part): boolean => {
+        if (!isAccountingCompatible && (ACCOUNTING_COMPATIBILITY_REQUIRED_PARTS as readonly Part[]).includes(part)) {
             return true;
         }
-        if (!isAccountingCompatible && (ACCOUNTING_COMPATIBILITY_REQUIRED_PARTS as readonly Part[]).includes(part)) {
+        if (isAccountingSelected && (ACCOUNTING_FORCE_ENABLED_PARTS as readonly Part[]).includes(part)) {
             return true;
         }
         return false;
     };
 
-    const getFeatureAlternateText = (part: Part): string | undefined => {
+    const isAccountingMismatch = (part: Part): boolean => {
+        return !isAccountingCompatible && (ACCOUNTING_COMPATIBILITY_REQUIRED_PARTS as readonly Part[]).includes(part);
+    };
+
+    const getSourceDescription = (part: Part): string | undefined => {
         switch (part) {
             case 'overview': {
                 const currencyText = sourcePolicy?.outputCurrency ? `${sourcePolicy.outputCurrency} ${translate('common.currency')}` : '';
@@ -173,19 +175,31 @@ function CopyPolicySettingsSelectFeaturesPage() {
         }
     };
 
+    const getAlternateText = (part: Part): string | undefined => {
+        if (isAccountingMismatch(part)) {
+            return translate('workspace.copyPolicySettings.accountingMismatch', {
+                part: translate(FEATURE_ROWS.find((row) => row.part === part)?.labelKey ?? 'workspace.common.accounting').toLowerCase(),
+            });
+        }
+        return getSourceDescription(part);
+    };
+
     const listItems: ListItem[] = availableFeatureRows.map((row) => {
-        const alternateText = getFeatureAlternateText(row.part);
-        const isSelected = effectiveSelectedFeatures.includes(row.part);
         const isDisabled = isFeatureDisabled(row.part);
+        const isSelected = effectiveSelectedFeatures.includes(row.part);
+        const alternateText = getAlternateText(row.part);
+
         return {
             text: translate(row.labelKey),
             keyForList: row.part,
             isSelected,
             isDisabled,
-            isDisabledCheckbox: isDisabled && !isSelected,
+            isDisabledCheckbox: isDisabled,
             alternateText: alternateText?.trim().replace(/,\s*$/, ''),
         };
     });
+
+    const selectableFeatures: Part[] = availableFeatureRows.filter((row) => !isFeatureDisabled(row.part)).map((row) => row.part);
 
     const toggleFeature = (item: ListItem) => {
         const part = item.keyForList as Part | undefined;
@@ -203,8 +217,6 @@ function CopyPolicySettingsSelectFeaturesPage() {
             return [...prev, part];
         });
     };
-
-    const selectableFeatures: Part[] = availableFeatureRows.filter((row) => !isFeatureDisabled(row.part)).map((row) => row.part);
 
     const toggleAll = () => {
         const allSelected = selectableFeatures.every((part) => selectedAvailableFeatures.includes(part));
