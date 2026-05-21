@@ -18,7 +18,14 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {canAccessSubmitWorkspaceFeatures, canEditWorkspaceSettings, canModifyPlan, getDefaultApprover, getPerDiemCustomUnit, isControlPolicy} from '@libs/PolicyUtils';
+import {
+    canAccessSubmitWorkspaceFeatures as canAccessSubmitWorkspaceFeaturesUtils,
+    canEditWorkspaceSettings,
+    canModifyPlan,
+    getDefaultApprover,
+    getPerDiemCustomUnit,
+    isControlPolicy,
+} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {enablePerDiem} from '@userActions/Policy/PerDiem';
 import CONST from '@src/CONST';
@@ -66,8 +73,10 @@ function getFeatureNameAlias(featureName: string) {
 function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const styles = useThemeStyles();
     const policyID = route.params?.policyID;
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const {isBetaEnabled} = usePermissions();
     const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
+    const canAccessSubmitWorkspaceFeatures = canAccessSubmitWorkspaceFeaturesUtils(policy, isSubmit2026BetaEnabled);
     const featureNameAlias = route.params?.featureName && getFeatureNameAlias(route.params.featureName);
 
     const feature = useMemo(
@@ -79,13 +88,14 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     );
     const {translate} = useLocalize();
     const {accountID, email = ''} = useCurrentUserPersonalDetails();
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [priorFirstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
+    const [priorLastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
+
     const ownerPoliciesSelectorWithAccountID = useCallback((policies: OnyxCollection<Policy>) => ownerPoliciesSelector(policies, accountID), [accountID]);
     const [ownerPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: ownerPoliciesSelectorWithAccountID});
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {isOffline} = useNetwork();
-
-    const canPerformUpgrade = useMemo(() => canModifyPlan(ownerPolicies, policy), [ownerPolicies, policy]);
+    const canPerformUpgrade = useMemo(() => canModifyPlan(ownerPolicies, policy) || canAccessSubmitWorkspaceFeatures, [ownerPolicies, policy, canAccessSubmitWorkspaceFeatures]);
     const isUpgraded = useMemo(() => isControlPolicy(policy), [policy]);
     const policyData = usePolicyData(policyID);
     const policyDataRef = useRef(policyData);
@@ -146,10 +156,10 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             return;
         }
 
-        if (canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled)) {
+        if (canAccessSubmitWorkspaceFeatures) {
             const isPerDiemUpgrade = feature?.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.id;
             const targetType = isPerDiemUpgrade ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM;
-            upgradeSubmit(policy, targetType, email, accountID);
+            upgradeSubmit(policy, targetType, email, accountID, priorFirstDayFreeTrial, priorLastDayFreeTrial);
             return;
         }
 

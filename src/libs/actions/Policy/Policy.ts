@@ -1,4 +1,7 @@
 /* eslint-disable max-lines */
+import {addDays} from 'date-fns/addDays';
+import {formatDate} from 'date-fns/format';
+import {subMinutes} from 'date-fns/subMinutes';
 import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
 import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -5714,9 +5717,25 @@ function upgradeToCorporate(policy: OnyxEntry<Policy>, featureName?: string) {
  * @param targetType - the type to upgrade to, either team or corporate
  * @param currentUserEmail - Signed-in user's email (login)
  * @param currentUserAccountID - Signed-in user's account ID
+ * @param priorFirstDayFreeTrial - Prior `ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL` (for rollback); pass `undefined` if unset.
+ * @param priorLastDayFreeTrial - Prior `ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL` (for rollback); pass `undefined` if unset.
  * @param reportID - Optional report ID related to this upgrade flow
  */
-function upgradeSubmit(policy: OnyxEntry<Policy>, targetType: Policy['type'], currentUserEmail: string, currentUserAccountID: number | undefined, reportID?: string | undefined) {
+function upgradeSubmit(
+    policy: OnyxEntry<Policy>,
+    targetType: Policy['type'],
+    currentUserEmail: string,
+    currentUserAccountID: number | undefined,
+    priorFirstDayFreeTrial: string | undefined,
+    priorLastDayFreeTrial: string | undefined,
+    reportID?: string | undefined,
+) {
+    type UpgradeSubmitOnyxKey = typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL | typeof ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL;
+
+    const now = new Date();
+    const optimisticFirstDayFreeTrial = formatDate(subMinutes(now, 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+    const optimisticLastDayFreeTrial = formatDate(addDays(now, 30), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+
     const policyID = policy?.id ?? CONST.POLICY.ID_FAKE;
     const currentUserLogin = currentUserEmail ?? '';
     const priorOwner = policy?.owner;
@@ -5756,7 +5775,17 @@ function upgradeSubmit(policy: OnyxEntry<Policy>, targetType: Policy['type'], cu
     } else {
         newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
     }
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+    const optimisticData: Array<OnyxUpdate<UpgradeSubmitOnyxKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL,
+            value: optimisticFirstDayFreeTrial,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL,
+            value: optimisticLastDayFreeTrial,
+        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -5791,7 +5820,7 @@ function upgradeSubmit(policy: OnyxEntry<Policy>, targetType: Policy['type'], cu
             },
         },
     ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+    const successData: Array<OnyxUpdate<UpgradeSubmitOnyxKey>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -5806,7 +5835,17 @@ function upgradeSubmit(policy: OnyxEntry<Policy>, targetType: Policy['type'], cu
             },
         },
     ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+    const failureData: Array<OnyxUpdate<UpgradeSubmitOnyxKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL,
+            value: priorFirstDayFreeTrial ?? null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL,
+            value: priorLastDayFreeTrial ?? null,
+        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
