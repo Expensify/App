@@ -3,11 +3,12 @@ import type {SearchColumnType} from '@components/Search/types';
 import type {ListItemFocusEventHandler} from '@components/SelectionList/ListItem/types';
 import type {ListItem} from '@components/SelectionList/types';
 import type {TransactionPreviewData} from '@libs/actions/Search';
+import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {CardList, ReportAction, TransactionViolation} from '@src/types/onyx';
 
 type TransactionListItemInlineEditProps = {
     shouldDisableHoverStyle: boolean;
-    onPressRow: () => void;
+    onPressRow: (event?: ModifiedMouseEvent) => void;
     onMouseDownRow: (e?: MouseEvent) => void;
     onHoverInRow: () => void;
     onEditDate: (newDate: string) => void;
@@ -31,7 +32,7 @@ type TransactionListItemWideProps<TItem extends ListItem> = {
     showTooltip: boolean;
     isDisabled?: boolean | null;
     canSelectMultiple?: boolean;
-    onSelectRow: (item: TItem, transactionPreviewData?: TransactionPreviewData) => void;
+    onSelectRow: (item: TItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
     onCheckboxPress?: (item: TItem) => void;
     onFocus?: ListItemFocusEventHandler;
     onLongPressRow?: (item: TItem) => void;
@@ -41,7 +42,7 @@ type TransactionListItemWideProps<TItem extends ListItem> = {
     isActionLoading?: boolean;
     isLastItem?: boolean;
     transactionViolations: TransactionViolation[];
-    handleActionButtonPress: () => void;
+    handleActionButtonPress: (event?: ModifiedMouseEvent) => void;
     transactionPreviewData: TransactionPreviewData;
     exportedReportActions: ReportAction[];
     nonPersonalAndWorkspaceCards?: CardList;
