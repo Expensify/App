@@ -126,6 +126,51 @@ describe('useConfirmationValidation', () => {
         expect(result.current.validate()).toEqual({errorKey: null});
     });
 
+    it('returns fieldRequired for manual expense when amount is not set in new manual expense flow', () => {
+        const {result} = renderHook(() =>
+            useConfirmationValidation({
+                ...baseParams,
+                isNewManualExpenseFlowEnabled: true,
+                transaction: {transactionID: 'txn1', comment: {}, amount: 0, iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL} as unknown as OnyxTypes.Transaction,
+            }),
+        );
+        expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
+    });
+
+    it('does not return fieldRequired for scan expense when amount is not set in new manual expense flow', () => {
+        const {result} = renderHook(() =>
+            useConfirmationValidation({
+                ...baseParams,
+                isNewManualExpenseFlowEnabled: true,
+                transaction: {
+                    transactionID: 'txn1',
+                    comment: {},
+                    amount: 1000,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                    receipt: {source: 'https://example.com/receipt.jpg'},
+                } as unknown as OnyxTypes.Transaction,
+            }),
+        );
+        expect(result.current.validate()).toEqual({errorKey: null});
+    });
+
+    it('does not return fieldRequired for per diem expense when amount is not set in new manual expense flow', () => {
+        const {result} = renderHook(() =>
+            useConfirmationValidation({
+                ...baseParams,
+                isNewManualExpenseFlowEnabled: true,
+                isPerDiemRequest: true,
+                transaction: {
+                    transactionID: 'txn1',
+                    amount: 5000,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+                    comment: {customUnit: {subRates: [{quantity: 1, rate: 5000}]}},
+                } as unknown as OnyxTypes.Transaction,
+            }),
+        );
+        expect(result.current.validate()).toEqual({errorKey: null});
+    });
+
     it('returns null for PAY type without payment method', () => {
         const {result} = renderHook(() => useConfirmationValidation({...baseParams, iouType: CONST.IOU.TYPE.PAY}));
         expect(result.current.validate()).toBeNull();
