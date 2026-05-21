@@ -7381,6 +7381,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
             return `${newValue ? 'abilitato' : 'disattivato'} la tariffa ${customUnitName} "${customUnitRateName}"`;
         },
+        renamedCustomUnitRate: (customUnitName, oldRateName, newRateName) => `ha rinominato il tasso ${customUnitName} "${oldRateName}" in "${newRateName}"`,
         deleteCustomUnitRate: (customUnitName: string, rateName: string) => `ha rimosso la tariffa "${rateName}" per l'unità personalizzata "${customUnitName}"`,
         updateReportFieldDefaultValue: (defaultValue?: string, fieldName?: string) => `imposta il valore predefinito del campo report "${fieldName}" su "${defaultValue}"`,
         addedReportFieldOption: (fieldName: string, optionName: string) => `ha aggiunto l’opzione «${optionName}» al campo del rendiconto «${fieldName}»`,
