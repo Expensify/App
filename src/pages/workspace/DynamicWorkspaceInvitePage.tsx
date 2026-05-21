@@ -267,6 +267,7 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                     onSelectRow={handleToggleSelection}
                     shouldShowTextInput
                     textInputOptions={textInputOptions}
+                    shouldUpdateFocusedIndex
                     shouldPreventAutoScrollOnSelect
                     confirmButtonOptions={{
                         onConfirm: inviteUser,
