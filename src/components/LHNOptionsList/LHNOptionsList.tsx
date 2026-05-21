@@ -57,7 +57,14 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
      * Function which renders a row in the list
      */
     const renderItem = useCallback(
-        ({item, index}: RenderItemProps): ReactElement => {
+        ({item, index}: RenderItemProps): ReactElement | null => {
+            // FlashList can momentarily hand us an undefined item (e.g. when the underlying list
+            // shrinks before the recycler rebuilds). Bail out for that transient slot instead of
+            // reading item.reportID and crashing. The rest of this callback already treats item as
+            // possibly missing via optional chaining, so this keeps it internally consistent.
+            if (!item) {
+                return null;
+            }
             const reportID = item.reportID;
             const itemReportAttributes = reportAttributes?.[reportID];
             const itemParentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.parentReportID}`];
@@ -142,6 +149,14 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
         });
     }, [getScrollOffset, route]);
 
+    // On web we restore the saved scroll index, but only when it is still in range for the current
+    // data. The list length changes constantly (reports archived/deleted, filters, priority mode,
+    // account switches), so a previously saved index can point past the end of the list. Handing
+    // FlashList an out-of-range initialScrollIndex makes it look up data[index] === undefined and
+    // pass that to renderItem. Fall back to undefined (start at the top) when it is out of range.
+    const savedScrollIndex = isWeb ? getScrollIndex(route) : undefined;
+    const initialScrollIndex = savedScrollIndex !== undefined && savedScrollIndex >= 0 && savedScrollIndex < data.length ? savedScrollIndex : undefined;
+
     return (
         <View style={style ?? styles.flex1}>
             <LHNTooltipContextProvider data={data}>
@@ -159,7 +174,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     showsVerticalScrollIndicator={false}
                     onLayout={onLayout}
                     onScroll={onScroll}
-                    initialScrollIndex={isWeb ? getScrollIndex(route) : undefined}
+                    initialScrollIndex={initialScrollIndex}
                     maintainVisibleContentPosition={{disabled: true}}
                     drawDistance={250}
                     removeClippedSubviews
