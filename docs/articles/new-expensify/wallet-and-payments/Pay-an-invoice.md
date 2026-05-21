@@ -39,7 +39,7 @@ You can view any unpaid invoices by searching for the sender’s email or phone 
 - **Web:** Use the search bar at the top of the navigation tabs on the left.
 - **Mobile:** Use the search bar at the top of the navigation tabs on the bottom.
 
-Invoices awaiting your payment are marked with a green dot.
+Invoices awaiting your payment are marked with a **Pay** badge.
 
 ![Click Pay Button on the Invoice]({{site.url}}/assets/images/ExpensifyHelp-Invoice-1.png){:width="100%"}
 

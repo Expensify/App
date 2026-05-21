@@ -51,7 +51,7 @@ Depending on the report status and your role, the primary action button may say:
 
 - **Submit**: The report is ready to submit.
 - **Review**: The report contains holds, violations, or duplicate warnings.
-  - A red dot means something needs attention.
+  - A **Fix** badge means something needs attention.
 - **Approve**: The report is ready for approval.
 - **Pay**: The report has been approved and is ready for reimbursement.
 - **Export**: Send the approved report to your accounting system.
