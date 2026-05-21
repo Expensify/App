@@ -2386,8 +2386,8 @@ const translations: TranslationDeepObject<typeof en> = {
         addBankAccountToSendAndReceive: '支払いや入金を行うには銀行口座を追加してください。',
         addDebitOrCreditCard: 'デビットカードまたはクレジットカードを追加',
         cardInactive: '非アクティブ',
-        assignedCards: '割り当て済みカード',
-        assignedCardsDescription: 'これらのカードからの取引は自動的に同期されます。',
+        assignedCards: 'カード',
+        assignedCardsDescription: '割り当てられたカードの取引は自動的に同期されます。',
         expensifyCard: 'Expensify カード',
         walletActivationPending: 'お客様の情報を確認しています。数分後にもう一度ご確認ください。',
         walletActivationFailed: '申し訳ありませんが、現在はウォレットを有効にできません。詳しいサポートについてはConciergeにチャットでお問い合わせください。',
@@ -7060,7 +7060,9 @@ ${reportName}
             syncError: (providerName: string) => `${providerName}に接続できません`,
             connectionDescription: (providerName: string) => `${providerName}を接続して、従業員の承認をワークスペースと同期させましょう。`,
             approvalMode: '承認モード',
+            providerApprovalMode: (providerName: string) => `${providerName} 承認モード`,
             finalApprover: '最終承認者',
+            providerFinalApprover: (providerName: string) => `${providerName} 最終承認者`,
             notSet: '未設定',
             approvalModeDescription: (providerName: string) => `メンバーとマネージャーは ${providerName} と同期するように設定されています。`,
             approvalModeWarningTitle: '承認モードを変更しますか？',
@@ -7096,19 +7098,19 @@ ${reportName}
                     }
                 }
             },
+            syncResults: {
+                title: (provider: string) => `${provider} の同期が完了しました`,
+                successTitle: (provider: string) => `${provider} との接続が正常に同期されました！`,
+                added: '追加済み',
+                removed: '削除済み',
+                skipped: 'スキップ済み',
+                employeeCount: () => ({
+                    one: '1 従業員',
+                    other: (count: number) => `${count} 従業員`,
+                }),
+            },
             gusto: {
                 title: 'Gusto',
-                syncResults: {
-                    title: 'Gusto 同期結果',
-                    successTitle: 'Gusto との連携が正常に同期されました！',
-                    added: '追加済み',
-                    removed: '削除済み',
-                    skipped: 'スキップ済み',
-                    employeeCount: () => ({
-                        one: '1 従業員',
-                        other: (count: number) => `${count} 従業員`,
-                    }),
-                },
             },
             zenefits: {
                 title: 'TriNet',

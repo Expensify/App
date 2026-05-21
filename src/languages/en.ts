@@ -2480,8 +2480,8 @@ const translations = {
         addBankAccountToSendAndReceive: 'Add a bank account to make or receive payments.',
         addDebitOrCreditCard: 'Add debit or credit card',
         cardInactive: 'Inactive',
-        assignedCards: 'Assigned cards',
-        assignedCardsDescription: 'Transactions from these cards sync automatically.',
+        assignedCards: 'Cards',
+        assignedCardsDescription: 'Transactions from assigned cards sync automatically.',
         expensifyCard: 'Expensify Card',
         walletActivationPending: "We're reviewing your information. Please check back in a few minutes!",
         walletActivationFailed: "Unfortunately, your wallet can't be enabled at this time. Please chat with Concierge for further assistance.",
@@ -6460,7 +6460,9 @@ const translations = {
             syncError: (providerName: string) => `Can't connect to ${providerName}`,
             connectionDescription: (providerName: string) => `Connect ${providerName} to keep employee approvals in sync with your workspace.`,
             approvalMode: 'Approval mode',
+            providerApprovalMode: (providerName: string) => `${providerName} approval mode`,
             finalApprover: 'Final approver',
+            providerFinalApprover: (providerName: string) => `${providerName} final approver`,
             notSet: 'Not set',
             approvalModeDescription: (providerName: string) => `Members and managers are set up to sync with ${providerName}.`,
             approvalModeWarningTitle: 'Change approval mode?',
@@ -6498,19 +6500,19 @@ const translations = {
                     }
                 }
             },
+            syncResults: {
+                title: (provider: string) => `${provider} sync complete`,
+                successTitle: (provider: string) => `Successfully synced your ${provider} connection!`,
+                added: 'Added',
+                removed: 'Removed',
+                skipped: 'Skipped',
+                employeeCount: () => ({
+                    one: '1 employee',
+                    other: (count: number) => `${count} employees`,
+                }),
+            },
             gusto: {
                 title: 'Gusto',
-                syncResults: {
-                    title: 'Gusto sync results',
-                    successTitle: 'Successfully synced your Gusto connection!',
-                    added: 'Added',
-                    removed: 'Removed',
-                    skipped: 'Skipped',
-                    employeeCount: () => ({
-                        one: '1 employee',
-                        other: (count: number) => `${count} employees`,
-                    }),
-                },
             },
             zenefits: {
                 title: 'TriNet',
