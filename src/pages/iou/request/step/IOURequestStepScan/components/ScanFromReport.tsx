@@ -11,7 +11,6 @@ import {navigateToConfirmationPage} from '@libs/IOUUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import buildReceiptFiles from '@pages/iou/request/step/IOURequestStepScan/utils/buildReceiptFiles';
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
-import resetStaleScanDrafts from '@pages/iou/request/step/IOURequestStepScan/utils/resetStaleScanDrafts';
 import startScanProcessSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startScanProcessSpan';
 import useScanFileReadabilityCheck from '@pages/iou/request/step/IOURequestStepScan/utils/useScanFileReadabilityCheck';
 import {setMultipleMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
@@ -55,11 +54,6 @@ function ScanFromReport({report, iouType, reportID, transactionID, transaction, 
     };
 
     const processReceipts = (files: FileObject[]) => {
-        if (files.length === 0) {
-            return;
-        }
-        resetStaleScanDrafts(isMultiScanEnabled, draftTransactionIDs);
-
         const receiptFiles = buildReceiptFiles({
             files,
             getFileSource,
@@ -70,6 +64,7 @@ function ScanFromReport({report, iouType, reportID, transactionID, transaction, 
             shouldAcceptMultipleFiles: true,
             isMultiScanEnabled,
             transactions,
+            draftTransactionIDsToCleanUp: draftTransactionIDs,
         });
 
         if (receiptFiles.length === 0) {

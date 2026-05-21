@@ -20,21 +20,14 @@ type BuildReceiptFilesParams = {
 
     /**
      * IDs of stale draft transactions to wipe before building new ones.
-     * Only applied when {@link isStartingScan} is true and multi-scan is off — i.e. global-create entry, first capture.
      */
     draftTransactionIDsToCleanUp?: string[];
-
-    /**
-     * True when the scan is starting fresh from the global-create flow. Gates the draft cleanup so other entry points
-     * (FromReport, SkipConfirmation, EditReceipt) don't nuke unrelated drafts.
-     */
-    isStartingScan?: boolean;
 };
 
 /**
  * Builds ReceiptFile[] from captured/picked files, creating optimistic transaction drafts as needed
- * and storing receipts in Onyx via setMoneyRequestReceipt. When invoked from the global-create flow
- * with isStartingScan, wipes any stale drafts left from a previous scan first.
+ * and storing receipts in Onyx via setMoneyRequestReceipt. When invoked with draftTransactionIDsToCleanUp,
+ * wipes any stale drafts left from a previous scan batch first.
  */
 function buildReceiptFiles({
     files,
@@ -47,13 +40,12 @@ function buildReceiptFiles({
     isMultiScanEnabled,
     transactions,
     draftTransactionIDsToCleanUp,
-    isStartingScan = false,
 }: BuildReceiptFilesParams): ReceiptFile[] {
     if (files.length === 0) {
         return [];
     }
 
-    if (!isMultiScanEnabled && isStartingScan && draftTransactionIDsToCleanUp && draftTransactionIDsToCleanUp.length > 0) {
+    if (!isMultiScanEnabled && draftTransactionIDsToCleanUp && draftTransactionIDsToCleanUp.length > 0) {
         removeDraftTransactionsByIDs(draftTransactionIDsToCleanUp, true);
     }
 
