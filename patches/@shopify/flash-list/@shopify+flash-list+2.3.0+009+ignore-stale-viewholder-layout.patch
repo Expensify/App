@@ -16,7 +16,7 @@ diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js 
 diff --git a/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx b/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
 --- a/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
 +++ b/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
-@@ -465,7 +465,10 @@ function RecyclerView<T>(props: RecyclerViewProps<T>) {
+@@ -465,6 +465,9 @@ function RecyclerView<T>(props: RecyclerViewProps<T>) {
    const validateItemSize = useCallback(
      (index: number, size: RVDimension) => {
 -      const layout = recyclerViewManager.getLayout(index);
