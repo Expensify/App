@@ -23,7 +23,7 @@ function sanitizeLogParams<T>(params: T, depth = 0): T {
     }
 
     if (Array.isArray(params)) {
-        return params.map((item) => sanitizeLogParams(item, depth + 1)) as unknown as T;
+        return (params as unknown[]).map((item) => sanitizeLogParams(item, depth + 1)) as unknown as T;
     }
 
     const sanitized: Record<string, unknown> = {};
