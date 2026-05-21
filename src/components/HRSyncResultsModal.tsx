@@ -4,7 +4,7 @@ import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hook
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {GustoSyncResult} from '@libs/API/GustoSyncResult';
+import type {HrSyncResult} from '@libs/API/HrSyncResult';
 import CONST from '@src/CONST';
 import Button from './Button';
 import FixedFooter from './FixedFooter';
@@ -18,7 +18,7 @@ import Text from './Text';
 
 type HRSyncResultsModalProps = ModalProps & {
     /** Sync result returned by the completed HR sync job */
-    result: GustoSyncResult;
+    result: HrSyncResult;
 
     /** Human-readable display name for the HR provider (e.g. "Gusto") */
     providerDisplayName: string;
@@ -36,12 +36,14 @@ function HRSyncResultsModal({result, providerDisplayName, closeModal}: HRSyncRes
     const addedCount = result.addedEmployeesCount ?? 0;
     const removedCount = result.removedEmployeesCount ?? 0;
     const skippedCount = result.skippedEmployees?.length ?? 0;
+
+    // Starts the exit animation; closeModal (passed via onModalHide) is called once the animation finishes.
     const hideModal = () => setIsVisible(false);
 
     const renderResultSummary = (label: string, count: number) => (
         <View style={[styles.mb6]}>
             <Text style={[styles.textSupporting, styles.mb1]}>{label}</Text>
-            <Text style={[styles.textNormalThemeText, styles.textStrong]}>{translate('workspace.hr.gusto.syncResults.employeeCount', {count})}</Text>
+            <Text style={[styles.textNormalThemeText, styles.textStrong]}>{translate('workspace.hr.syncResults.employeeCount', {count})}</Text>
         </View>
     );
 
@@ -71,18 +73,18 @@ function HRSyncResultsModal({result, providerDisplayName, closeModal}: HRSyncRes
                         />
                     </View>
                     <Text style={[styles.textHeadlineH1, styles.mb8]}>{translate('workspace.hr.syncResults.successTitle', providerDisplayName)}</Text>
-                    {renderResultSummary(translate('workspace.hr.gusto.syncResults.added'), addedCount)}
-                    {renderResultSummary(translate('workspace.hr.gusto.syncResults.removed'), removedCount)}
+                    {renderResultSummary(translate('workspace.hr.syncResults.added'), addedCount)}
+                    {renderResultSummary(translate('workspace.hr.syncResults.removed'), removedCount)}
                     <PressableWithoutFeedback
-                        accessibilityLabel={translate('workspace.hr.gusto.syncResults.skipped')}
+                        accessibilityLabel={translate('workspace.hr.syncResults.skipped')}
                         sentryLabel="HRSyncResultsModal-SkippedEmployees"
                         role={CONST.ROLE.BUTTON}
                         onPress={() => setIsSkippedSectionExpanded((isExpanded) => !isExpanded)}
                         style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}
                     >
                         <View>
-                            <Text style={[styles.textSupporting, styles.mb1]}>{translate('workspace.hr.gusto.syncResults.skipped')}</Text>
-                            <Text style={[styles.textNormalThemeText, styles.textStrong]}>{translate('workspace.hr.gusto.syncResults.employeeCount', {count: skippedCount})}</Text>
+                            <Text style={[styles.textSupporting, styles.mb1]}>{translate('workspace.hr.syncResults.skipped')}</Text>
+                            <Text style={[styles.textNormalThemeText, styles.textStrong]}>{translate('workspace.hr.syncResults.employeeCount', {count: skippedCount})}</Text>
                         </View>
                         <Icon
                             src={icons.DownArrow}

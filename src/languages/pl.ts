@@ -7147,20 +7147,18 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 }
             },
             syncResults: {
-                title: (provider: string) => `Synchronizacja ${provider} zakończona`,
-                successTitle: (provider: string) => `Pomyślnie zsynchronizowano Twoje połączenie z ${provider}!`,
+                title: (provider: string) => `Synchronizacja z ${provider} zakończona`,
+                successTitle: (provider: string) => `Pomyślnie zsynchronizowano twoje połączenie z ${provider}!`,
+                added: 'Dodano',
+                removed: 'Usunięto',
+                skipped: 'Pominięto',
+                employeeCount: () => ({
+                    one: '1 pracownik',
+                    other: (count: number) => `${count} pracownicy`,
+                }),
             },
             gusto: {
                 title: 'Gusto',
-                syncResults: {
-                    added: 'Dodano',
-                    removed: 'Usunięto',
-                    skipped: 'Pominięto',
-                    employeeCount: () => ({
-                        one: '1 pracownik',
-                        other: (count: number) => `${count} pracownicy`,
-                    }),
-                },
             },
             zenefits: {
                 title: 'TriNet',

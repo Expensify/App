@@ -6970,19 +6970,17 @@ ${reportName}
             },
             syncResults: {
                 title: (provider: string) => `${provider} 同步完成`,
-                successTitle: (provider: string) => `已成功同步你的 ${provider} 连接！`,
+                successTitle: (provider: string) => `已成功同步您的 ${provider} 连接！`,
+                added: '已添加',
+                removed: '已移除',
+                skipped: '已跳过',
+                employeeCount: () => ({
+                    one: '1 员工',
+                    other: (count: number) => `${count} 员工`,
+                }),
             },
             gusto: {
                 title: 'Gusto',
-                syncResults: {
-                    added: '已添加',
-                    removed: '已移除',
-                    skipped: '已跳过',
-                    employeeCount: () => ({
-                        one: '1 员工',
-                        other: (count: number) => `${count} 员工`,
-                    }),
-                },
             },
             zenefits: {
                 title: 'TriNet',

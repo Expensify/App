@@ -11,6 +11,10 @@ import type {PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
 import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
 
+/**
+ * Watches an HR provider's sync progress and automatically opens the `HRSyncResultsModal`
+ * when the sync transitions to the `JOB_DONE` stage with a result payload.
+ */
 function useHRSyncResultsModal(policyID: string, connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>, isFocused: boolean) {
     const modal = useModal();
     const previousSyncProgress = usePrevious(connectionSyncProgress);

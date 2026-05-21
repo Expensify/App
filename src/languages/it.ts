@@ -7178,19 +7178,17 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             },
             syncResults: {
                 title: (provider: string) => `Sincronizzazione ${provider} completata`,
-                successTitle: (provider: string) => `Connessione a ${provider} sincronizzata con successo!`,
+                successTitle: (provider: string) => `Connessione ${provider} sincronizzata correttamente!`,
+                added: 'Aggiunto',
+                removed: 'Rimosso',
+                skipped: 'Saltato',
+                employeeCount: () => ({
+                    one: '1 dipendente',
+                    other: (count: number) => `${count} dipendenti`,
+                }),
             },
             gusto: {
                 title: 'Gusto',
-                syncResults: {
-                    added: 'Aggiunto',
-                    removed: 'Rimosso',
-                    skipped: 'Saltato',
-                    employeeCount: () => ({
-                        one: '1 dipendente',
-                        other: (count: number) => `${count} dipendenti`,
-                    }),
-                },
             },
             zenefits: {
                 title: 'TriNet',

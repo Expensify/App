@@ -7220,19 +7220,17 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             },
             syncResults: {
                 title: (provider: string) => `Synchronisation ${provider} terminée`,
-                successTitle: (provider: string) => `Votre connexion ${provider} a été synchronisée avec succès !`,
+                successTitle: (provider: string) => `Connexion ${provider} synchronisée avec succès !`,
+                added: 'Ajouté',
+                removed: 'Supprimé',
+                skipped: 'Ignoré',
+                employeeCount: () => ({
+                    one: '1 employé',
+                    other: (count: number) => `${count} employés`,
+                }),
             },
             gusto: {
                 title: 'Gusto',
-                syncResults: {
-                    added: 'Ajouté',
-                    removed: 'Supprimé',
-                    skipped: 'Ignoré',
-                    employeeCount: () => ({
-                        one: '1 employé',
-                        other: (count: number) => `${count} employés`,
-                    }),
-                },
             },
             zenefits: {
                 title: 'TriNet',
