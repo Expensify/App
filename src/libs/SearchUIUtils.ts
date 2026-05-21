@@ -2122,7 +2122,6 @@ function getTransactionsSections({
             const transactionAttendees = getAttendees(transactionItem, currentUserPersonalDetails);
             const isUnreported = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
             const shouldShowAttendees = shouldShowAttendeesUtils(CONST.IOU.TYPE.SUBMIT, isUnreported ? policyForMovingExpenses : policy) && transactionAttendees.length > 0;
-            const shouldHideSubmitAsPrimaryAction = report?.ownerAccountID !== currentAccountID;
 
             const transactionSection: TransactionListItemType = {
                 ...transactionItem,
@@ -2136,7 +2135,7 @@ function getTransactionsSections({
                       }
                     : {}),
                 keyForList: transactionItem.transactionID,
-                action: getAction(allActions, shouldHideSubmitAsPrimaryAction ? [CONST.SEARCH.ACTION_TYPES.SUBMIT] : []),
+                action: getAction(allActions, getSubmitExclusion(report?.ownerAccountID, currentAccountID)),
                 allActions,
                 report,
                 policy,
@@ -2413,6 +2412,14 @@ function getActions(
     }
 
     return allActions.length > 0 ? allActions : [CONST.SEARCH.ACTION_TYPES.VIEW];
+}
+
+/**
+ * @private
+ * Returns SUBMIT as an exclusion when the current user is not the report owner.
+ */
+function getSubmitExclusion(ownerAccountID: number | undefined, currentAccountID: number): SearchTransactionAction[] {
+    return ownerAccountID !== currentAccountID ? [CONST.SEARCH.ACTION_TYPES.SUBMIT] : [];
 }
 
 /**
@@ -2785,10 +2792,9 @@ function getReportSections({
                     reportItem.ownerAccountID === currentAccountID &&
                     reportItem.nextStep?.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT;
                 const shouldHidePayAsPrimaryAction = hasOnlyNonReimbursableTransactions(reportItem.reportID, allReportTransactions);
-                const shouldHideSubmitAsPrimaryAction = reportItem.ownerAccountID !== currentAccountID;
                 const primaryActionExclusions: SearchTransactionAction[] = [
                     ...(shouldHidePayAsPrimaryAction ? [CONST.SEARCH.ACTION_TYPES.PAY] : []),
-                    ...(shouldHideSubmitAsPrimaryAction ? [CONST.SEARCH.ACTION_TYPES.SUBMIT] : []),
+                    ...getSubmitExclusion(reportItem.ownerAccountID, currentAccountID),
                 ];
 
                 reportIDToTransactions[reportKey] = {
@@ -2850,11 +2856,10 @@ function getReportSections({
             const transactionReportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
             const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, transactionReportMetadata, actions);
             const transactionPendingAction = getTransactionPendingAction(transactionItem);
-            const shouldHideSubmitAsPrimaryAction = report?.ownerAccountID !== currentAccountID;
             const transaction = {
                 ...transactionItem,
                 ...(transactionPendingAction ? {pendingAction: transactionPendingAction} : {}),
-                action: getAction(allActions, shouldHideSubmitAsPrimaryAction ? [CONST.SEARCH.ACTION_TYPES.SUBMIT] : []),
+                action: getAction(allActions, getSubmitExclusion(report?.ownerAccountID, currentAccountID)),
                 allActions,
                 report,
                 reportAction,
