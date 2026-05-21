@@ -942,8 +942,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 personalSubtitle: 'ウォレット',
             },
         },
-        assignedCards: 'お客様の Expensify カード',
-        assignedCardsRemaining: ({amount}: {amount: string}) => `残額：${amount}`,
         announcements: 'お知らせ',
         discoverSection: {
             title: '発見',
@@ -1022,6 +1020,12 @@ const translations: TranslationDeepObject<typeof en> = {
             linkCompanyCards: '会社カードを連携',
             setupRules: '支出ルールを設定',
             inviteAccountant: '会計士を招待',
+        },
+        yourSpend: {
+            title: 'あなたの支出',
+            awaitingApproval: '承認待ち',
+            repaidLast30Days: '過去30日間に返済済み',
+            recentTransactions: ({lastFour}: {lastFour: string}) => `最近の取引 • ${lastFour}`,
         },
     },
     allSettingsScreen: {
@@ -2512,6 +2516,11 @@ ${date} の ${merchant} への ${amount}`,
         frozenByAdminNeedsUnfreeze: ({person}: {person: string}) => `このカードは${person}によって一時停止されました。解除するには管理者に連絡してください。`,
         spendRules: '支出ルール',
         editSpendRules: '支出ルールを編集',
+        cardUnblocked: 'カードのブロックを解除しました！',
+        cardUnblockedDescription: '次回お買い物をされる際に、カードをリーダーに挿入するよう求められる場合があります。',
+        pinBlocked: '暗証番号の誤入力が続いたため、カードをブロックしました。',
+        unblock: 'ブロック解除',
+        unblockCard: 'カードのブロックを解除',
     },
     workflowsPage: {
         workflowTitle: '支出',
@@ -2978,6 +2987,8 @@ ${date} の ${merchant} への ${amount}`,
             title: '勤務用メールアドレスを追加できませんでした',
             subtitle: (workEmail: string | undefined) =>
                 `${workEmail} を追加できませんでした。後で「設定」からもう一度お試しいただくか、ガイダンスについて Concierge にチャットでお問い合わせください。`,
+            workAccountClosedSubtitle:
+                'このメールアドレスに関連付けられている業務用アカウントは停止されています。再有効化するには会社の管理者にご連絡いただくか、別のメールアドレスでサインアップしてください。',
         },
         tasks: {
             testDriveAdminTask: {
@@ -6654,6 +6665,56 @@ ${reportName}
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>人事システム連携は、<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり、1か月ごと。`}からのControlプランでのみご利用いただけます</muted-text>`,
             },
+            approvalSubmit: {
+                title: '承認',
+                description: '承認機能を有効にして、全メンバーの提出先を一括設定しましょう。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>承認機能は、Collect プランおよび Control プランで利用できます。料金は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からです。</muted-text>`,
+            },
+            companyCardSubmit: {
+                title: '会社カード',
+                description: `お使いの会社カードをExpensifyに連携して、自動取込、自動分類、カスタマイズ可能なルール設定、そして統合された照合機能を利用しましょう。`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>会社カードのインポートは、Collect プランと Control プランで利用できます。料金は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からです。</muted-text>`,
+            },
+            travelSubmit: {
+                title: 'Expensify トラベル',
+                description: 'Expensify から世界中の割引航空券、ホテル、レンタカー、列車を予約し、デューティ・オブ・ケアレポートと経費管理を統合して利用できます。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Expensify Travel は Collect プランと Control プランで利用でき、<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からご利用いただけます</muted-text>`,
+            },
+            roles: {
+                title: 'ロール',
+                description: 'メンバーごとに異なるロールを割り当て、必要に応じて閲覧権限や管理権限を増減させましょう。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>ロールは、Collect および Control プランで利用できます。<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からご利用いただけます</muted-text>`,
+            },
+            payments: {
+                title: '支払い',
+                description: '従業員への精算を、事業用銀行口座から直接行います。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>支払い機能は、Collect プランおよび Control プランで利用できます。料金は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からです</muted-text>`,
+            },
+            accounting: {
+                title: '会計',
+                description: '会計システムからExpensifyへカテゴリ、タグ、税率などを同期し、経費レポートやカード取引をエクスポートできます。手入力も、入力ミスの心配も不要です！',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>会計機能は Collect プランと Control プランでご利用いただけます。<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`}からご利用可能です</muted-text>`,
+            },
+            expensifyCard: {
+                title: 'Expensify カード',
+                description:
+                    '自社の銀行口座から（バーチャルカードを含む）コーポレートカードを直接発行し、途切れない連携によるリアルタイムな支出管理と、最大2%のキャッシュバックを手に入れましょう！',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Expensify Card は Collect プランと Control プランでご利用いただけます。料金は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からです。</muted-text>`,
+                upgradeButton: 'アップグレードして有効化',
+            },
+            invoicing: {
+                title: '請求書発行',
+                description: 'Expensify 内でプロ仕様の請求書を作成・送信・追跡。統合された支払い機能とリアルタイムの可視性で、より早く入金を受けましょう。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>請求書発行機能は、Collect プランと Control プランでご利用いただけます。<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`}からご利用可能です。</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -6977,8 +7038,8 @@ ${reportName}
                     description: '雇用主に経費を提出したい従業員向け。',
                 },
             },
-            description: '自分に合ったプランをお選びください。機能と料金の詳細な一覧は、こちらのページをご覧ください',
-            subscriptionLink: 'プランの種類と料金のヘルプページ',
+            description: '自分に合ったプランをお選びください。',
+            subscriptionLink: '詳しく見る',
             lockedPlanDescription: ({count, annualSubscriptionEndDate}: WorkspaceLockedPlanTypeParams) => ({
                 one: `${annualSubscriptionEndDate} までの年間サブスクリプション期間中、Control プランでアクティブメンバー 1 名を利用することに同意しています。${annualSubscriptionEndDate} 以降、 自動更新を無効にすることで、従量課金サブスクリプションに切り替え、Collect プランへダウングレードできます。`,
                 other: `あなたは、年間サブスクリプションが${annualSubscriptionEndDate}に終了するまで、Controlプランでアクティブメンバー${count}名を契約しています。${annualSubscriptionEndDate}以降は、自動更新を無効にすることで、従量課金制サブスクリプションに切り替え、Collectプランへダウングレードできます。その操作は、`,

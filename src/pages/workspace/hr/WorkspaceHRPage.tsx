@@ -2,7 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import CollapsibleSection from '@components/CollapsibleSection';
-import ConnectToGustoFlow from '@components/ConnectToGustoFlow';
+import ConnectToHRFlow from '@components/ConnectToHRFlow';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -48,7 +48,7 @@ function WorkspaceHRPage({
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const icons = useMemoizedLazyExpensifyIcons(['GustoSquare', 'ZenefitsSquare']);
     const illustrations = useMemoizedLazyIllustrations(['NewUser']);
-    const [activeGustoFlowKey, setActiveGustoFlowKey] = useState<number>();
+    const [activeHRFlow, setActiveHRFlow] = useState<{setupLink: string; key: number} | undefined>();
 
     useWorkspaceDocumentTitle(undefined, 'workspace.common.hr');
 
@@ -82,12 +82,12 @@ function WorkspaceHRPage({
 
     const shouldBeBlocked = !HR_BETAS.some(isBetaEnabled);
 
-    const handleConnect = (connectionName: string) => {
-        if (connectionName !== CONST.POLICY.CONNECTIONS.NAME.GUSTO) {
+    const handleConnect = (setupLink: string | undefined) => {
+        if (!setupLink) {
             return;
         }
-        // eslint-disable-next-line react-hooks/purity
-        setActiveGustoFlowKey(Math.random());
+        // eslint-disable-next-line react-hooks/purity -- random key forces remount on every press, even for the same provider
+        setActiveHRFlow({setupLink, key: Math.random()});
     };
 
     return (
@@ -104,10 +104,10 @@ function WorkspaceHRPage({
                 shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
             >
-                {!!activeGustoFlowKey && (
-                    <ConnectToGustoFlow
-                        key={activeGustoFlowKey}
-                        policyID={policyID}
+                {!!activeHRFlow && (
+                    <ConnectToHRFlow
+                        key={activeHRFlow.key}
+                        setupLink={activeHRFlow.setupLink}
                     />
                 )}
                 <HeaderWithBackButton
@@ -130,7 +130,7 @@ function WorkspaceHRPage({
                                         key={card.key}
                                         card={card}
                                         policy={policy}
-                                        handleConnect={() => handleConnect(card.connectionName)}
+                                        handleConnect={() => handleConnect(card.setupLink)}
                                     />
                                 ))}
                                 {connectedCards.length === 0 &&
@@ -139,7 +139,7 @@ function WorkspaceHRPage({
                                             key={card.key}
                                             card={card}
                                             policy={policy}
-                                            handleConnect={() => handleConnect(card.connectionName)}
+                                            handleConnect={() => handleConnect(card.setupLink)}
                                         />
                                     ))}
                             </View>
@@ -156,7 +156,7 @@ function WorkspaceHRPage({
                                             key={card.key}
                                             card={card}
                                             policy={policy}
-                                            handleConnect={() => handleConnect(card.connectionName)}
+                                            handleConnect={() => handleConnect(card.setupLink)}
                                         />
                                     ))}
                                 </CollapsibleSection>

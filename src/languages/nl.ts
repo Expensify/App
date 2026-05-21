@@ -957,8 +957,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 personalSubtitle: 'Portemonnee',
             },
         },
-        assignedCards: 'Je Expensify Kaarten',
-        assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} resterend`,
         announcements: 'Aankondigingen',
         discoverSection: {
             title: 'Ontdekken',
@@ -1037,6 +1035,12 @@ const translations: TranslationDeepObject<typeof en> = {
             linkCompanyCards: 'Bedrijfspassen koppelen',
             setupRules: 'Uitgavenregels instellen',
             inviteAccountant: 'Nodig je accountant uit',
+        },
+        yourSpend: {
+            title: 'Je uitgaven',
+            awaitingApproval: 'In afwachting van goedkeuring',
+            repaidLast30Days: 'Terugbetaald in de afgelopen 30 dagen',
+            recentTransactions: ({lastFour}: {lastFour: string}) => `Recente transacties • ${lastFour}`,
         },
     },
     allSettingsScreen: {
@@ -2534,6 +2538,11 @@ ${amount} voor ${merchant} - ${date}`,
         frozenByAdminNeedsUnfreeze: ({person}: {person: string}) => `Deze kaart is bevroren door ${person}. Neem contact op met een beheerder om deze te deblokkeren.`,
         spendRules: 'Bestedingsregels',
         editSpendRules: 'Uitgavenregels bewerken',
+        cardUnblocked: 'Kaart gedeblokkeerd!',
+        cardUnblockedDescription: 'Mogelijk wordt je de volgende keer dat je een aankoop doet gevraagd om je kaart in de lezer te steken.',
+        pinBlocked: 'Je kaart is geblokkeerd vanwege onjuiste pincode-invoer.',
+        unblock: 'Deblokkeren',
+        unblockCard: 'Kaart deblokkeren',
     },
     workflowsPage: {
         workflowTitle: 'Uitgaven',
@@ -3001,6 +3010,8 @@ ${amount} voor ${merchant} - ${date}`,
         mergeBlockScreen: {
             title: 'Werkmail kon niet worden toegevoegd',
             subtitle: (workEmail: string | undefined) => `We konden ${workEmail} niet toevoegen. Probeer het later opnieuw in Instellingen of chat met Concierge voor hulp.`,
+            workAccountClosedSubtitle:
+                'De zakelijke account die aan dit e-mailadres is gekoppeld, is gesloten. Neem contact op met de beheerder van je bedrijf om het opnieuw te activeren, of meld je aan met een ander e-mailadres.',
         },
         tasks: {
             testDriveAdminTask: {
@@ -6707,6 +6718,57 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>HR-integraties zijn alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
             },
+            approvalSubmit: {
+                title: 'Goedkeuringen',
+                description: 'Configureer centraal naar wie alle leden indienen door goedkeuringen in te schakelen.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Goedkeuringen zijn beschikbaar in de Collect- en Control-abonnementen, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+            },
+            companyCardSubmit: {
+                title: 'Bedrijfskaarten',
+                description: `Neem je eigen bedrijfskaart mee naar Expensify voor automatische import, automatische categorisatie, ondersteuning voor aangepaste regels en geïntegreerde afstemming.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Bedrijfskaartimport is beschikbaar in de Collect- en Control-abonnementen, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+            },
+            travelSubmit: {
+                title: 'Expensify Travel',
+                description: 'Boek wereldwijd voordelige vluchten, hotels, auto’s en treinen vanuit Expensify, met duty-of-carerapportage en geïntegreerd onkostbeheer.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Expensify Travel is beschikbaar in de Collect- en Control-abonnementen, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+            },
+            roles: {
+                title: 'Rollen',
+                description: 'Wijs verschillende rollen toe aan verschillende leden om de zichtbaarheid en controle naar behoefte te verhogen of te verlagen.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Rollen zijn beschikbaar in de Collect- en Control-abonnementen, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+            },
+            payments: {
+                title: 'Betalingen',
+                description: 'Vergoed medewerkers rechtstreeks vanaf je zakelijke bankrekening.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Betalingen zijn beschikbaar in de abonnementen Collect en Control, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+            },
+            accounting: {
+                title: 'Boekhouding',
+                description:
+                    'Synchroniseer categorieën, labels, belastingtarieven en meer van je boekhoudsysteem naar Expensify, en exporteer onkostendeclaraties en kaarttransacties – zonder typwerk (of tikfouten)!',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Boekhouding is beschikbaar in de Collect- en Control-abonnementen, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+            },
+            expensifyCard: {
+                title: 'Expensify Card',
+                description:
+                    'Geef bedrijfskaarten (inclusief virtuele kaarten) direct uit vanaf je eigen bankrekening voor realtime controle over uitgaven met een onbreekbare koppeling en tot 2% cashback!',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>De Expensify Card is beschikbaar bij de Collect- en Control-abonnementen, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+                upgradeButton: 'Upgrade en inschakelen',
+            },
+            invoicing: {
+                title: 'Facturatie',
+                description: 'Maak, verstuur en volg professionele facturen, allemaal in Expensify. Laat je sneller betalen met geïntegreerde betalingen en realtime inzicht.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Facturatie is beschikbaar in de Collect- en Control-abonnementen, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -7032,8 +7094,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     description: 'Voor werknemers die onkosten bij hun werkgever willen indienen.',
                 },
             },
-            description: 'Kies een pakket dat bij je past. Voor een gedetailleerd overzicht van functies en prijzen, bekijk onze',
-            subscriptionLink: 'hulppagina voor abonnementstypen en prijzen',
+            description: 'Kies een abonnement dat bij je past.',
+            subscriptionLink: 'Meer informatie',
             lockedPlanDescription: ({count, annualSubscriptionEndDate}: WorkspaceLockedPlanTypeParams) => ({
                 one: `Je hebt je vastgelegd op 1 actief lid in het Control-abonnement tot je jaarlijkse abonnement afloopt op ${annualSubscriptionEndDate}. Je kunt overstappen op een pay-per-use-abonnement en downgraden naar het Collect-abonnement vanaf ${annualSubscriptionEndDate} door automatisch verlengen uit te schakelen in`,
                 other: `Je hebt je vastgelegd op ${count} actieve leden op het Control-abonnement totdat je jaarlijkse abonnement eindigt op ${annualSubscriptionEndDate}. Je kunt overschakelen naar een betaling-per-gebruik-abonnement en downgraden naar het Collect-abonnement vanaf ${annualSubscriptionEndDate} door automatisch verlengen uit te schakelen in`,
