@@ -1,6 +1,6 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import type {RefObject} from 'react';
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
@@ -85,7 +85,7 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
         readNewestAction(reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
     }, [isReportUnreadValue, reportID, reportLoadingState?.hasOnceLoadedReportActions]);
 
-    const handleReportChangeMarkAsRead = useCallback(() => {
+    const handleReportChangeMarkAsRead = () => {
         if (reportID !== prevReportID) {
             return;
         }
@@ -106,21 +106,9 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
         }
 
         readActionSkippedRef.current = true;
-    }, [
-        report,
-        transactionThreadReport,
-        isReportArchived,
-        hasNewerActions,
-        isVisible,
-        lastAction,
-        route?.params?.referrer,
-        reportLoadingState?.hasOnceLoadedReportActions,
-        reportID,
-        scrollingVerticalOffset,
-        sortedVisibleReportActions,
-    ]);
+    };
 
-    const handleAppVisibilityMarkAsRead = useCallback(() => {
+    const handleAppVisibilityMarkAsRead = () => {
         if (reportID !== prevReportID) {
             return;
         }
@@ -150,18 +138,7 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
 
         readNewestAction(reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
         userActiveSince.current = DateUtils.getDBTime();
-    }, [
-        reportID,
-        isVisible,
-        isFocused,
-        lastAction?.created,
-        report,
-        isReportArchived,
-        sortedVisibleReportActions,
-        currentUserAccountID,
-        scrollingVerticalOffset,
-        reportLoadingState?.hasOnceLoadedReportActions,
-    ]);
+    };
 
     useEffect(() => {
         if (handleReportChangeMarkAsRead !== prevHandleReportChangeMarkAsReadRef.current) {
