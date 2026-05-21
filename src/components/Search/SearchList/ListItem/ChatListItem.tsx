@@ -10,6 +10,7 @@ import FS from '@libs/Fullstory';
 import ReportActionItem from '@pages/inbox/report/ReportActionItem';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {getStableReportSelector} from '@src/selectors/Report';
 import type {ChatListItemProps, ReportActionListItemType} from './types';
 
 /**
@@ -28,7 +29,7 @@ function ChatListItem<TItem extends ListItem>({
     shouldSyncFocus,
 }: ChatListItemProps<TItem>) {
     const reportActionItem = item as unknown as ReportActionListItemType;
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.reportID}`);
+    const [reportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.reportID}`, {selector: getStableReportSelector});
     const personalDetails = usePersonalDetails();
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const styles = useThemeStyles();
@@ -51,7 +52,9 @@ function ChatListItem<TItem extends ListItem>({
         item.cursorStyle,
     ];
 
-    const fsClass = FS.getChatFSClass(report);
+    const fsClass = FS.getChatFSClass(reportStable);
+
+    const handlePress = () => onSelectRow(item);
 
     return (
         <BaseListItem
@@ -76,8 +79,8 @@ function ChatListItem<TItem extends ListItem>({
         >
             <ReportActionItem
                 action={reportActionItem}
-                report={report}
-                onPress={() => onSelectRow(item)}
+                report={reportStable}
+                onPress={handlePress}
                 parentReportAction={undefined}
                 displayAsGroup={false}
                 shouldDisplayNewMarker={false}
