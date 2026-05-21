@@ -243,10 +243,15 @@ function SearchContextProvider({children}: SearchContextProps) {
     };
 
     const setSelectedReports: SearchActionsContextValue['setSelectedReports'] = (reports) => {
-        setSearchContextData((prevState) => ({
-            ...prevState,
-            selectedReports: reports,
-        }));
+        setSearchContextData((prevState) => {
+            if (prevState.selectedReports.length === 0 && reports.length === 0) {
+                return prevState;
+            }
+            return {
+                ...prevState,
+                selectedReports: reports,
+            };
+        });
     };
 
     const currentSearchHashRef = useRef(currentSearchHash);
@@ -397,7 +402,7 @@ function useSearchActionsContext() {
 function useSyncSelectedReports(data: TransactionListItemType[] | TransactionGroupListItemType[] | ReportActionListItemType[] | TaskListItemType[]) {
     const {selectedTransactions} = useSearchStateContext();
     const {setSelectedReports} = useSearchActionsContext();
-    
+
     useEffect(() => {
         setSelectedReports(deriveSelectedReports(selectedTransactions, data));
     }, [selectedTransactions, data, setSelectedReports]);
