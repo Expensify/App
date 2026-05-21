@@ -162,11 +162,15 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
         const snapshotData = snapshot.data as Record<string, unknown>;
         const transaction = snapshotData[transactionKey] as Transaction;
+        if (transaction.reportID !== reportIDFromRoute) {
+            return {snapshotTransaction: undefined, snapshotViolations: undefined};
+        }
+
         const violationKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`;
         const violations = snapshotData[violationKey] as TransactionViolations | undefined;
 
         return {snapshotTransaction: transaction, snapshotViolations: violations};
-    }, [snapshot?.data, allReportTransactions]);
+    }, [snapshot?.data, allReportTransactions, reportIDFromRoute]);
 
     // If there is more than one transaction, display the report in Super Wide RHP, otherwise it will be shown in Wide RHP
     const shouldShowSuperWideRHP = visibleTransactions.length > 1;
