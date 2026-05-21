@@ -446,6 +446,8 @@ const translations: TranslationDeepObject<typeof en> = {
         expensifyLogo: 'Logo de Expensify',
         approver: 'Aprobador',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `introducir dígito ${digitIndex} de ${totalDigits}`,
+        goToConcierge: 'Ir a Concierge',
+        allSet: '¡Todo listo!',
     },
     socials: {
         podcast: 'Síguenos en Podcast',
@@ -5851,6 +5853,12 @@ ${amount} para ${merchant} - ${date}`,
             confirmTitle: 'Vamos a asegurarnos de que todo se vea bien.',
             confirmDescription: ({workspaceName}: {workspaceName: string}) =>
                 `Copiaríamos los siguientes ajustes de <strong>${workspaceName}</strong> a los espacios de trabajo que has especificado`,
+            copyInProgressTitle: 'Copia en curso...',
+            copyInProgressDescription: 'Puedes esperar a que el proceso termine o Concierge puede avisarte cuando esté listo.',
+            letMeKnowPrompt: 'Avísame cuando esté listo',
+            conciergeNotificationTitle: 'Concierge te avisará',
+            conciergeNotificationDescription: 'Cuando el proceso se complete, Concierge te enviará un mensaje.',
+            copyCompleted: 'Se han copiado la configuración de tu espacio de trabajo.',
         },
         emptyWorkspace: {
             title: 'Aún no hay espacios de trabajo',

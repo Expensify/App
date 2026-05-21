@@ -494,6 +494,8 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Anno precedente',
         nextYear: "L'anno prossimo",
         avatar: 'Avatar',
+        goToConcierge: 'Vai a Concierge',
+        allSet: 'Tutto pronto!',
     },
     socials: {
         podcast: 'Seguici su Podcast',
@@ -6008,6 +6010,12 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             confirmTitle: 'Assicuriamoci che sia tutto corretto.',
             confirmDescription: ({workspaceName}: {workspaceName: string}) =>
                 `Copieremo le seguenti impostazioni da <strong>${workspaceName}</strong> agli spazi di lavoro che hai specificato`,
+            copyInProgressTitle: 'Copia in corso...',
+            copyInProgressDescription: 'Puoi aspettare che il processo finisca oppure Concierge può avvisarti quando è terminato.',
+            letMeKnowPrompt: 'Fammi sapere quando hai finito',
+            conciergeNotificationTitle: 'Concierge ti farà sapere',
+            conciergeNotificationDescription: 'Quando il processo sarà completato, Concierge ti invierà un messaggio.',
+            copyCompleted: 'Le impostazioni dello spazio di lavoro sono state copiate.',
         },
         emptyWorkspace: {
             title: 'Non hai nessuna area di lavoro',

@@ -493,6 +493,8 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: '前年',
         nextYear: '来年',
         avatar: 'アバター',
+        goToConcierge: 'Concierge に移動',
+        allSet: '準備完了です！',
     },
     socials: {
         podcast: 'ポッドキャストでフォロー',
@@ -5937,6 +5939,12 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             workflowsWithoutMembersPrompt: 'メンバーなしでワークフローをコピーすると、承認ワークフローはコピーされません。提出と支払いの設定は引き続きコピーされます。',
             confirmTitle: 'すべて正しく表示されているか確認しましょう。',
             confirmDescription: ({workspaceName}: {workspaceName: string}) => `次の設定を<strong>${workspaceName}</strong>から指定したワークスペースにコピーします`,
+            copyInProgressTitle: 'コピーを実行中です...',
+            copyInProgressDescription: '処理が完了するまで待つこともできますし、完了したら Concierge からお知らせすることもできます。',
+            letMeKnowPrompt: '完了したら教えてください',
+            conciergeNotificationTitle: 'Concierge からお知らせします',
+            conciergeNotificationDescription: '処理が完了すると、Concierge からメッセージが送信されます。',
+            copyCompleted: 'ワークスペースの設定がコピーされました。',
         },
         emptyWorkspace: {
             title: 'ワークスペースがありません',
