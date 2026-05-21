@@ -31,11 +31,12 @@ function HRSyncResultsModal({result, providerDisplayName, closeModal}: HRSyncRes
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
     const illustrations = useMemoizedLazyIllustrations(['SyncUsers']);
     const [isSkippedSectionExpanded, setIsSkippedSectionExpanded] = useState(false);
+    const [isVisible, setIsVisible] = useState(true);
 
     const addedCount = result.addedEmployeesCount ?? 0;
     const removedCount = result.removedEmployeesCount ?? 0;
     const skippedCount = result.skippedEmployees?.length ?? 0;
-    const closeResultsModal = () => closeModal();
+    const hideModal = () => setIsVisible(false);
 
     const renderResultSummary = (label: string, count: number) => (
         <View style={[styles.mb6]}>
@@ -47,8 +48,9 @@ function HRSyncResultsModal({result, providerDisplayName, closeModal}: HRSyncRes
     return (
         <Modal
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
-            isVisible
-            onClose={closeResultsModal}
+            isVisible={isVisible}
+            onClose={hideModal}
+            onModalHide={closeModal}
             shouldHandleNavigationBack
             enableEdgeToEdgeBottomSafeAreaPadding
         >
@@ -58,7 +60,7 @@ function HRSyncResultsModal({result, providerDisplayName, closeModal}: HRSyncRes
             >
                 <HeaderWithBackButton
                     title={translate('workspace.hr.syncResults.title', providerDisplayName)}
-                    onBackButtonPress={closeResultsModal}
+                    onBackButtonPress={hideModal}
                 />
                 <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pb8]}>
                     <View style={[styles.alignItemsCenter, styles.mt4, styles.mb4, styles.pRelative]}>
@@ -104,7 +106,7 @@ function HRSyncResultsModal({result, providerDisplayName, closeModal}: HRSyncRes
                         large
                         success
                         text={translate('common.buttonConfirm')}
-                        onPress={closeResultsModal}
+                        onPress={hideModal}
                     />
                 </FixedFooter>
             </View>
