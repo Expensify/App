@@ -201,7 +201,7 @@ function AmountField({
         }
 
         if (transactionSlice?.splitShares) {
-            resetSplitShares(transactionForHandlers, updatedAmount, updatedCurrency);
+            resetSplitShares(transactionForHandlers, updatedAmount, updatedCurrency, currentUserPersonalDetails.accountID);
         }
     };
 
