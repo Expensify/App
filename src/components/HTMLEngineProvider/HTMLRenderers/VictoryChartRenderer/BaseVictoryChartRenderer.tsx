@@ -1,83 +1,21 @@
-import {Circle, Skia, Text as SkText, SkTypeface} from '@shopify/react-native-skia';
-import type {Color} from '@shopify/react-native-skia';
+import {Circle, Skia, Text as SkText} from '@shopify/react-native-skia';
+import type {Color, SkTypeface} from '@shopify/react-native-skia';
 import JSON5 from 'json5';
 import lodashIsObject from 'lodash/isObject';
 import lodashMerge from 'lodash/merge';
-import React, {ComponentProps, Fragment, useCallback, useMemo} from 'react';
+import React, {Fragment, useCallback, useMemo} from 'react';
+import type {ComponentProps} from 'react';
 import {View} from 'react-native';
 import type {ViewStyle} from 'react-native';
-import {TNode} from 'react-native-render-html';
+import type {TNode} from 'react-native-render-html';
 import type {CartesianChartRenderArg, RoundedCorners} from 'victory-native';
 import {Bar, CartesianChart, Line} from 'victory-native';
 import {BAR_INNER_PADDING} from '@components/Charts/BarChart/BarChartContent';
 import {useChartDefaultTypeface} from '@components/Charts/hooks';
 import {DEFAULT_CHART_COLOR} from '@components/Charts/utils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {VictoryChartRendererProps} from './types';
-
-const X_KEY = 'x';
-const Y_KEY_PREFIX = 'y';
-
-type RawData = Record<string, any>;
-
-type StyleObject = Record<string, any>;
-
-type LabelItem = {
-    /** Position on the X-axis */
-    x: number;
-
-    /** Position on the Y-axis */
-    y: number;
-
-    /** Text to draw */
-    text: string;
-
-    /** The color of the text */
-    color?: Color;
-
-    /** Font size */
-    fontSize?: number;
-
-    /** Font weight */
-    fontWeight?: 'normal' | 'bold';
-};
-
-type LegendItemEntry = {
-    /** Text to draw */
-    text: string;
-
-    /** The color of the text */
-    color?: Color;
-
-    /** Font size */
-    fontSize?: number;
-
-    /** Font weight */
-    fontWeight?: 'normal' | 'bold';
-
-    /** The color of the symbol */
-    symbolColor?: Color;
-
-    /** Symbol size */
-    symbolSize?: number;
-};
-
-type LegendItem = {
-    /** Position on the X-axis */
-    x: number;
-
-    /** Position on the Y-axis */
-    y: number;
-
-    /** Legend entries */
-    entries: LegendItemEntry[];
-
-    /** Space between entries */
-    gutter?: number;
-
-    /** Space between entry's text and symbol */
-    symbolSpacer?: number;
-};
+import {X_KEY, Y_KEY_PREFIX} from './constants';
+import type {CartesianChartData, LabelItem, LegendItem, LegendItemEntry, RawChartData, RawLegendData, StyleObject, VictoryChartRendererProps, yKey} from './types';
 
 /**
  * Get node unique ID based on hierarchy
@@ -92,35 +30,39 @@ function getHierarchyID(tnode: TNode): string {
     return id;
 }
 
+function getYKey(tnode: TNode): yKey {
+    return `${Y_KEY_PREFIX}${getHierarchyID(tnode)}`;
+}
+
 /**
  * Traverse all nodes to extract points from `data` attributes and other config e.g. axis configuration
  */
 function processNode(tnode: TNode, typeface: SkTypeface | null) {
-    const data: Record<string, RawData> = {};
-    const xKey: string = X_KEY;
-    const yKeys: string[] = [];
-    let xAxis: ComponentProps<typeof CartesianChart<RawData, string, string>>['xAxis'];
-    let yAxis: ComponentProps<typeof CartesianChart<RawData, string, string>>['yAxis'];
+    const data: Record<string, CartesianChartData> = {};
+    const xKey = X_KEY;
+    const yKeys: yKey[] = [];
+    let xAxis: ComponentProps<typeof CartesianChart<CartesianChartData, keyof CartesianChartData, yKey>>['xAxis'];
+    let yAxis: ComponentProps<typeof CartesianChart<CartesianChartData, keyof CartesianChartData, yKey>>['yAxis'];
     const labelItems: LabelItem[] = [];
     const legendItems: LegendItem[] = [];
 
     if (tnode.tagName === 'victorybar' || tnode.tagName === 'victoryline') {
-        const points = parseAttribute<RawData[]>(tnode.attributes.data);
-        const yKey = Y_KEY_PREFIX + getHierarchyID(tnode);
+        const points = parseAttribute<RawChartData[]>(tnode.attributes.data) ?? [];
+        const yKey = getYKey(tnode);
         yKeys.push(yKey);
-        points?.forEach((point) => {
+        for (const point of points) {
             data[point.x] = {
                 [xKey]: point.x,
                 [yKey]: point.y,
-            };
-        });
+            } as CartesianChartData;
+        }
     } else if (tnode.tagName === 'victoryaxis') {
         const isDependentAxis = 'dependentaxis' in tnode.attributes && tnode.attributes.dependentaxis !== 'false';
         const orientation = parseAttribute<string>(tnode.attributes.orientation);
         const tickCount = parseAttribute<number>(tnode.attributes.tickcount) ?? 0;
         const tickValues = parseAttribute<number[]>(tnode.attributes.tickvalues);
         const tickFormat = parseAttribute<string[]>(tnode.attributes.tickformat);
-        const formatLabel = (value: number) => tickFormat?.[tickValues?.indexOf(value) ?? -1] ?? String(value);
+        const formatLabel = (label: string | number) => tickFormat?.[tickValues?.indexOf(Number(label)) ?? -1] ?? String(label);
         const style = parseAttribute<StyleObject>(tnode.attributes.style);
         const lineColor = style?.grid?.stroke !== undefined ? (style.grid.stroke as Color) : undefined;
         const lineWidth = style?.grid?.strokeWidth !== undefined ? Number(style.grid.strokeWidth) : 0; // 0 Not to draw the lines for compatibility with VictoryChart
@@ -180,9 +122,9 @@ function processNode(tnode: TNode, typeface: SkTypeface | null) {
         const color = style?.labels?.fill !== undefined ? (style.labels.fill as Color) : undefined;
         const fontSize = style?.labels?.fontSize !== undefined ? Number(style.labels.fontSize) : undefined;
         const fontWeight = Number(style?.labels?.fontWeight) === 700 ? 'bold' : undefined;
-        const entries: LegendItemEntry[] = (parseAttribute<RawData[]>(tnode.attributes.data) ?? []).map((entry) => {
-            const text = entry.name !== undefined ? String(entry.name) : '';
-            const symbolColor = entry.symbol?.fill !== undefined ? (entry.symbol.fill as Color) : undefined;
+        const entries: LegendItemEntry[] = (parseAttribute<RawLegendData[]>(tnode.attributes.data) ?? []).map((entry) => {
+            const text = entry.name;
+            const symbolColor = entry.symbol?.fill;
             const symbolSize = entry.symbol?.size !== undefined ? Number(entry.symbol.size) : undefined;
             return {
                 text,
@@ -228,7 +170,7 @@ function processNode(tnode: TNode, typeface: SkTypeface | null) {
         yAxis,
         labelItems,
         legendItems,
-    };
+    } as const;
 }
 
 /**
@@ -275,7 +217,7 @@ function parseCornerRadius(attribute: string): RoundedCorners | undefined {
 /**
  * Helper to parse VC's `domainPadding` into VN's `domainPadding`
  */
-function parseDomainPadding(attribute: string): ComponentProps<typeof CartesianChart<RawData, string, string>>['domainPadding'] | undefined {
+function parseDomainPadding(attribute: string): ComponentProps<typeof CartesianChart<CartesianChartData, keyof CartesianChartData, yKey>>['domainPadding'] | undefined {
     const domainPadding = parseAttribute(attribute);
     if (typeof domainPadding === 'number') {
         return domainPadding;
@@ -348,9 +290,9 @@ function BaseVictoryChartRenderer({tnode}: VictoryChartRendererProps) {
     const {nodeStyles, parentNodeStyles} = useMemo(() => parseStyles(tnode), [tnode]);
     const [isCartesianChart, isPolarChart] = useMemo(() => [Object.keys(data).length > 0, false], [data]);
 
-    const renderCartesianChartChild = useCallback((tnode: TNode, index: Number, renderArgs: CartesianChartRenderArg<RawData, string>) => {
+    const renderCartesianChartChild = useCallback((tnode: TNode, index: Number, renderArgs: CartesianChartRenderArg<CartesianChartData, yKey>) => {
         const key = `${tnode.tagName ?? 'node'}-${index}`;
-        const yKey = Y_KEY_PREFIX + getHierarchyID(tnode);
+        const yKey = getYKey(tnode);
         const {points, chartBounds} = renderArgs;
         const {nodeStyles} = parseStyles(tnode);
         switch (tnode.tagName) {
