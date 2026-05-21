@@ -6093,8 +6093,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             approvers: 'Genehmigende',
             auditors: 'Prüfer',
             emptyRoleFilter: {title: 'Keine Mitglieder entsprechen diesem Filter', subtitle: 'Laden Sie ein Mitglied ein oder ändern Sie den Filter oben.'},
-            configureGustoSync: 'Gusto-Synchronisierung konfigurieren.',
-            syncWithGusto: 'Mit Gusto synchronisieren',
+            configureHRSync: (providerName: string) => `Synchronisierung mit ${providerName} einrichten.`,
+            syncWithHR: (providerName: string) => `Mit ${providerName} synchronisieren`,
         },
         card: {
             getStartedIssuing: 'Beginne, indem du deine erste virtuelle oder physische Karte ausstellst.',
@@ -7207,6 +7207,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             zenefits: {
                 title: 'TriNet',
             },
+            syncingModalTitle: 'Ihre Verbindung wird synchronisiert',
+            syncingModalDescription: 'Die erste Verbindung kann einige Zeit dauern. Sie werden über alle Fehler benachrichtigt.',
         },
     },
     getAssistancePage: {

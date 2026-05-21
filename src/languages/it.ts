@@ -6082,8 +6082,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             approvers: 'Approvatori',
             auditors: 'Revisori',
             emptyRoleFilter: {title: 'Nessun membro corrisponde a questo filtro', subtitle: 'Invita un membro o modifica il filtro qui sopra.'},
-            configureGustoSync: 'Configura la sincronizzazione con Gusto.',
-            syncWithGusto: 'Sincronizza con Gusto',
+            configureHRSync: (providerName: string) => `Configura la sincronizzazione di ${providerName}.`,
+            syncWithHR: (providerName: string) => `Sincronizza con ${providerName}`,
         },
         card: {
             getStartedIssuing: 'Inizia emettendo la tua prima carta virtuale o fisica.',
@@ -7194,6 +7194,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             zenefits: {
                 title: 'TriNet',
             },
+            syncingModalTitle: 'La tua connessione è in sincronizzazione',
+            syncingModalDescription: "La prima connessione può richiedere un po' di tempo. Ti verrà notificato qualsiasi errore.",
         },
     },
     getAssistancePage: {
