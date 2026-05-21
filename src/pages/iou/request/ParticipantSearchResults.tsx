@@ -129,7 +129,7 @@ function ParticipantSearchResults({
         action !== CONST.IOU.ACTION.CATEGORIZE;
     const icons = useMemoizedLazyExpensifyIcons(['UserPlus']);
     const {translate} = useLocalize();
-    const {contactPermissionState, contacts, setContactPermissionState, importAndSaveContacts} = useContactImport();
+    const {contactPermissionState, contacts, setContactPermissionState} = useContactImport();
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
