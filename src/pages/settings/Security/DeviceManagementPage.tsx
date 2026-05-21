@@ -13,7 +13,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearRevokeError, revokeDevice} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
-import {getDeviceLogins, getLastLogin, getLoginKey} from '@libs/UserUtils';
+import {getDeviceDisplayName, getDeviceLogins, getLastLogin, getLoginKey} from '@libs/UserUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Credentials} from '@src/types/onyx';
 import type {Login} from '@src/types/onyx/Logins';
@@ -31,6 +31,7 @@ function DeviceManagementPage() {
 
     const renderItem = ({item}: ListRenderItemInfo<Login>) => {
         const {deviceName, deviceVersion, os, osVersion} = item.additionalData ?? {};
+        const displayName = getDeviceDisplayName(item, deviceName, deviceVersion, os, osVersion, translate('deviceManagementPage.unknownDevice'));
         return (
             <OfflineWithFeedback
                 pendingAction={item.pendingAction}
@@ -40,7 +41,7 @@ function DeviceManagementPage() {
             >
                 <View style={[styles.flex1, styles.flexColumn, styles.gap1]}>
                     <Text style={[styles.textLabelSupporting]}>{datetimeToRelative(getLastLogin(item))}</Text>
-                    <Text>{item.additionalData ? `${deviceName} ${deviceVersion ? `${deviceVersion} ` : ''}(${os} ${osVersion})` : translate('deviceManagementPage.unknownDevice')}</Text>
+                    <Text>{displayName}</Text>
                 </View>
                 <Button
                     danger
