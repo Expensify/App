@@ -1,6 +1,6 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import type {RefObject} from 'react';
-import {useEffect, useEffectEvent, useRef, useSyncExternalStore} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
@@ -44,25 +44,30 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
 
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
 
-    const isVisible = useSyncExternalStore(Visibility.onVisibilityChange, Visibility.isVisible);
+    const [isVisible, setIsVisible] = useState(Visibility.isVisible);
+    useEffect(() => {
+        const unsubscribe = Visibility.onVisibilityChange(() => {
+            setIsVisible(Visibility.isVisible());
+        });
+        return unsubscribe;
+    }, []);
 
     const readActionSkippedRef = useRef(false);
     const userActiveSince = useRef<string>(DateUtils.getDBTime());
     const lastMessageTime = useRef<string | null>(null);
     const didMarkReportAsReadInitially = useRef(false);
+    const prevHandleReportChangeMarkAsReadRef = useRef<(() => void) | null>(null);
+    const prevHandleAppVisibilityMarkAsReadRef = useRef<(() => void) | null>(null);
 
     const lastAction = sortedVisibleReportActions.at(0);
     const isReportUnreadValue = isUnread(report, transactionThreadReport, isReportArchived) || (!!lastAction && isCurrentActionUnread(report, lastAction));
 
-    // Refresh userActiveSince + reset initial-mount gate when the same component instance is reused for another report.
     useEffect(() => {
         userActiveSince.current = DateUtils.getDBTime();
         didMarkReportAsReadInitially.current = false;
         prevReportID = reportID;
     }, [reportID]);
 
-    // The unread-marker hook also subscribes to `unreadAction_${reportID}` to update the marker
-    // time. We subscribe separately so this hook owns the userActiveSince concern.
     useEffect(() => {
         const subscription = DeviceEventEmitter.addListener(`unreadAction_${reportID}`, () => {
             userActiveSince.current = DateUtils.getDBTime();
@@ -70,7 +75,6 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
         return () => subscription.remove();
     }, [reportID]);
 
-    // Mark the report as read when the user initially opens the report and there are unread messages.
     useEffect(() => {
         if (!isReportUnreadValue || didMarkReportAsReadInitially.current) {
             didMarkReportAsReadInitially.current = true;
@@ -81,18 +85,15 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
         readNewestAction(reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
     }, [isReportUnreadValue, reportID, reportLoadingState?.hasOnceLoadedReportActions]);
 
-    const handleReportChangeMarkAsRead = useEffectEvent(() => {
+    const handleReportChangeMarkAsRead = useCallback(() => {
         if (reportID !== prevReportID) {
-            return false;
+            return;
         }
 
         const isLastActionUnread = !!lastAction && isCurrentActionUnread(report, lastAction, sortedVisibleReportActions);
         if (!isUnread(report, transactionThreadReport, isReportArchived) && !isLastActionUnread) {
-            return false;
+            return;
         }
-        // On desktop, when the notification center is displayed, isVisible will return false.
-        // Currently, there's no programmatic way to dismiss the notification center panel.
-        // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
         const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
         const isScrolledToEnd = scrollingVerticalOffset.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
 
@@ -101,18 +102,25 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
             if (isFromNotification) {
                 Navigation.setParams({referrer: undefined});
             }
-            return true;
+            return;
         }
 
         readActionSkippedRef.current = true;
-        return false;
-    });
+    }, [
+        report,
+        transactionThreadReport,
+        isReportArchived,
+        hasNewerActions,
+        isVisible,
+        lastAction,
+        route?.params?.referrer,
+        reportLoadingState?.hasOnceLoadedReportActions,
+        reportID,
+        scrollingVerticalOffset,
+        sortedVisibleReportActions,
+    ]);
 
-    // This `mark as read` will only run when the focused report has new messages and the App visibility
-    // changes to visible (user switched to the app/web while previously on another tab/application).
-    // We mark the report as read so the LHN report item is marked read while the unread marker still
-    // shows the messages received while the user wasn't focused on the report.
-    const handleAppVisibilityMarkAsRead = useEffectEvent(() => {
+    const handleAppVisibilityMarkAsRead = useCallback(() => {
         if (reportID !== prevReportID) {
             return;
         }
@@ -124,7 +132,6 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
             return;
         }
 
-        // If the user read new messages (after being inactive) on another device, show the marker based on report.lastReadTime.
         const newMessageTimeReference = lastMessageTime.current && report?.lastReadTime && lastMessageTime.current > report.lastReadTime ? userActiveSince.current : report?.lastReadTime;
         lastMessageTime.current = null;
 
@@ -143,15 +150,31 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
 
         readNewestAction(reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
         userActiveSince.current = DateUtils.getDBTime();
-    });
+    }, [
+        reportID,
+        isVisible,
+        isFocused,
+        lastAction?.created,
+        report,
+        isReportArchived,
+        sortedVisibleReportActions,
+        currentUserAccountID,
+        scrollingVerticalOffset,
+        reportLoadingState?.hasOnceLoadedReportActions,
+    ]);
 
     useEffect(() => {
-        // handleReportChangeMarkAsRead short-circuits via its return value to prevent duplicate readNewestAction calls.
-        const isMarkedAsRead = handleReportChangeMarkAsRead();
-        if (!isMarkedAsRead) {
+        if (handleReportChangeMarkAsRead !== prevHandleReportChangeMarkAsReadRef.current) {
+            handleReportChangeMarkAsRead();
+        }
+
+        if (handleAppVisibilityMarkAsRead !== prevHandleAppVisibilityMarkAsReadRef.current) {
             handleAppVisibilityMarkAsRead();
         }
-    }, [report?.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, reportID, isVisible, isFocused, reportLoadingState?.hasOnceLoadedReportActions]);
+
+        prevHandleReportChangeMarkAsReadRef.current = handleReportChangeMarkAsRead;
+        prevHandleAppVisibilityMarkAsReadRef.current = handleAppVisibilityMarkAsRead;
+    }, [handleReportChangeMarkAsRead, handleAppVisibilityMarkAsRead]);
 
     return {readActionSkippedRef};
 }
