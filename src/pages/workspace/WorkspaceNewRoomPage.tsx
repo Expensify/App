@@ -9,6 +9,8 @@ import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RoomNameInput from '@components/RoomNameInput';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -18,6 +20,7 @@ import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddi
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
@@ -68,9 +71,14 @@ type WorkspaceNewRoomPageRef = {
 type WorkspaceNewRoomPageProps = {
     /** Forwarded ref to pass to the room name input */
     ref?: Ref<WorkspaceNewRoomPageRef>;
+
+    /** When provided, the workspace picker is hidden and the room is created under this policy */
+    policyID?: string;
 };
 
-function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
+function WorkspaceNewRoomPage({ref, policyID: lockedPolicyID}: WorkspaceNewRoomPageProps) {
+    const isLocked = !!lockedPolicyID;
+    const lockedPolicy = usePolicy(lockedPolicyID);
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const {translate, localeCompare} = useLocalize();
@@ -103,6 +111,9 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
         [policies, session?.email, localeCompare],
     );
     const [policyID, setPolicyID] = useState<string>(() => {
+        if (lockedPolicyID) {
+            return lockedPolicyID;
+        }
         if (!!activePolicyID && workspaceOptions.some((option) => option.value === activePolicyID)) {
             return activePolicyID;
         }
@@ -120,12 +131,10 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
      * @param values - form input values passed by the Form component
      */
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_ROOM_FORM>) => {
-        setNewRoomFormLoading();
         const currentUserAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-        const participants = [currentUserAccountID];
         const parsedDescription = getParsedComment(values.reportDescription ?? '', {policyID});
         const policyReport = buildOptimisticChatReport({
-            participantList: participants,
+            participantList: [currentUserAccountID],
             reportName: values.roomName,
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
             policyID,
@@ -137,6 +146,13 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
             currentUserAccountID,
         });
 
+        if (isLocked) {
+            addPolicyReport(policyReport);
+            Navigation.goBack(ROUTES.WORKSPACE_ROOMS.getRoute(policyID));
+            return;
+        }
+
+        setNewRoomFormLoading();
         InteractionManager.runAfterInteractions(() => {
             requestAnimationFrame(() => {
                 addPolicyReport(policyReport);
@@ -154,6 +170,9 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
     }, [isFocused]);
 
     useEffect(() => {
+        if (isLocked) {
+            return;
+        }
         if (policyID) {
             if (!workspaceOptions.some((opt) => opt.value === policyID)) {
                 setPolicyID('');
@@ -165,7 +184,7 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
         } else {
             setPolicyID('');
         }
-    }, [activePolicyID, policyID, workspaceOptions]);
+    }, [activePolicyID, isLocked, policyID, workspaceOptions]);
 
     useEffect(() => {
         if (isAdminPolicy) {
@@ -208,7 +227,7 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
                 addErrorMessage(errors, 'reportDescription', translate('common.error.characterLimitExceedCounter', descriptionLength, CONST.REPORT_DESCRIPTION.MAX_LENGTH));
             }
 
-            if (!values.policyID) {
+            if (!isLocked && !values.policyID) {
                 errors.policyID = translate('newRoomPage.pleaseSelectWorkspace');
             }
 
@@ -240,17 +259,32 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
 
     return (
         <ScreenWrapper
-            enableEdgeToEdgeBottomSafeAreaPadding
-            includePaddingTop={false}
-            shouldShowOfflineIndicator
-            shouldEnablePickerAvoiding={false}
-            shouldEnableKeyboardAvoidingView={workspaceOptions.length !== 0}
-            keyboardVerticalOffset={variables.contentHeaderHeight + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding + top}
-            // Disable the focus trap of this page to activate the parent focus trap in `NewChatSelectorPage`.
-            focusTrapSettings={{active: false}}
+            {...(isLocked
+                ? {
+                      onEntryTransitionEnd: () => roomPageInputRef.current?.focus(),
+                      shouldEnableMaxHeight: true,
+                      shouldEnableKeyboardAvoidingView: true,
+                      includeSafeAreaPaddingBottom: true,
+                  }
+                : {
+                      enableEdgeToEdgeBottomSafeAreaPadding: true,
+                      includePaddingTop: false,
+                      shouldShowOfflineIndicator: true,
+                      shouldEnablePickerAvoiding: false,
+                      shouldEnableKeyboardAvoidingView: workspaceOptions.length !== 0,
+                      keyboardVerticalOffset: variables.contentHeaderHeight + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding + top,
+                      // Disable the focus trap of this page to activate the parent focus trap in `NewChatSelectorPage`.
+                      focusTrapSettings: {active: false},
+                  })}
             testID="WorkspaceNewRoomPage"
         >
-            {workspaceOptions.length === 0 ? (
+            {isLocked && (
+                <HeaderWithBackButton
+                    title={translate('newRoomPage.createRoom')}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_ROOMS.getRoute(policyID))}
+                />
+            )}
+            {workspaceOptions.length === 0 && !isLocked ? (
                 <EmptyWorkspaceView />
             ) : (
                 <FormProvider
@@ -284,16 +318,26 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
                             type="markdown"
                         />
                     </View>
-                    <View style={[styles.mhn5]}>
-                        <InputWrapper
-                            InputComponent={ValuePicker}
-                            inputID={INPUT_IDS.POLICY_ID}
-                            label={translate('workspace.common.workspace')}
-                            items={workspaceOptions}
-                            value={policyID}
-                            onValueChange={(value) => setPolicyID(value as typeof policyID)}
-                        />
-                    </View>
+                    {isLocked ? (
+                        <View style={[styles.mhn5]}>
+                            <MenuItemWithTopDescription
+                                description={translate('workspace.common.workspace')}
+                                title={lockedPolicy?.name}
+                                interactive={false}
+                            />
+                        </View>
+                    ) : (
+                        <View style={[styles.mhn5]}>
+                            <InputWrapper
+                                InputComponent={ValuePicker}
+                                inputID={INPUT_IDS.POLICY_ID}
+                                label={translate('workspace.common.workspace')}
+                                items={workspaceOptions}
+                                value={policyID}
+                                onValueChange={(value) => setPolicyID(value as typeof policyID)}
+                            />
+                        </View>
+                    )}
                     {isAdminPolicy && (
                         <View style={styles.mhn5}>
                             <InputWrapper
