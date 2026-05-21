@@ -159,6 +159,9 @@ type TableProps<DataType extends TableData, ColumnKey extends string = string, F
 
         /** Ref to access table methods programmatically. */
         ref?: React.Ref<TableHandle<DataType, ColumnKey, FilterKey>>;
+
+        /** Callback when an option is selected */
+        onRowSelectionChange?: (selectedRows: TableRow<DataType>[]) => void;
     }>;
 
 export type {

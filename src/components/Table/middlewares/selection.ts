@@ -1,10 +1,13 @@
-import {useRef, useState} from 'react';
+import {Dispatch, SetStateAction, useRef, useState} from 'react';
 import {TableData, TableRow} from '../types';
 import {MiddlewareHookResult} from './types';
 
 export type UseSelectionProps<DataType extends TableData> = {
     /** The data being used in the table */
     data: DataType[];
+
+    /** Callback that is fired when the selection of rows in the table changes */
+    onRowSelectionChange?: (selectedRows: TableRow<DataType>[]) => void;
 };
 
 export type SelectionMethods = {
@@ -20,7 +23,7 @@ export type SelectionMethods = {
 
 export type UseSelectionResult<DataType extends TableData> = MiddlewareHookResult<DataType, SelectionMethods, TableRow<DataType>>;
 
-export default function useSelection<DataType extends TableData>({data}: UseSelectionProps<DataType>): UseSelectionResult<DataType> {
+export default function useSelection<DataType extends TableData>({data, onRowSelectionChange}: UseSelectionProps<DataType>): UseSelectionResult<DataType> {
     const keyForLists = data.map((item) => item.keyForList);
 
     const lastSelectedRowKeyRef = useRef<string | null>(null);
@@ -40,14 +43,31 @@ export default function useSelection<DataType extends TableData>({data}: UseSele
     }
 
     /**
+     * Helper method to ensure that the row selection callback is called every time that the selected
+     * keys are updated
+     */
+    const updateSelectedKeys = (action: (previousSelectedKeys: string[]) => string[]) => {
+        setSelectedKeys((previousSelectedKeys) => {
+            const updatedValue = action(previousSelectedKeys);
+
+            if (onRowSelectionChange) {
+                const visibleSelectedRows = modifiedData.filter((row) => updatedValue.includes(row.keyForList));
+                onRowSelectionChange(visibleSelectedRows);
+            }
+
+            return updatedValue;
+        });
+    };
+
+    /**
      * When the select all checkbox is toggled, select or deselect all of the
      * rows in the table
      */
     const handleSelectAll = () => {
         if (areAllRowsSelected) {
-            setSelectedKeys([]);
+            updateSelectedKeys(() => []);
         } else {
-            setSelectedKeys(keyForLists);
+            updateSelectedKeys(() => keyForLists);
         }
     };
 
@@ -81,7 +101,7 @@ export default function useSelection<DataType extends TableData>({data}: UseSele
         const startIndex = Math.min(currentSelectedRowIndex, lastSelectedRowIndex);
         const endIndex = Math.max(currentSelectedRowIndex, lastSelectedRowIndex);
 
-        setSelectedKeys((prevSelectedKeys) => {
+        updateSelectedKeys((prevSelectedKeys) => {
             const newSelectedKeys = [...prevSelectedKeys];
 
             for (let i = startIndex; i <= endIndex; i++) {
@@ -109,7 +129,7 @@ export default function useSelection<DataType extends TableData>({data}: UseSele
         lastSelectedRowKeyRef.current = keyForList;
         lastSelectedRowIsSelectedRef.current = !selectedKeys.includes(keyForList);
 
-        setSelectedKeys((prevSelectedKeys) => {
+        updateSelectedKeys((prevSelectedKeys) => {
             if (prevSelectedKeys.includes(keyForList)) {
                 return prevSelectedKeys.filter((key) => key !== keyForList);
             } else {

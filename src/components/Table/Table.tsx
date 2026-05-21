@@ -143,6 +143,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     initialSortColumn,
     children,
     selectionEnabled,
+    onRowSelectionChange,
     ...listProps
 }: TableProps<DataType, ColumnKey, FilterKey>) {
     if (!columns || columns.length === 0) {
@@ -157,7 +158,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
 
     const {middleware: sortMiddleware, activeSorting, methods: sortMethods} = useSorting<DataType, ColumnKey>({compareItems, initialSortColumn});
 
-    const {middleware: selectionMiddleware, methods: selectionMethods} = useSelection<DataType>({data});
+    const {middleware: selectionMiddleware, methods: selectionMethods} = useSelection<DataType>({data, onRowSelectionChange});
 
     // Apply the middleware
     const filteredData = filterMiddleware(data);
