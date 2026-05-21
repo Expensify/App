@@ -59,6 +59,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {PolicyCategories} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 type WorkspaceCategoriesPageProps =
@@ -216,6 +217,23 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const glCodeTextStyle = useMemo(() => [styles.alignSelfStart], [styles.alignSelfStart]);
     const switchContainerStyle = useMemo(() => [StyleUtils.getMinimumWidth(variables.w72)], [StyleUtils]);
 
+    const navigateToCategory = (category: PolicyCategories[string]) => {
+        const path = isQuickSettingsFlow
+            ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(policyId, category.name, backTo)
+            : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(category.name));
+
+        Navigation.navigate(path);
+    };
+
+    const handleCategoryToggle = (enabled: boolean, category: PolicyCategories[string]) => {
+        if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [category])) {
+            showCannotDeleteOrDisableLastCategoryModal();
+            return;
+        }
+
+        updateWorkspaceCategoryEnabled(enabled, category.name);
+    };
+
     const categoryRows = useMemo<WorkspaceCategoryTableRowData[]>(() => {
         const categories = Object.values(policyCategories ?? {});
 
@@ -242,21 +260,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 enabled: value.enabled,
                 errors: value.errors ?? undefined,
                 pendingAction: value.pendingAction,
-                action: () => {
-                    const path = isQuickSettingsFlow
-                        ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(policyId, value.name, backTo)
-                        : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(value.name));
-
-                    Navigation.navigate(path);
-                },
-                onToggleEnabled: (enabled: boolean) => {
-                    if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])) {
-                        showCannotDeleteOrDisableLastCategoryModal();
-                        return;
-                    }
-
-                    updateWorkspaceCategoryEnabled(enabled, value.name);
-                },
+                action: () => navigateToCategory(value),
+                onToggleEnabled: (enabled: boolean) => handleCategoryToggle(enabled, value),
+                dismissError: () => clearCategoryErrors(policyId, value.name, policyCategories),
             });
 
             return acc;

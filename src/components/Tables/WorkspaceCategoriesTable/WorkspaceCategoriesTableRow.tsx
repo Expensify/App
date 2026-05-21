@@ -39,8 +39,13 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
             interactive
             rowIndex={rowIndex}
             skeletonReasonAttributes={{context: 'categoriesTableRow'}}
-            offlineWithFeedback={{errors: item.errors, pendingAction: item.pendingAction, shouldHideOnDelete: false}}
             onPress={item.action}
+            offlineWithFeedback={{
+                errors: item.errors,
+                pendingAction: item.pendingAction,
+                shouldHideOnDelete: false,
+                dismissError: item.dismissError,
+            }}
         >
             {({hovered}) => (
                 <>

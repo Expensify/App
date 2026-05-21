@@ -20,16 +20,14 @@ export type WorkspaceCategoryTableRowData = TableData & {
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
     action: () => void;
+    dismissError: () => void;
     onToggleEnabled: (enabled: boolean) => void;
 };
 
 type WorkspaceCategoriesTableProps = {
     ref?: React.Ref<TableHandle<WorkspaceCategoryTableRowData, WorkspaceCategoryTableColumnKey, string>> | undefined;
-
     categories: WorkspaceCategoryTableRowData[];
-
     shouldShowApproverColumn: boolean;
-
     onRowSelectionChange: (selectedRows: WorkspaceCategoryTableRowData[]) => void;
 };
 
