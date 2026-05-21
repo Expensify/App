@@ -99,7 +99,11 @@ function HRApprovalModePageBase<T extends ApprovalModeValue>({policyID, config}:
     const confirmSaveApprovalMode = () => {
         showConfirmModal({
             title: translate('workspace.hr.approvalModeWarningTitle'),
-            prompt: <RenderHTML html={translate('workspace.hr.approvalModeWarningPrompt', providerName, CONST.CONFIGURE_APPROVAL_WORKFLOWS_HELP_URL)} />,
+            prompt: (
+                <View style={[styles.renderHTML, styles.flexRow]}>
+                    <RenderHTML html={translate('workspace.hr.approvalModeWarningPrompt', providerName, CONST.CONFIGURE_APPROVAL_WORKFLOWS_HELP_URL)} />
+                </View>
+            ),
             confirmText: translate('workspace.hr.approvalModeWarningConfirm'),
             cancelText: translate('common.cancel'),
         }).then((result) => {
