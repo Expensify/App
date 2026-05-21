@@ -91,7 +91,6 @@ function ImageWithLoading({
             {isLoading && !!previewUri && (
                 // eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop.
                 <Image
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...rest}
                     source={{uri: previewUri}}
                     style={[styles.w100, styles.h100, style]}
