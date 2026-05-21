@@ -6501,7 +6501,13 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             errors: {
                 rateNameRequired: 'Ratenname ist erforderlich',
                 existingRateName: 'Ein Distanzsatz mit diesem Namen existiert bereits',
+                nameRequired: 'Name ist erforderlich',
+                startDateMustBeBeforeEndDate: 'Das Startdatum muss vor dem Enddatum liegen',
+                amountRequired: 'Betrag ist erforderlich',
             },
+            amountPerUnit: (unit: string) => `Betrag pro ${unit}`,
+            startDate: 'Startdatum',
+            endDate: 'Enddatum',
         },
         editor: {
             descriptionInputLabel: 'Beschreibung',

@@ -6305,7 +6305,13 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             errors: {
                 rateNameRequired: '费率名称为必填项',
                 existingRateName: '已存在同名的里程费率',
+                nameRequired: '姓名为必填项',
+                startDateMustBeBeforeEndDate: '开始日期必须早于结束日期',
+                amountRequired: '金额为必填项',
             },
+            amountPerUnit: (unit: string) => `每${unit}金额`,
+            startDate: '开始日期',
+            endDate: '结束日期',
         },
         editor: {
             descriptionInputLabel: '描述',

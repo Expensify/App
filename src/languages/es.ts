@@ -6409,7 +6409,13 @@ ${amount} para ${merchant} - ${date}`,
             errors: {
                 rateNameRequired: 'El nombre de la tasa es obligatorio',
                 existingRateName: 'Ya existe una tasa de distancia con este nombre',
+                nameRequired: 'El nombre es obligatorio',
+                startDateMustBeBeforeEndDate: 'La fecha de inicio debe ser anterior a la fecha de fin',
+                amountRequired: 'El importe es obligatorio',
             },
+            amountPerUnit: (unit: string) => `Importe por ${unit}`,
+            startDate: 'Fecha de inicio',
+            endDate: 'Fecha de fin',
         },
         editor: {
             nameInputLabel: 'Nombre',
