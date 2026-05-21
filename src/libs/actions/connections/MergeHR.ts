@@ -203,6 +203,6 @@ function clearHRConnectionErrorField(policyID: string | undefined, provider: HRP
     });
 }
 
-export {syncMergeHR, updateMergeHRApprovalMode, updateMergeHRFinalApprover, clearHRConnectionErrorField as clearMergeHRErrorField};
+export {syncMergeHR, updateMergeHRApprovalMode, updateMergeHRFinalApprover, clearHRConnectionErrorField};
 
 export default getMergeHRSetupLink;
