@@ -31,15 +31,11 @@ function MoneyRequestReportPreview({
     policyID,
     chatReportID,
     action,
-    contextMenuAnchor,
     isHovered = false,
     isWhisper = false,
-    checkIfContextMenuActive = () => {},
     onPaymentOptionsShow,
     onPaymentOptionsHide,
-    shouldDisplayContextMenu = true,
     shouldShowBorder,
-    originalReportID,
 }: MoneyRequestReportPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -138,19 +134,16 @@ function MoneyRequestReportPreview({
             reportID={item.reportID}
             isBillSplit={isSplitBillAction}
             isTrackExpense={isTrackExpenseAction}
-            contextMenuAnchor={contextMenuAnchor}
             isWhisper={isWhisper}
             isHovered={isHovered}
             iouReportID={iouReportID}
             containerStyles={transactionPreviewContainerStyles}
-            shouldDisplayContextMenu={shouldDisplayContextMenu}
             transactionPreviewWidth={reportPreviewStyles.transactionPreviewCarouselStyle.width}
             transactionID={item.transactionID}
             reportPreviewAction={action}
             onPreviewPressed={openReportFromPreview}
             shouldShowPayerAndReceiver={shouldShowPayerAndReceiver}
             shouldHighlight={!!newTransactionIDs?.has(item.transactionID)}
-            originalReportID={originalReportID}
         />
     );
 
@@ -163,10 +156,8 @@ function MoneyRequestReportPreview({
             chatReport={chatReport}
             action={action}
             containerStyles={[reportPreviewStyles.componentStyle]}
-            contextMenuAnchor={contextMenuAnchor}
             isHovered={isHovered}
             isWhisper={isWhisper}
-            checkIfContextMenuActive={checkIfContextMenuActive}
             onPaymentOptionsShow={onPaymentOptionsShow}
             onPaymentOptionsHide={onPaymentOptionsHide}
             transactions={transactions}
@@ -179,11 +170,9 @@ function MoneyRequestReportPreview({
             onWrapperLayout={onWrapperLayout}
             currentWidth={widths.currentWidth}
             reportPreviewStyles={reportPreviewStyles}
-            shouldDisplayContextMenu={shouldDisplayContextMenu}
             onPress={openReportFromPreview}
             shouldShowBorder={shouldShowBorder}
             forwardedFSClass={CONST.FULLSTORY.CLASS.UNMASK}
-            originalReportID={originalReportID}
         />
     );
 }

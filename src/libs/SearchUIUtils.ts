@@ -2373,14 +2373,13 @@ function getActions(
     const shouldOnlyShowElsewhere = !canBePaid && canOnlyBePaidElsewhere;
 
     // We're not supporting pay partial amount on search page now.
-    if ((canBePaid || shouldOnlyShowElsewhere) && !hasHeldExpenses(report.reportID, allReportTransactions)) {
+    if ((canBePaid || shouldOnlyShowElsewhere) && !hasHeldExpenses(allReportTransactions)) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.PAY);
     }
 
     if (isExportAvailable) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.EXPORT_TO_ACCOUNTING);
     }
-
     if (isClosedReport(report) && !(canBePaid || shouldOnlyShowElsewhere)) {
         return allActions.length > 0 ? allActions : [CONST.SEARCH.ACTION_TYPES.DONE];
     }
