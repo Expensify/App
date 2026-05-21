@@ -12,6 +12,7 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,6 +23,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {isGustoConnected} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
 type ApprovalMode = ValueOf<typeof CONST.GUSTO.APPROVAL_MODE>;
@@ -39,6 +41,8 @@ function GustoApprovalModePage({
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
     const policy = usePolicy(policyID);
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
+    const providerName = translate('workspace.hr.gusto.title');
     const currentApprovalMode = policy?.connections?.gusto?.config?.approvalMode ?? undefined;
     const [draftApprovalMode, setDraftApprovalMode] = useState<ApprovalMode | undefined>();
     const [isWarningModalOpen, setIsWarningModalOpen] = useState(false);
@@ -46,22 +50,22 @@ function GustoApprovalModePage({
     const isSaveDisabled = !draftApprovalMode || draftApprovalMode === currentApprovalMode;
     const approvalModeOptions: ApprovalModeListItem[] = [
         {
-            text: translate('workspace.hr.gusto.approvalModes.basic.label'),
-            alternateText: translate('workspace.hr.gusto.approvalModes.basic.description'),
+            text: translate('workspace.hr.approvalModes.basic.label'),
+            alternateText: translate('workspace.hr.approvalModes.basic.description'),
             keyForList: CONST.GUSTO.APPROVAL_MODE.BASIC,
             value: CONST.GUSTO.APPROVAL_MODE.BASIC,
             isSelected: selectedApprovalMode === CONST.GUSTO.APPROVAL_MODE.BASIC,
         },
         {
-            text: translate('workspace.hr.gusto.approvalModes.manager.label'),
-            alternateText: translate('workspace.hr.gusto.approvalModes.manager.description'),
+            text: translate('workspace.hr.approvalModes.manager.label'),
+            alternateText: translate('workspace.hr.approvalModes.manager.description', providerName),
             keyForList: CONST.GUSTO.APPROVAL_MODE.MANAGER,
             value: CONST.GUSTO.APPROVAL_MODE.MANAGER,
             isSelected: selectedApprovalMode === CONST.GUSTO.APPROVAL_MODE.MANAGER,
         },
         {
-            text: translate('workspace.hr.gusto.approvalModes.custom.label'),
-            alternateText: translate('workspace.hr.gusto.approvalModes.custom.description'),
+            text: translate('workspace.hr.approvalModes.custom.label'),
+            alternateText: translate('workspace.hr.approvalModes.custom.description'),
             keyForList: CONST.GUSTO.APPROVAL_MODE.CUSTOM,
             value: CONST.GUSTO.APPROVAL_MODE.CUSTOM,
             isSelected: selectedApprovalMode === CONST.GUSTO.APPROVAL_MODE.CUSTOM,
@@ -78,7 +82,7 @@ function GustoApprovalModePage({
             return;
         }
 
-        updateGustoApprovalMode(policyID, draftApprovalMode, currentApprovalMode);
+        updateGustoApprovalMode(policyID, draftApprovalMode, currentApprovalMode, connectionSyncProgress);
         setIsWarningModalOpen(false);
         Navigation.goBack();
     };
@@ -96,11 +100,11 @@ function GustoApprovalModePage({
                 testID="GustoApprovalModePage"
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.hr.gusto.approvalMode')}
+                    title={translate('workspace.hr.approvalMode')}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <View style={styles.flex1}>
-                    <Text style={[styles.textSupporting, styles.ph5, styles.mt3, styles.mb3]}>{translate('workspace.hr.gusto.approvalModeDescription')}</Text>
+                    <Text style={[styles.textSupporting, styles.ph5, styles.mt3, styles.mb3]}>{translate('workspace.hr.approvalModeDescription', providerName)}</Text>
                     <SelectionList
                         data={approvalModeOptions}
                         ListItem={SingleSelectListItem}
@@ -121,12 +125,12 @@ function GustoApprovalModePage({
                     </FixedFooter>
                 </View>
                 <ConfirmModal
-                    title={translate('workspace.hr.gusto.approvalModeWarningTitle')}
+                    title={translate('workspace.hr.approvalModeWarningTitle')}
                     isVisible={isWarningModalOpen}
                     onConfirm={saveApprovalMode}
                     onCancel={() => setIsWarningModalOpen(false)}
-                    prompt={<RenderHTML html={translate('workspace.hr.gusto.approvalModeWarningPrompt', CONST.CONFIGURE_APPROVAL_WORKFLOWS_HELP_URL)} />}
-                    confirmText={translate('workspace.hr.gusto.approvalModeWarningConfirm')}
+                    prompt={<RenderHTML html={translate('workspace.hr.approvalModeWarningPrompt', providerName, CONST.CONFIGURE_APPROVAL_WORKFLOWS_HELP_URL)} />}
+                    confirmText={translate('workspace.hr.approvalModeWarningConfirm')}
                     cancelText={translate('common.cancel')}
                 />
             </ScreenWrapper>
