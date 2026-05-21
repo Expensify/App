@@ -652,6 +652,7 @@ const translations: TranslationDeepObject<typeof en> = {
         changePin: {
             didNotChange: 'No pudimos cambiar tu PIN. Por favor, inténtalo de nuevo.',
         },
+        revealCardDetail: {couldNotReveal: 'No hemos podido mostrar los datos de tu tarjeta. Por favor, inténtalo de nuevo.'},
     },
     validateCodeModal: {
         successfulSignInTitle: 'Abracadabra,\n¡sesión iniciada!',
