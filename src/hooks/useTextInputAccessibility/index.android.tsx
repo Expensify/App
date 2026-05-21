@@ -19,7 +19,7 @@ function useTextInputAccessibility(value: string | undefined, accessibilityLabel
         hiddenLabel = (
             <Text
                 nativeID={labelNativeID}
-                importantForAccessibility="no"
+                importantForAccessibility="yes"
                 style={styles.visuallyHidden}
             >
                 {accessibilityLabel}
