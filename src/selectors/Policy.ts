@@ -6,7 +6,6 @@ import {getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy, shoul
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyReportField} from '@src/types/onyx';
-import type {Connections} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ReusablePolicyConnectionName =
@@ -250,8 +249,6 @@ const createAdminPoliciesSelector =
         }, {});
     };
 
-const policyConnectionsSelector = (policy: OnyxEntry<Policy>): Connections | undefined => policy?.connections;
-
 export type {PolicySelector};
 export {
     activePolicySelector,
@@ -277,6 +274,5 @@ export {
     policyNameSelector,
     createAdminPoliciesSelector,
     isAdminForPolicyByIDSelector,
-    policyConnectionsSelector,
 };
 export type {ReusablePolicyConnectionName};

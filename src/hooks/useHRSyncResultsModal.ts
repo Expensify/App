@@ -6,7 +6,6 @@ import {useModal} from '@components/Modal/Global/ModalContext';
 import {getConnectedHRProvider} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {policyConnectionsSelector} from '@src/selectors/Policy';
 import type {PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
 import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
@@ -18,13 +17,14 @@ import usePrevious from './usePrevious';
 function useHRSyncResultsModal(policyID: string, connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>, isFocused: boolean) {
     const modal = useModal();
     const previousSyncProgress = usePrevious(connectionSyncProgress);
-    const [policyConnections] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: policyConnectionsSelector});
 
     const connectionName = connectionSyncProgress?.connectionName;
-    const providerDisplayName =
-        getConnectedHRProvider({connections: policyConnections})?.displayName ??
-        CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName as keyof typeof CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY] ??
-        connectionName;
+    const [providerDisplayName] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        selector: (policy) => {
+            const hrProvider = getConnectedHRProvider(policy);
+            return hrProvider?.displayName ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName as keyof typeof CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY] ?? connectionName ?? '';
+        },
+    });
 
     useEffect(() => {
         const syncResult = connectionSyncProgress?.result;
@@ -41,7 +41,7 @@ function useHRSyncResultsModal(policyID: string, connectionSyncProgress: OnyxEnt
 
         modal.showModal({
             component: HRSyncResultsModal,
-            props: {result: syncResult, providerDisplayName},
+            props: {result: syncResult, providerDisplayName: providerDisplayName ?? ''},
             id: `${connectionName}-sync-results-${policyID}`,
         });
     }, [
