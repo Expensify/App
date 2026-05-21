@@ -1,7 +1,7 @@
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
-import createDynamicRoute from '@src/libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import CONST from '@src/CONST';
+import createDynamicRoute from '@src/libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getCreateReportRoute, {getReportsRootRoute, navigateToCreateReportWorkspaceSelection} from '@src/libs/Navigation/helpers/getCreateReportRoute';
 import isSearchTopmostFullScreenRoute from '@src/libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
