@@ -85,16 +85,24 @@ function HelpPage() {
           }
         : null;
 
-    const accountExecutiveItem = guideDetails
+    const guideItem = guideDetails
         ? {
-              key: `accountExecutive-${guideDetails.login}`,
+              key: guideDetails.login,
               title: guideDetails.displayName,
-              description: translate('initialSettingsPage.helpPage.accountExecutiveDescription'),
               icon: guideDetails.avatar,
               iconType: CONST.ICON_TYPE_AVATAR,
               onPress: () => navigateToAndOpenReportWithAccountIDs([guideDetails.accountID], currentUserAccountID, introSelected, isSelfTourViewed, betas),
               shouldShowRightIcon: true,
               wrapperStyle: [styles.sectionMenuItemTopDescription],
+              sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.GUIDE,
+          }
+        : null;
+
+    const accountExecutiveItem = guideDetails
+        ? {
+              ...guideItem,
+              key: `accountExecutive-${guideDetails.login}`,
+              description: translate('initialSettingsPage.helpPage.accountExecutiveDescription'),
               sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.ACCOUNT_EXECUTIVE,
           }
         : null;
@@ -195,50 +203,20 @@ function HelpPage() {
                                             shouldUseSingleExecution
                                         />
                                     </View>
-                                    {!!guideDetails && isPaidPolicyAdmin && (
+                                    {!!guideItem && isPaidPolicyAdmin && (
                                         <View>
                                             <Text style={[styles.textLabelSupportingNormal]}>{translate('initialSettingsPage.helpPage.guideDescription')}</Text>
                                             <MenuItemList
-                                                menuItems={[
-                                                    {
-                                                        key: guideDetails.login,
-                                                        title: guideDetails.displayName,
-                                                        icon: guideDetails.avatar,
-                                                        iconType: CONST.ICON_TYPE_AVATAR,
-                                                        onPress: () =>
-                                                            navigateToAndOpenReportWithAccountIDs([guideDetails.accountID], currentUserAccountID, introSelected, isSelfTourViewed, betas),
-                                                        shouldShowRightIcon: true,
-                                                        wrapperStyle: [styles.sectionMenuItemTopDescription],
-                                                        sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.GUIDE,
-                                                    },
-                                                ]}
+                                                menuItems={[guideItem]}
                                                 shouldUseSingleExecution
                                             />
                                         </View>
                                     )}
-                                    {!!accountManagerDetails && isPaidPolicyAdmin && (
+                                    {!!accountManagerItem && isPaidPolicyAdmin && (
                                         <View>
                                             <Text style={[styles.textLabelSupportingNormal]}>{translate('initialSettingsPage.helpPage.yourAccountManager')}</Text>
                                             <MenuItemList
-                                                menuItems={[
-                                                    {
-                                                        key: accountManagerDetails.login,
-                                                        title: accountManagerDetails.displayName,
-                                                        icon: accountManagerDetails.avatar,
-                                                        iconType: CONST.ICON_TYPE_AVATAR,
-                                                        onPress: () =>
-                                                            navigateToAndOpenReportWithAccountIDs(
-                                                                [accountManagerDetails.accountID],
-                                                                currentUserAccountID,
-                                                                introSelected,
-                                                                isSelfTourViewed,
-                                                                betas,
-                                                            ),
-                                                        shouldShowRightIcon: true,
-                                                        wrapperStyle: [styles.sectionMenuItemTopDescription],
-                                                        sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.ACCOUNT_MANAGER,
-                                                    },
-                                                ]}
+                                                menuItems={[accountManagerItem]}
                                                 shouldUseSingleExecution
                                             />
                                         </View>
