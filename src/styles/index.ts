@@ -1133,7 +1133,8 @@ const staticStyles = (theme: ThemeColors) =>
 
         agentPromotionalBannerBadge: {
             position: Platform.OS === 'web' ? 'relative' : 'static',
-            top: -2,
+            bottom: Platform.OS === 'web' ? 2 : -2,
+            marginLeft: 0,
         },
 
         cardBadgeText: {

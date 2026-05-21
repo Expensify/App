@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -6,12 +6,9 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
-import CONST from '@src/CONST';
+import BillingBanner from '@pages/settings/Subscription/CardSection/BillingBanner/BillingBanner';
 import Badge from './Badge';
 import Button from './Button';
-import Icon from './Icon';
-import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
 
 type AgentPromotionalBannerProps = {
@@ -49,61 +46,65 @@ function AgentPromotionalBanner({title, subtitle, onDismiss, dismissSentryLabel,
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Close']);
 
     const hasCta = !!ctaText && !!onCtaPress;
-    const shouldShowCtaBelow = hasCta && shouldUseNarrowLayout;
-    const shouldShowCtaInline = hasCta && !shouldUseNarrowLayout;
 
-    return (
-        <View style={[styles.borderRadiusComponentLarge, styles.agentsPromoBannerBackgroundColor, styles.ph5, styles.pv4, style]}>
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap4]}>
-                <Icon
-                    src={illustrations.AiBot}
-                    width={variables.iconSizeAgentsPromoBanner}
-                    height={variables.iconSizeAgentsPromoBanner}
-                />
-                <View style={[styles.flex1, styles.gap1]}>
-                    <Text style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                        <Text style={[styles.textStrong, styles.agentsPromoBannerText, styles.flexShrink1]}>{title}</Text>
-                        <Badge
-                            badgeStyles={styles.agentPromotionalBannerBadge}
-                            success
-                            isStrong
-                            isCondensed
-                            text={translate('common.new')}
-                        />
-                    </Text>
-                    <Text style={[styles.textLabel, styles.agentsPromoBannerText]}>{subtitle}</Text>
-                </View>
-                {shouldShowCtaInline && (
+    const titleNode = useMemo(
+        () => (
+            <View style={[styles.flexRow, styles.flexShrink1, styles.alignItemsCenter]}>
+                <Text style={[styles.textStrong, styles.agentsPromoBannerText, styles.dInlineBlock]}>{title} <Badge
+                    badgeStyles={styles.agentPromotionalBannerBadge}
+                    success
+                    isStrong
+                    isCondensed
+                    text={translate('common.new')}
+                /></Text>
+            </View>
+        ),
+        [title, styles, translate],
+    );
+
+    const rightComponent = useMemo(() => {
+        if (!hasCta) {
+            return null;
+        }
+        if (shouldUseNarrowLayout) {
+            return (
+                <View style={[styles.flex0, styles.flexBasis100, styles.maxWidth100Percentage, styles.justifyContentCenter]}>
                     <Button
                         success
-                        small
+                        large
                         text={ctaText}
                         onPress={onCtaPress}
                         sentryLabel={ctaSentryLabel}
                     />
-                )}
-                <PressableWithoutFeedback
-                    onPress={onDismiss}
-                    role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={translate('common.dismiss')}
-                    sentryLabel={dismissSentryLabel}
-                >
-                    <Icon
-                        src={expensifyIcons.Close}
-                        fill={theme.iconColorfulBackground}
-                    />
-                </PressableWithoutFeedback>
-            </View>
-            {shouldShowCtaBelow && (
-                <Button
-                    success
-                    large
-                    text={ctaText}
-                    onPress={onCtaPress}
-                    sentryLabel={ctaSentryLabel}
-                    style={styles.mt4}
-                />
-            )}
+                </View>
+            );
+        }
+        return (
+            <Button
+                success
+                small
+                text={ctaText}
+                onPress={onCtaPress}
+                sentryLabel={ctaSentryLabel}
+            />
+        );
+    }, [hasCta, shouldUseNarrowLayout, ctaText, onCtaPress, ctaSentryLabel, styles]);
+
+    return (
+        <View style={style}>
+            <BillingBanner
+                icon={illustrations.AiBot}
+                title={titleNode}
+                subtitle={subtitle}
+                subtitleStyle={[styles.mt1, styles.textLabel, styles.agentsPromoBannerText]}
+                style={[styles.borderRadiusComponentLarge, styles.agentsPromoBannerBackgroundColor, styles.gap4]}
+                rightIcon={expensifyIcons.Close}
+                rightIconFill={theme.iconColorfulBackground}
+                onRightIconPress={onDismiss}
+                rightIconAccessibilityLabel={translate('common.dismiss')}
+                rightIconSentryLabel={dismissSentryLabel}
+                rightComponent={rightComponent}
+            />
         </View>
     );
 }
