@@ -365,6 +365,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.DOMAIN_CARD.DOMAIN_CARD_UPDATE_ADDRESS,
             SCREENS.TRAVEL.WORKSPACE_ADDRESS,
             SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT,
+            SCREENS.REIMBURSEMENT_ACCOUNT,
         ],
         getRoute: (state = '', label = '') => getUrlWithParams('state', {state, label}),
         queryParams: ['state', 'label'],
