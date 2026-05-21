@@ -23,7 +23,9 @@ function DeleteTransactionNavigateBackHandler() {
             return;
         }
         // Clear the URL only after we navigate away to avoid a brief Not Found flash.
-        TransitionTracker.runAfterTransitions({callback: () => requestAnimationFrame(clearDeleteTransactionNavigateBackUrl)});
+        TransitionTracker.runAfterTransitions({callback: () => {
+            requestAnimationFrame(clearDeleteTransactionNavigateBackUrl);
+        }, waitForUpcomingTransition: true});
     }, [isFocused, deleteTransactionNavigateBackUrl]);
 
     return null;
