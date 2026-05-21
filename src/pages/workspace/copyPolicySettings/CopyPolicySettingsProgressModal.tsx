@@ -93,6 +93,7 @@ function CopyPolicySettingsProgressModal() {
     const {isVisible, title, prompt, confirmText, cancelText, shouldShowCancelButton, onConfirm, onCancel} = useCopyPolicySettingsProgressModal();
 
     return (
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- The global useConfirmModal()/showConfirmModal() API is one-shot (its promise resolves on the first confirm/cancel and the modal unmounts). This progress modal must stay open across multiple Onyx state transitions ('loading' → notify-requested → 'complete') and update its content in place, which the global system does not support.
         <ConfirmModal
             title={title}
             isVisible={isVisible}
