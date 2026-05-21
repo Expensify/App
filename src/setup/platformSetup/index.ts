@@ -1,4 +1,3 @@
-import {LoadSkiaWeb} from '@shopify/react-native-skia/lib/module/web';
 import {AppRegistry} from 'react-native';
 import CacheAPI from '@libs/CacheAPI';
 import checkForUpdates from '@libs/checkForUpdates';
@@ -53,32 +52,29 @@ const webUpdater = (): PlatformSpecificUpdater => ({
 });
 
 export default function () {
-    // s77rt tmp
-    LoadSkiaWeb().then(() => {
-        // Initialize Cache API
-        CacheAPI.init();
+    // Initialize Cache API
+    CacheAPI.init();
 
-        AppRegistry.runApplication(Config.APP_NAME, {
-            rootTag: document.getElementById('root'),
-        });
-
-        // When app loads, get current version (production only)
-        if (Config.IS_IN_PRODUCTION) {
-            checkForUpdates(webUpdater());
-        }
-
-        // Start current date updater
-        DateUtils.startCurrentDateUpdater();
-
-        // Service worker is only emitted in production builds (GenerateSW is skipped in dev).
-        if (Config.IS_IN_PRODUCTION && 'serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js').catch((error) => {
-                    // Soft-fail: app must continue working even if SW registration fails (Safari Private mode, etc.).
-                    // eslint-disable-next-line no-console
-                    console.warn('[SW] registration failed', error);
-                });
-            });
-        }
+    AppRegistry.runApplication(Config.APP_NAME, {
+        rootTag: document.getElementById('root'),
     });
+
+    // When app loads, get current version (production only)
+    if (Config.IS_IN_PRODUCTION) {
+        checkForUpdates(webUpdater());
+    }
+
+    // Start current date updater
+    DateUtils.startCurrentDateUpdater();
+
+    // Service worker is only emitted in production builds (GenerateSW is skipped in dev).
+    if (Config.IS_IN_PRODUCTION && 'serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/service-worker.js').catch((error) => {
+                // Soft-fail: app must continue working even if SW registration fails (Safari Private mode, etc.).
+                // eslint-disable-next-line no-console
+                console.warn('[SW] registration failed', error);
+            });
+        });
+    }
 }

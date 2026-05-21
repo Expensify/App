@@ -7,7 +7,7 @@ import convertToLTR from '@libs/convertToLTR';
 import FontUtils from '@styles/utils/FontUtils';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {computeEmbeddedMaxWidth, isChildOfTaskTitle} from './htmlEngineUtils';
-import getHtmlRenderers from './HTMLRenderers';
+import htmlRenderers from './HTMLRenderers';
 
 type BaseHTMLEngineProviderProps = ChildrenProps & {
     /** Whether text elements should be selectable */
@@ -24,7 +24,6 @@ type BaseHTMLEngineProviderProps = ChildrenProps & {
 // costly invalidations and commits.
 function BaseHTMLEngineProvider({textSelectable = false, children, enableExperimentalBRCollapsing = false}: BaseHTMLEngineProviderProps) {
     const styles = useThemeStyles();
-    const htmlRenderers = useMemo(() => getHtmlRenderers(), []);
 
     // Declare nonstandard tags and their content model here
     /* eslint-disable @typescript-eslint/naming-convention */

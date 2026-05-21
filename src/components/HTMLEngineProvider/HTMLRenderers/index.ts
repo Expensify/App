@@ -22,12 +22,13 @@ import TaskTitleRenderer from './TaskTitleRenderer';
 import TransactionHistoryLinkRenderer from './TransactionHistoryLinkRenderer';
 import ULRenderer from './ULRenderer';
 import UserDetailsRenderer from './UserDetailsRenderer';
+import VictoryChartRenderer from './VictoryChartRenderer';
 import VideoRenderer from './VideoRenderer';
 
 /**
  * This collection defines our custom renderers. It is a mapping from HTML tag type to the corresponding component.
  */
-export default (): CustomTagRendererRecord => ({
+const HTMLEngineProviderComponentList: CustomTagRendererRecord = {
     // Standard HTML tag renderers
     a: AnchorRenderer,
     code: CodeRenderer,
@@ -58,9 +59,7 @@ export default (): CustomTagRendererRecord => ({
     'sparkles-icon': SparklesIconRenderer,
     /* eslint-enable @typescript-eslint/naming-convention */
 
-    // VictoryChart components depend on Skia and should be loaded after Skia WASM
-    //
-    // Using `require` loads the components only when this function is executed,
-    // unlike `import` they'd be imported on module execution BEFORE Skia WASM is loaded.
-    victorychart: require('./VictoryChartRenderer').default,
-});
+    victorychart: VictoryChartRenderer,
+};
+
+export default HTMLEngineProviderComponentList;

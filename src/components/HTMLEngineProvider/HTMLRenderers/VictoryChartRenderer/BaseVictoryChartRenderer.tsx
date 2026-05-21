@@ -341,7 +341,7 @@ function parseStyles(tnode: TNode) {
     return {nodeStyles, parentNodeStyles};
 }
 
-function VictoryChartRenderer({tnode}: CustomRendererProps<TBlock>) {
+function BaseVictoryChartRenderer({tnode}: CustomRendererProps<TBlock>) {
     const styles = useThemeStyles();
     const {regular: regularTypeface, bold: boldTypeface} = useChartDefaultTypeface();
     const {data, xKey, yKeys, xAxis, yAxis, labelItems, legendItems} = useMemo(() => processNode(tnode, regularTypeface), [tnode, regularTypeface]);
@@ -464,4 +464,4 @@ function VictoryChartRenderer({tnode}: CustomRendererProps<TBlock>) {
     );
 }
 
-export default VictoryChartRenderer;
+export default BaseVictoryChartRenderer;
