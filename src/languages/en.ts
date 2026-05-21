@@ -270,6 +270,7 @@ const translations = {
         // @context Status or button indicating that an action or process has been completed. Should reflect completion.
         done: 'Done',
         more: 'More',
+        other: 'Other',
         debitCard: 'Debit card',
         bankAccount: 'Bank account',
         personalBankAccount: 'Personal bank account',
@@ -1017,8 +1018,12 @@ const translations = {
                 other: (pluralCount: number) => `Time remaining: ${pluralCount} days`,
             }),
         },
-        assignedCards: 'Your Expensify Cards',
-        assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} remaining`,
+        yourSpend: {
+            title: 'Your spend',
+            awaitingApproval: 'Awaiting approval',
+            repaidLast30Days: 'Repaid in the last 30 days',
+            recentTransactions: ({lastFour}: {lastFour: string}) => `Recent transactions • ${lastFour}`,
+        },
         announcements: 'Announcements',
         discoverSection: {
             title: 'Discover',
@@ -2578,6 +2583,11 @@ const translations = {
         pinChanged: 'PIN changed!',
         pinChangedHeader: 'PIN changed',
         pinChangedDescription: "You're all set to use your PIN now.",
+        cardUnblocked: 'Card unblocked!',
+        cardUnblockedDescription: 'You may be prompted to insert your card into the reader the next time you make a purchase.',
+        pinBlocked: 'Your card was blocked due to incorrect PIN entries.',
+        unblock: 'Unblock',
+        unblockCard: 'Unblock card',
         changePin: 'Change PIN',
         changePinAtATM: 'Change your PIN at any ATM',
         changePinAtATMDescription: 'This is required in your region. <concierge-link>Reach out to Concierge</concierge-link> if you have any questions.',
@@ -3072,6 +3082,7 @@ const translations = {
         mergeBlockScreen: {
             title: 'Couldn’t add work email',
             subtitle: (workEmail: string | undefined) => `We couldn’t add ${workEmail}. Please try again later in Settings or chat with Concierge for guidance.`,
+            workAccountClosedSubtitle: 'The work account associated with this email is closed. Please contact your company admin to reactivate it, or sign up with a different email.',
         },
         tasks: {
             testDriveAdminTask: {
@@ -6433,8 +6444,32 @@ const translations = {
         },
         hr: {
             title: 'HR',
+            connections: 'Connections',
             subtitle: 'Connect HR tools and keep employee approvals in sync.',
-            settingsTitle: 'Gusto settings',
+            connect: 'Connect',
+            syncNow: 'Sync now',
+            disconnect: 'Disconnect',
+            disconnectTitle: (providerName: string) => `Disconnect ${providerName}`,
+            disconnectPrompt: (providerName: string) => `Are you sure you want to disconnect ${providerName}?`,
+            lastSync: (relativeDate: string) => `Last synced ${relativeDate}`,
+            syncError: (providerName: string) => `Can't connect to ${providerName}`,
+            connectionDescription: (providerName: string) => `Connect ${providerName} to keep employee approvals in sync with your workspace.`,
+            approvalMode: 'Approval mode',
+            finalApprover: 'Final approver',
+            notSet: 'Not set',
+            approvalModeDescription: (providerName: string) => `Members and managers are set up to sync with ${providerName}.`,
+            approvalModeWarningTitle: 'Change approval mode?',
+            approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
+                `Are you sure you would like to change the approval mode for this workspace? Learn more about the different ${providerName}-enabled workflow modes in our <a href="${helpSiteURL}">help site</a>.`,
+            approvalModeWarningConfirm: 'Change approval mode',
+            approvalModes: {
+                basic: {label: 'Basic approval', description: 'All users submit to a single person for processing and approval.'},
+                manager: {
+                    label: 'Manager approval',
+                    description: (providerName: string) => `Employees submit reports to their direct manager configured in ${providerName}.`,
+                },
+                custom: {label: 'Custom approval', description: "I'll manually setup approval workflows in Expensify."},
+            },
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
                     case 'gustoSyncTitle':
@@ -6449,6 +6484,8 @@ const translations = {
                         return 'Loading data from TriNet';
                     case 'zenefitsSyncProvisioning':
                         return 'Provisioning employees in policy';
+                    case 'mergeHRSyncTitle':
+                        return 'Synchronizing HR Employees';
                     case 'jobDone':
                         return 'Waiting for imported data to load';
                     default: {
@@ -6458,36 +6495,6 @@ const translations = {
             },
             gusto: {
                 title: 'Gusto',
-                connect: 'Connect',
-                syncNow: 'Sync now',
-                disconnect: 'Disconnect',
-                lastSync: (relativeDate: string) => `Last synced ${relativeDate}`,
-                syncError: "Can't connect to Gusto",
-                disconnectTitle: 'Disconnect Gusto',
-                disconnectPrompt: 'Are you sure you want to disconnect Gusto?',
-                connectionDescription: 'Connect Gusto to keep employee approvals in sync with your workspace.',
-                approvalMode: 'Approval mode',
-                finalApprover: 'Final approver',
-                notSet: 'Not set',
-                approvalModeDescription: 'Members and managers are set up to sync with Gusto.',
-                approvalModeWarningTitle: 'Change approval mode?',
-                approvalModeWarningPrompt: (helpSiteURL: string) =>
-                    `Are you sure you would like to change the approval mode for this workspace? Learn more about the different Gusto-enabled workflow modes in our <a href="${helpSiteURL}">help site</a>.`,
-                approvalModeWarningConfirm: 'Change approval mode',
-                approvalModes: {
-                    basic: {
-                        label: 'Basic approval',
-                        description: 'All users submit to a single person for processing and approval.',
-                    },
-                    manager: {
-                        label: 'Manager approval',
-                        description: 'Employees submit reports to their direct manager configured in Gusto.',
-                    },
-                    custom: {
-                        label: 'Custom approval',
-                        description: 'I’ll manually setup approval workflows in Expensify.',
-                    },
-                },
                 syncResults: {
                     title: 'Gusto sync results',
                     successTitle: 'Successfully synced your Gusto connection!',
@@ -6500,42 +6507,8 @@ const translations = {
                     }),
                 },
             },
-            merge: {
-                approvalMode: 'Approval mode',
-                finalApprover: 'Final approver',
-            },
             zenefits: {
                 title: 'TriNet',
-                connect: 'Connect',
-                syncNow: 'Sync now',
-                disconnect: 'Disconnect',
-                lastSync: (relativeDate: string) => `Last synced ${relativeDate}`,
-                syncError: "Can't connect to TriNet",
-                disconnectTitle: 'Disconnect TriNet',
-                disconnectPrompt: 'Are you sure you want to disconnect TriNet?',
-                connectionDescription: 'Connect TriNet to keep employee approvals in sync with your workspace.',
-                approvalMode: 'Approval mode',
-                finalApprover: 'Final approver',
-                notSet: 'Not set',
-                approvalModeDescription: 'Members and managers are set up to sync with TriNet.',
-                approvalModeWarningTitle: 'Change approval mode?',
-                approvalModeWarningPrompt: (helpSiteURL: string) =>
-                    `Are you sure you would like to change the approval mode for this workspace? Learn more about the different TriNet-enabled workflow modes in our <a href="${helpSiteURL}">help site</a>.`,
-                approvalModeWarningConfirm: 'Change approval mode',
-                approvalModes: {
-                    basic: {
-                        label: 'Basic approval',
-                        description: 'All users submit to a single person for processing and approval.',
-                    },
-                    manager: {
-                        label: 'Manager approval',
-                        description: 'Employees submit reports to their direct manager configured in TriNet.',
-                    },
-                    custom: {
-                        label: 'Custom approval',
-                        description: "I'll manually setup approval workflows in Expensify.",
-                    },
-                },
             },
         },
         export: {
@@ -6734,6 +6707,12 @@ const translations = {
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Advanced approvals are only available on the Control plan, which starts at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
+            approvalSubmit: {
+                title: 'Approvals',
+                description: 'Centrally configure who all members submit to by enabling approvals.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Approvals are available on the Collect and Control plans, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+            },
             categories: {
                 title: 'Categories',
                 description: 'Categories allow you to track and organize spend. Use our default categories or add your own.',
@@ -6764,6 +6743,12 @@ const translations = {
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>This is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
+            companyCardSubmit: {
+                title: 'Company cards',
+                description: `Bring your own company card to Expensify to get automatic import, automatic categorization, customizable rule support, and integrated reconciliation.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Company card import is available on the Collect and Control plans, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+            },
             rules: {
                 title: 'Rules',
                 description: `Rules run in the background and keep your spend under control so you don't have to sweat the small stuff.\n\nRequire expense details like receipts and descriptions, set limits and defaults, and automate approvals and payments – all in one place.`,
@@ -6789,6 +6774,12 @@ const translations = {
                 description: 'Expensify Travel is a new corporate travel booking and management platform that allows members to book accommodations, flights, transportation, and more.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Travel is available on the Collect plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+            },
+            travelSubmit: {
+                title: 'Expensify Travel',
+                description: 'Book discounted flights, hotels, cars, and trains globally from within Expensify, with duty of care reporting and integrated expense management.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Expensify Travel is available on the Collect and Control plans, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             reports: {
                 title: 'Reports',
@@ -6820,6 +6811,39 @@ const translations = {
                 description: 'Multiple approval levels is a workflow tool for companies that require more than one person to approve a report before it can be reimbursed.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Multiple approval levels are only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+            },
+            roles: {
+                title: 'Roles',
+                description: 'Assign different roles to different members to increase or decrease visibility and control as appropriate.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Roles are available on the Collect and Control plans, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+            },
+            payments: {
+                title: 'Payments',
+                description: 'Reimburse employees directly from your business bank account.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Payments are available on the Collect and Control plans, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+            },
+            accounting: {
+                title: 'Accounting',
+                description:
+                    'Sync categories, tags, tax rates, and more from your accounting system to Expensify, as well as export expense reports and card transactions – no typing (or typos) involved!',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Accounting is available on the Collect and Control plans, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+            },
+            expensifyCard: {
+                title: 'Expensify Card',
+                description:
+                    'Issue company cards (including virtual cards) directly from your own bank account to get realtime spend control with an unbreakable connection, and up to 2% cashback!',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>The Expensify Card is available on the Collect and Control plans, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+                upgradeButton: 'Upgrade and enable',
+            },
+            invoicing: {
+                title: 'Invoicing',
+                description: 'Create, send, and track professional invoices, all inside Expensify. Get paid faster with integrated payments and real-time visibility.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Invoicing is available on the Collect and Control plans, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             pricing: {
                 perActiveMember: 'per active member per month.',
