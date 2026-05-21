@@ -90,9 +90,10 @@ function DuplicateTransactionItem({transaction, isLastItem, isSelected, onSelect
                     taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                     shouldHighlightItemWhenSelected={false}
                     shouldShowErrors={false}
-                    style={styles.p4}
+                    style={[styles.p4, styles.pr0]}
                     shouldShowRadioButton
-                    radioButtonWrapperStyle={[styles.alignItemsCenter, styles.justifyContentCenter, {width: variables.w44, height: variables.w44}]}
+                    radioButtonContainerStyle={styles.ml0}
+                    radioButtonWrapperStyle={[styles.justifyContentCenter, styles.pr3half, {paddingLeft: 10, height: variables.w44}]}
                     onRadioButtonPress={() => onSelectTransaction(transaction.transactionID)}
                 />
             </PressableWithFeedback>
