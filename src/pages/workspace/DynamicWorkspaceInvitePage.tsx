@@ -100,18 +100,7 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         });
     }, [invitedEmailsToAccountIDsDraft, personalDetails]);
 
-    const {
-        searchTerm,
-        debouncedSearchTerm,
-        setSearchTerm,
-        availableOptions,
-        selectedOptions,
-        selectedOptionsForDisplay,
-        toggleSelection,
-        areOptionsInitialized,
-        onListEndReached,
-        searchOptions,
-    } = useSearchSelector({
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, onListEndReached, searchOptions} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
         includeUserToInvite: true,
@@ -123,11 +112,10 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         shouldKeepSelectedInAvailableOptions: true,
     });
 
-    // Selected non-existing users that aren't in the Contacts section (e.g. typed email addresses)
-    const personalDetailLogins = new Set(availableOptions.personalDetails.map((option) => option.login).filter(Boolean));
-    const selectedNonExistingUsers = selectedOptionsForDisplay.filter((option) => !personalDetailLogins.has(option.login));
-
     const sections: Array<Section<OptionData>> = useMemo(() => {
+        // Selected non-existing users that aren't in the Contacts section (e.g. typed email addresses)
+        const personalDetailLogins = new Set(availableOptions.personalDetails.map((option) => option.login).filter(Boolean));
+        const selectedNonExistingUsers = selectedOptions.filter((option) => !personalDetailLogins.has(option.login));
         const sectionsArr = [];
 
         if (!areOptionsInitialized) {
@@ -162,7 +150,7 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         }
 
         return sectionsArr;
-    }, [areOptionsInitialized, selectedNonExistingUsers, availableOptions.personalDetails, availableOptions.userToInvite, translate]);
+    }, [areOptionsInitialized, selectedOptions, availableOptions.personalDetails, availableOptions.userToInvite, translate]);
 
     const handleToggleSelection = useCallback(
         (option: OptionData) => {
