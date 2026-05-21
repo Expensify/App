@@ -52,6 +52,7 @@ import {
     navigateToDetailsPage,
     rejectMoneyRequestReason,
 } from '@libs/ReportUtils';
+import getShouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     getOriginalTransactionWithSplitInfo,
@@ -241,8 +242,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 recentWaypoints,
                 targetPolicyTags,
                 conciergeReportID,
-                currentUserAccountID: accountID,
-                currentUserLogin: currentUserLogin ?? '',
+                currentUser: {accountID, email: currentUserLogin ?? ''},
             });
         }
     };
@@ -539,6 +539,8 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         return null;
     }
 
+    const shouldPopoverUseScrollView = getShouldPopoverUseScrollView(applicableSecondaryActions);
+
     return (
         <>
             <ButtonWithDropdownMenu
@@ -548,6 +550,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 shouldAlwaysShowDropdownMenu
                 customText={translate('common.more')}
                 options={applicableSecondaryActions}
+                shouldPopoverUseScrollView={shouldPopoverUseScrollView}
                 isSplitButton={false}
                 wrapperStyle={!isNarrowButton && !hasPrimaryAction ? [styles.flexGrow4] : undefined}
             />
