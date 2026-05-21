@@ -24,11 +24,11 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTagForm';
 
-type EditTagPageProps =
+type DynamicEditTagPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_EDIT>
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_EDIT>;
 
-function EditTagPage({route}: EditTagPageProps) {
+function DynamicEditTagPage({route}: DynamicEditTagPageProps) {
     const {policyID} = route.params;
     const orderWeight = Number(route.params.orderWeight);
     const policyData = usePolicyData(policyID);
@@ -39,8 +39,9 @@ function EditTagPage({route}: EditTagPageProps) {
     const routeTagName = route.params.tagName;
     const currentTagName = getCleanedTagName(routeTagName);
     const isSettingsDynamicFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_EDIT;
-    const dynamicTagEditSuffix = isSettingsDynamicFlow ? DYNAMIC_ROUTES.SETTINGS_TAG_EDIT.path : DYNAMIC_ROUTES.WORKSPACE_TAG_EDIT.path;
-    const backPath = useDynamicBackPath(dynamicTagEditSuffix);
+    const settingsBackPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_TAG_EDIT.path);
+    const workspaceBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_TAG_EDIT.path);
+    const backPath = isSettingsDynamicFlow ? settingsBackPath : workspaceBackPath;
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
@@ -86,7 +87,7 @@ function EditTagPage({route}: EditTagPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID="EditTagPage"
+                testID="DynamicEditTagPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -119,4 +120,4 @@ function EditTagPage({route}: EditTagPageProps) {
     );
 }
 
-export default EditTagPage;
+export default DynamicEditTagPage;

@@ -21,7 +21,7 @@ type TagApproverPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_APPROVER>;
 
 function TagApproverPage({route}: TagApproverPageProps) {
-    const {policyID, tagName, orderWeight} = route.params;
+    const {policyID, tagName} = route.params;
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
