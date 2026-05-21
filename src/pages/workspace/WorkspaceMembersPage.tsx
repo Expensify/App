@@ -31,7 +31,6 @@ import useFilteredSelection from '@hooks/useFilteredSelection';
 import useGustoSyncResultsModal from '@hooks/useGustoSyncResultsModal';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useMergeHRInitialSyncingModal from '@hooks/useMergeHRInitialSyncingModal';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -574,7 +573,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     }, [invitedEmailsToAccountIDsDraft, isFocused, accountIDs, prevAccountIDs, route.params.policyID]);
 
     useGustoSyncResultsModal(policyID, connectionSyncProgress, isFocused);
-    useMergeHRInitialSyncingModal(policyID, connectionSyncProgress, isFocused);
 
     const headerMessage = useMemo(() => {
         if (isOfflineAndNoMemberDataAvailable) {
