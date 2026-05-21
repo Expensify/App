@@ -4,6 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -19,23 +20,30 @@ import {addDomainToShortMention} from '@libs/ParsingUtils';
 import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, isSentMoneyReportAction} from '@libs/ReportActionsUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {generateAccountID} from '@libs/UserUtils';
-import {useAgentZeroStatusActions} from '@pages/inbox/AgentZeroStatusContext';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
+import {setIsComposerFullSize} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import {useComposerMeta} from './ComposerContext';
+import {useComposerActions, useComposerEditActions, useComposerEditState, useComposerMeta, useComposerSendState} from './ComposerContext';
+import useSidePanelContext from './useSidePanelContext';
 
-function useComposerSubmit(reportID: string): (comment: string) => void {
+function useComposerSubmit(reportID: string) {
     const {isOffline} = useNetwork();
-    const {kickoffWaitingIndicator} = useAgentZeroStatusActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
     const {availableLoginsList} = useShortMentionsList();
     const isInSidePanel = useIsInSidePanel();
+    const sidePanelContext = useSidePanelContext(reportID);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+    const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
+    const delegateAccountID = useDelegateAccountID();
 
-    const {attachmentFileRef} = useComposerMeta();
+    const {composerRef, attachmentFileRef, textRef} = useComposerMeta();
+    const {clearComposer} = useComposerActions();
+    const {isSendDisabled, debouncedCommentMaxLengthValidation} = useComposerSendState();
+    const {isEditingInComposer, effectiveDraft, didResetComposerHeightWhileEditing, editingState} = useComposerEditState();
+    const {publishDraft, setDidResetComposerHeightWhileEditing} = useComposerEditActions();
     const {scrollOffsetRef} = useContext(ActionListContext);
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -57,9 +65,21 @@ function useComposerSubmit(reportID: string): (comment: string) => void {
 
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
 
-    return (newComment: string) => {
-        const newCommentTrimmed = newComment.trim();
-        kickoffWaitingIndicator();
+    /**
+     * Add or edit a comment in the composer
+     */
+    const validateAndSubmitDraft = (draftMessage: string) => {
+        const draftMessageTrimmed = draftMessage.trim();
+
+        const isSubmittingEdit = isEditingInComposer || didResetComposerHeightWhileEditing;
+        if (isSubmittingEdit && !attachmentFileRef.current) {
+            publishDraft(draftMessageTrimmed);
+            return;
+        }
+
+        if (!draftMessageTrimmed && !attachmentFileRef.current) {
+            return;
+        }
 
         if (attachmentFileRef.current) {
             addAttachmentWithComment({
@@ -68,16 +88,18 @@ function useComposerSubmit(reportID: string): (comment: string) => void {
                 ancestors: targetReportAncestors,
                 attachments: attachmentFileRef.current,
                 currentUserAccountID: currentUserPersonalDetails.accountID,
-                text: newCommentTrimmed,
+                text: draftMessageTrimmed,
                 timezone: currentUserPersonalDetails.timezone,
                 shouldPlaySound: true,
                 isInSidePanel,
+                delegateAccountID,
+                sidePanelContext,
             });
             attachmentFileRef.current = null;
             return;
         }
 
-        const taskMatch = newCommentTrimmed.match(CONST.REGEX.TASK_TITLE_WITH_OPTIONAL_SHORT_MENTION);
+        const taskMatch = draftMessageTrimmed.match(CONST.REGEX.TASK_TITLE_WITH_OPTIONAL_SHORT_MENTION);
         if (taskMatch) {
             let taskTitle = taskMatch[3] ? taskMatch[3].trim().replaceAll('\n', ' ') : undefined;
             if (taskTitle) {
@@ -110,6 +132,8 @@ function useComposerSubmit(reportID: string): (comment: string) => void {
                     assigneeEmail: assignee?.login ?? '',
                     currentUserAccountID: currentUserPersonalDetails.accountID,
                     currentUserEmail,
+                    currentUserDisplayName: currentUserPersonalDetails.displayName,
+                    currentUserAvatar: currentUserPersonalDetails.avatar,
                     assigneeAccountID: assignee?.accountID,
                     assigneeChatReport,
                     policyID: report?.policyID,
@@ -129,7 +153,7 @@ function useComposerSubmit(reportID: string): (comment: string) => void {
                 op: CONST.TELEMETRY.SPAN_SEND_MESSAGE,
                 attributes: {
                     [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
-                    [CONST.TELEMETRY.ATTRIBUTE_MESSAGE_LENGTH]: newCommentTrimmed.length,
+                    [CONST.TELEMETRY.ATTRIBUTE_MESSAGE_LENGTH]: draftMessageTrimmed.length,
                 },
             });
         }
@@ -137,13 +161,52 @@ function useComposerSubmit(reportID: string): (comment: string) => void {
             report: targetReport,
             notifyReportID: reportID,
             ancestors: targetReportAncestors,
-            text: newCommentTrimmed,
+            text: draftMessageTrimmed,
             timezoneParam: currentUserPersonalDetails.timezone ?? CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: currentUserPersonalDetails.accountID,
             shouldPlaySound: true,
             isInSidePanel,
+            sidePanelContext,
             reportActionID: optimisticReportActionID,
+            delegateAccountID,
         });
+    };
+
+    const submitDraftAndClearComposer = () => {
+        if (isSendDisabled || !debouncedCommentMaxLengthValidation?.flush()) {
+            return;
+        }
+
+        if (isComposerFullSize) {
+            setIsComposerFullSize(reportID, false);
+        }
+
+        const isFinishingComposerEdit =
+            editingState === CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING && (isEditingInComposer || didResetComposerHeightWhileEditing) && !attachmentFileRef.current;
+
+        if (isFinishingComposerEdit) {
+            // We need to schedule the submission on the next tick to wait for
+            // potential autocorrection to update the text
+            setTimeout(() => {
+                validateAndSubmitDraft(textRef.current ?? '');
+            }, 0);
+
+            return;
+        }
+
+        if (effectiveDraft !== null && effectiveDraft !== '') {
+            composerRef.current?.resetHeight();
+            if (isEditingInComposer) {
+                setDidResetComposerHeightWhileEditing(true);
+            }
+        }
+
+        clearComposer();
+    };
+
+    return {
+        validateAndSubmitDraft,
+        submitDraftAndClearComposer,
     };
 }
 

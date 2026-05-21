@@ -15,7 +15,6 @@ const mockButtonSpy = jest.fn<void, [ButtonProps]>();
 jest.mock('@components/Button', () => {
     const ReactLib = jest.requireActual<typeof React>('react');
     return {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         __esModule: true,
         default: (props: ButtonProps) => {
             mockButtonSpy(props);

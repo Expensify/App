@@ -12,6 +12,7 @@ jobs:
 
   lint:
     uses: ./.github/workflows/lint.yml
+    secrets: inherit
 
   prettier:
     uses: ./.github/workflows/prettier.yml

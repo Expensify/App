@@ -1,5 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FormProvider from '@components/Form/FormProvider';
@@ -12,10 +12,11 @@ import type {ListItem} from '@components/SelectionList/ListItem/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateDraftSpendRule} from '@libs/actions/User';
+import {updateSpendRuleFormDraft} from '@libs/actions/User';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -38,9 +39,10 @@ function SpendRuleMerchantEditPage({route}: SpendRuleMerchantEditPageProps) {
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
     const [spendRuleForm] = useOnyx(ONYXKEYS.FORMS.SPEND_RULE_FORM);
+    const [spendRuleFormDraft] = useOnyx(ONYXKEYS.FORMS.SPEND_RULE_FORM_DRAFT);
 
-    const merchantNames = spendRuleForm?.merchantNames ?? [];
-    const merchantMatchTypes = spendRuleForm?.merchantMatchTypes ?? [];
+    const merchantNames = spendRuleFormDraft?.merchantNames ?? spendRuleForm?.merchantNames ?? [];
+    const merchantMatchTypes = spendRuleFormDraft?.merchantMatchTypes ?? spendRuleForm?.merchantMatchTypes ?? [];
     const isNew = merchantIndex === ROUTES.NEW;
     const index = isNew ? -1 : Number(merchantIndex);
     const existingMerchantName = isNew ? undefined : merchantNames.at(index);
@@ -48,8 +50,25 @@ function SpendRuleMerchantEditPage({route}: SpendRuleMerchantEditPageProps) {
 
     const [merchantName, setMerchantName] = useState(existingMerchantName ?? '');
     const [matchType, setMatchType] = useState<ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>>(existingMerchantMatchType ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
+    const [isSaved, setIsSaved] = useState(false);
 
     const goBack = useCallback(() => navigation.goBack(), [navigation]);
+
+    useEffect(() => {
+        if (!isSaved) {
+            return;
+        }
+        goBack();
+    }, [isSaved, goBack]);
+
+    useDiscardChangesConfirmation({
+        getHasUnsavedChanges: () => {
+            if (isSaved) {
+                return false;
+            }
+            return merchantName !== (existingMerchantName ?? '') || matchType !== (existingMerchantMatchType ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
+        },
+    });
 
     const submit = () => {
         const trimmedMerchantName = merchantName.trim();
@@ -57,9 +76,9 @@ function SpendRuleMerchantEditPage({route}: SpendRuleMerchantEditPageProps) {
             if (!isNew) {
                 const updatedMerchantNames = merchantNames.filter((_, merchantArrayIndex) => merchantArrayIndex !== index);
                 const updatedMerchantMatchTypes = merchantMatchTypes.filter((_, merchantArrayIndex) => merchantArrayIndex !== index);
-                updateDraftSpendRule({merchantNames: updatedMerchantNames, merchantMatchTypes: updatedMerchantMatchTypes});
+                updateSpendRuleFormDraft({merchantNames: updatedMerchantNames, merchantMatchTypes: updatedMerchantMatchTypes});
             }
-            goBack();
+            setIsSaved(true);
             return;
         }
 
@@ -70,8 +89,8 @@ function SpendRuleMerchantEditPage({route}: SpendRuleMerchantEditPageProps) {
         const updatedMerchantMatchTypes = isNew
             ? [...merchantMatchTypes, matchType]
             : merchantMatchTypes.map((type, merchantArrayIndex) => (merchantArrayIndex === index ? matchType : type));
-        updateDraftSpendRule({merchantNames: updatedMerchantNames, merchantMatchTypes: updatedMerchantMatchTypes});
-        goBack();
+        updateSpendRuleFormDraft({merchantNames: updatedMerchantNames, merchantMatchTypes: updatedMerchantMatchTypes});
+        setIsSaved(true);
     };
 
     const matchTypeItems: MatchTypeItem[] = [
