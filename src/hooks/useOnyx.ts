@@ -3,7 +3,8 @@ import type {DependencyList} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxKey, OnyxValue, UseOnyxOptions, UseOnyxResult} from 'react-native-onyx';
-import {SearchStateContext} from '@components/Search/SearchContext';
+import {SearchQueryContext} from '@components/Search/SearchQueryProvider';
+import {SearchResultsContext} from '@components/Search/SearchResultsProvider';
 import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -54,7 +55,8 @@ const useOnyx: OriginalUseOnyx = <TKey extends OnyxKey, TReturnValue = OnyxValue
     let currentSearchHash: number | undefined;
     let shouldUseLiveData = false;
     if (isOnSearch && isSnapshotCompatibleKey) {
-        const {currentSearchHash: searchContextCurrentSearchHash, shouldUseLiveData: contextShouldUseLiveData} = use(SearchStateContext);
+        const {currentSearchHash: searchContextCurrentSearchHash} = use(SearchQueryContext);
+        const {shouldUseLiveData: contextShouldUseLiveData} = use(SearchResultsContext);
         currentSearchHash = searchContextCurrentSearchHash;
         shouldUseLiveData = !!contextShouldUseLiveData;
     }
