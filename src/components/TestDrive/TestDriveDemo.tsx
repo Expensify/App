@@ -21,11 +21,11 @@ import {completeTestDriveTask} from '@libs/actions/Task';
 import {setSelfTourViewed} from '@libs/actions/Welcome';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import {isAdminRoom} from '@libs/ReportUtils';
 import {getTestDriveURL} from '@libs/TourUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import getTestDriveAdminRoomReport from './getTestDriveAdminRoomReport';
 import TestDriveBanner from './TestDriveBanner';
 
 function TestDriveDemo() {
@@ -34,6 +34,8 @@ function TestDriveDemo() {
     const styles = useThemeStyles();
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [onboardingReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${onboarding?.chatReportID}`);
+    const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
+    const [onboardingAdminsChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${onboardingAdminsChatReportID}`, undefined, [onboardingAdminsChatReportID]);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -48,6 +50,7 @@ function TestDriveDemo() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const parentReportAction = useParentReportAction(viewTourTaskReport);
     const isCurrentUserPolicyAdmin = useIsPaidPolicyAdmin();
+    const adminRoomReport = getTestDriveAdminRoomReport(viewTourTaskParentReport, onboardingAdminsChatReport, onboardingReport);
 
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
@@ -110,11 +113,11 @@ function TestDriveDemo() {
                 Log.hmmm('[AdminTestDriveModal] User was redirected to Workspace Editor, skipping navigation to admin room');
                 return;
             }
-            if (isAdminRoom(onboardingReport)) {
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(onboardingReport?.reportID));
+            if (adminRoomReport) {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminRoomReport.reportID));
             }
         });
-    }, [onboardingReport]);
+    }, [adminRoomReport]);
 
     return (
         <SafeAreaConsumer>
