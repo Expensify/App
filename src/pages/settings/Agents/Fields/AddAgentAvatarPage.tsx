@@ -17,7 +17,7 @@ function AddAgentAvatarPage() {
         if (consumeNavigationToken()) {
             return;
         }
-        Navigation.navigate(ROUTES.SETTINGS_AGENTS_ADD);
+        Navigation.navigate(ROUTES.SETTINGS_AGENTS_ADD.getRoute());
     }, []);
 
     const initialPresetID = getInitialPresetID();
@@ -28,13 +28,13 @@ function AddAgentAvatarPage() {
         } else {
             setPendingAvatar({type: 'file', file: params.file, uri: params.uri});
         }
-        Navigation.goBack(ROUTES.SETTINGS_AGENTS_ADD);
+        Navigation.goBack(ROUTES.SETTINGS_AGENTS_ADD.getRoute());
     }, []);
 
     return (
         <EditAgentAvatarContent
             accountID={0}
-            fallbackRoute={ROUTES.SETTINGS_AGENTS_ADD}
+            fallbackRoute={ROUTES.SETTINGS_AGENTS_ADD.getRoute()}
             onSave={handleSave}
             initialPresetID={initialPresetID}
         />

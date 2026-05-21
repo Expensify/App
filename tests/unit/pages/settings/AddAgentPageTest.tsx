@@ -2,12 +2,15 @@ import {render} from '@testing-library/react-native';
 import React from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AddAgentPage from '@pages/settings/Agents/AddAgentPage';
 import {setInitialPresetID, setNavigationToken} from '@pages/settings/Agents/pendingAgentAvatarStore';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 
 jest.mock('@userActions/Agent', () => ({
-    createAgent: jest.fn(),
+    createAgent: jest.fn(() => ({optimisticAccountID: -123456, avatarURI: undefined})),
 }));
 
 const mockTranslate = jest.fn().mockImplementation((key: string, param?: string) => (param !== undefined ? `${key}(${param})` : key));
@@ -68,8 +71,11 @@ jest.mock('@components/HeaderWithBackButton', () => {
     return MockHeader;
 });
 
+let mockFormOnSubmit: ((values: {firstName: string; prompt: string}) => void) | undefined;
+
 jest.mock('@components/Form/FormProvider', () => {
-    function MockFormProvider({children}: {children: React.ReactNode}) {
+    function MockFormProvider({children, onSubmit}: {children: React.ReactNode; onSubmit: (values: {firstName: string; prompt: string}) => void}) {
+        mockFormOnSubmit = onSubmit;
         return children;
     }
     return MockFormProvider;
@@ -102,7 +108,14 @@ jest.mock('@pages/settings/Agents/pendingAgentAvatarStore', () => ({
 const mockSetInitialPresetID = jest.mocked(setInitialPresetID);
 const mockSetNavigationToken = jest.mocked(setNavigationToken);
 const mockNavigate = jest.mocked(Navigation.navigate);
+const mockGoBack = jest.mocked(Navigation.goBack);
 const mockUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDetails);
+
+type AddAgentRouteProp = PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.ADD>;
+
+function makeRoute(params: AddAgentRouteProp['params'] = {}): AddAgentRouteProp {
+    return {name: '', key: '', params} as unknown as AddAgentRouteProp;
+}
 
 describe('AddAgentPage', () => {
     beforeEach(() => {
@@ -112,7 +125,12 @@ describe('AddAgentPage', () => {
     });
 
     it('renders page title', () => {
-        const {toJSON} = render(<AddAgentPage />);
+        const {toJSON} = render(
+            <AddAgentPage
+                route={makeRoute()}
+                navigation={undefined as never}
+            />,
+        );
 
         expect(JSON.stringify(toJSON())).toContain('addAgentPage.title');
     });
@@ -120,7 +138,12 @@ describe('AddAgentPage', () => {
     it('translates default agent name using current user displayName', () => {
         mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: 0, displayName: 'Nicolas'});
 
-        render(<AddAgentPage />);
+        render(
+            <AddAgentPage
+                route={makeRoute()}
+                navigation={undefined as never}
+            />,
+        );
 
         expect(mockTranslate).toHaveBeenCalledWith('addAgentPage.defaultAgentName', 'Nicolas');
     });
@@ -128,7 +151,12 @@ describe('AddAgentPage', () => {
     it('sets default agent name as InputWrapper defaultValue when displayName exists', () => {
         mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: 0, displayName: 'Nicolas'});
 
-        const {toJSON} = render(<AddAgentPage />);
+        const {toJSON} = render(
+            <AddAgentPage
+                route={makeRoute()}
+                navigation={undefined as never}
+            />,
+        );
 
         expect(JSON.stringify(toJSON())).toContain('firstName::addAgentPage.defaultAgentName(Nicolas)');
     });
@@ -136,26 +164,46 @@ describe('AddAgentPage', () => {
     it('sets no default agent name when displayName is absent', () => {
         mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: 0});
 
-        const {toJSON} = render(<AddAgentPage />);
+        const {toJSON} = render(
+            <AddAgentPage
+                route={makeRoute()}
+                navigation={undefined as never}
+            />,
+        );
 
         expect(JSON.stringify(toJSON())).toContain('firstName::');
         expect(mockTranslate).not.toHaveBeenCalledWith('addAgentPage.defaultAgentName', expect.anything());
     });
 
     it('always sets default prompt regardless of displayName', () => {
-        render(<AddAgentPage />);
+        render(
+            <AddAgentPage
+                route={makeRoute()}
+                navigation={undefined as never}
+            />,
+        );
 
         expect(mockTranslate).toHaveBeenCalledWith('addAgentPage.defaultPrompt');
     });
 
     it('sets default prompt as InputWrapper defaultValue', () => {
-        const {toJSON} = render(<AddAgentPage />);
+        const {toJSON} = render(
+            <AddAgentPage
+                route={makeRoute()}
+                navigation={undefined as never}
+            />,
+        );
 
         expect(JSON.stringify(toJSON())).toContain('prompt::addAgentPage.defaultPrompt');
     });
 
     it('navigates to add avatar route when avatar button is pressed', () => {
-        render(<AddAgentPage />);
+        render(
+            <AddAgentPage
+                route={makeRoute()}
+                navigation={undefined as never}
+            />,
+        );
 
         mockAvatarOnPress?.();
 
@@ -163,11 +211,52 @@ describe('AddAgentPage', () => {
     });
 
     it('sets navigation token and initial preset ID when avatar button is pressed', () => {
-        render(<AddAgentPage />);
+        render(
+            <AddAgentPage
+                route={makeRoute()}
+                navigation={undefined as never}
+            />,
+        );
 
         mockAvatarOnPress?.();
 
         expect(mockSetNavigationToken).toHaveBeenCalledTimes(1);
         expect(mockSetInitialPresetID).toHaveBeenCalledTimes(1);
+    });
+
+    describe('submit branching', () => {
+        beforeEach(() => {
+            mockFormOnSubmit = undefined;
+        });
+
+        it('goes back when policyID is absent in route params', () => {
+            render(
+                <AddAgentPage
+                    route={makeRoute({})}
+                    navigation={undefined as never}
+                />,
+            );
+
+            mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
+
+            expect(mockGoBack).toHaveBeenCalledTimes(1);
+            expect(mockNavigate).not.toHaveBeenCalled();
+        });
+
+        it('also goes back when policyID is set: the backend handles wiring the agent into the workflow, so the page does not navigate to Edit Approval Workflow optimistically', () => {
+            // Optimistic seeding with a placeholder email would persist a fake approver into the
+            // workflow on save, so the page deliberately defers to the CREATE_AGENT response.
+            render(
+                <AddAgentPage
+                    route={makeRoute({policyID: 'POL_42', workflowApproverEmail: 'manager@example.com'})}
+                    navigation={undefined as never}
+                />,
+            );
+
+            mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
+
+            expect(mockGoBack).toHaveBeenCalledTimes(1);
+            expect(mockNavigate).not.toHaveBeenCalledWith(expect.stringContaining('workflows/approvals'));
+        });
     });
 });

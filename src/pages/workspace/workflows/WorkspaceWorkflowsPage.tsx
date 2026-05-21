@@ -58,6 +58,7 @@ import {
     canEditWorkspaceSettings,
     getConnectedHRProvider,
     getCorrectedAutoReportingFrequency,
+    getMemberAccountIDsForWorkspace,
     hasDynamicExternalWorkflow,
     isAnyHRConnected,
     isAnyHRReadOnlyWorkflowMode,
@@ -67,6 +68,7 @@ import {
 } from '@libs/PolicyUtils';
 import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import {convertPolicyEmployeesToApprovalWorkflows, getEligibleExistingBusinessBankAccounts, INITIAL_APPROVAL_WORKFLOW} from '@libs/WorkflowUtils';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -76,6 +78,7 @@ import withPolicy from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import {pressLockedBankAccount} from '@userActions/BankAccounts';
 import {getPaymentMethods} from '@userActions/PaymentMethods';
+import {addMembersToWorkspace} from '@userActions/Policy/Member';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -84,6 +87,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type DismissedProductTraining from '@src/types/onyx/DismissedProductTraining';
+import {setPendingAgentApprover} from './approvals/pendingAgentApproverStore';
 import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
 import {getAutoReportingFrequencyDisplayNames} from './WorkspaceAutoReportingFrequencyPage';
@@ -116,7 +120,7 @@ function WorkflowNoResultsView({message, shouldShow, searchValue}: {message: str
 
 function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.workflows');
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const illustrations = useMemoizedLazyIllustrations(['Workflows']);
@@ -139,6 +143,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {showConfirmModal} = useConfirmModal();
     const isSmartLimitEnabled = isSmartLimitEnabledUtil(workspaceCards);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [agentPrompts] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const accountManagerReportID = account?.accountManagerReportID;
@@ -260,6 +265,83 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID));
     }, [policy, route.params.policyID, availableMembers, usedApproverEmails, canAccessSubmit2026Features, navigateToSubmitWorkspaceApprovalsUpgrade]);
+
+    type OwnedAgent = {accountID: number; email: string; displayName: string; avatar?: AvatarSource};
+    const ownedAgents = useMemo<OwnedAgent[]>(() => {
+        if (!agentPrompts || !personalDetails) {
+            return [];
+        }
+        return Object.keys(agentPrompts)
+            .map<OwnedAgent | null>((key) => {
+                const accountID = Number(key.slice(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT.length));
+                const details = personalDetails[accountID];
+                if (!details?.login) {
+                    return null;
+                }
+                return {
+                    accountID,
+                    email: details.login,
+                    displayName: details.displayName ?? details.login,
+                    avatar: details.avatar,
+                };
+            })
+            .filter((agent): agent is OwnedAgent => !!agent);
+    }, [agentPrompts, personalDetails]);
+
+    const handleAddAgentPress = useCallback(
+        (workflow: ApprovalWorkflow) => {
+            const workflowApproverEmail = workflow.approvers.at(0)?.email ?? '';
+
+            if (ownedAgents.length === 0) {
+                Navigation.navigate(
+                    ROUTES.WORKSPACE_WORKFLOWS_ADD_AGENT.getRoute({
+                        policyID: route.params.policyID,
+                        workflowApproverEmail,
+                    }),
+                );
+                return;
+            }
+
+            // Prefer the first owned agent that isn't already an approver on this workflow.
+            // If every owned agent is already in the workflow there's nothing to seed, so we
+            // route the admin to create a new agent instead of duplicating an existing one.
+            const agent = ownedAgents.find((candidate) => !workflow.approvers.some((approver) => approver.email === candidate.email));
+            if (!agent) {
+                Navigation.navigate(
+                    ROUTES.WORKSPACE_WORKFLOWS_ADD_AGENT.getRoute({
+                        policyID: route.params.policyID,
+                        workflowApproverEmail,
+                    }),
+                );
+                return;
+            }
+
+            const isAlreadyMember = !!policy?.employeeList?.[agent.email];
+            if (!isAlreadyMember && policy) {
+                const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy.employeeList, false, false));
+                addMembersToWorkspace(
+                    {[agent.email]: agent.accountID},
+                    '',
+                    policy,
+                    policyMemberAccountIDs,
+                    CONST.POLICY.ROLE.USER,
+                    formatPhoneNumber,
+                    currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+                );
+            }
+
+            setPendingAgentApprover({
+                email: agent.email,
+                displayName: agent.displayName,
+                avatar: agent.avatar,
+                policyID: route.params.policyID,
+                isAdvancedApproval: isControlPolicy(policy),
+            });
+
+            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, workflowApproverEmail));
+        },
+        [ownedAgents, policy, route.params.policyID, formatPhoneNumber, currentUserAccountID],
+    );
 
     const filteredApprovalWorkflows =
         policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED || policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL
@@ -475,6 +557,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                             ? undefined
                                             : () => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, workflow.approvers.at(0)?.email ?? ''))
                                     }
+                                    onAddAgentPress={() => handleAddAgentPress(workflow)}
+                                    canAddAgent={!shouldBlockApprovalWorkflowEditing && isPolicyAdmin && isCustomAgentBetaEnabled}
                                     currency={policy?.outputCurrency}
                                     isDisabled={shouldBlockApprovalWorkflowEditing}
                                 />
@@ -719,6 +803,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         confirmCurrencyChangeAndHideModal,
         delegateAccountID,
         canAccessSubmit2026Features,
+        handleAddAgentPress,
+        isCustomAgentBetaEnabled,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (

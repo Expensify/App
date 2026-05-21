@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -11,9 +12,9 @@ import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {getApprovalLimitDescription} from '@libs/WorkflowUtils';
 import CONST from '@src/CONST';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
+import Button from './Button';
 import Icon from './Icon';
 import MenuItem from './MenuItem';
-import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
 import UserPill from './UserPill';
 import UserPills from './UserPills';
@@ -22,8 +23,17 @@ type ApprovalWorkflowSectionProps = {
     /** Single workflow displayed in this component */
     approvalWorkflow: ApprovalWorkflow;
 
-    /** A function that is called when the section is pressed */
+    /** A function that is called when the Edit pill is pressed */
     onPress?: () => void;
+
+    /** A function that is called when the Add agent pill is pressed */
+    onAddAgentPress?: () => void;
+
+    /**
+     * Whether the Add agent pill is allowed on this card. It is still gated by the
+     * customAgent beta on top of this flag.
+     */
+    canAddAgent?: boolean;
 
     /** Currency used for formatting approval limits */
     currency?: string;
@@ -32,13 +42,16 @@ type ApprovalWorkflowSectionProps = {
     isDisabled?: boolean;
 };
 
-function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CURRENCY.USD, isDisabled = false}: ApprovalWorkflowSectionProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Lightbulb', 'Users', 'UserCheck']);
+function ApprovalWorkflowSection({approvalWorkflow, onPress, onAddAgentPress, canAddAgent = false, currency = CONST.CURRENCY.USD, isDisabled = false}: ApprovalWorkflowSectionProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Lightbulb', 'Users', 'UserCheck', 'Pencil', 'Bot']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isBetaEnabled} = usePermissions();
+    const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
+    const shouldShowAddAgentButton = canAddAgent && isCustomAgentEnabled && !isDisabled && !!onAddAgentPress;
 
     const approverTitle = (index: number) =>
         approvalWorkflow.approvers.length > 1 ? `${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}` : `${translate('workflowsPage.approver')}`;
@@ -53,17 +66,15 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
         email: m.email,
     }));
     const pressAction = isDisabled ? undefined : onPress;
+    const accessibilityLabel = translate('workflowsPage.accessibilityLabel', {
+        members,
+        approvers: approvalWorkflow?.approvers.map((approver) => Str.removeSMSDomain(approver?.displayName ?? '')).join(', '),
+    });
 
     return (
-        <PressableWithoutFeedback
-            accessibilityRole={isDisabled ? undefined : 'button'}
-            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.APPROVAL_WORKFLOW_SECTION}
-            style={[styles.border, shouldUseNarrowLayout ? styles.p3 : styles.p4, styles.flexRow, styles.justifyContentBetween, styles.mt6, styles.mbn3]}
-            onPress={pressAction}
-            accessibilityLabel={translate('workflowsPage.accessibilityLabel', {
-                members,
-                approvers: approvalWorkflow?.approvers.map((approver) => Str.removeSMSDomain(approver?.displayName ?? '')).join(', '),
-            })}
+        <View
+            accessibilityLabel={accessibilityLabel}
+            style={[styles.border, shouldUseNarrowLayout ? styles.p3 : styles.p4, styles.mt6, styles.mbn3]}
         >
             <View style={[styles.flex1]}>
                 {approvalWorkflow.isDefault && (
@@ -143,13 +154,28 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
                 ))}
             </View>
             {!isDisabled && (
-                <Icon
-                    src={icons.ArrowRight}
-                    fill={theme.icon}
-                    additionalStyles={[styles.alignSelfCenter]}
-                />
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt4, styles.gap2]}>
+                    <Button
+                        small
+                        icon={icons.Pencil}
+                        text={translate('workflowsPage.editWorkflowAction')}
+                        onPress={onPress}
+                        accessibilityLabel={translate('workflowsPage.editWorkflowAction')}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.APPROVAL_WORKFLOW_SECTION}
+                    />
+                    {shouldShowAddAgentButton && (
+                        <Button
+                            small
+                            icon={icons.Bot}
+                            text={translate('workflowsPage.addAgentAction')}
+                            onPress={onAddAgentPress}
+                            accessibilityLabel={translate('workflowsPage.addAgentAction')}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.APPROVAL_WORKFLOW_SECTION}
+                        />
+                    )}
+                </View>
             )}
-        </PressableWithoutFeedback>
+        </View>
     );
 }
 

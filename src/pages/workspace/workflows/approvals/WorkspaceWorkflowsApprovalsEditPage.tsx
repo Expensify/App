@@ -25,9 +25,11 @@ import {clearApprovalWorkflow, removeApprovalWorkflow, setApprovalWorkflow, upda
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ApprovalWorkflowEditor from './ApprovalWorkflowEditor';
+import {clearPendingAgentApprover, getPendingAgentApprover} from './pendingAgentApproverStore';
 
 type WorkspaceWorkflowsApprovalsEditPageProps = WithPolicyAndFullscreenLoadingProps &
     PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EDIT>;
@@ -116,8 +118,30 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             return clearApprovalWorkflow();
         }
 
+        // Honour a one-shot agent approver seed coming from the Workflows page Add agent action.
+        // The seed scopes to the current policy so a stale value from another workspace can't leak in.
+        // We also guard against duplicating the agent if the workflow already has them as an approver,
+        // which can happen if the admin re-enters the flow after a previous save.
+        const pendingAgentApprover = getPendingAgentApprover();
+        let approvers: Approver[] = currentApprovalWorkflow.approvers;
+        if (pendingAgentApprover && pendingAgentApprover.policyID === route.params.policyID) {
+            const isAgentAlreadyInWorkflow = currentApprovalWorkflow.approvers.some((approver) => approver.email === pendingAgentApprover.email);
+            if (!isAgentAlreadyInWorkflow) {
+                const agentApprover: Approver = {
+                    email: pendingAgentApprover.email,
+                    displayName: pendingAgentApprover.displayName,
+                    avatar: pendingAgentApprover.avatar,
+                    approvalLimit: null,
+                    overLimitForwardsTo: '',
+                };
+                approvers = pendingAgentApprover.isAdvancedApproval ? [agentApprover, ...currentApprovalWorkflow.approvers] : [agentApprover, ...currentApprovalWorkflow.approvers.slice(1)];
+            }
+            clearPendingAgentApprover();
+        }
+
         setApprovalWorkflow({
             ...currentApprovalWorkflow,
+            approvers,
             availableMembers: mergeWorkflowMembersWithAvailableMembers(currentApprovalWorkflow.members, defaultWorkflowMembers),
             usedApproverEmails,
             action: CONST.APPROVAL_WORKFLOW.ACTION.EDIT,
@@ -128,7 +152,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         // This runs alongside setApprovalWorkflow above and is part of the same logical update.
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setInitialApprovalWorkflow(currentApprovalWorkflow);
-    }, [currentApprovalWorkflow, defaultWorkflowMembers, initialApprovalWorkflow, usedApproverEmails]);
+    }, [currentApprovalWorkflow, defaultWorkflowMembers, initialApprovalWorkflow, usedApproverEmails, route.params.policyID]);
 
     const submitButtonContainerStyles = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, style: [styles.mb5, styles.mh5]});
 

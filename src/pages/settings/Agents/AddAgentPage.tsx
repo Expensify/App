@@ -19,16 +19,24 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isMobile} from '@libs/Browser';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import {createAgent} from '@userActions/Agent';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/AddAgentForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {clearPendingAvatar, getPendingAvatar, setInitialPresetID, setNavigationToken} from './pendingAgentAvatarStore';
 
-function AddAgentPage() {
+type AddAgentPageProps =
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.ADD>
+    | PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_ADD_AGENT>;
+
+function AddAgentPage({route}: AddAgentPageProps) {
+    const policyID = route.params?.policyID;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {windowWidth, windowHeight} = useWindowDimensions();
@@ -83,11 +91,17 @@ function AddAgentPage() {
         const pendingFile = pendingFileRef.current;
 
         if (pendingFile) {
-            createAgent(firstName, prompt, undefined, pendingFile.file, pendingFile.uri);
+            createAgent(firstName, prompt, undefined, pendingFile.file, pendingFile.uri, policyID);
         } else {
-            createAgent(firstName, prompt, botAvatarIDs.get(avatarSource as BotAvatar));
+            createAgent(firstName, prompt, botAvatarIDs.get(avatarSource as BotAvatar), undefined, undefined, policyID);
         }
 
+        // We do not optimistically seed the agent as an approver here because the agent's real email
+        // (and account ID) are server-generated and unknown until the CREATE_AGENT API responds.
+        // Persisting a placeholder email would corrupt the workflow. The CREATE_AGENT backend handler
+        // is responsible for adding the agent to the workspace's employeeList when policyID is set,
+        // and the user can wire the agent into a workflow from the Workflows page via Add agent once
+        // the server response arrives.
         Navigation.goBack();
     };
 

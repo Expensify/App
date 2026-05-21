@@ -157,6 +157,53 @@ describe('createAgent', () => {
         expect(entry.avatarThumbnail).toBeUndefined();
     });
 
+    it('forwards policyID in the write params when provided', () => {
+        createAgent('Bot', 'My prompt', undefined, undefined, undefined, 'POLICY_42');
+
+        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_AGENT, expect.objectContaining({firstName: 'Bot', prompt: 'My prompt', policyID: 'POLICY_42'}), expect.any(Object));
+    });
+
+    it('returns the optimistic accountID and avatarURI so callers can chain follow-up navigation', () => {
+        const result = createAgent('Bot', 'My prompt', 'bot-avatar--blue');
+
+        expect(result.optimisticAccountID).toBeLessThan(0);
+        expect(result.avatarURI).toBeTruthy();
+    });
+
+    it('adds the agent to the policy employeeList optimistically when policyID is set', () => {
+        createAgent('Bot', 'My prompt', undefined, undefined, undefined, 'POLICY_42');
+
+        const {optimisticData} = getWriteOptions();
+        const employeeListUpdate = optimisticData.find((u) => u.key === `${ONYXKEYS.COLLECTION.POLICY}POLICY_42`);
+
+        expect(employeeListUpdate).toBeTruthy();
+        const employeeList = (employeeListUpdate?.value as {employeeList: Record<string, unknown>} | undefined)?.employeeList;
+        expect(employeeList).toBeTruthy();
+        const optimisticEntry = Object.values(employeeList ?? {}).at(0) as {pendingAction?: string} | undefined;
+        expect(optimisticEntry?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+    });
+
+    it('does not touch the policy employeeList when policyID is omitted', () => {
+        createAgent('Bot', 'My prompt');
+
+        const {optimisticData, successData, failureData} = getWriteOptions();
+        const allKeys: string[] = [...optimisticData, ...successData, ...failureData].map((u) => String(u.key));
+
+        expect(allKeys.some((k) => k.startsWith(ONYXKEYS.COLLECTION.POLICY))).toBe(false);
+    });
+
+    it('sets login on the optimistic personal detail entry so the agent renders as a workspace member', () => {
+        createAgent('Bot', 'My prompt', undefined, undefined, undefined, 'POLICY_42');
+
+        const {optimisticData} = getWriteOptions();
+        const personalDetailUpdate = optimisticData.find((u) => u.key === ONYXKEYS.PERSONAL_DETAILS_LIST);
+        const accountID = getOptimisticAccountID(optimisticData);
+        const entry = (personalDetailUpdate?.value as Record<string, unknown>)?.[accountID] as Record<string, unknown>;
+
+        expect(typeof entry.login).toBe('string');
+        expect(entry.login).toMatch(/@expensify\.com$/);
+    });
+
     it('does not merge ADD_AGENT_FORM (navigation handles UX after submit)', () => {
         createAgent('Bot', 'My prompt');
 

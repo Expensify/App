@@ -15,7 +15,14 @@ function openAgentsPage() {
     read(READ_COMMANDS.OPEN_AGENTS_PAGE, null);
 }
 
-function createAgent(firstName: string | undefined, prompt: string, customExpensifyAvatarID?: string, file?: File | CustomRNImageManipulatorResult, optimisticAvatarURI?: string) {
+function createAgent(
+    firstName: string | undefined,
+    prompt: string,
+    customExpensifyAvatarID?: string,
+    file?: File | CustomRNImageManipulatorResult,
+    optimisticAvatarURI?: string,
+    policyID?: string,
+) {
     const optimisticAccountID = -Math.round(Math.random() * 1000000);
 
     let avatarURI: string | undefined;
@@ -25,6 +32,11 @@ function createAgent(firstName: string | undefined, prompt: string, customExpens
         avatarURI = optimisticAvatarURI;
     }
 
+    // Stable optimistic email used for both PERSONAL_DETAILS_LIST and policy.employeeList so the
+    // optimistic agent renders consistently as a workspace member while the API call is in flight.
+    // The real email is server-assigned and replaces this entry via the API response.
+    const optimisticAgentEmail = `optimistic-agent-${Math.abs(optimisticAccountID)}@expensify.com`;
+
     const optimisticData: AnyOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -33,6 +45,7 @@ function createAgent(firstName: string | undefined, prompt: string, customExpens
                 [optimisticAccountID]: {
                     accountID: optimisticAccountID,
                     displayName: firstName,
+                    login: optimisticAgentEmail,
                     isOptimisticPersonalDetail: true,
                     ...(avatarURI ? {avatar: avatarURI, avatarThumbnail: avatarURI} : {}),
                 },
@@ -68,6 +81,7 @@ function createAgent(firstName: string | undefined, prompt: string, customExpens
                 [optimisticAccountID]: {
                     accountID: optimisticAccountID,
                     displayName: firstName,
+                    login: optimisticAgentEmail,
                     isOptimisticPersonalDetail: true,
                     ...(avatarURI ? {avatar: avatarURI, avatarThumbnail: avatarURI} : {}),
                 },
@@ -84,7 +98,47 @@ function createAgent(firstName: string | undefined, prompt: string, customExpens
         },
     ];
 
-    write(WRITE_COMMANDS.CREATE_AGENT, {firstName, prompt, customExpensifyAvatarID, file}, {optimisticData, successData, failureData});
+    // When the agent is being created from the Workspace > Workflows Add agent flow, surface them as
+    // a workspace member optimistically so the admin can see the new agent immediately. The server
+    // response is expected to add the real employeeList entry under the agent's real email, so we
+    // also null the placeholder entry in successData to avoid leaving a stale optimistic member.
+    if (policyID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                employeeList: {
+                    [optimisticAgentEmail]: {
+                        email: optimisticAgentEmail,
+                        role: CONST.POLICY.ROLE.USER,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    },
+                },
+            },
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                employeeList: {
+                    [optimisticAgentEmail]: null,
+                },
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                employeeList: {
+                    [optimisticAgentEmail]: null,
+                },
+            },
+        });
+    }
+
+    write(WRITE_COMMANDS.CREATE_AGENT, {firstName, prompt, customExpensifyAvatarID, file, policyID}, {optimisticData, successData, failureData});
+
+    return {optimisticAccountID, avatarURI};
 }
 
 function clearAgentError(optimisticAccountID: number) {
