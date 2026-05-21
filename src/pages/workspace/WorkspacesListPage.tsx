@@ -652,7 +652,7 @@ function WorkspacesListPage() {
     const listHeaderComponent = (
         <>
             {isLessThanMediumScreen && <View style={styles.mt3} />}
-            {workspaces.length > CONST.SEARCH_ITEM_LIMIT && (
+            {workspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT && (
                 <SearchBar
                     label={translate('workspace.common.findWorkspace')}
                     inputValue={inputValue}

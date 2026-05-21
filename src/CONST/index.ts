@@ -2624,7 +2624,6 @@ const CONST = {
         WIDTH: 320,
         HEIGHT: 416,
     },
-    SEARCH_ITEM_LIMIT: 15,
     CATEGORY_SHORTCUT_BAR_HEIGHT: 32,
     SMALL_EMOJI_PICKER_SIZE: {
         WIDTH: '100%',
