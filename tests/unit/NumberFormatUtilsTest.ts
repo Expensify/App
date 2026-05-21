@@ -6,6 +6,7 @@ describe('NumberFormatUtils', () => {
     let warnSpy: jest.SpyInstance;
 
     beforeEach(() => {
+        NumberFormatUtils.resetMalformedCurrenciesForTesting();
         warnSpy = jest.spyOn(Log, 'warn').mockImplementation(() => undefined);
     });
 
@@ -80,6 +81,24 @@ describe('NumberFormatUtils', () => {
 
         test('does not swallow RangeErrors when options has no currency key', () => {
             expect(() => NumberFormatUtils.formatToParts(CONST.LOCALES.EN, 0, {style: 'unit', unit: 'not-a-real-unit'} as Intl.NumberFormatOptions)).toThrow(RangeError);
+        });
+    });
+
+    describe('malformed-currency warn deduplication', () => {
+        test('warns at most once per unique malformed currency across repeated format calls', () => {
+            NumberFormatUtils.format(CONST.LOCALES.EN, 25, {style: 'currency', currency: 'XX'});
+            NumberFormatUtils.format(CONST.LOCALES.EN, 25, {style: 'currency', currency: 'XX'});
+            NumberFormatUtils.format(CONST.LOCALES.EN, 25, {style: 'currency', currency: 'XX'});
+            expect(warnSpy).toHaveBeenCalledTimes(1);
+
+            NumberFormatUtils.format(CONST.LOCALES.EN, 25, {style: 'currency', currency: '???'});
+            expect(warnSpy).toHaveBeenCalledTimes(2);
+        });
+
+        test('the deduplication is shared between format and formatToParts', () => {
+            NumberFormatUtils.format(CONST.LOCALES.EN, 25, {style: 'currency', currency: 'YY'});
+            NumberFormatUtils.formatToParts(CONST.LOCALES.EN, 0, {style: 'currency', currency: 'YY'});
+            expect(warnSpy).toHaveBeenCalledTimes(1);
         });
     });
 });

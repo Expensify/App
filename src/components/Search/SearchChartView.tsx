@@ -71,7 +71,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChar
     };
 
     const firstItem = data.at(0);
-    const currency = sanitizeCurrencyCode(firstItem?.currency ?? 'USD');
+    const currency = sanitizeCurrencyCode(firstItem?.currency ?? CONST.CURRENCY.USD);
     const parts = formatToParts(preferredLocale, 0, {style: 'currency', currency});
     const currencyIndex = parts.findIndex((p) => p.type === 'currency');
     const integerIndex = parts.findIndex((p) => p.type === 'integer');
