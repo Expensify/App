@@ -80,6 +80,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
     const hasEverDetectedNewFeed = useRef(false);
+    const hasShownDuplicateModal = useRef(false);
     if (newFeed) {
         hasEverDetectedNewFeed.current = true;
     }
@@ -160,7 +161,8 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
             setShouldBlockWindowOpen(true);
             customWindow?.close();
 
-            if (isDuplicateFeed) {
+            if (isDuplicateFeed && !hasShownDuplicateModal.current) {
+                hasShownDuplicateModal.current = true;
                 showConfirmModal({
                     title: translate('workspace.companyCards.addNewCard.duplicateFeedModal.title'),
                     prompt: translate('workspace.companyCards.addNewCard.duplicateFeedModal.prompt'),
