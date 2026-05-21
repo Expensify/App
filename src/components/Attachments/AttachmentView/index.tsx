@@ -28,6 +28,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {add as addCachedPDFPaths} from '@libs/actions/CachedPDFPaths';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import {isLocalAttachmentSource} from '@libs/AttachmentUtils';
 import {getFileResolution, isHighResolutionImage} from '@libs/fileDownload/FileUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {hasEReceipt, hasReceiptSource, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
@@ -172,7 +173,7 @@ function AttachmentView({
     const [imageError, setImageError] = useState(false);
 
     const {isOffline} = useNetwork({onReconnect: () => setImageError(false)});
-    const isLocalVideoSource = typeof source === 'string' && CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => source.startsWith(prefix));
+    const isLocalVideoSource = typeof source === 'string' && isLocalAttachmentSource(source);
     const shouldShowOfflineVideoIndicator = isOffline && !!isVideo && typeof source === 'string' && !isLocalVideoSource;
 
     useEffect(() => {
@@ -379,7 +380,7 @@ function AttachmentView({
         return (
             <AttachmentViewVideo
                 source={source}
-                shouldUseSharedVideoElement={!CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => source.startsWith(prefix))}
+                shouldUseSharedVideoElement={!isLocalAttachmentSource(source)}
                 isHovered={isHovered}
                 duration={duration}
                 reportID={reportID}

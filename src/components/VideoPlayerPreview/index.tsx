@@ -3,6 +3,7 @@ import type {SourceLoadEventPayload} from 'expo-video';
 import React, {useEffect, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
+import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
 import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
 import VideoPlayer from '@components/VideoPlayer';
 import IconButton from '@components/VideoPlayer/IconButton';
@@ -10,10 +11,12 @@ import {usePlaybackActionsContext, usePlaybackStateContext} from '@components/Vi
 import useCheckIfRouteHasRemainedUnchanged from '@hooks/useCheckIfRouteHasRemainedUnchanged';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
+import {isLocalAttachmentSource} from '@libs/AttachmentUtils';
 import getPlatform from '@libs/getPlatform';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
@@ -56,6 +59,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     const {currentlyPlayingURL, currentRouteReportID} = usePlaybackStateContext();
     const {updateCurrentURLAndReportID} = usePlaybackActionsContext();
     const report = useReportOrReportDraft(reportID);
+    const {isOffline} = useNetwork();
 
     /* This needs to be isSmallScreenWidth because we want to be able to play video in chat (not in attachment modal) when preview is inside an RHP */
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -63,13 +67,15 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
 
     const [isThumbnail, setIsThumbnail] = useState(true);
     const [webMeasuredDimensions, setWebMeasuredDimensions] = useState<Dimensions | null>(null);
+    const isLocalVideoSource = isLocalAttachmentSource(videoUrl);
+    const shouldShowOfflineVideoIndicator = isOffline && !isLocalVideoSource;
     const measuredDimensions = getPlatform() === CONST.PLATFORM.WEB && videoUrl && webMeasuredDimensions ? webMeasuredDimensions : videoDimensions;
     const {thumbnailDimensionsStyles} = useThumbnailDimensions(measuredDimensions.width, measuredDimensions.height);
     const isOnSearch = useIsOnSearch();
     const navigation = useNavigation();
 
     useEffect(() => {
-        if (!videoUrl || getPlatform() !== CONST.PLATFORM.WEB) {
+        if (!videoUrl || getPlatform() !== CONST.PLATFORM.WEB || shouldShowOfflineVideoIndicator) {
             return;
         }
         const video = document.createElement('video');
@@ -87,7 +93,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
         return () => {
             video.src = '';
         };
-    }, [videoUrl, videoDimensions.width, videoDimensions.height]);
+    }, [videoUrl, videoDimensions.width, videoDimensions.height, shouldShowOfflineVideoIndicator]);
 
     // We want to play the video only when the user is on the page where it was initially rendered
     const doesUserRemainOnFirstRenderRoute = useCheckIfRouteHasRemainedUnchanged(videoUrl);
@@ -105,6 +111,9 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     };
 
     const handleOnPress = () => {
+        if (shouldShowOfflineVideoIndicator) {
+            return;
+        }
         updateCurrentURLAndReportID(videoUrl, report, reportID);
         if (isSmallScreenWidth) {
             onShowModalPress();
@@ -120,20 +129,23 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     if (prevPlaybackKey !== playbackKey) {
         setPrevPlaybackKey(playbackKey);
         const isFocused = doesUserRemainOnFirstRenderRoute();
-        if (videoUrl === currentlyPlayingURL && reportID === currentRouteReportID && isFocused) {
+        if (videoUrl === currentlyPlayingURL && reportID === currentRouteReportID && isFocused && !shouldShowOfflineVideoIndicator) {
             setIsThumbnail(false);
         }
     }
 
     return (
         <View style={[styles.webViewStyles.tagStyles.video, thumbnailDimensionsStyles]}>
-            {isSmallScreenWidth || isThumbnail || isDeleted ? (
-                <VideoPlayerThumbnail
-                    thumbnailUrl={thumbnailUrl}
-                    onPress={handleOnPress}
-                    accessibilityLabel={fileName}
-                    isDeleted={isDeleted}
-                />
+            {isSmallScreenWidth || isThumbnail || isDeleted || shouldShowOfflineVideoIndicator ? (
+                <>
+                    <VideoPlayerThumbnail
+                        thumbnailUrl={thumbnailUrl}
+                        onPress={handleOnPress}
+                        accessibilityLabel={fileName}
+                        isDeleted={isDeleted}
+                    />
+                    {shouldShowOfflineVideoIndicator && <AttachmentOfflineIndicator isPreview />}
+                </>
             ) : (
                 <View style={styles.flex1}>
                     <VideoPlayer
