@@ -64,6 +64,7 @@ To customize columns:
 
 You can choose from a wide range of columns, including:
 
+- **Avatar** – The profile image of the report submitter
 - **Date** – When the report or expense was created
 - **Submitted** – The date the report was submitted for approval
 - **Total** – The total amount of the report or expense

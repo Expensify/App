@@ -324,6 +324,14 @@ const staticStyles = (theme: ThemeColors) =>
             fontStyle: FontUtils.fontFamily.platform.EXP_NEUE_ITALIC.fontStyle,
         },
 
+        numberedListItemMarker: {
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.fontSizeNormalHeight,
+            minWidth: 32,
+            textAlign: 'right',
+            paddingHorizontal: 8,
+        },
+
         autoCompleteSuggestionContainer: {
             flexDirection: 'row',
             alignItems: 'center',
@@ -993,6 +1001,13 @@ const staticStyles = (theme: ThemeColors) =>
 
         visibilityVisible: {
             ...visibility.visible,
+        },
+
+        // Visually invisible but kept in the accessibility tree — opacity:0 (not `visibility:hidden`) so screen-reader linear navigation can still reach it.
+        screenReaderOnlyAnchor: {
+            width: 1,
+            height: 1,
+            opacity: 0,
         },
 
         loadingVBAAnimation: {
@@ -6190,7 +6205,7 @@ const dynamicStyles = (theme: ThemeColors) =>
                 left: positionLeftValue,
                 right: positionRightValue,
                 opacity: progress.interpolate({
-                    inputRange: [0, 1],
+                    inputRange: [0, 0.5],
                     outputRange: [0, variables.overlayOpacity],
                     extrapolate: 'clamp',
                 }),

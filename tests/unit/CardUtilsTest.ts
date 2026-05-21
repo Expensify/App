@@ -1164,7 +1164,7 @@ describe('CardUtils', () => {
                     },
                 },
             };
-            expect(buildFeedKeysWithAssignedCards(allWorkspaceCards as unknown as OnyxCollection<WorkspaceCardsList>, [CONST.BETAS.CSV_CARD_IMPORT])).toStrictEqual({
+            expect(buildFeedKeysWithAssignedCards(allWorkspaceCards as unknown as OnyxCollection<WorkspaceCardsList>)).toStrictEqual({
                 [`12345_${csvFeed}`]: true,
             });
         });
@@ -3441,10 +3441,12 @@ describe('CardUtils', () => {
             } as unknown as CardList;
 
             const ids = Object.values(filterAllInactiveCards(cards, true)).map((c) => c.cardID);
-            expect(ids).toEqual(expect.arrayContaining([1, 3, 5]));
+            // All suspended cards are kept when includeDeactivated is true (admins can view/edit them)
+            expect(ids).toEqual(expect.arrayContaining([1, 5, 6]));
             expect(ids).not.toContain(2);
+            // STATE_DEACTIVATED cards are always excluded (server rejects limit updates with 403)
+            expect(ids).not.toContain(3);
             expect(ids).not.toContain(4);
-            expect(ids).not.toContain(6);
             expect(ids).not.toContain(7);
             expect(ids).not.toContain(8);
         });
@@ -3495,11 +3497,13 @@ describe('CardUtils', () => {
 
             const result = filterInactiveCardsForWorkspace(cardsList);
             expect(result.active).toBeDefined();
-            expect(result.adminZeroedDeactivated).toBeDefined();
+            // All suspended cards are kept so admins can view and edit them
             expect(result.adminZeroedSuspended).toBeDefined();
+            expect(result.nonZeroSuspended).toBeDefined();
             expect(result.closed).toBeUndefined();
+            // STATE_DEACTIVATED cards are always excluded (server rejects limit updates with 403)
+            expect(result.adminZeroedDeactivated).toBeUndefined();
             expect(result.deactivatedNonZero).toBeUndefined();
-            expect(result.nonZeroSuspended).toBeUndefined();
             expect(result.deactivatedNoCustomFlag).toBeUndefined();
             expect(result.cardList).toBeDefined();
         });

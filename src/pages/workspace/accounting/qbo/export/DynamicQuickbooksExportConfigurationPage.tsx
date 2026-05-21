@@ -1,10 +1,11 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -48,9 +49,8 @@ function DynamicQuickbooksExportConfigurationPage({policy}: WithPolicyConnection
         [qboConfig?.nonReimbursableExpensesExportDestination],
     );
 
-    const goBack = useCallback(() => {
-        return goBackFromExportConnection(shouldShowVendorMenuItems, backTo);
-    }, [backTo, shouldShowVendorMenuItems]);
+    const dynamicBackPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.path);
+    const goBack = () => goBackFromExportConnection(shouldShowVendorMenuItems, backTo, dynamicBackPath);
 
     const menuItems = [
         {

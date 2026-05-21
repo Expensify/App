@@ -14,7 +14,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {
     Card,
     CompanyCardFeed,
@@ -56,6 +56,7 @@ import {formatPhoneNumber} from './LocalePhoneNumber';
 import {formatMessageElementList} from './Localize';
 import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
+import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForCurrentContext';
 import {getIsOffline, subscribe as subscribeNetworkState} from './NetworkState';
 import Parser from './Parser';
@@ -1629,6 +1630,14 @@ function isNewerReportAction(a: ReportAction, b: ReportAction): boolean {
     }
 
     return a.reportActionID > b.reportActionID;
+}
+
+/**
+ * Returns true if action `a` is older than action `b`.
+ * This is the inverse of isNewerReportAction.
+ */
+function isOlderReportAction(a: ReportAction, b: ReportAction): boolean {
+    return isNewerReportAction(b, a);
 }
 
 /**
@@ -4372,7 +4381,10 @@ function getCardIssuedMessage({
     const assigneeAccountID = cardIssuedActionOriginalMessage?.assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const cardID = cardIssuedActionOriginalMessage?.cardID ?? CONST.DEFAULT_NUMBER_ID;
     const assignee = shouldRenderHTML ? `<mention-user accountID="${assigneeAccountID}"/>` : Parser.htmlToText(`<mention-user accountID="${assigneeAccountID}"/>`);
-    const navigateRoute = shouldNavigateToCardDetails ? ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, String(cardID)) : ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(String(cardID));
+
+    const navigateRoute = shouldNavigateToCardDetails
+        ? createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(String(cardID), policyID))
+        : ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(String(cardID));
     const isExpensifyCardActive = isCardActive(expensifyCard);
     const expensifyCardLink = (expensifyCardLinkText: string) =>
         shouldRenderHTML && isExpensifyCardActive ? `<a href='${environmentURL}/${navigateRoute}'>${expensifyCardLinkText}</a>` : expensifyCardLinkText;
@@ -4614,6 +4626,7 @@ export {
     isApprovedOrSubmittedReportAction,
     isIOURequestReportAction,
     isNewerReportAction,
+    isOlderReportAction,
     isClosedAction,
     isConsecutiveActionMadeByPreviousActor,
     isExportedToIntegrationAction,
