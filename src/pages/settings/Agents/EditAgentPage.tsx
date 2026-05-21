@@ -109,9 +109,11 @@ function EditAgentPage({route}: EditAgentPageProps) {
                     <MenuItemWithTopDescription
                         description={translate('editAgentPage.instructions')}
                         title={agent?.prompt?.trim() ?? ''}
+                        shouldParseTitle
+                        shouldTruncateTitle
+                        characterLimit={300}
                         shouldShowRightIcon
                         onPress={handleEditPromptPress}
-                        numberOfLinesTitle={10}
                     />
                 </OfflineWithFeedback>
                 <MenuItem

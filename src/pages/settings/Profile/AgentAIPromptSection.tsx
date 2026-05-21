@@ -3,6 +3,8 @@ import type {TextInputKeyPressEvent} from 'react-native';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import RenderHTML from '@components/RenderHTML';
+import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -11,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAgentPromptUpdateError, openProfilePage, updateAgentPrompt} from '@libs/actions/Agent';
+import Parser from '@libs/Parser';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -115,12 +118,12 @@ function AgentAIPromptSection({accountID}: AgentAIPromptSectionProps) {
                         testID="ai-prompt-box"
                     >
                         <Text style={[styles.textLabelSupporting, styles.mb2]}>{translate('profilePage.aiPromptSection.prompt')}</Text>
-                        <Text
-                            numberOfLines={10}
+                        <ScrollView
+                            style={{maxHeight: variables.lineHeightNormal * MAX_VISIBLE_PROMPT_LINES}}
                             testID="ai-prompt-text"
                         >
-                            {agentPrompt?.prompt ?? ''}
-                        </Text>
+                            <RenderHTML html={Parser.replace(agentPrompt?.prompt ?? '')} />
+                        </ScrollView>
                     </View>
                 )}
             </OfflineWithFeedback>
