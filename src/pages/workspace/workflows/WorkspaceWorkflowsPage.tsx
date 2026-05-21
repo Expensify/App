@@ -52,7 +52,7 @@ import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {
     canAccessSubmitWorkspaceFeatures,
-    canEditWorkspaceSettings,
+    canMemberRead,
     getConnectedHRProvider,
     getCorrectedAutoReportingFrequency,
     hasDynamicExternalWorkflow,
@@ -181,6 +181,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
     const {isOffline} = useNetwork({onReconnect: fetchData});
     const isPolicyAdmin = isPolicyAdminUtil(policy);
+    const canReadWorkflows = canMemberRead(policy, currentUserEmail, CONST.POLICY.POLICY_FEATURE.WORKFLOWS);
 
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
@@ -730,13 +731,15 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.WORKFLOWS}
         >
             <WorkspacePageWithSections
                 headerText={translate('workspace.common.workflows')}
                 icon={illustrations.Workflows}
                 route={route}
                 shouldShowOfflineIndicatorInWideScreen
-                shouldShowNotFoundPage={!isGroupPolicy || !canEditWorkspaceSettings(policy)}
+                shouldShowNotFoundPage={!isGroupPolicy || !canReadWorkflows}
+                policyFeature={CONST.POLICY.POLICY_FEATURE.WORKFLOWS}
                 isLoading={isLoading}
                 shouldShowLoading={isLoading}
                 shouldUseScrollView

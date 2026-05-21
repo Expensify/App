@@ -437,6 +437,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.PER_DIEM}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
