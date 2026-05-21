@@ -51,9 +51,13 @@ function ConciergeSessionProvider({children}: PropsWithChildren) {
 
     // Resolve pending clear: endSession was called (component unmounted),
     // now we check the destination to decide whether to actually clear.
-    if (pendingClear) {
+    // Only consume pendingClear when currentReportID is defined so we can
+    // distinguish "navigated to another report" (clear) from "navigated to
+    // a non-report page" (preserve session). If currentReportID is still
+    // undefined the flag stays pending until the next report is opened.
+    if (pendingClear && currentReportID) {
         setPendingClear(false);
-        if (!!currentReportID && currentReportID !== conciergeReportID) {
+        if (currentReportID !== conciergeReportID) {
             setSessionStartTime(null);
             setShowFullHistory(false);
         }
