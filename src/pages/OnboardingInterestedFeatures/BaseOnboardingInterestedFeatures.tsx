@@ -237,7 +237,6 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 shouldWaitForRHPVariantInitialization: isSidePanelReportSupported,
                 introSelected,
                 isSelfTourViewed,
-                betas,
             });
 
             // Avoid creating new WS because onboardingPolicyID is cleared before unmounting

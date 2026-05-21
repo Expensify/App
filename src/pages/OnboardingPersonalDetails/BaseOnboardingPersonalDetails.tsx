@@ -94,7 +94,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 onboardingPolicyID,
                 introSelected,
                 isSelfTourViewed,
-                betas,
             });
 
             setOnboardingAdminsChatReportID();
@@ -122,7 +121,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             conciergeChatReportID,
             introSelected,
             isSelfTourViewed,
-            betas,
         ],
     );
 

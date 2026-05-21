@@ -95,7 +95,6 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             companySize: onboardingCompanySize,
             introSelected,
             isSelfTourViewed,
-            betas,
         });
         setOnboardingAdminsChatReportID();
         setOnboardingPolicyID(policy.policyID);
