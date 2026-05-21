@@ -48,24 +48,14 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import {CARD_FEED_BACKGROUND_COLORS, GENERIC_CARD_BACKGROUND_COLOR} from './CardArtworkColors';
-import {getRelativeLuminance} from './ColorUtils';
+import {getContrastCrossover, getRelativeLuminance} from './ColorUtils';
 import DateUtils from './DateUtils';
 import {filterObject} from './ObjectUtils';
 import {arePersonalDetailsMissing, getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import StringUtils from './StringUtils';
 
-/**
- * Background luminance at which colors.productLight900 and white produce equal contrast.
- * Backgrounds above this value pair better with dark text; below it, white text wins.
- *
- * Derived from the WCAG crossover formula:
- *   L_crossover = √(1.05 × (L_dark + 0.05)) − 0.05
- * where L_dark is the relative luminance of colors.productLight900 (#002E22).
- *
- * This intentionally differs from the 0.179 black/white crossover — our dark
- * text is not black, so the crossover point is higher (~0.222).
- */
-const CARD_TEXT_LUMINANCE_CROSSOVER = Math.sqrt(1.05 * (getRelativeLuminance(colors.productLight900) + 0.05)) - 0.05;
+/** Luminance crossover at which colors.productLight900 and white produce equal WCAG contrast. */
+const CARD_TEXT_LUMINANCE_CROSSOVER = getContrastCrossover(colors.productLight900, colors.white);
 
 /**
  * Returns a design-system text color (white or near-black) that meets WCAG 2.1 AA contrast

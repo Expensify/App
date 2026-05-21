@@ -24,5 +24,21 @@ function getRelativeLuminance(hex: string): number {
     return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
 }
 
+/**
+ * Returns the background luminance at which two text colors produce equal WCAG contrast.
+ * Use this to pick the text color with the better contrast ratio against a given background.
+ *
+ * Formula (from WCAG 2.1):
+ *   L_crossover = √(1.05 × (L_dark + 0.05)) − 0.05
+ *
+ * where L_dark is the relative luminance of the darker of the two text colors.
+ * Backgrounds above the crossover luminance pair better with the dark text;
+ * below it, the light text wins.
+ */
+function getContrastCrossover(darkTextHex: string, lightTextHex: string): number {
+    const lDark = Math.min(getRelativeLuminance(darkTextHex), getRelativeLuminance(lightTextHex));
+    return Math.sqrt(1.05 * (lDark + 0.05)) - 0.05;
+}
+
 export type {RGB};
-export {hexToRGB, getRelativeLuminance};
+export {hexToRGB, getRelativeLuminance, getContrastCrossover};
