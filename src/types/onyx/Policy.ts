@@ -3,6 +3,7 @@ import type {ValueOf} from 'type-fest';
 import type {GustoSyncResult} from '@libs/API/GustoSyncResult';
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
+import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
 import type * as OnyxTypes from '.';
 import type * as OnyxCommon from './OnyxCommon';
 import type {WorkspaceTravelSettings} from './TravelSettings';
@@ -702,6 +703,9 @@ type XeroExportConfig = {
 
     /** The accounting Method for Xero connection config */
     accountingMethod?: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
+
+    /** Account ID that receives the exported travel payable */
+    travelInvoicingPayableAccountID?: string;
 };
 
 /** TODO: Will be handled in another issue */
@@ -1517,12 +1521,9 @@ type FinancialForceConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
 /** Gusto connection data */
 type GustoConnectionData = Record<string, never>;
 
-/** Gusto connection config */
-type GustoConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
+/** Shared config for HR integrations (Gusto, Merge HR) */
+type HRConnectionConfigBase = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
-        /** Gusto approval mode */
-        approvalMode: ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | null;
-
         /** Workspace member who acts as the final approver */
         finalApprover: string | null;
 
@@ -1531,27 +1532,37 @@ type GustoConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
     },
     'approvalMode' | 'finalApprover'
 >;
+
+/** Gusto connection config */
+type GustoConnectionConfig = HRConnectionConfigBase & {
+    /** Approval mode */
+    approvalMode: ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | null;
+};
+
+/** Merge HR connection data */
+type MergeHRConnectionData = Record<string, never>;
+
+/** Merge HR connection config */
+type MergeHRConnectionConfig = HRConnectionConfigBase &
+    OnyxCommon.OnyxValueWithOfflineFeedback<{
+        /** Integration provider slug identifying which HR system is linked */
+        integration: MergeHRProviderSlug;
+
+        /** Approval mode controlling how reports are routed for approval */
+        approvalMode: ValueOf<typeof CONST.MERGE_HR.APPROVAL_MODE> | null;
+    }>;
 
 /** TriNet (Zenefits) connection data */
 type ZenefitsConnectionData = Record<string, never>;
 
 /** TriNet (Zenefits) connection config */
-type ZenefitsConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
-    {
-        /** Zenefits approval mode */
-        approvalMode: ValueOf<typeof CONST.ZENEFITS.APPROVAL_MODE> | null;
+type ZenefitsConnectionConfig = HRConnectionConfigBase & {
+    /** Zenefits approval mode */
+    approvalMode: ValueOf<typeof CONST.ZENEFITS.APPROVAL_MODE> | null;
 
-        /** Workspace member who acts as the final approver */
-        finalApprover: string | null;
-
-        /** Whether the connection has been configured */
-        isConfigured: boolean;
-
-        /** Collections of form field errors */
-        errorFields?: OnyxCommon.ErrorFields;
-    },
-    'approvalMode' | 'finalApprover'
->;
+    /** Whether the connection has been configured */
+    isConfigured: boolean;
+};
 
 /**
  * Data imported from QuickBooks Desktop.
@@ -1689,6 +1700,9 @@ type Connections = {
 
     /** TriNet (Zenefits) integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.ZENEFITS]: Connection<ZenefitsConnectionData, ZenefitsConnectionConfig>;
+
+    /** Merge HR integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: Connection<MergeHRConnectionData, MergeHRConnectionConfig>;
 };
 
 /** All integration connections, including unsupported ones */
@@ -2425,4 +2439,9 @@ export type {
     Subrate,
     ProhibitedExpenses,
     NetSuiteConnectionData,
+    HRConnectionConfigBase,
+    MergeHRConnectionConfig,
+    GustoConnectionConfig,
+    ZenefitsConnectionConfig,
+    MergeHRConnectionData,
 };

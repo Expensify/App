@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import usePersonalDetailsByEmail from '@hooks/usePersonalDetailsByEmail';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -40,7 +39,6 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
     const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const personalDetailsByEmail = usePersonalDetailsByEmail();
 
     const approverTitle = (index: number) =>
         approvalWorkflow.approvers.length > 1 ? `${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}` : `${translate('workflowsPage.approver')}`;
@@ -137,7 +135,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
                                     />
                                 </View>
                             }
-                            helperText={getApprovalLimitDescription({approver, currency, translate, convertToDisplayString, personalDetailsByEmail})}
+                            helperText={getApprovalLimitDescription({approver, currency, translate, convertToDisplayString})}
                             helperTextStyle={styles.workflowApprovalLimitText}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_APPROVER}
                         />
