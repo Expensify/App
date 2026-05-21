@@ -7,6 +7,7 @@ import {isTodoSearch} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
+import {SearchResultsActionsContext, SearchResultsContext} from './SearchContextDefinitions';
 import {useSearchQueryContext} from './SearchQueryProvider';
 import type {SearchResultsActionsValue, SearchResultsContextValue} from './types';
 
@@ -27,23 +28,6 @@ const defaultSearchInfo: SearchResultsInfo = {
     total: 0,
     currency: '',
 };
-
-const defaultSearchResultsContext: SearchResultsContextValue = {
-    currentSearchResults: undefined,
-    shouldUseLiveData: false,
-    sortedReportIDs: CONST.EMPTY_ARRAY,
-    shouldShowFiltersBarLoading: false,
-    lastSearchType: undefined,
-};
-
-const defaultSearchResultsActions: SearchResultsActionsValue = {
-    setSortedReportIDs: () => {},
-    setShouldShowFiltersBarLoading: () => {},
-    setLastSearchType: () => {},
-};
-
-const SearchResultsContext = React.createContext<SearchResultsContextValue>(defaultSearchResultsContext);
-const SearchResultsActionsContext = React.createContext<SearchResultsActionsValue>(defaultSearchResultsActions);
 
 function SearchResultsProvider({children}: SearchResultsProviderProps) {
     const {currentSearchHash, currentSearchKey, currentSearchQueryJSON, suggestedSearches} = useSearchQueryContext();

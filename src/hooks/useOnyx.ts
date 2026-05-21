@@ -3,8 +3,7 @@ import type {DependencyList} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxKey, OnyxValue, UseOnyxOptions, UseOnyxResult} from 'react-native-onyx';
-import {SearchQueryContext} from '@components/Search/SearchQueryProvider';
-import {SearchResultsContext} from '@components/Search/SearchResultsProvider';
+import {SearchQueryContext, SearchResultsContext} from '@components/Search/SearchContextDefinitions';
 import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

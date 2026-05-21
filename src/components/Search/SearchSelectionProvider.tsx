@@ -4,6 +4,7 @@ import {isTransactionListItemType, isTransactionReportGroupListItemType} from '@
 import {hasValidModifiedAmount} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {SearchSelectionActionsContext, SearchSelectionContext} from './SearchContextDefinitions';
 import {useSearchQueryContext} from './SearchQueryProvider';
 import type {SearchSelectionActionsValue, SearchSelectionContextValue, SelectedReports, SelectedTransactions} from './types';
 
@@ -26,25 +27,6 @@ const defaultSelectionState: SelectionState = {
     currentSelectedTransactionReportID: undefined,
     shouldTurnOffSelectionMode: false,
 };
-
-const defaultSearchSelectionContext: SearchSelectionContextValue = {
-    ...defaultSelectionState,
-    hasSelectedTransactions: false,
-    shouldShowSelectAllMatchingItems: false,
-    areAllMatchingItemsSelected: false,
-};
-
-const defaultSearchSelectionActions: SearchSelectionActionsValue = {
-    setSelectedTransactions: () => {},
-    setCurrentSelectedTransactionReportID: () => {},
-    clearSelectedTransactions: () => {},
-    removeTransaction: () => {},
-    setShouldShowSelectAllMatchingItems: () => {},
-    selectAllMatchingItems: () => {},
-};
-
-const SearchSelectionContext = React.createContext<SearchSelectionContextValue>(defaultSearchSelectionContext);
-const SearchSelectionActionsContext = React.createContext<SearchSelectionActionsValue>(defaultSearchSelectionActions);
 
 function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
     const {currentSearchHash} = useSearchQueryContext();

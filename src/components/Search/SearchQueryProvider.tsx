@@ -7,30 +7,14 @@ import usePreviousDefined from '@hooks/usePreviousDefined';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import {getDeepestFocusedScreen} from '@libs/Navigation/Navigation';
 import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
-import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import {getSuggestedSearches} from '@libs/SearchUIUtils';
 import SCREENS from '@src/SCREENS';
+import {SearchQueryActionsContext, SearchQueryContext} from './SearchContextDefinitions';
 import type {SearchQueryActionsValue, SearchQueryContextValue} from './types';
 
 type SearchQueryProviderProps = {
     children: React.ReactNode;
 };
-
-const defaultSearchQueryContext: SearchQueryContextValue = {
-    currentSearchHash: -1,
-    currentSimilarSearchHash: -1,
-    currentSearchKey: undefined,
-    currentSearchQueryJSON: undefined,
-    suggestedSearches: {} as Record<SearchKey, SearchTypeMenuItem>,
-    shouldResetSearchQuery: false,
-};
-
-const defaultSearchQueryActions: SearchQueryActionsValue = {
-    setShouldResetSearchQuery: () => {},
-};
-
-const SearchQueryContext = React.createContext<SearchQueryContextValue>(defaultSearchQueryContext);
-const SearchQueryActionsContext = React.createContext<SearchQueryActionsValue>(defaultSearchQueryActions);
 
 function selectSearchQueryParam(state: NavigationState | undefined) {
     const focused = getDeepestFocusedScreen(state);
