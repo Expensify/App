@@ -12,8 +12,8 @@ import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 const mockUseState = React.useState;
 
 const mockCustomLists = [
-    {id: '123', name: 'Department', internalID: '123', scriptID: 'custcol_dept'},
-    {id: '456', name: 'Project', internalID: '456', scriptID: 'custcol_proj'},
+    {id: '123', name: 'Department'},
+    {id: '456', name: 'Project'},
 ];
 
 const mockPolicy = {
