@@ -1,13 +1,14 @@
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type ReportActionItemEventHandler from './types';
 
 const reportActionItemEventHandler: ReportActionItemEventHandler = {
     handleComposerLayoutChange: (reportScrollManager, index) => () => {
-        InteractionManager.runAfterInteractions(() => {
-            requestAnimationFrame(() => {
-                reportScrollManager.scrollToIndex(index, true);
-            });
+        TransitionTracker.runAfterTransitions({
+            callback: () => {
+                requestAnimationFrame(() => {
+                    reportScrollManager.scrollToIndex(index, true);
+                });
+            },
         });
     },
 };
