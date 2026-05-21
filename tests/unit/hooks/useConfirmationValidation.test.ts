@@ -121,6 +121,23 @@ describe('useConfirmationValidation', () => {
         expect(result.current.validate()).toEqual({errorKey: 'iou.error.invalidAmount'});
     });
 
+    it('returns invalidAmount for invoice with zero amount', () => {
+        const {result} = renderHook(() =>
+            useConfirmationValidation({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.INVOICE,
+                iouAmount: 0,
+                transaction: {
+                    transactionID: 'txn1',
+                    amount: 0,
+                    comment: {},
+                    participants: [{accountID: 2, isPolicyExpenseChat: true}],
+                } as unknown as OnyxTypes.Transaction,
+            }),
+        );
+        expect(result.current.validate()).toEqual({errorKey: 'common.error.invalidAmount'});
+    });
+
     it('returns errorKey: null on successful non-PAY validation', () => {
         const {result} = renderHook(() => useConfirmationValidation(baseParams));
         expect(result.current.validate()).toEqual({errorKey: null});
