@@ -130,6 +130,7 @@ import {
     isResolvedActionableWhisper,
     isWhisperActionTargetedToOthers,
 } from './ReportActionsUtils';
+import {getReportName} from './ReportNameUtils';
 import {isExportAction} from './ReportPrimaryActionUtils';
 import {
     canDeleteMoneyRequestReport,
@@ -140,7 +141,6 @@ import {
     getMoneyRequestSpendBreakdown,
     getPersonalDetailsForAccountID,
     getPolicyName,
-    getReportName,
     getReportOrDraftReport,
     getReportStatusTranslation,
     getSearchReportName,
@@ -600,6 +600,7 @@ type GetSectionsParams = {
     onyxPersonalDetailsList?: OnyxTypes.PersonalDetailsList;
     policyForMovingExpenses?: OnyxTypes.Policy;
     optimisticTransactionID?: string;
+    reportAttributesDerivedValue?: OnyxTypes.ReportAttributesDerivedValue['reports'];
 };
 
 /**
@@ -2372,14 +2373,13 @@ function getActions(
     const shouldOnlyShowElsewhere = !canBePaid && canOnlyBePaidElsewhere;
 
     // We're not supporting pay partial amount on search page now.
-    if ((canBePaid || shouldOnlyShowElsewhere) && !hasHeldExpenses(report.reportID, allReportTransactions)) {
+    if ((canBePaid || shouldOnlyShowElsewhere) && !hasHeldExpenses(allReportTransactions)) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.PAY);
     }
 
     if (isExportAvailable) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.EXPORT_TO_ACCOUNTING);
     }
-
     if (isClosedReport(report) && !(canBePaid || shouldOnlyShowElsewhere)) {
         return allActions.length > 0 ? allActions : [CONST.SEARCH.ACTION_TYPES.DONE];
     }
@@ -2434,6 +2434,7 @@ function getTaskSections(
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     conciergeReportID: string | undefined,
     archivedReportsIDList?: ArchivedReportsIDSet,
+    reportAttributesDerivedValue?: OnyxTypes.ReportAttributesDerivedValue['reports'],
 ): [TaskListItemType[], number] {
     const {shouldShowYearCreated} = shouldShowYear(data);
     const tasks = Object.keys(data)
@@ -2471,7 +2472,7 @@ function getTaskSections(
             if (parentReport && personalDetails) {
                 const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${parentReport.policyID}`];
                 const isParentReportArchived = archivedReportsIDList?.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID}`);
-                const parentReportName = getReportName({report: parentReport, policy, isReportArchived: isParentReportArchived, conciergeReportID});
+                const parentReportName = getReportName(parentReport, reportAttributesDerivedValue);
                 const icons = getIcons(parentReport, formatPhoneNumber, personalDetails, null, '', -1, policy, undefined, isParentReportArchived);
                 const parentReportIcon = icons?.at(0);
 
@@ -2488,18 +2489,55 @@ function getTaskSections(
     return [tasks, tasks.length];
 }
 
+type CreateAndOpenSearchTransactionThreadParams = {
+    /** The transaction list item being opened */
+    item: TransactionListItemType;
+
+    /** The intro selected by the user */
+    introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
+
+    /** The route to go back to after navigation */
+    backTo: string;
+
+    /** The current user's login */
+    currentUserLogin: string;
+
+    /** The current user's account ID */
+    currentUserAccountID: number;
+
+    /** Beta features list */
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
+
+    /** Whether the user has seen the self tour */
+    isSelfTourViewed: boolean | undefined;
+
+    /** Whether the user has completed the guided setup flow */
+    hasCompletedGuidedSetupFlow: boolean | undefined;
+
+    /** Existing transaction thread report ID (childReportID), if any */
+    IOUTransactionID?: string;
+
+    /** Preview data used to set optimistic data for the transaction thread preview */
+    transactionPreviewData?: TransactionPreviewData;
+
+    /** Whether to navigate to the transaction thread after creating it */
+    shouldNavigate?: boolean;
+};
+
 /** Creates transaction thread report and navigates to it from the search page */
-function createAndOpenSearchTransactionThread(
-    item: TransactionListItemType,
-    introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
-    backTo: string,
-    currentUserLogin: string,
-    currentUserAccountID: number,
-    betas: OnyxEntry<OnyxTypes.Beta[]>,
-    IOUTransactionID?: string,
-    transactionPreviewData?: TransactionPreviewData,
+function createAndOpenSearchTransactionThread({
+    item,
+    introSelected,
+    backTo,
+    currentUserLogin,
+    currentUserAccountID,
+    betas,
+    isSelfTourViewed,
+    hasCompletedGuidedSetupFlow,
+    IOUTransactionID,
+    transactionPreviewData,
     shouldNavigate = true,
-) {
+}: CreateAndOpenSearchTransactionThreadParams) {
     const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isDeleted = isDeletedTransaction(item);
     const iouReportAction = getIOUActionForReportID(isFromSelfDM ? findSelfDMReportID() : item.reportID, item.transactionID);
@@ -2535,6 +2573,8 @@ function createAndOpenSearchTransactionThread(
             iouReportAction: reportActionToPass,
             transaction,
             transactionViolations,
+            isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
         });
     }
 
@@ -3428,6 +3468,7 @@ function getSections({
     conciergeReportID,
     onyxPersonalDetailsList,
     policyForMovingExpenses,
+    reportAttributesDerivedValue,
     convertToDisplayString,
     optimisticTransactionID,
 }: GetSectionsParams): GetSectionsResult {
@@ -3435,7 +3476,7 @@ function getSections({
         return [...getReportActionsSections(data, visibleReportActionsData), false];
     }
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
-        return [...getTaskSections(data, formatPhoneNumber, conciergeReportID, archivedReportsIDList), false];
+        return [...getTaskSections(data, formatPhoneNumber, conciergeReportID, archivedReportsIDList, reportAttributesDerivedValue), false];
     }
 
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
@@ -5300,8 +5341,8 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: shouldShowReimbursableColumn,
               [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: shouldShowBillableColumn,
               [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: false,
-              [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
               [CONST.SEARCH.TABLE_COLUMNS.COMMENTS]: shouldShowCommentsColumn,
+              [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
           }
         : {
               [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
@@ -5363,7 +5404,12 @@ function getColumnsToShow({
             }
 
             if (shouldShowCommentsColumn && !addedColumns.has(CONST.SEARCH.TABLE_COLUMNS.COMMENTS)) {
-                result.push(CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
+                const totalIndex = result.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL);
+                if (totalIndex === -1) {
+                    result.push(CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
+                } else {
+                    result.splice(totalIndex, 0, CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
+                }
             }
 
             // Don't return early — fall through to updateColumns to detect empty columns
