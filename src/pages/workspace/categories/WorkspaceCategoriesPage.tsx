@@ -1,7 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
-import Avatar from '@components/Avatar';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -15,7 +14,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
 import type {ListItem} from '@components/SelectionList/types';
-import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import WorkspaceCategoriesTable, {WorkspaceCategoryTableRowData} from '@components/Tables/WorkspaceCategoriesTable';
 import Text from '@components/Text';
 import useAutoTurnSelectionModeOffWhenHasNoActiveOption from '@hooks/useAutoTurnSelectionModeOffWhenHasNoActiveOption';
@@ -260,79 +258,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             });
 
             return acc;
-
-            // acc.push({
-            //     text: getDecodedCategoryName(value.name),
-            //     keyForList: value.name,
-            //     isDisabled,
-            //     pendingAction: value.pendingAction,
-            //     errors: value.errors ?? undefined,
-            //     rightElement: isControlPolicyWithWideLayout ? (
-            //         <>
-            //             <View style={glCodeContainerStyle}>
-            //                 <Text
-            //                     numberOfLines={1}
-            //                     style={glCodeTextStyle}
-            //                 >
-            //                     {value['GL Code']}
-            //                 </Text>
-            //             </View>
-            //             {shouldShowApproverColumn && (
-            //                 <View style={[glCodeContainerStyle, styles.flexRow, styles.alignItemsCenter]}>
-            //                     {approverDisplayName ? (
-            //                         <>
-            //                             <Avatar
-            //                                 source={avatar}
-            //                                 name={approverDisplayName}
-            //                                 avatarID={accountID}
-            //                                 type={CONST.ICON_TYPE_AVATAR}
-            //                                 size={CONST.AVATAR_SIZE.SUBSCRIPT}
-            //                                 containerStyles={[styles.mr3]}
-            //                             />
-            //                             <Text
-            //                                 numberOfLines={1}
-            //                                 style={glCodeTextStyle}
-            //                             >
-            //                                 {approverDisplayName}
-            //                             </Text>
-            //                         </>
-            //                     ) : null}
-            //                 </View>
-            //             )}
-            //             <View style={switchContainerStyle}>
-            //                 <Switch
-            //                     isOn={value.enabled}
-            //                     disabled={isDisabled}
-            //                     accessibilityLabel={`${translate('workspace.categories.enableCategory')}: ${getDecodedCategoryName(value.name)}`}
-            //                     onToggle={(newValue: boolean) => {
-            //                         if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])) {
-            //                             showCannotDeleteOrDisableLastCategoryModal();
-            //                             return;
-            //                         }
-            //                         updateWorkspaceCategoryEnabled(newValue, value.name);
-            //                     }}
-            //                     showLockIcon={isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])}
-            //                 />
-            //             </View>
-            //         </>
-            //     ) : (
-            //         <Switch
-            //             isOn={value.enabled}
-            //             disabled={isDisabled}
-            //             accessibilityLabel={`${translate('workspace.categories.enableCategory')}: ${getDecodedCategoryName(value.name)}`}
-            //             onToggle={(newValue: boolean) => {
-            //                 if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])) {
-            //                     showCannotDeleteOrDisableLastCategoryModal();
-            //                     return;
-            //                 }
-            //                 updateWorkspaceCategoryEnabled(newValue, value.name);
-            //             }}
-            //             showLockIcon={isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])}
-            //         />
-            //     ),
-            // });
-
-            // return acc;
         }, []);
     }, [
         showCannotDeleteOrDisableLastCategoryModal,
@@ -355,12 +280,14 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         const results = tokenizedSearch([categoryOption], searchInput, (option) => [option.text ?? '', option.alternateText ?? '']);
         return results.length > 0;
     }, []);
+
     const sortCategories = useCallback(
         (data: ListItem[]) => {
             return data.sort((a, b) => localeCompare(a.text ?? '', b?.text ?? ''));
         },
         [localeCompare],
     );
+
     const [inputValue, setInputValue, filteredCategoryList] = useSearchResults(categoryRows, filterCategory, sortCategories);
 
     useAutoTurnSelectionModeOffWhenHasNoActiveOption(categoryRows);
@@ -730,27 +657,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         shouldShowApproverColumn={shouldShowApproverColumn}
                         onRowSelectionChange={handleCategorySelectionChange}
                     />
-
-                    // <SelectionListWithModal
-                    //     data={filteredCategoryList}
-                    //     ListItem={TableListItem}
-                    //     onSelectionButtonPress={toggleCategory}
-                    //     selectedItems={selectedCategories}
-                    //     onSelectRow={navigateToCategorySettings}
-                    //     onTurnOnSelectionMode={(item) => item && toggleCategory(item)}
-                    //     onSelectAll={filteredCategoryList.length > 0 ? toggleAllCategories : undefined}
-                    //     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                    //     turnOnSelectionModeOnLongPress={isSmallScreenWidth}
-                    //     customListHeader={getCustomListHeader()}
-                    //     customListHeaderContent={headerContent}
-                    //     canSelectMultiple={canSelectMultiple}
-                    //     selectAllAccessibilityLabel={translate('accessibilityHints.selectAllCategories')}
-                    //     shouldShowListEmptyContent={false}
-                    //     onDismissError={dismissError}
-                    //     showScrollIndicator={false}
-                    //     shouldHeaderBeInsideList
-                    //     shouldShowRightCaret
-                    // />
                 )}
                 {!hasVisibleCategories && !isLoading && inputValue.length === 0 && (
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
