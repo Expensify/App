@@ -149,7 +149,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         if (canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled)) {
             const isPerDiemUpgrade = feature?.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.id;
             const targetType = isPerDiemUpgrade ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM;
-            upgradeSubmit(policy, targetType);
+            upgradeSubmit(policy, targetType, email, accountID);
             return;
         }
 

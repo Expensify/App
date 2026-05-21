@@ -5710,12 +5710,46 @@ function upgradeToCorporate(policy: OnyxEntry<Policy>, featureName?: string) {
 
 /**
  * Handle the upgrade from submit to corporate or control based on the target type
- * @param policyID - the ID of the policy
+ * @param policy - Workspace policy being upgraded
  * @param targetType - the type to upgrade to, either team or corporate
- * @param reportID - the ID of the report to upgrade
+ * @param currentUserEmail - Signed-in user's email (login)
+ * @param currentUserAccountID - Signed-in user's account ID
+ * @param reportID - Optional report ID related to this upgrade flow
  */
-function upgradeSubmit(policy: OnyxEntry<Policy>, targetType: Policy['type'], reportID?: string | undefined) {
+function upgradeSubmit(policy: OnyxEntry<Policy>, targetType: Policy['type'], currentUserEmail: string, currentUserAccountID: number | undefined, reportID?: string | undefined) {
     const policyID = policy?.id ?? CONST.POLICY.ID_FAKE;
+    const currentUserLogin = currentUserEmail ?? '';
+    const priorOwner = policy?.owner;
+    const priorOwnerAccountID = policy?.ownerAccountID;
+
+    const memberEmails = new Set(Object.keys(policy?.employeeList ?? {}));
+    if (priorOwner && !memberEmails.has(priorOwner)) {
+        memberEmails.add(priorOwner);
+    }
+    if (currentUserLogin && !memberEmails.has(currentUserLogin)) {
+        memberEmails.add(currentUserLogin);
+    }
+
+    const optimisticEmployeeList: Record<string, PolicyEmployee> = {};
+    const successEmployeeList: Record<string, Pick<PolicyEmployee, 'role'>> = {};
+
+    for (const email of memberEmails) {
+        const existing = policy?.employeeList?.[email] ?? {};
+        const isCurrentUser = email === currentUserLogin;
+        const nextRole = isCurrentUser ? CONST.POLICY.ROLE.ADMIN : CONST.POLICY.ROLE.USER;
+        optimisticEmployeeList[email] = {
+            ...existing,
+            ...(existing.email ? {} : {email}),
+            ...(existing.submitsTo === undefined && isCurrentUser ? {submitsTo: email} : {}),
+            role: nextRole,
+        };
+        successEmployeeList[email] = {role: nextRole};
+    }
+
+    const optimisticOwnerAccountID = currentUserAccountID !== undefined && currentUserLogin ? Number(currentUserAccountID) : priorOwnerAccountID;
+
+    const isCorporateControlUpgrade = targetType === CONST.POLICY.TYPE.CORPORATE;
+
     let newReimbursementChoice;
     if (!!policy?.achAccount && !isCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '')) {
         newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
@@ -5732,6 +5766,24 @@ function upgradeSubmit(policy: OnyxEntry<Policy>, targetType: Policy['type'], re
                 canDowngrade: false,
                 areCompanyCardsEnabled: true,
                 reimbursementChoice: newReimbursementChoice,
+                owner: currentUserLogin || priorOwner,
+                ...(optimisticOwnerAccountID !== undefined ? {ownerAccountID: optimisticOwnerAccountID} : {}),
+                role: CONST.POLICY.ROLE.ADMIN,
+                employeeList: optimisticEmployeeList,
+                ...(isCorporateControlUpgrade
+                    ? {
+                          maxExpenseAge: CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE,
+                          maxExpenseAmount: CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT,
+                          maxExpenseAmountNoReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT,
+                          maxExpenseAmountNoItemizedReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_ITEMIZED_RECEIPT,
+                          glCodes: true,
+                          eReceipts: policy?.outputCurrency === CONST.CURRENCY.USD ? true : policy?.eReceipts,
+                          harvesting: {
+                              enabled: false,
+                          },
+                          isAttendeeTrackingEnabled: false,
+                      }
+                    : {}),
                 pendingFields: {
                     type: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
@@ -5744,8 +5796,13 @@ function upgradeSubmit(policy: OnyxEntry<Policy>, targetType: Policy['type'], re
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
+                isPendingUpgrade: false,
                 pendingFields: {type: null},
                 errorFields: null,
+                owner: currentUserLogin || priorOwner,
+                ...(optimisticOwnerAccountID !== undefined ? {ownerAccountID: optimisticOwnerAccountID} : {}),
+                role: CONST.POLICY.ROLE.ADMIN,
+                employeeList: successEmployeeList,
             },
         },
     ];
@@ -5754,15 +5811,33 @@ function upgradeSubmit(policy: OnyxEntry<Policy>, targetType: Policy['type'], re
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
+                isPendingUpgrade: false,
+                type: policy?.type,
                 canDowngrade: true,
                 areCompanyCardsEnabled: policy?.areCompanyCardsEnabled,
                 pendingFields: {type: null},
                 reimbursementChoice: policy?.reimbursementChoice,
+                owner: priorOwner,
+                ...(priorOwnerAccountID !== undefined ? {ownerAccountID: priorOwnerAccountID} : {}),
+                ...(policy?.role !== undefined ? {role: policy.role} : {}),
+                ...(policy?.employeeList ? {employeeList: policy.employeeList} : {}),
+                ...(isCorporateControlUpgrade
+                    ? {
+                          maxExpenseAge: policy?.maxExpenseAge ?? null,
+                          maxExpenseAmount: policy?.maxExpenseAmount ?? null,
+                          maxExpenseAmountNoReceipt: policy?.maxExpenseAmountNoReceipt ?? null,
+                          maxExpenseAmountNoItemizedReceipt: policy?.maxExpenseAmountNoItemizedReceipt ?? null,
+                          glCodes: policy?.glCodes ?? null,
+                          harvesting: policy?.harvesting ?? null,
+                          isAttendeeTrackingEnabled: null,
+                          eReceipts: policy?.eReceipts,
+                      }
+                    : {}),
                 errorFields: {type: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
             },
         },
     ];
-    
+
     API.write(WRITE_COMMANDS.UPGRADE_SUBMIT, {policyID, targetType, reportID}, {optimisticData, successData, failureData});
 }
 
