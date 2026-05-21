@@ -266,6 +266,10 @@ function MapViewImpl({
                 style={{...StyleUtils.getTextColorStyle(theme.mapAttributionText), zIndex: -1}}
                 mapStyle={styleURL}
                 interactive={interactive}
+                // The distance map is a flat, top-down street-level view where fog is never visible. Disabling it avoids a
+                // Mapbox GL teardown crash: markers schedule a deferred fog-opacity re-evaluation that fires after the map
+                // is torn down, reading `properties` off a reset Fog object (TypeError: properties.get of undefined).
+                fog={null}
             >
                 {interactive && (
                     <Marker
