@@ -9,7 +9,6 @@ import type {Section} from '@components/SelectionList/SelectionListWithSections/
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
-import useInitiallyFocusedKey from '@hooks/useInitiallyFocusedKey';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -167,8 +166,6 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         return sectionsArr;
     }, [areOptionsInitialized, selectedNonExistingUsers, availableOptions.personalDetails, availableOptions.userToInvite, translate]);
 
-    const initiallyFocusedKey = useInitiallyFocusedKey(() => availableOptions.personalDetails.find((item) => item.isSelected)?.keyForList);
-
     const handleToggleSelection = useCallback(
         (option: OptionData) => {
             toggleSelection(option);
@@ -275,7 +272,6 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                     onSelectRow={handleToggleSelection}
                     shouldShowTextInput
                     textInputOptions={textInputOptions}
-                    initiallyFocusedItemKey={initiallyFocusedKey}
                     shouldPreventAutoScrollOnSelect
                     confirmButtonOptions={{
                         onConfirm: inviteUser,
