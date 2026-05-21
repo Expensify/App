@@ -27,9 +27,9 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 
 function buildReport(participantAccountIDs: number[]): Report {
     const participants: Report['participants'] = {};
-    participantAccountIDs.forEach((id) => {
+    for (const id of participantAccountIDs) {
         participants[id] = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS};
-    });
+    }
     return {
         reportID: REPORT_ID,
         type: CONST.REPORT.TYPE.CHAT,
@@ -72,7 +72,7 @@ describe('ComposerLocalTime', () => {
         await waitForBatchedUpdates();
 
         // ParticipantLocalTime renders a text with the participant's name and local time
-        expect(screen.queryByText(/Normal/)).not.toBeNull();
+        expect(screen.getByText(/Normal/)).toBeTruthy();
     });
 
     it('returns null for an agent participant', async () => {
