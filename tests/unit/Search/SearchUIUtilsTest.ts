@@ -6971,6 +6971,8 @@ describe('SearchUIUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                     approver: adminEmail,
                     exporter: adminEmail,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    reimburser: adminEmail,
                     achAccount: {
                         bankAccountID: 1,
                         reimburser: adminEmail,
@@ -7025,6 +7027,7 @@ describe('SearchUIUtils', () => {
 
             expect(allKeys).toContain(CONST.SEARCH.SEARCH_KEYS.SUBMIT);
             expect(allKeys).toContain(CONST.SEARCH.SEARCH_KEYS.APPROVE);
+            expect(allKeys).toContain(CONST.SEARCH.SEARCH_KEYS.PAY);
             expect(allKeys).toContain(CONST.SEARCH.SEARCH_KEYS.EXPORT);
         });
 
