@@ -261,6 +261,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reset: 'Réinitialiser',
         done: 'Terminé',
         more: 'Plus',
+        other: 'Autre',
         debitCard: 'Carte de débit',
         bankAccount: 'Compte bancaire',
         personalBankAccount: 'Compte bancaire personnel',
@@ -494,8 +495,6 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Année précédente',
         nextYear: 'L’an prochain',
         avatar: 'Avatar',
-        goToConcierge: 'Aller à Concierge',
-        allSet: 'C’est fait !',
     },
     socials: {
         podcast: 'Suivez-nous sur Podcast',
@@ -962,8 +961,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 personalSubtitle: 'Portefeuille',
             },
         },
-        assignedCards: 'Vos cartes Expensify',
-        assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} restant`,
         announcements: 'Annonces',
         discoverSection: {
             title: 'Découvrir',
@@ -1042,6 +1039,12 @@ const translations: TranslationDeepObject<typeof en> = {
             linkCompanyCards: 'Lier des cartes d’entreprise',
             setupRules: 'Configurer les règles de dépense',
             inviteAccountant: 'Inviter votre comptable',
+        },
+        yourSpend: {
+            title: 'Vos dépenses',
+            awaitingApproval: 'En attente d’approbation',
+            repaidLast30Days: 'Remboursé au cours des 30 derniers jours',
+            recentTransactions: ({lastFour}: {lastFour: string}) => `Transactions récentes • ${lastFour}`,
         },
     },
     allSettingsScreen: {
@@ -1515,6 +1518,7 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Certains de ces doublons ont déjà été approuvés ou payés.',
         reviewDuplicates: 'Examiner les doublons',
         keepAll: 'Tout garder',
+        keepSelected: 'Garder la sélection',
         noDuplicatesTitle: 'Tout est en ordre !',
         noDuplicatesDescription: "Il n'y a aucune transaction en double à vérifier ici.",
         confirmApprove: 'Confirmer le montant approuvé',
@@ -2412,8 +2416,8 @@ const translations: TranslationDeepObject<typeof en> = {
         addBankAccountToSendAndReceive: 'Ajoutez un compte bancaire pour effectuer ou recevoir des paiements.',
         addDebitOrCreditCard: 'Ajouter une carte de débit ou de crédit',
         cardInactive: 'Inactif',
-        assignedCards: 'Cartes assignées',
-        assignedCardsDescription: 'Les transactions de ces cartes se synchronisent automatiquement.',
+        assignedCards: 'Cartes',
+        assignedCardsDescription: 'Les transactions des cartes assignées se synchronisent automatiquement.',
         expensifyCard: 'Carte Expensify',
         walletActivationPending: 'Nous examinons vos informations. Veuillez revenir vérifier dans quelques minutes !',
         walletActivationFailed: 'Malheureusement, votre portefeuille ne peut pas être activé pour le moment. Veuillez discuter avec Concierge pour obtenir une assistance supplémentaire.',
@@ -2548,6 +2552,11 @@ ${amount} pour ${merchant} - ${date}`,
         frozenByAdminNeedsUnfreeze: ({person}: {person: string}) => `Cette carte a été gelée par ${person}. Veuillez contacter un administrateur pour la dégeler.`,
         spendRules: 'Règles de dépense',
         editSpendRules: 'Modifier les règles de dépenses',
+        cardUnblocked: 'Carte débloquée !',
+        cardUnblockedDescription: 'Il se peut que vous soyez invité à insérer votre carte dans le lecteur la prochaine fois que vous effectuerez un achat.',
+        pinBlocked: 'Votre carte a été bloquée en raison de saisies de code PIN incorrectes.',
+        unblock: 'Débloquer',
+        unblockCard: 'Débloquer la carte',
     },
     workflowsPage: {
         workflowTitle: 'Dépense',
@@ -3018,6 +3027,8 @@ ${amount} pour ${merchant} - ${date}`,
             title: 'Impossible d’ajouter l’adresse e-mail professionnelle',
             subtitle: (workEmail: string | undefined) =>
                 `Nous n’avons pas pu ajouter ${workEmail}. Veuillez réessayer plus tard dans les Paramètres ou discuter avec Concierge pour obtenir de l’aide.`,
+            workAccountClosedSubtitle:
+                'Le compte professionnel associé à cet e-mail est fermé. Veuillez contacter l’administrateur de votre entreprise pour le réactiver, ou inscrivez-vous avec un autre e-mail.',
         },
         tasks: {
             testDriveAdminTask: {
@@ -6025,21 +6036,28 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             error: 'Une erreur s’est produite lors de la duplication de votre nouvel espace de travail. Veuillez réessayer.',
         },
         copyPolicySettings: {
-            error: 'Une erreur s’est produite lors de la copie des paramètres de l’espace de travail. Veuillez réessayer.',
             title: 'Copier les paramètres',
-            selectWorkspaces: 'Sélectionner des espaces de travail',
-            description: 'Choisissez les espaces de travail vers lesquels vous souhaitez copier les paramètres, puis sélectionnez les paramètres que vous voulez copier.',
-            searchPlaceholder: 'Rechercher des espaces de travail',
-            selectFeatures: 'Sélectionner les fonctionnalités à copier',
-            whichFeatures: 'Sélectionnez les paramètres à remplacer dans vos espaces de travail existants.',
-            accountingDisabledTooltip:
-                'Les espaces de travail source et cible ne sont pas connectés au même compte comptable, ces paramètres ne peuvent donc pas être copiés en toute sécurité.',
-            workflowsWithoutMembersConfirm: 'Continuer sans membres',
-            workflowsWithoutMembersPrompt:
-                'La copie d’espaces de travail sans membres ne copiera pas les workflows d’approbation. Les paramètres de soumission et de paiement seront tout de même copiés.',
-            confirmTitle: 'Assurons-nous que tout est correct.',
-            confirmDescription: ({workspaceName}: {workspaceName: string}) =>
-                `Nous copierons les paramètres suivants de <strong>${workspaceName}</strong> vers les espaces de travail que vous avez indiqués`,
+            error: 'Une erreur s’est produite lors de la copie des paramètres de l’espace de travail. Veuillez réessayer.',
+            selectWorkspaces: {
+                title: 'Sélectionner des espaces de travail',
+                description: 'Choisissez les espaces de travail vers lesquels vous souhaitez copier les paramètres, puis sélectionnez les paramètres que vous souhaitez copier.',
+                searchPlaceholder: 'Rechercher des espaces de travail',
+            },
+            selectSettings: {
+                title: 'Sélectionner les fonctionnalités à copier',
+                description: 'Sélectionnez les paramètres à écraser sur vos espaces de travail existants.',
+                accountingMismatch: ({part}: {part: string}) =>
+                    `Vous ne pouvez copier ${part} que si tous les espaces de travail utilisent le même système de comptabilité et la même connexion d’entreprise.`,
+            },
+            confirmSettings: {
+                title: 'Assurons-nous que tout est correct.',
+                description: ({workspaceName}: {workspaceName: string}) =>
+                    `Nous copierons les paramètres suivants de <strong>${workspaceName}</strong> vers les espaces de travail que vous avez indiqués`,
+            },
+            confirmWorkflows: {
+                continue: 'Continuer sans membres',
+                description: 'La copie d’espaces de travail sans membres ne copiera pas les workflows d’approbation. Les paramètres de soumission et de paiement seront tout de même copiés.',
+            },
             progress: {
                 copyInProgressTitle: 'Copie en cours...',
                 copyInProgressDescription: 'Vous pouvez soit attendre la fin du processus, soit laisser Concierge vous prévenir lorsque ce sera terminé.',
@@ -6530,7 +6548,13 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             errors: {
                 rateNameRequired: 'Le nom du taux est obligatoire',
                 existingRateName: 'Un taux kilométrique portant ce nom existe déjà',
+                nameRequired: 'Le nom est obligatoire',
+                startDateMustBeBeforeEndDate: 'La date de début doit être antérieure à la date de fin',
+                amountRequired: 'Le montant est obligatoire',
             },
+            amountPerUnit: (unit: string) => `Montant par ${unit}`,
+            startDate: 'Date de début',
+            endDate: 'Date de fin',
         },
         editor: {
             descriptionInputLabel: 'Description',
@@ -7179,8 +7203,40 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         hr: {
             title: 'RH',
+            connections: 'Connexions',
             subtitle: 'Connectez vos outils RH et gardez les approbations des employés synchronisées.',
-            settingsTitle: 'Paramètres Gusto',
+            connect: 'Connecter',
+            syncNow: 'Synchroniser maintenant',
+            disconnect: 'Déconnecter',
+            disconnectTitle: (providerName: string) => `Déconnecter ${providerName}`,
+            disconnectPrompt: (providerName: string) => `Êtes-vous sûr de vouloir déconnecter ${providerName} ?`,
+            lastSync: (relativeDate: string) => `Dernière synchronisation ${relativeDate}`,
+            syncError: (providerName: string) => `Impossible de se connecter à ${providerName}`,
+            connectionDescription: (providerName: string) => `Connectez ${providerName} pour synchroniser les approbations des employés avec votre espace de travail.`,
+            approvalMode: "Mode d'approbation",
+            providerApprovalMode: (providerName: string) => `Mode d'approbation ${providerName}`,
+            finalApprover: 'Approbateur final',
+            providerFinalApprover: (providerName: string) => `Approbateur final ${providerName}`,
+            notSet: 'Non défini',
+            approvalModeDescription: (providerName: string) => `Les membres et les responsables sont configurés pour se synchroniser avec ${providerName}.`,
+            approvalModeWarningTitle: 'Changer le mode d’approbation ?',
+            approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
+                `Êtes-vous sûr·e de vouloir modifier le mode d’approbation de cet espace de travail ? En savoir plus sur les différents modes de workflow compatibles avec ${providerName} sur notre <a href="${helpSiteURL}">site d’aide</a>.`,
+            approvalModeWarningConfirm: 'Modifier le mode d’approbation',
+            approvalModes: {
+                basic: {
+                    label: 'Approbation simple',
+                    description: 'Tous les utilisateurs soumettent à une seule personne pour traitement et approbation.',
+                },
+                manager: {
+                    label: 'Approbation du responsable',
+                    description: (providerName: string) => `Les employé·e·s soumettent leurs rapports à leur responsable direct configuré dans ${providerName}.`,
+                },
+                custom: {
+                    label: 'Approbation personnalisée',
+                    description: 'Je configurerai manuellement les circuits de validation dans Expensify.',
+                },
+            },
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
                     case 'gustoSyncTitle':
@@ -7202,68 +7258,22 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     }
                 }
             },
+            syncResults: {
+                title: (provider: string) => `Synchronisation ${provider} terminée`,
+                successTitle: (provider: string) => `Connexion ${provider} synchronisée avec succès !`,
+                added: 'Ajouté',
+                removed: 'Supprimé',
+                skipped: 'Ignoré',
+                employeeCount: () => ({
+                    one: '1 employé',
+                    other: (count: number) => `${count} employés`,
+                }),
+            },
             gusto: {
                 title: 'Gusto',
-                approvalMode: 'Mode d’approbation',
-                finalApprover: 'Approbateur final',
-                notSet: 'Non défini',
-                approvalModeDescription: 'Les membres et les responsables sont configurés pour se synchroniser avec Gusto.',
-                approvalModeWarningTitle: 'Changer le mode d’approbation ?',
-                approvalModeWarningPrompt: (helpSiteURL: string) =>
-                    `Êtes-vous sûr·e de vouloir modifier le mode d’approbation de cet espace de travail ? En savoir plus sur les différents modes de workflow compatibles avec Gusto sur notre <a href="${helpSiteURL}">site d’aide</a>.`,
-                approvalModeWarningConfirm: 'Modifier le mode d’approbation',
-                approvalModes: {
-                    basic: {label: 'Approbation simple', description: 'Tous les utilisateurs soumettent à une seule personne pour traitement et approbation.'},
-                    manager: {label: 'Approbation du responsable', description: 'Les employé·e·s soumettent leurs rapports à leur responsable direct configuré dans Gusto.'},
-                    custom: {label: 'Approbation personnalisée', description: 'Je configurerai manuellement les circuits de validation dans Expensify.'},
-                },
-                connect: 'Connect',
-                connectionDescription: 'Connectez Gusto pour synchroniser les validations des employé·e·s avec votre espace de travail.',
-                syncNow: 'Synchroniser maintenant',
-                disconnect: 'Déconnecter',
-                lastSync: (relativeDate: string) => `Dernière synchronisation ${relativeDate}`,
-                syncError: 'Impossible de se connecter à Gusto',
-                disconnectTitle: 'Déconnecter Gusto',
-                disconnectPrompt: 'Voulez-vous vraiment déconnecter Gusto ?',
-                syncResults: {
-                    title: 'Résultats de la synchronisation Gusto',
-                    successTitle: 'Connexion Gusto synchronisée avec succès !',
-                    added: 'Ajouté',
-                    removed: 'Supprimé',
-                    skipped: 'Ignoré',
-                    employeeCount: () => ({
-                        one: '1 employé',
-                        other: (count: number) => `${count} employés`,
-                    }),
-                },
-            },
-            merge: {
-                approvalMode: 'Mode d’approbation',
-                finalApprover: 'Approbateur final',
             },
             zenefits: {
                 title: 'TriNet',
-                connect: 'Connecter',
-                syncNow: 'Synchroniser maintenant',
-                disconnect: 'Déconnecter',
-                lastSync: (relativeDate: string) => `Dernière synchronisation ${relativeDate}`,
-                syncError: 'Impossible de se connecter à TriNet',
-                disconnectTitle: 'Déconnecter TriNet',
-                disconnectPrompt: 'Voulez-vous vraiment déconnecter TriNet ?',
-                connectionDescription: 'Connectez TriNet pour synchroniser les approbations des employés avec votre espace de travail.',
-                approvalMode: 'Mode d’approbation',
-                finalApprover: 'Approbateur final',
-                notSet: 'Non défini',
-                approvalModeDescription: 'Les membres et les responsables sont configurés pour se synchroniser avec TriNet.',
-                approvalModeWarningTitle: 'Changer le mode d’approbation ?',
-                approvalModeWarningPrompt: (helpSiteURL: string) =>
-                    `Voulez-vous vraiment modifier le mode d’approbation de cet espace de travail ? En savoir plus sur les différents modes de workflow compatibles TriNet sur notre <a href="${helpSiteURL}">site d’aide</a>.`,
-                approvalModeWarningConfirm: 'Modifier le mode d’approbation',
-                approvalModes: {
-                    basic: {label: 'Approbation de base', description: 'Tous les utilisateurs soumettent à une seule personne pour traitement et approbation.'},
-                    manager: {label: 'Approbation du responsable', description: 'Les employés soumettent des notes de frais à leur supérieur hiérarchique direct configuré dans TriNet.'},
-                    custom: {label: 'Approbation personnalisée', description: 'Je configurerai manuellement les workflows d’approbation dans Expensify.'},
-                },
             },
         },
     },

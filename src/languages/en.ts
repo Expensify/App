@@ -270,6 +270,7 @@ const translations = {
         // @context Status or button indicating that an action or process has been completed. Should reflect completion.
         done: 'Done',
         more: 'More',
+        other: 'Other',
         debitCard: 'Debit card',
         bankAccount: 'Bank account',
         personalBankAccount: 'Personal bank account',
@@ -1019,8 +1020,12 @@ const translations = {
                 other: (pluralCount: number) => `Time remaining: ${pluralCount} days`,
             }),
         },
-        assignedCards: 'Your Expensify Cards',
-        assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} remaining`,
+        yourSpend: {
+            title: 'Your spend',
+            awaitingApproval: 'Awaiting approval',
+            repaidLast30Days: 'Repaid in the last 30 days',
+            recentTransactions: ({lastFour}: {lastFour: string}) => `Recent transactions • ${lastFour}`,
+        },
         announcements: 'Announcements',
         discoverSection: {
             title: 'Discover',
@@ -1564,6 +1569,7 @@ const translations = {
         someDuplicatesArePaid: 'Some of these duplicates have been approved or paid already.',
         reviewDuplicates: 'Review duplicates',
         keepAll: 'Keep all',
+        keepSelected: 'Keep selected',
         noDuplicatesTitle: 'All set!',
         noDuplicatesDescription: 'There are no duplicate transactions for review here.',
         confirmApprove: 'Confirm approval amount',
@@ -2477,8 +2483,8 @@ const translations = {
         addBankAccountToSendAndReceive: 'Add a bank account to make or receive payments.',
         addDebitOrCreditCard: 'Add debit or credit card',
         cardInactive: 'Inactive',
-        assignedCards: 'Assigned cards',
-        assignedCardsDescription: 'Transactions from these cards sync automatically.',
+        assignedCards: 'Cards',
+        assignedCardsDescription: 'Transactions from assigned cards sync automatically.',
         expensifyCard: 'Expensify Card',
         walletActivationPending: "We're reviewing your information. Please check back in a few minutes!",
         walletActivationFailed: "Unfortunately, your wallet can't be enabled at this time. Please chat with Concierge for further assistance.",
@@ -2580,6 +2586,11 @@ const translations = {
         pinChanged: 'PIN changed!',
         pinChangedHeader: 'PIN changed',
         pinChangedDescription: "You're all set to use your PIN now.",
+        cardUnblocked: 'Card unblocked!',
+        cardUnblockedDescription: 'You may be prompted to insert your card into the reader the next time you make a purchase.',
+        pinBlocked: 'Your card was blocked due to incorrect PIN entries.',
+        unblock: 'Unblock',
+        unblockCard: 'Unblock card',
         changePin: 'Change PIN',
         changePinAtATM: 'Change your PIN at any ATM',
         changePinAtATMDescription: 'This is required in your region. <concierge-link>Reach out to Concierge</concierge-link> if you have any questions.',
@@ -3074,6 +3085,7 @@ const translations = {
         mergeBlockScreen: {
             title: 'Couldn’t add work email',
             subtitle: (workEmail: string | undefined) => `We couldn’t add ${workEmail}. Please try again later in Settings or chat with Concierge for guidance.`,
+            workAccountClosedSubtitle: 'The work account associated with this email is closed. Please contact your company admin to reactivate it, or sign up with a different email.',
         },
         tasks: {
             testDriveAdminTask: {
@@ -6026,18 +6038,26 @@ const translations = {
             error: 'An error occurred while duplicating your new workspace. Please try again.',
         },
         copyPolicySettings: {
-            error: 'An error occurred while copying workspace settings. Please try again.',
             title: 'Copy settings',
-            selectWorkspaces: 'Select workspaces',
-            description: 'Choose the workspaces you want to copy settings to, then select the settings you’d like to copy.',
-            searchPlaceholder: 'Search workspaces',
-            selectFeatures: 'Select features to copy',
-            whichFeatures: 'Select the settings to overwrite on your existing workspaces.',
-            accountingDisabledTooltip: 'The source and target workspaces are not connected to the same accounting account, so these settings can’t be safely copied.',
-            workflowsWithoutMembersConfirm: 'Continue without members',
-            workflowsWithoutMembersPrompt: 'Copying Workflows without Members will not copy approval workflows. Submission and payment settings will still be copied.',
-            confirmTitle: 'Let’s make sure everything looks right.',
-            confirmDescription: ({workspaceName}: {workspaceName: string}) => `We’ll copy the following settings from <strong>${workspaceName}</strong> to the workspaces you’ve specified`,
+            error: 'An error occurred while copying workspace settings. Please try again.',
+            selectWorkspaces: {
+                title: 'Select workspaces',
+                description: 'Choose the workspaces you want to copy settings to, then select the settings you’d like to copy.',
+                searchPlaceholder: 'Search workspaces',
+            },
+            selectSettings: {
+                title: 'Select settings',
+                description: 'Select the settings to overwrite on your existing workspaces.',
+                accountingMismatch: ({part}: {part: string}) => `You can only copy ${part} if all workspaces use the same accounting system and company connection.`,
+            },
+            confirmSettings: {
+                title: 'Let’s make sure everything looks right.',
+                description: ({workspaceName}: {workspaceName: string}) => `We’ll copy the following settings from <strong>${workspaceName}</strong> to the workspaces you’ve specified.`,
+            },
+            confirmWorkflows: {
+                continue: 'Continue without members',
+                description: 'Copying Workflows without Members will not copy approval workflows. Submission and payment settings will still be copied.',
+            },
             progress: {
                 copyInProgressTitle: 'Copy in progress...',
                 copyInProgressDescription: 'You can either wait for the process to finish or Concierge can let you know when it’s done.',
@@ -6454,8 +6474,34 @@ const translations = {
         },
         hr: {
             title: 'HR',
+            connections: 'Connections',
             subtitle: 'Connect HR tools and keep employee approvals in sync.',
-            settingsTitle: 'Gusto settings',
+            connect: 'Connect',
+            syncNow: 'Sync now',
+            disconnect: 'Disconnect',
+            disconnectTitle: (providerName: string) => `Disconnect ${providerName}`,
+            disconnectPrompt: (providerName: string) => `Are you sure you want to disconnect ${providerName}?`,
+            lastSync: (relativeDate: string) => `Last synced ${relativeDate}`,
+            syncError: (providerName: string) => `Can't connect to ${providerName}`,
+            connectionDescription: (providerName: string) => `Connect ${providerName} to keep employee approvals in sync with your workspace.`,
+            approvalMode: 'Approval mode',
+            providerApprovalMode: (providerName: string) => `${providerName} approval mode`,
+            finalApprover: 'Final approver',
+            providerFinalApprover: (providerName: string) => `${providerName} final approver`,
+            notSet: 'Not set',
+            approvalModeDescription: (providerName: string) => `Members and managers are set up to sync with ${providerName}.`,
+            approvalModeWarningTitle: 'Change approval mode?',
+            approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
+                `Are you sure you would like to change the approval mode for this workspace? Learn more about the different ${providerName}-enabled workflow modes in our <a href="${helpSiteURL}">help site</a>.`,
+            approvalModeWarningConfirm: 'Change approval mode',
+            approvalModes: {
+                basic: {label: 'Basic approval', description: 'All users submit to a single person for processing and approval.'},
+                manager: {
+                    label: 'Manager approval',
+                    description: (providerName: string) => `Employees submit reports to their direct manager configured in ${providerName}.`,
+                },
+                custom: {label: 'Custom approval', description: "I'll manually setup approval workflows in Expensify."},
+            },
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
                     case 'gustoSyncTitle':
@@ -6470,6 +6516,8 @@ const translations = {
                         return 'Loading data from TriNet';
                     case 'zenefitsSyncProvisioning':
                         return 'Provisioning employees in policy';
+                    case 'mergeHRSyncTitle':
+                        return 'Synchronizing HR Employees';
                     case 'jobDone':
                         return 'Waiting for imported data to load';
                     default: {
@@ -6477,86 +6525,22 @@ const translations = {
                     }
                 }
             },
+            syncResults: {
+                title: (provider: string) => `${provider} sync complete`,
+                successTitle: (provider: string) => `Successfully synced your ${provider} connection!`,
+                added: 'Added',
+                removed: 'Removed',
+                skipped: 'Skipped',
+                employeeCount: () => ({
+                    one: '1 employee',
+                    other: (count: number) => `${count} employees`,
+                }),
+            },
             gusto: {
                 title: 'Gusto',
-                connect: 'Connect',
-                syncNow: 'Sync now',
-                disconnect: 'Disconnect',
-                lastSync: (relativeDate: string) => `Last synced ${relativeDate}`,
-                syncError: "Can't connect to Gusto",
-                disconnectTitle: 'Disconnect Gusto',
-                disconnectPrompt: 'Are you sure you want to disconnect Gusto?',
-                connectionDescription: 'Connect Gusto to keep employee approvals in sync with your workspace.',
-                approvalMode: 'Approval mode',
-                finalApprover: 'Final approver',
-                notSet: 'Not set',
-                approvalModeDescription: 'Members and managers are set up to sync with Gusto.',
-                approvalModeWarningTitle: 'Change approval mode?',
-                approvalModeWarningPrompt: (helpSiteURL: string) =>
-                    `Are you sure you would like to change the approval mode for this workspace? Learn more about the different Gusto-enabled workflow modes in our <a href="${helpSiteURL}">help site</a>.`,
-                approvalModeWarningConfirm: 'Change approval mode',
-                approvalModes: {
-                    basic: {
-                        label: 'Basic approval',
-                        description: 'All users submit to a single person for processing and approval.',
-                    },
-                    manager: {
-                        label: 'Manager approval',
-                        description: 'Employees submit reports to their direct manager configured in Gusto.',
-                    },
-                    custom: {
-                        label: 'Custom approval',
-                        description: 'I’ll manually setup approval workflows in Expensify.',
-                    },
-                },
-                syncResults: {
-                    title: 'Gusto sync results',
-                    successTitle: 'Successfully synced your Gusto connection!',
-                    added: 'Added',
-                    removed: 'Removed',
-                    skipped: 'Skipped',
-                    employeeCount: () => ({
-                        one: '1 employee',
-                        other: (count: number) => `${count} employees`,
-                    }),
-                },
-            },
-            merge: {
-                approvalMode: 'Approval mode',
-                finalApprover: 'Final approver',
             },
             zenefits: {
                 title: 'TriNet',
-                connect: 'Connect',
-                syncNow: 'Sync now',
-                disconnect: 'Disconnect',
-                lastSync: (relativeDate: string) => `Last synced ${relativeDate}`,
-                syncError: "Can't connect to TriNet",
-                disconnectTitle: 'Disconnect TriNet',
-                disconnectPrompt: 'Are you sure you want to disconnect TriNet?',
-                connectionDescription: 'Connect TriNet to keep employee approvals in sync with your workspace.',
-                approvalMode: 'Approval mode',
-                finalApprover: 'Final approver',
-                notSet: 'Not set',
-                approvalModeDescription: 'Members and managers are set up to sync with TriNet.',
-                approvalModeWarningTitle: 'Change approval mode?',
-                approvalModeWarningPrompt: (helpSiteURL: string) =>
-                    `Are you sure you would like to change the approval mode for this workspace? Learn more about the different TriNet-enabled workflow modes in our <a href="${helpSiteURL}">help site</a>.`,
-                approvalModeWarningConfirm: 'Change approval mode',
-                approvalModes: {
-                    basic: {
-                        label: 'Basic approval',
-                        description: 'All users submit to a single person for processing and approval.',
-                    },
-                    manager: {
-                        label: 'Manager approval',
-                        description: 'Employees submit reports to their direct manager configured in TriNet.',
-                    },
-                    custom: {
-                        label: 'Custom approval',
-                        description: "I'll manually setup approval workflows in Expensify.",
-                    },
-                },
             },
         },
         export: {
@@ -6633,9 +6617,15 @@ const translations = {
                 one: 'Are you sure you want to delete this rate?',
                 other: 'Are you sure you want to delete these rates?',
             }),
+            amountPerUnit: (unit: string) => `Amount per ${unit}`,
+            startDate: 'Start date',
+            endDate: 'End date',
             errors: {
                 rateNameRequired: 'Rate name is required',
                 existingRateName: 'A distance rate with this name already exists',
+                nameRequired: 'Name is required',
+                amountRequired: 'Amount is required',
+                startDateMustBeBeforeEndDate: 'Start date must be before end date',
             },
         },
         editor: {

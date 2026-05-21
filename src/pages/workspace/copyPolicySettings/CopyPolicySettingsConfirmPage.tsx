@@ -7,6 +7,7 @@ import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -77,8 +78,8 @@ function CopyPolicySettingsConfirmPage() {
 
         showConfirmModal({
             title: translate('common.headsUp'),
-            prompt: translate('workspace.copyPolicySettings.workflowsWithoutMembersPrompt'),
-            confirmText: translate('workspace.copyPolicySettings.workflowsWithoutMembersConfirm'),
+            prompt: translate('workspace.copyPolicySettings.confirmWorkflows.description'),
+            confirmText: translate('workspace.copyPolicySettings.confirmWorkflows.continue'),
             cancelText: translate('common.cancel'),
         }).then((result) => {
             if (result.action !== ModalActions.CONFIRM) {
@@ -118,8 +119,12 @@ function CopyPolicySettingsConfirmPage() {
                 />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     <View style={[styles.ph5, styles.pv3]}>
-                        <Text style={[styles.textHeadline]}>{translate('workspace.copyPolicySettings.confirmTitle')}</Text>
-                        <Text style={[styles.textSupporting, styles.mt1]}>{translate('workspace.copyPolicySettings.confirmDescription', {workspaceName: sourcePolicy?.name ?? ''})}</Text>
+                        <Text style={[styles.textHeadline]}>{translate('workspace.copyPolicySettings.confirmSettings.title')}</Text>
+                        <View style={styles.mt1}>
+                            <RenderHTML
+                                html={`<muted-text>${translate('workspace.copyPolicySettings.confirmSettings.description', {workspaceName: sourcePolicy?.name ?? ''})}</muted-text>`}
+                            />
+                        </View>
                     </View>
                     <View style={[styles.mt4]}>
                         <MenuItemWithTopDescription
@@ -127,12 +132,14 @@ function CopyPolicySettingsConfirmPage() {
                             description={translate('common.settings')}
                             onPress={navigateToSelectFeatures}
                             shouldShowRightIcon
+                            numberOfLinesTitle={0}
                         />
                         <MenuItemWithTopDescription
                             title={targetPolicies.map((policy) => policy?.name).join(', ')}
                             description={translate('common.workspaces')}
                             onPress={navigateToSelectWorkspaces}
                             shouldShowRightIcon
+                            numberOfLinesTitle={0}
                         />
                     </View>
                 </ScrollView>

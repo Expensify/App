@@ -150,7 +150,7 @@ function CopyPolicySettingsSelectWorkspacesPage() {
     };
 
     const textInputOptions: TextInputOptions = {
-        label: translate('workspace.copyPolicySettings.searchPlaceholder'),
+        label: translate('workspace.copyPolicySettings.selectWorkspaces.searchPlaceholder'),
         value: searchValue,
         onChangeText: setSearchValue,
         headerMessage: filteredPolicies.length === 0 && searchValue.length > 0 ? translate('common.noResultsFound') : undefined,
@@ -171,8 +171,8 @@ function CopyPolicySettingsSelectWorkspacesPage() {
                     onBackButtonPress={Navigation.goBack}
                 />
                 <View style={[styles.ph5, styles.pv3]}>
-                    <Text style={[styles.textHeadline]}>{translate('workspace.copyPolicySettings.selectWorkspaces')}</Text>
-                    <Text style={[styles.textSupporting]}>{translate('workspace.copyPolicySettings.description')}</Text>
+                    <Text style={[styles.textHeadline]}>{translate('workspace.copyPolicySettings.selectWorkspaces.title')}</Text>
+                    <Text style={[styles.textSupporting]}>{translate('workspace.copyPolicySettings.selectWorkspaces.description')}</Text>
                 </View>
                 <View style={[styles.flex1]}>
                     <SelectionList

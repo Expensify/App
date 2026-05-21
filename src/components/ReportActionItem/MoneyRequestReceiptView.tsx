@@ -15,6 +15,7 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import ReceiptAudit, {ReceiptAuditMessages} from '@components/ReceiptAudit';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
+import ReceiptHoverZoom from '@components/ReceiptHoverZoom';
 import Tooltip from '@components/Tooltip';
 import useActiveRoute from '@hooks/useActiveRoute';
 import useAncestors from '@hooks/useAncestors';
@@ -55,6 +56,8 @@ import {
 import trackExpenseCreationError from '@libs/telemetry/trackExpenseCreationError';
 import {
     didReceiptScanSucceed as didReceiptScanSucceedTransactionUtils,
+    hasEReceipt,
+    hasReceiptSource,
     hasReceipt as hasReceiptTransactionUtils,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isManualDistanceRequest,
@@ -250,6 +253,9 @@ function MoneyRequestReceiptView({
     if (hasReceipt) {
         receiptURIs = getThumbnailAndImageURIs(updatedTransaction ?? transaction);
     }
+    const transactionForReceipt = updatedTransaction ?? transaction;
+    const isEReceiptTransaction = !!transactionForReceipt && !hasReceiptSource(transactionForReceipt) && hasEReceipt(transactionForReceipt);
+    const canZoomReceipt = hasReceipt && !isLoading && !isTransactionScanning && !isEReceiptTransaction && !!receiptURIs?.image;
     const pendingAction = transaction?.pendingAction;
     // Need to return undefined when we have pendingAction to avoid the duplicate pending action
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => {
@@ -595,23 +601,28 @@ function MoneyRequestReceiptView({
                             onMouseLeave={hoverBind.onMouseLeave}
                         >
                             <View style={[styles.flex1, isReceiptOfflinePending && styles.offlineFeedbackPending]}>
-                                <ReportActionItemImage
-                                    shouldUseThumbnailImage={!fillSpace}
-                                    shouldUseFullHeight={fillSpace}
-                                    thumbnail={receiptURIs?.thumbnail}
-                                    fileExtension={receiptURIs?.fileExtension}
-                                    isThumbnail={receiptURIs?.isThumbnail}
-                                    image={receiptURIs?.image}
-                                    isLocalFile={receiptURIs?.isLocalFile}
-                                    filename={receiptURIs?.filename}
-                                    transaction={updatedTransaction ?? transaction}
-                                    enablePreviewModal
-                                    readonly={readonly || !canEditReceipt}
-                                    mergeTransactionID={mergeTransactionID}
-                                    report={report}
-                                    onLoad={() => setIsLoading(false)}
-                                    onLoadFailure={() => setIsLoading(false)}
-                                />
+                                <ReceiptHoverZoom
+                                    isEnabled={canZoomReceipt}
+                                    hoverContainerRef={receiptContainerRef}
+                                >
+                                    <ReportActionItemImage
+                                        shouldUseThumbnailImage={!fillSpace}
+                                        shouldUseFullHeight={fillSpace}
+                                        thumbnail={receiptURIs?.thumbnail}
+                                        fileExtension={receiptURIs?.fileExtension}
+                                        isThumbnail={receiptURIs?.isThumbnail}
+                                        image={receiptURIs?.image}
+                                        isLocalFile={receiptURIs?.isLocalFile}
+                                        filename={receiptURIs?.filename}
+                                        transaction={updatedTransaction ?? transaction}
+                                        enablePreviewModal
+                                        readonly={readonly || !canEditReceipt}
+                                        mergeTransactionID={mergeTransactionID}
+                                        report={report}
+                                        onLoad={() => setIsLoading(false)}
+                                        onLoadFailure={() => setIsLoading(false)}
+                                    />
+                                </ReceiptHoverZoom>
                             </View>
                             {canShowReceiptActions && (
                                 <View style={[styles.receiptActionButtonsContainer, styles.pointerEventsBoxNone, !hovered && !isPickerOpen && deviceHasHoverSupport && styles.opacity0]}>
