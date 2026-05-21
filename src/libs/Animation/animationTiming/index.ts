@@ -1,6 +1,3 @@
-// Sequencing delay for focus traps, autofocus, scroll-to-input, and other post-transition work.
-// Kept at 300ms on web so callers using `setTimeout(..., ANIMATED_TRANSITION)` still wait for layout to settle,
-// even though the menu/dropdown animation itself is now instant on web (see MENU_ANIMATION_DURATION).
 const ANIMATED_TRANSITION = 300;
 const MENU_ANIMATION_DURATION = 1;
 const DEFAULT_IN = 1;
