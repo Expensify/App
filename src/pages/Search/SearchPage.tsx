@@ -77,7 +77,7 @@ function SearchPage({route}: SearchPageProps) {
 
     const metadata = searchResults?.search;
     const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
-    const shouldShowFooter = !areAllMatchingItemsSelected && (selectedTransactionsKeys.length > 0 || (shouldAllowFooterTotals && !!metadata?.count));
+    const shouldShowFooter = (!areAllMatchingItemsSelected && selectedTransactionsKeys.length > 0) || (shouldAllowFooterTotals && !!metadata?.count);
 
     useEffect(() => {
         if (shouldUseNarrowLayout) {
