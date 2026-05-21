@@ -147,7 +147,7 @@ function arePoliciesAccountingCompatible(source: Policy | undefined, target: Pol
 }
 
 /**
- * Copying accounting settings is allowed when the target is unconnected or already matches the source. 
+ * Copying accounting settings is allowed when the target is unconnected or already matches the source.
  * Swap (target connected to a different account) and wipe (source connected,s target unconnected) are rejected.
  */
 function isTargetCompatibleForAccountingPart(source: Policy | undefined, target: Policy | undefined): boolean {
