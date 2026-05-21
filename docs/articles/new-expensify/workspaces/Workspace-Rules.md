@@ -159,6 +159,10 @@ Only Workspace Admins on the **Control** plan can enable, update, or disable wor
 
 Disabling workspace rules removes any active warnings or violations from draft or outstanding expenses that relied on those rules.
 
+## What happens to billable tracking when I enable Rules?
+
+If billable tracking was previously disabled for the workspace, enabling **Rules** automatically turns it back on using the workspace's existing default billable setting. This ensures the **Billable default** rule and related billable controls are available as soon as Rules are active.
+
 ## Can I disable SmartScan for my workspace?
 
 No, SmartScan can’t be disabled for group (paid) workspaces and cannot be turned off.
