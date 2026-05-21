@@ -92,11 +92,7 @@ function AmountField({
     const participantForAmountValidation =
         isNewManualExpenseFlowEnabled && firstParticipant ? firstParticipant : getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID).at(0);
     const isSelfDMParticipant = !!participantForAmountValidation?.isSelfDM;
-    const isP2P = isSelfDMParticipant
-        ? false
-        : isNewManualExpenseFlowEnabled
-          ? isParticipantP2P(participantForAmountValidation)
-          : !!(firstParticipant?.accountID && !firstParticipant?.isPolicyExpenseChat);
+    const isP2P = isParticipantP2P(participantForAmountValidation);
     const shouldShowAmountRequiredError = formError === 'common.error.fieldRequired';
     const shouldShowAmountInvalidError = formError === 'common.error.invalidAmount';
 
