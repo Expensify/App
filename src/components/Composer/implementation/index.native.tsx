@@ -11,7 +11,7 @@ import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {containsOnlyEmojis} from '@libs/EmojiUtils';
+import {containsOnlyEmojis, convertEmojiShortcodesToUnicode} from '@libs/EmojiUtils';
 import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import getLandscapeTextInputRefProxy from '@libs/getLandscapeTextInputRefProxy';
 import Parser from '@libs/Parser';
@@ -27,6 +27,7 @@ function Composer({
     onPasteFile = () => {},
     isDisabled = false,
     maxLines,
+    onChangeText = () => {},
     isComposerFullSize = false,
     style,
     // On native layers we like to have the Text Input not focused so the
@@ -39,6 +40,8 @@ function Composer({
     ...props
 }: ComposerProps) {
     const textInputRef = useRef<MarkdownTextInput | null>(null);
+    // Native may still emit the raw text change after paste, so keep the converted value ready for that next change.
+    const pendingPastedTextRef = useRef<{rawText: string; convertedText: string} | null>(null);
     const textContainsOnlyEmojis = useMemo(() => containsOnlyEmojis(Parser.htmlToText(Parser.replace(value ?? ''))), [value]);
     const theme = useTheme();
     const markdownStyle = useMarkdownStyle(textContainsOnlyEmojis, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
@@ -98,6 +101,25 @@ function Composer({
         (e: NativeSyntheticEvent<TextInputPasteEventData>) => {
             const clipboardContent = e.nativeEvent.items.at(0);
             if (clipboardContent?.type === 'text/plain') {
+                // Native paste only provides plain text, so convert pasted emoji shortcodes before the composer stores them.
+                const convertedText = convertEmojiShortcodesToUnicode(clipboardContent.data);
+
+                if (convertedText === clipboardContent.data) {
+                    return;
+                }
+
+                e.preventDefault();
+
+                const currentValue = value ?? '';
+                const selectionStart = selection?.start ?? currentValue.length;
+                const selectionEnd = selection?.end ?? selectionStart;
+                const textBeforeSelection = currentValue.slice(0, selectionStart);
+                const textAfterSelection = currentValue.slice(selectionEnd);
+                const rawPastedText = `${textBeforeSelection}${clipboardContent.data}${textAfterSelection}`;
+                const convertedPastedText = `${textBeforeSelection}${convertedText}${textAfterSelection}`;
+
+                pendingPastedTextRef.current = {rawText: rawPastedText, convertedText: convertedPastedText};
+                onChangeText(convertedPastedText);
                 return;
             }
             const mimeType = clipboardContent?.type ?? '';
@@ -111,7 +133,22 @@ function Composer({
                 .then((size) => (file = {...file, size}))
                 .finally(() => onPasteFile(file));
         },
-        [onPasteFile],
+        [onChangeText, onPasteFile, selection?.end, selection?.start, value],
+    );
+
+    const handleChangeText = useCallback(
+        (text: string) => {
+            // If native applies the raw paste after onPaste, replace that one change with the converted emoji text.
+            if (pendingPastedTextRef.current?.rawText === text) {
+                onChangeText(pendingPastedTextRef.current.convertedText);
+                pendingPastedTextRef.current = null;
+                return;
+            }
+
+            pendingPastedTextRef.current = null;
+            onChangeText(text);
+        },
+        [onChangeText],
     );
 
     const maxHeightStyle = useMemo(
@@ -138,6 +175,7 @@ function Composer({
             readOnly={isDisabled}
             onPaste={pasteFile}
             onClear={onClear}
+            onChangeText={handleChangeText}
             disableFullscreenUI
         />
     );

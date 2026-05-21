@@ -1,12 +1,9 @@
 import {useCallback, useEffect, useRef} from 'react';
-import {emojiNameTable} from '@assets/emojis';
+import {convertEmojiShortcodesToUnicode} from '@libs/EmojiUtils';
 import {isStandaloneURL, toMarkdownLink} from '@libs/MarkdownLinkHelpers';
 import Parser from '@libs/Parser';
 import CONST from '@src/CONST';
 import type UseHtmlPaste from './types';
-
-const EMOJI_SHORTCODE_REGEX = /:([a-z0-9_+-]+):/gi;
-const EMOJI_IMAGE_ALT_REGEX = /^([a-f\d]{4,6}(?:-[a-f\d]{4,6})*)(?:@\d+x)?\.(?:png|gif|webp)$/i;
 
 const insertAtCaret = (target: HTMLElement, insertedText: string, maxLength: number) => {
     const currentText = target.textContent ?? '';
@@ -42,10 +39,9 @@ const insertAtCaret = (target: HTMLElement, insertedText: string, maxLength: num
     }
 };
 
-const convertEmojiShortcodesToUnicode = (text: string): string => text.replaceAll(EMOJI_SHORTCODE_REGEX, (match, emojiName: string) => emojiNameTable[emojiName]?.code ?? match);
-
 const getEmojiFromImageAlt = (alt: string): string => {
-    const emojiHexCodepoints = alt.match(EMOJI_IMAGE_ALT_REGEX)?.[1];
+    // iOS Safari can paste emoji images as blob URLs with codepoint filenames in alt text.
+    const emojiHexCodepoints = alt.match(CONST.REGEX.EMOJI_IMAGE_ALT)?.at(1);
 
     if (!emojiHexCodepoints) {
         return '';
@@ -77,6 +73,7 @@ const getEmojiReplacementText = (image: HTMLImageElement): string => {
         return emojiFromImageAlt;
     }
 
+    // Slack can put shortcode text in emoji image alt text, e.g. ":tada:".
     const emojiFromShortcode = convertEmojiShortcodesToUnicode(image.alt);
     if (emojiFromShortcode !== image.alt) {
         return emojiFromShortcode;
@@ -169,7 +166,8 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
                 return;
             }
 
-            paste(clipboardText);
+            // Plain-text paste has no image metadata, so convert shortcodes before inserting.
+            paste(convertEmojiShortcodesToUnicode(clipboardText));
         },
         [paste],
     );
