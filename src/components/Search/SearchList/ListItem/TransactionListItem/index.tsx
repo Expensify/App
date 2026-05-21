@@ -11,7 +11,7 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import type {TransactionListItemProps, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {ListItem} from '@components/SelectionList/types';
-import {useEditingCellState} from '@components/Table/EditableCell';
+import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -162,7 +162,7 @@ function TransactionListItem<TItem extends ListItem>({
         linkedReportAction: transactionItem.reportAction,
     });
 
-    const handleOnPress = () => {
+    const handleOnPress = (event?: Parameters<typeof onSelectRow>[2]) => {
         // Consume the tap that dismissed an editing cell — a second tap will open the row.
         // We check the ref rather than isEditingCell because blur fires before onPress and resets the state.
         if (wasEditingOnMouseDownRef.current) {
@@ -176,7 +176,7 @@ function TransactionListItem<TItem extends ListItem>({
         if (isDeletedTransaction && !canSelectMultiple) {
             return;
         }
-        onSelectRow(item, transactionPreviewData);
+        onSelectRow(item, transactionPreviewData, event);
     };
 
     const handleOnMouseDown = (e?: React.MouseEvent) => {
@@ -190,11 +190,11 @@ function TransactionListItem<TItem extends ListItem>({
 
     const handleOnHoverIn = () => setShouldDisableHoverStyle(false);
 
-    const handleActionButtonPress = () => {
+    const handleActionButtonPress = (event?: Parameters<typeof onSelectRow>[2]) => {
         handleActionButtonPressUtil({
             hash: currentSearchHash,
             item: transactionItem,
-            goToItem: () => onSelectRow(item, transactionPreviewData),
+            goToItem: () => onSelectRow(item, transactionPreviewData, event),
             snapshotReport,
             snapshotPolicy,
             policy: parentPolicy,
@@ -212,7 +212,6 @@ function TransactionListItem<TItem extends ListItem>({
 
     const sharedProps = {
         item,
-        transactionItem,
         isDeletedTransaction,
         isFocused,
         showTooltip,
