@@ -1,8 +1,8 @@
 import React from 'react';
-import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import BaseVictoryChartRenderer from './BaseVictoryChartRenderer';
+import type {VictoryChartRendererProps} from './types';
 
-function VictoryChartRenderer(props: CustomRendererProps<TBlock>) {
+function VictoryChartRenderer(props: VictoryChartRendererProps) {
     return <BaseVictoryChartRenderer {...props} />;
 }
 

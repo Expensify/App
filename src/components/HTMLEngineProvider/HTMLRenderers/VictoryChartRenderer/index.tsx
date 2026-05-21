@@ -1,8 +1,9 @@
 import {WithSkiaWeb} from '@shopify/react-native-skia/lib/module/web';
 import React from 'react';
-import type {CustomRendererProps, TBlock} from 'react-native-render-html';
+import type {VictoryChartRendererProps} from './types';
 
-function VictoryChartRenderer(props: CustomRendererProps<TBlock>) {
+function VictoryChartRenderer(props: VictoryChartRendererProps) {
+    // Victory Chart uses Skia internally and it uses a WASM module that must be loaded before rendering any Skia-based component.
     return (
         <WithSkiaWeb
             getComponent={() => import('./BaseVictoryChartRenderer')}
