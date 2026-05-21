@@ -75,7 +75,11 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
     const {updateBrokenConnection, isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
     const isNewFeedHasError = !!(newFeed && cardFeeds?.[newFeed]?.errors);
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
-    const isDuplicateFeed = isNewFeedConnected && !newFeed && isPlaid;
+    const hasEverDetectedNewFeed = useRef(false);
+    if (newFeed) {
+        hasEverDetectedNewFeed.current = true;
+    }
+    const isDuplicateFeed = isNewFeedConnected && !newFeed && isPlaid && !hasEverDetectedNewFeed.current;
     const {showConfirmModal} = useConfirmModal();
 
     const activityReasonAttributes: SkeletonSpanReasonAttributes = {

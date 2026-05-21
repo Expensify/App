@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -79,7 +79,11 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
     const isNewFeedHasError = !!(newFeed && cardFeeds?.[newFeed]?.errors);
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
-    const isDuplicateFeed = isNewFeedConnected && !newFeed && isPlaid;
+    const hasEverDetectedNewFeed = useRef(false);
+    if (newFeed) {
+        hasEverDetectedNewFeed.current = true;
+    }
+    const isDuplicateFeed = isNewFeedConnected && !newFeed && isPlaid && !hasEverDetectedNewFeed.current;
     const {showConfirmModal} = useConfirmModal();
 
     const onOpenBankConnectionFlow = useCallback(() => {
