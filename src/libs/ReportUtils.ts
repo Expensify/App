@@ -973,7 +973,7 @@ type GetReportNameParams = {
     personalDetails?: Partial<PersonalDetailsList>;
     invoiceReceiverPolicy?: OnyxEntry<Policy>;
     /** Report attributes used to return a precomputed report name */
-    reportAttributes?: ReportAttributesDerivedValue['reports'];
+    reportAttributes: ReportAttributesDerivedValue['reports'];
     transactions?: Transaction[];
     reports?: Report[];
     isReportArchived?: boolean;
@@ -5736,10 +5736,9 @@ function getReportName(reportNameInformation: GetReportNameParams): string {
     // Check if we can use report name in derived values - only when we have report but no other params
     const canUseDerivedValue =
         report && policy === undefined && parentReportActionParam === undefined && personalDetails === undefined && invoiceReceiverPolicy === undefined && isReportArchived === undefined;
-    const attributes = reportAttributes ?? reportAttributesDerivedValue;
-    const derivedNameExists = report && !!attributes?.[report.reportID]?.reportName;
+    const derivedNameExists = report && !!reportAttributes?.[report.reportID]?.reportName;
     if (canUseDerivedValue && derivedNameExists) {
-        return attributes[report.reportID].reportName;
+        return reportAttributes[report.reportID].reportName;
     }
 
     let formattedName: string | undefined;
@@ -5763,7 +5762,7 @@ function getReportName(reportNameInformation: GetReportNameParams): string {
         reportPolicy,
         parentReport,
         personalDetails as PersonalDetailsList,
-        attributes,
+        reportAttributes,
     );
 
     if (parentReportActionBasedName) {
@@ -5773,7 +5772,7 @@ function getReportName(reportNameInformation: GetReportNameParams): string {
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS)) {
         const {originalID} = getOriginalMessage(parentReportAction) ?? {};
         const originalReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalID}`];
-        const reportName = getReportName({report: originalReport});
+        const reportName = getReportName({report: originalReport, reportAttributes});
         return getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, !!parentReportAction.isOriginalReportDeleted, translateLocal);
     }
 
@@ -5927,6 +5926,7 @@ function getSearchReportName(props: GetReportNameParams): string {
                     parentReportActionParam: props.parentReportActionParam,
                     personalDetails: props.personalDetails,
                     invoiceReceiverPolicy: props.invoiceReceiverPolicy,
+                    reportAttributes: props.reportAttributes,
                     transactions: props.transactions,
                     isReportArchived: props.isReportArchived,
                     reports: props.reports,

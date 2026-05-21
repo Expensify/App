@@ -8,6 +8,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useReportAttributes from '@hooks/useReportAttributes';
 import {search} from '@libs/actions/Search';
 import {getSections, getSortedSections, getSuggestedSearches, isSearchDataLoaded} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
@@ -57,6 +58,7 @@ function useSpendOverTimeData() {
     const {accountID, login} = useCurrentUserPersonalDetails();
     const [searchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash}`);
     const isSearchLoading = !!searchResults?.search?.isLoading;
+    const reportAttributes = useReportAttributes();
 
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
@@ -101,6 +103,7 @@ function useSpendOverTimeData() {
                       allReportMetadata: undefined,
                       conciergeReportID: undefined,
                       convertToDisplayString,
+                      reportAttributesDerivedValue: reportAttributes ?? {},
                   })[0],
                   localeCompare,
                   translate,
