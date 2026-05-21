@@ -153,6 +153,7 @@ function createTransaction({
                 recentWaypoints,
                 betas,
                 isSelfTourViewed,
+                optimisticChatReportID,
                 optimisticTransactionID,
             });
         } else {
