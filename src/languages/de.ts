@@ -7154,7 +7154,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             connectionDescription: (providerName: string) => `Verbinden Sie ${providerName}, um Mitarbeitergenehmigungen mit Ihrem Workspace zu synchronisieren.`,
             approvalMode: 'Genehmigungsmodus',
             finalApprover: 'Endgültige:r Genehmiger:in',
-            providerFinalApprover: (providerName: string) => `${providerName} endgültige:r Genehmiger:in`,
+            providerFinalApprover: (providerName: string) => `${providerName} Endgenehmigende*r`,
             notSet: 'Nicht festgelegt',
             approvalModeDescription: (providerName: string) => `Mitglieder und Manager sind für die Synchronisation mit ${providerName} eingerichtet.`,
             approvalModeWarningTitle: 'Genehmigungsmodus ändern?',
