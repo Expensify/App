@@ -77,6 +77,4 @@ function TypeSelectorPage({
     );
 }
 
-TypeSelectorPage.displayName = 'TypeSelectorPage';
-
 export default TypeSelectorPage;
