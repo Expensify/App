@@ -74,9 +74,12 @@ type WorkspaceNewRoomPageProps = {
 
     /** When provided, the workspace picker is hidden and the room is created under this policy */
     policyID?: string;
+
+    /** Called after the room is created, with the new reportID. Overrides default navigation to the room. */
+    onAfterRoomCreated?: (reportID: string) => void;
 };
 
-function WorkspaceNewRoomPage({ref, policyID: lockedPolicyID}: WorkspaceNewRoomPageProps) {
+function WorkspaceNewRoomPage({ref, policyID: lockedPolicyID, onAfterRoomCreated}: WorkspaceNewRoomPageProps) {
     const isLocked = !!lockedPolicyID;
     const lockedPolicy = usePolicy(lockedPolicyID);
     const styles = useThemeStyles();
@@ -147,8 +150,7 @@ function WorkspaceNewRoomPage({ref, policyID: lockedPolicyID}: WorkspaceNewRoomP
         });
 
         if (isLocked) {
-            addPolicyReport(policyReport);
-            Navigation.goBack(ROUTES.WORKSPACE_ROOMS.getRoute(policyID));
+            addPolicyReport(policyReport, onAfterRoomCreated ? () => onAfterRoomCreated(policyReport.reportID) : undefined);
             return;
         }
 

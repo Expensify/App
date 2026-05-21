@@ -4211,7 +4211,7 @@ function removeFailedReport(reportID: string | undefined) {
 }
 
 /** Add a policy report (workspace room) optimistically and navigate to it. */
-function addPolicyReport(policyReport: OptimisticChatReport) {
+function addPolicyReport(policyReport: OptimisticChatReport, onCreated?: () => void) {
     const createdReportAction = buildOptimisticCreatedReportAction({emailCreatingAction: CONST.POLICY.OWNER_EMAIL_FAKE});
 
     // Onyx.set is used on the optimistic data so that it is present before navigating to the workspace room. With Onyx.merge the workspace room reportID is not present when
@@ -4317,7 +4317,11 @@ function addPolicyReport(policyReport: OptimisticChatReport) {
     };
 
     API.write(WRITE_COMMANDS.ADD_WORKSPACE_ROOM, parameters, {optimisticData, successData, failureData});
-    Navigation.dismissModalWithReport({reportID: policyReport.reportID});
+    if (onCreated) {
+        onCreated();
+    } else {
+        Navigation.dismissModalWithReport({reportID: policyReport.reportID});
+    }
 }
 
 /** Deletes a report, along with its reportActions, any linked reports, and any linked IOU report. */
