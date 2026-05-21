@@ -7178,6 +7178,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             approvalMode: "Mode d'approbation",
             providerApprovalMode: (providerName: string) => `Mode d'approbation ${providerName}`,
             finalApprover: 'Approbateur final',
+            providerFinalApprover: (providerName: string) => `Approbateur final ${providerName}`,
             notSet: 'Non défini',
             approvalModeDescription: (providerName: string) => `Les membres et les responsables sont configurés pour se synchroniser avec ${providerName}.`,
             approvalModeWarningTitle: 'Changer le mode d’approbation ?',

@@ -7061,6 +7061,7 @@ ${reportName}
             approvalMode: '承認モード',
             providerApprovalMode: (providerName: string) => `${providerName} 承認モード`,
             finalApprover: '最終承認者',
+            providerFinalApprover: (providerName: string) => `${providerName} 最終承認者`,
             notSet: '未設定',
             approvalModeDescription: (providerName: string) => `メンバーとマネージャーは ${providerName} と同期するように設定されています。`,
             approvalModeWarningTitle: '承認モードを変更しますか？',

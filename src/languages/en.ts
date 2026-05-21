@@ -6457,6 +6457,7 @@ const translations = {
             approvalMode: 'Approval mode',
             providerApprovalMode: (providerName: string) => `${providerName} approval mode`,
             finalApprover: 'Final approver',
+            providerFinalApprover: (providerName: string) => `${providerName} final approver`,
             notSet: 'Not set',
             approvalModeDescription: (providerName: string) => `Members and managers are set up to sync with ${providerName}.`,
             approvalModeWarningTitle: 'Change approval mode?',

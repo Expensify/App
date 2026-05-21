@@ -6934,6 +6934,7 @@ ${reportName}
             approvalMode: '审批模式',
             providerApprovalMode: (providerName: string) => `${providerName} 审批模式`,
             finalApprover: '最终审批人',
+            providerFinalApprover: (providerName: string) => `${providerName} 最终审批人`,
             notSet: '未设置',
             approvalModeDescription: (providerName: string) => `成员和管理员已设置为与 ${providerName} 同步。`,
             approvalModeWarningTitle: '更改审批模式？',

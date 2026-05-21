@@ -7155,6 +7155,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             approvalMode: 'Genehmigungsmodus',
             providerApprovalMode: (providerName: string) => `${providerName}-Genehmigungsmodus`,
             finalApprover: 'Endgültige:r Genehmiger:in',
+            providerFinalApprover: (providerName: string) => `${providerName} Endgenehmigende*r`,
             notSet: 'Nicht festgelegt',
             approvalModeDescription: (providerName: string) => `Mitglieder und Manager sind für die Synchronisation mit ${providerName} eingerichtet.`,
             approvalModeWarningTitle: 'Genehmigungsmodus ändern?',
