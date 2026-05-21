@@ -36,7 +36,7 @@ function getDefaultInitialValueForReportFieldType(type: PolicyReportFieldType): 
 
 function TypeSelectorPage({
     route: {
-        params: {policyID, currentType},
+        params: {policyID, currentType}, 
     },
 }: TypeSelectorPageProps) {
     const styles = useThemeStyles();
@@ -62,7 +62,7 @@ function TypeSelectorPage({
                 style={styles.pb0}
                 includePaddingTop={false}
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={TypeSelectorPage.displayName}
+                testID="TypeSelectorPage"
             >
                 <HeaderWithBackButton title={translate('common.type')} />
                 <View style={[styles.ph5, styles.pb4]}>
