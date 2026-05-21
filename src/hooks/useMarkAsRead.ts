@@ -1,6 +1,6 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import type {RefObject} from 'react';
-import {useEffect, useRef, useState} from 'react';
+import {useEffect, useEffectEvent, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
@@ -56,8 +56,6 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
     const userActiveSince = useRef<string>(DateUtils.getDBTime());
     const lastMessageTime = useRef<string | null>(null);
     const didMarkReportAsReadInitially = useRef(false);
-    const prevHandleReportChangeMarkAsReadRef = useRef<(() => void) | null>(null);
-    const prevHandleAppVisibilityMarkAsReadRef = useRef<(() => void) | null>(null);
 
     const lastAction = sortedVisibleReportActions.at(0);
     const isReportUnreadValue = isUnread(report, transactionThreadReport, isReportArchived) || (!!lastAction && isCurrentActionUnread(report, lastAction));
@@ -85,14 +83,14 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
         readNewestAction(reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
     }, [isReportUnreadValue, reportID, reportLoadingState?.hasOnceLoadedReportActions]);
 
-    const handleReportChangeMarkAsRead = () => {
+    const handleReportChangeMarkAsRead = useEffectEvent(() => {
         if (reportID !== prevReportID) {
-            return;
+            return false;
         }
 
         const isLastActionUnread = !!lastAction && isCurrentActionUnread(report, lastAction, sortedVisibleReportActions);
         if (!isUnread(report, transactionThreadReport, isReportArchived) && !isLastActionUnread) {
-            return;
+            return false;
         }
         const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
         const isScrolledToEnd = scrollingVerticalOffset.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
@@ -102,13 +100,14 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
             if (isFromNotification) {
                 Navigation.setParams({referrer: undefined});
             }
-            return;
+            return true;
         }
 
         readActionSkippedRef.current = true;
-    };
+        return false;
+    });
 
-    const handleAppVisibilityMarkAsRead = () => {
+    const handleAppVisibilityMarkAsRead = useEffectEvent(() => {
         if (reportID !== prevReportID) {
             return;
         }
@@ -138,20 +137,14 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
 
         readNewestAction(reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
         userActiveSince.current = DateUtils.getDBTime();
-    };
+    });
 
     useEffect(() => {
-        if (handleReportChangeMarkAsRead !== prevHandleReportChangeMarkAsReadRef.current) {
-            handleReportChangeMarkAsRead();
-        }
-
-        if (handleAppVisibilityMarkAsRead !== prevHandleAppVisibilityMarkAsReadRef.current) {
+        const isMarkedAsRead = handleReportChangeMarkAsRead();
+        if (!isMarkedAsRead) {
             handleAppVisibilityMarkAsRead();
         }
-
-        prevHandleReportChangeMarkAsReadRef.current = handleReportChangeMarkAsRead;
-        prevHandleAppVisibilityMarkAsReadRef.current = handleAppVisibilityMarkAsRead;
-    }, [handleReportChangeMarkAsRead, handleAppVisibilityMarkAsRead]);
+    }, [report?.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, reportID, isVisible, isFocused, reportLoadingState?.hasOnceLoadedReportActions]);
 
     return {readActionSkippedRef};
 }
