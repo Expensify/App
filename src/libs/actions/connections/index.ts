@@ -11,6 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ConnectionName, Connections, PolicyConnectionName, PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {syncMergeHR} from './MergeHR';
 
 type ConnectionNameExceptNetSuite = Exclude<ConnectionName, typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE>;
 
@@ -135,9 +136,6 @@ function getSyncConnectionParameters(connectionName: PolicyConnectionName) {
         case CONST.POLICY.CONNECTIONS.NAME.ZENEFITS: {
             return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_ZENEFITS, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.ZENEFITS_SYNC_TITLE};
         }
-        case CONST.POLICY.CONNECTIONS.NAME.MERGE_HR: {
-            return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_MERGE_HR, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.MERGE_HR_SYNC_TITLE};
-        }
         case CONST.POLICY.CONNECTIONS.NAME.CERTINIA: {
             return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_FINANCIAL_FORCE, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.FINANCIAL_FORCE_SYNC_CONNECTION};
         }
@@ -158,6 +156,12 @@ function syncConnection(policy: Policy | undefined, connectionName: PolicyConnec
         return;
     }
     const policyID = policy.id;
+
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR) {
+        syncMergeHR(policyID);
+        return;
+    }
+
     const syncConnectionData = getSyncConnectionParameters(connectionName);
 
     if (!syncConnectionData) {
