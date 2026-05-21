@@ -184,13 +184,15 @@ function updateMergeHRFinalApprover(policyID: string, finalApprover: string | nu
     );
 }
 
-function clearMergeHRErrorField(policyID?: string) {
-    if (!policyID) {
+type HRProviderName = typeof CONST.POLICY.CONNECTIONS.NAME.GUSTO | typeof CONST.POLICY.CONNECTIONS.NAME.ZENEFITS | typeof CONST.POLICY.CONNECTIONS.NAME.MERGE_HR;
+
+function clearMergeHRErrorField(policyID?: string, provider?: HRProviderName) {
+    if (!policyID || !provider) {
         return;
     }
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         connections: {
-            [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
+            [provider]: {
                 config: {
                     errorFields: null,
                 },
