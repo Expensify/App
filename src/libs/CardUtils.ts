@@ -160,6 +160,17 @@ function supportsPINManagementFeatures(card: Card | undefined): boolean {
 }
 
 /**
+ * Checks whether the user's current location is an offline PIN market —
+ * a region where PINs must be changed at an ATM rather than via the in-app flow.
+ */
+function isOfflinePINMarket(countryByIp: string | undefined): boolean {
+    if (!countryByIp) {
+        return false;
+    }
+    return CONST.EXPENSIFY_CARD.OFFLINE_PIN_MARKETS.includes(countryByIp);
+}
+
+/**
  * @param card
  * @param translate
  * @returns string in format %<bank> • <lastFourPAN || Not Activated>%.
@@ -1060,12 +1071,8 @@ function filterAllInactiveCards(cards: CardList | undefined, includeDeactivated 
 
     const closedStates = new Set<number>([CONST.EXPENSIFY_CARD.STATE.CLOSED, CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED]);
     return filterObject(cards, (_key, card) => {
-        const isAdminZeroedExpensifyCard = isExpensifyCard(card) && isCardWithCustomZeroLimit(card);
         if (card.state === CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED) {
-            return !!card.nameValuePairs?.frozen || (includeDeactivated && isAdminZeroedExpensifyCard);
-        }
-        if (card.state === CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED) {
-            return includeDeactivated && isAdminZeroedExpensifyCard;
+            return !!card.nameValuePairs?.frozen || includeDeactivated;
         }
         return !closedStates.has(card.state);
     });
@@ -1083,7 +1090,7 @@ function filterInactiveCards(cardsList: WorkspaceCardsList | undefined) {
 
 /**
  * Onyx selector for workspace Expensify Card management pages. Same as `filterInactiveCards`, but also
- * keeps issued deactivated cards and zero-limit suspended cards so admins can view and edit them.
+ * keeps all suspended cards so admins can view and edit them.
  */
 function filterInactiveCardsForWorkspace(cardsList: WorkspaceCardsList | undefined) {
     const {cardList, ...assignedCards} = cardsList ?? {};
@@ -1804,6 +1811,7 @@ export {
     getDefaultExpensifyCardLimitType,
     isExpensifyCard,
     supportsPINManagementFeatures,
+    isOfflinePINMarket,
     getDomainCards,
     formatCardExpiration,
     getMonthFromExpirationDateString,
