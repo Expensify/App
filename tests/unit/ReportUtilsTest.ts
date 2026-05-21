@@ -633,7 +633,7 @@ describe('ReportUtils', () => {
             );
         });
 
-        it('should not add anything to guidedSetupData when posting into the admin room for MANAGE_TEAM', async () => {
+        it('should send tasks to server but not add them to optimisticData for MANAGE_TEAM', async () => {
             const adminsChatReportID = '1';
             // Not having `+` in the email allows for `isPostingTasksInAdminsRoom` flow
             await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
@@ -649,8 +649,9 @@ describe('ReportUtils', () => {
                 adminsChatReportID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
             });
-            expect(result?.guidedSetupData).toHaveLength(0);
-            // Server is sole source of truth for the bespoke welcome — no optimistic action added here.
+            // Tasks are sent to server via guidedSetupData; not added optimistically to avoid flash.
+            expect(result?.guidedSetupData).toHaveLength(1);
+            // No optimistic task report actions — server creates tasks from guidedSetupData.
             const reportActionsEntries = result?.optimisticData.filter((i) => i.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`);
             expect(reportActionsEntries).toHaveLength(0);
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
@@ -671,7 +672,7 @@ describe('ReportUtils', () => {
                 adminsChatReportID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
             });
-            expect(result?.guidedSetupData).toHaveLength(0);
+            expect(result?.guidedSetupData).toHaveLength(1);
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
         });
 
@@ -690,7 +691,7 @@ describe('ReportUtils', () => {
                 adminsChatReportID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.LARGE,
             });
-            expect(result?.guidedSetupData).toHaveLength(0);
+            expect(result?.guidedSetupData).toHaveLength(1);
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
         });
 
@@ -709,7 +710,7 @@ describe('ReportUtils', () => {
                 adminsChatReportID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL,
             });
-            expect(result?.guidedSetupData).toHaveLength(0);
+            expect(result?.guidedSetupData).toHaveLength(1);
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
         });
 
@@ -728,7 +729,7 @@ describe('ReportUtils', () => {
                 adminsChatReportID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MEDIUM,
             });
-            expect(result?.guidedSetupData).toHaveLength(0);
+            expect(result?.guidedSetupData).toHaveLength(1);
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
         });
 
@@ -752,7 +753,7 @@ describe('ReportUtils', () => {
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
         });
 
-        it('should use followups for MANAGE_TEAM unconditionally', async () => {
+        it('should send tasks to server for MANAGE_TEAM but not add them to optimisticData', async () => {
             const adminsChatReportID = '1';
             await waitForBatchedUpdates();
 
@@ -766,15 +767,14 @@ describe('ReportUtils', () => {
                 adminsChatReportID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
             });
-            // Every MANAGE_TEAM signup uses the bespoke followups path — tasks are never generated
-            expect(result?.guidedSetupData.filter((data) => data.type === 'task')).toHaveLength(0);
+            // MANAGE_TEAM: tasks sent to server via guidedSetupData but excluded from optimisticData to prevent flash.
+            expect(result?.guidedSetupData.filter((data) => data.type === 'task')).toHaveLength(1);
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
         });
 
-        it('should generate followups (not tasks) for `+` email users in the MANAGE_TEAM + MICRO Phase 1 cohort', async () => {
-            // Phase 1 cohort opens the followups path to all MANAGE_TEAM 1-10 users — including `+` aliases
-            // and phone-primary sign-ups. The `+` exclusion in `isPostingTasksInAdminsRoom` was scoped to
-            // the trial-banner placement (PR #53895, #71355) and must not block followups for cohort users.
+        it('should send tasks to server for MANAGE_TEAM + MICRO users including `+` email aliases', async () => {
+            // Tasks are sent server-side for all MANAGE_TEAM users regardless of email format.
+            // The `+` exclusion in `isPostingTasksInAdminsRoom` scopes trial-banner placement only.
             const adminsChatReportID = '1';
             await waitForBatchedUpdates();
 
@@ -788,14 +788,14 @@ describe('ReportUtils', () => {
                 adminsChatReportID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
             });
-            // Followups path active: no tasks generated; server posts bespoke welcome (no optimistic action).
-            expect(result?.guidedSetupData.filter((data) => data.type === 'task')).toHaveLength(0);
+            // Tasks sent to server via guidedSetupData; no optimistic task actions added.
+            expect(result?.guidedSetupData.filter((data) => data.type === 'task')).toHaveLength(1);
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
             const adminsRoomActions = result?.optimisticData.filter((i) => i.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`);
             expect(adminsRoomActions).toHaveLength(0);
         });
 
-        it('should not create tasks if the task feature is not in the selected interested features', () => {
+        it('should send tasks to server for MANAGE_TEAM without adding them to optimisticData', () => {
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
@@ -807,7 +807,7 @@ describe('ReportUtils', () => {
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
             });
 
-            expect(result?.guidedSetupData.filter((data) => data.type === 'task')).toHaveLength(0);
+            expect(result?.guidedSetupData.filter((data) => data.type === 'task')).toHaveLength(1);
         });
 
         it('includes avatar and accountID in optimistic Setup Specialist personal detail', async () => {
@@ -1014,6 +1014,10 @@ describe('ReportUtils', () => {
             );
             expect(viewTourTask).toBeDefined();
             expect(viewTourTask?.completedTaskReportActionID).toBeDefined();
+        });
+
+        it('should recognize inbAdminsWel as a valid onboarding RHP variant', () => {
+            expect(CONST.ONBOARDING_RHP_VARIANT.INB_ADMINS_WEL).toBe('inbAdminsWel');
         });
     });
 
