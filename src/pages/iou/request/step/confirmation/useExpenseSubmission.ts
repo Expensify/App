@@ -567,7 +567,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             });
             if (shouldHandleNavigation && result && activeReportID) {
                 navigateAfterExpenseCreate({
-                    activeReportID,
+                    activeReportID: backToReport ?? activeReportID,
                     transactionID: result.transactionID,
                     isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                     hasMultipleTransactions: reportTransactions.length > 0,
