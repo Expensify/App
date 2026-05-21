@@ -13,6 +13,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+import {AgentActionButtons} from './AgentActions';
 import AgentInfoRow from './AgentInfoRow';
 
 type AgentsListRowProps = {
@@ -47,6 +48,27 @@ function AgentsListRow({accountID, displayName, login, pendingAction, errors, on
 
     const isPendingDeletion = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const navigateToEdit = () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(accountID));
+    const errorIndicator = !!brickRoadIndicator && (
+        <Icon
+            src={icons.DotIndicator}
+            fill={theme.danger}
+        />
+    );
+    const actionButtons = (
+        <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.flexWrap, shouldUseNarrowLayout && styles.alignSelfStart]}>
+            <AgentActionButtons
+                accountID={accountID}
+                login={login}
+                isDisabled={isPendingDeletion}
+            />
+            <Button
+                small
+                text={translate('common.edit')}
+                onPress={navigateToEdit}
+                isDisabled={isPendingDeletion}
+            />
+        </View>
+    );
 
     return (
         <OfflineWithFeedback
@@ -57,27 +79,27 @@ function AgentsListRow({accountID, displayName, login, pendingAction, errors, on
             shouldHideOnDelete={false}
         >
             {shouldUseNarrowLayout ? (
-                <PressableWithFeedback
-                    style={[styles.selectionListPressableItemWrapper, styles.mb2, styles.gap3]}
-                    onPress={navigateToEdit}
-                    accessibilityLabel={displayName}
-                    role={CONST.ROLE.BUTTON}
-                    sentryLabel="AgentsListRow-Edit"
-                    disabled={isPendingDeletion}
-                >
-                    <AgentInfoRow
-                        accountID={accountID}
-                        displayName={displayName}
-                        login={login}
-                        isPendingDeletion={isPendingDeletion}
-                    />
-                    {!!brickRoadIndicator && (
-                        <Icon
-                            src={icons.DotIndicator}
-                            fill={theme.danger}
-                        />
-                    )}
-                </PressableWithFeedback>
+                <View style={[styles.selectionListPressableItemWrapper, styles.flexColumn, styles.alignItemsStretch, styles.mb2, styles.gap3]}>
+                    <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
+                        <PressableWithFeedback
+                            style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}
+                            onPress={navigateToEdit}
+                            accessibilityLabel={displayName}
+                            role={CONST.ROLE.BUTTON}
+                            sentryLabel="AgentsListRow-Edit"
+                            disabled={isPendingDeletion}
+                        >
+                            <AgentInfoRow
+                                accountID={accountID}
+                                displayName={displayName}
+                                login={login}
+                                isPendingDeletion={isPendingDeletion}
+                            />
+                        </PressableWithFeedback>
+                        {errorIndicator}
+                    </View>
+                    {actionButtons}
+                </View>
             ) : (
                 <View style={[styles.selectionListPressableItemWrapper, styles.mb2, styles.gap3]}>
                     <AgentInfoRow
@@ -86,18 +108,8 @@ function AgentsListRow({accountID, displayName, login, pendingAction, errors, on
                         login={login}
                         isPendingDeletion={isPendingDeletion}
                     />
-                    {!!brickRoadIndicator && (
-                        <Icon
-                            src={icons.DotIndicator}
-                            fill={theme.danger}
-                        />
-                    )}
-                    <Button
-                        small
-                        text={translate('common.edit')}
-                        onPress={navigateToEdit}
-                        isDisabled={isPendingDeletion}
-                    />
+                    {errorIndicator}
+                    {actionButtons}
                 </View>
             )}
         </OfflineWithFeedback>

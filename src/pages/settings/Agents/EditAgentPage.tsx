@@ -22,6 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {AgentActionMenuItems} from './AgentActions';
 
 type EditAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.EDIT>;
 
@@ -114,6 +115,11 @@ function EditAgentPage({route}: EditAgentPageProps) {
                         numberOfLinesTitle={10}
                     />
                 </OfflineWithFeedback>
+                <AgentActionMenuItems
+                    accountID={accountID}
+                    login={personalDetails?.login ?? ''}
+                    isDisabled={!personalDetails?.login}
+                />
                 <MenuItem
                     title={translate('editAgentPage.deleteAgent')}
                     icon={icons.Trashcan}
