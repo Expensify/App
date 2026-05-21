@@ -73,6 +73,16 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         gridTemplateColumns.unshift(`${variables.tableCheckboxColumnWidth}px`);
     }
 
+    let isEveryRowSelected = true;
+    let isSelectionIndeterminate = false;
+
+    if (isSelectionCheckboxVisible) {
+        for (const row of processedData) {
+            isSelectionIndeterminate ||= row.selected;
+            isEveryRowSelected &&= row.selected;
+        }
+    }
+
     return (
         <View
             style={[
@@ -98,7 +108,8 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.tableHeaderContentHeight, styles.gap3]}>
                     {isSelectionCheckboxVisible && (
                         <Checkbox
-                            isChecked={false}
+                            isChecked={isEveryRowSelected}
+                            isIndeterminate={isSelectionIndeterminate && !isEveryRowSelected}
                             onPress={tableMethods.handleSelectAll}
                             accessibilityLabel={translate('workspace.common.selectAll')}
                             style={styles.pl1}
@@ -120,7 +131,8 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                     {selectionEnabled && (
                         <View style={styles.flex1}>
                             <Checkbox
-                                isChecked={false}
+                                isChecked={isEveryRowSelected}
+                                isIndeterminate={isSelectionIndeterminate && !isEveryRowSelected}
                                 onPress={tableMethods.handleSelectAll}
                                 accessibilityLabel={translate('workspace.common.selectAll')}
                             />

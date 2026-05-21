@@ -27,12 +27,24 @@ export default function useSelection<DataType extends TableData>({data}: UseSele
     const lastSelectedRowIsSelectedRef = useRef<boolean>(false);
     const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
 
+    let areAllRowsSelected = true;
+    let modifiedData: TableRow<DataType>[] = [];
+
+    for (const item of data) {
+        const isSelected = selectedKeys.includes(item.keyForList);
+        modifiedData.push({...item, selected: isSelected});
+
+        if (!isSelected) {
+            areAllRowsSelected = false;
+        }
+    }
+
     /**
      * When the select all checkbox is toggled, select or deselect all of the
      * rows in the table
      */
     const handleSelectAll = () => {
-        if (selectedKeys.length === data.length) {
+        if (areAllRowsSelected) {
             setSelectedKeys([]);
         } else {
             setSelectedKeys(keyForLists);
@@ -106,8 +118,8 @@ export default function useSelection<DataType extends TableData>({data}: UseSele
         });
     };
 
-    const middleware = (data: DataType[]) => {
-        return data.map((item) => ({...item, selected: selectedKeys.includes(item.keyForList)}));
+    const middleware = () => {
+        return modifiedData;
     };
 
     return {
