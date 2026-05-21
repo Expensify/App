@@ -124,10 +124,8 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     });
 
     // Selected non-existing users that aren't in the Contacts section (e.g. typed email addresses)
-    const selectedNonExistingUsers = useMemo(() => {
-        const personalDetailLogins = new Set(availableOptions.personalDetails.map((option) => option.login).filter(Boolean));
-        return selectedOptionsForDisplay.filter((option) => !personalDetailLogins.has(option.login));
-    }, [selectedOptionsForDisplay, availableOptions.personalDetails]);
+    const personalDetailLogins = new Set(availableOptions.personalDetails.map((option) => option.login).filter(Boolean));
+    const selectedNonExistingUsers = selectedOptionsForDisplay.filter((option) => !personalDetailLogins.has(option.login));
 
     const sections: Array<Section<OptionData>> = useMemo(() => {
         const sectionsArr = [];
