@@ -104,14 +104,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
         return false;
     };
 
-    const isPartVisible = (part: Part): boolean => {
-        if (isPartIncompatible(part)) {
-            return true;
-        }
-        return isCopyPolicySettingsPartEnabledOnSource(part, sourceFeatureContext);
-    };
-
-    const availableFeatureRows = FEATURE_ROWS.filter((row) => isPartVisible(row.part));
+    const availableFeatureRows = FEATURE_ROWS.filter((row) => isCopyPolicySettingsPartEnabledOnSource(row.part, sourceFeatureContext));
     const availablePartSet = new Set(availableFeatureRows.map((row) => row.part));
 
     const [selectedFeatures, setSelectedFeatures] = useState<readonly Part[]>([]);
@@ -120,7 +113,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
         if (!copyPolicySettings?.parts) {
             return;
         }
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- Restore the previously selected feature parts from Onyx when the user navigates back to this step from a later step in the flow.
         setSelectedFeatures(copyPolicySettings.parts as Part[]);
     }, [copyPolicySettings?.parts]);
 

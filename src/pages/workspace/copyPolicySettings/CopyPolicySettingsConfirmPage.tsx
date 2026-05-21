@@ -1,7 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -27,7 +26,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PolicyCategories, PolicyTagLists} from '@src/types/onyx';
 
 function CopyPolicySettingsConfirmPage() {
     const route = useRoute<PlatformStackRouteProp<PolicyCopySettingsNavigatorParamList, typeof SCREENS.POLICY_COPY_SETTINGS.CONFIRM>>();
@@ -39,8 +37,8 @@ function CopyPolicySettingsConfirmPage() {
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [copyPolicySettingsState] = useOnyx(ONYXKEYS.COPY_POLICY_SETTINGS);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${sourcePolicyID}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${sourcePolicyID}`);
+    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
 
     const sourcePolicy = sourcePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`] : undefined;
     const targetPolicyIDs = copyPolicySettingsState?.targetPolicyIDs ?? [];
@@ -62,7 +60,7 @@ function CopyPolicySettingsConfirmPage() {
         }
 
         const executeCopy = () => {
-            copyPolicySettings(sourcePolicy, targetPolicies, parts, policyCategories as unknown as OnyxCollection<PolicyCategories>, policyTags as unknown as OnyxCollection<PolicyTagLists>);
+            copyPolicySettings(sourcePolicy, targetPolicies, parts, allPolicyCategories, allPolicyTags);
             Navigation.dismissModal();
         };
 

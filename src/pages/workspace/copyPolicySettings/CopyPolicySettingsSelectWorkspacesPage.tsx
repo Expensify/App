@@ -51,7 +51,7 @@ function CopyPolicySettingsSelectWorkspacesPage() {
         if (!copyPolicySettings?.targetPolicyIDs) {
             return;
         }
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- Restore the previously selected targets from Onyx when the user navigates back to this step from a later step in the flow.
         setSelectedTargetIDs(copyPolicySettings.targetPolicyIDs);
     }, [copyPolicySettings?.targetPolicyIDs]);
 
