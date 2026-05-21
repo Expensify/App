@@ -41,14 +41,14 @@ const getSplitsSelector = (actions: OnyxEntry<ReportActions>): Array<ReportActio
 };
 
 function getTransactionDirectionSign(transaction: Transaction): number | undefined {
-    if (transaction.amount !== 0) {
-        return Math.sign(transaction.amount);
-    }
-
     const modifiedAmount = Number(transaction.modifiedAmount);
 
     if (Number.isFinite(modifiedAmount) && modifiedAmount !== 0) {
         return Math.sign(modifiedAmount);
+    }
+
+    if (transaction.amount !== 0) {
+        return Math.sign(transaction.amount);
     }
 
     return undefined;
