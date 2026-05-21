@@ -667,7 +667,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                             {!!otherIntegrationsItems && (
                                 <CollapsibleSection
                                     title={translate('workspace.accounting.other')}
-                                    wrapperStyle={[styles.pr3, styles.mt5, styles.pv3]}
+                                    wrapperStyle={[styles.pr3, styles.mt5, styles.pt3]}
                                     titleStyle={[styles.textNormal, styles.colorMuted]}
                                     textStyle={[styles.flex1, styles.userSelectNone, styles.textNormal, styles.colorMuted]}
                                 >
