@@ -84,6 +84,35 @@ const mockRequestAnimationFrame = () =>
         return 0;
     });
 
+const mockQueuedRequestAnimationFrame = () => {
+    let nextFrameID = 1;
+    const callbacks = new Map<number, Parameters<typeof requestAnimationFrame>[0]>();
+
+    jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
+        const frameID = nextFrameID++;
+        callbacks.set(frameID, callback);
+        return frameID;
+    });
+    jest.spyOn(global, 'cancelAnimationFrame').mockImplementation((frameID) => {
+        callbacks.delete(frameID);
+    });
+
+    return {
+        flushNextFrame: () => {
+            const nextFrame = callbacks.entries().next().value;
+            if (!nextFrame) {
+                return;
+            }
+
+            const [frameID, callback] = nextFrame;
+            callbacks.delete(frameID);
+            act(() => {
+                callback(0);
+            });
+        },
+    };
+};
+
 const flushMicrotasks = () =>
     act(async () => {
         await Promise.resolve();
@@ -151,6 +180,62 @@ describe('useCenteredInitialScrollKeyList', () => {
             animated: false,
             viewOffset: -240,
         });
+        expect(result.current.shouldShowInitialViewportSkeleton).toBe(false);
+    });
+
+    it('keeps the initial viewport skeleton visible until the measured scroll follow-up frames finish', async () => {
+        const {flushNextFrame} = mockQueuedRequestAnimationFrame();
+
+        const {result} = renderHook((props: HookProps) => useCenteredInitialScrollKeyList(props), {
+            initialProps: createProps({initialScrollKey: '2'}),
+        });
+        await flushMicrotasks();
+
+        act(() => {
+            result.current.handleReportActionsListLayout(createLayoutEvent(600));
+        });
+
+        const initialViewportRange = result.current.initialViewportRange;
+        if (!initialViewportRange) {
+            throw new Error('Expected an initial viewport range');
+        }
+
+        act(() => {
+            for (let index = initialViewportRange.first; index <= initialViewportRange.last; index++) {
+                result.current.handleInitialViewportItemMounted(index);
+            }
+        });
+
+        expect(result.current.shouldShowInitialViewportSkeleton).toBe(true);
+
+        act(() => {
+            result.current.handleInitialScrollTargetLayout(120);
+        });
+
+        expect(result.current.shouldShowInitialViewportSkeleton).toBe(true);
+
+        flushNextFrame();
+        await flushMicrotasks();
+
+        expect(mockScrollToIndex).toHaveBeenCalledTimes(1);
+        expect(result.current.shouldShowInitialViewportSkeleton).toBe(true);
+
+        flushNextFrame();
+        await flushMicrotasks();
+        expect(result.current.shouldShowInitialViewportSkeleton).toBe(true);
+
+        flushNextFrame();
+        await flushMicrotasks();
+        expect(result.current.shouldShowInitialViewportSkeleton).toBe(true);
+
+        flushNextFrame();
+        await flushMicrotasks();
+        expect(result.current.shouldShowInitialViewportSkeleton).toBe(true);
+
+        flushNextFrame();
+        await flushMicrotasks();
+
+        expect(mockScrollToIndex).toHaveBeenCalledTimes(4);
         expect(result.current.shouldShowInitialViewportSkeleton).toBe(false);
     });
 

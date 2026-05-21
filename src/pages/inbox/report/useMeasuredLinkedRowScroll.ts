@@ -70,11 +70,14 @@ function useMeasuredLinkedRowScroll({
         };
 
         const scheduleFollowUpScrolls = (remainingFrames: number) => {
-            if (remainingFrames <= 0) {
-                return;
-            }
-
             const frameId = requestAnimationFrame(() => {
+                runtime.followUpFrameIds = runtime.followUpFrameIds.filter((id) => id !== frameId);
+
+                if (remainingFrames <= 0) {
+                    onMeasuredScrollApplied();
+                    return;
+                }
+
                 tryApplyMeasuredAnchorScroll(layoutHeight, {isFollowUp: true});
                 scheduleFollowUpScrolls(remainingFrames - 1);
             });
@@ -134,7 +137,6 @@ function useMeasuredLinkedRowScroll({
                     }
 
                     if (isPrimaryScrollAttempt) {
-                        onMeasuredScrollApplied();
                         scheduleFollowUpScrolls(MEASURED_ANCHOR_SCROLL_FOLLOW_UP_FRAMES);
                     }
                 })
