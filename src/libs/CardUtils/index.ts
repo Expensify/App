@@ -45,12 +45,12 @@ import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {Connections} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {isBankAccountPartiallySetup} from './BankAccountUtils';
+import {isBankAccountPartiallySetup} from '../BankAccountUtils';
+import DateUtils from '../DateUtils';
+import {filterObject} from '../ObjectUtils';
+import {arePersonalDetailsMissing, getDisplayNameOrDefault} from '../PersonalDetailsUtils';
+import StringUtils from '../StringUtils';
 import {getCardFeedBackgroundColor, getCardHolderTextColor} from './colors';
-import DateUtils from './DateUtils';
-import {filterObject} from './ObjectUtils';
-import {arePersonalDetailsMissing, getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import StringUtils from './StringUtils';
 
 const COMPANY_CARD_FEED_ICON_NAMES = [
     'VisaCompanyCardDetailLarge',
