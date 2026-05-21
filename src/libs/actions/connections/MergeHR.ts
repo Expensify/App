@@ -1,7 +1,7 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
-import {read, write} from '@libs/API';
+import {write} from '@libs/API';
 import type {ConnectPolicyToMergeParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
@@ -43,7 +43,7 @@ function syncMergeHR(policyID: string) {
         },
     ];
 
-    read(READ_COMMANDS.SYNC_POLICY_TO_MERGE_HR, {policyID}, {optimisticData, failureData});
+    write(WRITE_COMMANDS.SYNC_POLICY_TO_MERGE, {policyID}, {optimisticData, failureData});
 }
 
 /**
@@ -175,7 +175,7 @@ function updateMergeHRFinalApprover(policyID: string, finalApprover: string | nu
     ];
 
     write(
-        WRITE_COMMANDS.UPDATE_MERGE_HR_FINAL_APPROVER,
+        WRITE_COMMANDS.UPDATE_MERGE_FINAL_APPROVER,
         {
             policyID,
             finalApprover,

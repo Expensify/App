@@ -895,7 +895,6 @@ const CONST = {
     BETAS: {
         ALL: 'all',
         ASAP_SUBMIT: 'asapSubmit',
-        CSV_CARD_IMPORT: 'csvCardImport',
         CUSTOM_AGENT: 'customAgent',
         DEFAULT_ROOMS: 'defaultRooms',
         PREVENT_SPOTNANA_TRAVEL: 'preventSpotnanaTravel',
