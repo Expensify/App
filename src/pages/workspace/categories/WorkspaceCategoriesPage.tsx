@@ -91,7 +91,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT;
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
-    const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+    const [selectedCategoryNames, setSelectedCategoryNames] = useState<string[]>([]);
     const canSelectMultiple = isSmallScreenWidth ? isMobileSelectionModeEnabled : true;
     const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
     const shouldShowApproverColumn = isControlPolicyWithWideLayout && !!policy?.areRulesEnabled;
@@ -130,15 +130,15 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const cleanupSelectedOption = useCallback(() => setSelectedCategories([]), []);
+    const cleanupSelectedOption = useCallback(() => setSelectedCategoryNames([]), []);
     useCleanupSelectedOptions(cleanupSelectedOption);
 
     useEffect(() => {
-        if (selectedCategories.length === 0 || !canSelectMultiple) {
+        if (selectedCategoryNames.length === 0 || !canSelectMultiple) {
             return;
         }
 
-        setSelectedCategories((prevSelectedCategories) => {
+        setSelectedCategoryNames((prevSelectedCategories) => {
             const newSelectedCategories = [];
 
             for (const categoryName of prevSelectedCategories) {
@@ -162,7 +162,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     }, [policyCategories]);
 
     useSearchBackPress({
-        onClearSelection: () => setSelectedCategories([]),
+        onClearSelection: () => setSelectedCategoryNames([]),
         onNavigationCallBack: () => Navigation.goBack(backTo),
     });
 
@@ -365,71 +365,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     useAutoTurnSelectionModeOffWhenHasNoActiveOption(categoryRows);
 
-    const toggleCategory = useCallback(
-        (category: ListItem) => {
-            setSelectedCategories((prev) => {
-                if (prev.includes(category.keyForList)) {
-                    return prev.filter((key) => key !== category.keyForList);
-                }
-                return [...prev, category.keyForList];
-            });
-        },
-        [setSelectedCategories],
-    );
-
-    const toggleAllCategories = () => {
-        const availableCategories = filteredCategoryList.filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-        const someSelected = availableCategories.some((category) => selectedCategories.includes(category.keyForList));
-        setSelectedCategories(someSelected ? [] : availableCategories.map((item) => item.keyForList));
-    };
-
-    const getCustomListHeader = () => {
-        if (filteredCategoryList.length === 0) {
-            return null;
-        }
-
-        // Show GL Code column only on wide screens for control policies. Approver column additionally requires rules to be enabled
-        if (isControlPolicyWithWideLayout) {
-            return (
-                <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3]}>
-                    <View style={[styles.flex1, StyleUtils.getPaddingRight(variables.w52 + variables.w12)]}>
-                        <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.name')}</Text>
-                    </View>
-                    <View style={[styles.flex1, styles.pr16]}>
-                        <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('workspace.categories.glCode')}</Text>
-                    </View>
-                    {shouldShowApproverColumn && (
-                        <View style={[styles.flex1, styles.pr16]}>
-                            <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.approver')}</Text>
-                        </View>
-                    )}
-                    <View style={[StyleUtils.getMinimumWidth(variables.w72), styles.mr5]}>
-                        <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.enabled')}</Text>
-                    </View>
-                </View>
-            );
-        }
-
-        return (
-            <CustomListHeader
-                canSelectMultiple={canSelectMultiple}
-                leftHeaderText={translate('common.name')}
-                rightHeaderText={translate('common.enabled')}
-                shouldShowRightCaret
-            />
-        );
-    };
-
-    const navigateToCategorySettings = (category: ListItem) => {
-        if (isSmallScreenWidth && isMobileSelectionModeEnabled) {
-            toggleCategory(category);
-            return;
-        }
-        Navigation.navigate(
-            isQuickSettingsFlow
-                ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(policyId, category.keyForList, backTo)
-                : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(category.keyForList)),
-        );
+    const handleCategorySelectionChange = (categories: WorkspaceCategoryTableRowData[]) => {
+        setSelectedCategoryNames(categories.map((category) => category.name));
     };
 
     const navigateToCategoriesSettings = useCallback(() => {
@@ -445,10 +382,10 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     };
 
     const handleDeleteCategories = () => {
-        if (selectedCategories.length > 0) {
+        if (selectedCategoryNames.length > 0) {
             deleteWorkspaceCategories(
                 policyData,
-                selectedCategories,
+                selectedCategoryNames,
                 isSetupCategoryTaskParentReportArchived,
                 setupCategoryTaskReport,
                 setupCategoryTaskParentReport,
@@ -458,7 +395,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             );
         }
 
-        setSelectedCategories([]);
+        setSelectedCategoryNames([]);
     };
     const hasVisibleCategories = categoryRows.some((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
@@ -546,13 +483,13 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
         const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
-        const selectedCategoriesObject = selectedCategories.map((key) => policyCategories?.[key]);
+        const selectedCategoriesObject = selectedCategoryNames.map((key) => policyCategories?.[key]);
 
-        if (isSmallScreenWidth ? canSelectMultiple : selectedCategories.length > 0) {
+        if (isSmallScreenWidth ? canSelectMultiple : selectedCategoryNames.length > 0) {
             if (!isThereAnyAccountingConnection) {
                 options.push({
                     icon: icons.Trashcan,
-                    text: translate(selectedCategories.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories'),
+                    text: translate(selectedCategoryNames.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                     onSelected: async () => {
                         if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, selectedCategoriesObject)) {
@@ -561,8 +498,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         }
 
                         const {action} = await showConfirmModal({
-                            title: translate(selectedCategories.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories'),
-                            prompt: translate(selectedCategories.length === 1 ? 'workspace.categories.deleteCategoryPrompt' : 'workspace.categories.deleteCategoriesPrompt'),
+                            title: translate(selectedCategoryNames.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories'),
+                            prompt: translate(selectedCategoryNames.length === 1 ? 'workspace.categories.deleteCategoryPrompt' : 'workspace.categories.deleteCategoriesPrompt'),
                             confirmText: translate('common.delete'),
                             cancelText: translate('common.cancel'),
                             danger: true,
@@ -574,9 +511,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 });
             }
 
-            const enabledCategories = selectedCategories.filter((categoryName) => policyCategories?.[categoryName]?.enabled);
+            const enabledCategories = selectedCategoryNames.filter((categoryName) => policyCategories?.[categoryName]?.enabled);
             if (enabledCategories.length > 0) {
-                const categoriesToDisable = selectedCategories
+                const categoriesToDisable = selectedCategoryNames
                     .filter((categoryName) => policyCategories?.[categoryName]?.enabled)
                     .reduce<Record<string, {name: string; enabled: boolean}>>((acc, categoryName) => {
                         acc[categoryName] = {
@@ -594,7 +531,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             showCannotDeleteOrDisableLastCategoryModal();
                             return;
                         }
-                        setSelectedCategories([]);
+                        setSelectedCategoryNames([]);
                         setWorkspaceCategoryEnabled({
                             policyData,
                             categoriesToUpdate: categoriesToDisable,
@@ -615,9 +552,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 });
             }
 
-            const disabledCategories = selectedCategories.filter((categoryName) => !policyCategories?.[categoryName]?.enabled);
+            const disabledCategories = selectedCategoryNames.filter((categoryName) => !policyCategories?.[categoryName]?.enabled);
             if (disabledCategories.length > 0) {
-                const categoriesToEnable = selectedCategories
+                const categoriesToEnable = selectedCategoryNames
                     .filter((categoryName) => !policyCategories?.[categoryName]?.enabled)
                     .reduce<Record<string, {name: string; enabled: boolean}>>((acc, categoryName) => {
                         acc[categoryName] = {
@@ -631,7 +568,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     text: translate(disabledCategories.length === 1 ? 'workspace.categories.enableCategory' : 'workspace.categories.enableCategories'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                     onSelected: () => {
-                        setSelectedCategories([]);
+                        setSelectedCategoryNames([]);
                         setWorkspaceCategoryEnabled({
                             policyData,
                             categoriesToUpdate: categoriesToEnable,
@@ -657,11 +594,11 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     onPress={() => null}
                     shouldAlwaysShowDropdownMenu
                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    customText={translate('workspace.common.selected', {count: selectedCategories.length})}
+                    customText={translate('workspace.common.selected', {count: selectedCategoryNames.length})}
                     options={options}
                     isSplitButton={false}
                     style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
-                    isDisabled={!selectedCategories.length}
+                    isDisabled={!selectedCategoryNames.length}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.BULK_ACTIONS_DROPDOWN}
                     testID="WorkspaceCategoriesPage-header-dropdown-menu-button"
                 />
@@ -702,8 +639,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             return;
         }
 
-        setSelectedCategories([]);
-    }, [setSelectedCategories, isMobileSelectionModeEnabled]);
+        setSelectedCategoryNames([]);
+    }, [setSelectedCategoryNames, isMobileSelectionModeEnabled]);
 
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
 
@@ -763,7 +700,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     shouldDisplayHelpButton
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
-                            setSelectedCategories([]);
+                            setSelectedCategoryNames([]);
                             turnOffMobileSelectionMode();
                             return;
                         }
@@ -791,6 +728,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     <WorkspaceCategoriesTable
                         categories={categoryRows}
                         shouldShowApproverColumn={shouldShowApproverColumn}
+                        onRowSelectionChange={handleCategorySelectionChange}
                     />
 
                     // <SelectionListWithModal

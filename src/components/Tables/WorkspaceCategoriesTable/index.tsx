@@ -27,9 +27,11 @@ type WorkspaceCategoriesTableProps = {
     categories: WorkspaceCategoryTableRowData[];
 
     shouldShowApproverColumn: boolean;
+
+    onRowSelectionChange: (selectedRows: WorkspaceCategoryTableRowData[]) => void;
 };
 
-export default function WorkspaceCategoriesTable({categories, shouldShowApproverColumn}: WorkspaceCategoriesTableProps) {
+export default function WorkspaceCategoriesTable({categories, shouldShowApproverColumn, onRowSelectionChange}: WorkspaceCategoriesTableProps) {
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
@@ -106,6 +108,7 @@ export default function WorkspaceCategoriesTable({categories, shouldShowApprover
             compareItems={compareItems}
             isItemInSearch={isItemInSearch}
             renderItem={renderCategoryItem}
+            onRowSelectionChange={onRowSelectionChange}
         >
             <Table.Header />
             <Table.Body />
