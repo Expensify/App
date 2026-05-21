@@ -5987,12 +5987,14 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             confirmTitle: 'Laten we controleren of alles er goed uitziet.',
             confirmDescription: ({workspaceName}: {workspaceName: string}) =>
                 `We kopiëren de volgende instellingen van <strong>${workspaceName}</strong> naar de werkruimtes die je hebt opgegeven`,
-            copyInProgressTitle: 'Kopie wordt gemaakt...',
-            copyInProgressDescription: 'Je kunt wachten tot het proces is voltooid, of Concierge kan je laten weten wanneer het klaar is.',
-            letMeKnowPrompt: 'Laat het me weten als het klaar is',
-            conciergeNotificationTitle: 'Concierge laat je het weten',
-            conciergeNotificationDescription: 'Wanneer het proces is afgerond, stuurt Concierge je een bericht.',
-            copyCompleted: 'Je werkruimte-instellingen zijn gekopieerd.',
+            progress: {
+                copyInProgressTitle: 'Kopie wordt gemaakt...',
+                copyInProgressDescription: 'Je kunt wachten tot het proces is voltooid, of Concierge kan je laten weten wanneer het klaar is.',
+                letMeKnowPrompt: 'Laat het me weten als het klaar is',
+                conciergeNotificationTitle: 'Concierge laat je het weten',
+                conciergeNotificationDescription: 'Wanneer het proces is afgerond, stuurt Concierge je een bericht.',
+                copyCompleted: 'Je werkruimte-instellingen zijn gekopieerd.',
+            },
         },
         emptyWorkspace: {
             title: 'Je hebt geen werkruimtes',

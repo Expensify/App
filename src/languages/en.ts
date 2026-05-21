@@ -6026,12 +6026,6 @@ const translations = {
             error: 'An error occurred while duplicating your new workspace. Please try again.',
         },
         copyPolicySettings: {
-            copyInProgressTitle: 'Copy in progress...',
-            copyInProgressDescription: 'You can either wait for the process to finish or Concierge can let you know when it’s done.',
-            letMeKnowPrompt: 'Let me know when it’s done',
-            conciergeNotificationTitle: 'Concierge will let you know',
-            conciergeNotificationDescription: 'When the process is completed, Concierge will send you a message.',
-            copyCompleted: 'Your workspace settings have been copied.',
             error: 'An error occurred while copying workspace settings. Please try again.',
             title: 'Copy settings',
             selectWorkspaces: 'Select workspaces',
@@ -6044,6 +6038,14 @@ const translations = {
             workflowsWithoutMembersPrompt: 'Copying Workflows without Members will not copy approval workflows. Submission and payment settings will still be copied.',
             confirmTitle: 'Let’s make sure everything looks right.',
             confirmDescription: ({workspaceName}: {workspaceName: string}) => `We’ll copy the following settings from <strong>${workspaceName}</strong> to the workspaces you’ve specified`,
+            progress: {
+                copyInProgressTitle: 'Copy in progress...',
+                copyInProgressDescription: 'You can either wait for the process to finish or Concierge can let you know when it’s done.',
+                letMeKnowPrompt: 'Let me know when it’s done',
+                conciergeNotificationTitle: 'Concierge will let you know',
+                conciergeNotificationDescription: 'When the process is completed, Concierge will send you a message.',
+                copyCompleted: 'Your workspace settings have been copied.',
+            },
         },
         emptyWorkspace: {
             title: 'No workspaces yet',

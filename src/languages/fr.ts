@@ -6040,12 +6040,14 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             confirmTitle: 'Assurons-nous que tout est correct.',
             confirmDescription: ({workspaceName}: {workspaceName: string}) =>
                 `Nous copierons les paramètres suivants de <strong>${workspaceName}</strong> vers les espaces de travail que vous avez indiqués`,
-            copyInProgressTitle: 'Copie en cours...',
-            copyInProgressDescription: 'Vous pouvez soit attendre la fin du processus, soit laisser Concierge vous prévenir lorsque ce sera terminé.',
-            letMeKnowPrompt: 'Prévenez-moi quand ce sera fait',
-            conciergeNotificationTitle: 'Concierge vous en informera',
-            conciergeNotificationDescription: 'Une fois le processus terminé, Concierge vous enverra un message.',
-            copyCompleted: 'Les paramètres de votre espace de travail ont été copiés.',
+            progress: {
+                copyInProgressTitle: 'Copie en cours...',
+                copyInProgressDescription: 'Vous pouvez soit attendre la fin du processus, soit laisser Concierge vous prévenir lorsque ce sera terminé.',
+                letMeKnowPrompt: 'Prévenez-moi quand ce sera fait',
+                conciergeNotificationTitle: 'Concierge vous en informera',
+                conciergeNotificationDescription: 'Une fois le processus terminé, Concierge vous enverra un message.',
+                copyCompleted: 'Les paramètres de votre espace de travail ont été copiés.',
+            },
         },
         emptyWorkspace: {
             title: 'Vous n’avez aucun espace de travail',

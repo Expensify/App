@@ -5988,12 +5988,14 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             confirmTitle: 'Vamos garantir que está tudo certo.',
             confirmDescription: ({workspaceName}: {workspaceName: string}) =>
                 `Vamos copiar as seguintes configurações de <strong>${workspaceName}</strong> para os espaços de trabalho que você especificou`,
-            copyInProgressTitle: 'Cópia em andamento...',
-            copyInProgressDescription: 'Você pode esperar o processo terminar ou o Concierge pode avisar você quando estiver concluído.',
-            letMeKnowPrompt: 'Me avise quando terminar',
-            conciergeNotificationTitle: 'O Concierge vai avisar você',
-            conciergeNotificationDescription: 'Quando o processo for concluído, o Concierge vai enviar uma mensagem para você.',
-            copyCompleted: 'As configurações do seu workspace foram copiadas.',
+            progress: {
+                copyInProgressTitle: 'Cópia em andamento...',
+                copyInProgressDescription: 'Você pode esperar o processo terminar ou o Concierge pode avisar você quando estiver concluído.',
+                letMeKnowPrompt: 'Me avise quando terminar',
+                conciergeNotificationTitle: 'O Concierge vai avisar você',
+                conciergeNotificationDescription: 'Quando o processo for concluído, o Concierge vai enviar uma mensagem para você.',
+                copyCompleted: 'As configurações do seu workspace foram copiadas.',
+            },
         },
         emptyWorkspace: {
             title: 'Você não tem nenhum workspace',

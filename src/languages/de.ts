@@ -6020,12 +6020,14 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             confirmTitle: 'Stellen wir sicher, dass alles richtig aussieht.',
             confirmDescription: ({workspaceName}: {workspaceName: string}) =>
                 `Wir kopieren die folgenden Einstellungen von <strong>${workspaceName}</strong> in die von Ihnen angegebenen Arbeitsbereiche`,
-            copyInProgressTitle: 'Kopieren läuft ...',
-            copyInProgressDescription: 'Sie können entweder warten, bis der Vorgang abgeschlossen ist, oder Concierge kann Sie benachrichtigen, sobald er fertig ist.',
-            letMeKnowPrompt: 'Sagen Sie mir Bescheid, wenn es fertig ist',
-            conciergeNotificationTitle: 'Concierge wird Sie benachrichtigen',
-            conciergeNotificationDescription: 'Wenn der Vorgang abgeschlossen ist, sendet Concierge Ihnen eine Nachricht.',
-            copyCompleted: 'Ihre Workspace-Einstellungen wurden kopiert.',
+            progress: {
+                copyInProgressTitle: 'Kopieren läuft ...',
+                copyInProgressDescription: 'Sie können entweder warten, bis der Vorgang abgeschlossen ist, oder Concierge kann Sie benachrichtigen, sobald er fertig ist.',
+                letMeKnowPrompt: 'Sagen Sie mir Bescheid, wenn es fertig ist',
+                conciergeNotificationTitle: 'Concierge wird Sie benachrichtigen',
+                conciergeNotificationDescription: 'Wenn der Vorgang abgeschlossen ist, sendet Concierge Ihnen eine Nachricht.',
+                copyCompleted: 'Ihre Workspace-Einstellungen wurden kopiert.',
+            },
         },
         emptyWorkspace: {
             title: 'Du hast keine Arbeitsbereiche',

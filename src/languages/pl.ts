@@ -5981,12 +5981,14 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             confirmTitle: 'Upewnijmy się, że wszystko wygląda poprawnie.',
             confirmDescription: ({workspaceName}: {workspaceName: string}) =>
                 `Skopiujemy następujące ustawienia z <strong>${workspaceName}</strong> do wskazanych przez ciebie przestrzeni roboczych`,
-            copyInProgressTitle: 'Trwa kopiowanie...',
-            copyInProgressDescription: 'Możesz poczekać, aż proces się zakończy, albo Concierge może dać ci znać, kiedy będzie gotowe.',
-            letMeKnowPrompt: 'Daj mi znać, kiedy będzie gotowe',
-            conciergeNotificationTitle: 'Concierge da ci znać',
-            conciergeNotificationDescription: 'Gdy proces się zakończy, Concierge wyśle ci wiadomość.',
-            copyCompleted: 'Twoje ustawienia przestrzeni roboczej zostały skopiowane.',
+            progress: {
+                copyInProgressTitle: 'Trwa kopiowanie...',
+                copyInProgressDescription: 'Możesz poczekać, aż proces się zakończy, albo Concierge może dać ci znać, kiedy będzie gotowe.',
+                letMeKnowPrompt: 'Daj mi znać, kiedy będzie gotowe',
+                conciergeNotificationTitle: 'Concierge da ci znać',
+                conciergeNotificationDescription: 'Gdy proces się zakończy, Concierge wyśle ci wiadomość.',
+                copyCompleted: 'Twoje ustawienia przestrzeni roboczej zostały skopiowane.',
+            },
         },
         emptyWorkspace: {
             title: 'Nie masz żadnych przestrzeni roboczych',
