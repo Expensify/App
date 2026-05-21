@@ -186,7 +186,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
 
     const getAlternateText = (part: Part): string | undefined => {
         if (isAccountingMismatch(part)) {
-            return translate('workspace.copyPolicySettings.accountingMismatch', {
+            return translate('workspace.copyPolicySettings.selectSettings.accountingMismatch', {
                 part: translate(FEATURE_ROWS.find((row) => row.part === part)?.labelKey ?? 'workspace.common.accounting').toLowerCase(),
             });
         }
@@ -262,8 +262,8 @@ function CopyPolicySettingsSelectFeaturesPage() {
                     onBackButtonPress={Navigation.goBack}
                 />
                 <View style={[styles.ph5, styles.pv3]}>
-                    <Text style={[styles.textHeadline]}>{translate('workspace.copyPolicySettings.selectFeatures')}</Text>
-                    <Text style={[styles.textSupporting]}>{translate('workspace.copyPolicySettings.whichFeatures')}</Text>
+                    <Text style={[styles.textHeadline]}>{translate('workspace.copyPolicySettings.selectSettings.title')}</Text>
+                    <Text style={[styles.textSupporting]}>{translate('workspace.copyPolicySettings.selectSettings.description')}</Text>
                 </View>
                 <View style={[styles.flex1]}>
                     <SelectionList
