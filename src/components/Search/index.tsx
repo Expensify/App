@@ -633,6 +633,7 @@ function Search({
         allReportMetadata,
         conciergeReportID,
         convertToDisplayString,
+        reportAttributesDerivedValue,
     ]);
 
     const hasLoadedAllTransactions = useMemo(() => {
