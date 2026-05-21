@@ -119,7 +119,9 @@ function CopyPolicySettingsConfirmPage() {
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     <View style={[styles.ph5, styles.pv3]}>
                         <Text style={[styles.textHeadline]}>{translate('workspace.copyPolicySettings.confirmSettings.title')}</Text>
-                        <Text style={[styles.textSupporting, styles.mt1]}>{translate('workspace.copyPolicySettings.confirmSettings.description', {workspaceName: sourcePolicy?.name ?? ''})}</Text>
+                        <Text style={[styles.textSupporting, styles.mt1]}>
+                            {translate('workspace.copyPolicySettings.confirmSettings.description', {workspaceName: sourcePolicy?.name ?? ''})}
+                        </Text>
                     </View>
                     <View style={[styles.mt4]}>
                         <MenuItemWithTopDescription
