@@ -1,6 +1,6 @@
 import lodashFindLast from 'lodash/findLast';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {filterOutDeprecatedReportActions, getSortedReportActions} from '@libs/ReportActionsUtils';
+import {filterOutDeprecatedReportActions, getLinkedTransactionID, getSortedReportActions, isActionOfType, wasActionTakenByCurrentUser} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
@@ -55,4 +55,48 @@ function getReportActionByIDSelector(reportActions: OnyxEntry<ReportActions>, re
     return reportActions[reportActionID];
 }
 
-export {getParentReportActionSelector, getLastClosedReportAction, getReportActionsForReportIDs, getReportActionByIDSelector};
+/**
+ * Finds the IOU action associated with a RECEIPT_SCAN_FAILED report action.
+ * Prefer parentReportActionID (specific IOU action when `report` is a transaction thread).
+ * Fall back to childReportID match, then to the only IOU action for one-transaction reports.
+ */
+function findIouActionForReceiptScanFailed(
+    reportActions: OnyxEntry<ReportActions>,
+    isIouReport: boolean,
+    parentReportActionID: string | undefined,
+    actionReportID: string | undefined,
+): OnyxEntry<ReportAction> {
+    if (!isIouReport && parentReportActionID) {
+        const candidate = reportActions?.[parentReportActionID];
+        if (isActionOfType(candidate, CONST.REPORT.ACTIONS.TYPE.IOU)) {
+            return candidate;
+        }
+    }
+    const iouActions = Object.values(reportActions ?? {}).filter((action): action is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU),
+    );
+    if (actionReportID) {
+        const match = iouActions.find((action) => action.childReportID === actionReportID);
+        if (match) {
+            return match;
+        }
+    }
+    return iouActions.length === 1 ? iouActions.at(0) : undefined;
+}
+
+/** Resolves the IOU action for a RECEIPT_SCAN_FAILED message and returns only the primitive fields the UI needs. */
+function getReceiptScanFailedIouActionDataSelector(
+    reportActions: OnyxEntry<ReportActions>,
+    isIouReport: boolean,
+    parentReportActionID: string | undefined,
+    actionReportID: string | undefined,
+): {transactionID: string | undefined; canEdit: boolean} {
+    const iouAction = findIouActionForReceiptScanFailed(reportActions, isIouReport, parentReportActionID, actionReportID);
+
+    return {
+        transactionID: getLinkedTransactionID(iouAction),
+        canEdit: wasActionTakenByCurrentUser(iouAction),
+    };
+}
+
+export {getParentReportActionSelector, getLastClosedReportAction, getReportActionsForReportIDs, getReportActionByIDSelector, getReceiptScanFailedIouActionDataSelector};
