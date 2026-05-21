@@ -7153,19 +7153,19 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     }
                 }
             },
+            syncResults: {
+                title: (provider: string) => `Synchronisatie met ${provider} voltooid`,
+                successTitle: (provider: string) => `Je ${provider}-verbinding is succesvol gesynchroniseerd!`,
+                added: 'Toegevoegd',
+                removed: 'Verwijderd',
+                skipped: 'Overgeslagen',
+                employeeCount: () => ({
+                    one: '1 werknemer',
+                    other: (count: number) => `${count} medewerkers`,
+                }),
+            },
             gusto: {
                 title: 'Gusto',
-                syncResults: {
-                    title: 'Gusto-synchronisatieresultaten',
-                    successTitle: 'Je Gusto-verbinding is succesvol gesynchroniseerd!',
-                    added: 'Toegevoegd',
-                    removed: 'Verwijderd',
-                    skipped: 'Overgeslagen',
-                    employeeCount: () => ({
-                        one: '1 werknemer',
-                        other: (count: number) => `${count} medewerkers`,
-                    }),
-                },
             },
             zenefits: {
                 title: 'TriNet',

@@ -6495,19 +6495,19 @@ const translations = {
                     }
                 }
             },
+            syncResults: {
+                title: (provider: string) => `${provider} sync complete`,
+                successTitle: (provider: string) => `Successfully synced your ${provider} connection!`,
+                added: 'Added',
+                removed: 'Removed',
+                skipped: 'Skipped',
+                employeeCount: () => ({
+                    one: '1 employee',
+                    other: (count: number) => `${count} employees`,
+                }),
+            },
             gusto: {
                 title: 'Gusto',
-                syncResults: {
-                    title: 'Gusto sync results',
-                    successTitle: 'Successfully synced your Gusto connection!',
-                    added: 'Added',
-                    removed: 'Removed',
-                    skipped: 'Skipped',
-                    employeeCount: () => ({
-                        one: '1 employee',
-                        other: (count: number) => `${count} employees`,
-                    }),
-                },
             },
             zenefits: {
                 title: 'TriNet',

@@ -6308,19 +6308,19 @@ ${amount} para ${merchant} - ${date}`,
                     }
                 }
             },
+            syncResults: {
+                title: (provider: string) => `Sincronización de ${provider} completada`,
+                successTitle: (provider: string) => `¡Se sincronizó correctamente tu conexión de ${provider}!`,
+                added: 'Añadido',
+                removed: 'Eliminado',
+                skipped: 'Omitido',
+                employeeCount: () => ({
+                    one: '1 empleado',
+                    other: (count: number) => `${count} empleados`,
+                }),
+            },
             gusto: {
                 title: 'Gusto',
-                syncResults: {
-                    title: 'Resultados de la sincronización de Gusto',
-                    successTitle: '¡Se sincronizó correctamente tu conexión con Gusto!',
-                    added: 'Añadido',
-                    removed: 'Eliminado',
-                    skipped: 'Omitido',
-                    employeeCount: () => ({
-                        one: '1 empleado',
-                        other: (count: number) => `${count} empleados`,
-                    }),
-                },
             },
             zenefits: {
                 title: 'TriNet',
