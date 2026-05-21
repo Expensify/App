@@ -1,5 +1,5 @@
 import type {RefObject} from 'react';
-import {useEffect, useEffectEvent, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import {useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {wasMessageReceivedWhileOffline} from '@libs/ReportActionsUtils';
@@ -118,7 +118,7 @@ function useUnreadMarker({
 
     const [markerState, setMarkerState] = useState<[string | null, number]>([null, -1]);
 
-    const recomputeMarker = useEffectEvent(() => {
+    useLayoutEffect(() => {
         const scanned = getUnreadMarkerReportAction({
             visibleReportActions: sortedVisibleReportActions,
             earliestReceivedOfflineMessageIndex,
@@ -131,18 +131,12 @@ function useUnreadMarker({
             isReversed: false,
             isAnonymousUser,
         });
-        let next: [string | null, number];
-        if (oldestUnreadReportActionMarker && (scanned[0] === null || scanned[0] === oldestUnreadReportActionMarker[0])) {
-            next = oldestUnreadReportActionMarker;
-        } else {
-            next = scanned;
-        }
+        // Pagination is anchored to the oldest unread on first open; that anchor does not change when the user
+        // marks read or unread, or when messages are deleted. Prefer the scan when it does not match that stale id.
+        const next: [string | null, number] =
+            oldestUnreadReportActionMarker && (scanned[0] === null || scanned[0] === oldestUnreadReportActionMarker[0]) ? oldestUnreadReportActionMarker : scanned;
         prevUnreadMarkerReportActionIDRef.current = next[0];
         setMarkerState((prev) => (prev[0] === next[0] && prev[1] === next[1] ? prev : next));
-    });
-
-    useLayoutEffect(() => {
-        recomputeMarker();
     }, [
         currentUserAccountID,
         earliestReceivedOfflineMessageIndex,
@@ -152,6 +146,7 @@ function useUnreadMarker({
         prevSortedVisibleReportActionsObjects,
         sortedVisibleReportActions,
         unreadMarkerTime,
+        scrollingVerticalOffset,
     ]);
 
     const [unreadMarkerReportActionID, unreadMarkerReportActionIndex] = markerState;
