@@ -1,6 +1,6 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 import {read, write} from '@libs/API';
 import type {ConnectPolicyToMergeParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -184,7 +184,7 @@ function updateMergeHRFinalApprover(policyID: string, finalApprover: string | nu
     );
 }
 
-type HRProviderName = typeof CONST.POLICY.CONNECTIONS.NAME.GUSTO | typeof CONST.POLICY.CONNECTIONS.NAME.ZENEFITS | typeof CONST.POLICY.CONNECTIONS.NAME.MERGE_HR;
+type HRProviderName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.HR_CONNECTION_NAMES>;
 
 function clearMergeHRErrorField(policyID?: string, provider?: HRProviderName) {
     if (!policyID || !provider) {

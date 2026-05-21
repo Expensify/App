@@ -36,7 +36,7 @@ type HRApprovalModeProviderConfig<T extends ApprovalModeValue = ApprovalModeValu
     getCurrentApprovalMode: (policy: OnyxEntry<Policy>) => T | null;
     getProviderName: (policy: OnyxEntry<Policy>) => string;
     getHeaderTitle: (providerName: string) => string;
-    onSave: (params: {policyID: string; draftApprovalMode: T; currentApprovalMode: T | null; connectionSyncProgress?: OnyxEntry<PolicyConnectionSyncProgress>}) => void;
+    handleSave: (params: {policyID: string; draftApprovalMode: T; currentApprovalMode: T | null; connectionSyncProgress?: OnyxEntry<PolicyConnectionSyncProgress>}) => void;
 };
 
 type ApprovalModeListItem<T extends ApprovalModeValue = ApprovalModeValue> = ListItem & {
@@ -92,7 +92,7 @@ function HRApprovalModePageBase<T extends ApprovalModeValue>({policyID, config}:
             return;
         }
 
-        config.onSave({policyID, draftApprovalMode, currentApprovalMode, connectionSyncProgress});
+        config.handleSave({policyID, draftApprovalMode, currentApprovalMode, connectionSyncProgress});
         Navigation.goBack();
     };
 

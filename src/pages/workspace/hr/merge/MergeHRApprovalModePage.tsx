@@ -27,7 +27,7 @@ function MergeHRApprovalModePage({
         getCurrentApprovalMode: (policy) => policy?.connections?.merge_hris?.config?.approvalMode ?? null,
         getProviderName: (policy) => getConnectedHRProvider(policy)?.displayName ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.merge_hris,
         getHeaderTitle: (providerName) => translate('workspace.hr.providerApprovalMode', providerName),
-        onSave: ({draftApprovalMode, currentApprovalMode}) => updateMergeHRApprovalMode(policyID, draftApprovalMode, currentApprovalMode),
+        handleSave: ({draftApprovalMode, currentApprovalMode}) => updateMergeHRApprovalMode(policyID, draftApprovalMode, currentApprovalMode),
     };
 
     return (
