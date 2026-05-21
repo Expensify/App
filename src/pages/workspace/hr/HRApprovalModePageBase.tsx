@@ -5,7 +5,6 @@ import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -35,8 +34,8 @@ type HRApprovalModeProviderConfig<T extends ApprovalModeValue = ApprovalModeValu
     isConnected: (policy: OnyxEntry<Policy>) => boolean;
     approvalModes: {BASIC: T; MANAGER: T; CUSTOM: T};
     getCurrentApprovalMode: (policy: OnyxEntry<Policy>) => T | null;
-    getProviderName: (policy: OnyxEntry<Policy>, translate: LocaleContextProps['translate']) => string;
-    getHeaderTitle: (providerName: string, translate: LocaleContextProps['translate']) => string;
+    getProviderName: (policy: OnyxEntry<Policy>) => string;
+    getHeaderTitle: (providerName: string) => string;
     onSave: (params: {policyID: string; draftApprovalMode: T; currentApprovalMode: T | null; connectionSyncProgress?: OnyxEntry<PolicyConnectionSyncProgress>}) => void;
 };
 
@@ -57,7 +56,7 @@ function HRApprovalModePageBase<T extends ApprovalModeValue>({policyID, config}:
     const policy = usePolicy(policyID);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
 
-    const providerName = config.getProviderName(policy, translate);
+    const providerName = config.getProviderName(policy);
     const currentApprovalMode = config.getCurrentApprovalMode(policy);
     const [draftApprovalMode, setDraftApprovalMode] = useState<T | undefined>();
     const selectedApprovalMode = draftApprovalMode ?? currentApprovalMode;
@@ -124,7 +123,7 @@ function HRApprovalModePageBase<T extends ApprovalModeValue>({policyID, config}:
                 testID={config.testID}
             >
                 <HeaderWithBackButton
-                    title={config.getHeaderTitle(providerName, translate)}
+                    title={config.getHeaderTitle(providerName)}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <View style={styles.flex1}>
