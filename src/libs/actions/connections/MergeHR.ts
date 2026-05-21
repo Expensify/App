@@ -106,7 +106,7 @@ function updateMergeHRApprovalMode(policyID: string, approvalMode: ValueOf<typeo
     ];
 
     write(
-        WRITE_COMMANDS.UPDATE_MERGE_HR_APPROVAL_MODE,
+        WRITE_COMMANDS.UPDATE_MERGE_APPROVAL_MODE,
         {
             policyID,
             approvalMode,
@@ -184,6 +184,20 @@ function updateMergeHRFinalApprover(policyID: string, finalApprover: string | nu
     );
 }
 
-export {syncMergeHR, updateMergeHRApprovalMode, updateMergeHRFinalApprover};
+function clearMergeHRErrorField(policyID?: string) {
+    if (!policyID) {
+        return;
+    }
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        connections: {
+            [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
+                config: {
+                    errorFields: null,
+                },
+            },
+        },
+    });
+}
+export {syncMergeHR, updateMergeHRApprovalMode, updateMergeHRFinalApprover, clearMergeHRErrorField};
 
 export default getMergeHRSetupLink;

@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {removePolicyConnection, syncConnection} from '@libs/actions/connections';
+import {clearMergeHRErrorField} from '@libs/actions/connections/MergeHR';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import type Policy from '@src/types/onyx/Policy';
@@ -133,7 +134,11 @@ function HRProviderCard({card, policy, handleConnect}: HRProviderCardProps) {
                 fallbackIcon={fallbackIcon}
             />
             {card.isConnected && !!approvalModeRoute && (
-                <OfflineWithFeedback pendingAction={card.config?.pendingFields?.approvalMode}>
+                <OfflineWithFeedback
+                    pendingAction={card.config?.pendingFields?.approvalMode}
+                    errors={card.config?.errorFields?.approvalMode}
+                    onClose={() => clearMergeHRErrorField(policy?.id)}
+                >
                     <MenuItemWithTopDescription
                         description={translate('workspace.hr.approvalMode')}
                         title={card.approvalModeLabel}
