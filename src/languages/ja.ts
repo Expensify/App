@@ -7059,6 +7059,7 @@ ${reportName}
             syncError: (providerName: string) => `${providerName}に接続できません`,
             connectionDescription: (providerName: string) => `${providerName}を接続して、従業員の承認をワークスペースと同期させましょう。`,
             approvalMode: '承認モード',
+            providerApprovalMode: (providerName: string) => `${providerName} 承認モード`,
             finalApprover: '最終承認者',
             providerFinalApprover: (providerName: string) => `${providerName} 最終承認者`,
             notSet: '未設定',
