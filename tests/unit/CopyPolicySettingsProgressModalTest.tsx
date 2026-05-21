@@ -1,6 +1,9 @@
 import {act, render} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
+import {clearCopyPolicySettings, requestCopyPolicySettingsNotification} from '@libs/actions/Policy/CopyPolicySettings';
+import {navigateToConciergeChat} from '@libs/actions/Report';
+import CopyPolicySettingsProgressModal from '@pages/workspace/copyPolicySettings/CopyPolicySettingsProgressModal';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -18,10 +21,6 @@ type MockConfirmModalProps = {
 
 let lastModalProps: MockConfirmModalProps | undefined;
 
-const mockClearCopyPolicySettings = jest.fn();
-const mockRequestNotification = jest.fn();
-const mockNavigateToConcierge = jest.fn();
-
 jest.mock('@hooks/useLocalize', () => () => ({
     translate: (key: string) => key,
 }));
@@ -38,20 +37,21 @@ jest.mock('@components/ConfirmModal', () => {
 });
 
 jest.mock('@libs/actions/Policy/CopyPolicySettings', () => ({
-    clearCopyPolicySettings: (...args: unknown[]) => mockClearCopyPolicySettings(...args),
-    requestCopyPolicySettingsNotification: (...args: unknown[]) => mockRequestNotification(...args),
+    clearCopyPolicySettings: jest.fn(),
+    requestCopyPolicySettingsNotification: jest.fn(),
 }));
 
 jest.mock('@libs/actions/Report', () => ({
-    navigateToConciergeChat: (...args: unknown[]) => mockNavigateToConcierge(...args),
+    navigateToConciergeChat: jest.fn(),
 }));
 
 jest.mock('@src/selectors/Onboarding', () => ({
     hasSeenTourSelector: () => true,
 }));
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const CopyPolicySettingsProgressModal = require('@pages/workspace/copyPolicySettings/CopyPolicySettingsProgressModal').default;
+const mockClearCopyPolicySettings = clearCopyPolicySettings as jest.MockedFunction<typeof clearCopyPolicySettings>;
+const mockRequestNotification = requestCopyPolicySettingsNotification as jest.MockedFunction<typeof requestCopyPolicySettingsNotification>;
+const mockNavigateToConcierge = navigateToConciergeChat as jest.MockedFunction<typeof navigateToConciergeChat>;
 
 function renderModal() {
     return render(<CopyPolicySettingsProgressModal />);
