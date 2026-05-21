@@ -3,17 +3,24 @@ import {DefaultSuccessScreen} from '@components/MultifactorAuthentication/compon
 import createScreenWithDefaults from '@components/MultifactorAuthentication/components/OutcomeScreen/createScreenWithDefaults';
 import {DefaultClientFailureScreen, DefaultServerFailureScreen} from '@components/MultifactorAuthentication/components/OutcomeScreen/FailureScreen/defaultScreens';
 import type {MultifactorAuthenticationScenarioCustomConfig} from '@components/MultifactorAuthentication/config/types';
+import {useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
 import {changePINForCard} from '@libs/actions/MultifactorAuthentication';
 import Navigation from '@libs/Navigation/Navigation';
+// eslint-disable-next-line no-restricted-imports
+import spacing from '@styles/utils/spacing';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 /**
  * Payload type for the CHANGE_PIN scenario.
  * Contains the new PIN and cardID for the card whose PIN is being changed.
+ * `wasPINBlocked` is captured at flow entry so the success screen can show the
+ * "unblock" variant even though the server clears isPINBlocked on success.
  */
 type Payload = {
     pin: string;
     cardID: string;
+    wasPINBlocked?: boolean;
 };
 
 const ClientFailureScreen = createScreenWithDefaults(
@@ -43,6 +50,28 @@ const ChangePINSuccessScreen = createScreenWithDefaults(
     'ChangePINSuccessScreen',
 );
 
+const PINUnblockedSuccessScreen = createScreenWithDefaults(
+    DefaultSuccessScreen,
+    {
+        headerTitle: 'cardPage.unblockCard',
+        title: 'cardPage.cardUnblocked',
+        subtitle: 'cardPage.cardUnblockedDescription',
+        illustration: 'CardReader',
+        iconWidth: variables.cardReaderWidth,
+        iconHeight: variables.cardReaderHeight,
+        titleStyle: spacing.mt8,
+    },
+    'PINUnblockedSuccessScreen',
+);
+
+function ChangePINOutcomeSuccessScreen() {
+    const {payload} = useMultifactorAuthenticationState();
+    const wasPINBlocked = (payload as Payload | undefined)?.wasPINBlocked === true;
+    return wasPINBlocked ? <PINUnblockedSuccessScreen /> : <ChangePINSuccessScreen />;
+}
+
+ChangePINOutcomeSuccessScreen.displayName = 'ChangePINOutcomeSuccessScreen';
+
 /**
  * Configuration for the CHANGE_PIN multifactor authentication scenario.
  * This scenario is used when a UK/EU cardholder changes the PIN of their physical card.
@@ -56,7 +85,7 @@ export default {
         Navigation.goBack();
         return CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN;
     },
-    successScreen: <ChangePINSuccessScreen />,
+    successScreen: <ChangePINOutcomeSuccessScreen />,
     defaultClientFailureScreen: <ClientFailureScreen />,
     defaultServerFailureScreen: <ServerFailureScreen />,
 } as const satisfies MultifactorAuthenticationScenarioCustomConfig<Payload>;

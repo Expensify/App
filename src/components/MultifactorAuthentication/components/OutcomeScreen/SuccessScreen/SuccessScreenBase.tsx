@@ -1,4 +1,5 @@
 import React from 'react';
+import type {StyleProp, TextStyle} from 'react-native';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import OutcomeScreenBase from '@components/MultifactorAuthentication/components/OutcomeScreen/OutcomeScreenBase';
 import useLocalize from '@hooks/useLocalize';
@@ -16,9 +17,10 @@ type SuccessScreenBaseProps = {
     subtitle?: TranslationPaths;
     customSubtitle?: React.ReactElement;
     onClose?: () => void;
+    titleStyle?: StyleProp<TextStyle>;
 };
 
-function SuccessScreenBase({headerTitle, illustration, iconWidth, iconHeight, title, subtitle, customSubtitle, onClose}: SuccessScreenBaseProps) {
+function SuccessScreenBase({headerTitle, illustration, iconWidth, iconHeight, title, subtitle, customSubtitle, onClose, titleStyle}: SuccessScreenBaseProps) {
     const {translate} = useLocalize();
 
     return (
@@ -32,6 +34,7 @@ function SuccessScreenBase({headerTitle, illustration, iconWidth, iconHeight, ti
             customSubtitle={customSubtitle}
             padding={spacing.p2}
             onClose={onClose}
+            titleStyle={titleStyle}
         />
     );
 }
