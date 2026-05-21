@@ -198,8 +198,8 @@ function isControlPolicyOnlyRole(role: string | undefined): boolean {
 }
 
 function hasPolicyFeaturePermission(policy: OnyxInputOrEntry<Policy>, login: string, feature: PolicyFeature, requiredAccess: PolicyFeatureAccess): boolean {
-    const role = getPolicyRole(policy, login, false);
-    if (isControlPolicyOnlyRole(role) && !isControlPolicy(policy)) {
+    const role = getPolicyRole(policy, login, !login);
+    if (isControlPolicyOnlyRole(role) && (!policy || !isControlPolicy(policy))) {
         return false;
     }
 

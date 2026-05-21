@@ -140,7 +140,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const policyName = policy?.name ?? '';
     const hasPolicyCreationError = policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors);
     const canWriteWorkspaceSettings = canEditWorkspaceSettings(policy, currentUserLogin);
-    const canReadPolicyFeature = (policyFeature: PolicyFeature) => (currentUserLogin ? canMemberRead(policy, currentUserLogin, policyFeature) : false);
+    const canReadPolicyFeature = (policyFeature: PolicyFeature) => canMemberRead(policy, currentUserLogin ?? '', policyFeature);
     const canReadMoreFeatures = canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
     const shouldShowProtectedItems =
         canWriteWorkspaceSettings ||

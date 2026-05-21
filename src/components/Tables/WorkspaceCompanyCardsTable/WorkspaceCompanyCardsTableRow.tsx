@@ -106,7 +106,7 @@ function WorkspaceCompanyCardTableRow({
         ? {width: variables.cardAvatarWidth, height: variables.cardAvatarHeight}
         : {width: variables.cardAvatarWidthSmall, height: variables.cardAvatarHeightSmall};
 
-    const canOpenCardDetails = !!assignedCard?.accountID && !!assignedCard?.fundID;
+    const canOpenCardDetails = !!assignedCard?.accountID && !!assignedCard?.fundID && assignedCard?.cardID !== undefined;
     const canAssignCard = !isAssigned && canWriteCompanyCards && !isAssigningCardDisabled;
     const canPressRow = canOpenCardDetails || canAssignCard;
 
@@ -120,7 +120,7 @@ function WorkspaceCompanyCardTableRow({
             return;
         }
 
-        if (!canOpenCardDetails) {
+        if (!canOpenCardDetails || assignedCard.cardID === undefined) {
             return;
         }
 
