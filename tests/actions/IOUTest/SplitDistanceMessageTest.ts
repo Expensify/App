@@ -152,6 +152,7 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
             reportPolicyTags: undefined,
             isSplitTransaction: true,
             isSelfDMSplit: true,
+            delegateAccountID: undefined,
         });
 
         const txnOptimisticEntry = findSelfDMTransactionOptimisticEntry(onyxData.optimisticData as AnyOnyxEntry[], selfDMTransaction.transactionID);
@@ -180,6 +181,7 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
             reportPolicyTags: undefined,
             isSplitTransaction: true,
             isSelfDMSplit: true,
+            delegateAccountID: undefined,
         });
 
         // The selfDM failureData entry is distinguished from the general failure entry by
@@ -217,6 +219,7 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
             reportPolicyTags: undefined,
             isSplitTransaction: true,
             isSelfDMSplit: false,
+            delegateAccountID: undefined,
         });
 
         // The selfDM-specific entry lacks pendingFields. The normal flow entry includes pendingFields.
@@ -242,6 +245,7 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
             reportPolicyTags: undefined,
             isSplitTransaction: false,
             isSelfDMSplit: true,
+            delegateAccountID: undefined,
         });
 
         const selfDMEntry = findSelfDMTransactionOptimisticEntry(onyxData.optimisticData as AnyOnyxEntry[], selfDMTransaction.transactionID);
@@ -265,6 +269,7 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
             reportPolicyTags: undefined,
             isSplitTransaction: true,
             isSelfDMSplit: true,
+            delegateAccountID: undefined,
         });
 
         const selfDMEntry = findSelfDMTransactionOptimisticEntry(onyxData.optimisticData as AnyOnyxEntry[], 'nonexistentTransactionID');
