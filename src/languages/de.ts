@@ -7395,6 +7395,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
             return `${newValue ? 'aktiviert' : 'deaktiviert'} den ${customUnitName}-Satz „${customUnitRateName}“`;
         },
+        renamedCustomUnitRate: (customUnitName, oldRateName, newRateName) => `benannte die ${customUnitName}-Rate "${oldRateName}" in "${newRateName}" um`,
         deleteCustomUnitRate: (customUnitName: string, rateName: string) => `hat den „${customUnitName}“-Satz „${rateName}“ entfernt`,
         updateReportFieldDefaultValue: (defaultValue?: string, fieldName?: string) => `Standardwert des Berichts­feldes „${fieldName}“ auf „${defaultValue}“ festlegen`,
         addedReportFieldOption: (fieldName: string, optionName: string) => `die Option „${optionName}“ zum Berichtsfeld „${fieldName}“ hinzugefügt`,
