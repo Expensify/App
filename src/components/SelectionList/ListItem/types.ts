@@ -7,6 +7,7 @@ import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
@@ -160,7 +161,7 @@ type CommonListItemProps<TItem extends ListItem> = {
     canSelectMultiple?: boolean;
 
     /** Callback to fire when the item is pressed */
-    onSelectRow: (item: TItem, transactionPreviewData?: TransactionPreviewData) => void;
+    onSelectRow: (item: TItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
 
     /** Callback to fire when an error is dismissed */
     onDismissError?: (item: TItem) => void;

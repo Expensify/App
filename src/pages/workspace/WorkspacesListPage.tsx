@@ -34,6 +34,8 @@ import {calculateBillNewDot, clearDeleteWorkspaceError, clearDuplicateWorkspace,
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 import {filterInactiveCards} from '@libs/CardUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import openInternalRouteInNewTab from '@libs/Navigation/helpers/openInternalRouteInNewTab';
+import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
@@ -420,12 +422,12 @@ function WorkspacesListPage() {
         return threeDotsMenuItems;
     };
 
-    const navigateToWorkspace = (policyID: string) => {
-        if (shouldUseNarrowLayout) {
-            Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
+    const navigateToWorkspace = (policyID: string, event?: ModifiedMouseEvent) => {
+        const workspaceRoute = shouldUseNarrowLayout ? ROUTES.WORKSPACE_INITIAL.getRoute(policyID) : ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID);
+        if (openInternalRouteInNewTab(workspaceRoute, event)) {
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID));
+        Navigation.navigate(workspaceRoute);
     };
 
     const resetLoadingSpinnerIconIndex = () => {
@@ -532,7 +534,7 @@ function WorkspacesListPage() {
                     icon: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
                     brickRoadIndicator,
                     pendingAction: policy.pendingAction,
-                    action: () => navigateToWorkspace(policy.id),
+                    action: (event) => navigateToWorkspace(policy.id, event),
                     dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
                 };
 
