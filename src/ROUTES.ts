@@ -543,9 +543,9 @@ const DYNAMIC_ROUTES = {
         entryScreens: [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT],
     },
     WORKSPACE_TAGS_EDIT: {
-        path: ':orderWeight/edit',
+        path: 'tags-edit/:orderWeight',
         entryScreens: [SCREENS.WORKSPACE.TAGS, SCREENS.WORKSPACE.TAGS_SETTINGS, SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_LIST_VIEW],
-        getRoute: (orderWeight: number) => `${orderWeight}/edit`,
+        getRoute: (orderWeight: number) => `tags-edit/${orderWeight}`,
     },
     WORKSPACE_TAG_SETTINGS: {
         path: 'tag/:orderWeight/:tagName',
@@ -560,24 +560,21 @@ const DYNAMIC_ROUTES = {
         queryParams: ['parentTagsFilter'],
     },
     WORKSPACE_TAG_EDIT: {
-        path: 'tag/:orderWeight/:tagName/edit',
+        path: 'tag-edit',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_SETTINGS, SCREENS.WORKSPACE.TAGS, SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_LIST_VIEW],
-        getRoute: (orderWeight: number, tagName: string) => `tag/${orderWeight}/${encodeURIComponent(tagName)}/edit`,
     },
     WORKSPACE_TAG_GL_CODE: {
-        path: 'tag/:orderWeight/:tagName/gl-code',
+        path: 'tag-gl-code',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_SETTINGS, SCREENS.WORKSPACE.TAGS, SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_LIST_VIEW],
-        getRoute: (orderWeight: number, tagName: string) => `tag/${orderWeight}/${encodeURIComponent(tagName)}/gl-code`,
     },
     WORKSPACE_TAG_APPROVER: {
-        path: 'tag/:orderWeight/:tagName/approver',
+        path: 'workspace-tag-approver',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_SETTINGS, SCREENS.WORKSPACE.TAGS, SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_LIST_VIEW],
-        getRoute: (orderWeight: number, tagName: string) => `tag/${orderWeight}/${encodeURIComponent(tagName)}/approver`,
     },
     WORKSPACE_TAG_LIST_VIEW: {
-        path: 'tag-list/:orderWeight',
+        path: 'workspace-tag-list/:orderWeight',
         entryScreens: [SCREENS.WORKSPACE.TAGS],
-        getRoute: (orderWeight: number) => `tag-list/${orderWeight}`,
+        getRoute: (orderWeight: number) => `workspace-tag-list/${orderWeight}`,
     },
     WORKSPACE_TAG_CREATE: {
         path: 'tags/new',

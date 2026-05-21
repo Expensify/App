@@ -93,12 +93,12 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     };
 
     const navigateToEditTag = () => {
-        Navigation.navigate(createDynamicRoute((isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAG_EDIT : DYNAMIC_ROUTES.WORKSPACE_TAG_EDIT).getRoute(orderWeight, currentPolicyTag.name)));
+        Navigation.navigate(createDynamicRoute(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAG_EDIT.getRoute(orderWeight, currentPolicyTag.name) : DYNAMIC_ROUTES.WORKSPACE_TAG_EDIT.path));
     };
 
     const navigateToEditGlCode = () => {
         const glCodeRoute = createDynamicRoute(
-            (isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAG_GL_CODE : DYNAMIC_ROUTES.WORKSPACE_TAG_GL_CODE).getRoute(orderWeight, currentPolicyTag.name),
+            isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAG_GL_CODE.getRoute(orderWeight, currentPolicyTag.name) : DYNAMIC_ROUTES.WORKSPACE_TAG_GL_CODE.path,
         );
         if (!isControlPolicy(policy)) {
             Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.glCodes.alias, glCodeRoute));
@@ -108,7 +108,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     };
 
     const navigateToEditTagApprover = () => {
-        Navigation.navigate(createDynamicRoute((isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAG_APPROVER : DYNAMIC_ROUTES.WORKSPACE_TAG_APPROVER).path));
+        Navigation.navigate(createDynamicRoute(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAG_APPROVER.path : DYNAMIC_ROUTES.WORKSPACE_TAG_APPROVER.path));
     };
 
     const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
