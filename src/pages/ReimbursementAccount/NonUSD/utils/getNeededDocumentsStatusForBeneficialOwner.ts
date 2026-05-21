@@ -14,6 +14,7 @@ function getNeededDocumentsStatusForBeneficialOwner(
     beneficialOwnerAddressCountry: string,
 ): NeededDocumentsStatusForBeneficialOwner {
     const isCopyOfIDNeeded = workspaceCurrency === CONST.CURRENCY.GBP && beneficialOwnerNationality !== CONST.COUNTRY.GB;
+    // Guard against empty strings: if either country is unknown we cannot determine a mismatch, so we default to no requirement.
     const isAddressCountryMismatch = !!beneficialOwnerAddressCountry && !!accountCountry && beneficialOwnerAddressCountry !== accountCountry;
 
     return {

@@ -12,7 +12,6 @@ import {clearErrors, setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import SafeString from '@src/utils/SafeString';
 import Address from './BeneficialOwnerDetailsFormSubSteps/Address';
 import Confirmation from './BeneficialOwnerDetailsFormSubSteps/Confirmation';
@@ -74,7 +73,6 @@ function BeneficialOwnerDetailsFormPages({stepNames, policyID, onFinished, backT
     const beneficialOwnerNationality = SafeString(reimbursementAccountDraft?.[beneficialOwnerNationalityInputID]);
     const beneficialOwnerAddressCountryInputID = `${PREFIX}_${ownerBeingModifiedID}_${COUNTRY}` as const;
     const beneficialOwnerAddressCountry = SafeString(reimbursementAccountDraft?.[beneficialOwnerAddressCountryInputID]);
-    const countryStepCountryValue = reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
 
     const totalOwnedPercentage = Object.fromEntries(
         ownerKeys.map((key) => {
@@ -83,7 +81,7 @@ function BeneficialOwnerDetailsFormPages({stepNames, policyID, onFinished, backT
         }),
     );
 
-    const {currency} = getCurrencyForNonUSDBankAccount(policy, reimbursementAccountDraft, reimbursementAccount);
+    const {currency, country} = getCurrencyForNonUSDBankAccount(policy, reimbursementAccountDraft, reimbursementAccount);
 
     const skipPages = useMemo(() => {
         const pagesToSkip: string[] = [];
@@ -92,7 +90,7 @@ function BeneficialOwnerDetailsFormPages({stepNames, policyID, onFinished, backT
         }
         const {isProofOfOwnershipNeeded, isCopyOfIDNeeded, isProofOfAddressNeeded, isCodiceFiscaleNeeded} = getNeededDocumentsStatusForBeneficialOwner(
             currency,
-            countryStepCountryValue,
+            country,
             beneficialOwnerNationality,
             beneficialOwnerAddressCountry,
         );
@@ -100,7 +98,7 @@ function BeneficialOwnerDetailsFormPages({stepNames, policyID, onFinished, backT
             pagesToSkip.push(SUB_PAGE_NAMES.DOCUMENTS);
         }
         return pagesToSkip;
-    }, [beneficialOwnerNationality, beneficialOwnerAddressCountry, countryStepCountryValue, currency]);
+    }, [beneficialOwnerNationality, beneficialOwnerAddressCountry, country, currency]);
 
     const buildRoute = useCallback(
         (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: pageName, action, backTo}),
