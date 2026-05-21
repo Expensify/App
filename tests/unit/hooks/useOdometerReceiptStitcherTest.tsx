@@ -6,11 +6,8 @@ import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-// jest-expo runs with platform='ios', so the resolver picks `index.native.ts` (passthrough stub)
-// over `index.ts` (the web FSM) for hook directories. Force-load the web implementation by
-// importing the file path explicitly. The native stub is exercised separately at the bottom.
-type WebHookModule = {default: typeof useOdometerReceiptStitcherType};
-const useOdometerReceiptStitcher = jest.requireActual<WebHookModule>('@hooks/useOdometerReceiptStitcher/index.ts').default;
+type HookModule = {default: typeof useOdometerReceiptStitcherType};
+const useOdometerReceiptStitcher = jest.requireActual<HookModule>('@hooks/useOdometerReceiptStitcher/index.ts').default;
 
 // ─── Mocks ──────────────────────────────────────────────────────────────────
 
@@ -381,18 +378,6 @@ describe('useOdometerReceiptStitcher (web FSM, composes verifier)', () => {
             setVerifierResult({hasVerifiedBlobs: false});
             const {result} = renderHook(() => useOdometerReceiptStitcher(buildArgs()));
             expect(result.current.hasVerifiedBlobs).toBe(false);
-        });
-    });
-
-    describe('native pass-through', () => {
-        it('native stub returns idle + isReady true regardless of args', () => {
-            const nativeModule = jest.requireActual<{default: typeof useOdometerReceiptStitcherType}>('@hooks/useOdometerReceiptStitcher/index.native');
-            const result = nativeModule.default(buildArgs());
-            expect(result.state.kind).toBe('idle');
-            expect(result.isReady).toBe(true);
-            expect(result.isStitching).toBe(false);
-            expect(result.error).toBeNull();
-            expect(result.hasVerifiedBlobs).toBe(true);
         });
     });
 });
