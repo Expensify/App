@@ -4,10 +4,10 @@ import type {WebViewNavigation} from 'react-native-webview';
 import {WebView} from 'react-native-webview';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCardFeeds from '@hooks/useCardFeeds';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useImportPlaidAccounts from '@hooks/useImportPlaidAccounts';
 import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
 import useLocalize from '@hooks/useLocalize';
@@ -76,7 +76,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
     const isNewFeedHasError = !!(newFeed && cardFeeds?.[newFeed]?.errors);
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
     const isDuplicateFeed = isNewFeedConnected && !newFeed && isPlaid;
-    const [isDuplicateModalVisible, setIsDuplicateModalVisible] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
 
     const activityReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'BankConnection',
@@ -143,7 +143,15 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
         // Handle add new card flow
         if (isNewFeedConnected) {
             if (isDuplicateFeed) {
-                setIsDuplicateModalVisible(true);
+                showConfirmModal({
+                    title: translate('workspace.companyCards.addNewCard.duplicateFeedModal.title'),
+                    prompt: translate('workspace.companyCards.addNewCard.duplicateFeedModal.prompt'),
+                    confirmText: translate('common.buttonConfirm'),
+                    shouldShowCancelButton: false,
+                }).then(() => {
+                    Navigation.closeRHPFlow();
+                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
+                });
                 return;
             }
 
@@ -172,6 +180,8 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
         isFeedConnectionBroken,
         updateBrokenConnection,
         isNewFeedHasError,
+        showConfirmModal,
+        translate,
     ]);
 
     const checkIfConnectionCompleted = (navState: WebViewNavigation) => {
@@ -223,23 +233,6 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
                     />
                 )}
             </FullPageOfflineBlockingView>
-            <ConfirmModal
-                title={translate('workspace.companyCards.addNewCard.duplicateFeedModal.title')}
-                prompt={translate('workspace.companyCards.addNewCard.duplicateFeedModal.prompt')}
-                confirmText={translate('common.buttonConfirm')}
-                shouldShowCancelButton={false}
-                isVisible={isDuplicateModalVisible}
-                onConfirm={() => {
-                    setIsDuplicateModalVisible(false);
-                    Navigation.closeRHPFlow();
-                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
-                }}
-                onCancel={() => {
-                    setIsDuplicateModalVisible(false);
-                    Navigation.closeRHPFlow();
-                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
-                }}
-            />
         </ScreenWrapper>
     );
 }

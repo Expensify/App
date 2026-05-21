@@ -2,12 +2,12 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useCardFeeds from '@hooks/useCardFeeds';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useImportPlaidAccounts from '@hooks/useImportPlaidAccounts';
 import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -80,7 +80,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
     const isDuplicateFeed = isNewFeedConnected && !newFeed && isPlaid;
-    const [isDuplicateModalVisible, setIsDuplicateModalVisible] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
 
     const onOpenBankConnectionFlow = useCallback(() => {
         if (!url) {
@@ -157,7 +157,15 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
             customWindow?.close();
 
             if (isDuplicateFeed) {
-                setIsDuplicateModalVisible(true);
+                showConfirmModal({
+                    title: translate('workspace.companyCards.addNewCard.duplicateFeedModal.title'),
+                    prompt: translate('workspace.companyCards.addNewCard.duplicateFeedModal.prompt'),
+                    confirmText: translate('common.buttonConfirm'),
+                    shouldShowCancelButton: false,
+                }).then(() => {
+                    Navigation.closeRHPFlow();
+                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
+                });
                 return;
             }
 
@@ -196,6 +204,8 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
         isFeedConnectionBroken,
         updateBrokenConnection,
         isNewFeedHasError,
+        showConfirmModal,
+        translate,
     ]);
 
     const getContent = () => {
@@ -245,23 +255,6 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
                 onBackButtonPress={handleBackButtonPress}
             />
             <FullPageOfflineBlockingView addBottomSafeAreaPadding>{getContent()}</FullPageOfflineBlockingView>
-            <ConfirmModal
-                title={translate('workspace.companyCards.addNewCard.duplicateFeedModal.title')}
-                prompt={translate('workspace.companyCards.addNewCard.duplicateFeedModal.prompt')}
-                confirmText={translate('common.buttonConfirm')}
-                shouldShowCancelButton={false}
-                isVisible={isDuplicateModalVisible}
-                onConfirm={() => {
-                    setIsDuplicateModalVisible(false);
-                    Navigation.closeRHPFlow();
-                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
-                }}
-                onCancel={() => {
-                    setIsDuplicateModalVisible(false);
-                    Navigation.closeRHPFlow();
-                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
-                }}
-            />
         </ScreenWrapper>
     );
 }
