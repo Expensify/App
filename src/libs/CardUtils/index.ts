@@ -6,6 +6,11 @@ import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {CombinedCardFeed, CombinedCardFeeds} from '@hooks/useCardFeeds';
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
+import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
+import DateUtils from '@libs/DateUtils';
+import {filterObject} from '@libs/ObjectUtils';
+import {arePersonalDetailsMissing, getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import StringUtils from '@libs/StringUtils';
 import type IllustrationsType from '@styles/theme/illustrations/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -45,11 +50,6 @@ import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {Connections} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {isBankAccountPartiallySetup} from '../BankAccountUtils';
-import DateUtils from '../DateUtils';
-import {filterObject} from '../ObjectUtils';
-import {arePersonalDetailsMissing, getDisplayNameOrDefault} from '../PersonalDetailsUtils';
-import StringUtils from '../StringUtils';
 import {getCardFeedBackgroundColor, getCardHolderTextColor} from './colors';
 
 const COMPANY_CARD_FEED_ICON_NAMES = [
