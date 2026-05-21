@@ -7,8 +7,14 @@ type NeededDocumentsStatusForBeneficialOwner = {
     isCodiceFiscaleNeeded: boolean;
 };
 
-function getNeededDocumentsStatusForBeneficialOwner(workspaceCurrency: string, accountCountry: string, beneficialOwnerNationality: string): NeededDocumentsStatusForBeneficialOwner {
+function getNeededDocumentsStatusForBeneficialOwner(
+    workspaceCurrency: string,
+    accountCountry: string,
+    beneficialOwnerNationality: string,
+    beneficialOwnerAddressCountry: string,
+): NeededDocumentsStatusForBeneficialOwner {
     const isCopyOfIDNeeded = workspaceCurrency === CONST.CURRENCY.GBP && beneficialOwnerNationality !== CONST.COUNTRY.GB;
+    const isAddressCountryMismatch = !!beneficialOwnerAddressCountry && !!accountCountry && beneficialOwnerAddressCountry !== accountCountry;
 
     return {
         isProofOfOwnershipNeeded:
@@ -17,7 +23,7 @@ function getNeededDocumentsStatusForBeneficialOwner(workspaceCurrency: string, a
             workspaceCurrency === CONST.CURRENCY.CAD ||
             (workspaceCurrency === CONST.CURRENCY.GBP && beneficialOwnerNationality !== CONST.COUNTRY.GB),
         isCopyOfIDNeeded,
-        isProofOfAddressNeeded: workspaceCurrency === CONST.CURRENCY.EUR || isCopyOfIDNeeded,
+        isProofOfAddressNeeded: workspaceCurrency === CONST.CURRENCY.EUR || isCopyOfIDNeeded || isAddressCountryMismatch,
         isCodiceFiscaleNeeded: accountCountry === CONST.COUNTRY.IT,
     };
 }
