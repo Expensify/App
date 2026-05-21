@@ -49,6 +49,8 @@ import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 import {filterInactiveCards} from '@libs/CardUtils';
 import {hasDomainErrors} from '@libs/DomainUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import openInternalRouteInNewTab from '@libs/Navigation/helpers/openInternalRouteInNewTab';
+import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
@@ -93,7 +95,7 @@ type WorkspaceItem = {listItemType: 'workspace'} & ListItem &
     Pick<OfflineWithFeedbackProps, 'errors' | 'pendingAction'> &
     Pick<PolicyType, 'role' | 'type' | 'ownerAccountID' | 'employeeList'> & {
         icon: AvatarSource;
-        action: () => void;
+        action: (event?: ModifiedMouseEvent) => void;
         dismissError: () => void;
         iconType?: ValueOf<typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_ICON>;
         policyID?: string;
@@ -508,12 +510,12 @@ function WorkspacesListPage() {
         );
     };
 
-    const navigateToWorkspace = (policyID: string) => {
-        if (shouldUseNarrowLayout) {
-            Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
+    const navigateToWorkspace = (policyID: string, event?: ModifiedMouseEvent) => {
+        const workspaceRoute = shouldUseNarrowLayout ? ROUTES.WORKSPACE_INITIAL.getRoute(policyID) : ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID);
+        if (openInternalRouteInNewTab(workspaceRoute, event)) {
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID));
+        Navigation.navigate(workspaceRoute);
     };
 
     const navigateToDomain = ({domainAccountID, isAdmin}: {domainAccountID: number; isAdmin: boolean}) => {
@@ -583,7 +585,7 @@ function WorkspacesListPage() {
                     listItemType: 'workspace',
                     title: policy.name,
                     icon: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
-                    action: () => navigateToWorkspace(policy.id),
+                    action: (event) => navigateToWorkspace(policy.id, event),
                     brickRoadIndicator,
                     pendingAction: policy.pendingAction,
                     errors: policy.errors,

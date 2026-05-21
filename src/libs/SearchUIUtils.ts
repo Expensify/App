@@ -2373,14 +2373,13 @@ function getActions(
     const shouldOnlyShowElsewhere = !canBePaid && canOnlyBePaidElsewhere;
 
     // We're not supporting pay partial amount on search page now.
-    if ((canBePaid || shouldOnlyShowElsewhere) && !hasHeldExpenses(report.reportID, allReportTransactions)) {
+    if ((canBePaid || shouldOnlyShowElsewhere) && !hasHeldExpenses(allReportTransactions)) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.PAY);
     }
 
     if (isExportAvailable) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.EXPORT_TO_ACCOUNTING);
     }
-
     if (isClosedReport(report) && !(canBePaid || shouldOnlyShowElsewhere)) {
         return allActions.length > 0 ? allActions : [CONST.SEARCH.ACTION_TYPES.DONE];
     }
@@ -2490,18 +2489,55 @@ function getTaskSections(
     return [tasks, tasks.length];
 }
 
+type CreateAndOpenSearchTransactionThreadParams = {
+    /** The transaction list item being opened */
+    item: TransactionListItemType;
+
+    /** The intro selected by the user */
+    introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
+
+    /** The route to go back to after navigation */
+    backTo: string;
+
+    /** The current user's login */
+    currentUserLogin: string;
+
+    /** The current user's account ID */
+    currentUserAccountID: number;
+
+    /** Beta features list */
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
+
+    /** Whether the user has seen the self tour */
+    isSelfTourViewed: boolean | undefined;
+
+    /** Whether the user has completed the guided setup flow */
+    hasCompletedGuidedSetupFlow: boolean | undefined;
+
+    /** Existing transaction thread report ID (childReportID), if any */
+    IOUTransactionID?: string;
+
+    /** Preview data used to set optimistic data for the transaction thread preview */
+    transactionPreviewData?: TransactionPreviewData;
+
+    /** Whether to navigate to the transaction thread after creating it */
+    shouldNavigate?: boolean;
+};
+
 /** Creates transaction thread report and navigates to it from the search page */
-function createAndOpenSearchTransactionThread(
-    item: TransactionListItemType,
-    introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
-    backTo: string,
-    currentUserLogin: string,
-    currentUserAccountID: number,
-    betas: OnyxEntry<OnyxTypes.Beta[]>,
-    IOUTransactionID?: string,
-    transactionPreviewData?: TransactionPreviewData,
+function createAndOpenSearchTransactionThread({
+    item,
+    introSelected,
+    backTo,
+    currentUserLogin,
+    currentUserAccountID,
+    betas,
+    isSelfTourViewed,
+    hasCompletedGuidedSetupFlow,
+    IOUTransactionID,
+    transactionPreviewData,
     shouldNavigate = true,
-) {
+}: CreateAndOpenSearchTransactionThreadParams): string | undefined {
     const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isDeleted = isDeletedTransaction(item);
     const iouReportAction = getIOUActionForReportID(isFromSelfDM ? findSelfDMReportID() : item.reportID, item.transactionID);
@@ -2537,23 +2573,25 @@ function createAndOpenSearchTransactionThread(
             iouReportAction: reportActionToPass,
             transaction,
             transactionViolations,
+            isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
         });
     }
 
-    if (shouldNavigate) {
-        // Navigate to transaction thread if there are multiple transactions in the report, or to the parent report if it's the only transaction
-        const isFromOneTransactionReport = isOneTransactionReport(item.report);
-        const shouldNavigateToTransactionThread = (!isFromOneTransactionReport || isFromSelfDM || isDeleted) && transactionThreadReport?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID;
-        // When we have an actual transaction thread (childReportID from Onyx) but the report isn't in Onyx yet
-        // (e.g. Search didn't return the IOU action for deleted items), use childReportID directly so we don't navigate with undefined
-        const targetReportID = shouldNavigateToTransactionThread
-            ? (transactionThreadReport?.reportID ?? (hasActualTransactionThread ? iouReportAction.childReportID : undefined))
-            : item.reportID;
+    // Navigate to transaction thread if there are multiple transactions in the report, or to the parent report if it's the only transaction
+    const isFromOneTransactionReport = isOneTransactionReport(item.report);
+    const shouldNavigateToTransactionThread = (!isFromOneTransactionReport || isFromSelfDM || isDeleted) && transactionThreadReport?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID;
+    // When we have an actual transaction thread (childReportID from Onyx) but the report isn't in Onyx yet
+    // (e.g. Search didn't return the IOU action for deleted items), use childReportID directly so we don't navigate with undefined
+    const targetReportID = shouldNavigateToTransactionThread
+        ? (transactionThreadReport?.reportID ?? (hasActualTransactionThread ? iouReportAction.childReportID : undefined))
+        : item.reportID;
 
-        if (targetReportID) {
-            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID, backTo})));
-        }
+    if (shouldNavigate && targetReportID) {
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID, backTo})));
     }
+
+    return targetReportID;
 }
 
 /**
