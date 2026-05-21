@@ -261,6 +261,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reset: 'Réinitialiser',
         done: 'Terminé',
         more: 'Plus',
+        other: 'Autre',
         debitCard: 'Carte de débit',
         bankAccount: 'Compte bancaire',
         personalBankAccount: 'Compte bancaire personnel',
@@ -960,8 +961,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 personalSubtitle: 'Portefeuille',
             },
         },
-        assignedCards: 'Vos cartes Expensify',
-        assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} restant`,
         announcements: 'Annonces',
         discoverSection: {
             title: 'Découvrir',
@@ -1040,6 +1039,12 @@ const translations: TranslationDeepObject<typeof en> = {
             linkCompanyCards: 'Lier des cartes d’entreprise',
             setupRules: 'Configurer les règles de dépense',
             inviteAccountant: 'Inviter votre comptable',
+        },
+        yourSpend: {
+            title: 'Vos dépenses',
+            awaitingApproval: 'En attente d’approbation',
+            repaidLast30Days: 'Remboursé au cours des 30 derniers jours',
+            recentTransactions: ({lastFour}: {lastFour: string}) => `Transactions récentes • ${lastFour}`,
         },
     },
     allSettingsScreen: {
@@ -2410,8 +2415,8 @@ const translations: TranslationDeepObject<typeof en> = {
         addBankAccountToSendAndReceive: 'Ajoutez un compte bancaire pour effectuer ou recevoir des paiements.',
         addDebitOrCreditCard: 'Ajouter une carte de débit ou de crédit',
         cardInactive: 'Inactif',
-        assignedCards: 'Cartes assignées',
-        assignedCardsDescription: 'Les transactions de ces cartes se synchronisent automatiquement.',
+        assignedCards: 'Cartes',
+        assignedCardsDescription: 'Les transactions des cartes assignées se synchronisent automatiquement.',
         expensifyCard: 'Carte Expensify',
         walletActivationPending: 'Nous examinons vos informations. Veuillez revenir vérifier dans quelques minutes !',
         walletActivationFailed: 'Malheureusement, votre portefeuille ne peut pas être activé pour le moment. Veuillez discuter avec Concierge pour obtenir une assistance supplémentaire.',
@@ -2546,6 +2551,11 @@ ${amount} pour ${merchant} - ${date}`,
         frozenByAdminNeedsUnfreeze: ({person}: {person: string}) => `Cette carte a été gelée par ${person}. Veuillez contacter un administrateur pour la dégeler.`,
         spendRules: 'Règles de dépense',
         editSpendRules: 'Modifier les règles de dépenses',
+        cardUnblocked: 'Carte débloquée !',
+        cardUnblockedDescription: 'Il se peut que vous soyez invité à insérer votre carte dans le lecteur la prochaine fois que vous effectuerez un achat.',
+        pinBlocked: 'Votre carte a été bloquée en raison de saisies de code PIN incorrectes.',
+        unblock: 'Débloquer',
+        unblockCard: 'Débloquer la carte',
     },
     workflowsPage: {
         workflowTitle: 'Dépense',
@@ -3016,6 +3026,8 @@ ${amount} pour ${merchant} - ${date}`,
             title: 'Impossible d’ajouter l’adresse e-mail professionnelle',
             subtitle: (workEmail: string | undefined) =>
                 `Nous n’avons pas pu ajouter ${workEmail}. Veuillez réessayer plus tard dans les Paramètres ou discuter avec Concierge pour obtenir de l’aide.`,
+            workAccountClosedSubtitle:
+                'Le compte professionnel associé à cet e-mail est fermé. Veuillez contacter l’administrateur de votre entreprise pour le réactiver, ou inscrivez-vous avec un autre e-mail.',
         },
         tasks: {
             testDriveAdminTask: {
@@ -7153,8 +7165,40 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         hr: {
             title: 'RH',
+            connections: 'Connexions',
             subtitle: 'Connectez vos outils RH et gardez les approbations des employés synchronisées.',
-            settingsTitle: 'Paramètres Gusto',
+            connect: 'Connecter',
+            syncNow: 'Synchroniser maintenant',
+            disconnect: 'Déconnecter',
+            disconnectTitle: (providerName: string) => `Déconnecter ${providerName}`,
+            disconnectPrompt: (providerName: string) => `Êtes-vous sûr de vouloir déconnecter ${providerName} ?`,
+            lastSync: (relativeDate: string) => `Dernière synchronisation ${relativeDate}`,
+            syncError: (providerName: string) => `Impossible de se connecter à ${providerName}`,
+            connectionDescription: (providerName: string) => `Connectez ${providerName} pour synchroniser les approbations des employés avec votre espace de travail.`,
+            approvalMode: "Mode d'approbation",
+            providerApprovalMode: (providerName: string) => `Mode d'approbation ${providerName}`,
+            finalApprover: 'Approbateur final',
+            providerFinalApprover: (providerName: string) => `Approbateur final ${providerName}`,
+            notSet: 'Non défini',
+            approvalModeDescription: (providerName: string) => `Les membres et les responsables sont configurés pour se synchroniser avec ${providerName}.`,
+            approvalModeWarningTitle: 'Changer le mode d’approbation ?',
+            approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
+                `Êtes-vous sûr·e de vouloir modifier le mode d’approbation de cet espace de travail ? En savoir plus sur les différents modes de workflow compatibles avec ${providerName} sur notre <a href="${helpSiteURL}">site d’aide</a>.`,
+            approvalModeWarningConfirm: 'Modifier le mode d’approbation',
+            approvalModes: {
+                basic: {
+                    label: 'Approbation simple',
+                    description: 'Tous les utilisateurs soumettent à une seule personne pour traitement et approbation.',
+                },
+                manager: {
+                    label: 'Approbation du responsable',
+                    description: (providerName: string) => `Les employé·e·s soumettent leurs rapports à leur responsable direct configuré dans ${providerName}.`,
+                },
+                custom: {
+                    label: 'Approbation personnalisée',
+                    description: 'Je configurerai manuellement les circuits de validation dans Expensify.',
+                },
+            },
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
                     case 'gustoSyncTitle':
@@ -7176,68 +7220,22 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     }
                 }
             },
+            syncResults: {
+                title: (provider: string) => `Synchronisation ${provider} terminée`,
+                successTitle: (provider: string) => `Connexion ${provider} synchronisée avec succès !`,
+                added: 'Ajouté',
+                removed: 'Supprimé',
+                skipped: 'Ignoré',
+                employeeCount: () => ({
+                    one: '1 employé',
+                    other: (count: number) => `${count} employés`,
+                }),
+            },
             gusto: {
                 title: 'Gusto',
-                approvalMode: 'Mode d’approbation',
-                finalApprover: 'Approbateur final',
-                notSet: 'Non défini',
-                approvalModeDescription: 'Les membres et les responsables sont configurés pour se synchroniser avec Gusto.',
-                approvalModeWarningTitle: 'Changer le mode d’approbation ?',
-                approvalModeWarningPrompt: (helpSiteURL: string) =>
-                    `Êtes-vous sûr·e de vouloir modifier le mode d’approbation de cet espace de travail ? En savoir plus sur les différents modes de workflow compatibles avec Gusto sur notre <a href="${helpSiteURL}">site d’aide</a>.`,
-                approvalModeWarningConfirm: 'Modifier le mode d’approbation',
-                approvalModes: {
-                    basic: {label: 'Approbation simple', description: 'Tous les utilisateurs soumettent à une seule personne pour traitement et approbation.'},
-                    manager: {label: 'Approbation du responsable', description: 'Les employé·e·s soumettent leurs rapports à leur responsable direct configuré dans Gusto.'},
-                    custom: {label: 'Approbation personnalisée', description: 'Je configurerai manuellement les circuits de validation dans Expensify.'},
-                },
-                connect: 'Connect',
-                connectionDescription: 'Connectez Gusto pour synchroniser les validations des employé·e·s avec votre espace de travail.',
-                syncNow: 'Synchroniser maintenant',
-                disconnect: 'Déconnecter',
-                lastSync: (relativeDate: string) => `Dernière synchronisation ${relativeDate}`,
-                syncError: 'Impossible de se connecter à Gusto',
-                disconnectTitle: 'Déconnecter Gusto',
-                disconnectPrompt: 'Voulez-vous vraiment déconnecter Gusto ?',
-                syncResults: {
-                    title: 'Résultats de la synchronisation Gusto',
-                    successTitle: 'Connexion Gusto synchronisée avec succès !',
-                    added: 'Ajouté',
-                    removed: 'Supprimé',
-                    skipped: 'Ignoré',
-                    employeeCount: () => ({
-                        one: '1 employé',
-                        other: (count: number) => `${count} employés`,
-                    }),
-                },
-            },
-            merge: {
-                approvalMode: 'Mode d’approbation',
-                finalApprover: 'Approbateur final',
             },
             zenefits: {
                 title: 'TriNet',
-                connect: 'Connecter',
-                syncNow: 'Synchroniser maintenant',
-                disconnect: 'Déconnecter',
-                lastSync: (relativeDate: string) => `Dernière synchronisation ${relativeDate}`,
-                syncError: 'Impossible de se connecter à TriNet',
-                disconnectTitle: 'Déconnecter TriNet',
-                disconnectPrompt: 'Voulez-vous vraiment déconnecter TriNet ?',
-                connectionDescription: 'Connectez TriNet pour synchroniser les approbations des employés avec votre espace de travail.',
-                approvalMode: 'Mode d’approbation',
-                finalApprover: 'Approbateur final',
-                notSet: 'Non défini',
-                approvalModeDescription: 'Les membres et les responsables sont configurés pour se synchroniser avec TriNet.',
-                approvalModeWarningTitle: 'Changer le mode d’approbation ?',
-                approvalModeWarningPrompt: (helpSiteURL: string) =>
-                    `Voulez-vous vraiment modifier le mode d’approbation de cet espace de travail ? En savoir plus sur les différents modes de workflow compatibles TriNet sur notre <a href="${helpSiteURL}">site d’aide</a>.`,
-                approvalModeWarningConfirm: 'Modifier le mode d’approbation',
-                approvalModes: {
-                    basic: {label: 'Approbation de base', description: 'Tous les utilisateurs soumettent à une seule personne pour traitement et approbation.'},
-                    manager: {label: 'Approbation du responsable', description: 'Les employés soumettent des notes de frais à leur supérieur hiérarchique direct configuré dans TriNet.'},
-                    custom: {label: 'Approbation personnalisée', description: 'Je configurerai manuellement les workflows d’approbation dans Expensify.'},
-                },
             },
         },
     },

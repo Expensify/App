@@ -262,8 +262,7 @@ function createTransaction({
                 shouldHandleNavigation: shouldHandleNav,
                 shouldDeferForSearch,
                 isASAPSubmitBetaEnabled,
-                currentUserAccountIDParam: currentUserAccountID,
-                currentUserEmailParam: currentUserEmail ?? '',
+                currentUser: {accountID: currentUserAccountID, email: currentUserEmail ?? ''},
                 introSelected,
                 quickAction,
                 draftTransactionIDs,
@@ -626,7 +625,7 @@ function handleMoneyRequestStepDistanceNavigation({
     const isGPSDistance = gpsDistance !== undefined && gpsCoordinates !== undefined;
 
     if (transaction?.splitShares && !isManualDistance && !isOdometerDistance) {
-        resetSplitShares(transaction);
+        resetSplitShares(transaction, undefined, undefined, currentUserAccountID);
     }
     if (backTo) {
         Navigation.goBack(backTo);
@@ -738,8 +737,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         shouldHandleNavigation: overrides.shouldHandleNavigation,
                         shouldDeferForSearch: overrides.shouldDeferForSearch,
                         isASAPSubmitBetaEnabled,
-                        currentUserAccountIDParam: currentUserAccountID,
-                        currentUserEmailParam: currentUserLogin ?? '',
+                        currentUser: {accountID: currentUserAccountID, email: currentUserLogin ?? ''},
                         introSelected,
                         quickAction,
                         draftTransactionIDs,
