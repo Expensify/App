@@ -8898,18 +8898,21 @@ const CONST = {
             SIGN_UP: {
                 NAME: 'sign_up',
                 META: 'SignUp',
+                META_IS_STANDARD: false,
                 REDDIT: 'SignUp',
                 LINKEDIN: 507587661,
             },
             WORKSPACE_CREATED: {
                 NAME: 'workspace_created',
                 META: 'Lead',
+                META_IS_STANDARD: true,
                 REDDIT: 'Lead',
                 LINKEDIN: 25474804,
             },
             PAID_ADOPTION: {
                 NAME: 'paid_adoption',
                 META: 'Purchase',
+                META_IS_STANDARD: true,
                 REDDIT: 'Purchase',
                 LINKEDIN: 25474820,
             },

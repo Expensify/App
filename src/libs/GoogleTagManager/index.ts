@@ -48,7 +48,7 @@ function publishEvent(event: GoogleTagManagerEvent, accountID: number, email: st
 
     // Meta
     if (typeof window.fbq === 'function') {
-        window.fbq('trackCustom', pixelEvent.META, {em: email}, {eventID});
+        window.fbq(pixelEvent.META_IS_STANDARD ? 'track' : 'trackCustom', pixelEvent.META, {em: email}, {eventID});
     }
 
     // Reddit
