@@ -1,5 +1,5 @@
 import type {RefObject} from 'react';
-import {useEffect, useEffectEvent, useLayoutEffect, useRef, useState} from 'react';
+import {useEffect, useEffectEvent, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {wasMessageReceivedWhileOffline} from '@libs/ReportActionsUtils';
@@ -27,76 +27,7 @@ type UseUnreadMarkerResult = {
     unreadMarkerReportActionIndex: number;
 };
 
-type ComputeMarkerInput = {
-    sortedReportActions: OnyxTypes.ReportAction[];
-    sortedVisibleReportActions: OnyxTypes.ReportAction[];
-    oldestUnreadReportAction: OnyxEntry<OnyxTypes.ReportAction>;
-    hasOnceLoadedReportActions: boolean;
-    prevSortedVisibleReportActionsObjects: OnyxTypes.ReportActions;
-    currentUserAccountID: number;
-    unreadMarkerTime: string;
-    scrollingVerticalOffset: number;
-    prevUnreadMarkerReportActionID: string | null;
-    isOffline: boolean;
-    isAnonymousUser: boolean;
-    lastOfflineAt: Date | undefined;
-    lastOnlineAt: Date | undefined;
-    getLocalDateFromDatetime: (datetime: string | undefined) => Date;
-};
-
 const lastReadTimeSelector = (report: OnyxTypes.Report | undefined) => report?.lastReadTime ?? '';
-
-function computeUnreadMarker({
-    sortedReportActions,
-    sortedVisibleReportActions,
-    oldestUnreadReportAction,
-    hasOnceLoadedReportActions,
-    prevSortedVisibleReportActionsObjects,
-    currentUserAccountID,
-    unreadMarkerTime,
-    scrollingVerticalOffset,
-    prevUnreadMarkerReportActionID,
-    isOffline,
-    isAnonymousUser,
-    lastOfflineAt,
-    lastOnlineAt,
-    getLocalDateFromDatetime,
-}: ComputeMarkerInput): [string | null, number] {
-    let earliestReceivedOfflineMessageIndex: number | undefined;
-    for (let i = sortedReportActions.length - 1; i >= 0; i--) {
-        const message = sortedReportActions.at(i);
-        if (message && wasMessageReceivedWhileOffline(message, isOffline, lastOfflineAt, lastOnlineAt, getLocalDateFromDatetime)) {
-            earliestReceivedOfflineMessageIndex = i;
-            break;
-        }
-    }
-
-    // Index must be in the same domain as FlatList `data` (sortedVisibleReportActions), not the paginated full chain.
-    let oldestUnreadReportActionMarker: [string, number] | undefined;
-    if (oldestUnreadReportAction && !hasOnceLoadedReportActions) {
-        const visibleIndex = sortedVisibleReportActions.findIndex((action) => action.reportActionID === oldestUnreadReportAction.reportActionID);
-        if (visibleIndex >= 0) {
-            oldestUnreadReportActionMarker = [oldestUnreadReportAction.reportActionID, visibleIndex];
-        }
-    }
-
-    const scanned = getUnreadMarkerReportAction({
-        visibleReportActions: sortedVisibleReportActions,
-        earliestReceivedOfflineMessageIndex,
-        currentUserAccountID,
-        prevSortedVisibleReportActionsObjects,
-        unreadMarkerTime,
-        scrollingVerticalOffset,
-        prevUnreadMarkerReportActionID,
-        isOffline,
-        isReversed: false,
-        isAnonymousUser,
-    });
-
-    // Pagination is anchored to the oldest unread on first open; that anchor does not change when the user
-    // marks read or unread, or when messages are deleted. Prefer the scan when it does not match that stale id.
-    return oldestUnreadReportActionMarker && (scanned[0] === null || scanned[0] === oldestUnreadReportActionMarker[0]) ? oldestUnreadReportActionMarker : scanned;
-}
 
 function useUnreadMarker({
     reportID,
@@ -116,34 +47,23 @@ function useUnreadMarker({
     });
     const reportLastReadTime = reportLastReadTimeValue ?? '';
 
-    const prevUnreadMarkerReportActionIDRef = useRef<string | null>(null);
     const [unreadMarkerTime, setUnreadMarkerTime] = useState(reportLastReadTime);
+    const prevUnreadMarkerReportActionIDRef = useRef<string | null>(null);
 
-    const sortedVisibleReportActionsObjects: OnyxTypes.ReportActions = sortedVisibleReportActions.reduce<OnyxTypes.ReportActions>((actions, action) => {
-        // eslint-disable-next-line no-param-reassign
-        actions[action.reportActionID] = action;
-        return actions;
-    }, {});
-    const prevSortedVisibleReportActionsObjects = usePrevious(sortedVisibleReportActionsObjects);
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setUnreadMarkerTime(reportLastReadTime);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [reportID]);
 
-    const [markerState, setMarkerState] = useState<[string | null, number]>(() =>
-        computeUnreadMarker({
-            sortedReportActions,
-            sortedVisibleReportActions,
-            oldestUnreadReportAction,
-            hasOnceLoadedReportActions,
-            prevSortedVisibleReportActionsObjects: sortedVisibleReportActionsObjects,
-            currentUserAccountID,
-            unreadMarkerTime: reportLastReadTime,
-            scrollingVerticalOffset: scrollingVerticalOffset.current ?? 0,
-            prevUnreadMarkerReportActionID: null,
-            isOffline,
-            isAnonymousUser,
-            lastOfflineAt: lastOfflineAt.current,
-            lastOnlineAt: lastOnlineAt.current,
-            getLocalDateFromDatetime,
-        }),
-    );
+    useEffect(() => {
+        if (reportLastReadTime === '' || unreadMarkerTime !== '') {
+            return;
+        }
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setUnreadMarkerTime(reportLastReadTime);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [reportLastReadTime]);
 
     useEffect(() => {
         if (isAnonymousUser) {
@@ -163,44 +83,95 @@ function useUnreadMarker({
         };
     }, [reportID, isAnonymousUser]);
 
-    // useEffectEvent gives the recompute access to live ref values without bailing the compiler.
+    const sortedVisibleReportActionsObjects: OnyxTypes.ReportActions = useMemo(
+        () =>
+            sortedVisibleReportActions.reduce<OnyxTypes.ReportActions>((actions, action) => {
+                // eslint-disable-next-line no-param-reassign
+                actions[action.reportActionID] = action;
+                return actions;
+            }, {}),
+        [sortedVisibleReportActions],
+    );
+    const prevSortedVisibleReportActionsObjects = usePrevious(sortedVisibleReportActionsObjects);
+
+    const earliestReceivedOfflineMessageIndex = useMemo(() => {
+        for (let i = sortedReportActions.length - 1; i >= 0; i--) {
+            const message = sortedReportActions.at(i);
+            if (message && wasMessageReceivedWhileOffline(message, isOffline, lastOfflineAt.current, lastOnlineAt.current, getLocalDateFromDatetime)) {
+                return i;
+            }
+        }
+        return undefined;
+    }, [getLocalDateFromDatetime, isOffline, lastOfflineAt, lastOnlineAt, sortedReportActions]);
+
+    // Index must be in the same domain as FlatList `data` (sortedVisibleReportActions), not the paginated full chain.
+    const oldestUnreadReportActionMarker = useMemo<[string, number] | undefined>(() => {
+        if (!oldestUnreadReportAction || hasOnceLoadedReportActions) {
+            return undefined;
+        }
+        const visibleIndex = sortedVisibleReportActions.findIndex((action) => action.reportActionID === oldestUnreadReportAction.reportActionID);
+        if (visibleIndex < 0) {
+            return undefined;
+        }
+        return [oldestUnreadReportAction.reportActionID, visibleIndex];
+    }, [oldestUnreadReportAction, hasOnceLoadedReportActions, sortedVisibleReportActions]);
+
+    const [markerState, setMarkerState] = useState<[string | null, number]>([null, -1]);
+
     const recomputeMarker = useEffectEvent(() => {
-        const next = computeUnreadMarker({
-            sortedReportActions,
-            sortedVisibleReportActions,
-            oldestUnreadReportAction,
-            hasOnceLoadedReportActions,
-            prevSortedVisibleReportActionsObjects,
+        const scanned = getUnreadMarkerReportAction({
+            visibleReportActions: sortedVisibleReportActions,
+            earliestReceivedOfflineMessageIndex,
             currentUserAccountID,
+            prevSortedVisibleReportActionsObjects,
             unreadMarkerTime,
-            scrollingVerticalOffset: scrollingVerticalOffset.current ?? 0,
+            scrollingVerticalOffset: scrollingVerticalOffset.current,
             prevUnreadMarkerReportActionID: prevUnreadMarkerReportActionIDRef.current,
             isOffline,
+            isReversed: false,
             isAnonymousUser,
-            lastOfflineAt: lastOfflineAt.current,
-            lastOnlineAt: lastOnlineAt.current,
-            getLocalDateFromDatetime,
         });
+        let next: [string | null, number];
+        if (oldestUnreadReportActionMarker && (scanned[0] === null || scanned[0] === oldestUnreadReportActionMarker[0])) {
+            next = oldestUnreadReportActionMarker;
+        } else {
+            next = scanned;
+        }
         prevUnreadMarkerReportActionIDRef.current = next[0];
         setMarkerState((prev) => (prev[0] === next[0] && prev[1] === next[1] ? prev : next));
     });
 
     useLayoutEffect(() => {
         recomputeMarker();
-    }, [sortedVisibleReportActions, sortedReportActions, oldestUnreadReportAction, hasOnceLoadedReportActions, isOffline, unreadMarkerTime, currentUserAccountID, isAnonymousUser]);
+    }, [
+        currentUserAccountID,
+        earliestReceivedOfflineMessageIndex,
+        isAnonymousUser,
+        isOffline,
+        oldestUnreadReportActionMarker,
+        prevSortedVisibleReportActionsObjects,
+        sortedVisibleReportActions,
+        unreadMarkerTime,
+    ]);
 
     const [unreadMarkerReportActionID, unreadMarkerReportActionIndex] = markerState;
 
     // When the user reads a new message as it is received, push unreadMarkerTime down to the
     // latest action's timestamp so new incoming actions display over those new messages instead of
-    // sticking to the initial lastReadTime. Adjusting state during render is the React-recommended
-    // pattern — avoids cascading commits.
-    // https://react.dev/reference/react/useState#storing-information-from-previous-renders
+    // sticking to the initial lastReadTime.
     const lastAction = sortedVisibleReportActions.at(0);
-    const mostRecentReportActionCreated = lastAction?.created ?? '';
-    if (!isAnonymousUser && !unreadMarkerReportActionID && mostRecentReportActionCreated > unreadMarkerTime) {
+    useLayoutEffect(() => {
+        if (isAnonymousUser || unreadMarkerReportActionID) {
+            return;
+        }
+        const mostRecentReportActionCreated = lastAction?.created ?? '';
+        if (mostRecentReportActionCreated <= unreadMarkerTime) {
+            return;
+        }
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setUnreadMarkerTime(mostRecentReportActionCreated);
-    }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [lastAction?.created]);
 
     return {
         unreadMarkerReportActionID,
