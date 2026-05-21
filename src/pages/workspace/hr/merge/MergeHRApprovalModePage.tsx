@@ -29,7 +29,7 @@ function MergeHRApprovalModePage({
         >
             <ScreenWrapper testID="MergeHRApprovalModePage">
                 <HeaderWithBackButton
-                    title={translate('workspace.hr.merge.approvalMode')}
+                    title={translate('workspace.hr.approvalMode')}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
             </ScreenWrapper>
