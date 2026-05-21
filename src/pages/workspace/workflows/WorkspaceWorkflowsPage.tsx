@@ -463,12 +463,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 <View style={[styles.flex1, styles.gap1]}>
                                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                         <Text style={[styles.textStrong, styles.agentsPromoBannerText]}>{translate('workflowsPage.automateApprovalsWithAgentsTitle')}</Text>
-                                        <Badge
+                                        {shouldUseNarrowLayout ? null : <Badge
                                             success
                                             isStrong
                                             isCondensed
                                             text={translate('common.new')}
-                                        />
+                                        />}
                                     </View>
                                     <Text style={[styles.textLabel, styles.agentsPromoBannerText]}>{translate('workflowsPage.automateApprovalsWithAgentsSubtitle')}</Text>
                                 </View>
