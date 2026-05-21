@@ -17631,7 +17631,7 @@ describe('ReportUtils', () => {
             const report = {
                 hasExportError: false,
                 errorFields: {export: {'1708946640843000': 'export failed'}},
-            } as Report;
+            } as unknown as Report;
             expect(hasExportError([], report)).toBe(true);
         });
 
@@ -17639,7 +17639,7 @@ describe('ReportUtils', () => {
             const report = {
                 hasExportError: false,
                 errorFields: {export: null},
-            } as Report;
+            } as unknown as Report;
             expect(hasExportError([], report)).toBe(false);
         });
 
