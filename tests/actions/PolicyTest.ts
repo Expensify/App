@@ -1416,6 +1416,9 @@ describe('actions/Policy', () => {
 
         it('should mark VIEW_TOUR task as completed in guidedSetupData when isSelfTourViewed is true', async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            // EMPLOYER posts onboarding tasks to the Concierge chat (not #admins). Set a concierge
+            // report ID so prepareOnboardingOnyxData can resolve a target chat and does not early-return.
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, 'concierge-report-1');
             await waitForBatchedUpdates();
 
             const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
@@ -1424,12 +1427,14 @@ describe('actions/Policy', () => {
             // When creating a workspace with isSelfTourViewed set to true.
             // introSelected.choice is left undefined to simulate a user who hasn't completed onboarding yet —
             // that's the only state in which the onboarding-tasks block runs (see buildPolicyData guard).
+            // EMPLOYER is used because it has a VIEW_TOUR task (testDriveEmployeeTask); MANAGE_TEAM now uses
+            // the bespoke followups path (no tasks) so it no longer exercises this code path.
             Policy.createWorkspace({
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
                 policyID,
-                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
                 introSelected: {},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
@@ -1461,6 +1466,9 @@ describe('actions/Policy', () => {
 
         it('should not mark VIEW_TOUR task as completed in guidedSetupData when isSelfTourViewed is false', async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            // EMPLOYER posts onboarding tasks to the Concierge chat (not #admins). Set a concierge
+            // report ID so prepareOnboardingOnyxData can resolve a target chat and does not early-return.
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, 'concierge-report-1');
             await waitForBatchedUpdates();
 
             const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
@@ -1469,12 +1477,14 @@ describe('actions/Policy', () => {
             // When creating a workspace with isSelfTourViewed set to false.
             // introSelected.choice is left undefined to simulate a user who hasn't completed onboarding yet —
             // that's the only state in which the onboarding-tasks block runs (see buildPolicyData guard).
+            // EMPLOYER is used because it has a VIEW_TOUR task (testDriveEmployeeTask); MANAGE_TEAM now uses
+            // the bespoke followups path (no tasks) so it no longer exercises this code path.
             Policy.createWorkspace({
                 policyOwnerEmail: ESH_EMAIL,
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
                 policyID,
-                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
                 introSelected: {},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
@@ -2977,6 +2987,32 @@ describe('actions/Policy', () => {
     });
 
     describe('enablePolicyRules', () => {
+        it('should enable billable tracking when policy rules are enabled', async () => {
+            mockFetch.pause();
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                areRulesEnabled: false,
+                disabledFields: {
+                    defaultBillable: true,
+                    reimbursable: false,
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            Policy.enablePolicyRules(fakePolicy, true);
+            await waitForBatchedUpdates();
+
+            const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+            expect(policy?.areRulesEnabled).toBe(true);
+            expect(policy?.disabledFields?.defaultBillable).toBe(false);
+            expect(policy?.disabledFields?.reimbursable).toBe(false);
+            expect(policy?.pendingFields?.disabledFields).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            await mockFetch.resume();
+        });
+
         it('should not reset preventSelfApproval when the rule feature is turned off', async () => {
             (fetch as MockFetch)?.pause?.();
             Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
@@ -5660,7 +5696,7 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             // When creating policy expense chats for a new member
-            const result = Policy.createPolicyExpenseChats(policyID, {[newMemberEmail]: newMemberAccountID}, ESH_ACCOUNT_ID);
+            const result = Policy.createPolicyExpenseChats(policyID, {[newMemberEmail]: newMemberAccountID}, {accountID: ESH_ACCOUNT_ID});
 
             // Then optimistic data should be generated
             expect(result.onyxOptimisticData.length).toBeGreaterThan(0);
@@ -5718,7 +5754,7 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             // When creating policy expense chats for the existing member
-            const result = Policy.createPolicyExpenseChats(policyID, {[existingMemberEmail]: existingMemberAccountID}, ESH_ACCOUNT_ID);
+            const result = Policy.createPolicyExpenseChats(policyID, {[existingMemberEmail]: existingMemberAccountID}, {accountID: ESH_ACCOUNT_ID});
 
             // Then the existing report should be reused (no new reportActionID)
             const reportCreationEntry = result.reportCreationData[existingMemberEmail];
@@ -5737,7 +5773,7 @@ describe('actions/Policy', () => {
             const newMemberAccountID = 200;
             const customAccountID = 999;
 
-            const result = Policy.createPolicyExpenseChats(policyID, {[newMemberEmail]: newMemberAccountID}, customAccountID);
+            const result = Policy.createPolicyExpenseChats(policyID, {[newMemberEmail]: newMemberAccountID}, {accountID: customAccountID});
 
             // Find the optimistic report data
             const reportCreationEntry = result.reportCreationData[newMemberEmail];
