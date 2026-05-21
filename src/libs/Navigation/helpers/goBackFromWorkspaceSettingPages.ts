@@ -21,7 +21,7 @@ function goBackFromWorkspaceSettingPages() {
         const topRootIndex = rootState.index ?? rootState.routes.length - 1;
         const underlyingTabNavIndex = rootState.routes.findLastIndex((route, idx) => idx < topRootIndex && route.name === NAVIGATORS.TAB_NAVIGATOR);
         if (underlyingTabNavIndex !== -1) {
-            navigationRef.current?.dispatch(StackActions.pop(topRootIndex - underlyingTabNavIndex));
+            navigationRef.current?.dispatch({...StackActions.pop(topRootIndex - underlyingTabNavIndex), target: rootState.key});
             return;
         }
         Navigation.dismissModal();

@@ -611,18 +611,6 @@ function resetToHome() {
  * We will implement recursive pop if more use cases will appear.
  */
 function goBackToHome() {
-    // Cross-tab PUSH stacks a new TAB_NAVIGATOR on the root. If an underlying TAB_NAVIGATOR
-    // exists, pop back to it instead of navigating within the pushed one — otherwise the user
-    // ends up trapped on the pushed navigator with the original Inbox/LHN underneath.
-    const rootState = navigationRef.getRootState();
-    const topRootIndex = rootState.index ?? rootState.routes.length - 1;
-    const underlyingTabNavIndex = rootState.routes.findLastIndex((route, idx) => idx < topRootIndex && route.name === NAVIGATORS.TAB_NAVIGATOR);
-    if (underlyingTabNavIndex !== -1) {
-        navigationRef.current?.dispatch({...StackActions.pop(topRootIndex - underlyingTabNavIndex), target: rootState.key});
-        // Don't return — fall through to goBack(ROUTES.HOME) so we also switch to the Home tab
-        // instead of staying on whatever tab (e.g. Inbox) was active in the underlying navigator.
-    }
-
     const isNarrowLayout = getIsNarrowLayout();
 
     // This set the right split navigator.
