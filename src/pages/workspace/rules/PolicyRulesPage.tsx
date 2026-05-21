@@ -1,17 +1,13 @@
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import Button from '@components/Button';
-import Icon from '@components/Icon';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import Text from '@components/Text';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import AgentPromotionalBanner from '@components/AgentPromotionalBanner';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {openPolicyRulesPage} from '@libs/actions/Policy/Rules';
@@ -21,7 +17,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -41,10 +36,8 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
     const policy = usePolicy(policyID);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.rules');
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const illustrations = useMemoizedLazyIllustrations(['Rules', 'AiBot']);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Close']);
+    const illustrations = useMemoizedLazyIllustrations(['Rules']);
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentBetaEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     const [isAgentsRulesBannerDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: agentsRulesBannerDismissedSelector});
@@ -76,46 +69,16 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
             >
                 <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {isCustomAgentBetaEnabled && !isAgentsRulesBannerDismissed && (
-                        <View
-                            style={[
-                                styles.flexRow,
-                                styles.alignItemsCenter,
-                                styles.gap4,
-                                styles.ph5,
-                                styles.pv4,
-                                styles.borderRadiusComponentLarge,
-                                styles.mh5,
-                                styles.mb5,
-                                styles.agentsPromoBannerBackgroundColor,
-                            ]}
-                        >
-                            <Icon
-                                src={illustrations.AiBot}
-                                width={variables.iconSizeExtraLarge + 8}
-                                height={variables.iconSizeExtraLarge + 8}
-                            />
-                            <View style={[styles.flex1, styles.gap1]}>
-                                <Text style={[styles.textStrong, styles.agentsPromoBannerText]}>{translate('workspace.rules.agentsPromoBanner.title')}</Text>
-                                <Text style={[styles.textLabel, styles.agentsPromoBannerText]}>{translate('workspace.rules.agentsPromoBanner.subtitle')}</Text>
-                            </View>
-                            <Button
-                                success
-                                small
-                                text={translate('workspace.rules.agentsPromoBanner.cta')}
-                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID))}
-                            />
-                            <PressableWithoutFeedback
-                                onPress={() => dismissProductTraining(CONST.AGENTS_RULES_BANNER, true)}
-                                role={CONST.ROLE.BUTTON}
-                                accessibilityLabel={translate('common.dismiss')}
-                                sentryLabel="AgentsRulesBanner-Dismiss"
-                            >
-                                <Icon
-                                    src={expensifyIcons.Close}
-                                    fill={theme.iconColorfulBackground}
-                                />
-                            </PressableWithoutFeedback>
-                        </View>
+                        <AgentPromotionalBanner
+                            title={translate('workspace.rules.agentsPromoBanner.title')}
+                            subtitle={translate('workspace.rules.agentsPromoBanner.subtitle')}
+                            ctaText={translate('workspace.rules.agentsPromoBanner.cta')}
+                            onCtaPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID))}
+                            ctaSentryLabel="AgentsRulesBanner-CTA"
+                            onDismiss={() => dismissProductTraining(CONST.AGENTS_RULES_BANNER, true)}
+                            dismissSentryLabel="AgentsRulesBanner-Dismiss"
+                            style={[styles.mh5, styles.mb5]}
+                        />
                     )}
                     <IndividualExpenseRulesSection policyID={policyID} />
                     <MerchantRulesSection policyID={policyID} />

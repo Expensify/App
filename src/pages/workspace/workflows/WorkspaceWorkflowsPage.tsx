@@ -5,8 +5,8 @@ import React, {useCallback, useEffect, useMemo} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
+import AgentPromotionalBanner from '@components/AgentPromotionalBanner';
 import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
-import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
 import type {BankName} from '@components/Icon/BankIconsUtils';
@@ -15,7 +15,6 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import RenderHTML from '@components/RenderHTML';
 import SearchBar from '@components/SearchBar';
 import Section from '@components/Section';
@@ -75,7 +74,6 @@ import ExpenseReportRulesSection from '@pages/workspace/rules/ExpenseReportRules
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
-import variables from '@styles/variables';
 import {pressLockedBankAccount} from '@userActions/BankAccounts';
 import {getPaymentMethods} from '@userActions/PaymentMethods';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
@@ -121,8 +119,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const illustrations = useMemoizedLazyIllustrations(['Workflows', 'AiBot']);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Close', 'DotIndicator', 'Info', 'Plus']);
+    const illustrations = useMemoizedLazyIllustrations(['Workflows']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Info', 'Plus']);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply a correct padding style
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
@@ -442,48 +440,13 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                             </View>
                         )}
                         {isCustomAgentBetaEnabled && !isAgentsWorkflowsBannerDismissed && (
-                            <View
-                                style={[
-                                    styles.flexRow,
-                                    styles.alignItemsCenter,
-                                    styles.gap4,
-                                    styles.ph5,
-                                    styles.pv4,
-                                    styles.borderRadiusComponentLarge,
-                                    styles.mt6,
-                                    styles.mb0,
-                                    styles.agentsPromoBannerBackgroundColor,
-                                ]}
-                            >
-                                <Icon
-                                    src={illustrations.AiBot}
-                                    width={variables.iconSizeAgentsPromoBanner}
-                                    height={variables.iconSizeAgentsPromoBanner}
-                                />
-                                <View style={[styles.flex1, styles.gap1]}>
-                                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                        <Text style={[styles.textStrong, styles.agentsPromoBannerText]}>{translate('workflowsPage.automateApprovalsWithAgentsTitle')}</Text>
-                                        {shouldUseNarrowLayout ? null : <Badge
-                                            success
-                                            isStrong
-                                            isCondensed
-                                            text={translate('common.new')}
-                                        />}
-                                    </View>
-                                    <Text style={[styles.textLabel, styles.agentsPromoBannerText]}>{translate('workflowsPage.automateApprovalsWithAgentsSubtitle')}</Text>
-                                </View>
-                                <PressableWithoutFeedback
-                                    onPress={() => dismissProductTraining(CONST.AGENTS_WORKFLOWS_BANNER, true)}
-                                    role={CONST.ROLE.BUTTON}
-                                    accessibilityLabel={translate('common.dismiss')}
-                                    sentryLabel="AgentsWorkflowsBanner-Dismiss"
-                                >
-                                    <Icon
-                                        src={expensifyIcons.Close}
-                                        fill={theme.iconColorfulBackground}
-                                    />
-                                </PressableWithoutFeedback>
-                            </View>
+                            <AgentPromotionalBanner
+                                title={translate('workflowsPage.automateApprovalsWithAgentsTitle')}
+                                subtitle={translate('workflowsPage.automateApprovalsWithAgentsSubtitle')}
+                                onDismiss={() => dismissProductTraining(CONST.AGENTS_WORKFLOWS_BANNER, true)}
+                                dismissSentryLabel="AgentsWorkflowsBanner-Dismiss"
+                                style={styles.mt6}
+                            />
                         )}
                         {filteredApprovalWorkflows.length > CONST.SEARCH_BAR_THRESHOLD && (
                             <SearchBar
@@ -720,12 +683,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         expensifyIcons.Info,
         expensifyIcons.Plus,
         expensifyIcons.DotIndicator,
-        expensifyIcons.Close,
-        illustrations.AiBot,
         isCustomAgentBetaEnabled,
         isAgentsWorkflowsBannerDismissed,
         theme.textSupporting,
-        theme.iconColorfulBackground,
         accountManagerReportID,
         filteredApprovalWorkflows.length,
         workflowSearchInput,

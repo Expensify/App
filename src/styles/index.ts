@@ -1131,6 +1131,11 @@ const staticStyles = (theme: ThemeColors) =>
             ...whiteSpace.noWrap,
         },
 
+        badgeHigher: {
+            position: 'relative',
+            top: -2,
+        },
+
         cardBadgeText: {
             color: colors.white,
             fontSize: variables.fontSizeExtraSmall,
