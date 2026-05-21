@@ -389,7 +389,7 @@ const WRITE_COMMANDS = {
     UPDATE_GUSTO_APPROVAL_MODE: 'UpdateGustoApprovalMode',
     UPDATE_GUSTO_FINAL_APPROVER: 'UpdateGustoFinalApprover',
     UPDATE_MERGE_APPROVAL_MODE: 'UpdateMergeApprovalMode',
-    UPDATE_MERGE_HR_FINAL_APPROVER: 'UpdateMergeHRFinalApprover',
+    UPDATE_MERGE_FINAL_APPROVER: 'UpdateMergeFinalApprover',
     SYNC_POLICY_TO_MERGE: 'SyncPolicyToMerge',
     UPDATE_ZENEFITS_APPROVAL_MODE: 'UpdateZenefitsApprovalMode',
     UPDATE_ZENEFITS_FINAL_APPROVER: 'UpdateZenefitsFinalApprover',
@@ -1022,7 +1022,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_GUSTO_APPROVAL_MODE]: Parameters.UpdateGustoApprovalModeParams;
     [WRITE_COMMANDS.UPDATE_GUSTO_FINAL_APPROVER]: Parameters.UpdateGustoFinalApproverParams;
     [WRITE_COMMANDS.UPDATE_MERGE_APPROVAL_MODE]: Parameters.UpdateMergeApprovalModeParams;
-    [WRITE_COMMANDS.UPDATE_MERGE_HR_FINAL_APPROVER]: Parameters.UpdateMergeHRFinalApproverParams;
+    [WRITE_COMMANDS.UPDATE_MERGE_FINAL_APPROVER]: Parameters.UpdateMergeFinalApproverParams;
     [WRITE_COMMANDS.SYNC_POLICY_TO_MERGE]: Parameters.SyncPolicyToMergeParams;
     [WRITE_COMMANDS.UPDATE_ZENEFITS_APPROVAL_MODE]: Parameters.UpdateZenefitsApprovalModeParams;
     [WRITE_COMMANDS.UPDATE_ZENEFITS_FINAL_APPROVER]: Parameters.UpdateZenefitsFinalApproverParams;

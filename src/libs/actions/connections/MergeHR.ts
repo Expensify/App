@@ -175,7 +175,7 @@ function updateMergeHRFinalApprover(policyID: string, finalApprover: string | nu
     ];
 
     write(
-        WRITE_COMMANDS.UPDATE_MERGE_HR_FINAL_APPROVER,
+        WRITE_COMMANDS.UPDATE_MERGE_FINAL_APPROVER,
         {
             policyID,
             finalApprover,
