@@ -14,6 +14,7 @@ import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import useFullscreenAdvancedFilters from './useFullscreenAdvancedFilters';
+import useStyleUtils from '@hooks/useStyleUtils';
 
 const BETWEEN_MODIFIER = 'Between';
 
@@ -126,6 +127,7 @@ function AmountBetweenInput({ref, filterKey, greaterThanValue, lessThanValue}: A
 function AmountFilterComponent({filterKey, value, onChange}: AmountFilterComponentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const fullscreen = useFullscreenAdvancedFilters();
 
     const getInitialSelectedAmountModifier = () => {
@@ -178,7 +180,12 @@ function AmountFilterComponent({filterKey, value, onChange}: AmountFilterCompone
 
     return (
         <View style={[styles.flex1, styles.justifyContentBetween, !fullscreen && styles.pv2]}>
-            <ScrollView keyboardShouldPersistTaps="handled">
+            <ScrollView
+                keyboardShouldPersistTaps="handled"
+                // In landscape mode, when a virtual keyboard shows, the whole scroll view is shrinked and won't receive any input,
+                // so we set a minimum height to have enough visibility.
+                style={[StyleUtils.getMinimumHeight(100)]}
+            >
                 {modifierConfig.map((config) => (
                     <Fragment key={config.keyForList}>
                         <SingleSelectListItem
