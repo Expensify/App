@@ -7,6 +7,7 @@ import Table from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {AvatarSource} from '@libs/UserUtils';
 import WorkspacesEmptyStateComponent from '@pages/workspace/WorkspacesEmptyStateComponent';
 import variables from '@styles/variables';
@@ -38,7 +39,7 @@ type WorkspaceRowData = {
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
-    action: () => void;
+    action: (event?: ModifiedMouseEvent) => void;
     dismissError: () => void;
     resetLoadingSpinnerIconIndex?: () => void;
 };

@@ -1,7 +1,7 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 
-type UpdateMergeHRApprovalModeParams = {
+type UpdateMergeApprovalModeParams = {
     /** The ID of the policy to update */
     policyID: string;
 
@@ -9,4 +9,4 @@ type UpdateMergeHRApprovalModeParams = {
     approvalMode: ValueOf<typeof CONST.MERGE_HR.APPROVAL_MODE>;
 };
 
-export default UpdateMergeHRApprovalModeParams;
+export default UpdateMergeApprovalModeParams;
