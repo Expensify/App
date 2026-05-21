@@ -59,9 +59,7 @@ function validateCreateDistanceRateForm(
     translate: LocalizedTranslate,
     existingRateNames: string[],
 ): FormInputErrors<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM> {
-    const errors: FormInputErrors<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM> = {
-        ...validateRateValue(values, toLocaleDigit, translate),
-    };
+    const errors: FormInputErrors<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM> = {};
     const trimmedName = values.name?.trim() ?? '';
 
     if (!isRequiredFulfilled(trimmedName)) {
@@ -72,25 +70,20 @@ function validateCreateDistanceRateForm(
         errors.name = translate('workspace.distanceRates.errors.existingRateName');
     }
 
+    if (!isRequiredFulfilled(values.rate)) {
+        errors.rate = translate('workspace.distanceRates.errors.amountRequired');
+    } else {
+        const rateErrors = validateRateValue(values, toLocaleDigit, translate);
+        if (rateErrors.rate) {
+            errors.rate = rateErrors.rate;
+        }
+    }
+
     if (values.startDate && values.endDate && values.startDate > values.endDate) {
         errors.startDate = translate('workspace.distanceRates.errors.startDateMustBeBeforeEndDate');
     }
 
     return errors;
-}
-
-function getRateStatus(rate: Rate): ValueOf<typeof CONST.CUSTOM_UNITS.RATE_STATUS> {
-    if (!rate.enabled) {
-        return CONST.CUSTOM_UNITS.RATE_STATUS.INACTIVE;
-    }
-    const today = new Date().toISOString().split('T').at(0) ?? '';
-    if (rate.startDate && rate.startDate > today) {
-        return CONST.CUSTOM_UNITS.RATE_STATUS.FUTURE;
-    }
-    if (rate.endDate && rate.endDate < today) {
-        return CONST.CUSTOM_UNITS.RATE_STATUS.EXPIRED;
-    }
-    return CONST.CUSTOM_UNITS.RATE_STATUS.ACTIVE;
 }
 
 type PolicyDistanceRateUpdateField = keyof Pick<Rate, 'name' | 'rate'> | keyof TaxRateAttributes;
@@ -179,4 +172,4 @@ function buildOnyxDataForPolicyDistanceRateUpdates(
     return {optimisticData, successData, failureData};
 }
 
-export {validateRateValue, getOptimisticRateName, validateTaxClaimableValue, validateCreateDistanceRateForm, getRateStatus, buildOnyxDataForPolicyDistanceRateUpdates};
+export {validateRateValue, getOptimisticRateName, validateTaxClaimableValue, validateCreateDistanceRateForm, buildOnyxDataForPolicyDistanceRateUpdates};

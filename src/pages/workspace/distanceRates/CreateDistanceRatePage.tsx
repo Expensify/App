@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import AmountForm from '@components/AmountForm';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -8,7 +8,6 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
@@ -49,22 +48,19 @@ function CreateDistanceRatePage({
     const customUnit = getDistanceRateCustomUnit(policy);
     const customUnitID = customUnit?.customUnitID;
     const distanceUnit = customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
-    const unitLabel = translate(`common.${distanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'mile' : 'kilometer'}`);
+    const unitLabel = translate(distanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'common.mile' : 'common.kilometer');
     const customUnitRateID = generateCustomUnitID();
     const {inputCallbackRef} = useAutoFocusInput();
     const isDistanceRateUpgrade = transactionID && reportID;
     const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(transactionID)}`);
 
     const existingRateNames = Object.values(customUnit?.rates ?? {}).map((r) => r.name ?? '');
-    const [hasMultipleErrors, setHasMultipleErrors] = useState(false);
 
     const FullPageBlockingView = !customUnitID ? FullPageOfflineBlockingView : View;
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => {
         if (isDateBoundMileageRateEnabled) {
-            const errors = validateCreateDistanceRateForm(values, toLocaleDigit, translate, existingRateNames);
-            setHasMultipleErrors(Object.keys(errors).length > 1);
-            return errors;
+            return validateCreateDistanceRateForm(values, toLocaleDigit, translate, existingRateNames);
         }
         return validateRateValue(values, toLocaleDigit, translate);
     };
@@ -108,27 +104,27 @@ function CreateDistanceRatePage({
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                style={[styles.defaultModalContainer]}
+                style={styles.defaultModalContainer}
                 testID="CreateDistanceRatePage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton title={isDistanceRateUpgrade ? translate('common.rate') : translate('workspace.distanceRates.addRate')} />
-                <FullPageBlockingView style={[styles.flexGrow1]}>
+                <FullPageBlockingView style={styles.flexGrow1}>
                     <FormProvider
                         formID={ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM}
                         submitButtonText={translate('common.save')}
                         onSubmit={submit}
                         validate={validate}
                         enabledWhenOffline
-                        style={[styles.flexGrow1]}
-                        shouldHideFixErrorsAlert={!isDateBoundMileageRateEnabled || !hasMultipleErrors}
+                        style={styles.flexGrow1}
+                        shouldHideFixErrorsAlert={!isDateBoundMileageRateEnabled}
                         submitFlexEnabled={false}
                         submitButtonStyles={[styles.mh5, styles.mt0]}
                         addBottomSafeAreaPadding
                     >
                         {isDateBoundMileageRateEnabled ? (
-                            <ScrollView contentContainerStyle={styles.flexGrow1}>
-                                <View style={[styles.mh5]}>
+                            <>
+                                <View style={styles.mh5}>
                                     <InputWrapper
                                         ref={inputCallbackRef}
                                         InputComponent={TextInput}
@@ -156,14 +152,14 @@ function CreateDistanceRatePage({
                                         label={translate('workspace.distanceRates.startDate')}
                                     />
                                 </View>
-                                <View style={[styles.mh5]}>
+                                <View style={styles.mh5}>
                                     <InputWrapper
                                         InputComponent={DatePicker}
                                         inputID={INPUT_IDS.END_DATE}
                                         label={translate('workspace.distanceRates.endDate')}
                                     />
                                 </View>
-                            </ScrollView>
+                            </>
                         ) : (
                             <InputWrapper
                                 InputComponent={AmountForm}

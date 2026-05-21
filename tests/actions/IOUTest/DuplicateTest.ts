@@ -1165,8 +1165,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints,
                 targetPolicyTags,
                 conciergeReportID: undefined,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                currentUserLogin: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
             await waitForBatchedUpdates();
@@ -1230,8 +1229,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints,
                 targetPolicyTags,
                 conciergeReportID: undefined,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                currentUserLogin: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
             await waitForBatchedUpdates();
@@ -1288,8 +1286,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints: [],
                 targetPolicyTags,
                 conciergeReportID: undefined,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                currentUserLogin: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
             await waitForBatchedUpdates();
@@ -1342,8 +1339,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints: [],
                 targetPolicyTags,
                 conciergeReportID: undefined,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                currentUserLogin: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
             await waitForBatchedUpdates();
@@ -1405,8 +1401,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints: [],
                 targetPolicyTags,
                 conciergeReportID: undefined,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                currentUserLogin: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
             await waitForBatchedUpdates();
@@ -1454,8 +1449,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints: [],
                 targetPolicyTags,
                 conciergeReportID: undefined,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                currentUserLogin: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
             await waitForBatchedUpdates();
@@ -1496,8 +1490,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints: [],
                 targetPolicyTags,
                 conciergeReportID: undefined,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                currentUserLogin: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
             await waitForBatchedUpdates();
@@ -1540,8 +1533,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints,
                 targetPolicyTags,
                 conciergeReportID: undefined,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                currentUserLogin: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
             await waitForBatchedUpdates();
@@ -1593,8 +1585,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints: [],
                 targetPolicyTags,
                 conciergeReportID: undefined,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                currentUserLogin: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
             await waitForBatchedUpdates();
@@ -1659,8 +1650,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints,
                 targetPolicyTags,
                 conciergeReportID: undefined,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                currentUserLogin: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
             await waitForBatchedUpdates();
@@ -1710,8 +1700,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints,
                 targetPolicyTags,
                 conciergeReportID: undefined,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                currentUserLogin: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
             await waitForBatchedUpdates();
@@ -1772,8 +1761,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints,
                 targetPolicyTags,
                 conciergeReportID: undefined,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                currentUserLogin: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
             await waitForBatchedUpdates();
@@ -2488,8 +2476,7 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints: [],
                 conciergeReportID: undefined,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                currentUserLogin: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
             await waitForBatchedUpdates();

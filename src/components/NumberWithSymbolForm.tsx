@@ -198,7 +198,7 @@ function NumberWithSymbolForm({
     currencyButtonAccessibilityLabel,
     ...props
 }: NumberWithSymbolFormProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'PlusMinus']);
+    const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'PlusMinus', 'CoinsButton']);
     const isInLandscapeMode = useIsInLandscapeMode();
 
     const styles = useThemeStyles();
@@ -459,9 +459,9 @@ function NumberWithSymbolForm({
                 )}
                 {shouldShowCurrencyButton && !!currencyOrUnitButtonText && (
                     <Button
-                        shouldShowRightIcon
                         small
-                        iconRight={icons.DownArrow}
+                        icon={icons.CoinsButton}
+                        iconAccessibilityLabel={translate('common.currency')}
                         onPress={onTrailingDropdownPress}
                         iconWrapperStyles={styles.justifyContentCenter}
                         text={currencyOrUnitButtonText}
@@ -603,9 +603,9 @@ function NumberWithSymbolForm({
                         <View style={[styles.flexRow, styles.justifyContentCenter, styles.gap2]}>
                             {isSymbolPressable && (
                                 <Button
-                                    shouldShowRightIcon
                                     small
-                                    iconRight={icons.DownArrow}
+                                    icon={icons.CoinsButton}
+                                    iconAccessibilityLabel={translate('common.currency')}
                                     onPress={onSymbolButtonPress}
                                     style={styles.minWidth18}
                                     iconWrapperStyles={styles.justifyContentCenter}
@@ -615,9 +615,8 @@ function NumberWithSymbolForm({
                             )}
                             {allowFlippingAmount && (
                                 <Button
-                                    shouldShowRightIcon
                                     small
-                                    iconRight={icons.PlusMinus}
+                                    icon={icons.PlusMinus}
                                     onPress={toggleNegative}
                                     style={styles.minWidth18}
                                     iconWrapperStyles={styles.justifyContentCenter}
@@ -683,9 +682,9 @@ function NumberWithSymbolForm({
                         <View style={[styles.flexRow, styles.moneyRequestAmountContainer, styles.alignItemsCenter, styles.justifyContentCenter]}>{textInputComponent}</View>
                         {isSymbolPressable && !!currency && !canUseTouchScreen && (
                             <Button
-                                shouldShowRightIcon
                                 small
-                                iconRight={icons.DownArrow}
+                                icon={icons.CoinsButton}
+                                iconAccessibilityLabel={translate('common.currency')}
                                 onPress={onSymbolButtonPress}
                                 style={styles.minWidth18}
                                 iconWrapperStyles={styles.justifyContentCenter}
@@ -709,9 +708,9 @@ function NumberWithSymbolForm({
             <View style={[styles.flexRow, styles.justifyContentCenter, shouldShowBigNumberPad ? styles.mb2 : styles.mb0, styles.gap2]}>
                 {isSymbolPressable && canUseTouchScreen && (
                     <Button
-                        shouldShowRightIcon
                         small
-                        iconRight={icons.DownArrow}
+                        icon={icons.CoinsButton}
+                        iconAccessibilityLabel={translate('common.currency')}
                         onPress={onSymbolButtonPress}
                         style={styles.minWidth18}
                         iconWrapperStyles={styles.justifyContentCenter}
@@ -721,9 +720,8 @@ function NumberWithSymbolForm({
                 )}
                 {allowFlippingAmount && canUseTouchScreen && (
                     <Button
-                        shouldShowRightIcon
                         small
-                        iconRight={icons.PlusMinus}
+                        icon={icons.PlusMinus}
                         onPress={toggleNegative}
                         style={styles.minWidth18}
                         iconWrapperStyles={styles.justifyContentCenter}
