@@ -130,7 +130,10 @@ type Comment = {
      * deliberate selection.
      */
     vendor?: {
+        /** Vendor ID in the connected accounting integration (e.g. QBO vendor ID) */
         externalID: string;
+
+        /** `true` when set by the user or a merchant rule; `false` when set by the PHP fuzzy auto-matcher */
         isManuallySet: boolean;
     };
 
