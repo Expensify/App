@@ -1511,7 +1511,6 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     LINK_CARD_FEED_TO_POLICY: 'LinkCardFeedToPolicy',
     REVEAL_CARD_PIN: 'RevealCardPIN',
     CHANGE_CARD_PIN: 'ChangeCardPIN',
-    ADD_WORK_EMAIL: 'AddWorkEmail',
 } as const;
 
 type SideEffectRequestCommand = ValueOf<typeof SIDE_EFFECT_REQUEST_COMMANDS>;

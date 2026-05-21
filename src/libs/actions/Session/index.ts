@@ -1515,7 +1515,7 @@ function AddWorkEmail(workEmail: string) {
             Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'onboarding.workEmail2FAError');
             return;
         }
-      
+
         if (response?.message === CONST.WORK_ACCOUNT_CLOSED_ERROR || response?.title === CONST.WORK_ACCOUNT_CLOSED_ERROR) {
             Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'onboarding.mergeBlockScreen.workAccountClosedSubtitle');
             return;
