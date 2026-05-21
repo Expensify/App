@@ -19,6 +19,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import DefaultGroupToggle from './DefaultGroupToggle';
+import DeleteGroupRow from './DeleteGroupRow';
+import ExpensifyCardPreferredWorkspaceToggle from './ExpensifyCardPreferredWorkspaceToggle';
+import PreferredWorkspaceToggle from './PreferredWorkspaceToggle';
+import RestrictDefaultLoginSelectionToggle from './RestrictDefaultLoginSelectionToggle';
+import RestrictExpenseWorkspaceCreationToggle from './RestrictExpenseWorkspaceCreationToggle';
 import StrictlyEnforceWorkspaceRulesToggle from './StrictlyEnforceWorkspaceRulesToggle';
 
 type DomainGroupDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.GROUP_DETAILS>;
@@ -36,8 +41,18 @@ function DomainGroupDetailsPage({route}: DomainGroupDetailsPageProps) {
     const [namePendingAction] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {selector: domainSecurityGroupSettingPendingActionSelector('name', groupID)});
     const [nameErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {selector: domainSecurityGroupSettingErrorsSelector('nameErrors', groupID)});
 
+    const [deleteGroupPendingAction] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
+        selector: domainSecurityGroupSettingPendingActionSelector('deleteGroup', groupID),
+    });
+
     return (
-        <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
+        <DomainNotFoundPageWrapper
+            domainAccountID={domainAccountID}
+            shouldBeBlocked={!group || !!deleteGroupPendingAction}
+            fullPageNotFoundViewProps={{
+                onBackButtonPress: () => Navigation.goBack(ROUTES.DOMAIN_GROUPS.getRoute(domainAccountID)),
+            }}
+        >
             <ScreenWrapper
                 shouldEnableMaxHeight
                 testID="DomainGroupDetailsPage"
@@ -68,6 +83,26 @@ function DomainGroupDetailsPage({route}: DomainGroupDetailsPageProps) {
                     <View style={[styles.sectionDividerLine, styles.mh5, styles.mv6]} />
                     <Text style={[styles.textNormal, styles.textStrong, styles.ph5]}>{translate('domain.groups.permissions')}</Text>
                     <StrictlyEnforceWorkspaceRulesToggle
+                        domainAccountID={domainAccountID}
+                        groupID={groupID}
+                    />
+                    <RestrictDefaultLoginSelectionToggle
+                        domainAccountID={domainAccountID}
+                        groupID={groupID}
+                    />
+                    <RestrictExpenseWorkspaceCreationToggle
+                        domainAccountID={domainAccountID}
+                        groupID={groupID}
+                    />
+                    <PreferredWorkspaceToggle
+                        domainAccountID={domainAccountID}
+                        groupID={groupID}
+                    />
+                    <ExpensifyCardPreferredWorkspaceToggle
+                        domainAccountID={domainAccountID}
+                        groupID={groupID}
+                    />
+                    <DeleteGroupRow
                         domainAccountID={domainAccountID}
                         groupID={groupID}
                     />

@@ -14,6 +14,16 @@ import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithA
 
 const mockOpenPicker = jest.fn();
 
+jest.mock('@react-navigation/native', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const actual = jest.requireActual('@react-navigation/native');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        ...actual,
+        useRoute: () => ({key: 'test', name: 'test', params: {}}),
+    };
+});
+
 jest.mock('@components/AttachmentPicker', () => {
     function MockAttachmentPicker({children}: {children: (props: {openPicker: (opts: {onPicked: (files: unknown[]) => void}) => void}) => React.ReactNode}) {
         return <>{children({openPicker: mockOpenPicker})}</>;

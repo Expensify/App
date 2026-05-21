@@ -1,6 +1,5 @@
 import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-// eslint-disable-next-line import/order
 import useSidePanelContext from '@pages/inbox/report/ReportActionCompose/useSidePanelContext';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -27,7 +26,6 @@ let mockSearchState: {
 };
 
 jest.mock('@hooks/useIsInSidePanel', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => mockIsInSidePanel,
 }));

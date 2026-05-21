@@ -9,7 +9,6 @@ import type {Beta, Report, ReportAction, ReportActions, ReportNameValuePairs, Tr
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Comment} from '@src/types/onyx/Transaction';
 import SafeString from '@src/utils/SafeString';
-import {getCurrentUserEmail, getUserAccountID} from './actions/IOU';
 import {getLinkedTransactionID} from './ReportActionsUtils';
 import {getReasonAndReportActionThatRequiresAttention, reasonForReportToBeInOptionList} from './ReportUtils';
 import SidebarUtils from './SidebarUtils';
@@ -1092,6 +1091,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     modifiedMerchant: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     modifiedWaypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     participantsAutoAssigned: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    isMerchantSet: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     participants: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     receipt: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     reportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1141,6 +1141,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     splitsStartDate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     splitsEndDate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     withdrawalID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    isAmountSet: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );
@@ -1305,6 +1306,9 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 originalMessage: 'object',
                 previousMessage: 'object',
             });
+        case 'isAmountSet':
+        case 'isMerchantSet':
+            return validateBoolean(value);
     }
 }
 
@@ -1349,6 +1353,7 @@ function validateTransactionViolationDraftProperty(key: keyof TransactionViolati
                 prohibitedExpenseRule: 'string',
                 comment: 'string',
                 cardID: 'number',
+                missingFields: 'array',
             });
         case 'showInReview':
             return validateBoolean(value);
@@ -1460,12 +1465,17 @@ type GBRReasonAndReportAction = {
 /**
  * Gets the reason and report action that is causing the GBR to show up in LHN row
  */
-function getReasonAndReportActionForGBRInLHNRow(report: OnyxEntry<Report>, isReportArchived = false): GBRReasonAndReportAction | null {
+function getReasonAndReportActionForGBRInLHNRow(
+    report: OnyxEntry<Report>,
+    currentUserLogin: string,
+    currentUserAccountID: number,
+    isReportArchived = false,
+): GBRReasonAndReportAction | null {
     if (!report) {
         return null;
     }
 
-    const {reason, reportAction} = getReasonAndReportActionThatRequiresAttention(report, getCurrentUserEmail(), getUserAccountID(), undefined, isReportArchived) ?? {};
+    const {reason, reportAction} = getReasonAndReportActionThatRequiresAttention(report, currentUserLogin, currentUserAccountID, undefined, isReportArchived) ?? {};
 
     if (reason) {
         return {reason: `debug.reasonGBR.${reason}`, reportAction};

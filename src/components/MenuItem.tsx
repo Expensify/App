@@ -1,6 +1,6 @@
 import type {ImageContentFit} from 'expo-image';
 import type {ReactElement, ReactNode, Ref} from 'react';
-import React, {useMemo, useRef} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import type {GestureResponderEvent, Role, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -43,9 +43,9 @@ import {useMenuItemGroupActions, useMenuItemGroupState} from './MenuItemGroup';
 import PlaidCardFeedIcon from './PlaidCardFeedIcon';
 import type {PressableRef} from './Pressable/GenericPressable/types';
 import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
+import RadioButton from './RadioButton';
 import RenderHTML from './RenderHTML';
 import ReportActionAvatars from './ReportActionAvatars';
-import SelectCircle from './SelectCircle';
 import Text from './Text';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
 import getContextMenuAccessibilityHint from './utils/getContextMenuAccessibilityHint';
@@ -258,9 +258,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Should the title show with normal font weight (not bold) */
         shouldShowBasicTitle?: boolean;
 
-        /** Should we make this selectable with a checkbox */
-        shouldShowSelectedState?: boolean;
-
         /** Should we truncate the title */
         shouldTruncateTitle?: boolean;
 
@@ -402,8 +399,8 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         shouldShowLoadingSpinnerIcon?: boolean;
 
-        /** Should selected item be marked with checkmark */
-        shouldShowSelectedItemCheck?: boolean;
+        /** Whether to show a radio button on each item to indicate which one is currently selected */
+        shouldShowRadioButton?: boolean;
 
         /** Should use auto width for the icon container. */
         shouldIconUseAutoWidthStyle?: boolean;
@@ -545,7 +542,6 @@ function MenuItem({
     characterLimit = 200,
     isLabelHoverable = true,
     rightLabel,
-    shouldShowSelectedState = false,
     isSelected = false,
     shouldStackHorizontally = false,
     shouldShowDescriptionOnTop = false,
@@ -590,7 +586,7 @@ function MenuItem({
     renderTooltipContent,
     onEducationTooltipPress,
     additionalIconStyles,
-    shouldShowSelectedItemCheck = false,
+    shouldShowRadioButton = false,
     shouldIconUseAutoWidthStyle = false,
     shouldBreakWord = false,
     pressableTestID,
@@ -622,6 +618,18 @@ function MenuItem({
     const {isExecuting} = useMenuItemGroupState() ?? {};
     const {singleExecution, waitForNavigate} = useMenuItemGroupActions() ?? {};
     const popoverAnchor = useRef<View>(null);
+    const pressableRef = useRef<View>(null);
+    useEffect(() => {
+        const element = pressableRef.current;
+        if (interactive || !element || typeof HTMLElement === 'undefined' || !(element instanceof HTMLElement) || typeof element.onclick === 'undefined') {
+            return;
+        }
+        // React Native Web's Pressable always attaches an onClick handler to the DOM element.
+        // TalkBack on Android web uses the presence of a click event listener to determine whether
+        // an element is clickable and announces "double tap to activate" even for non-interactive elements.
+        // Removing the onclick property prevents TalkBack from treating the element as clickable.
+        element.onclick = null;
+    }, [interactive]);
     const deviceHasHoverSupport = hasHoverSupport();
     const isCompactMenu = useIsCompactMenu();
     const isCompactPopoverItem = isCompactMenu && !isSmallScreenWidth && !shouldIgnoreCompactStyle;
@@ -865,7 +873,7 @@ function MenuItem({
                                 }
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}
                                 disabled={disabled || isExecuting}
-                                ref={mergeRefs(ref, popoverAnchor)}
+                                ref={mergeRefs(ref, popoverAnchor, pressableRef)}
                                 role={interactive ? role : undefined}
                                 accessibilityLabel={accessibilityLabelWithContextMenuHint}
                                 accessibilityHint={accessibilityHint}
@@ -896,7 +904,6 @@ function MenuItem({
                                                     ]}
                                                 >
                                                     {!!leftComponent && <View style={[styles.mr3]}>{leftComponent}</View>}
-                                                    {}
                                                     {isIDPassed && (
                                                         <ReportActionAvatars
                                                             subscriptAvatarBorderColor={getSubscriptAvatarBackgroundColor(isHovered, pressed, theme.hoverComponentBG, theme.buttonHoveredBG)}
@@ -1126,7 +1133,7 @@ function MenuItem({
                                                     </View>
                                                 )}
                                                 {!!brickRoadIndicator && (
-                                                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml1, styles.mr2]}>
+                                                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml1, badgeText ? undefined : styles.mr2]}>
                                                         <Icon
                                                             src={icons.DotIndicator}
                                                             fill={brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.success}
@@ -1171,13 +1178,16 @@ function MenuItem({
                                                     </View>
                                                 )}
                                                 {shouldShowRightComponent && rightComponent}
-                                                {shouldShowSelectedState && <SelectCircle isChecked={isSelected} />}
-                                                {shouldShowSelectedItemCheck && isSelected && (
-                                                    <Icon
-                                                        src={icons.Checkmark}
-                                                        fill={theme.iconSuccessFill}
-                                                        additionalStyles={styles.alignSelfCenter}
-                                                    />
+                                                {shouldShowRadioButton && (
+                                                    <View style={[styles.alignSelfCenter, styles.ml3]}>
+                                                        <RadioButton
+                                                            isChecked={isSelected}
+                                                            onPress={onPressAction}
+                                                            accessibilityLabel={title ?? ''}
+                                                            accessible={false}
+                                                            tabIndex={-1}
+                                                        />
+                                                    </View>
                                                 )}
                                                 {copyable && deviceHasHoverSupport && !interactive && isHovered && !!copyValue && (
                                                     <View style={styles.justifyContentCenter}>

@@ -8,9 +8,9 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getEmojiReactionDetails} from '@libs/EmojiUtils';
+import {getEmojiReactionDetails, mergeReactionsByEmoji} from '@libs/EmojiUtils';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
-import {toggleEmojiReaction} from '@userActions/Report';
+import {toggleEmojiReaction} from '@userActions/EmojiReactions';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 import CONST from '@src/CONST';
 import {isFullySupportedLocale} from '@src/CONST/LOCALES';
@@ -27,6 +27,9 @@ type ReportActionItemEmojiReactionsProps = {
 
     /** The ID of the chat report this action belongs to */
     reportID: string | undefined;
+
+    /** True when this message is edited inline on a wide layout; right-aligns the reaction row under the composer. */
+    isEditingInline: boolean;
 
     /** We disable reacting with emojis on report actions that have errors */
     shouldBlockReactions?: boolean;
@@ -61,7 +64,7 @@ type FormattedReaction = {
     pendingAction?: PendingAction;
 };
 
-function ReportActionItemEmojiReactions({reportAction, reportID, shouldBlockReactions = false, setIsEmojiPickerActive}: ReportActionItemEmojiReactionsProps) {
+function ReportActionItemEmojiReactions({reportAction, reportID, isEditingInline, shouldBlockReactions = false, setIsEmojiPickerActive}: ReportActionItemEmojiReactionsProps) {
     const styles = useThemeStyles();
     const {preferredLocale} = useLocalize();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -80,7 +83,6 @@ function ReportActionItemEmojiReactions({reportAction, reportID, shouldBlockReac
         if (isAnonymousUser()) {
             hideContextMenu(false);
 
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 signOutAndRedirectToSignIn();
             });
@@ -91,7 +93,7 @@ function ReportActionItemEmojiReactions({reportAction, reportID, shouldBlockReac
 
     // Each emoji is sorted by the oldest timestamp of user reactions so that they will always appear in the same order for everyone
     const formattedReactions: Array<FormattedReaction | null> = sortBy(
-        Object.entries(emojiReactions ?? {}).map(([emojiName, emojiReaction]) => {
+        Object.entries(mergeReactionsByEmoji(emojiReactions ?? {})).map(([emojiName, emojiReaction]) => {
             const {emoji, emojiCodes, reactionCount, hasUserReacted, userAccountIDs, oldestTimestamp} = getEmojiReactionDetails(emojiName, emojiReaction, currentUserAccountID);
 
             if (reactionCount === 0) {
@@ -118,8 +120,14 @@ function ReportActionItemEmojiReactions({reportAction, reportID, shouldBlockReac
 
     const totalReactionCount = formattedReactions.reduce((prev, curr) => (curr === null ? prev : prev + curr.reactionCount), 0);
 
+    if (totalReactionCount === 0) {
+        return null;
+    }
+
+    const wrapperStyle = isEditingInline ? styles.chatItemReactionsDraftRight : {};
+
     return (
-        totalReactionCount > 0 && (
+        <View style={wrapperStyle}>
             <View style={[styles.flexRow, styles.flexWrap, styles.gap1, styles.mt2]}>
                 {formattedReactions.map((reaction) => {
                     if (reaction === null) {
@@ -151,7 +159,7 @@ function ReportActionItemEmojiReactions({reportAction, reportID, shouldBlockReac
                     />
                 )}
             </View>
-        )
+        </View>
     );
 }
 

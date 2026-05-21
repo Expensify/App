@@ -36,7 +36,6 @@ function DomainEmailInput({onInputChange, ref, ...rest}: BaseTextInputProps) {
                 // https://github.com/Expensify/App/pull/80090#issuecomment-3819449517
                 onInputChange?.(value.replaceAll('@', ''));
             }}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         />
     );
@@ -87,7 +86,7 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
             addErrorMessage(errors, 'email', translate('messages.errorMessageInvalidEmail'));
         }
         if (isUserAlreadyAMember && !!domainName) {
-            addErrorMessage(errors, 'email', translate('messages.userIsAlreadyMember', {login: fullEmail, name: domainName}));
+            addErrorMessage(errors, 'email', translate('messages.userIsAlreadyMember', fullEmail, domainName));
         }
 
         return errors;

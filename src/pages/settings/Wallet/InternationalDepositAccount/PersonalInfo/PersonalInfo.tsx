@@ -72,7 +72,6 @@ function PersonalInfoPage() {
         moveTo,
         screenIndex,
         goToTheLastStep,
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
     } = useSubStep({
         bodyContent: isManual ? bodyContentWithManualSetup : bodyContentWithPlaid,
         skipSteps,

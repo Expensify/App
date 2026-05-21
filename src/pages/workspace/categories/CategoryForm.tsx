@@ -28,9 +28,12 @@ type CategoryFormProps = {
 
     /** Function to validate the edited values of the form */
     validateEdit?: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>;
+
+    /** Whether to add bottom safe area padding to the form. Should be false when the parent wrapper already handles it. */
+    addBottomSafeAreaPadding?: boolean;
 };
 
-function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit}: CategoryFormProps) {
+function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit, addBottomSafeAreaPadding = true}: CategoryFormProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -76,7 +79,7 @@ function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit}: 
             style={[styles.mh5, styles.flex1]}
             enabledWhenOffline
             shouldHideFixErrorsAlert
-            addBottomSafeAreaPadding
+            addBottomSafeAreaPadding={addBottomSafeAreaPadding}
         >
             <InputWrapper
                 ref={inputCallbackRef}

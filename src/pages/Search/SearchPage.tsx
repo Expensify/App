@@ -1,14 +1,17 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import Animated from 'react-native-reanimated';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import type {SearchParams} from '@components/Search/types';
 import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
 import useDocumentTitle from '@hooks/useDocumentTitle';
+import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchOverlay from '@hooks/useSearchOverlay';
 import useSearchPageSetup from '@hooks/useSearchPageSetup';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,7 +20,9 @@ import {search} from '@libs/actions/Search';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import {hasFilterBarsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import type {SearchResults} from '@src/types/onyx';
 import SearchPageNarrow from './SearchPageNarrow';
 import SearchPageWide from './SearchPageWide';
@@ -29,15 +34,25 @@ function SearchPage({route}: SearchPageProps) {
     useDocumentTitle(translate('common.spend'));
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const {selectedTransactions, lastSearchType, areAllMatchingItemsSelected, currentSearchKey, currentSearchResults, currentSearchQueryJSON} = useSearchStateContext();
+    const {selectedTransactions, lastSearchType, areAllMatchingItemsSelected, currentSearchKey, currentSearchResults, currentSearchQueryJSON, shouldUseLiveData} = useSearchStateContext();
     const {clearSelectedTransactions, setLastSearchType} = useSearchActionsContext();
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
+    const [hasFilterBars = false] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: hasFilterBarsSelector});
 
-    const lastNonEmptySearchResults = useRef<SearchResults | undefined>(undefined);
+    const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
 
     useConfirmReadyToOpenApp();
     useSearchPageSetup(currentSearchQueryJSON);
+
+    // Adjust state during rendering rather than in a useEffect: the value is consumed in the same
+    // render below (`searchResults = lastNonEmptySearchResults` when sorting), so a useEffect would
+    // commit one stale render before catching up. The reference equality check
+    // (`currentSearchResults !== lastNonEmptySearchResults`) bounds the re-render loop to a single
+    // extra pass — see https://react.dev/reference/react/useState#storing-information-from-previous-renders.
+    if (currentSearchResults?.data && !shouldUseLiveData && currentSearchResults !== lastNonEmptySearchResults) {
+        setLastNonEmptySearchResults(currentSearchResults);
+    }
 
     useEffect(() => {
         if (!currentSearchResults?.search?.type) {
@@ -45,10 +60,7 @@ function SearchPage({route}: SearchPageProps) {
         }
 
         setLastSearchType(currentSearchResults.search.type);
-        if (currentSearchResults.data) {
-            lastNonEmptySearchResults.current = currentSearchResults;
-        }
-    }, [lastSearchType, currentSearchQueryJSON, setLastSearchType, currentSearchResults]);
+    }, [lastSearchType, currentSearchQueryJSON, setLastSearchType, currentSearchResults?.search?.type]);
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
@@ -60,7 +72,7 @@ function SearchPage({route}: SearchPageProps) {
     if (currentSearchResults?.data != null || currentSearchResults?.errors) {
         searchResults = currentSearchResults;
     } else if (isSorting) {
-        searchResults = lastNonEmptySearchResults.current;
+        searchResults = lastNonEmptySearchResults;
     }
 
     const metadata = searchResults?.search;
@@ -130,6 +142,18 @@ function SearchPage({route}: SearchPageProps) {
         setIsSorting(true);
     }, []);
 
+    const overlayContentContainerStyle = !isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles(!!hasFilterBars) : undefined;
+    const overlayEndSubmitSpans = useEndSubmitNavigationSpans();
+    const {searchOverlayContent, onSearchContentReady, isOverlayActive} = useSearchOverlay({
+        searchResults,
+        queryJSON: currentSearchQueryJSON,
+        shouldUseNarrowLayout,
+        isMobileSelectionModeEnabled,
+        currentSearchKey,
+        contentContainerStyle: overlayContentContainerStyle,
+        onDestinationVisible: overlayEndSubmitSpans,
+    });
+
     return (
         <Animated.View style={[styles.flex1]}>
             {shouldUseNarrowLayout ? (
@@ -141,6 +165,10 @@ function SearchPage({route}: SearchPageProps) {
                     footerData={footerData}
                     shouldShowFooter={shouldShowFooter}
                     onSortPressedCallback={onSortPressedCallback}
+                    searchOverlayContent={searchOverlayContent}
+                    onSearchContentReady={onSearchContentReady}
+                    hasFilterBars={hasFilterBars}
+                    isOverlayActive={isOverlayActive}
                 />
             ) : (
                 <SearchPageWide
@@ -153,6 +181,8 @@ function SearchPage({route}: SearchPageProps) {
                     onSortPressedCallback={onSortPressedCallback}
                     route={route}
                     shouldShowFooter={shouldShowFooter}
+                    searchOverlayContent={searchOverlayContent}
+                    onSearchContentReady={onSearchContentReady}
                 />
             )}
         </Animated.View>

@@ -203,7 +203,7 @@ function isPrimaryPayAction({
     const isReportApproved = isReportApprovedUtils({report});
     const isReportClosed = isClosedReportUtils(report);
     const isProcessingReport = isProcessingReportUtils(report);
-    const isExported = isExportedUtil(reportActions);
+    const isExported = isExportedUtil(reportActions, report);
     const hasExportError = hasExportErrorUtil(reportActions, report);
     const didExportFail = !isExported && hasExportError;
 
@@ -272,7 +272,7 @@ function isExportAction(report: Report, currentUserLogin: string, policy?: Polic
         return false;
     }
 
-    const hasExportError = hasExportErrorUtil(reportActions);
+    const hasExportError = hasExportErrorUtil(reportActions, report);
     if (syncEnabled && !hasExportError) {
         return false;
     }
@@ -381,7 +381,7 @@ function isMarkAsCashAction(
         currentUserAccountID,
     );
     const userControlsReport = isReportSubmitter || isReportApprover || isAdmin;
-    return userControlsReport && shouldShowBrokenConnectionViolation;
+    return userControlsReport && shouldShowBrokenConnectionViolation && !isReportApprovedUtils({report}) && !isSettled(report);
 }
 
 function isMarkAsResolvedAction(report?: Report, violations?: TransactionViolation[], policy?: Policy) {
@@ -421,7 +421,7 @@ function getAllExpensesToHoldIfApplicable(
     policy: OnyxEntry<Policy>,
     currentUserAccountID: number | undefined,
 ) {
-    if (!report || !reportActions || !hasOnlyHeldExpenses(report?.reportID)) {
+    if (!report || !reportActions || !hasOnlyHeldExpenses(reportTransactions)) {
         return [];
     }
 
@@ -475,7 +475,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
             isChatReportArchived,
             invoiceReceiverPolicy,
             reportActions,
-        }) && hasOnlyHeldExpenses(report?.reportID);
+        }) && hasOnlyHeldExpenses(reportTransactions);
     const expensesToHold = getAllExpensesToHoldIfApplicable(report, reportActions, reportTransactions, policy, currentUserAccountID);
 
     if (isMarkAsCashAction(currentUserLogin, currentUserAccountID, report, reportTransactions, violations, policy)) {
@@ -540,6 +540,10 @@ function isMarkAsCashActionForTransaction(currentUserLogin: string, parentReport
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(parentReport, policy, violations);
 
     if (!shouldShowBrokenConnectionViolation) {
+        return false;
+    }
+
+    if (isReportApprovedUtils({report: parentReport}) || isSettled(parentReport)) {
         return false;
     }
 

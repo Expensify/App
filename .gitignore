@@ -36,6 +36,7 @@ local.properties
 *.iml
 *.hprof
 android/app/src/main/java/com/expensify/chat/generated/
+scripts/generated/
 .cxx/
 
 # VIM
@@ -166,6 +167,7 @@ modules/*/lib/
 .playwright-mcp/
 
 # agent-device
+.agent-device/
 agent-device-output/
 
 # cspell cache
