@@ -3100,10 +3100,10 @@ type CreateDraftWorkspaceParams = {
     workspaceName: string;
     currentUserAccountID: number;
     currentUserEmail: string;
+    currency: string | undefined;
     policyOwnerEmail?: string;
     makeMeAdmin?: boolean;
     policyID?: string;
-    currency?: string;
     file?: File;
 };
 
@@ -3112,10 +3112,10 @@ function createDraftWorkspace({
     workspaceName,
     currentUserAccountID,
     currentUserEmail,
+    currency,
     policyOwnerEmail = '',
     makeMeAdmin = false,
     policyID = generatePolicyID(),
-    currency = '',
     file,
 }: CreateDraftWorkspaceParams): CreateWorkspaceParams {
     const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticDistanceRateCustomUnits(currency);
