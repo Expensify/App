@@ -1,7 +1,6 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {isLockedToNewApp, shouldBlockOldAppExit} from '@libs/TryNewDotUtils';
 import {setIsGPSInProgressModalOpen} from '@userActions/isGPSInProgressModalOpen';
@@ -15,7 +14,6 @@ let currentSessionAccountID: Session['accountID'];
 let isLoadingApp = true;
 let isLoadingTryNewDot = true;
 let hasReceivedTryNewDotUpdate = false;
-let isClosingReactNativeApp = false;
 
 function getSessionAccountID(session: OnyxEntry<Session>): Session['accountID'] {
     return session?.accountID;
@@ -34,17 +32,6 @@ function updateTryNewDotLoadingState(isTryNewDotUpdate = false, isInitialTryNewD
 
     isLoadingTryNewDot = isLoadingApp !== false;
 }
-
-Onyx.connectWithoutView({
-    key: ONYXKEYS.HYBRID_APP,
-    callback: (hybridApp) => {
-        if (hybridApp?.closingReactNativeApp) {
-            return;
-        }
-
-        isClosingReactNativeApp = false;
-    },
-});
 
 Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_TRY_NEW_DOT,
@@ -81,7 +68,6 @@ Onyx.connectWithoutView({
 
         currentTryNewDot = undefined;
         hasReceivedTryNewDotUpdate = false;
-        isClosingReactNativeApp = false;
         isLoadingTryNewDot = nextSessionAccountID !== undefined || isLoadingApp !== false;
     },
 });
@@ -123,30 +109,13 @@ function closeReactNativeApp({shouldSetNVP, isTrackingGPS, shouldIgnoreTryNewDot
         return;
     }
 
-    if (CONFIG.IS_HYBRID_APP && isClosingReactNativeApp) {
-        return;
-    }
-
+    Navigation.clearPreloadedRoutes();
     if (CONFIG.IS_HYBRID_APP) {
-        isClosingReactNativeApp = true;
+        Onyx.merge(ONYXKEYS.HYBRID_APP, {closingReactNativeApp: true});
     }
 
-    const closingPromise = CONFIG.IS_HYBRID_APP ? Onyx.merge(ONYXKEYS.HYBRID_APP, {closingReactNativeApp: true}) : Promise.resolve();
-
-    closingPromise
-        .then(() => {
-            Navigation.clearPreloadedRoutes();
-            // We need to call HybridAppModule.closeReactNativeApp directly as a native module method
-            // eslint-disable-next-line no-restricted-properties
-            HybridAppModule.closeReactNativeApp({shouldSetNVP});
-        })
-        .catch((error) => {
-            Log.warn('Failed to merge HYBRID_APP closing state', {error});
-            // Still attempt to close the app to avoid leaving the user stuck
-            Navigation.clearPreloadedRoutes();
-            // eslint-disable-next-line no-restricted-properties
-            HybridAppModule.closeReactNativeApp({shouldSetNVP});
-        });
+    // eslint-disable-next-line no-restricted-properties
+    HybridAppModule.closeReactNativeApp({shouldSetNVP});
 }
 
 /*
