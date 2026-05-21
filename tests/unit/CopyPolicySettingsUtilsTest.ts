@@ -1,10 +1,12 @@
 import {
     areAllTargetsAccountingCompatible,
+    areAllTargetsCompatibleForAccountingPart,
     arePoliciesAccountingCompatible,
     FEATURE_ROWS,
     getAccountingConnectionIdentity,
     getConnectionCompanyID,
     isCopyPolicySettingsPartEnabledOnSource,
+    isTargetCompatibleForAccountingPart,
 } from '@libs/CopyPolicySettingsUtils';
 import type {CopyPolicySettingsSourceFeatureContext} from '@libs/CopyPolicySettingsUtils';
 import CONST from '@src/CONST';
@@ -183,6 +185,59 @@ describe('CopyPolicySettingsUtils', () => {
             const distancePolicy = createRandomPolicy(4);
             distancePolicy.areDistanceRatesEnabled = true;
             expect(isCopyPolicySettingsPartEnabledOnSource('distanceRates', {...baseContext, policy: distancePolicy})).toBe(true);
+        });
+    });
+
+    describe('isTargetCompatibleForAccountingPart', () => {
+        const empty = createRandomPolicy(0);
+        const empty2 = createRandomPolicy(1);
+        const netsuiteAcme = makePolicyWithConnection(CONST.POLICY.CONNECTIONS.NAME.NETSUITE, {accountID: 'ACME'});
+        const netsuiteExpensivePie = makePolicyWithConnection(CONST.POLICY.CONNECTIONS.NAME.NETSUITE, {accountID: 'EXPENSIVE-PIE'});
+        const netsuiteAcmeAgain = makePolicyWithConnection(CONST.POLICY.CONNECTIONS.NAME.NETSUITE, {accountID: 'ACME'});
+        const qbo = makePolicyWithConnection(CONST.POLICY.CONNECTIONS.NAME.QBO, {config: {realmId: 'REALM-1'}});
+
+        it('allows install: source connected, target unconnected', () => {
+            expect(isTargetCompatibleForAccountingPart(netsuiteAcme, empty)).toBe(true);
+        });
+
+        it('allows both unconnected', () => {
+            expect(isTargetCompatibleForAccountingPart(empty, empty2)).toBe(true);
+        });
+
+        it('allows same connection on both sides', () => {
+            expect(isTargetCompatibleForAccountingPart(netsuiteAcme, netsuiteAcmeAgain)).toBe(true);
+        });
+
+        it('rejects swap: target connected to a different account', () => {
+            expect(isTargetCompatibleForAccountingPart(netsuiteAcme, netsuiteExpensivePie)).toBe(false);
+        });
+
+        it('rejects swap: target connected to a different integration', () => {
+            expect(isTargetCompatibleForAccountingPart(netsuiteAcme, qbo)).toBe(false);
+        });
+
+        it('rejects wipe: source unconnected, target connected', () => {
+            expect(isTargetCompatibleForAccountingPart(empty, netsuiteAcme)).toBe(false);
+        });
+
+        it('treats unresolved target as incompatible', () => {
+            expect(isTargetCompatibleForAccountingPart(netsuiteAcme, undefined)).toBe(false);
+        });
+    });
+
+    describe('areAllTargetsCompatibleForAccountingPart', () => {
+        it('returns true when every target is unconnected (install on all)', () => {
+            const source = makePolicyWithConnection(CONST.POLICY.CONNECTIONS.NAME.NETSUITE, {accountID: 'ACME'});
+            const t1 = createRandomPolicy(1);
+            const t2 = createRandomPolicy(2);
+            expect(areAllTargetsCompatibleForAccountingPart(source, [t1, t2])).toBe(true);
+        });
+
+        it('returns false when any target is connected to a different account', () => {
+            const source = makePolicyWithConnection(CONST.POLICY.CONNECTIONS.NAME.NETSUITE, {accountID: 'ACME'});
+            const ok = createRandomPolicy(1);
+            const bad = makePolicyWithConnection(CONST.POLICY.CONNECTIONS.NAME.NETSUITE, {accountID: 'PIE'});
+            expect(areAllTargetsCompatibleForAccountingPart(source, [ok, bad])).toBe(false);
         });
     });
 

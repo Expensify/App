@@ -12,7 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setCopyPolicySettingsData} from '@libs/actions/Policy/CopyPolicySettings';
 import type {Part} from '@libs/actions/Policy/CopyPolicySettings';
-import {areAllTargetsAccountingCompatible, FEATURE_ROWS, isCopyPolicySettingsPartEnabledOnSource} from '@libs/CopyPolicySettingsUtils';
+import {areAllTargetsAccountingCompatible, areAllTargetsCompatibleForAccountingPart, FEATURE_ROWS, isCopyPolicySettingsPartEnabledOnSource} from '@libs/CopyPolicySettingsUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PolicyCopySettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -28,16 +28,15 @@ import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 /**
- * Parts that require a compatible accounting connection between source and targets.
- * When any selected target has a mismatched (or missing) connection relative to the source,
- * these parts are disabled because copying them would break on the target side.
+ * Coding parts whose IDs are tied to the target's existing accounting connection.
+ * When any of these are copied without "accounting", source and every target must already share the same connection (or all be unconnected).
  */
-const ACCOUNTING_COMPATIBILITY_REQUIRED_PARTS = ['accounting', 'categories', 'tags', 'reports', 'taxes'] as const satisfies readonly Part[];
+const CODING_PARTS_TIED_TO_CONNECTION = ['categories', 'tags', 'reports', 'taxes'] as const satisfies readonly Part[];
 
 /**
  * Selecting accounting also copies coding settings; these parts are auto-selected with accounting.
  */
-const ACCOUNTING_FORCE_ENABLED_PARTS = ['categories', 'tags', 'reports', 'taxes'] as const satisfies readonly Part[];
+const ACCOUNTING_FORCE_ENABLED_PARTS = CODING_PARTS_TIED_TO_CONNECTION;
 
 function CopyPolicySettingsSelectFeaturesPage() {
     const route = useRoute<PlatformStackRouteProp<PolicyCopySettingsNavigatorParamList, typeof SCREENS.POLICY_COPY_SETTINGS.SELECT_FEATURES>>();
@@ -57,7 +56,8 @@ function CopyPolicySettingsSelectFeaturesPage() {
 
     const targetPolicies = targetPolicyIDs.map((id) => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]);
 
-    const isAccountingCompatible = areAllTargetsAccountingCompatible(sourcePolicy, targetPolicies);
+    const isCodingCompatible = areAllTargetsAccountingCompatible(sourcePolicy, targetPolicies);
+    const isAccountingPartCompatible = areAllTargetsCompatibleForAccountingPart(sourcePolicy, targetPolicies);
 
     const memberCount = Object.keys(getMemberAccountIDsForWorkspace(sourcePolicy?.employeeList, false, false)).length;
     const categoriesCount = Object.values(policyCategories ?? {}).filter((c) => c.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
@@ -95,7 +95,10 @@ function CopyPolicySettingsSelectFeaturesPage() {
     };
 
     const isPartVisible = (part: Part): boolean => {
-        if (!isAccountingCompatible && (ACCOUNTING_COMPATIBILITY_REQUIRED_PARTS as readonly Part[]).includes(part)) {
+        if (part === 'accounting' && !isAccountingPartCompatible) {
+            return true;
+        }
+        if (!isCodingCompatible && (CODING_PARTS_TIED_TO_CONNECTION as readonly Part[]).includes(part)) {
             return true;
         }
         return isCopyPolicySettingsPartEnabledOnSource(part, sourceFeatureContext);
@@ -122,7 +125,10 @@ function CopyPolicySettingsSelectFeaturesPage() {
         : selectedAvailableFeatures;
 
     const isFeatureDisabled = (part: Part): boolean => {
-        if (!isAccountingCompatible && (ACCOUNTING_COMPATIBILITY_REQUIRED_PARTS as readonly Part[]).includes(part)) {
+        if (part === 'accounting' && !isAccountingPartCompatible) {
+            return true;
+        }
+        if (!isCodingCompatible && (CODING_PARTS_TIED_TO_CONNECTION as readonly Part[]).includes(part)) {
             return true;
         }
         if (isAccountingSelected && (ACCOUNTING_FORCE_ENABLED_PARTS as readonly Part[]).includes(part)) {
@@ -132,7 +138,10 @@ function CopyPolicySettingsSelectFeaturesPage() {
     };
 
     const isAccountingMismatch = (part: Part): boolean => {
-        return !isAccountingCompatible && (ACCOUNTING_COMPATIBILITY_REQUIRED_PARTS as readonly Part[]).includes(part);
+        if (part === 'accounting') {
+            return !isAccountingPartCompatible;
+        }
+        return !isCodingCompatible && (CODING_PARTS_TIED_TO_CONNECTION as readonly Part[]).includes(part);
     };
 
     const getSourceDescription = (part: Part): string | undefined => {
@@ -142,7 +151,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
                 return [currencyText, formattedAddress].filter(Boolean).join(', ') || undefined;
             }
             case 'members':
-                return memberCount > 0 ? `${memberCount} ${translate('workspace.common.members').toLowerCase()}` : undefined;
+                return memberCount > 1 ? `${memberCount} ${translate('workspace.common.members').toLowerCase()}` : undefined;
             case 'reports':
                 return reportFieldsCount > 0 ? `${reportFieldsCount} ${translate('workspace.common.reportFields').toLowerCase()}` : undefined;
             case 'accounting':
@@ -208,11 +217,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
         }
         setSelectedFeatures((prev) => {
             if (prev.includes(part)) {
-                const next = prev.filter((selectedPart) => selectedPart !== part);
-                if (part === 'accounting') {
-                    return next.filter((selectedPart) => !(ACCOUNTING_FORCE_ENABLED_PARTS as readonly Part[]).includes(selectedPart));
-                }
-                return next;
+                return prev.filter((selectedPart) => selectedPart !== part);
             }
             return [...prev, part];
         });
