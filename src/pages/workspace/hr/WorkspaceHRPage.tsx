@@ -46,7 +46,7 @@ function WorkspaceHRPage({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const policy = usePolicy(policyID);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
-    const icons = useMemoizedLazyExpensifyIcons(['GustoSquare', 'ZenefitsSquare']);
+    const icons = useMemoizedLazyExpensifyIcons(['GustoSquare', 'TriNetSquare']);
     const illustrations = useMemoizedLazyIllustrations(['NewUser']);
     const [activeHRFlow, setActiveHRFlow] = useState<{setupLink: string; key: number} | undefined>();
 
@@ -68,7 +68,7 @@ function WorkspaceHRPage({
         translate,
         policyID,
         gustoIcon: icons.GustoSquare,
-        zenefitsIcon: icons.ZenefitsSquare,
+        trinetIcon: icons.TriNetSquare,
     });
 
     const connectedCards: HRCardDescriptor[] = [];
