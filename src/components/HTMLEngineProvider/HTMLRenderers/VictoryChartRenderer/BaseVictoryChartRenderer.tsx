@@ -199,6 +199,7 @@ function parseAttribute<T>(attribute: string): T | undefined {
         return undefined;
     }
     try {
+        // Using JSON5 instead of JSON because the former is not as strict as the later e.g. can parse objects with non-stringified fields `'{x: 100}'`
         return JSON5.parse<T>(attribute);
     } catch {
         return attribute as T;
