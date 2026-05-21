@@ -29,9 +29,12 @@ type HRProviderCardProps = {
 
     /** Callback invoked when the user taps the "Connect" button for an unconnected provider. */
     handleConnect: () => void;
+
+    /** Whether the current user can edit this HR connection. */
+    canWriteMoreFeatures: boolean;
 };
 
-function HRProviderCard({card, policy, handleConnect}: HRProviderCardProps) {
+function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures}: HRProviderCardProps) {
     const {translate, datetimeToRelative} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -83,8 +86,10 @@ function HRProviderCard({card, policy, handleConnect}: HRProviderCardProps) {
         },
     ];
 
-    let rightInset;
-    if (!card.isConnected) {
+    let rightInset: React.ReactNode;
+    if (!canWriteMoreFeatures) {
+        rightInset = null;
+    } else if (!card.isConnected) {
         rightInset = (
             <Button
                 small
@@ -128,7 +133,7 @@ function HRProviderCard({card, policy, handleConnect}: HRProviderCardProps) {
                 errorText={lastSyncErrorMessage}
                 errorTextStyle={styles.mt5}
                 shouldShowRedDotIndicator
-                shouldShowRightComponent
+                shouldShowRightComponent={!!rightInset}
                 rightComponent={rightComponent}
                 fallbackIcon={fallbackIcon}
             />
@@ -138,9 +143,9 @@ function HRProviderCard({card, policy, handleConnect}: HRProviderCardProps) {
                         description={translate('workspace.hr.approvalMode')}
                         title={card.approvalModeLabel}
                         style={[styles.sectionMenuItemTopDescription, styles.mt2]}
-                        shouldShowRightIcon
+                        shouldShowRightIcon={canWriteMoreFeatures}
                         brickRoadIndicator={card.config?.errorFields?.approvalMode ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        onPress={() => Navigation.navigate(approvalModeRoute)}
+                        onPress={canWriteMoreFeatures ? () => Navigation.navigate(approvalModeRoute) : undefined}
                     />
                 </OfflineWithFeedback>
             )}
@@ -150,9 +155,9 @@ function HRProviderCard({card, policy, handleConnect}: HRProviderCardProps) {
                         description={translate('workspace.hr.finalApprover')}
                         title={card.finalApproverDisplayName}
                         style={styles.sectionMenuItemTopDescription}
-                        shouldShowRightIcon
+                        shouldShowRightIcon={canWriteMoreFeatures}
                         brickRoadIndicator={card.config?.errorFields?.finalApprover ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        onPress={() => Navigation.navigate(finalApproverRoute)}
+                        onPress={canWriteMoreFeatures ? () => Navigation.navigate(finalApproverRoute) : undefined}
                     />
                 </OfflineWithFeedback>
             )}

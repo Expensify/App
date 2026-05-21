@@ -19,6 +19,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import useHasReusablePoliciesConnectedTo from '@hooks/useHasReusablePoliciesConnectedTo';
@@ -38,6 +39,7 @@ import {isExpensifyCardFullySetUp} from '@libs/CardUtils';
 import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
 import {
     areSettingsInErrorFields,
+    canMemberWrite,
     findCurrentXeroOrganization,
     getConnectedIntegration,
     getCurrentSageIntacctEntityName,
@@ -84,6 +86,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const oldDotEnvironmentURL = getOldDotURLFromEnvironment(environment);
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const [datetimeToRelative, setDateTimeToRelative] = useState('');
@@ -108,6 +111,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const syncingAccountingIntegration = accountingIntegrations.find((integration) => integration === connectionSyncProgress?.connectionName);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? syncingAccountingIntegration;
     const hasAccountingConnection = hasAccountingConnections(policy);
+    const canWriteAccounting = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.ACCOUNTING);
     const synchronizationError = connectedIntegration && getSynchronizationErrorMessage(policy, connectedIntegration, isSyncInProgress, translate, styles);
 
     const shouldShowEnterCredentials = connectedIntegration && !!synchronizationError && isAuthenticationError(policy, connectedIntegration);
@@ -185,7 +189,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
     useFocusEffect(
         useCallback(() => {
-            if (!newConnectionName || !isControlPolicy(policy)) {
+            if (!newConnectionName || !isControlPolicy(policy) || !canWriteAccounting) {
                 return;
             }
 
@@ -194,7 +198,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 integrationToDisconnect,
                 shouldDisconnectIntegrationBeforeConnecting,
             });
-        }, [newConnectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting, policy, startIntegrationFlow]),
+        }, [newConnectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting, policy, startIntegrationFlow, canWriteAccounting]),
     );
 
     useEffect(() => {
@@ -297,6 +301,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
     const connectionsMenuItems: MenuItemData[] = useMemo(() => {
         if (!hasAccountingConnection && !isSyncInProgress && policyID) {
+            if (!canWriteAccounting) {
+                return [];
+            }
+
             return accountingIntegrations
                 .map((integration) => {
                     const integrationData = getAccountingIntegrationData(
@@ -438,6 +446,28 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             context: 'PolicyAccountingPage.connectionsMenuItems',
             isSyncInProgress,
         };
+        let rightComponent;
+        if (isSyncInProgress) {
+            rightComponent = (
+                <ActivityIndicator
+                    style={[styles.popoverMenuIcon]}
+                    reasonAttributes={syncActivityReasonAttributes}
+                />
+            );
+        } else if (canWriteAccounting) {
+            rightComponent = (
+                <ThreeDotsMenu
+                    shouldSelfPosition
+                    menuItems={overflowMenu}
+                    anchorAlignment={{
+                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                    }}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.THREE_DOT_MENU}
+                />
+            );
+        }
+
         return [
             {
                 ...iconProps,
@@ -449,22 +479,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 errorTextStyle: [styles.mt5],
                 shouldShowRedDotIndicator: true,
                 description: connectionMessage,
-                rightComponent: isSyncInProgress ? (
-                    <ActivityIndicator
-                        style={[styles.popoverMenuIcon]}
-                        reasonAttributes={syncActivityReasonAttributes}
-                    />
-                ) : (
-                    <ThreeDotsMenu
-                        shouldSelfPosition
-                        menuItems={overflowMenu}
-                        anchorAlignment={{
-                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                        }}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.THREE_DOT_MENU}
-                    />
-                ),
+                rightComponent,
             },
             ...(isEmptyObject(integrationSpecificMenuItems) || shouldShowSynchronizationError || !hasAccountingConnection ? [] : [integrationSpecificMenuItems]),
             ...(!hasAccountingConnection || !isConnectionVerified ? [] : configurationOptions),
@@ -503,10 +518,11 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         datetimeToRelative,
         hasReusablePoliciesConnectedToSageIntacct,
         hasReusablePoliciesConnectedToQBD,
+        canWriteAccounting,
     ]);
 
     const otherIntegrationsItems = useMemo(() => {
-        if ((!hasAccountingConnection && !isSyncInProgress) || !policyID) {
+        if (!canWriteAccounting || (!hasAccountingConnection && !isSyncInProgress) || !policyID) {
             return;
         }
         const otherIntegrations = accountingIntegrations.filter(
@@ -579,6 +595,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         startIntegrationFlow,
         popoverAnchorRefs,
         accountingIcons,
+        canWriteAccounting,
     ]);
 
     const [chatTextLink, chatReportID] = useMemo(() => {
@@ -678,7 +695,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                     />
                                 </CollapsibleSection>
                             )}
-                            {!!account?.guideDetails?.email && !hasAccountingConnections(policy) && (
+                            {!!account?.guideDetails?.email && !hasAccountingConnections(policy) && canWriteAccounting && (
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt7]}>
                                     <Icon
                                         src={icons.QuestionMark}

@@ -18,6 +18,7 @@ import SelectionListWithModal from '@components/SelectionListWithModal';
 import Text from '@components/Text';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useGenericEmptyStateIllustration from '@hooks/useGenericEmptyStateIllustration';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -37,7 +38,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
+import {canMemberWrite, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -128,6 +129,8 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     const policyID = route.params.policyID;
     const backTo = route.params?.backTo;
     const policy = usePolicy(policyID);
+    const {email: currentUserEmail = ''} = useCurrentUserPersonalDetails();
+    const canWritePerDiem = canMemberWrite(policy, currentUserEmail, CONST.POLICY.POLICY_FEATURE.PER_DIEM);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.perDiem');
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
@@ -143,7 +146,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         return [customUnits, allRates, allSubRatesMemo];
     }, [policy]);
 
-    const canSelectMultiple = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true;
+    const canSelectMultiple = canWritePerDiem && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
 
     const fetchPerDiem = useCallback(() => {
         openPolicyPerDiemPage(policyID);
@@ -256,6 +259,9 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     }, [policyID]);
 
     const openSubRateDetails = (rate: PolicyOption) => {
+        if (!canWritePerDiem) {
+            return;
+        }
         if (isSmallScreenWidth && isMobileSelectionModeEnabled) {
             toggleSubRate(rate);
             return;
@@ -283,7 +289,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
 
     const secondaryActions = useMemo(() => {
         const menuItems = [];
-        if (policy?.areCategoriesEnabled && hasEnabledOptions(policyCategories ?? {})) {
+        if (canWritePerDiem && policy?.areCategoriesEnabled && hasEnabledOptions(policyCategories ?? {})) {
             menuItems.push({
                 icon: expensifyIcons.Gear,
                 text: translate('common.settings'),
@@ -291,18 +297,20 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                 value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
             });
         }
-        menuItems.push({
-            icon: expensifyIcons.Table,
-            text: translate('spreadsheet.importSpreadsheet'),
-            onSelected: () => {
-                if (isOffline) {
-                    showOfflineModal();
-                    return;
-                }
-                Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_IMPORT.getRoute(policyID));
-            },
-            value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
-        });
+        if (canWritePerDiem) {
+            menuItems.push({
+                icon: expensifyIcons.Table,
+                text: translate('spreadsheet.importSpreadsheet'),
+                onSelected: () => {
+                    if (isOffline) {
+                        showOfflineModal();
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_IMPORT.getRoute(policyID));
+                },
+                value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
+            });
+        }
         if (hasVisibleSubRates) {
             menuItems.push({
                 icon: expensifyIcons.Download,
@@ -331,6 +339,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         showOfflineModal,
         policy?.areCategoriesEnabled,
         policyCategories,
+        canWritePerDiem,
         translate,
         hasVisibleSubRates,
         openSettings,
@@ -378,6 +387,10 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.PER_DIEM.BULK_ACTIONS_DROPDOWN}
                 />
             );
+        }
+
+        if (secondaryActions.length === 0) {
+            return null;
         }
 
         return (
@@ -470,7 +483,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                 >
                     {!shouldDisplayButtonsInSeparateLine && getHeaderButtons()}
                 </HeaderWithBackButton>
-                {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                {!!getHeaderButtons() && shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                 {(!hasVisibleSubRates || isLoading) && headerContent}
                 {isLoading && (
                     <ActivityIndicator
@@ -489,16 +502,16 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                         onSelectionButtonPress={toggleSubRate}
                         customListHeader={getCustomListHeader()}
                         selectedItems={selectedPerDiem.map((item) => item.subRateID)}
-                        onSelectAll={filteredSubRatesList.length > 0 ? toggleAllSubRates : undefined}
+                        onSelectAll={canWritePerDiem && filteredSubRatesList.length > 0 ? toggleAllSubRates : undefined}
                         style={{listItemTitleContainerStyles: styles.flex3}}
-                        onTurnOnSelectionMode={(item) => item && toggleSubRate(item)}
+                        onTurnOnSelectionMode={(item) => canWritePerDiem && item && toggleSubRate(item)}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         customListHeaderContent={headerContent}
                         shouldShowListEmptyContent={false}
                         showScrollIndicator={false}
                         turnOnSelectionModeOnLongPress
                         shouldHeaderBeInsideList
-                        shouldShowRightCaret
+                        shouldShowRightCaret={canWritePerDiem}
                     />
                 )}
                 {!hasVisibleSubRates && !isLoading && (
@@ -508,19 +521,23 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                             title={translate('workspace.perDiem.emptyList.title')}
                             subtitle={translate('workspace.perDiem.emptyList.subtitle')}
                             headerStyles={styles.emptyStateCardIllustrationContainer}
-                            buttons={[
-                                {
-                                    buttonText: translate('spreadsheet.importSpreadsheet'),
-                                    buttonAction: () => {
-                                        if (isOffline) {
-                                            showOfflineModal();
-                                            return;
-                                        }
-                                        Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_IMPORT.getRoute(policyID));
-                                    },
-                                    success: true,
-                                },
-                            ]}
+                            buttons={
+                                canWritePerDiem
+                                    ? [
+                                          {
+                                              buttonText: translate('spreadsheet.importSpreadsheet'),
+                                              buttonAction: () => {
+                                                  if (isOffline) {
+                                                      showOfflineModal();
+                                                      return;
+                                                  }
+                                                  Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_IMPORT.getRoute(policyID));
+                                              },
+                                              success: true,
+                                          },
+                                      ]
+                                    : []
+                            }
                         />
                     </ScrollView>
                 )}

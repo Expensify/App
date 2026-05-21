@@ -53,13 +53,16 @@ import TravelInvoicingSubtitleWrapper from './TravelInvoicingSubtitleWrapper';
 type WorkspaceTravelInvoicingSectionProps = {
     /** The ID of the policy */
     policyID: string;
+
+    /** Whether the current user can edit More features backed travel settings. */
+    canWriteMoreFeatures: boolean;
 };
 
 /**
  * Displays the Travel Invoicing section within the Workspace Travel page.
  * Shows a setup CTA if Travel Invoicing is not configured, otherwise shows the settings.
  */
-function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSectionProps) {
+function WorkspaceTravelInvoicingSection({policyID, canWriteMoreFeatures}: WorkspaceTravelInvoicingSectionProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -151,6 +154,15 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
      */
     const handlePayBalance = () => {
         setIsPayBalanceModalVisible(true);
+    };
+
+    const showReadOnlyModal = () => {
+        showConfirmModal({
+            title: translate('workspace.common.readOnlyActionTitle'),
+            prompt: translate('workspace.common.readOnlyActionPrompt'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
     };
 
     /**
@@ -283,6 +295,16 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
         return <TravelInvoicingSubtitleWrapper />;
     };
 
+    const getToggleDisabledAction = () => {
+        if (!canWriteMoreFeatures) {
+            return showReadOnlyModal;
+        }
+        if (isOnWaitlist) {
+            return () => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID));
+        }
+        return undefined;
+    };
+
     const travelInvoicingSubMenuItems = (
         <>
             {hasTravelProvisioningErrors && (
@@ -312,7 +334,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                         </Text>
                     )}
                 </View>
-                {shouldShowPayButton && (
+                {shouldShowPayButton && canWriteMoreFeatures && (
                     <Button
                         text={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.currentTravelSpendCta')}
                         onPress={handlePayBalance}
@@ -339,11 +361,11 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                 <MenuItemWithTopDescription
                     description={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.settlementAccountLabel')}
                     title={settlementAccountNumber}
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID))}
+                    onPress={canWriteMoreFeatures ? () => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID)) : undefined}
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
                     titleStyle={settlementAccountNumber ? styles.textNormalThemeText : styles.colorMuted}
                     descriptionTextStyle={styles.textLabelSupportingNormal}
-                    shouldShowRightIcon
+                    shouldShowRightIcon={canWriteMoreFeatures}
                     brickRoadIndicator={hasSettlementAccountError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 />
             </OfflineWithFeedback>
@@ -357,11 +379,11 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                 <MenuItemWithTopDescription
                     description={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.settlementFrequencyLabel')}
                     title={localizedFrequency}
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_FREQUENCY.getRoute(policyID))}
+                    onPress={canWriteMoreFeatures ? () => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_FREQUENCY.getRoute(policyID)) : undefined}
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
                     titleStyle={styles.textNormalThemeText}
                     descriptionTextStyle={styles.textLabelSupportingNormal}
-                    shouldShowRightIcon
+                    shouldShowRightIcon={canWriteMoreFeatures}
                     brickRoadIndicator={hasSettlementFrequencyError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 />
             </OfflineWithFeedback>
@@ -375,11 +397,11 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                 <MenuItemWithTopDescription
                     description={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.monthlySpendLimitLabel')}
                     title={formattedMonthlyLimit}
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_MONTHLY_LIMIT.getRoute(policyID))}
+                    onPress={canWriteMoreFeatures ? () => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_MONTHLY_LIMIT.getRoute(policyID)) : undefined}
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
                     titleStyle={styles.textNormalThemeText}
                     descriptionTextStyle={styles.textLabelSupportingNormal}
-                    shouldShowRightIcon
+                    shouldShowRightIcon={canWriteMoreFeatures}
                     brickRoadIndicator={hasMonthlyLimitError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 />
             </OfflineWithFeedback>
@@ -396,8 +418,9 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                     switchAccessibilityLabel={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subtitle')}
                     onToggle={handleToggle}
                     isActive={isTravelInvoicingEnabled}
-                    disabled={isLoading || isOnWaitlist}
-                    disabledAction={isOnWaitlist ? () => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID)) : undefined}
+                    disabled={!canWriteMoreFeatures || isLoading || isOnWaitlist}
+                    disabledAction={getToggleDisabledAction()}
+                    showLockIcon={!canWriteMoreFeatures || isOnWaitlist}
                     pendingAction={togglePendingAction}
                     errors={toggleErrors}
                     onCloseError={() => clearTravelInvoicingErrors(workspaceAccountID)}

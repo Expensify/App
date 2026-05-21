@@ -141,6 +141,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const hasPolicyCreationError = policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors);
     const canWriteWorkspaceSettings = canEditWorkspaceSettings(policy, currentUserLogin);
     const canReadPolicyFeature = (policyFeature: PolicyFeature) => (currentUserLogin ? canMemberRead(policy, currentUserLogin, policyFeature) : false);
+    const canReadMoreFeatures = canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
     const shouldShowProtectedItems =
         canWriteWorkspaceSettings ||
         [
@@ -286,7 +287,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             });
         }
 
-        if (policyFeatureStates?.[CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED] && canWriteWorkspaceSettings) {
+        if (policyFeatureStates?.[CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED] && canReadMoreFeatures) {
             workspaceMenuItems.push({
                 translationKey: 'workspace.common.hr',
                 icon: expensifyIcons.Users,
@@ -297,7 +298,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             });
         }
 
-        if (policyFeatureStates?.[CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED] && canWriteWorkspaceSettings) {
+        if (policyFeatureStates?.[CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED] && canReadMoreFeatures) {
             workspaceMenuItems.push({
                 translationKey: 'workspace.common.receiptPartners',
                 brickRoadIndicator: shouldShowEnterCredentialsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
@@ -378,7 +379,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             });
         }
 
-        if (policyFeatureStates?.[CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED] && canWriteWorkspaceSettings) {
+        if (policyFeatureStates?.[CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED] && canReadMoreFeatures) {
             workspaceMenuItems.push({
                 translationKey: 'workspace.common.travel',
                 icon: expensifyIcons.LuggageWithLines,
@@ -423,7 +424,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             });
         }
 
-        if (policyFeatureStates?.[CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED] && canWriteWorkspaceSettings) {
+        if (policyFeatureStates?.[CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED] && canReadMoreFeatures) {
             workspaceMenuItems.push({
                 translationKey: 'iou.time',
                 icon: expensifyIcons.Clock,
@@ -434,7 +435,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             });
         }
 
-        if (policyFeatureStates?.[CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED] && canWriteWorkspaceSettings) {
+        if (policyFeatureStates?.[CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED] && canReadMoreFeatures) {
             const currencyCode = policy?.outputCurrency ?? CONST.CURRENCY.USD;
             workspaceMenuItems.push({
                 translationKey: 'workspace.common.invoices',
@@ -447,7 +448,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             });
         }
 
-        if (canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.MORE_FEATURES)) {
+        if (canReadMoreFeatures) {
             workspaceMenuItems.push({
                 translationKey: 'workspace.common.moreFeatures',
                 icon: expensifyIcons.Gear,

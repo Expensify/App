@@ -298,6 +298,7 @@ function WorkspaceCompanyCardsTable({
             CardFeedIcon={cardFeedIcon}
             onAssignCard={onAssignCard}
             isAssigningCardDisabled={isAssigningCardDisabled}
+            canWriteCompanyCards={canWriteCompanyCards}
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
         />
     );

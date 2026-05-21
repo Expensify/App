@@ -1,7 +1,7 @@
 import {FlashList} from '@shopify/flash-list';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import {Str} from 'expensify-common';
-import React, {useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -17,6 +17,7 @@ import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -31,7 +32,14 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getConnectedIntegration, getCurrentConnectionName, hasAccountingConnections as hasAccountingConnectionsPolicyUtils, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
+import {
+    canMemberWrite,
+    getConnectedIntegration,
+    getCurrentConnectionName,
+    hasAccountingConnections as hasAccountingConnectionsPolicyUtils,
+    isControlPolicy,
+    shouldShowSyncError,
+} from '@libs/PolicyUtils';
 import {getTitleFieldWithFallback} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils';
@@ -67,6 +75,8 @@ function WorkspaceReportFieldsPage({
     const {translate, localeCompare} = useLocalize();
     const policy = usePolicy(policyID);
     const {showConfirmModal} = useConfirmModal();
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
+    const canWriteReportFields = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.reports');
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
@@ -79,6 +89,15 @@ function WorkspaceReportFieldsPage({
 
     const illustrations = useMemoizedLazyIllustrations(['ReportReceipt']);
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
+
+    const showReadOnlyModal = useCallback(() => {
+        showConfirmModal({
+            title: translate('workspace.common.readOnlyActionTitle'),
+            prompt: translate('workspace.common.readOnlyActionPrompt'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
+    }, [showConfirmModal, translate]);
 
     const onDisabledOrganizeSwitchPress = () => {
         if (!hasAccountingConnections) {
@@ -122,6 +141,10 @@ function WorkspaceReportFieldsPage({
         : [];
 
     const navigateToReportFieldsSettings = (reportField: ReportFieldForList) => {
+        if (!canWriteReportFields) {
+            return;
+        }
+
         Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_SETTINGS.getRoute(policyID, reportField.fieldID));
     };
 
@@ -149,8 +172,8 @@ function WorkspaceReportFieldsPage({
                 onPress={() => navigateToReportFieldsSettings(item)}
                 description={item.text}
                 disabled={item.isDisabled}
-                shouldShowRightIcon={!item.isDisabled}
-                interactive={!item.isDisabled}
+                shouldShowRightIcon={!item.isDisabled && canWriteReportFields}
+                interactive={!item.isDisabled && canWriteReportFields}
                 rightLabel={item.rightLabel}
                 descriptionTextStyle={[styles.popoverMenuText, styles.textStrong]}
             />
@@ -243,9 +266,10 @@ function WorkspaceReportFieldsPage({
                                 <MenuItemWithTopDescription
                                     description={translate('workspace.reports.customNameTitle')}
                                     title={Str.htmlDecode(titleField?.defaultValue ?? '')}
-                                    shouldShowRightIcon
+                                    shouldShowRightIcon={canWriteReportFields}
                                     style={[styles.sectionMenuItemTopDescription, styles.mt6]}
-                                    onPress={() => Navigation.navigate(ROUTES.REPORTS_DEFAULT_TITLE.getRoute(policyID))}
+                                    onPress={canWriteReportFields ? () => Navigation.navigate(ROUTES.REPORTS_DEFAULT_TITLE.getRoute(policyID)) : undefined}
+                                    interactive={canWriteReportFields}
                                 />
                             </OfflineWithFeedback>
                             <ToggleSettingOptionRow
@@ -256,6 +280,11 @@ function WorkspaceReportFieldsPage({
                                 titleStyle={toggleTitleStyle}
                                 isActive={titleField?.deletable === false}
                                 onToggle={(isEnabled) => {
+                                    if (!canWriteReportFields) {
+                                        showReadOnlyModal();
+                                        return;
+                                    }
+
                                     if (isEnabled && !isControlPolicy(policy)) {
                                         Navigation.navigate(
                                             ROUTES.WORKSPACE_UPGRADE.getRoute(
@@ -269,6 +298,9 @@ function WorkspaceReportFieldsPage({
 
                                     setPolicyPreventMemberCreatedTitle(policyID, isEnabled, policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]);
                                 }}
+                                disabled={!canWriteReportFields}
+                                disabledAction={showReadOnlyModal}
+                                showLockIcon={!canWriteReportFields}
                             />
                         </Section>
                         <Section
@@ -284,6 +316,11 @@ function WorkspaceReportFieldsPage({
                                 titleAccessibilityRole={CONST.ROLE.HEADER}
                                 isActive={!!policy?.areReportFieldsEnabled}
                                 onToggle={(isEnabled) => {
+                                    if (!canWriteReportFields) {
+                                        showReadOnlyModal();
+                                        return;
+                                    }
+
                                     if (!isEnabled) {
                                         showConfirmModal({
                                             danger: true,
@@ -308,8 +345,9 @@ function WorkspaceReportFieldsPage({
                                     }
                                     enablePolicyReportFields(policyID, isEnabled);
                                 }}
-                                disabled={hasAccountingConnections}
-                                disabledAction={onDisabledOrganizeSwitchPress}
+                                disabled={hasAccountingConnections || !canWriteReportFields}
+                                disabledAction={canWriteReportFields ? onDisabledOrganizeSwitchPress : showReadOnlyModal}
+                                showLockIcon={!canWriteReportFields}
                                 subMenuItems={
                                     !!policy?.areReportFieldsEnabled && (
                                         <>
@@ -321,7 +359,7 @@ function WorkspaceReportFieldsPage({
                                                     maintainVisibleContentPosition={{disabled: true}}
                                                 />
                                             </View>
-                                            {!hasAccountingConnections && (
+                                            {!hasAccountingConnections && canWriteReportFields && (
                                                 <MenuItem
                                                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CREATE_REPORT_FIELD.getRoute(policyID))}
                                                     title={translate('workspace.reportFields.addField')}

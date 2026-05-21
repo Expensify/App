@@ -20,7 +20,7 @@ import {openPolicyTravelPage} from '@libs/actions/TravelInvoicing';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getTravelStep} from '@libs/PolicyUtils';
+import {canMemberWrite, getTravelStep} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -50,6 +50,7 @@ function WorkspaceTravelPage({
 
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const canWriteMoreFeatures = canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
 
     const fetchTravelData = useCallback(() => {
         openPolicyTravelPage(policyID, workspaceAccountID);
@@ -77,7 +78,12 @@ function WorkspaceTravelPage({
     const mainContent = (() => {
         switch (step) {
             case CONST.TRAVEL.STEPS.BOOK_OR_MANAGE_YOUR_TRIP:
-                return <BookOrManageYourTrip policyID={policyID} />;
+                return (
+                    <BookOrManageYourTrip
+                        policyID={policyID}
+                        canWriteMoreFeatures={canWriteMoreFeatures}
+                    />
+                );
             case CONST.TRAVEL.STEPS.REVIEWING_REQUEST:
                 return <ReviewingRequest />;
             default:
@@ -99,6 +105,7 @@ function WorkspaceTravelPage({
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -115,7 +122,7 @@ function WorkspaceTravelPage({
                     shouldDisplayHelpButton
                     onBackButtonPress={Navigation.goBack}
                 >
-                    {step === CONST.TRAVEL.STEPS.BOOK_OR_MANAGE_YOUR_TRIP && (
+                    {step === CONST.TRAVEL.STEPS.BOOK_OR_MANAGE_YOUR_TRIP && canWriteMoreFeatures && (
                         <ButtonWithDropdownMenu
                             success={false}
                             onPress={() => {}}
