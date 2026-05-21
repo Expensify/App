@@ -48,3 +48,4 @@ function cleanupAndNavigateAfterExpenseCreate({
 }
 
 export default cleanupAndNavigateAfterExpenseCreate;
+export type {CleanupAndNavigateAfterExpenseCreateParams};

@@ -4,8 +4,7 @@ import {startSplitBill} from '@libs/actions/IOU/Split';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {calculateDefaultReimbursable, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
 import Log from '@libs/Log';
-import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
-import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
+import cleanupAfterSkipConfirmSubmit from '@libs/Navigation/helpers/cleanupAfterSkipConfirmSubmit';
 import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import Navigation from '@libs/Navigation/Navigation';
 import {getManagerMcTestParticipant} from '@libs/OptionsListUtils';
@@ -219,20 +218,16 @@ function handleMoneyRequestStepScanParticipants({
                             shouldHandleNavigation: overrides.shouldHandleNavigation,
                             shouldDeferForSearch: overrides.shouldDeferForSearch,
                         });
-                        if (overrides.shouldHandleNavigation) {
-                            cleanupAndNavigateAfterExpenseCreate({
-                                report,
-                                action,
-                                draftTransactionIDs,
-                                transactionID: lastOptimisticTransactionID,
-                                isFromGlobalCreate: initialIsFromGlobalCreate,
-                                backToReport,
-                                optimisticChatReportID: chatReportID,
-                                linkedTrackedExpenseReportAction,
-                            });
-                            return;
-                        }
-                        cleanupAfterExpenseCreate({draftTransactionIDs, linkedTrackedExpenseReportAction});
+                        cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
+                            report,
+                            action,
+                            draftTransactionIDs,
+                            transactionID: lastOptimisticTransactionID,
+                            isFromGlobalCreate: initialIsFromGlobalCreate,
+                            backToReport,
+                            optimisticChatReportID: chatReportID,
+                            linkedTrackedExpenseReportAction,
+                        });
                     },
                     destinationReportID: reportID,
                     telemetryContext: {
@@ -286,36 +281,31 @@ function handleMoneyRequestStepScanParticipants({
             const scanDestinationReportID = iouType === CONST.IOU.TYPE.TRACK ? selfDMReport?.reportID : report?.reportID;
             submitWithDismissFirst({
                 executeWrite: (overrides) => {
-                    const scanCreateParams = {...baseCreateTransactionParams, shouldHandleNavigation: overrides.shouldHandleNavigation};
                     // When locationPermissionGranted is true, getCurrentPosition is async: the actual createTransaction fires after GPS resolves.
                     // The deferred write channel (reserved by submitWithDismissFirst) has a 5s safety timeout that should exceed typical GPS resolution time (<2s).
                     // If GPS takes longer the channel flushes early, but the transaction still executes — it just won't benefit from the Search skeleton.
                     if (locationPermissionGranted) {
                         getCurrentPosition(
-                            (successData) => createTransaction({...scanCreateParams, gpsPoint: {lat: successData.coords.latitude, long: successData.coords.longitude}}),
+                            (successData) => createTransaction({...baseCreateTransactionParams, gpsPoint: {lat: successData.coords.latitude, long: successData.coords.longitude}}),
                             (errorData) => {
                                 Log.info('[IOURequestStepScan] getCurrentPosition failed', false, errorData);
                                 // When there is an error, the money can still be requested, it just won't include the GPS coordinates
-                                createTransaction(scanCreateParams);
+                                createTransaction(baseCreateTransactionParams);
                             },
                         );
                     } else {
-                        createTransaction(scanCreateParams);
+                        createTransaction(baseCreateTransactionParams);
                     }
-                    if (overrides.shouldHandleNavigation) {
-                        cleanupAndNavigateAfterExpenseCreate({
-                            report,
-                            action,
-                            draftTransactionIDs,
-                            transactionID: lastOptimisticTransactionID,
-                            isFromGlobalCreate: initialIsFromGlobalCreate,
-                            backToReport,
-                            optimisticChatReportID: chatReportID,
-                            linkedTrackedExpenseReportAction,
-                        });
-                        return;
-                    }
-                    cleanupAfterExpenseCreate({draftTransactionIDs, linkedTrackedExpenseReportAction});
+                    cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
+                        report,
+                        action,
+                        draftTransactionIDs,
+                        transactionID: lastOptimisticTransactionID,
+                        isFromGlobalCreate: initialIsFromGlobalCreate,
+                        backToReport,
+                        optimisticChatReportID: chatReportID,
+                        linkedTrackedExpenseReportAction,
+                    });
                 },
                 destinationReportID: scanDestinationReportID,
                 telemetryContext: {

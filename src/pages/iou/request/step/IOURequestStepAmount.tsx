@@ -34,8 +34,7 @@ import {
     navigateToParticipantPage,
     resolveOptimisticChatReportID,
 } from '@libs/IOUUtils';
-import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
-import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
+import cleanupAfterSkipConfirmSubmit from '@libs/Navigation/helpers/cleanupAfterSkipConfirmSubmit';
 import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import type {WriteOverrides} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import Navigation from '@libs/Navigation/Navigation';
@@ -383,20 +382,16 @@ function IOURequestStepAmount({
                             optimisticTransactionID,
                         });
                     }
-                    if (overrides.shouldHandleNavigation) {
-                        cleanupAndNavigateAfterExpenseCreate({
-                            report,
-                            action,
-                            draftTransactionIDs,
-                            transactionID: existingTransactionID ?? optimisticTransactionID,
-                            isFromGlobalCreate: getIsFromGlobalCreate(transaction),
-                            backToReport,
-                            optimisticChatReportID,
-                            linkedTrackedExpenseReportAction: transaction?.linkedTrackedExpenseReportAction,
-                        });
-                    } else {
-                        cleanupAfterExpenseCreate({draftTransactionIDs, linkedTrackedExpenseReportAction: transaction?.linkedTrackedExpenseReportAction});
-                    }
+                    cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
+                        report,
+                        action,
+                        draftTransactionIDs,
+                        transactionID: existingTransactionID ?? optimisticTransactionID,
+                        isFromGlobalCreate: getIsFromGlobalCreate(transaction),
+                        backToReport,
+                        optimisticChatReportID,
+                        linkedTrackedExpenseReportAction: transaction?.linkedTrackedExpenseReportAction,
+                    });
                 };
                 submitWithDismissFirst({
                     executeWrite: executeExpenseWrite,

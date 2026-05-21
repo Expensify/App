@@ -13,8 +13,7 @@ import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {calculateDefaultReimbursable, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
-import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
-import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
+import cleanupAfterSkipConfirmSubmit from '@libs/Navigation/helpers/cleanupAfterSkipConfirmSubmit';
 import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import type {WriteOverrides} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import Navigation from '@libs/Navigation/Navigation';
@@ -237,7 +236,7 @@ function handleMoneyRequestStepDistanceNavigation({
             const distanceTaxAmount = transaction?.taxAmount ?? 0;
             if (isCreatingTrackExpense && participant) {
                 submitWithDismissFirst({
-                    // trackExpense handles its own post-write navigation, so dismiss-first overrides aren't threaded into the write itself.
+                    // trackExpense is a void action with no navigation params; submitWithDismissFirst owns dismiss/reveal and cleanup runs after.
                     executeWrite: (overrides) => {
                         trackExpense({
                             report,
@@ -287,20 +286,16 @@ function handleMoneyRequestStepDistanceNavigation({
                             optimisticTransactionID,
                             optimisticChatReportID,
                         });
-                        if (overrides.shouldHandleNavigation) {
-                            cleanupAndNavigateAfterExpenseCreate({
-                                report,
-                                action,
-                                draftTransactionIDs,
-                                transactionID: optimisticTransactionID,
-                                isFromGlobalCreate: transactionIsFromGlobalCreate,
-                                backToReport,
-                                optimisticChatReportID,
-                                linkedTrackedExpenseReportAction: transactionLinkedTrackedExpenseReportAction,
-                            });
-                            return;
-                        }
-                        cleanupAfterExpenseCreate({draftTransactionIDs, linkedTrackedExpenseReportAction: transactionLinkedTrackedExpenseReportAction});
+                        cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
+                            report,
+                            action,
+                            draftTransactionIDs,
+                            transactionID: optimisticTransactionID,
+                            isFromGlobalCreate: transactionIsFromGlobalCreate,
+                            backToReport,
+                            optimisticChatReportID,
+                            linkedTrackedExpenseReportAction: transactionLinkedTrackedExpenseReportAction,
+                        });
                     },
                     destinationReportID: selfDMReport?.reportID,
                     telemetryContext: {
@@ -365,20 +360,16 @@ function handleMoneyRequestStepDistanceNavigation({
             submitWithDismissFirst({
                 executeWrite: (overrides) => {
                     executeDistanceWrite(overrides);
-                    if (overrides.shouldHandleNavigation) {
-                        cleanupAndNavigateAfterExpenseCreate({
-                            report,
-                            action,
-                            draftTransactionIDs,
-                            transactionID: optimisticTransactionID,
-                            isFromGlobalCreate: transactionIsFromGlobalCreate,
-                            backToReport,
-                            optimisticChatReportID,
-                            linkedTrackedExpenseReportAction: transactionLinkedTrackedExpenseReportAction,
-                        });
-                        return;
-                    }
-                    cleanupAfterExpenseCreate({draftTransactionIDs, linkedTrackedExpenseReportAction: transactionLinkedTrackedExpenseReportAction});
+                    cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
+                        report,
+                        action,
+                        draftTransactionIDs,
+                        transactionID: optimisticTransactionID,
+                        isFromGlobalCreate: transactionIsFromGlobalCreate,
+                        backToReport,
+                        optimisticChatReportID,
+                        linkedTrackedExpenseReportAction: transactionLinkedTrackedExpenseReportAction,
+                    });
                 },
                 destinationReportID: distanceDestinationReportID,
                 telemetryContext: {

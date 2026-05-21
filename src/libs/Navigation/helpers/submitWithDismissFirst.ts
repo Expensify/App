@@ -46,7 +46,7 @@ function startDismissFirstTracking(
 }
 
 /**
- * View-layer dismiss-first submit orchestrator. Picks one of four nav strategies, then fires `executeWrite`
+ * View-layer dismiss-first submit orchestrator. Picks one of five nav strategies, then fires `executeWrite`
  * at the matching moment (after dismiss / after reveal / synchronously):
  *
  *   1. Search topmost            -> dismiss modal, defer write for Search skeleton
