@@ -147,8 +147,7 @@ function createTransaction({
                 ...(policyParams ?? {}),
                 draftTransactionIDs,
                 isASAPSubmitBetaEnabled,
-                currentUserAccountIDParam: currentUserAccountID,
-                currentUserEmailParam: currentUserEmail ?? '',
+                currentUser: {accountID: currentUserAccountID, email: currentUserEmail ?? ''},
                 introSelected,
                 quickAction,
                 recentWaypoints,
@@ -207,15 +206,16 @@ function getMoneyRequestParticipantOptions(
     policy: OnyxEntry<Policy>,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     conciergeReportID: string | undefined,
-    privateIsArchived?: boolean,
-    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
+    privateIsArchived: boolean | undefined,
+    reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
+    reportDraft: OnyxEntry<Report> | undefined,
 ): Array<Participant | OptionData> {
     const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserAccountID);
     return selectedParticipants.map((participant) => {
         const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         return participantAccountID
             ? getParticipantsOption(participant, personalDetails)
-            : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived);
+            : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft);
     });
 }
 

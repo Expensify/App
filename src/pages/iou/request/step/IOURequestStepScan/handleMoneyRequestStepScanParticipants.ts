@@ -286,7 +286,7 @@ function handleMoneyRequestStepScanParticipants({
             const scanDestinationReportID = iouType === CONST.IOU.TYPE.TRACK ? selfDMReport?.reportID : report?.reportID;
             submitWithDismissFirst({
                 executeWrite: (overrides) => {
-                    const scanCreateParams = {...baseCreateTransactionParams, shouldHandleNav: overrides.shouldHandleNavigation};
+                    const scanCreateParams = {...baseCreateTransactionParams, shouldHandleNavigation: overrides.shouldHandleNavigation};
                     // When locationPermissionGranted is true, getCurrentPosition is async: the actual createTransaction fires after GPS resolves.
                     // The deferred write channel (reserved by submitWithDismissFirst) has a 5s safety timeout that should exceed typical GPS resolution time (<2s).
                     // If GPS takes longer the channel flushes early, but the transaction still executes — it just won't benefit from the Search skeleton.

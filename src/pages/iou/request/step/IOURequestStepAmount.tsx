@@ -9,6 +9,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -105,6 +106,7 @@ function IOURequestStepAmount({
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
     const textInput = useRef<BaseTextInputRef | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -220,6 +222,9 @@ function IOURequestStepAmount({
     };
 
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+    const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
+    // Use the stored transaction instead of the draft to preserve existing values, especially for distance requests while create a new request.
+    const [storedTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(existingTransactionID)}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const navigateToNextPage = ({amount, paymentMethod}: AmountParams) => {
@@ -308,7 +313,6 @@ function IOURequestStepAmount({
                     });
                     return;
                 }
-                const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
                 const optimisticTransactionID = rand64();
                 const {optimisticChatReportID} = resolveOptimisticChatReportID([participants.at(0)?.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserAccountIDParam], report);
                 if (iouType !== CONST.IOU.TYPE.SUBMIT && iouType !== CONST.IOU.TYPE.REQUEST && iouType !== CONST.IOU.TYPE.TRACK) {
@@ -334,8 +338,7 @@ function IOURequestStepAmount({
                                 isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                             },
                             isASAPSubmitBetaEnabled,
-                            currentUserAccountIDParam,
-                            currentUserEmailParam,
+                            currentUser: {accountID: currentUserAccountIDParam, email: currentUserEmailParam},
                             introSelected,
                             quickAction,
                             recentWaypoints,
@@ -372,6 +375,7 @@ function IOURequestStepAmount({
                             quickAction,
                             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                             existingTransactionDraft,
+                            existingTransaction: storedTransaction,
                             draftTransactionIDs,
                             isSelfTourViewed,
                             personalDetails,
@@ -518,6 +522,7 @@ function IOURequestStepAmount({
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+            delegateAccountID,
         });
         navigateBack();
     };

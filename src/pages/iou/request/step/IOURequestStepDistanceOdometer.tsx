@@ -14,6 +14,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -128,6 +129,7 @@ function IOURequestStepDistanceOdometer({
     const isTransactionDraft = shouldUseTransactionDraft(action, iouType);
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
+    const delegateAccountID = useDelegateAccountID();
     const isFocused = useIsFocused();
 
     const shouldUseDefaultExpensePolicy = useMemo(
@@ -391,6 +393,7 @@ function IOURequestStepDistanceOdometer({
                     isASAPSubmitBetaEnabled: false,
                     parentReportNextStep,
                     recentWaypoints,
+                    delegateAccountID,
                 });
             }
             Navigation.goBack();

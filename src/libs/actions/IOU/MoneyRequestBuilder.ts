@@ -27,6 +27,7 @@ import {
     generateReportID,
     getChatByParticipants,
     getOutstandingChildRequest,
+    getReportTransactions,
     hasViolations as hasViolationsReportUtils,
     isDeprecatedGroupDM,
     isExpenseReport,
@@ -45,6 +46,7 @@ import {
     buildOptimisticTransaction,
     getAmount,
     getCurrency,
+    hasSubmissionBlockingViolationInReport,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
@@ -168,6 +170,7 @@ type RequestMoneyInformation = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     existingTransactionDraft: OnyxEntry<OnyxTypes.Transaction>;
+    existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     isSelfTourViewed: boolean;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
@@ -247,6 +250,7 @@ type BuildOnyxDataForMoneyRequestParams = {
     isASAPSubmitBetaEnabled: boolean;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
+    transactionViolations?: OnyxCollection<OnyxTypes.TransactionViolations>;
     hasViolations: boolean;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
@@ -402,6 +406,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         isASAPSubmitBetaEnabled,
         currentUserAccountIDParam,
         currentUserEmailParam,
+        transactionViolations = {},
         hasViolations,
         quickAction,
         personalDetails,
@@ -1002,7 +1007,13 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     );
 
     if (violationsOnyxData) {
-        const shouldFixViolations = Array.isArray(violationsOnyxData.value) && violationsOnyxData.value.length > 0;
+        const reportTransactions = [...getReportTransactions(iou.report.reportID).filter((reportTransaction) => reportTransaction.transactionID !== transaction.transactionID), transaction];
+        const shouldFixViolations = hasSubmissionBlockingViolationInReport(
+            reportTransactions,
+            transactionViolations,
+            transaction.transactionID,
+            Array.isArray(violationsOnyxData.value) ? violationsOnyxData.value : null,
+        );
         const optimisticNextStep = buildOptimisticNextStep({
             report: iou.report,
             predictedNextStatus: iou.report.statusNum ?? CONST.REPORT.STATE_NUM.OPEN,
@@ -1494,6 +1505,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         isASAPSubmitBetaEnabled,
         currentUserAccountIDParam,
         currentUserEmailParam,
+        transactionViolations,
         hasViolations,
         quickAction,
         personalDetails,

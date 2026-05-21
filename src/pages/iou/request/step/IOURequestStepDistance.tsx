@@ -12,6 +12,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
 import useFetchRoute from '@hooks/useFetchRoute';
 import useLocalize from '@hooks/useLocalize';
@@ -145,6 +146,7 @@ function IOURequestStepDistance({
     const [shouldShowAtLeastTwoDifferentWaypointsError, setShouldShowAtLeastTwoDifferentWaypointsError] = useState(false);
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
+    const delegateAccountID = useDelegateAccountID();
     const {nonEmptyWaypointsCount, isWaypointsNullIslandError, duplicateWaypointsError, atLeastTwoDifferentWaypointsError} = useWaypointValidation({waypoints, validatedWaypoints});
     const isCreatingNewRequest = !(backTo || isEditing);
     const [recentWaypoints, {status: recentWaypointsStatus}] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
@@ -477,6 +479,7 @@ function IOURequestStepDistance({
                     currentUserEmailParam,
                     isASAPSubmitBetaEnabled,
                     parentReportNextStep,
+                    delegateAccountID,
                     distanceOriginalPolicy,
                 });
             }
@@ -518,6 +521,7 @@ function IOURequestStepDistance({
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
         parentReportNextStep,
+        delegateAccountID,
         distanceOriginalPolicy,
     ]);
 
@@ -583,6 +587,7 @@ function IOURequestStepDistance({
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
             parentReportNextStep,
+            delegateAccountID,
             recentWaypoints,
             distanceOriginalPolicy,
         });
@@ -619,6 +624,7 @@ function IOURequestStepDistance({
         duplicateWaypointsError,
         atLeastTwoDifferentWaypointsError,
         hasRouteError,
+        delegateAccountID,
         distanceOriginalPolicy,
     ]);
 

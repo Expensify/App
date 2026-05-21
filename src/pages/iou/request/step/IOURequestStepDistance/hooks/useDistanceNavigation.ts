@@ -4,7 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import useOnyx from '@hooks/useOnyx';
 import {rand64} from '@libs/NumberUtils';
-import {generateReportID} from '@libs/ReportUtils';
+import {generateReportID, isMoneyRequestReport} from '@libs/ReportUtils';
 import handleMoneyRequestStepDistanceNavigation from '@pages/iou/request/step/IOURequestStepDistance/handleMoneyRequestStepDistanceNavigation';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -132,7 +132,8 @@ function useDistanceNavigation({
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-
+    const reportIDToCheck = isMoneyRequestReport(report) ? report?.chatReportID : report?.reportID;
+    const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
     return () => {
         const optimisticTransactionID = rand64();
         const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
@@ -176,6 +177,7 @@ function useDistanceNavigation({
             conciergeReportID,
             optimisticTransactionID,
             optimisticChatReportID,
+            reportDraft,
         });
     };
 }

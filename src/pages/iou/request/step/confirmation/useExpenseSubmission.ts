@@ -3,6 +3,7 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {useEffect, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useActivePolicy from '@hooks/useActivePolicy';
+import useAllPolicyExpenseChatReportActions from '@hooks/useAllPolicyExpenseChatReportActions';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
@@ -12,6 +13,7 @@ import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 import usePermissions from '@hooks/usePermissions';
 import useReportTransactions from '@hooks/useReportTransactions';
+import useTransactionsByID from '@hooks/useTransactionsByID';
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {completeTestDriveTask} from '@libs/actions/Task';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
@@ -203,6 +205,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`);
     const lastWorkspaceNumber = useLastWorkspaceNumber();
     const activePolicy = useActivePolicy();
+    const policyExpenseChatReportActions = useAllPolicyExpenseChatReportActions();
 
     // Reports
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
@@ -251,16 +254,19 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
     const transactionTaxValue = transaction?.taxValue ?? getTaxValue(policy, transaction, transactionTaxCode) ?? '';
 
+    const transactionIDs = transactions?.map((tx) => tx.transactionID);
+    const [storedTransactions] = useTransactionsByID(transactionIDs);
+
     function performPostBatchCleanup({
         participant,
-        shouldHandleNav,
+        shouldHandleNavigation,
         allTransactionsCreated,
         fallbackOptimisticChatReportID,
         navigateBackToReport,
         lastOptimisticTransactionID,
     }: {
         participant: Participant;
-        shouldHandleNav: boolean;
+        shouldHandleNavigation: boolean;
         allTransactionsCreated: boolean;
         fallbackOptimisticChatReportID: string;
         navigateBackToReport: string | undefined;
@@ -271,7 +277,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (!allTransactionsCreated) {
             return;
         }
-        if (!shouldHandleNav) {
+        if (!shouldHandleNavigation) {
             cleanupAfterExpenseCreate({draftTransactionIDs, linkedTrackedExpenseReportAction: lastTransaction?.linkedTrackedExpenseReportAction});
             return;
         }
@@ -294,7 +300,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         });
     }
 
-    function requestMoney(selectedParticipantsArg: Participant[], shouldHandleNav: boolean, gpsPoint?: GpsPoint) {
+    function requestMoney(selectedParticipantsArg: Participant[], shouldHandleNavigation: boolean, gpsPoint?: GpsPoint) {
         if (!transactions.length) {
             return;
         }
@@ -342,6 +348,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
             const existingTransactionID = getExistingTransactionID(item.linkedTrackedExpenseReportAction);
             const existingTransactionDraft = transactions.find((tx) => tx.transactionID === existingTransactionID);
+            const existingTransaction = existingTransactionID ? storedTransactions?.find((tx) => tx?.transactionID === existingTransactionID) : undefined;
             let merchantToUse = isTestReceipt ? CONST.TEST_RECEIPT.MERCHANT : item.merchant;
             if (!isTestReceipt && isManualDistanceRequestTransactionUtils(item)) {
                 const distance = item.comment?.customUnit?.quantity;
@@ -428,6 +435,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 transactionViolations: transactionViolationsRef.current,
                 policyRecentlyUsedCurrencies,
                 quickAction,
+                existingTransaction,
                 existingTransactionDraft,
                 draftTransactionIDs,
                 isSelfTourViewed,
@@ -441,7 +449,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         }
         performPostBatchCleanup({
             participant,
-            shouldHandleNav,
+            shouldHandleNavigation,
             allTransactionsCreated,
             fallbackOptimisticChatReportID: optimisticChatReportID,
             navigateBackToReport: backToReport,
@@ -449,7 +457,12 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         });
     }
 
-    function submitPerDiemExpense(selectedParticipantsArg: Participant[], trimmedComment: string, shouldHandleNav: boolean, policyRecentlyUsedCategoriesParam?: RecentlyUsedCategories) {
+    function submitPerDiemExpense(
+        selectedParticipantsArg: Participant[],
+        trimmedComment: string,
+        shouldHandleNavigation: boolean,
+        policyRecentlyUsedCategoriesParam?: RecentlyUsedCategories,
+    ) {
         if (!transaction) {
             return;
         }
@@ -480,7 +493,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 quickAction,
                 optimisticChatReportID,
             });
-            if (shouldHandleNav) {
+            if (shouldHandleNavigation) {
                 dismissModalAndOpenReportInInboxTabHelper(optimisticChatReportID, false, false);
             }
         } else {
@@ -537,7 +550,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 optimisticChatReportID,
                 conciergeReportID,
             });
-            if (shouldHandleNav && result && activeReportID) {
+            if (shouldHandleNavigation && result && activeReportID) {
                 navigateAfterExpenseCreate({
                     activeReportID,
                     transactionID: result.transactionID,
@@ -549,7 +562,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         }
     }
 
-    function trackExpense(selectedParticipantsArg: Participant[], shouldHandleNav: boolean, options?: {gpsPoint?: GpsPoint}) {
+    function trackExpense(selectedParticipantsArg: Participant[], shouldHandleNavigation: boolean, options?: {gpsPoint?: GpsPoint}) {
         const {gpsPoint} = options ?? {};
         if (!transactions.length) {
             return;
@@ -621,8 +634,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 optimisticChatReportID: optimisticSelfDMReportID,
                 optimisticTransactionID: lastOptimisticTransactionID,
                 isASAPSubmitBetaEnabled,
-                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                currentUserEmailParam: email,
+                currentUser: {accountID: currentUserPersonalDetails.accountID, email},
                 introSelected,
                 activePolicy,
                 quickAction,
@@ -632,11 +644,12 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 isSelfTourViewed,
                 defaultWorkspaceName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
                 previousOdometerDraft: odometerDraft,
+                reportActionsList: policyExpenseChatReportActions,
             });
         }
         performPostBatchCleanup({
             participant,
-            shouldHandleNav,
+            shouldHandleNavigation,
             allTransactionsCreated: true,
             fallbackOptimisticChatReportID: optimisticSelfDMReportID,
             navigateBackToReport: undefined,
@@ -644,7 +657,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         });
     }
 
-    function createDistanceRequest(selectedParticipantsArg: Participant[], trimmedComment: string, shouldHandleNav = true, shouldDeferForSearch = false) {
+    function createDistanceRequest(selectedParticipantsArg: Participant[], trimmedComment: string, shouldHandleNavigation = true, shouldDeferForSearch = false) {
         if (!transaction) {
             return;
         }
@@ -695,7 +708,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             personalDetails,
             recentWaypoints,
             betas,
-            shouldHandleNavigation: shouldHandleNav,
+            shouldHandleNavigation,
             shouldDeferForSearch,
             previousOdometerDraft: odometerDraft,
         });

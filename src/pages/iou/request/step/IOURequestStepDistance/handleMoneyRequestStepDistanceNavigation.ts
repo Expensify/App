@@ -96,6 +96,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     conciergeReportID: string | undefined;
     optimisticTransactionID: string;
     optimisticChatReportID: string | undefined;
+    reportDraft: OnyxEntry<Report> | undefined;
 
     /** IOU action (CREATE / SUBMIT / TRACK / CATEGORIZE / SHARE) — drives post-create nav targeting. */
     action: IOUAction;
@@ -153,6 +154,7 @@ function handleMoneyRequestStepDistanceNavigation({
     conciergeReportID,
     optimisticTransactionID,
     optimisticChatReportID,
+    reportDraft,
     action,
 }: MoneyRequestStepDistanceNavigationParams): void {
     const isManualDistance = manualDistance !== undefined;
@@ -178,7 +180,16 @@ function handleMoneyRequestStepDistanceNavigation({
     // to the confirm step.
     // If the user started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
     if (report?.reportID && !isArchivedExpenseReport && iouType !== CONST.IOU.TYPE.CREATE) {
-        const participants = getMoneyRequestParticipantOptions(currentUserAccountID, report, policy, personalDetails, conciergeReportID, isArchivedExpenseReport, reportAttributesDerived);
+        const participants = getMoneyRequestParticipantOptions(
+            currentUserAccountID,
+            report,
+            policy,
+            personalDetails,
+            conciergeReportID,
+            isArchivedExpenseReport,
+            reportAttributesDerived,
+            reportDraft,
+        );
 
         setDistanceRequestData?.(participants);
         if (shouldSkipConfirmation) {
@@ -265,8 +276,7 @@ function handleMoneyRequestStepDistanceNavigation({
                                 isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                             },
                             isASAPSubmitBetaEnabled,
-                            currentUserAccountIDParam: currentUserAccountID,
-                            currentUserEmailParam: currentUserLogin ?? '',
+                            currentUser: {accountID: currentUserAccountID, email: currentUserLogin ?? ''},
                             introSelected,
                             quickAction,
                             draftTransactionIDs,

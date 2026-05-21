@@ -36,6 +36,7 @@ import type {GPSPoint as GpsPoint} from '@libs/actions/IOU/types/TrackExpenseTra
 import DateUtils from '@libs/DateUtils';
 import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getExistingTransactionID, resolveReportForMoneyRequest} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
@@ -211,6 +212,8 @@ function SubmitDetailsPage({
     const transactionTaxValue = transaction?.taxValue ?? getTaxValue(policy, transaction, transactionTaxCode) ?? '';
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+    const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
+    const [storedTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(existingTransactionID)}`);
 
     const finishRequestAndNavigate = (participant: Participant, receipt: Receipt, gpsPoint?: GpsPoint) => {
         if (!transaction) {
@@ -218,7 +221,6 @@ function SubmitDetailsPage({
         }
 
         // `transaction.transactionID` is the draft placeholder; mirror the action's `existingTransactionID ?? rand64()` chain so cleanup nav targets the created expense.
-        const existingTransactionID = getExistingTransactionID(transaction.linkedTrackedExpenseReportAction);
         const optimisticTransactionID = existingTransactionID ?? rand64();
 
         if (isSelfDM(report)) {
@@ -250,8 +252,7 @@ function SubmitDetailsPage({
                     gpsPoint,
                 },
                 isASAPSubmitBetaEnabled,
-                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                currentUser: {accountID: currentUserPersonalDetails.accountID, email: currentUserPersonalDetails.login ?? ''},
                 introSelected,
                 quickAction,
                 recentWaypoints,
@@ -297,6 +298,7 @@ function SubmitDetailsPage({
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 quickAction,
                 existingTransactionDraft,
+                existingTransaction: storedTransaction,
                 draftTransactionIDs,
                 isSelfTourViewed,
                 betas,

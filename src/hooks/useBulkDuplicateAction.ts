@@ -76,8 +76,7 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
             betas,
             recentWaypoints,
             conciergeReportID,
-            currentUserAccountID: accountID,
-            currentUserLogin: currentUserLogin ?? '',
+            currentUser: {accountID, email: currentUserLogin ?? ''},
         });
 
         if (onAfterDuplicate) {

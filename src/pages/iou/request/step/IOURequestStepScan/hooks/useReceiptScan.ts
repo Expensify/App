@@ -15,7 +15,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import {getMoneyRequestParticipantOptions} from '@libs/actions/IOU/MoneyRequest';
 import {rand64} from '@libs/NumberUtils';
-import {isPolicyExpenseChat} from '@libs/ReportUtils';
+import {isMoneyRequestReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue, hasReceipt, shouldReuseInitialTransaction} from '@libs/TransactionUtils';
 import handleMoneyRequestStepScanParticipants from '@pages/iou/request/step/IOURequestStepScan/handleMoneyRequestStepScanParticipants';
@@ -66,6 +66,8 @@ function useReceiptScan({
     const [transactions] = useOptimisticDraftTransactions(initialTransaction);
     const selfDMReport = useSelfDMReport();
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
+    const reportIDToCheck = isMoneyRequestReport(report) ? report?.chatReportID : report?.reportID;
+    const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -95,8 +97,8 @@ function useReceiptScan({
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const participants = useMemo(
-        () => getMoneyRequestParticipantOptions(currentUserPersonalDetails.accountID, report, policy, personalDetails, conciergeReportID, isArchived, reportAttributesDerived),
-        [currentUserPersonalDetails.accountID, report, policy, personalDetails, conciergeReportID, isArchived, reportAttributesDerived],
+        () => getMoneyRequestParticipantOptions(currentUserPersonalDetails.accountID, report, policy, personalDetails, conciergeReportID, isArchived, reportAttributesDerived, reportDraft),
+        [currentUserPersonalDetails.accountID, report, policy, personalDetails, conciergeReportID, isArchived, reportAttributesDerived, reportDraft],
     );
 
     const participantsPolicyTags = useParticipantsPolicyTags(participants);

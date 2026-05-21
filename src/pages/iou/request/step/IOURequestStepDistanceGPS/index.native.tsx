@@ -23,7 +23,7 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getGPSConvertedDistance, getGpsPoints, getGPSWaypoints, getLastGpsPoint, getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
-import {generateReportID, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
+import {generateReportID, isMoneyRequestReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
 import handleMoneyRequestStepDistanceNavigation from '@pages/iou/request/step/IOURequestStepDistance/handleMoneyRequestStepDistanceNavigation';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
@@ -71,6 +71,8 @@ function IOURequestStepDistanceGPS({
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [mapboxAccessToken] = useOnyx(ONYXKEYS.MAPBOX_ACCESS_TOKEN);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const reportIDToCheck = isMoneyRequestReport(report) ? report?.chatReportID : report?.reportID;
+    const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreatingNewRequest = !isEditing;
 
@@ -145,6 +147,7 @@ function IOURequestStepDistanceGPS({
             conciergeReportID,
             optimisticTransactionID,
             optimisticChatReportID,
+            reportDraft,
         });
     };
 
