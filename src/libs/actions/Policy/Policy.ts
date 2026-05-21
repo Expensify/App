@@ -5708,6 +5708,20 @@ function upgradeToCorporate(policy: OnyxEntry<Policy>, featureName?: string) {
     API.write(WRITE_COMMANDS.UPGRADE_TO_CORPORATE, parameters, {optimisticData, successData, failureData});
 }
 
+/**
+ * Handle the upgrade from submit to corporate or control based on the target type
+ * @param policyID - the ID of the policy
+ * @param targetType - the type to upgrade to, either team or corporate
+ * @param reportID - the ID of the report to upgrade
+ */
+function upgradeSubmit(policyID: string, targetType: Policy['type'], reportID?: string | undefined) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
+    // TODO: Implement the optimistic data, success data, and failure data
+    API.write(WRITE_COMMANDS.UPGRADE_SUBMIT, {policyID, targetType, reportID}, {optimisticData, successData, failureData});
+}
+
 function downgradeToTeam(policyID: string, currentType: Policy['type'], currentIsAttendeeTrackingEnabled: Policy['isAttendeeTrackingEnabled']) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
@@ -7439,5 +7453,6 @@ export {
     setWorkspaceConfirmationCurrency,
     setPolicyRequireCompanyCardsEnabled,
     setPolicyTimeTrackingDefaultRate,
+    upgradeSubmit,
 };
 export type {BuildPolicyDataKeys, CurrentUser};

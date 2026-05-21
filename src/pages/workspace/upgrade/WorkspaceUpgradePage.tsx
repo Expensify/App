@@ -17,7 +17,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {canEditWorkspaceSettings, canModifyPlan, getDefaultApprover, getPerDiemCustomUnit, isControlPolicy} from '@libs/PolicyUtils';
+import {canAccessSubmitWorkspaceFeatures, canEditWorkspaceSettings, canModifyPlan, getDefaultApprover, getPerDiemCustomUnit, isControlPolicy} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {enablePerDiem} from '@userActions/Policy/PerDiem';
 import CONST from '@src/CONST';
@@ -36,6 +36,7 @@ import {
     setPolicyPreventSelfApproval,
     setWorkspaceApprovalMode,
     setWorkspaceReimbursement,
+    upgradeSubmit,
     upgradeToCorporate,
 } from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -45,6 +46,7 @@ import {ownerPoliciesSelector} from '@src/selectors/Policy';
 import type {Policy} from '@src/types/onyx';
 import UpgradeConfirmation from './UpgradeConfirmation';
 import UpgradeIntro from './UpgradeIntro';
+import usePermissions from '@hooks/usePermissions';
 
 type WorkspaceUpgradePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.UPGRADE>;
 
@@ -64,7 +66,8 @@ function getFeatureNameAlias(featureName: string) {
 function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const styles = useThemeStyles();
     const policyID = route.params?.policyID;
-
+    const {isBetaEnabled} = usePermissions();
+    const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const featureNameAlias = route.params?.featureName && getFeatureNameAlias(route.params.featureName);
 
     const feature = useMemo(
@@ -140,6 +143,13 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
 
     const onUpgradeToCorporate = () => {
         if (!canPerformUpgrade || !policy) {
+            return;
+        }
+
+        if (canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled)) {
+            const isPerDiemUpgrade = feature?.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.id;
+            const targetType = isPerDiemUpgrade ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM;
+            upgradeSubmit(policyID ?? CONST.POLICY.ID_FAKE, targetType);
             return;
         }
 
