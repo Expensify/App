@@ -6,13 +6,8 @@ import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {CombinedCardFeed, CombinedCardFeeds} from '@hooks/useCardFeeds';
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
-import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
-import DateUtils from '@libs/DateUtils';
-import {filterObject} from '@libs/ObjectUtils';
-import {arePersonalDetailsMissing, getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import StringUtils from '@libs/StringUtils';
-import colors from '@styles/theme/colors';
 import type IllustrationsType from '@styles/theme/illustrations/types';
+import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -51,33 +46,12 @@ import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {Connections} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
-
-/**
- * Background fill colors extracted from each card's SVG artwork.
- * These are design-time constants — the artwork never changes with app theme.
- * Used to compute WCAG-compliant overlay text colors.
- */
-const CARD_FEED_BACKGROUND_COLORS: Record<string, string> = {
-    [CONST.EXPENSIFY_CARD.BANK]: '#002e22',
-    [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: '#003c73',
-    [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: '#780505',
-    [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX]: '#016fd0',
-    [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_1205]: '#016fd0',
-    [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT]: '#016fd0',
-    [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_FILE_DOWNLOAD]: '#016fd0',
-    [CONST.COMPANY_CARD.FEED_BANK_NAME.BANK_OF_AMERICA]: '#e31837',
-    [CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE]: '#022247',
-    [CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE]: '#0f5ba7',
-    [CONST.COMPANY_CARD.FEED_BANK_NAME.CITIBANK]: '#0281c4',
-    [CONST.COMPANY_CARD.FEED_BANK_NAME.WELLS_FARGO]: '#dd1e25',
-    [CONST.COMPANY_CARD.FEED_BANK_NAME.BREX]: '#15181d',
-    [CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE]: '#635bff',
-    // Plaid-connected cards display a white card face
-    plaid: '#ffffff',
-};
-
-/** Gray background of generic-light-large.svg; used when no specific feed matches. */
-const GENERIC_CARD_BACKGROUND_COLOR = '#a2a9a3';
+import {isBankAccountPartiallySetup} from './BankAccountUtils';
+import DateUtils from './DateUtils';
+import {filterObject} from './ObjectUtils';
+import {arePersonalDetailsMissing, getDisplayNameOrDefault} from './PersonalDetailsUtils';
+import StringUtils from './StringUtils';
+import {CARD_FEED_BACKGROUND_COLORS, GENERIC_CARD_BACKGROUND_COLOR} from './CardArtworkColors';
 
 /**
  * Compute the WCAG 2.1 relative luminance of a hex color.

@@ -1,3 +1,6 @@
+import * as fs from 'fs';
+import * as path from 'path';
+import type * as CardArtworkColorsModule from '@src/libs/CardArtworkColors';
 import {buildFeedKeysWithAssignedCards, isExpensifyCardUkEuSupportedSelector} from '@selectors/Card';
 import lodashSortBy from 'lodash/sortBy';
 import type {OnyxCollection} from 'react-native-onyx';
@@ -4284,4 +4287,97 @@ describe('getConnectionBankAccountsForReconciliation', () => {
         } as unknown as Connections;
         expect(getConnectionBankAccountsForReconciliation(connections, CONST.POLICY.CONNECTIONS.NAME.QBO)).toEqual([]);
     });
+});
+
+/**
+ * Drift-detection: verifies that src/libs/CardArtworkColors.ts still matches
+ * what the SVG artwork files actually contain. If a card SVG is updated without
+ * regenerating CardArtworkColors.ts, this test will fail with a clear message.
+ *
+ * To fix a failure, run: npx ts-node scripts/generateCardColors.ts
+ */
+describe('CardArtworkColors drift detection', () => {
+    const ROOT = path.resolve(__dirname, '../..');
+
+    /** Inline copy of the parser from scripts/generateCardColors.ts */
+    function normalizeHex(color: string): string {
+        const h = color.trim().toLowerCase();
+        if (/^#[0-9a-f]{3}$/.test(h)) {
+            return `#${h[1]}${h[1]}${h[2]}${h[2]}${h[3]}${h[3]}`;
+        }
+        return h;
+    }
+
+    function extractBackgroundFill(svgContent: string): string | null {
+        const styleMap: Record<string, string> = {};
+        const styleMatch = svgContent.match(/<style>([\s\S]*?)<\/style>/);
+        if (styleMatch) {
+            for (const m of styleMatch[1].matchAll(/\.([\w-]+)\s*\{([^}]+)\}/g)) {
+                const fillMatch = m[2].match(/\bfill:\s*([#\w(),.%]+)/);
+                if (fillMatch) {
+                    styleMap[m[1]] = fillMatch[1].trim();
+                }
+            }
+        }
+        const withoutDefs = svgContent.replaceAll(/<defs>[\s\S]*?<\/defs>/g, '');
+        const tagRegex = /<(?:rect|path)\s[^>]*?\/?>/g;
+        let match: RegExpExecArray | null;
+        // eslint-disable-next-line no-cond-assign
+        while ((match = tagRegex.exec(withoutDefs)) !== null) {
+            const tag = match[0];
+            const fillAttr = tag.match(/\bfill="([^"]+)"/)?.[1];
+            const classAttr = tag.match(/\bclass="([^"]+)"/)?.[1];
+            if (fillAttr && fillAttr !== 'none') {
+                return normalizeHex(fillAttr);
+            }
+            if (classAttr) {
+                for (const cn of classAttr.split(/\s+/)) {
+                    const resolved = styleMap[cn];
+                    if (resolved && resolved !== 'none') {
+                        return normalizeHex(resolved);
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    const FEED_ARTWORK: Array<{keys: string[]; svgPath: string}> = [
+        {keys: ['Expensify Card'], svgPath: 'assets/images/expensify-card.svg'},
+        {keys: ['vcf'], svgPath: 'assets/images/companyCards/large/card-visa-large.svg'},
+        {keys: ['cdf'], svgPath: 'assets/images/companyCards/large/card-mastercard-large.svg'},
+        {
+            keys: ['gl1025', 'gl1205', 'oauth.americanexpressfdx.com', 'americanexpressfd.us'],
+            svgPath: 'assets/images/companyCards/large/card-amex-large.svg',
+        },
+        {keys: ['oauth.bankofamerica.com'], svgPath: 'assets/images/companyCards/large/card-bofa-large.svg'},
+        {keys: ['oauth.capitalone.com'], svgPath: 'assets/images/companyCards/large/card-capital_one-large.svg'},
+        {keys: ['oauth.chase.com'], svgPath: 'assets/images/companyCards/large/card-chase-large.svg'},
+        {keys: ['oauth.citibank.com'], svgPath: 'assets/images/companyCards/large/card-citi-large.svg'},
+        {keys: ['oauth.wellsfargo.com'], svgPath: 'assets/images/companyCards/large/card-wellsfargo-large.svg'},
+        {keys: ['oauth.brex.com'], svgPath: 'assets/images/companyCards/large/card-brex-large.svg'},
+        {keys: ['stripe'], svgPath: 'assets/images/companyCards/large/card-stripe-large.svg'},
+        {keys: ['plaid'], svgPath: 'assets/images/companyCards/large/card-plaid-large.svg'},
+    ];
+
+    const GENERIC_SVG_PATH = 'assets/images/companyCards/large/generic-light-large.svg';
+
+    it('GENERIC_CARD_BACKGROUND_COLOR matches generic-light-large.svg', () => {
+        const {GENERIC_CARD_BACKGROUND_COLOR} = jest.requireActual<typeof CardArtworkColorsModule>('@src/libs/CardArtworkColors');
+        const svg = fs.readFileSync(path.join(ROOT, GENERIC_SVG_PATH), 'utf-8');
+        const actual = extractBackgroundFill(svg);
+        expect(actual).not.toBeNull();
+        expect(GENERIC_CARD_BACKGROUND_COLOR).toBe(actual);
+    });
+
+    it.each(FEED_ARTWORK.flatMap(({keys, svgPath}) => keys.map((key) => ({key, svgPath}))))(
+        'CARD_FEED_BACKGROUND_COLORS[$key] matches $svgPath',
+        ({key, svgPath}) => {
+            const {CARD_FEED_BACKGROUND_COLORS} = jest.requireActual<typeof CardArtworkColorsModule>('@src/libs/CardArtworkColors');
+            const svg = fs.readFileSync(path.join(ROOT, svgPath), 'utf-8');
+            const actual = extractBackgroundFill(svg);
+            expect(actual).not.toBeNull();
+            expect(CARD_FEED_BACKGROUND_COLORS[key]).toBe(actual);
+        },
+    );
 });
