@@ -5946,6 +5946,7 @@ function getSearchReportName(props: GetReportNameParams): string {
         parentReportActionParam: props.parentReportActionParam,
         personalDetails: props.personalDetails,
         invoiceReceiverPolicy: props.invoiceReceiverPolicy,
+        reportAttributes: props.reportAttributes,
         transactions: props.transactions,
         isReportArchived: props.isReportArchived,
         reports: props.reports,
@@ -6054,7 +6055,7 @@ function getParentNavigationSubtitle(
     policy: OnyxEntry<Policy>,
     conciergeReportID: string | undefined,
     isParentReportArchived = false,
-    reportAttributes?: ReportAttributesDerivedValue['reports'],
+    reportAttributes: ReportAttributesDerivedValue['reports'] = {},
 ): ParentNavigationSummaryParams {
     const parentReport = getParentReport(report);
 
@@ -6099,7 +6100,7 @@ function getParentNavigationSubtitle(
     }
 
     return {
-        reportName: getReportNameFromNameUtils(parentReport, reportAttributes ?? reportAttributesDerivedValue),
+        reportName: getReportNameFromNameUtils(parentReport, reportAttributes),
         workspaceName: getPolicyName({report: parentReport, policy, returnEmptyIfNotFound: true}),
     };
 }
