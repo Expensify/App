@@ -80,11 +80,9 @@ export default function WorkspaceCategoriesTable({ref, categories, shouldShowApp
         }
 
         if (activeSorting.columnKey === 'enabled') {
-            if (item1.enabled === item2.enabled) {
-                return 0;
-            }
-
-            return (item1.enabled ? -1 : 1) * orderMultiplier;
+            const enabled1 = item1.enabled ? 1 : 0;
+            const enabled2 = item2.enabled ? 1 : 0;
+            return (enabled1 - enabled2) * orderMultiplier;
         }
 
         return localeCompare(item1.name, item2.name) * orderMultiplier;

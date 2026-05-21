@@ -153,17 +153,15 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
     const {middleware: filterMiddleware, currentFilters, methods: filterMethods} = useFiltering<DataType, FilterKey>({filters, isItemInFilter});
+    const filteredData = filterMiddleware(data);
 
     const {middleware: searchMiddleware, activeSearchString, methods: searchMethods} = useSearching<DataType>({isItemInSearch});
+    const searchedData = searchMiddleware(filteredData);
 
     const {middleware: sortMiddleware, activeSorting, methods: sortMethods} = useSorting<DataType, ColumnKey>({compareItems, initialSortColumn});
-
-    const {middleware: selectionMiddleware, methods: selectionMethods} = useSelection<DataType>({data, onRowSelectionChange});
-
-    // Apply the middleware
-    const filteredData = filterMiddleware(data);
-    const searchedData = searchMiddleware(filteredData);
     const sortedData = sortMiddleware(searchedData);
+
+    const {middleware: selectionMiddleware, methods: selectionMethods} = useSelection<DataType>({data: sortedData, onRowSelectionChange});
     const processedData = selectionMiddleware(sortedData);
 
     const listRef = useRef<FlashListRef<DataType>>(null);
