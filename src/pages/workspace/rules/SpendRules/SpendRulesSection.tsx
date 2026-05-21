@@ -32,9 +32,10 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type SpendRulesSectionProps = {
     policyID: string;
+    canWriteRules: boolean;
 };
 
-function SpendRulesSection({policyID}: SpendRulesSectionProps) {
+function SpendRulesSection({policyID, canWriteRules}: SpendRulesSectionProps) {
     const {convertToDisplayString} = useCurrencyListActions();
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
@@ -184,8 +185,8 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                 titleComponent={menuItemBody}
                 accessibilityLabel={`${descriptionLabel}. ${blockLabel} ${defaultRuleTitle}`}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_ITEM}
-                onPress={showBuiltInProtectionModal}
-                shouldShowRightIcon
+                onPress={canWriteRules ? showBuiltInProtectionModal : undefined}
+                shouldShowRightIcon={canWriteRules}
             />
             {isSpendRulesListLoading ? (
                 <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.mt5, styles.mb3]}>
@@ -238,14 +239,14 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                             }
                             accessibilityLabel={`${rule.summaryParts.map((part) => `${part.badgeLabel}. ${part.text}`).join('. ')}. ${rule.cardSummary}`}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_ITEM}
-                            shouldShowRightIcon
+                            shouldShowRightIcon={canWriteRules}
                             disabled={rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-                            onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_EDIT.getRoute(policyID, rule.ruleID))}
+                            onPress={canWriteRules ? () => Navigation.navigate(ROUTES.RULES_SPEND_EDIT.getRoute(policyID, rule.ruleID)) : undefined}
                         />
                     </OfflineWithFeedback>
                 ))
             )}
-            {!isProduction && (
+            {!isProduction && canWriteRules && (
                 <MenuItem
                     title={translate('workspace.rules.spendRules.addSpendRule')}
                     titleStyle={styles.textStrong}

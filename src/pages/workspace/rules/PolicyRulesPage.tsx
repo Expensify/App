@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
@@ -27,6 +28,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useMemoizedLazyIllustrations(['Rules']);
+    const {canWrite: canWriteRules, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
 
     const fetchRules = useCallback(() => {
         openPolicyRulesPage(policyID);
@@ -56,9 +58,21 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                 addBottomSafeAreaPadding
             >
                 <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                    <IndividualExpenseRulesSection policyID={policyID} />
-                    <MerchantRulesSection policyID={policyID} />
-                    {!!policy?.areExpensifyCardsEnabled && <SpendRulesSection policyID={policyID} />}
+                    <IndividualExpenseRulesSection
+                        policyID={policyID}
+                        canWriteRules={canWriteRules}
+                        showReadOnlyModal={showReadOnlyModal}
+                    />
+                    <MerchantRulesSection
+                        policyID={policyID}
+                        canWriteRules={canWriteRules}
+                    />
+                    {!!policy?.areExpensifyCardsEnabled && (
+                        <SpendRulesSection
+                            policyID={policyID}
+                            canWriteRules={canWriteRules}
+                        />
+                    )}
                 </View>
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>
