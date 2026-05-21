@@ -1,4 +1,4 @@
-import {applyConciergeDraftEvent, getCachedDraft, setCachedDraft} from '@pages/inbox/conciergeDraftState';
+import {applyConciergeDraftEvent, getCachedDraft, setCachedDraft, stripIncompleteMarkdown} from '@pages/inbox/conciergeDraftState';
 import CONST from '@src/CONST';
 
 const REPORT_ID = '123';
@@ -47,7 +47,7 @@ describe('conciergeDraftState', () => {
         expect(draft?.reportAction.actorAccountID).toBe(CONST.ACCOUNT_ID.CONCIERGE);
         expect(draft?.reportAction.created).toBe(CREATED);
         expect(getFirstMessageHTML(draft)).toContain('<strong>world</strong>');
-        expect(getFirstMessageText(draft)).toBe('Hello, *world*!');
+        expect(getFirstMessageText(draft)).toBe('Hello, world!');
     });
 
     it('should update the same draft session when a newer sequence arrives', () => {
@@ -79,7 +79,7 @@ describe('conciergeDraftState', () => {
         );
 
         expect(staleDraft).toBe(initialDraft);
-        expect(getFirstMessageText(staleDraft)).toBe('Hello, *world*!');
+        expect(getFirstMessageText(staleDraft)).toBe('Hello, world!');
     });
 
     it('should keep the draft visible through completion and prefer finalRenderedHTML when provided', () => {
@@ -130,6 +130,113 @@ describe('conciergeDraftState', () => {
         );
 
         expect(otherReportDraft).toBe(initialDraft);
+    });
+
+    describe('stripIncompleteMarkdown', () => {
+        it('returns empty/falsy values unchanged', () => {
+            expect(stripIncompleteMarkdown('')).toBe('');
+        });
+
+        it('does not alter complete markdown', () => {
+            const complete = 'Hello *bold* and [link](https://example.com) and `code`';
+            expect(stripIncompleteMarkdown(complete)).toBe(complete);
+        });
+
+        it('normalizes complete double-delimiter emphasis for ExpensiMark', () => {
+            expect(stripIncompleteMarkdown('Hello **bold** and ~~strike~~')).toBe('Hello *bold* and ~strike~');
+        });
+
+        // --- Links / Images ---
+        it('strips an incomplete link with only opening bracket', () => {
+            expect(stripIncompleteMarkdown('Check out [')).toBe('Check out ');
+        });
+
+        it('strips an incomplete link with text but no closing bracket', () => {
+            expect(stripIncompleteMarkdown('Check out [this page')).toBe('Check out ');
+        });
+
+        it('strips an incomplete link with bracket closed but no URL', () => {
+            expect(stripIncompleteMarkdown('Check out [link](')).toBe('Check out ');
+        });
+
+        it('strips an incomplete link with partial URL', () => {
+            expect(stripIncompleteMarkdown('Check out [link](https://example')).toBe('Check out ');
+        });
+
+        it('preserves a complete link followed by an incomplete one', () => {
+            expect(stripIncompleteMarkdown('[done](https://a.com) and [broken')).toBe('[done](https://a.com) and ');
+        });
+
+        it('preserves bracketed text that is not a link', () => {
+            const complete = 'The accepted values are [yes/no] for this setting';
+            expect(stripIncompleteMarkdown(complete)).toBe(complete);
+        });
+
+        it('strips an incomplete image syntax', () => {
+            expect(stripIncompleteMarkdown('Here is ![alt')).toBe('Here is ');
+        });
+
+        // --- Bold (**) ---
+        it('strips trailing unclosed bold', () => {
+            expect(stripIncompleteMarkdown('Hello **world')).toBe('Hello ');
+        });
+
+        it('strips bare trailing ** delimiter', () => {
+            expect(stripIncompleteMarkdown('Hello **')).toBe('Hello ');
+        });
+
+        it('preserves complete bold and strips only the unclosed one', () => {
+            expect(stripIncompleteMarkdown('**done** and **broken')).toBe('*done* and ');
+        });
+
+        // --- Strikethrough (~~) ---
+        it('strips trailing unclosed strikethrough', () => {
+            expect(stripIncompleteMarkdown('Hello ~~strike')).toBe('Hello ');
+        });
+
+        // --- Code blocks (```) ---
+        it('strips an unclosed code block', () => {
+            expect(stripIncompleteMarkdown('Here:\n```\ncode')).toBe('Here:\n');
+        });
+
+        it('preserves a complete code block', () => {
+            const complete = 'Before\n```\ncode\n```\nAfter';
+            expect(stripIncompleteMarkdown(complete)).toBe(complete);
+        });
+
+        it('preserves a complete code block ending at the closing fence', () => {
+            const complete = 'Before\n```\ncode\n```';
+            expect(stripIncompleteMarkdown(complete)).toBe(complete);
+        });
+
+        // --- Inline code (`) ---
+        it('strips trailing unclosed inline code', () => {
+            expect(stripIncompleteMarkdown('Run `command')).toBe('Run ');
+        });
+
+        it('preserves complete inline code', () => {
+            const complete = 'Run `command` now';
+            expect(stripIncompleteMarkdown(complete)).toBe(complete);
+        });
+
+        it('preserves markdown-looking text inside complete inline code', () => {
+            const complete = 'Use `[accountID]` and `**not bold` in the payload';
+            expect(stripIncompleteMarkdown(complete)).toBe(complete);
+        });
+
+        // --- Streaming integration ---
+        it('keeps complete double-delimiter bold styled without showing raw delimiters during streaming', () => {
+            const draft = applyConciergeDraftEvent(null, createDraftEvent({bodyMarkdown: 'Hello **bold**!'}), REPORT_ID);
+
+            expect(getFirstMessageHTML(draft)).toContain('<strong>bold</strong>');
+            expect(getFirstMessageHTML(draft)).not.toContain('*');
+        });
+
+        it('strips incomplete markdown during a streaming draft event', () => {
+            const draft = applyConciergeDraftEvent(null, createDraftEvent({bodyMarkdown: 'Check [this link'}), REPORT_ID);
+            // The raw '[this link' syntax should NOT appear in the rendered HTML
+            expect(getFirstMessageHTML(draft)).not.toContain('[this link');
+        });
     });
 
     describe('draftCache', () => {

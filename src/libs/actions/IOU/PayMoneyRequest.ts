@@ -39,7 +39,7 @@ import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getAllPersonalDetails, getAllTransactionViolations, getUserAccountID} from '.';
+import {getAllPersonalDetails, getAllTransactionViolations} from '.';
 import {getReportFromHoldRequestsOnyxData} from './Hold';
 import {getReportPreviewAction} from './MoneyRequestBuilder';
 
@@ -51,6 +51,7 @@ type PayInvoiceArgs = {
     invoiceReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
+    currentUserLocalCurrency: string;
     payAsBusiness?: boolean;
     existingB2BInvoiceReport?: OnyxEntry<OnyxTypes.Report>;
     methodID?: number;
@@ -118,6 +119,7 @@ function getPayMoneyRequestParams({
     betas,
     isSelfTourViewed,
     defaultWorkspaceName,
+    currentUserLocalCurrency,
     conciergeReportID,
 }: {
     initialChatReport: OnyxTypes.Report;
@@ -139,6 +141,7 @@ function getPayMoneyRequestParams({
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean | undefined;
     defaultWorkspaceName?: string;
+    currentUserLocalCurrency: string | undefined;
     // TODO: This will be required eventually. Ref: https://github.com/Expensify/App/issues/66411
     conciergeReportID?: string;
 }): PayMoneyRequestData {
@@ -176,6 +179,7 @@ function getPayMoneyRequestParams({
             policyName: defaultWorkspaceName,
             makeMeAdmin: true,
             policyID: payerPolicyID,
+            currency: currentUserLocalCurrency,
             currentUserAccountIDParam: currentUserAccountIDParam ?? CONST.DEFAULT_NUMBER_ID,
             currentUserEmailParam: currentUserEmailParam ?? '',
             introSelected,
@@ -209,8 +213,9 @@ function getPayMoneyRequestParams({
         chatReport = existingB2BInvoiceReport;
     }
 
+    const reportTransactions = getReportTransactions(iouReport?.reportID);
     let total = (iouReport?.total ?? 0) - (iouReport?.nonReimbursableTotal ?? 0);
-    if (hasHeldExpensesReportUtils(iouReport?.reportID) && !full && !!iouReport?.unheldTotal) {
+    if (hasHeldExpensesReportUtils(reportTransactions) && !full && !!iouReport?.unheldTotal) {
         total = iouReport.unheldTotal - (iouReport?.unheldNonReimbursableTotal ?? 0);
     }
 
@@ -400,8 +405,8 @@ function getPayMoneyRequestParams({
 
     // Optimistically unhold all transactions if we pay all requests
     if (full) {
-        const reportTransactions = getReportTransactions(iouReport?.reportID);
-        for (const transaction of reportTransactions) {
+        const iouReportTransactions = getReportTransactions(iouReport?.reportID);
+        for (const transaction of iouReportTransactions) {
             onyxData.optimisticData?.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
@@ -422,7 +427,7 @@ function getPayMoneyRequestParams({
             });
         }
 
-        const optimisticTransactionViolations: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = reportTransactions.map(({transactionID}) => {
+        const optimisticTransactionViolations: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = iouReportTransactions.map(({transactionID}) => {
             return {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
@@ -431,7 +436,7 @@ function getPayMoneyRequestParams({
         });
         onyxData.optimisticData?.push(...optimisticTransactionViolations);
 
-        const failureTransactionViolations: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = reportTransactions.map(({transactionID}) => {
+        const failureTransactionViolations: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = iouReportTransactions.map(({transactionID}) => {
             const violations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
             return {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -697,18 +702,17 @@ function completePaymentOnboarding(
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
     isSelfTourViewed: boolean | undefined,
     betas: OnyxEntry<OnyxTypes.Beta[]>,
+    currentUserAccountID: number,
     adminsChatReportID?: string,
     onboardingPolicyID?: string,
 ) {
-    const deprecatedUserAccountID = getUserAccountID();
-
     const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
 
     if (isInviteOnboardingComplete || !introSelected?.choice || !introSelected?.inviteType) {
         return;
     }
 
-    const personalDetailsListValues = Object.values(getPersonalDetailsForAccountIDs(deprecatedUserAccountID ? [deprecatedUserAccountID] : [], getAllPersonalDetails()));
+    const personalDetailsListValues = Object.values(getPersonalDetailsForAccountIDs(currentUserAccountID ? [currentUserAccountID] : [], getAllPersonalDetails()));
     const personalDetails = personalDetailsListValues.at(0);
 
     let onboardingPurpose = introSelected?.choice;
@@ -733,7 +737,6 @@ function completePaymentOnboarding(
         companySize: introSelected?.companySize as OnboardingCompanySize,
         introSelected,
         isSelfTourViewed,
-        betas,
     });
 }
 
@@ -771,7 +774,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
     }
 
     const paymentSelected = paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
-    completePaymentOnboarding(paymentSelected, introSelected, isSelfTourViewed, betas);
+    completePaymentOnboarding(paymentSelected, introSelected, isSelfTourViewed, betas, currentUserAccountID);
 
     const recipient = {accountID: iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {params: payMoneyRequestParams, onyxData} = getPayMoneyRequestParams({
@@ -786,6 +789,8 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         iouReportCurrentNextStepDeprecated,
         currentUserAccountIDParam: currentUserAccountID,
         currentUserEmailParam: currentUserLogin,
+        // payMoneyRequest never creates a payer workspace (no payAsBusiness branch), so currency is unused here.
+        currentUserLocalCurrency: undefined,
         betas,
         isSelfTourViewed,
         bankAccountID: paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
@@ -979,6 +984,7 @@ function payInvoice({
     introSelected,
     currentUserAccountIDParam,
     currentUserEmailParam,
+    currentUserLocalCurrency,
     payAsBusiness = false,
     existingB2BInvoiceReport,
     methodID,
@@ -1017,6 +1023,7 @@ function payInvoice({
         activePolicy,
         currentUserAccountIDParam,
         currentUserEmailParam,
+        currentUserLocalCurrency,
         introSelected,
         betas,
         isSelfTourViewed,
@@ -1024,7 +1031,7 @@ function payInvoice({
     });
 
     const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
-    completePaymentOnboarding(paymentSelected, introSelected, isSelfTourViewed, betas);
+    completePaymentOnboarding(paymentSelected, introSelected, isSelfTourViewed, betas, currentUserAccountIDParam);
 
     let params: PayInvoiceParams = {
         reportID: invoiceReport?.reportID,
