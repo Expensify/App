@@ -97,7 +97,9 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
                     .join(' & ');
             }
 
-            return getParentNavigationSubtitle(report, policy, conciergeReportID, isParentReportArchived, reportAttributes).workspaceName ?? getChatRoomSubtitle(report, false, isReportArchived);
+            return (
+                getParentNavigationSubtitle(report, policy, conciergeReportID, isParentReportArchived, reportAttributes).workspaceName ?? getChatRoomSubtitle(report, false, isReportArchived)
+            );
         }
 
         return currentUserPersonalDetails.login;

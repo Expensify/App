@@ -2520,7 +2520,7 @@ describe('SearchUIUtils', () => {
                     allReportMetadata: {},
                     conciergeReportID: undefined,
                     convertToDisplayString,
-                reportAttributesDerivedValue: {},
+                    reportAttributesDerivedValue: {},
                 })[0],
             ).toEqual(transactionsListItems);
         });
@@ -2618,7 +2618,7 @@ describe('SearchUIUtils', () => {
                     allReportMetadata: {},
                     conciergeReportID: undefined,
                     convertToDisplayString,
-                reportAttributesDerivedValue: {},
+                    reportAttributesDerivedValue: {},
                 })[0],
             ).toStrictEqual(transactionReportGroupListItems);
         });
@@ -2992,7 +2992,7 @@ describe('SearchUIUtils', () => {
                     allReportMetadata: {},
                     conciergeReportID: undefined,
                     convertToDisplayString,
-                reportAttributesDerivedValue: {},
+                    reportAttributesDerivedValue: {},
                 })[0],
             ).toStrictEqual(transactionMemberGroupListItems);
         });
@@ -3022,7 +3022,7 @@ describe('SearchUIUtils', () => {
                     allReportMetadata: {},
                     conciergeReportID: undefined,
                     convertToDisplayString,
-                reportAttributesDerivedValue: {},
+                    reportAttributesDerivedValue: {},
                 })[0],
             ).toStrictEqual(transactionCardGroupListItems);
         });
@@ -3041,7 +3041,7 @@ describe('SearchUIUtils', () => {
                     allReportMetadata: {},
                     conciergeReportID: undefined,
                     convertToDisplayString,
-                reportAttributesDerivedValue: {},
+                    reportAttributesDerivedValue: {},
                 })[0],
             ).toStrictEqual(transactionWithdrawalIDGroupListItems);
         });
@@ -3089,7 +3089,7 @@ describe('SearchUIUtils', () => {
                     allReportMetadata: {},
                     conciergeReportID: undefined,
                     convertToDisplayString,
-                reportAttributesDerivedValue: {},
+                    reportAttributesDerivedValue: {},
                 })[0],
             ).toStrictEqual(transactionCategoryGroupListItems);
         });
@@ -3190,7 +3190,7 @@ describe('SearchUIUtils', () => {
                     allReportMetadata: {},
                     conciergeReportID: undefined,
                     convertToDisplayString,
-                reportAttributesDerivedValue: {},
+                    reportAttributesDerivedValue: {},
                 })[0],
             ).toStrictEqual(transactionMonthGroupListItems);
         });
@@ -3330,7 +3330,7 @@ describe('SearchUIUtils', () => {
                     allReportMetadata: {},
                     conciergeReportID: undefined,
                     convertToDisplayString,
-                reportAttributesDerivedValue: {},
+                    reportAttributesDerivedValue: {},
                 })[0],
             ).toStrictEqual(transactionYearGroupListItems);
         });
@@ -3768,7 +3768,7 @@ describe('SearchUIUtils', () => {
                     allReportMetadata: {},
                     conciergeReportID: undefined,
                     convertToDisplayString,
-                reportAttributesDerivedValue: {},
+                    reportAttributesDerivedValue: {},
                 })[0],
             ).toStrictEqual(transactionQuarterGroupListItems);
         });
@@ -3889,7 +3889,7 @@ describe('SearchUIUtils', () => {
                     allReportMetadata: {},
                     conciergeReportID: undefined,
                     convertToDisplayString,
-                reportAttributesDerivedValue: {},
+                    reportAttributesDerivedValue: {},
                 })[0],
             ).toStrictEqual(transactionWeekGroupListItems);
         });
@@ -4169,7 +4169,7 @@ describe('SearchUIUtils', () => {
                     allReportMetadata: {},
                     conciergeReportID: undefined,
                     convertToDisplayString,
-                reportAttributesDerivedValue: {},
+                    reportAttributesDerivedValue: {},
                 })[0],
             ).toStrictEqual(transactionMerchantGroupListItems);
         });
@@ -4594,7 +4594,7 @@ describe('SearchUIUtils', () => {
                     allReportMetadata: {},
                     conciergeReportID: undefined,
                     convertToDisplayString,
-                reportAttributesDerivedValue: {},
+                    reportAttributesDerivedValue: {},
                 })[0],
             ).toStrictEqual(transactionTagGroupListItems);
         });
@@ -5137,7 +5137,7 @@ describe('SearchUIUtils', () => {
                     allReportMetadata: {},
                     conciergeReportID: undefined,
                     convertToDisplayString,
-                reportAttributesDerivedValue: {},
+                    reportAttributesDerivedValue: {},
                 })[0] as TransactionReportGroupListItemType[];
 
                 const item = sections.find((s) => s.keyForList === testReportID);
@@ -5253,7 +5253,7 @@ describe('SearchUIUtils', () => {
                     allReportMetadata: {},
                     conciergeReportID: undefined,
                     convertToDisplayString,
-                reportAttributesDerivedValue: {},
+                    reportAttributesDerivedValue: {},
                 })[0] as TransactionReportGroupListItemType[];
 
                 const item = sections.find((s) => s.keyForList === avatarTestReportID);
@@ -5381,7 +5381,7 @@ describe('SearchUIUtils', () => {
                     conciergeReportID: undefined,
                     ...options,
                     convertToDisplayString,
-                reportAttributesDerivedValue: {},
+                    reportAttributesDerivedValue: {},
                 }) as [TransactionListItemType[], number, boolean];
             }
 
@@ -5641,7 +5641,7 @@ describe('SearchUIUtils', () => {
                     conciergeReportID: undefined,
                     ...options,
                     convertToDisplayString,
-                reportAttributesDerivedValue: {},
+                    reportAttributesDerivedValue: {},
                 }) as [TransactionReportGroupListItemType[], number, boolean];
             }
 
