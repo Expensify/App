@@ -854,9 +854,9 @@ const ViolationsUtils = {
                 return translate('violations.noRoute');
             default:
                 // The interpreter should never get here because the switch cases should be exhaustive.
-                // If typescript is showing an error on the assertion below it means the switch statement is out of
+                // If typescript is showing an error below it means the switch statement is out of
                 // sync with the `ViolationNames` type, and one or the other needs to be updated.
-                return violation.name as never;
+                return violation.name;
         }
     },
 
