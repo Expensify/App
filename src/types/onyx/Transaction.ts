@@ -235,7 +235,7 @@ type Receipt = {
     /** Collection of reservations */
     reservationList?: Reservation[];
 
-    /** Receipt is manager_mctest@expensify.com testing receipt */
+    /** Whether this is a test receipt */
     isTestReceipt?: true;
 
     /** Receipt is Test Drive testing receipt */

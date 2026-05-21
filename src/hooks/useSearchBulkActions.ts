@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/refs */
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
