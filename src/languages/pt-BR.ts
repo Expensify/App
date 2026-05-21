@@ -1665,6 +1665,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         bulkDuplicateLimit: `Você pode duplicar até ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} despesas por vez. Selecione menos despesas e tente novamente.`,
         deleted: 'Excluído',
+        deleteConfirmationPendingBYOC: 'Tem certeza de que quer excluir esta despesa? Ela está pendente e podemos importá-la novamente se for lançada.',
     },
     transactionMerge: {
         listPage: {

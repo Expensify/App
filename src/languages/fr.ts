@@ -1678,6 +1678,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         bulkDuplicateLimit: `Vous pouvez dupliquer jusqu’à ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} dépenses à la fois. Veuillez sélectionner moins de dépenses et réessayer.`,
         deleted: 'Supprimé',
+        deleteConfirmationPendingBYOC: 'Voulez-vous vraiment supprimer cette dépense ? Elle est en attente et nous pourrions l’importer à nouveau si elle est comptabilisée.',
     },
     transactionMerge: {
         listPage: {

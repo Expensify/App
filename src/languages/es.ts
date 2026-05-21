@@ -1630,6 +1630,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Habilita el seguimiento de impuestos en el espacio de trabajo para editar los detalles del gasto o eliminar el impuesto de este gasto.',
             confirmText: 'Eliminar impuesto',
         },
+        deleteConfirmationPendingBYOC: '¿Seguro que quieres eliminar este gasto? Está pendiente y es posible que lo volvamos a importar si se contabiliza.',
     },
     transactionMerge: {
         listPage: {
