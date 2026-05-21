@@ -2,8 +2,7 @@ import {useIsFocused, useRoute} from '@react-navigation/native';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
+import {DeviceEventEmitter, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
 import InvertedFlashList from '@components/FlashList/InvertedFlashList';
@@ -643,8 +642,10 @@ function ReportActionsList({
         }
         const prevSorted = lastAction?.reportActionID ? prevSortedVisibleReportActionsObjects[lastAction?.reportActionID] : null;
         if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER && !prevSorted) {
-            InteractionManager.runAfterInteractions(() => {
-                reportScrollManager.scrollToBottom();
+            TransitionTracker.runAfterTransitions({
+                callback: () => {
+                    reportScrollManager.scrollToBottom();
+                },
             });
         }
     }, [lastAction?.reportActionID, lastAction?.actionName, prevSortedVisibleReportActionsObjects, reportScrollManager]);
@@ -669,8 +670,10 @@ function ReportActionsList({
         if (lastIOUActionWithError?.reportActionID === prevLastIOUActionWithError?.reportActionID) {
             return;
         }
-        InteractionManager.runAfterInteractions(() => {
-            reportScrollManager.scrollToBottom();
+        TransitionTracker.runAfterTransitions({
+            callback: () => {
+                reportScrollManager.scrollToBottom();
+            },
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastAction]);
@@ -857,7 +860,11 @@ function ReportActionsList({
             return;
         }
 
-        InteractionManager.runAfterInteractions(() => requestAnimationFrame(() => loadNewerChats(false)));
+        TransitionTracker.runAfterTransitions({
+            callback: () => {
+                requestAnimationFrame(() => loadNewerChats(false));
+            },
+        });
     }, [loadNewerChats]);
 
     const onEndReached = useCallback(() => {
