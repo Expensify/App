@@ -254,7 +254,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         }
         lastNonEmptySearchResultsRef.current = currentSearchResults;
     }, [currentSearchResults]);
-    // eslint-disable-next-line react-hooks/refs -- Intentional render-time fallback so bulk actions can use the last non-empty search results while currentSearchResults is briefly unset.
     const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResultsRef.current;
 
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
