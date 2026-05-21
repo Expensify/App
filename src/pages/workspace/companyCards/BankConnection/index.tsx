@@ -171,6 +171,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
                     prompt: translate('workspace.companyCards.addNewCard.duplicateFeedModal.prompt'),
                     confirmText: translate('common.buttonConfirm'),
                     shouldShowCancelButton: false,
+                    shouldHandleNavigationBack: false,
                 });
                 return;
             }
