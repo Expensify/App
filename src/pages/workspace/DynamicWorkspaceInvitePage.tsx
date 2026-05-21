@@ -35,6 +35,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {InvitedEmailsToAccountIDs} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
@@ -106,7 +107,7 @@ function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         setSearchTerm,
         availableOptions,
         selectedOptions,
-        selectedNonExistingOptions = [],
+        selectedNonExistingOptions = getEmptyArray<OptionData>(),
         toggleSelection,
         areOptionsInitialized,
         onListEndReached,
