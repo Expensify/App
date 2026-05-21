@@ -26,7 +26,7 @@ import type {
     RawLegendData,
     RawLegendStyle,
     VictoryChartRendererProps,
-    yKey,
+    YKey,
 } from './types';
 
 /**
@@ -45,7 +45,7 @@ function getHierarchyID(tnode: TNode): string {
 /**
  * Get the Y-axis key for a given node
  */
-function getYKey(tnode: TNode): yKey {
+function getYKey(tnode: TNode): YKey {
     return `${Y_KEY_PREFIX}${getHierarchyID(tnode)}`;
 }
 
@@ -55,9 +55,9 @@ function getYKey(tnode: TNode): yKey {
 function processNode(tnode: TNode, typeface: SkTypeface | null) {
     const data: Record<string, CartesianChartData> = {};
     const xKey = X_KEY;
-    const yKeys: yKey[] = [];
-    let xAxis: ComponentProps<typeof CartesianChart<CartesianChartData, keyof CartesianChartData, yKey>>['xAxis'];
-    let yAxis: ComponentProps<typeof CartesianChart<CartesianChartData, keyof CartesianChartData, yKey>>['yAxis'];
+    const yKeys: YKey[] = [];
+    let xAxis: ComponentProps<typeof CartesianChart<CartesianChartData, keyof CartesianChartData, YKey>>['xAxis'];
+    let yAxis: ComponentProps<typeof CartesianChart<CartesianChartData, keyof CartesianChartData, YKey>>['yAxis'];
     const labelItems: LabelItem[] = [];
     const legendItems: LegendItem[] = [];
 
@@ -256,7 +256,7 @@ function parseCornerRadius(attribute: string): RoundedCorners | undefined {
 /**
  * Helper to parse VC's `domainPadding` into VN's `domainPadding`
  */
-function parseDomainPadding(attribute: string): ComponentProps<typeof CartesianChart<CartesianChartData, keyof CartesianChartData, yKey>>['domainPadding'] | undefined {
+function parseDomainPadding(attribute: string): ComponentProps<typeof CartesianChart<CartesianChartData, keyof CartesianChartData, YKey>>['domainPadding'] | undefined {
     const domainPadding = parseAttribute(attribute);
     if (typeof domainPadding === 'number') {
         return domainPadding;
@@ -332,7 +332,7 @@ function BaseVictoryChartRenderer({tnode}: VictoryChartRendererProps) {
     const {nodeStyles: chartContentStyles, parentNodeStyles: chartContainerStyles} = useMemo(() => parseStyles(tnode), [tnode]);
     const [isCartesianChart, isPolarChart] = useMemo(() => [Object.keys(data).length > 0, false], [data]);
 
-    const renderCartesianChartChild = useCallback((tnodeChild: TNode, index: number, renderArgs: CartesianChartRenderArg<CartesianChartData, yKey>) => {
+    const renderCartesianChartChild = useCallback((tnodeChild: TNode, index: number, renderArgs: CartesianChartRenderArg<CartesianChartData, YKey>) => {
         const key = `${tnodeChild.tagName ?? 'node'}-${index}`;
         const yKey = getYKey(tnodeChild);
         const {points, chartBounds} = renderArgs;

@@ -43,12 +43,12 @@ type RawLegendStyle = {
     };
 };
 
-type xKey = typeof X_KEY;
-type yKey = `${typeof Y_KEY_PREFIX}${string}`;
+type XKey = typeof X_KEY;
+type YKey = `${typeof Y_KEY_PREFIX}${string}`;
 
 type CartesianChartData = {
     [X_KEY]: string | number;
-    [key: `${yKey}`]: number;
+    [key: `${YKey}`]: number;
 };
 
 type LabelItem = {
@@ -108,4 +108,4 @@ type LegendItem = {
     symbolSpacer?: number;
 };
 
-export type {VictoryChartRendererProps, RawChartData, RawLegendData, RawAxisStyle, RawLabelStyle, RawLegendStyle, xKey, yKey, CartesianChartData, LabelItem, LegendItemEntry, LegendItem};
+export type {VictoryChartRendererProps, RawChartData, RawLegendData, RawAxisStyle, RawLabelStyle, RawLegendStyle, XKey, YKey, CartesianChartData, LabelItem, LegendItemEntry, LegendItem};
