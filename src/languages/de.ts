@@ -8551,6 +8551,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         duplicatedTransaction: 'Möglicherweise dupliziert',
         fieldRequired: 'Berichtsfelder sind erforderlich',
         futureDate: 'Zukünftiges Datum nicht erlaubt',
+        inactiveVendor: 'Anbieter nicht mehr gültig',
         invoiceMarkup: (invoiceMarkup: number) => `Um ${invoiceMarkup}% erhöht`,
         maxAge: (maxAge: number) => `Datum ist älter als ${maxAge} Tage`,
         missingCategory: 'Fehlende Kategorie',

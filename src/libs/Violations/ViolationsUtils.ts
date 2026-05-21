@@ -765,6 +765,8 @@ const ViolationsUtils = {
                 return translate('violations.fieldRequired');
             case 'futureDate':
                 return translate('violations.futureDate');
+            case 'inactiveVendor':
+                return translate('violations.inactiveVendor');
             case 'invoiceMarkup':
                 return translate('violations.invoiceMarkup', invoiceMarkup);
             case 'maxAge':
