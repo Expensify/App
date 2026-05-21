@@ -1,7 +1,7 @@
 import {act, renderHook} from '@testing-library/react-native';
 import type {OnyxMultiSetInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import useSearchSelectorBase from '@hooks/useSearchSelector.base';
+import useSearchSelectorBase from '@hooks/useSearchSelector/base';
 import {getSearchOptions, getValidOptions} from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -15,7 +15,6 @@ const EMPTY_OPTIONS = {recentReports: [], personalDetails: [], userToInvite: nul
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-return
 jest.mock('@libs/OptionsListUtils', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     ...jest.requireActual('@libs/OptionsListUtils'),
     getValidOptions: jest.fn(() => EMPTY_OPTIONS),

@@ -422,7 +422,11 @@ function removeSplitExpenseField(draftTransaction: OnyxEntry<OnyxTypes.Transacti
 
     // Auto-redistribute amounts for all splits if this is not a distance request
     if (!isDistanceRequest) {
-        redistributedSplitExpenses = redistributeSplitExpenseAmounts(splitExpenses, total, currency);
+        const hasAnyUneditedSplit = splitExpenses.some((item) => !item.isManuallyEdited);
+        // If every remaining split is locked, temporarily unlock them so removing one split
+        // still redistributes to a valid, saveable total in the split edit flow.
+        const splitExpensesToRedistribute = hasAnyUneditedSplit ? splitExpenses : splitExpenses.map((item) => ({...item, isManuallyEdited: false}));
+        redistributedSplitExpenses = redistributeSplitExpenseAmounts(splitExpensesToRedistribute, total, currency);
     }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
@@ -606,11 +610,9 @@ function clearSplitTransactionDraftErrors(transactionID: string | undefined) {
 }
 
 export {
-    getDistanceMerchantFromDistance,
     updateSplitExpenseDistanceFromAmount,
     initSplitExpenseItemData,
     initDraftSplitExpenseDataForEdit,
-    redistributeSplitExpenseAmounts,
     addSplitExpenseField,
     evenlyDistributeSplitExpenseAmounts,
     resetSplitExpensesByDateRange,

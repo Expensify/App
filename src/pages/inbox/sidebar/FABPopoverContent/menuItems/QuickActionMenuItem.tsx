@@ -9,7 +9,7 @@ import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {startMoneyRequest} from '@libs/actions/IOU';
+import {startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import {navigateToQuickAction} from '@libs/actions/QuickActionNavigation';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
@@ -118,7 +118,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
             shouldRestrictAction &&
             quickActionReportPolicyID &&
             quickActionReportPolicy &&
-            shouldRestrictUserBillableActions(quickActionReportPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)
+            shouldRestrictUserBillableActions(quickActionReportPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, session?.accountID)
         ) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(quickActionReportPolicyID));
             return;
@@ -197,7 +197,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
                     if (
                         policyChatForActivePolicyPolicyID &&
                         policyChatForActivePolicyPolicy &&
-                        shouldRestrictUserBillableActions(policyChatForActivePolicyPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)
+                        shouldRestrictUserBillableActions(policyChatForActivePolicyPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, session?.accountID)
                     ) {
                         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyChatForActivePolicyPolicyID));
                         return;

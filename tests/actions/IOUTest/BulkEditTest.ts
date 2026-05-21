@@ -72,6 +72,7 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
             });
 
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
@@ -83,6 +84,7 @@ describe('actions/IOU/BulkEdit', () => {
                 expect.objectContaining({amount: 1000, currency: CONST.CURRENCY.USD}),
                 true,
                 policy,
+                undefined,
                 expect.anything(),
             );
 
@@ -145,6 +147,7 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
             });
 
             expect(writeSpy).not.toHaveBeenCalled();
@@ -207,6 +210,7 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
             });
 
             const getOptimisticTotal = (callIndex: number) => {
@@ -278,6 +282,7 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
             });
 
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
@@ -289,6 +294,7 @@ describe('actions/IOU/BulkEdit', () => {
                 expect.objectContaining({amount: -1000, currency: CONST.CURRENCY.USD}),
                 true,
                 policy,
+                undefined,
                 expect.anything(),
             );
 
@@ -353,6 +359,7 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
             });
 
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
@@ -419,6 +426,7 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
             });
 
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
@@ -430,6 +438,7 @@ describe('actions/IOU/BulkEdit', () => {
                 expect.objectContaining({amount: 1000, currency: CONST.CURRENCY.USD}),
                 false,
                 policy,
+                undefined,
                 expect.anything(),
             );
 
@@ -483,6 +492,7 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
             });
 
             expect(writeSpy).toHaveBeenCalled();
@@ -554,6 +564,7 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -610,6 +621,7 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -669,6 +681,7 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -735,6 +748,7 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -802,6 +816,7 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -880,6 +895,7 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -946,6 +962,7 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1024,6 +1041,7 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1083,11 +1101,85 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
             });
 
             // category/billable changes must be silently dropped for IOUs —
             // no API call should be made since there are no valid updates
             expect(writeSpy).not.toHaveBeenCalled();
+
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+        });
+
+        it('applies category to split children but skips amount, currency, and tax', () => {
+            const transactionID = 'transaction-split-1';
+            const transactionThreadReportID = 'thread-split-1';
+            const iouReportID = 'iou-split-1';
+            const policy = createRandomPolicy(50, CONST.POLICY.TYPE.TEAM);
+
+            const transactionThread: Report = {
+                ...createRandomReport(50, undefined),
+                reportID: transactionThreadReportID,
+                parentReportID: iouReportID,
+                policyID: policy.id,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(51, undefined),
+                reportID: iouReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`]: transactionThread,
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+            };
+
+            const splitTransaction: Transaction = {
+                ...createRandomTransaction(50),
+                transactionID,
+                reportID: iouReportID,
+                transactionThreadReportID,
+                amount: -1000,
+                currency: CONST.CURRENCY.USD,
+                category: 'OldCategory',
+                comment: {source: CONST.IOU.TYPE.SPLIT},
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: splitTransaction,
+            };
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            updateMultipleMoneyRequests({
+                transactionIDs: [transactionID],
+                changes: {category: 'Food', amount: 5000, currency: CONST.CURRENCY.EUR, taxCode: 'id_TAX_RATE_1'},
+                policy,
+                reports,
+                transactions,
+                reportActions: {},
+                policyCategories: undefined,
+                policyTags: {},
+                hash: undefined,
+                introSelected: undefined,
+                betas: undefined,
+                currentUserLogin: 'test@example.com',
+                currentUserAccountID: 1,
+                delegateAccountID: undefined,
+            });
+
+            expect(writeSpy).toHaveBeenCalled();
+            const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
+            const updates = JSON.parse(params.updates) as Record<string, unknown>;
+            expect(updates.category).toBe('Food');
+            expect(updates.amount).toBeUndefined();
+            expect(updates.currency).toBeUndefined();
+            expect(updates.taxCode).toBeUndefined();
+            expect(updates.taxValue).toBeUndefined();
+            expect(updates.taxAmount).toBeUndefined();
 
             writeSpy.mockRestore();
             canEditFieldSpy.mockRestore();
@@ -1167,6 +1259,7 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
             });
 
             // Then: the optimistic transaction update should use the transaction's own policy for tax resolution.
@@ -1259,6 +1352,7 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
             });
 
             // Then: buildOptimisticModifiedExpenseReportAction should receive the transaction's own policy,
@@ -1270,6 +1364,7 @@ describe('actions/IOU/BulkEdit', () => {
                 expect.anything(),
                 expect.anything(),
                 expect.objectContaining({id: transactionPolicy.id}),
+                undefined,
                 expect.anything(),
             );
 
@@ -1329,6 +1424,7 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
             });
 
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
@@ -1398,6 +1494,7 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
             });
 
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
@@ -1463,6 +1560,7 @@ describe('actions/IOU/BulkEdit', () => {
                 betas: undefined,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
             });
 
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};

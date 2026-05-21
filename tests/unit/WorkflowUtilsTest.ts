@@ -1,11 +1,14 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import {
     calculateApprovers,
     convertApprovalWorkflowToPolicyEmployees,
     convertPolicyEmployeesToApprovalWorkflows,
     getApprovalLimitDescription,
     getOpenConnectedToPolicyBusinessBankAccounts,
+    getOverLimitForwardsToDisplayName,
     mergeWorkflowMembersWithAvailableMembers,
     updateWorkflowDataOnApproverRemoval,
 } from '@src/libs/WorkflowUtils';
@@ -17,7 +20,8 @@ import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import createRandomPolicy from '../utils/collections/policies';
-import {buildPersonalDetails, localeCompare} from '../utils/TestHelper';
+import {buildPersonalDetails, localeCompare, translateLocal} from '../utils/TestHelper';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const personalDetails: PersonalDetailsList = {};
 const personalDetailsByEmail: PersonalDetailsList = {};
@@ -227,8 +231,8 @@ describe('WorkflowUtils', () => {
             const approvers = calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail});
 
             expect(approvers).toEqual([
-                buildApprover(1, {forwardsTo: '2@example.com', approvalLimit: 50000, overLimitForwardsTo: '3@example.com'}),
-                buildApprover(2, {approvalLimit: 100000, overLimitForwardsTo: '3@example.com'}),
+                buildApprover(1, {forwardsTo: '2@example.com', approvalLimit: 50000, overLimitForwardsTo: '3@example.com', overLimitForwardsToDisplayName: '3@example.com User'}),
+                buildApprover(2, {approvalLimit: 100000, overLimitForwardsTo: '3@example.com', overLimitForwardsToDisplayName: '3@example.com User'}),
             ]);
         });
 
@@ -245,6 +249,33 @@ describe('WorkflowUtils', () => {
             const approvers = calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail});
 
             expect(approvers).toEqual([buildApprover(1, {approvalLimit: null, overLimitForwardsTo: ''})]);
+        });
+    });
+
+    describe('getOverLimitForwardsToDisplayName', () => {
+        it('Should return undefined when overLimitForwardsTo is undefined', () => {
+            expect(getOverLimitForwardsToDisplayName(undefined, personalDetailsByEmail)).toBeUndefined();
+        });
+
+        it('Should return undefined when overLimitForwardsTo is an empty string', () => {
+            expect(getOverLimitForwardsToDisplayName('', personalDetailsByEmail)).toBeUndefined();
+        });
+
+        it('Should return the display name from personal details when available', () => {
+            expect(getOverLimitForwardsToDisplayName('2@example.com', personalDetailsByEmail)).toBe('2@example.com User');
+        });
+
+        it('Should fall back to the email when personal details are missing', () => {
+            expect(getOverLimitForwardsToDisplayName('unknown@example.com', personalDetailsByEmail)).toBe('unknown@example.com');
+        });
+
+        it('Should fall back to the email when personal details exist but displayName is missing', () => {
+            const {displayName: omittedDisplayName, ...personalDetailsWithoutDisplayNameEntry} = buildPersonalDetails('custom@example.com', 99);
+            const personalDetailsWithoutDisplayName: PersonalDetailsList = {
+                'custom@example.com': personalDetailsWithoutDisplayNameEntry,
+            };
+
+            expect(getOverLimitForwardsToDisplayName('custom@example.com', personalDetailsWithoutDisplayName)).toBe('custom@example.com');
         });
     });
 
@@ -1308,23 +1339,17 @@ describe('WorkflowUtils', () => {
     });
 
     describe('getApprovalLimitDescription', () => {
-        const mockTranslate = jest.fn((key: string, params?: Record<string, string>) => {
-            if (key === 'workflowsApprovalLimitPage.forwardLimitDescription') {
-                return `Reports above ${params?.approvalLimit} forward to ${params?.approverName}`;
-            }
-            return key;
-        });
-
         beforeEach(() => {
-            mockTranslate.mockClear();
+            IntlStore.load(CONST.LOCALES.EN);
+            return waitForBatchedUpdates();
         });
 
         it('Should return undefined when approver is undefined', () => {
             const result = getApprovalLimitDescription({
                 approver: undefined,
                 currency: 'USD',
-                translate: mockTranslate as unknown as Parameters<typeof getApprovalLimitDescription>[0]['translate'],
-                personalDetailsByEmail: {},
+                translate: translateLocal,
+                convertToDisplayString,
             });
 
             expect(result).toBeUndefined();
@@ -1336,8 +1361,8 @@ describe('WorkflowUtils', () => {
             const result = getApprovalLimitDescription({
                 approver,
                 currency: 'USD',
-                translate: mockTranslate as unknown as Parameters<typeof getApprovalLimitDescription>[0]['translate'],
-                personalDetailsByEmail: {},
+                translate: translateLocal,
+                convertToDisplayString,
             });
 
             expect(result).toBeUndefined();
@@ -1349,8 +1374,8 @@ describe('WorkflowUtils', () => {
             const result = getApprovalLimitDescription({
                 approver,
                 currency: 'USD',
-                translate: mockTranslate as unknown as Parameters<typeof getApprovalLimitDescription>[0]['translate'],
-                personalDetailsByEmail: {},
+                translate: translateLocal,
+                convertToDisplayString,
             });
 
             expect(result).toBeUndefined();
@@ -1362,8 +1387,8 @@ describe('WorkflowUtils', () => {
             const result = getApprovalLimitDescription({
                 approver,
                 currency: 'USD',
-                translate: mockTranslate as unknown as Parameters<typeof getApprovalLimitDescription>[0]['translate'],
-                personalDetailsByEmail: {},
+                translate: translateLocal,
+                convertToDisplayString,
             });
 
             expect(result).toBeUndefined();
@@ -1375,24 +1400,25 @@ describe('WorkflowUtils', () => {
             const result = getApprovalLimitDescription({
                 approver,
                 currency: 'USD',
-                translate: mockTranslate as unknown as Parameters<typeof getApprovalLimitDescription>[0]['translate'],
-                personalDetailsByEmail: {},
+                translate: translateLocal,
+                convertToDisplayString,
             });
 
             expect(result).toBe('Reports above $500.00 forward to 2@example.com');
         });
 
-        it('Should use display name from personalDetails when available', () => {
-            const approver = buildApprover(1, {approvalLimit: 100000, overLimitForwardsTo: '2@example.com'});
-            const personalDetailsWithEmail: PersonalDetailsList = {
-                '2@example.com': {accountID: 2, displayName: 'John Doe'},
-            };
+        it('Should use overLimitForwardsToDisplayName baked into the approver when available', () => {
+            const approver = buildApprover(1, {
+                approvalLimit: 100000,
+                overLimitForwardsTo: '2@example.com',
+                overLimitForwardsToDisplayName: 'John Doe',
+            });
 
             const result = getApprovalLimitDescription({
                 approver,
                 currency: 'USD',
-                translate: mockTranslate as unknown as Parameters<typeof getApprovalLimitDescription>[0]['translate'],
-                personalDetailsByEmail: personalDetailsWithEmail,
+                translate: translateLocal,
+                convertToDisplayString,
             });
 
             expect(result).toBe('Reports above $1,000.00 forward to John Doe');
