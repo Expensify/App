@@ -15,7 +15,8 @@ function getNeededDocumentsStatusForBeneficialOwner(
 ): NeededDocumentsStatusForBeneficialOwner {
     const isCopyOfIDNeeded = workspaceCurrency === CONST.CURRENCY.GBP && beneficialOwnerNationality !== CONST.COUNTRY.GB;
     // Guard against empty strings: if either country is unknown we cannot determine a mismatch, so we default to no requirement.
-    const isAddressCountryMismatch = !!beneficialOwnerAddressCountry && !!accountCountry && beneficialOwnerAddressCountry !== accountCountry;
+    // Scoped to GBP: address-country mismatch is only a KYC requirement for GBP accounts.
+    const isAddressCountryMismatch = workspaceCurrency === CONST.CURRENCY.GBP && !!beneficialOwnerAddressCountry && !!accountCountry && beneficialOwnerAddressCountry !== accountCountry;
 
     return {
         isProofOfOwnershipNeeded:

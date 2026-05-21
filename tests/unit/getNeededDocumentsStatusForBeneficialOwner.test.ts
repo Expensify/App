@@ -29,10 +29,10 @@ describe('getNeededDocumentsStatusForBeneficialOwner', () => {
             expect(result.isProofOfAddressNeeded).toBe(false);
         });
 
-        test('requires proof of address for non-GBP workspace when address country mismatches account country', () => {
-            // Mismatch should be currency-agnostic
+        test('does not require proof of address for non-GBP workspace even when address country mismatches account country', () => {
+            // Mismatch check is GBP-scoped; CAD/AUD/EUR-without-mismatch should not trigger via mismatch alone
             const result = getNeededDocumentsStatusForBeneficialOwner(CAD, GB, GB, US);
-            expect(result.isProofOfAddressNeeded).toBe(true);
+            expect(result.isProofOfAddressNeeded).toBe(false);
         });
 
         test('mismatch combined with EUR currency still requires proof of address', () => {
