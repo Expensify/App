@@ -7151,11 +7151,13 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                     }
                 }
             },
+            syncResults: {
+                title: (provider: string) => `Sincronização com ${provider} concluída`,
+                successTitle: (provider: string) => `Sua conexão com o ${provider} foi sincronizada com sucesso!`,
+            },
             gusto: {
                 title: 'Gusto',
                 syncResults: {
-                    title: 'Resultados da sincronização com Gusto',
-                    successTitle: 'Sua conexão com o Gusto foi sincronizada com sucesso!',
                     added: 'Adicionado',
                     removed: 'Removido',
                     skipped: 'Ignorado',

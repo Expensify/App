@@ -7095,11 +7095,13 @@ ${reportName}
                     }
                 }
             },
+            syncResults: {
+                title: (provider: string) => `${provider}の同期が完了しました`,
+                successTitle: (provider: string) => `${provider}との連携が正常に同期されました！`,
+            },
             gusto: {
                 title: 'Gusto',
                 syncResults: {
-                    title: 'Gusto 同期結果',
-                    successTitle: 'Gusto との連携が正常に同期されました！',
                     added: '追加済み',
                     removed: '削除済み',
                     skipped: 'スキップ済み',

@@ -7218,11 +7218,13 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     }
                 }
             },
+            syncResults: {
+                title: (provider: string) => `Synchronisation ${provider} terminée`,
+                successTitle: (provider: string) => `Votre connexion ${provider} a été synchronisée avec succès !`,
+            },
             gusto: {
                 title: 'Gusto',
                 syncResults: {
-                    title: 'Résultats de la synchronisation Gusto',
-                    successTitle: 'Connexion Gusto synchronisée avec succès !',
                     added: 'Ajouté',
                     removed: 'Supprimé',
                     skipped: 'Ignoré',

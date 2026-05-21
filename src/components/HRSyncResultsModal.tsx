@@ -16,12 +16,15 @@ import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import ScrollView from './ScrollView';
 import Text from './Text';
 
-type GustoSyncResultsModalProps = ModalProps & {
-    /** Sync result returned by the completed Gusto sync job */
+type HRSyncResultsModalProps = ModalProps & {
+    /** Sync result returned by the completed HR sync job */
     result: GustoSyncResult;
+
+    /** Human-readable display name for the HR provider (e.g. "Gusto") */
+    providerDisplayName: string;
 };
 
-function GustoSyncResultsModal({result, closeModal}: GustoSyncResultsModalProps) {
+function HRSyncResultsModal({result, providerDisplayName, closeModal}: HRSyncResultsModalProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -50,11 +53,11 @@ function GustoSyncResultsModal({result, closeModal}: GustoSyncResultsModalProps)
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <View
-                testID="GustoSyncResultsModal"
+                testID="HRSyncResultsModal"
                 style={[styles.flex1, styles.appBG]}
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.hr.gusto.syncResults.title')}
+                    title={translate('workspace.hr.syncResults.title', providerDisplayName)}
                     onBackButtonPress={closeResultsModal}
                 />
                 <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pb8]}>
@@ -65,12 +68,12 @@ function GustoSyncResultsModal({result, closeModal}: GustoSyncResultsModalProps)
                             height={68}
                         />
                     </View>
-                    <Text style={[styles.textHeadlineH1, styles.mb8]}>{translate('workspace.hr.gusto.syncResults.successTitle')}</Text>
+                    <Text style={[styles.textHeadlineH1, styles.mb8]}>{translate('workspace.hr.syncResults.successTitle', providerDisplayName)}</Text>
                     {renderResultSummary(translate('workspace.hr.gusto.syncResults.added'), addedCount)}
                     {renderResultSummary(translate('workspace.hr.gusto.syncResults.removed'), removedCount)}
                     <PressableWithoutFeedback
                         accessibilityLabel={translate('workspace.hr.gusto.syncResults.skipped')}
-                        sentryLabel="GustoSyncResultsModal-SkippedEmployees"
+                        sentryLabel="HRSyncResultsModal-SkippedEmployees"
                         role={CONST.ROLE.BUTTON}
                         onPress={() => setIsSkippedSectionExpanded((isExpanded) => !isExpanded)}
                         style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}
@@ -109,4 +112,4 @@ function GustoSyncResultsModal({result, closeModal}: GustoSyncResultsModalProps)
     );
 }
 
-export default GustoSyncResultsModal;
+export default HRSyncResultsModal;

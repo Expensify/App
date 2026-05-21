@@ -6306,11 +6306,13 @@ ${amount} para ${merchant} - ${date}`,
                     }
                 }
             },
+            syncResults: {
+                title: (provider: string) => `Sincronización de ${provider} completada`,
+                successTitle: (provider: string) => `¡Se sincronizó correctamente tu conexión con ${provider}!`,
+            },
             gusto: {
                 title: 'Gusto',
                 syncResults: {
-                    title: 'Resultados de la sincronización de Gusto',
-                    successTitle: '¡Se sincronizó correctamente tu conexión con Gusto!',
                     added: 'Añadido',
                     removed: 'Eliminado',
                     skipped: 'Omitido',

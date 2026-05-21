@@ -7189,11 +7189,13 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     }
                 }
             },
+            syncResults: {
+                title: (provider: string) => `${provider}-Synchronisierung abgeschlossen`,
+                successTitle: (provider: string) => `Ihre ${provider}-Verbindung wurde erfolgreich synchronisiert!`,
+            },
             gusto: {
                 title: 'Gusto',
                 syncResults: {
-                    title: 'Gusto-Synchronisierungsergebnisse',
-                    successTitle: 'Ihre Gusto-Verbindung wurde erfolgreich synchronisiert!',
                     added: 'Hinzugefügt',
                     removed: 'Entfernt',
                     skipped: 'Übersprungen',

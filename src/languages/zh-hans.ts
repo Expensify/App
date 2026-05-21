@@ -6968,11 +6968,13 @@ ${reportName}
                     }
                 }
             },
+            syncResults: {
+                title: (provider: string) => `${provider} 同步完成`,
+                successTitle: (provider: string) => `已成功同步你的 ${provider} 连接！`,
+            },
             gusto: {
                 title: 'Gusto',
                 syncResults: {
-                    title: 'Gusto 同步结果',
-                    successTitle: '已成功同步你的 Gusto 连接！',
                     added: '已添加',
                     removed: '已移除',
                     skipped: '已跳过',

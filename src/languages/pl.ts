@@ -7146,11 +7146,13 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                     }
                 }
             },
+            syncResults: {
+                title: (provider: string) => `Synchronizacja ${provider} zakończona`,
+                successTitle: (provider: string) => `Pomyślnie zsynchronizowano Twoje połączenie z ${provider}!`,
+            },
             gusto: {
                 title: 'Gusto',
                 syncResults: {
-                    title: 'Wyniki synchronizacji Gusto',
-                    successTitle: 'Pomyślnie zsynchronizowano Twoje połączenie z Gusto!',
                     added: 'Dodano',
                     removed: 'Usunięto',
                     skipped: 'Pominięto',

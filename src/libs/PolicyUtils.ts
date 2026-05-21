@@ -1913,21 +1913,21 @@ function getHRConnectionNames(): HRConnectionName[] {
     return [...CONST.POLICY.CONNECTIONS.HR_CONNECTION_NAMES];
 }
 
-function isGustoConnected(policy?: OnyxEntry<Policy>) {
+function isGustoConnected(policy?: OnyxEntry<Pick<Policy, 'connections'>>) {
     return !!policy?.connections?.gusto;
 }
 
-function isZenefitsConnected(policy?: OnyxEntry<Policy>) {
+function isZenefitsConnected(policy?: OnyxEntry<Pick<Policy, 'connections'>>) {
     return !!policy?.connections?.zenefits;
 }
 
 /** Returns true if the policy has a Merge HR integration connected. */
-function isMergeHRConnected(policy?: OnyxEntry<Policy>): boolean {
+function isMergeHRConnected(policy?: OnyxEntry<Pick<Policy, 'connections'>>): boolean {
     return !!policy?.connections?.merge_hris;
 }
 
 /** Returns display info for the HR provider currently connected to the policy (Gusto, Zenefits, or Merge HR), or null if none are connected. */
-function getConnectedHRProvider(policy?: OnyxEntry<Policy>): HRProviderInfo | null {
+function getConnectedHRProvider(policy?: OnyxEntry<Pick<Policy, 'connections'>>): HRProviderInfo | null {
     if (isGustoConnected(policy)) {
         return {
             connectionName: CONST.POLICY.CONNECTIONS.NAME.GUSTO,

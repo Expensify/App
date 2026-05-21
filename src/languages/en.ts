@@ -6493,11 +6493,13 @@ const translations = {
                     }
                 }
             },
+            syncResults: {
+                title: (provider: string) => `${provider} sync complete`,
+                successTitle: (provider: string) => `Successfully synced your ${provider} connection!`,
+            },
             gusto: {
                 title: 'Gusto',
                 syncResults: {
-                    title: 'Gusto sync results',
-                    successTitle: 'Successfully synced your Gusto connection!',
                     added: 'Added',
                     removed: 'Removed',
                     skipped: 'Skipped',
