@@ -7354,6 +7354,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
             return `${newValue ? 'ativado' : 'desativado'} a taxa de ${customUnitName} "${customUnitRateName}"`;
         },
+        renamedCustomUnitRate: (customUnitName, oldRateName, newRateName) => `renomeou a taxa de ${customUnitName} "${oldRateName}" para "${newRateName}"`,
         deleteCustomUnitRate: (customUnitName: string, rateName: string) => `removeu a taxa "${rateName}" da unidade personalizada "${customUnitName}"`,
         updateReportFieldDefaultValue: (defaultValue?: string, fieldName?: string) => `definir o valor padrão do campo de relatório "${fieldName}" como "${defaultValue}"`,
         addedReportFieldOption: (fieldName: string, optionName: string) => `adicionou a opção "${optionName}" ao campo de relatório "${fieldName}"`,
