@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
@@ -14,7 +14,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
 import type {ListItem} from '@components/SelectionList/types';
-import WorkspaceCategoriesTable, {WorkspaceCategoryTableRowData} from '@components/Tables/WorkspaceCategoriesTable';
+import {TableHandle} from '@components/Table';
+import WorkspaceCategoriesTable, {WorkspaceCategoryTableColumnKey, WorkspaceCategoryTableRowData} from '@components/Tables/WorkspaceCategoriesTable';
 import Text from '@components/Text';
 import useAutoTurnSelectionModeOffWhenHasNoActiveOption from '@hooks/useAutoTurnSelectionModeOffWhenHasNoActiveOption';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
@@ -65,6 +66,7 @@ type WorkspaceCategoriesPageProps =
     | PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT>;
 
 function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
+    const tableRef = useRef<TableHandle<WorkspaceCategoryTableRowData, WorkspaceCategoryTableColumnKey, string>>(null);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
@@ -128,7 +130,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const cleanupSelectedOption = useCallback(() => setSelectedCategoryNames([]), []);
+    const cleanupSelectedOption = useCallback(() => tableRef.current?.clearSelection(), []);
     useCleanupSelectedOptions(cleanupSelectedOption);
 
     useEffect(() => {
@@ -160,7 +162,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     }, [policyCategories]);
 
     useSearchBackPress({
-        onClearSelection: () => setSelectedCategoryNames([]),
+        onClearSelection: () => tableRef.current?.clearSelection(),
         onNavigationCallBack: () => Navigation.goBack(backTo),
     });
 
@@ -322,8 +324,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             );
         }
 
-        setSelectedCategoryNames([]);
+        tableRef.current?.clearSelection();
     };
+
     const hasVisibleCategories = categoryRows.some((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
     const policyHasAccountingConnections = hasAccountingConnections(policy);
@@ -458,7 +461,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             showCannotDeleteOrDisableLastCategoryModal();
                             return;
                         }
-                        setSelectedCategoryNames([]);
+                        tableRef.current?.clearSelection();
                         setWorkspaceCategoryEnabled({
                             policyData,
                             categoriesToUpdate: categoriesToDisable,
@@ -495,7 +498,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     text: translate(disabledCategories.length === 1 ? 'workspace.categories.enableCategory' : 'workspace.categories.enableCategories'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                     onSelected: () => {
-                        setSelectedCategoryNames([]);
+                        tableRef.current?.clearSelection();
                         setWorkspaceCategoryEnabled({
                             policyData,
                             categoriesToUpdate: categoriesToEnable,
@@ -566,7 +569,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             return;
         }
 
-        setSelectedCategoryNames([]);
+        tableRef.current?.clearSelection();
     }, [setSelectedCategoryNames, isMobileSelectionModeEnabled]);
 
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
@@ -627,7 +630,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     shouldDisplayHelpButton
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
-                            setSelectedCategoryNames([]);
+                            tableRef.current?.clearSelection();
                             turnOffMobileSelectionMode();
                             return;
                         }
@@ -653,6 +656,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 )}
                 {hasVisibleCategories && !isLoading && (
                     <WorkspaceCategoriesTable
+                        ref={tableRef}
                         categories={categoryRows}
                         shouldShowApproverColumn={shouldShowApproverColumn}
                         onRowSelectionChange={handleCategorySelectionChange}

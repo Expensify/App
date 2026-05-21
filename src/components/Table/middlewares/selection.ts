@@ -19,6 +19,9 @@ export type SelectionMethods = {
 
     /** Callback to select a single row in the table */
     handleSingleRowSelection: (keyForList: string) => void;
+
+    /** Clear all of the currently selected rows in the table */
+    clearSelection: () => void;
 };
 
 export type UseSelectionResult<DataType extends TableData> = MiddlewareHookResult<DataType, SelectionMethods, TableRow<DataType>>;
@@ -57,6 +60,13 @@ export default function useSelection<DataType extends TableData>({data, onRowSel
 
             return updatedValue;
         });
+    };
+
+    /**
+     * Clear all of the currently selected keys
+     */
+    const clearSelection = () => {
+        updateSelectedKeys(() => []);
     };
 
     /**
@@ -148,6 +158,7 @@ export default function useSelection<DataType extends TableData>({data, onRowSel
             handleSelectAll,
             handleMultipleRowSelection,
             handleSingleRowSelection,
+            clearSelection,
         },
     };
 }

@@ -1,6 +1,6 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
-import Table, {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table/';
+import Table, {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table/';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {AvatarSource} from '@libs/UserAvatarUtils';
@@ -24,6 +24,8 @@ export type WorkspaceCategoryTableRowData = TableData & {
 };
 
 type WorkspaceCategoriesTableProps = {
+    ref?: React.Ref<TableHandle<WorkspaceCategoryTableRowData, WorkspaceCategoryTableColumnKey, string>> | undefined;
+
     categories: WorkspaceCategoryTableRowData[];
 
     shouldShowApproverColumn: boolean;
@@ -31,7 +33,7 @@ type WorkspaceCategoriesTableProps = {
     onRowSelectionChange: (selectedRows: WorkspaceCategoryTableRowData[]) => void;
 };
 
-export default function WorkspaceCategoriesTable({categories, shouldShowApproverColumn, onRowSelectionChange}: WorkspaceCategoriesTableProps) {
+export default function WorkspaceCategoriesTable({ref, categories, shouldShowApproverColumn, onRowSelectionChange}: WorkspaceCategoriesTableProps) {
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
@@ -101,6 +103,7 @@ export default function WorkspaceCategoriesTable({categories, shouldShowApprover
 
     return (
         <Table
+            ref={ref}
             selectionEnabled
             data={categories}
             title={translate('workspace.common.categories')}
