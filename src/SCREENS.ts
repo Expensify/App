@@ -824,6 +824,7 @@ const SCREENS = {
         DYNAMIC_CATEGORY_DEFAULT_TAX_RATE: 'Dynamic_Category_Default_Tax_Rate',
         DYNAMIC_CATEGORY_FLAG_AMOUNTS_OVER: 'Dynamic_Category_Flag_Amounts_Over',
         DYNAMIC_EXPENSE_LIMIT_TYPE_SELECTOR: 'Dynamic_Expense_Limit_Type_Selector',
+        DYNAMIC_IMPORTED_MEMBERS_ROLE: 'Dynamic_Imported_Members_Role',
         DYNAMIC_CATEGORY_DESCRIPTION_HINT: 'Dynamic_Category_Description_Hint',
         DYNAMIC_CATEGORY_APPROVER: 'Dynamic_Category_Approver',
         DYNAMIC_CATEGORY_REQUIRE_RECEIPTS_OVER: 'Dynamic_Category_Require_Receipts_Over',
