@@ -28,9 +28,9 @@ function useCopyPolicySettingsProgressModal() {
     if (currentStep === 'loading' && !hasRequestedNotification) {
         return {
             isVisible,
-            title: translate('workspace.copyPolicySettings.copyInProgressTitle'),
-            prompt: translate('workspace.copyPolicySettings.copyInProgressDescription'),
-            confirmText: translate('workspace.copyPolicySettings.letMeKnowPrompt'),
+            title: translate('workspace.copyPolicySettings.progress.copyInProgressTitle'),
+            prompt: translate('workspace.copyPolicySettings.progress.copyInProgressDescription'),
+            confirmText: translate('workspace.copyPolicySettings.progress.letMeKnowPrompt'),
             cancelText: '',
             shouldShowCancelButton: false,
             onConfirm: () => {
@@ -44,8 +44,8 @@ function useCopyPolicySettingsProgressModal() {
     if (currentStep === 'loading' && hasRequestedNotification) {
         return {
             isVisible,
-            title: translate('workspace.copyPolicySettings.conciergeNotificationTitle'),
-            prompt: translate('workspace.copyPolicySettings.conciergeNotificationDescription'),
+            title: translate('workspace.copyPolicySettings.progress.conciergeNotificationTitle'),
+            prompt: translate('workspace.copyPolicySettings.progress.conciergeNotificationDescription'),
             confirmText: translate('common.goToConcierge'),
             cancelText: translate('common.dismiss'),
             shouldShowCancelButton: true,
@@ -65,7 +65,7 @@ function useCopyPolicySettingsProgressModal() {
         return {
             isVisible,
             title: translate('common.allSet'),
-            prompt: translate('workspace.copyPolicySettings.copyCompleted'),
+            prompt: translate('workspace.copyPolicySettings.progress.copyCompleted'),
             confirmText: translate('common.done'),
             cancelText: '',
             shouldShowCancelButton: false,

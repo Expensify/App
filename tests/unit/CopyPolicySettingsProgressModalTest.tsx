@@ -111,14 +111,14 @@ describe('CopyPolicySettingsProgressModal', () => {
         it('should show copy-in-progress title and description', () => {
             renderModal();
 
-            expect(lastModalProps?.title).toBe('workspace.copyPolicySettings.copyInProgressTitle');
-            expect(lastModalProps?.prompt).toBe('workspace.copyPolicySettings.copyInProgressDescription');
+            expect(lastModalProps?.title).toBe('workspace.copyPolicySettings.progress.copyInProgressTitle');
+            expect(lastModalProps?.prompt).toBe('workspace.copyPolicySettings.progress.copyInProgressDescription');
         });
 
         it('should show "let me know" as confirm text', () => {
             renderModal();
 
-            expect(lastModalProps?.confirmText).toBe('workspace.copyPolicySettings.letMeKnowPrompt');
+            expect(lastModalProps?.confirmText).toBe('workspace.copyPolicySettings.progress.letMeKnowPrompt');
         });
 
         it('should not show cancel button', () => {
@@ -151,8 +151,8 @@ describe('CopyPolicySettingsProgressModal', () => {
                 lastModalProps?.onConfirm?.();
             });
 
-            expect(lastModalProps?.title).toBe('workspace.copyPolicySettings.conciergeNotificationTitle');
-            expect(lastModalProps?.prompt).toBe('workspace.copyPolicySettings.conciergeNotificationDescription');
+            expect(lastModalProps?.title).toBe('workspace.copyPolicySettings.progress.conciergeNotificationTitle');
+            expect(lastModalProps?.prompt).toBe('workspace.copyPolicySettings.progress.conciergeNotificationDescription');
         });
 
         it('should show go-to-concierge as confirm and dismiss as cancel', () => {
@@ -208,7 +208,7 @@ describe('CopyPolicySettingsProgressModal', () => {
             renderModal();
 
             expect(lastModalProps?.title).toBe('common.allSet');
-            expect(lastModalProps?.prompt).toBe('workspace.copyPolicySettings.copyCompleted');
+            expect(lastModalProps?.prompt).toBe('workspace.copyPolicySettings.progress.copyCompleted');
         });
 
         it('should show done as confirm text without cancel button', () => {
@@ -240,7 +240,7 @@ describe('CopyPolicySettingsProgressModal', () => {
                 lastModalProps?.onConfirm?.();
             });
 
-            expect(lastModalProps?.title).toBe('workspace.copyPolicySettings.conciergeNotificationTitle');
+            expect(lastModalProps?.title).toBe('workspace.copyPolicySettings.progress.conciergeNotificationTitle');
 
             await act(async () => {
                 await Onyx.merge(ONYXKEYS.COPY_POLICY_SETTINGS, {currentStep: 'complete'});
