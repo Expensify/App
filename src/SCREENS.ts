@@ -629,6 +629,7 @@ const SCREENS = {
             NETSUITE_IMPORT_CUSTOM_FIELD_VIEW: 'Policy_Accounting_NetSuite_Import_Custom_Field_View',
             NETSUITE_IMPORT_CUSTOM_FIELD_EDIT: 'Policy_Accounting_NetSuite_Import_Custom_Field_Edit',
             NETSUITE_IMPORT_CUSTOM_LIST_ADD: 'Policy_Accounting_NetSuite_Import_Custom_List_Add',
+            NETSUITE_IMPORT_CUSTOM_LIST_SELECTOR: 'Policy_Accounting_NetSuite_Import_Custom_List_Selector',
             NETSUITE_IMPORT_CUSTOM_SEGMENT_ADD: 'Policy_Accounting_NetSuite_Import_Custom_Segment_Add',
             NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS: 'Policy_Accounting_NetSuite_Import_CustomersOrProjects',
             NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS_SELECT: 'Policy_Accounting_NetSuite_Import_CustomersOrProjects_Select',

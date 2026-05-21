@@ -50,7 +50,6 @@ function ChooseCustomListStep({policy, onNext, isEditing, netSuiteCustomFieldFor
                 InputComponent={NetSuiteCustomListPicker}
                 inputID={INPUT_IDS.LIST_NAME}
                 policy={policy}
-                internalIDInputID={INPUT_IDS.INTERNAL_ID}
                 defaultValue={netSuiteCustomFieldFormValues[INPUT_IDS.LIST_NAME]}
             />
         </FormProvider>
