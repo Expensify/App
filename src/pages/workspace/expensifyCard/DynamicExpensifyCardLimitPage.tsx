@@ -68,7 +68,7 @@ function DynamicExpensifyCardLimitPage({route}: DynamicExpensifyCardLimitPagePro
     };
 
     const goBack = useCallback(() => {
-        Navigation.goBack(backPath);
+        Navigation.goBack(backPath, {compareParams: false});
     }, [backPath]);
 
     const updateCardLimit = (newLimit: number) => {
