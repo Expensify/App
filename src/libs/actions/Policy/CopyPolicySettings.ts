@@ -289,7 +289,7 @@ function copyPolicySettings(
     const {optimisticData, successData, failureData} = buildCopyPolicySettingsData(sourcePolicy, targetPolicies, parts, allPolicyCategories, allPolicyTags);
 
     const params: CopyPolicySettingsParams = {
-        sourcePolicyID: sourcePolicy.id,
+        policyID: sourcePolicy.id,
         policyIDList: targetPolicies.map((policy) => policy.id).join(','),
         parts: parts.join(','),
     };
