@@ -29,7 +29,7 @@ function MergeHRFinalApproverPage({
         >
             <ScreenWrapper testID="MergeHRFinalApproverPage">
                 <HeaderWithBackButton
-                    title={translate('workspace.hr.merge.finalApprover')}
+                    title={translate('workspace.hr.finalApprover')}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
             </ScreenWrapper>
