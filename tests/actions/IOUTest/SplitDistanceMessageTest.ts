@@ -286,6 +286,7 @@ describe('split distance system message', () => {
 
         const {params} = getUpdateMoneyRequestParams({
             transactionID: TRANSACTION_ID,
+            delegateAccountID: undefined,
             transactionThreadReport,
             iouReport,
             transactionChanges: {
@@ -317,6 +318,7 @@ describe('split distance system message', () => {
 
         const {params, onyxData} = getUpdateMoneyRequestParams({
             transactionID: TRANSACTION_ID,
+            delegateAccountID: undefined,
             transactionThreadReport,
             iouReport,
             transactionChanges: {
@@ -354,6 +356,7 @@ describe('split distance system message', () => {
 
         const {params} = getUpdateMoneyRequestParams({
             transactionID: TRANSACTION_ID,
+            delegateAccountID: undefined,
             transactionThreadReport,
             iouReport,
             transactionChanges: {
@@ -384,6 +387,7 @@ describe('split distance system message', () => {
 
         const {params} = getUpdateMoneyRequestParams({
             transactionID: TRANSACTION_ID,
+            delegateAccountID: undefined,
             transactionThreadReport,
             iouReport,
             transactionChanges: {

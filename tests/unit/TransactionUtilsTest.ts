@@ -115,6 +115,67 @@ describe('TransactionUtils', () => {
         return waitForBatchedUpdates();
     });
 
+    describe('hasSubmissionBlockingViolationInReport', () => {
+        it('returns true when another report transaction has a submission-blocking violation and the optimistic transaction only has non-blocking violations', () => {
+            const transactionWithBlockingViolation = generateTransaction({
+                transactionID: 'transaction-with-blocking-violation',
+                reportID: FAKE_OPEN_REPORT_ID,
+            });
+            const optimisticTransaction = generateTransaction({
+                transactionID: 'optimistic-transaction',
+                reportID: FAKE_OPEN_REPORT_ID,
+            });
+            const transactionViolations: OnyxCollection<TransactionViolation[]> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionWithBlockingViolation.transactionID}`]: [
+                    {
+                        name: CONST.VIOLATIONS.SMARTSCAN_FAILED,
+                        type: CONST.VIOLATION_TYPES.WARNING,
+                    },
+                ],
+            };
+            const optimisticViolations: TransactionViolation[] = [
+                {
+                    name: CONST.VIOLATIONS.MISSING_TAG,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                },
+            ];
+
+            const result = TransactionUtils.hasSubmissionBlockingViolationInReport(
+                [transactionWithBlockingViolation, optimisticTransaction],
+                transactionViolations,
+                optimisticTransaction.transactionID,
+                optimisticViolations,
+            );
+
+            expect(result).toBe(true);
+        });
+
+        it('uses optimistic violations for the updated transaction instead of stale Onyx violations', () => {
+            const optimisticTransaction = generateTransaction({
+                transactionID: 'optimistic-transaction',
+                reportID: FAKE_OPEN_REPORT_ID,
+            });
+            const transactionViolations: OnyxCollection<TransactionViolation[]> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${optimisticTransaction.transactionID}`]: [
+                    {
+                        name: CONST.VIOLATIONS.NO_ROUTE,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                    },
+                ],
+            };
+            const optimisticViolations: TransactionViolation[] = [
+                {
+                    name: CONST.VIOLATIONS.MISSING_TAG,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                },
+            ];
+
+            const result = TransactionUtils.hasSubmissionBlockingViolationInReport([optimisticTransaction], transactionViolations, optimisticTransaction.transactionID, optimisticViolations);
+
+            expect(result).toBe(false);
+        });
+    });
+
     describe('getCreated', () => {
         describe('when the transaction property "modifiedCreated" has value', () => {
             const transaction = generateTransaction({
