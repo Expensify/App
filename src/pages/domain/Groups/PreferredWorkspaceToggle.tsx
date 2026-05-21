@@ -118,7 +118,7 @@ function PreferredWorkspaceToggle({domainAccountID, groupID}: PreferredWorkspace
                         title={preferredPolicyName}
                         shouldShowRightIcon
                         onPress={() => Navigation.navigate(ROUTES.DOMAIN_SECURITY_GROUPS_PREFERRED_WORKSPACE.getRoute(domainAccountID, groupID))}
-                        disabled={!isEnabled}
+                        disabled={!isEnabled || (!hasAdminPolicies && !!preferredPolicyName)}
                     />
                 </OfflineWithFeedback>
             )}
