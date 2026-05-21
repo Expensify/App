@@ -261,6 +261,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reset: 'リセット',
         done: '完了',
         more: 'その他',
+        other: 'その他',
         debitCard: 'デビットカード',
         bankAccount: '銀行口座',
         personalBankAccount: '個人銀行口座',
@@ -941,8 +942,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 personalSubtitle: 'ウォレット',
             },
         },
-        assignedCards: 'お客様の Expensify カード',
-        assignedCardsRemaining: ({amount}: {amount: string}) => `残額：${amount}`,
         announcements: 'お知らせ',
         discoverSection: {
             title: '発見',
@@ -1021,6 +1020,12 @@ const translations: TranslationDeepObject<typeof en> = {
             linkCompanyCards: '会社カードを連携',
             setupRules: '支出ルールを設定',
             inviteAccountant: '会計士を招待',
+        },
+        yourSpend: {
+            title: 'あなたの支出',
+            awaitingApproval: '承認待ち',
+            repaidLast30Days: '過去30日間に返済済み',
+            recentTransactions: ({lastFour}: {lastFour: string}) => `最近の取引 • ${lastFour}`,
         },
     },
     allSettingsScreen: {
@@ -2511,6 +2516,11 @@ ${date} の ${merchant} への ${amount}`,
         frozenByAdminNeedsUnfreeze: ({person}: {person: string}) => `このカードは${person}によって一時停止されました。解除するには管理者に連絡してください。`,
         spendRules: '支出ルール',
         editSpendRules: '支出ルールを編集',
+        cardUnblocked: 'カードのブロックを解除しました！',
+        cardUnblockedDescription: '次回お買い物をされる際に、カードをリーダーに挿入するよう求められる場合があります。',
+        pinBlocked: '暗証番号の誤入力が続いたため、カードをブロックしました。',
+        unblock: 'ブロック解除',
+        unblockCard: 'カードのブロックを解除',
     },
     workflowsPage: {
         workflowTitle: '支出',
@@ -2977,6 +2987,8 @@ ${date} の ${merchant} への ${amount}`,
             title: '勤務用メールアドレスを追加できませんでした',
             subtitle: (workEmail: string | undefined) =>
                 `${workEmail} を追加できませんでした。後で「設定」からもう一度お試しいただくか、ガイダンスについて Concierge にチャットでお問い合わせください。`,
+            workAccountClosedSubtitle:
+                'このメールアドレスに関連付けられている業務用アカウントは停止されています。再有効化するには会社の管理者にご連絡いただくか、別のメールアドレスでサインアップしてください。',
         },
         tasks: {
             testDriveAdminTask: {
@@ -6653,6 +6665,56 @@ ${reportName}
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>人事システム連携は、<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり、1か月ごと。`}からのControlプランでのみご利用いただけます</muted-text>`,
             },
+            approvalSubmit: {
+                title: '承認',
+                description: '承認機能を有効にして、全メンバーの提出先を一括設定しましょう。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>承認機能は、Collect プランおよび Control プランで利用できます。料金は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からです。</muted-text>`,
+            },
+            companyCardSubmit: {
+                title: '会社カード',
+                description: `お使いの会社カードをExpensifyに連携して、自動取込、自動分類、カスタマイズ可能なルール設定、そして統合された照合機能を利用しましょう。`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>会社カードのインポートは、Collect プランと Control プランで利用できます。料金は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からです。</muted-text>`,
+            },
+            travelSubmit: {
+                title: 'Expensify トラベル',
+                description: 'Expensify から世界中の割引航空券、ホテル、レンタカー、列車を予約し、デューティ・オブ・ケアレポートと経費管理を統合して利用できます。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Expensify Travel は Collect プランと Control プランで利用でき、<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からご利用いただけます</muted-text>`,
+            },
+            roles: {
+                title: 'ロール',
+                description: 'メンバーごとに異なるロールを割り当て、必要に応じて閲覧権限や管理権限を増減させましょう。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>ロールは、Collect および Control プランで利用できます。<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からご利用いただけます</muted-text>`,
+            },
+            payments: {
+                title: '支払い',
+                description: '従業員への精算を、事業用銀行口座から直接行います。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>支払い機能は、Collect プランおよび Control プランで利用できます。料金は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からです</muted-text>`,
+            },
+            accounting: {
+                title: '会計',
+                description: '会計システムからExpensifyへカテゴリ、タグ、税率などを同期し、経費レポートやカード取引をエクスポートできます。手入力も、入力ミスの心配も不要です！',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>会計機能は Collect プランと Control プランでご利用いただけます。<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`}からご利用可能です</muted-text>`,
+            },
+            expensifyCard: {
+                title: 'Expensify カード',
+                description:
+                    '自社の銀行口座から（バーチャルカードを含む）コーポレートカードを直接発行し、途切れない連携によるリアルタイムな支出管理と、最大2%のキャッシュバックを手に入れましょう！',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Expensify Card は Collect プランと Control プランでご利用いただけます。料金は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からです。</muted-text>`,
+                upgradeButton: 'アップグレードして有効化',
+            },
+            invoicing: {
+                title: '請求書発行',
+                description: 'Expensify 内でプロ仕様の請求書を作成・送信・追跡。統合された支払い機能とリアルタイムの可視性で、より早く入金を受けましょう。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>請求書発行機能は、Collect プランと Control プランでご利用いただけます。<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`}からご利用可能です。</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -6986,8 +7048,32 @@ ${reportName}
         },
         hr: {
             title: '人事',
+            connections: '接続',
             subtitle: '人事ツールを連携して、従業員の承認を常に同期させます。',
-            settingsTitle: 'Gusto 設定',
+            connect: '接続',
+            syncNow: '今すぐ同期',
+            disconnect: '切断',
+            disconnectTitle: (providerName: string) => `${providerName}を切断`,
+            disconnectPrompt: (providerName: string) => `${providerName}を切断してもよろしいですか？`,
+            lastSync: (relativeDate: string) => `最終同期: ${relativeDate}`,
+            syncError: (providerName: string) => `${providerName}に接続できません`,
+            connectionDescription: (providerName: string) => `${providerName}を接続して、従業員の承認をワークスペースと同期させましょう。`,
+            approvalMode: '承認モード',
+            finalApprover: '最終承認者',
+            notSet: '未設定',
+            approvalModeDescription: (providerName: string) => `メンバーとマネージャーは ${providerName} と同期するように設定されています。`,
+            approvalModeWarningTitle: '承認モードを変更しますか？',
+            approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
+                `このワークスペースの承認モードを変更してもよろしいですか？${providerName} 対応の各ワークフローモードについては、<a href="${helpSiteURL}">ヘルプサイト</a>で詳しくご覧いただけます。`,
+            approvalModeWarningConfirm: '承認モードを変更',
+            approvalModes: {
+                basic: {label: '基本承認', description: 'すべてのユーザーは、処理と承認のために 1 人の担当者に提出します。'},
+                manager: {
+                    label: 'マネージャー承認',
+                    description: (providerName: string) => `従業員は、${providerName} で設定された直属のマネージャーにレポートを提出します。`,
+                },
+                custom: {label: 'カスタム承認', description: 'Expensify で承認ワークフローを手動で設定します。'},
+            },
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
                     case 'gustoSyncTitle':
@@ -7011,27 +7097,6 @@ ${reportName}
             },
             gusto: {
                 title: 'Gusto',
-                approvalMode: '承認モード',
-                finalApprover: '最終承認者',
-                notSet: '未設定',
-                approvalModeDescription: 'メンバーとマネージャーは Gusto と同期するように設定されています。',
-                approvalModeWarningTitle: '承認モードを変更しますか？',
-                approvalModeWarningPrompt: (helpSiteURL: string) =>
-                    `このワークスペースの承認モードを変更してもよろしいですか？Gusto 対応の各ワークフローモードについては、<a href="${helpSiteURL}">ヘルプサイト</a>で詳しくご覧いただけます。`,
-                approvalModeWarningConfirm: '承認モードを変更',
-                approvalModes: {
-                    basic: {label: '基本承認', description: 'すべてのユーザーは、処理と承認のために 1 人の担当者に提出します。'},
-                    manager: {label: 'マネージャー承認', description: '従業員は、Gusto で設定された直属のマネージャーにレポートを提出します。'},
-                    custom: {label: 'カスタム承認', description: 'Expensify で承認ワークフローを手動で設定します。'},
-                },
-                connect: '接続',
-                connectionDescription: 'Gusto を接続して、従業員の承認をワークスペースと同期させましょう。',
-                syncNow: '今すぐ同期',
-                disconnect: '切断',
-                lastSync: (relativeDate: string) => `最終同期：${relativeDate}`,
-                syncError: 'Gusto に接続できません',
-                disconnectTitle: 'Gusto の接続を解除',
-                disconnectPrompt: 'Gusto との接続を本当に解除しますか？',
                 syncResults: {
                     title: 'Gusto 同期結果',
                     successTitle: 'Gusto との連携が正常に同期されました！',
@@ -7044,33 +7109,8 @@ ${reportName}
                     }),
                 },
             },
-            merge: {
-                approvalMode: '承認モード',
-                finalApprover: '最終承認者',
-            },
             zenefits: {
                 title: 'TriNet',
-                connect: '接続',
-                syncNow: '今すぐ同期',
-                disconnect: '切断する',
-                lastSync: (relativeDate: string) => `最終同期日時：${relativeDate}`,
-                syncError: 'TriNet に接続できません',
-                disconnectTitle: 'TriNet の接続を解除',
-                disconnectPrompt: 'TriNet との接続を解除してもよろしいですか？',
-                connectionDescription: 'TriNet を接続して、従業員の承認をワークスペースと同期させましょう。',
-                approvalMode: '承認モード',
-                finalApprover: '最終承認者',
-                notSet: '未設定',
-                approvalModeDescription: 'メンバーとマネージャーは TriNet と同期するように設定されています。',
-                approvalModeWarningTitle: '承認モードを変更しますか？',
-                approvalModeWarningPrompt: (helpSiteURL: string) =>
-                    `このワークスペースの承認モードを本当に変更してもよろしいですか？TriNet に対応した各種ワークフローモードの詳細は、<a href="${helpSiteURL}">ヘルプサイト</a>をご覧ください。`,
-                approvalModeWarningConfirm: '承認モードを変更',
-                approvalModes: {
-                    basic: {label: '基本承認', description: 'すべてのユーザーが、処理と承認のために 1 人の担当者へ経費を提出します。'},
-                    manager: {label: 'マネージャー承認', description: '従業員は、TriNet で設定された直属のマネージャーにレポートを提出します。'},
-                    custom: {label: 'カスタム承認', description: 'Expensify で承認ワークフローを手動で設定します。'},
-                },
             },
         },
     },
