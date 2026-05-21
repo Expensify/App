@@ -6,6 +6,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -61,7 +62,9 @@ function DeviceManagementPage() {
                 title={translate('deviceManagementPage.title')}
                 onBackButtonPress={Navigation.goBack}
             />
-            <Text style={[styles.ph5, styles.pv3]}>{translate('deviceManagementPage.description')}</Text>
+            <View style={[styles.ph5, styles.pv3]}>
+                <RenderHTML html={translate('deviceManagementPage.description')} />
+            </View>
             <FlashList
                 data={logins}
                 renderItem={renderItem}

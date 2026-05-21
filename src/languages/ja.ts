@@ -2192,7 +2192,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     deviceManagementPage: {
         title: 'デバイス管理',
-        description: 'Expensifyアカウントでログインしたすべてのデバイスを管理します。',
+        description:
+            'Expensifyアカウントでログインしたすべてのデバイスを管理します。<a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">詳細はこちら</a>',
         revoke: '取り消す',
         unknownDevice: '不明なデバイス',
     },
