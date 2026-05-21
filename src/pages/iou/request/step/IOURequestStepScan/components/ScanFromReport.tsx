@@ -4,7 +4,7 @@ import {useFullScreenLoaderActions} from '@components/FullScreenLoaderContext';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useFilesValidation from '@hooks/useFilesValidation';
-import {pregenerateThumbnail} from '@hooks/useLocalReceiptThumbnail';
+import {precacheReceiptImage} from '@hooks/useLocalReceiptThumbnail';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import {navigateToConfirmationPage} from '@libs/IOUUtils';
@@ -101,7 +101,7 @@ function ScanFromReport({report, iouType, reportID, transactionID, transaction, 
                     }
                     // Pre-warm the thumbnail cache before navigating so the confirm page
                     // doesn't flash an un-thumbnail receipt.
-                    pregenerateThumbnail(source).then(() => processReceipts([file]));
+                    precacheReceiptImage(source).then(() => processReceipts([file]));
                 }}
                 onPicked={validateFiles}
                 onAttachmentPickerStatusChange={setIsLoaderVisible}

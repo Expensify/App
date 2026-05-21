@@ -5,7 +5,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useFilesValidation from '@hooks/useFilesValidation';
-import {pregenerateThumbnail} from '@hooks/useLocalReceiptThumbnail';
+import {precacheReceiptImage} from '@hooks/useLocalReceiptThumbnail';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
@@ -142,7 +142,7 @@ function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backTo
                     }
                     // Pre-warm the thumbnail cache before navigating so the confirm page
                     // doesn't flash an un-thumbnail receipt.
-                    pregenerateThumbnail(source).then(() => processReceipts([file]));
+                    precacheReceiptImage(source).then(() => processReceipts([file]));
                 }}
                 onPicked={validateFiles}
                 onAttachmentPickerStatusChange={setIsLoaderVisible}
