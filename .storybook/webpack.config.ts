@@ -73,7 +73,9 @@ const webpackConfig = async ({config}: {config: Configuration}) => {
             definePlugin.definitions.__REACT_WEB_CONFIG__ = JSON.stringify(env);
         }
     }
+
     config.resolve.extensions = custom.resolve.extensions;
+    config.resolve.fallback = custom.resolve.fallback;
 
     const babelRulesIndex = custom.module.rules.findIndex((rule) => rule.loader === 'babel-loader');
     const babelRule = custom.module.rules.at(babelRulesIndex);
