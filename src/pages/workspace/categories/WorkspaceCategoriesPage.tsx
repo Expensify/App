@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
@@ -430,9 +429,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             );
         }
 
-        InteractionManager.runAfterInteractions(() => {
-            setSelectedCategories([]);
-        });
+        setSelectedCategories([]);
     };
     const hasVisibleCategories = categoryList.some((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
@@ -695,7 +692,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
                 )}
             </View>
-            {categoryList.length > CONST.SEARCH_ITEM_LIMIT && (
+            {categoryList.length >= CONST.STANDARD_LIST_ITEM_LIMIT && (
                 <SearchBar
                     label={translate('workspace.categories.findCategory')}
                     inputValue={inputValue}
@@ -786,7 +783,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 {!hasVisibleCategories && !isLoading && inputValue.length === 0 && (
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                         <GenericEmptyStateComponent
-                            // eslint-disable-next-line react/jsx-props-no-spreading
                             {...genericIllustration}
                             title={translate('workspace.categories.emptyCategories.title')}
                             subtitleText={subtitleText}

@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useMemo} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
@@ -324,10 +323,7 @@ function PolicyDistanceRatesPage({
         const transactionIDsAffected = selectedDistanceRates.flatMap((rateID) => eligibleTransactionsData?.rateIDToTransactionIDsMap?.[rateID] ?? []);
 
         deletePolicyDistanceRates(policyID, customUnit, selectedDistanceRates, transactionIDsAffected, transactionViolations);
-
-        InteractionManager.runAfterInteractions(() => {
-            setSelectedDistanceRates([]);
-        });
+        setSelectedDistanceRates([]);
     };
 
     const toggleRate = (rate: RateForList) => {
@@ -480,7 +476,7 @@ function PolicyDistanceRatesPage({
                     <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.centrallyManage')}</Text>
                 </View>
             )}
-            {Object.values(customUnitRates).length > CONST.SEARCH_ITEM_LIMIT && (
+            {Object.values(customUnitRates).length >= CONST.STANDARD_LIST_ITEM_LIMIT && (
                 <SearchBar
                     label={translate('workspace.distanceRates.findRate')}
                     inputValue={inputValue}

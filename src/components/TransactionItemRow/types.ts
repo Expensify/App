@@ -1,6 +1,7 @@
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {TransactionWithOptionalHighlight} from '@components/MoneyRequestReportView/MoneyRequestReportTransactionList';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
+import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {CardList, PersonalDetails, Policy, Report, ReportAction, TransactionViolation} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
@@ -10,7 +11,7 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
     action?: SearchTransactionAction;
 
     /** Function passed to the action button, triggered when the button is pressed */
-    onButtonPress?: () => void;
+    onButtonPress?: (event?: ModifiedMouseEvent) => void;
 
     /** The personal details of the user requesting money */
     from?: PersonalDetails;
@@ -66,19 +67,21 @@ type TransactionItemRowProps = {
     onCheckboxPress?: (transactionID: string) => void;
     shouldShowCheckbox?: boolean;
     columns?: SearchColumnType[];
-    onButtonPress?: () => void;
+    onButtonPress?: (event?: ModifiedMouseEvent) => void;
     style?: StyleProp<ViewStyle>;
     isReportItemChild?: boolean;
     isActionLoading?: boolean;
     isInSingleTransactionReport?: boolean;
     shouldShowRadioButton?: boolean;
     onRadioButtonPress?: (transactionID: string) => void;
+    radioButtonContainerStyle?: StyleProp<ViewStyle>;
+    radioButtonWrapperStyle?: StyleProp<ViewStyle>;
     shouldShowErrors?: boolean;
     shouldHighlightItemWhenSelected?: boolean;
     isDisabled?: boolean;
     violations?: TransactionViolation[];
     shouldShowBottomBorder?: boolean;
-    onArrowRightPress?: () => void;
+    onArrowRightPress?: (event?: ModifiedMouseEvent) => void;
     isHover?: boolean;
     shouldShowArrowRightOnNarrowLayout?: boolean;
     reportActions?: ReportAction[];
@@ -90,6 +93,21 @@ type TransactionItemRowProps = {
     nonPersonalAndWorkspaceCards?: CardList;
     isActionColumnWide?: boolean;
     shouldRemoveTotalColumnFlex?: boolean;
+    /** Callbacks for inline cell editing */
+    onEditDate?: (newDate: string) => void;
+    onEditMerchant?: (newMerchant: string) => void;
+    onEditDescription?: (newDescription: string) => void;
+    onEditCategory?: (newCategory: string) => void;
+    onEditAmount?: (newAmount: number) => void;
+    onEditTag?: (newTag: string) => void;
+
+    /** Per-field edit permissions — controls whether the cell shows editable affordance */
+    canEditDate?: boolean;
+    canEditMerchant?: boolean;
+    canEditDescription?: boolean;
+    canEditCategory?: boolean;
+    canEditAmount?: boolean;
+    canEditTag?: boolean;
 };
 
 /**

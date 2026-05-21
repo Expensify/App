@@ -23,6 +23,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {getUserFriendlyWorkspaceType} from '@libs/PolicyUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
@@ -90,7 +91,7 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
     disabled?: boolean;
 
     /** Callback when the row is pressed */
-    onPress?: () => void;
+    onPress?: (event?: ModifiedMouseEvent) => void;
 };
 
 type BrickRoadIndicatorIconProps = {
@@ -139,7 +140,7 @@ function WorkspacesListRow({
     const isFocused = useIsFocused();
     const isNarrow = layoutWidth === CONST.LAYOUT_WIDTH.NARROW;
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Hourglass']);
-    const illustrations = useMemoizedLazyIllustrations(['Mailbox', 'ShieldYellow']);
+    const illustrations = useMemoizedLazyIllustrations(['Mailbox', 'ShieldYellow', 'EnvelopeReceipt']);
 
     const workspaceTypeIcon = useCallback(
         (type: WorkspacesListRowProps['workspaceType']): IconAsset => {
@@ -148,11 +149,13 @@ function WorkspacesListRow({
                     return illustrations.ShieldYellow;
                 case CONST.POLICY.TYPE.TEAM:
                     return illustrations.Mailbox;
+                case CONST.POLICY.TYPE.SUBMIT:
+                    return illustrations.EnvelopeReceipt;
                 default:
                     return illustrations.Mailbox;
             }
         },
-        [illustrations.Mailbox, illustrations.ShieldYellow],
+        [illustrations.EnvelopeReceipt, illustrations.Mailbox, illustrations.ShieldYellow],
     );
 
     const ownerDetails = ownerAccountID && getPersonalDetailsByIDs({accountIDs: [ownerAccountID], currentUserAccountID: currentUserPersonalDetails.accountID}).at(0);

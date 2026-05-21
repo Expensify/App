@@ -98,6 +98,7 @@ jest.mock('@rnmapbox/maps', () => {
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
     dismissModal: jest.fn(),
     dismissModalWithReport: jest.fn(),
     goBack: jest.fn(),
@@ -4175,7 +4176,7 @@ describe('OptionsListUtils', () => {
 
                 currentUserLogin: CURRENT_USER_EMAIL,
             });
-            expect(lastMessage).toBe(Parser.htmlToText(getMovedTransactionMessage(translateLocal, movedTransactionAction, undefined)));
+            expect(lastMessage).toBe(Parser.htmlToText(getMovedTransactionMessage(translateLocal, movedTransactionAction)));
         });
         describe('SUBMITTED action', () => {
             it('should return automatic submitted message if submitted via harvesting', async () => {
@@ -5502,7 +5503,7 @@ describe('OptionsListUtils', () => {
                 reportID,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, {}, undefined);
+            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, report);
 
             expect(option.isDisabled).toBe(true);
         });
@@ -5639,10 +5640,6 @@ describe('OptionsListUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}19`, draftReport);
             await waitForBatchedUpdates();
 
-            const draftReports = {
-                '19': draftReport,
-            };
-
             const participant: Participant = {
                 reportID: '19',
                 selected: false,
@@ -5658,7 +5655,7 @@ describe('OptionsListUtils', () => {
             });
             await waitForBatchedUpdates();
 
-            const option = getReportOption(participant, !!reportNameValuePair?.private_isArchived, POLICY, {}, undefined, {}, draftReports);
+            const option = getReportOption(participant, !!reportNameValuePair?.private_isArchived, POLICY, {}, undefined, {}, draftReport);
 
             expect(option.isDisabled).toBe(true);
         });
@@ -7818,15 +7815,16 @@ describe('OptionsListUtils', () => {
         });
     });
 
-    describe('getSearchOptions with sortedActions', () => {
-        it('should forward sortedActions through getSearchOptions without errors', async () => {
-            const reportID = 'search-sorted-1';
-            const iouReportID = 'search-iou-1';
+    describe('getValidOptions with sortedActions', () => {
+        it('returns lastIOUCreationDate from the latest IOU action linked via REPORT_PREVIEW', async () => {
+            const reportID = 'gvo-sorted-1';
+            const iouReportID = 'gvo-iou-1';
+            const expectedDate = '2025-06-15 10:30:00.000';
 
             const report: Report = {
                 ...createRegularChat(Number(reportID), [1]),
                 reportID,
-                reportName: 'Search Sorted Test',
+                reportName: 'Expense Chat',
                 lastVisibleActionCreated: '2025-06-15 10:00:00.000',
                 lastActorAccountID: 1,
                 lastMessageText: 'Test',
@@ -7844,13 +7842,13 @@ describe('OptionsListUtils', () => {
             const iouAction: ReportAction = {
                 ...createRandomReportAction(2),
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                lastModified: '2025-06-15 10:30:00.000',
+                lastModified: expectedDate,
             } as ReportAction;
 
             const inputOption: SearchOption<Report> = {
                 item: report,
                 reportID,
-                text: 'Search Sorted Test',
+                text: 'Expense Chat',
                 isUnread: false,
                 participantsList: [],
                 keyForList: reportID,
@@ -7877,22 +7875,74 @@ describe('OptionsListUtils', () => {
                 [iouReportID]: [iouAction],
             };
 
-            const results = getSearchOptions({
-                options: {reports: [inputOption], personalDetails: []},
-                draftComments: {},
-                betas: [CONST.BETAS.ALL],
-                loginList,
-                policyCollection: allPolicies,
-                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserEmail: CURRENT_USER_EMAIL,
+            const results = getValidOptions({reports: [inputOption], personalDetails: []}, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
+                includeRecentReports: true,
+                includeMultipleParticipantReports: true,
+                action: CONST.IOU.ACTION.CREATE,
                 sortedActions,
-                conciergeReportID: undefined,
             });
 
             expect(results.recentReports.length).toBe(1);
+            expect(results.recentReports.at(0)?.lastIOUCreationDate).toBe(expectedDate);
         });
 
-        it('should handle undefined sortedActions via getSearchOptions', async () => {
+        it('returns undefined lastIOUCreationDate when sortedActions has no matching IOU actions', async () => {
+            const reportID = 'gvo-sorted-2';
+
+            const report: Report = {
+                ...createRegularChat(Number(reportID), [1]),
+                reportID,
+                reportName: 'Chat with no IOU',
+                lastVisibleActionCreated: '2025-06-15 10:00:00.000',
+                lastActorAccountID: 1,
+                lastMessageText: 'Test',
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await waitForBatchedUpdates();
+
+            const commentAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            } as ReportAction;
+
+            const inputOption: SearchOption<Report> = {
+                item: report,
+                reportID,
+                text: 'Chat with no IOU',
+                isUnread: false,
+                participantsList: [],
+                keyForList: reportID,
+                isChatRoom: true,
+                policyID: '123',
+                lastMessageText: 'Test',
+                lastVisibleActionCreated: report.lastVisibleActionCreated,
+                notificationPreference: 'always',
+                accountID: 0,
+                login: '',
+                alternateText: '',
+                subtitle: '',
+                firstName: '',
+                lastName: '',
+                icons: [],
+                isSelected: false,
+                isDisabled: false,
+                brickRoadIndicator: null,
+                isBold: false,
+            };
+
+            const results = getValidOptions({reports: [inputOption], personalDetails: []}, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
+                includeRecentReports: true,
+                action: CONST.IOU.ACTION.CREATE,
+                sortedActions: {[reportID]: [commentAction]},
+            });
+
+            expect(results.recentReports.at(0)?.lastIOUCreationDate).toBeUndefined();
+        });
+    });
+
+    describe('getSearchOptions with sortedActions', () => {
+        it('should not have lastIOUCreationDate when sortedActions is undefined', async () => {
             const reportID = 'search-sorted-2';
 
             const report: Report = {

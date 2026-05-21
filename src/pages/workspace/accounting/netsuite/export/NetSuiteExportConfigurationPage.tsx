@@ -54,11 +54,10 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         return goBackFromExportConnection(shouldGoBackToSpecificRoute, backPath);
     };
 
-    const {subsidiaryList, receivableList, taxAccountsList, items, payableList} = policy?.connections?.netsuite?.options?.data ?? {};
+    const {subsidiaryList, receivableList, taxAccountsList, items} = policy?.connections?.netsuite?.options?.data ?? {};
     const selectedSubsidiary = (subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === config?.subsidiaryID);
     const selectedReceivable = receivableList?.find((account) => account.id === config?.receivableAccount);
     const selectedItem = items?.find((item) => item.id === config?.invoiceItem);
-    const travelPayableAccount = payableList?.find((account) => account.id === config?.travelInvoicingPayableAccountID);
 
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [cardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID));
@@ -137,7 +136,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         },
         {
             type: 'menuitem',
-            title: travelPayableAccount?.name,
+            title: translate(`workspace.netsuite.exportDestination.values.${CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY}.label`),
             description: translate('workspace.common.travelInvoicing'),
             onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_TRAVEL_INVOICING_CONFIGURATION.getRoute(policyID)),
             subscribedSettings: [CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT, CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_JOURNAL_POSTING_PREFERENCE],
@@ -235,7 +234,6 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
                             return (
                                 <ToggleSettingOptionRow
                                     key={rest.title}
-                                    // eslint-disable-next-line react/jsx-props-no-spreading
                                     {...rest}
                                     wrapperStyle={[styles.mv3, styles.ph5]}
                                 />
