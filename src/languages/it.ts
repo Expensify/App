@@ -6004,7 +6004,13 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 `Stai per creare e condividere ${newWorkspaceName ?? ''} con ${totalMembers ?? 0} membri dello spazio di lavoro originale.`,
             error: 'Si è verificato un errore durante la duplicazione del tuo nuovo workspace. Riprova.',
         },
-        copyPolicySettings: {error: 'Si è verificato un errore durante la copia delle impostazioni dello spazio di lavoro. Riprova.'},
+        copyPolicySettings: {
+            error: 'Si è verificato un errore durante la copia delle impostazioni dello spazio di lavoro. Riprova.',
+            title: 'Copia impostazioni',
+            selectWorkspaces: 'Seleziona gli spazi di lavoro',
+            description: 'Scegli gli spazi di lavoro a cui vuoi copiare le impostazioni, poi seleziona le impostazioni che desideri copiare.',
+            searchPlaceholder: 'Cerca spazio di lavoro',
+        },
         emptyWorkspace: {
             title: 'Non hai nessuna area di lavoro',
             subtitle: 'Tieni traccia delle ricevute, rimborsa le spese, gestisci i viaggi, invia le fatture e altro ancora.',

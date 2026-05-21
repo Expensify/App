@@ -6036,6 +6036,10 @@ const translations = {
         },
         copyPolicySettings: {
             error: 'An error occurred while copying workspace settings. Please try again.',
+            title: 'Copy settings',
+            selectWorkspaces: 'Select workspaces',
+            description: 'Choose the workspaces you want to copy settings to, then select the settings you’d like to copy.',
+            searchPlaceholder: 'Search workspaces',
         },
         emptyWorkspace: {
             title: 'No workspaces yet',

@@ -5983,7 +5983,13 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 `Você está prestes to criar e compartilhar ${newWorkspaceName ?? ''} com ${totalMembers ?? 0} membros do workspace original.`,
             error: 'Ocorreu um erro ao duplicar seu novo espaço de trabalho. Tente novamente.',
         },
-        copyPolicySettings: {error: 'Ocorreu um erro ao copiar as configurações do workspace. Tente novamente.'},
+        copyPolicySettings: {
+            error: 'Ocorreu um erro ao copiar as configurações do workspace. Tente novamente.',
+            title: 'Copiar configurações',
+            selectWorkspaces: 'Selecionar espaços de trabalho',
+            description: 'Escolha os espaços de trabalho para os quais você quer copiar as configurações e, em seguida, selecione quais configurações deseja copiar.',
+            searchPlaceholder: 'Buscar espaços de trabalho',
+        },
         emptyWorkspace: {
             title: 'Você não tem nenhum workspace',
             subtitle: 'Controle recibos, reembolse despesas, gerencie viagens, envie faturas e muito mais.',
