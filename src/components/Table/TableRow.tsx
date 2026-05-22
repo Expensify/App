@@ -69,11 +69,9 @@ export default function TableRow({
     const gridTemplateColumns = columns.map((column) => (column.width ? `${column.width}px` : '1fr')).join(' ');
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: 0,
         shouldHighlight: !!shouldAnimateInHighlight,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.transparent,
-        shouldApplyOtherStyles: true,
     });
 
     const tableRowPressableStyles = [
@@ -93,6 +91,7 @@ export default function TableRow({
         shouldUseNarrowTableLayout && !isLoading && styles.pv4,
         !shouldUseNarrowTableLayout && !isLoading && styles.pv2,
         animatedHighlightStyle,
+        isLastRow && styles.tableBottomRadius,
     ];
 
     const tableRowContentStyles = [
