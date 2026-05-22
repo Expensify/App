@@ -69,6 +69,7 @@ function WorkspaceRoomsTableRow({item, rowIndex, shouldUseNarrowTableLayout}: Wo
                     {shouldUseNarrowTableLayout && (
                         <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
                             <ReportActionAvatars
+                                noRightMarginOnSubscriptContainer
                                 reportID={item.reportID}
                                 size={CONST.AVATAR_SIZE.DEFAULT}
                             />
@@ -99,6 +100,7 @@ function WorkspaceRoomsTableRow({item, rowIndex, shouldUseNarrowTableLayout}: Wo
                         <>
                             <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
                                 <ReportActionAvatars
+                                    noRightMarginOnSubscriptContainer
                                     reportID={item.reportID}
                                     size={CONST.AVATAR_SIZE.SMALL}
                                 />

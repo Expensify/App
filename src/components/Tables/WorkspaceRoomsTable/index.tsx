@@ -6,10 +6,9 @@ import Table from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import WorkspaceRoomsTableRow from './WorkspaceRoomsTableRow';
 import type {WorkspaceRoomRowData} from './WorkspaceRoomsTableRow';
-
-const SEARCH_BAR_WIDE_MAX_WIDTH = 335;
 
 type WorkspaceRoomsTableColumnKey = 'name' | 'createdBy' | 'members' | 'actions';
 
@@ -27,7 +26,7 @@ function WorkspaceRoomsTable({rooms}: WorkspaceRoomsTableProps) {
     const columns: Array<TableColumn<WorkspaceRoomsTableColumnKey>> = [
         {key: 'name', label: translate('common.name')},
         {key: 'createdBy', label: translate('common.createdBy')},
-        {key: 'members', label: translate('common.members')},
+        {key: 'members', label: translate('common.members'), width: variables.workspaceRoomsMembersColumnWidth},
         {key: 'actions', label: '', styling: {containerStyles: [styles.justifyContentEnd, styles.pr3]}},
     ];
 
@@ -66,7 +65,7 @@ function WorkspaceRoomsTable({rooms}: WorkspaceRoomsTableProps) {
             title={translate('workspace.common.rooms')}
             keyExtractor={(row) => row.reportID}
         >
-            <View style={[styles.mh5, styles.mb3, !shouldUseNarrowTableLayout && {maxWidth: SEARCH_BAR_WIDE_MAX_WIDTH}]}>
+            <View style={[styles.searchBarMargin, styles.searchBarWidth(shouldUseNarrowTableLayout)]}>
                 <Table.SearchBar label={translate('workspace.common.findRoom')} />
             </View>
             <Table.Header />
