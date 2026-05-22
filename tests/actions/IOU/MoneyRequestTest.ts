@@ -1753,4 +1753,59 @@ describe('MoneyRequest', () => {
             await Onyx.clear();
         });
     });
+
+    describe('setMoneyRequestAmount and clearMoneyRequestAmount', () => {
+        const transactionID = 'amount-test-txn';
+
+        beforeEach(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+                transactionID,
+                amount: 0,
+                currency: 'USD',
+                comment: {},
+                iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+            });
+        });
+
+        afterEach(async () => {
+            await Onyx.clear();
+        });
+
+        it('sets isAmountSet to true when the user enters an amount', async () => {
+            const {setMoneyRequestAmount} = jest.requireActual<typeof import('@libs/actions/IOU/MoneyRequest')>('@libs/actions/IOU/MoneyRequest');
+
+            setMoneyRequestAmount(transactionID, 1500, 'USD');
+            await waitForBatchedUpdates();
+
+            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(transaction?.amount).toBe(1500);
+            expect(transaction?.currency).toBe('USD');
+            expect(transaction?.isAmountSet).toBe(true);
+        });
+
+        it('allows explicitly setting zero as a valid amount via isAmountSet', async () => {
+            const {setMoneyRequestAmount} = jest.requireActual<typeof import('@libs/actions/IOU/MoneyRequest')>('@libs/actions/IOU/MoneyRequest');
+
+            setMoneyRequestAmount(transactionID, 0, 'USD');
+            await waitForBatchedUpdates();
+
+            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(transaction?.amount).toBe(0);
+            expect(transaction?.isAmountSet).toBe(true);
+        });
+
+        it('clears isAmountSet when the user deletes the amount input', async () => {
+            const {setMoneyRequestAmount, clearMoneyRequestAmount} = jest.requireActual<typeof import('@libs/actions/IOU/MoneyRequest')>('@libs/actions/IOU/MoneyRequest');
+
+            setMoneyRequestAmount(transactionID, 2500, 'USD');
+            await waitForBatchedUpdates();
+
+            clearMoneyRequestAmount(transactionID);
+            await waitForBatchedUpdates();
+
+            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(transaction?.amount).toBe(0);
+            expect(transaction?.isAmountSet).toBe(false);
+        });
+    });
 });
