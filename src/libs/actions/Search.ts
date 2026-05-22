@@ -1269,33 +1269,6 @@ function setSearchContext(shouldShowSearchQuery: boolean) {
 }
 
 /**
- * Returns an object containing the filter values needed to reset
- * the currently applied advanced filters back to their initial state.
- *
- * - STATUS is reset to `ALL`
- * - TYPE is reset to `EXPENSE`
- * - Other filters are reset to `undefined`
- * - COLUMNS is excluded from resetting
- */
-function getAdvancedFiltersToReset(searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>) {
-    return Object.keys(searchAdvancedFiltersForm).reduce((acc, filterKey) => {
-        if (filterKey === FILTER_KEYS.STATUS) {
-            if (searchAdvancedFiltersForm[filterKey] !== CONST.SEARCH.STATUS.EXPENSE.ALL) {
-                acc[filterKey] = CONST.SEARCH.STATUS.EXPENSE.ALL;
-            }
-        } else if (filterKey === FILTER_KEYS.TYPE) {
-            if (searchAdvancedFiltersForm[filterKey] !== CONST.SEARCH.DATA_TYPES.EXPENSE) {
-                acc[filterKey] = CONST.SEARCH.DATA_TYPES.EXPENSE;
-            }
-        } else if (filterKey !== FILTER_KEYS.COLUMNS) {
-            acc[filterKey as SearchAdvancedFiltersKey] = undefined;
-        }
-
-        return acc;
-    }, {} as Partial<SearchAdvancedFiltersForm>);
-}
-
-/**
  * Clears all of the filters for a search
  * NOTE: The source of truth for search filters is the 'q' param. You should never have to clear the form values when
  * navigating to a new search url, they will get cleared on their own. You most likely do not need to use this method.
@@ -1591,7 +1564,6 @@ export {
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
     updateAdvancedFilters,
-    getAdvancedFiltersToReset,
     clearAdvancedFilters,
     setSearchContext,
     deleteSavedSearch,

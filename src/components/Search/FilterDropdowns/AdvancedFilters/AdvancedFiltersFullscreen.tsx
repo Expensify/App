@@ -9,7 +9,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getAdvancedFiltersToReset} from '@libs/actions/Search';
+import {getAdvancedFiltersToReset} from '@libs/SearchQueryUtils';
 import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
