@@ -34,7 +34,7 @@ import useRestartOnOdometerImagesFailure from '@hooks/useRestartOnOdometerImages
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setMoneyRequestBillable, setMoneyRequestReimbursable} from '@libs/actions/IOU';
+import {setMoneyRequestBillable, setMoneyRequestReimbursable} from '@libs/actions/IOU/MoneyRequest';
 import {submitWithDismissFirst} from '@libs/actions/IOU/submitWithDismissFirst';
 import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';

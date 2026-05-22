@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/refs */
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
@@ -1133,7 +1134,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     icon: expensifyIcons.ExpenseCopy,
                     value: CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE,
                     shouldCloseModalOnSelect: true,
-                    onSelected: invokeDuplicateHandler,
+                    onSelected: () => {
+                        if (defaultExpensePolicy && shouldRestrictUserBillableActions(defaultExpensePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+                            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(defaultExpensePolicy.id));
+                            return;
+                        }
+                        invokeDuplicateHandler();
+                    },
                 });
             }
 
@@ -1479,6 +1486,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE,
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
+                    if (defaultExpensePolicy && shouldRestrictUserBillableActions(defaultExpensePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(defaultExpensePolicy.id));
+                        return;
+                    }
                     if (exceedsBulkDuplicateLimit) {
                         showConfirmModal({
                             title: translate('common.duplicateExpense'),
@@ -1600,6 +1611,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         allTransactions,
         transactions,
         isBetaEnabled,
+        defaultExpensePolicy,
     ]);
 
     const handleOfflineModalClose = useCallback(() => {

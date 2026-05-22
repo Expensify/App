@@ -592,6 +592,8 @@ function updateSplitTransactions({
                     iouReportNextStep,
                     isSplitTransaction: true,
                     isOffline,
+                    // delegateAccountID: will be threaded in PR 11; buildOptimisticModifiedExpenseReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
+                    delegateAccountID: undefined,
                 });
                 if (currentSplit) {
                     currentSplit.modifiedExpenseReportActionID = params.reportActionID;
