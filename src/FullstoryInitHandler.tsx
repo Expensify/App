@@ -25,7 +25,7 @@ function FullstoryInitHandler() {
             })
             .catch((error: unknown) => {
                 Log.warn('[FullstoryInitHandler] getSessionURL failed.', {
-                    error: error instanceof Error ? error.message : 'Unknown error',
+                    error: error instanceof Error ? error.message : String(error),
                 });
             });
     }, [userMetadata]);
