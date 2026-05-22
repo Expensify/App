@@ -48,4 +48,4 @@ Yes. A member can have multiple company cards assigned. Each card’s transactio
 
 ## Can members unassign their own company cards?
 
-No. Only Workspace Admins and s can assign or reassign company cards.
+No. Only Workspace Admins and their Copilots can assign or reassign company cards.
