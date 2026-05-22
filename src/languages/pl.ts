@@ -1509,6 +1509,7 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Niektóre z tych duplikatów zostały już zatwierdzone lub opłacone.',
         reviewDuplicates: 'Przejrzyj duplikaty',
         keepAll: 'Zachowaj wszystko',
+        keepSelected: 'Zachowaj wybrane',
         noDuplicatesTitle: 'Wszystko gotowe!',
         noDuplicatesDescription: 'Nie ma tutaj zduplikowanych transakcji do sprawdzenia.',
         confirmApprove: 'Potwierdź kwotę zatwierdzenia',
@@ -4801,6 +4802,26 @@ ${amount} dla ${merchant} - ${date}`,
                 },
             },
         },
+        certinia: {
+            title: 'Certinia',
+            prerequisites: {
+                title: 'Zanim się połączysz',
+                installBundle: 'Dla połączeń FFA',
+                installBundleDescription: ({href, version}: {href: string; version: string}) =>
+                    `Zainstaluj pakiet Expensify w Salesforce, klikając ten link: <a href="${href}">Zainstaluj pakiet FFA Expensify (wersja ${version})</a>`,
+                installBundleConfirm: 'Zainstalowałem pakiet',
+                setupContacts: 'Skonfiguruj użytkownika i kontakty',
+                setupContactsBullet1:
+                    'Utwórz dla siebie zarówno użytkownika, jak i kontakt w Certinia, jeśli jeszcze nie istnieją, upewniając się, że adres e‑mail jest taki sam jak twój główny adres e‑mail w Expensify.',
+                setupContactsBullet2:
+                    'Utwórz kontakty dla każdego pracownika, który będzie składał raporty wydatków, oraz dla każdej osoby je zatwierdzającej. Upewnij się, że adres e‑mail każdego kontaktu odpowiada adresowi e‑mail na koncie Expensify pracownika.',
+                setupContactsBullet3: 'Ustaw uprawnienia dla swojego użytkownika dla każdego kontaktu/zasobu.',
+                setupContactsConfirm: 'Skonfigurowałem użytkownika i kontakty',
+                oauth: 'Zaloguj się przez Salesforce',
+                oauthDescription: 'Aby zakończyć konfigurację, musisz się zalogować przez Salesforce i Certinia.\n\nUżyj przycisku poniżej, żeby kontynuować.',
+                connectButton: 'Połącz z Certinia',
+            },
+        },
         netsuite: {
             subsidiary: 'Spółka zależna',
             subsidiarySelectDescription: 'Wybierz jednostkę zależną w NetSuite, z której chcesz zaimportować dane.',
@@ -5978,7 +5999,13 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 `Za chwilę utworzysz i udostępnisz ${newWorkspaceName ?? ''} ${totalMembers ?? 0} członkom oryginalnego obszaru roboczego.`,
             error: 'Wystąpił błąd podczas duplikowania Twojego nowego obszaru roboczego. Spróbuj ponownie.',
         },
-        copyPolicySettings: {error: 'Wystąpił błąd podczas kopiowania ustawień przestrzeni roboczej. Spróbuj ponownie.'},
+        copyPolicySettings: {
+            error: 'Wystąpił błąd podczas kopiowania ustawień przestrzeni roboczej. Spróbuj ponownie.',
+            title: 'Skopiuj ustawienia',
+            selectWorkspaces: 'Wybierz przestrzenie robocze',
+            description: 'Wybierz przestrzenie robocze, do których chcesz skopiować ustawienia, a potem zaznacz ustawienia, które chcesz skopiować.',
+            searchPlaceholder: 'Szukaj przestrzeni roboczych',
+        },
         emptyWorkspace: {
             title: 'Nie masz żadnych przestrzeni roboczych',
             subtitle: 'Śledź paragony, rozliczaj wydatki, zarządzaj podróżami, wysyłaj faktury i wiele więcej.',
@@ -6454,7 +6481,13 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             errors: {
                 rateNameRequired: 'Nazwa stawki jest wymagana',
                 existingRateName: 'Stawka za odległość o tej nazwie już istnieje',
+                nameRequired: 'Imię jest wymagane',
+                startDateMustBeBeforeEndDate: 'Data początkowa musi być wcześniejsza niż data końcowa',
+                amountRequired: 'Kwota jest wymagana',
             },
+            amountPerUnit: (unit: string) => `Kwota za ${unit}`,
+            startDate: 'Data rozpoczęcia',
+            endDate: 'Data zakończenia',
         },
         editor: {
             descriptionInputLabel: 'Opis',
@@ -6580,6 +6613,12 @@ Czy na pewno chcesz wyeksportować je ponownie?`,
                 description: `Korzystaj z automatycznej synchronizacji i ogranicz ręczne wprowadzanie danych dzięki integracji Expensify + QuickBooks Desktop. Zyskaj maksymalną wydajność dzięki dwukierunkowemu połączeniu w czasie rzeczywistym oraz kategoryzacji wydatków według klasy, pozycji, klienta i projektu.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Nasza integracja z QuickBooks Desktop jest dostępna wyłącznie w planie Control, zaczynającym się od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `na aktywnego członka miesięcznie.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
+                title: 'Certinia',
+                description: `Korzystaj z automatycznej synchronizacji i ogranicz ręczne wprowadzanie danych dzięki integracji Expensify + Certinia. Dopasuj wymiary kategoryzacji wydatków i synchronizację podatków do konfiguracji Certinia, aby uzyskać lepszą widoczność finansową.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Integracja z Certinia jest dostępna tylko w planie Control, zaczynającym się od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `na aktywnego członka miesięcznie.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Zaawansowane zatwierdzanie',
@@ -7111,6 +7150,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             syncError: (providerName: string) => `Nie można połączyć z ${providerName}`,
             connectionDescription: (providerName: string) => `Połącz ${providerName}, aby synchronizować akceptacje pracowników z Twoim miejscem pracy.`,
             approvalMode: 'Tryb zatwierdzania',
+            providerApprovalMode: (providerName: string) => `Tryb zatwierdzania ${providerName}`,
             finalApprover: 'Ostateczny zatwierdzający',
             providerFinalApprover: (providerName: string) => `Ostateczny zatwierdzający ${providerName}`,
             notSet: 'Nie ustawiono',
@@ -7148,19 +7188,19 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                     }
                 }
             },
+            syncResults: {
+                title: (provider: string) => `Synchronizacja z ${provider} zakończona`,
+                successTitle: (provider: string) => `Pomyślnie zsynchronizowano twoje połączenie z ${provider}!`,
+                added: 'Dodano',
+                removed: 'Usunięto',
+                skipped: 'Pominięto',
+                employeeCount: () => ({
+                    one: '1 pracownik',
+                    other: (count: number) => `${count} pracownicy`,
+                }),
+            },
             gusto: {
                 title: 'Gusto',
-                syncResults: {
-                    title: 'Wyniki synchronizacji Gusto',
-                    successTitle: 'Pomyślnie zsynchronizowano Twoje połączenie z Gusto!',
-                    added: 'Dodano',
-                    removed: 'Usunięto',
-                    skipped: 'Pominięto',
-                    employeeCount: () => ({
-                        one: '1 pracownik',
-                        other: (count: number) => `${count} pracownicy`,
-                    }),
-                },
             },
             zenefits: {
                 title: 'TriNet',
