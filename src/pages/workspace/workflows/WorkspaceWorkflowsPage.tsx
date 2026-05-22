@@ -543,7 +543,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                             : () => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, workflow.approvers.at(0)?.email ?? ''))
                                     }
                                     onAddAgentPress={() => handleAddAgentPress(workflow)}
-                                    canAddAgent={!shouldBlockApprovalWorkflowEditing && isPolicyAdmin && isCustomAgentBetaEnabled}
+                                    canAddAgent={!shouldBlockApprovalWorkflowEditing && isPolicyAdmin}
                                     currency={policy?.outputCurrency}
                                     isDisabled={shouldBlockApprovalWorkflowEditing}
                                 />
@@ -789,7 +789,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         delegateAccountID,
         canAccessSubmit2026Features,
         handleAddAgentPress,
-        isCustomAgentBetaEnabled,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
