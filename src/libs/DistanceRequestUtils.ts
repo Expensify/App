@@ -288,7 +288,7 @@ function getDistanceMerchant(
  */
 function getRateForP2P(currency: string, transaction: OnyxEntry<Transaction>): MileageRate {
     const defaultRate = getStoredDefaultP2PMileageRate();
-    const p2pRate: DefaultP2PMileageRate = defaultRate ?? {rate: 6700, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES};
+    const p2pRate: DefaultP2PMileageRate = defaultRate ?? {rate: 67, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES};
     const rate = getCurrency(transaction) === currency ? (transaction?.comment?.customUnit?.defaultP2PRate ?? p2pRate.rate) : p2pRate.rate;
     return {
         rate,

@@ -1820,6 +1820,9 @@ function changeTransactionsReport({
 let storedDefaultP2PMileageRate: DefaultP2PMileageRate | undefined;
 
 function getDefaultP2PMileageRate() {
+    // Reset before each fetch so a stale rate from a previous session/account can't leak
+    // through flows that call openApp without a full reload (sign-out, supportal, delegate switch).
+    storedDefaultP2PMileageRate = undefined;
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_DEFAULT_P2P_MILEAGE_RATE, null).then((response) => {
         const updates = response?.onyxData as Array<{key: string; value: unknown}> | undefined;

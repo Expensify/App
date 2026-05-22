@@ -56,6 +56,23 @@ describe('Default P2P mileage rate', () => {
 
             expect(transaction.getStoredDefaultP2PMileageRate()).toBeUndefined();
         });
+
+        it('clears a previously stored rate before refetching, so a failed/empty refetch cannot leak the old value', async () => {
+            const {api, transaction} = loadFreshModules();
+            const validResponse = {onyxData: [{key: 'defaultP2PMileageRate', value: {rate: 5500, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS}}]};
+            const spy = jest.spyOn(api, 'makeRequestWithSideEffects').mockResolvedValueOnce(validResponse as never);
+
+            transaction.getDefaultP2PMileageRate();
+            await Promise.resolve();
+            expect(transaction.getStoredDefaultP2PMileageRate()).toEqual({rate: 5500, unit: 'km'});
+
+            // Simulate an account switch where the second fetch returns nothing usable.
+            spy.mockResolvedValueOnce({onyxData: []} as never);
+            transaction.getDefaultP2PMileageRate();
+
+            // The stored rate must be cleared synchronously when the fetch starts, before any response.
+            expect(transaction.getStoredDefaultP2PMileageRate()).toBeUndefined();
+        });
     });
 
     describe('getRateForP2P', () => {
@@ -64,7 +81,8 @@ describe('Default P2P mileage rate', () => {
 
             const result = distanceRequestUtils.getRateForP2P('EUR', undefined);
 
-            expect(result).toEqual({rate: 6700, unit: 'mi', currency: CONST.CURRENCY.USD});
+            // Rate is in cents per unit (no offset), so 67 = $0.67/mile.
+            expect(result).toEqual({rate: 67, unit: 'mi', currency: CONST.CURRENCY.USD});
         });
 
         it("uses the stored rate with the caller's currency once a rate is available", async () => {
