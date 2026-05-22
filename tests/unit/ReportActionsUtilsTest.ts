@@ -2244,6 +2244,17 @@ describe('ReportActionsUtils', () => {
 
             expect(result).toBe(expectedMessage);
         });
+
+        // Guards regression #90422: when the harvest report is absent from Onyx, getReportName returns ''
+        // and the message previously rendered an empty hyperlink on screen and an empty span when copied.
+        it('should fall back to "#<reportID>" when the report name is empty', () => {
+            const reportID = '12345';
+            const expectedMessage = translateLocal('reportAction.harvestCreatedExpenseReport', `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`, `#${reportID}`);
+
+            const result = ReportActionsUtils.getHarvestCreatedExpenseReportMessage(reportID, '', translateLocal);
+
+            expect(result).toBe(expectedMessage);
+        });
     });
 
     describe('getCreatedReportForUnapprovedTransactionsMessage', () => {

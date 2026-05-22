@@ -261,6 +261,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reset: '重置',
         done: '完成',
         more: '更多',
+        other: '其他',
         debitCard: '借记卡',
         bankAccount: '银行账户',
         personalBankAccount: '个人银行账户',
@@ -924,8 +925,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 personalSubtitle: '钱包',
             },
         },
-        assignedCards: '你的 Expensify 卡',
-        assignedCardsRemaining: ({amount}: {amount: string}) => `剩余 ${amount}`,
         announcements: '公告',
         discoverSection: {
             title: '发现',
@@ -1005,6 +1004,7 @@ const translations: TranslationDeepObject<typeof en> = {
             setupRules: '设置消费规则',
             inviteAccountant: '邀请你的会计',
         },
+        yourSpend: {title: '您的支出', awaitingApproval: '等待审批', repaidLast30Days: '过去30天内已偿还', recentTransactions: ({lastFour}: {lastFour: string}) => `最近交易 • ${lastFour}`},
     },
     allSettingsScreen: {
         subscription: '订阅',
@@ -1462,6 +1462,7 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: '其中一些重复项已被批准或支付。',
         reviewDuplicates: '审核重复项',
         keepAll: '全部保留',
+        keepSelected: '保留所选项',
         noDuplicatesTitle: '全部完成！',
         noDuplicatesDescription: '这里没有需要审核的重复交易。',
         confirmApprove: '确认批准金额',
@@ -2340,8 +2341,8 @@ const translations: TranslationDeepObject<typeof en> = {
         addBankAccountToSendAndReceive: '添加银行账户以进行或接收付款。',
         addDebitOrCreditCard: '添加借记卡或信用卡',
         cardInactive: '未激活',
-        assignedCards: '已分配的卡片',
-        assignedCardsDescription: '这些银行卡的交易会自动同步。',
+        assignedCards: '卡片',
+        assignedCardsDescription: '已分配卡片的交易会自动同步。',
         expensifyCard: 'Expensify 卡',
         walletActivationPending: '我们正在审核您的信息。请几分钟后再回来查看！',
         walletActivationFailed: '很遗憾，您的钱包目前无法启用。请与 Concierge 聊天以获取进一步帮助。',
@@ -2466,6 +2467,11 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         frozenByAdminNeedsUnfreeze: ({person}: {person: string}) => `此卡已被${person}冻结。请联系管理员解冻。`,
         spendRules: '支出规则',
         editSpendRules: '编辑支出规则',
+        cardUnblocked: '卡已解除冻结！',
+        cardUnblockedDescription: '下次消费时，系统可能会提示你将银行卡插入读卡器。',
+        pinBlocked: '由于多次输入错误 PIN，您的银行卡已被停用。',
+        unblock: '取消屏蔽',
+        unblockCard: '解除卡片冻结',
     },
     workflowsPage: {
         workflowTitle: '支出',
@@ -2924,6 +2930,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         mergeBlockScreen: {
             title: '无法添加工作邮箱',
             subtitle: (workEmail: string | undefined) => `我们无法添加 ${workEmail}。请稍后在设置中重试，或与 Concierge 聊天以获取指导。`,
+            workAccountClosedSubtitle: '与此邮箱关联的工作账户已被关闭。请联系您公司的管理员以重新激活该账户，或使用其他邮箱注册。',
         },
         tasks: {
             testDriveAdminTask: {
@@ -4207,6 +4214,12 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                         return '管理员';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return '审计员';
+                    case CONST.POLICY.ROLE.CARD_ADMIN:
+                        return '卡片管理员';
+                    case CONST.POLICY.ROLE.PEOPLE_ADMIN:
+                        return '人员管理';
+                    case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
+                        return '付款管理员';
                     case CONST.POLICY.ROLE.USER:
                         return '成员';
                     default:
@@ -4236,11 +4249,14 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             budgetTypeForNotificationMessage: {tag: '标签', category: '类别'},
             policyExpenseChatName: (displayName: string) => `${displayName} 的报销费用`,
             deepDiveExpensifyCard: `<muted-text-label>Expensify 卡交易将自动导出到使用<a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">我们的集成</a>创建的“Expensify 卡负债账户”。</muted-text-label>`,
-            travelInvoicing: '将 Expensify Travel 应付导出至',
+            travelInvoicing: '将差旅开票费用导出为',
             travelInvoicingVendor: '差旅供应商',
             travelInvoicingPayableAccount: '差旅应付账户',
             hr: '人力资源',
             rooms: '房间',
+            cardAdminAlternateText: '管理工作区卡片。',
+            peopleAdminAlternateText: '管理成员和审批流程。',
+            paymentsAdminAlternateText: '管理工作流付款。',
         },
         createdForClient: {
             title: '您已为客户创建了工作区！',
@@ -4548,6 +4564,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             purchaseBill: '采购账单',
             exportDeepDiveCompanyCard: '导出的报销将作为银行交易记入下方的 Xero 银行账户，且交易日期将与您的银行对账单上的日期一致。',
             bankTransactions: '银行交易',
+            travelInvoicingDescription: '差旅费用将作为银行交易导出到下面指定的 Xero 账户。',
             xeroBankAccount: 'Xero 银行账户',
             xeroBankAccountDescription: '选择报销费用将作为银行交易入账的位置。',
             exportExpensesDescription: '报表将按照在下方选择的日期和状态导出为采购账单。',
@@ -4669,6 +4686,24 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '自付报销将在最终批准后导出',
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '自掏腰包的报销在支付时会导出',
                 },
+            },
+        },
+        certinia: {
+            title: 'Certinia',
+            prerequisites: {
+                title: '在你连接之前',
+                installBundle: '用于 FFA 连接',
+                installBundleDescription: ({href, version}: {href: string; version: string}) =>
+                    `通过点击此链接在 Salesforce 中安装 Expensify 组件包：<a href="${href}">安装 FFA Expensify 组件包（版本 ${version}）</a>`,
+                installBundleConfirm: '我已安装此捆绑包',
+                setupContacts: '设置用户和联系人',
+                setupContactsBullet1: '如果 Certinia 中尚未为你创建用户和联系人，请为自己分别创建一个用户和一个联系人，并确保其电子邮箱与你在 Expensify 中的主要邮箱一致。',
+                setupContactsBullet2: '为每位将提交报销报告的员工以及每位报销审批人创建联系人。请确保每个联系人的电子邮箱地址与该员工的 Expensify 账户中的邮箱地址一致。',
+                setupContactsBullet3: '为每位联系人/资源设置用户的权限控制。',
+                setupContactsConfirm: '我已设置用户和联系人',
+                oauth: '通过 Salesforce 登录',
+                oauthDescription: '要完成设置，您需要通过 Salesforce 和 Certinia 登录。\n\n请使用下方按钮继续。',
+                connectButton: '连接到 Certinia',
             },
         },
         netsuite: {
@@ -5815,7 +5850,13 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 `您即将创建并共享 ${newWorkspaceName ?? ''}，其中包含来自原始工作区的 ${totalMembers ?? 0} 位成员。`,
             error: '复制您的新工作区时发生错误。请重试。',
         },
-        copyPolicySettings: {error: '复制工作区设置时发生错误。请重试。'},
+        copyPolicySettings: {
+            error: '复制工作区设置时发生错误。请重试。',
+            title: '复制设置',
+            selectWorkspaces: '选择工作区',
+            description: '选择要复制设置到的工作区，然后选择你想复制的设置。',
+            searchPlaceholder: '搜索工作区',
+        },
         emptyWorkspace: {
             title: '你还没有工作区',
             subtitle: '跟踪收据、报销费用、管理差旅、发送发票等。',
@@ -6282,7 +6323,13 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             errors: {
                 rateNameRequired: '费率名称为必填项',
                 existingRateName: '已存在同名的里程费率',
+                nameRequired: '姓名为必填项',
+                startDateMustBeBeforeEndDate: '开始日期必须早于结束日期',
+                amountRequired: '金额为必填项',
             },
+            amountPerUnit: (unit: string) => `每${unit}金额`,
+            startDate: '开始日期',
+            endDate: '结束日期',
         },
         editor: {
             descriptionInputLabel: '描述',
@@ -6401,6 +6448,12 @@ ${reportName}
                 description: `通过 Expensify 与 QuickBooks Desktop 的集成，享受自动同步，减少手动录入。借助实时双向连接以及按类别、项目、客户和项目进行费用编码，实现极致效率。`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>我们的 QuickBooks Desktop 集成仅适用于 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
+                title: 'Certinia',
+                description: `通过 Expensify 与 Certinia 的集成，享受自动同步，减少手动录入。将费用编码维度与税务同步与您的 Certinia 配置对齐，以获得更清晰的财务可见性。`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>我们的 Certinia 集成仅适用于 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: '高级审批',
@@ -6526,6 +6579,55 @@ ${reportName}
                 description: '连接你的 HR 提供商，自动同步员工并管理审批流程。无需手动操作，即可保持团队成员名单和汇报结构的最新状态。',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>人力资源集成功能仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+            },
+            approvalSubmit: {
+                title: '审批',
+                description: '启用审批功能，以集中配置所有成员向谁提交。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>审批功能适用于 Collect 和 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+            },
+            companyCardSubmit: {
+                title: '公司卡枚',
+                description: `将你自己的公司卡片连接到 Expensify，可享受自动导入、自动分类、自定义规则支持以及集成对账功能。`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>公司信用卡导入功能适用于 Collect 和 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+            },
+            travelSubmit: {
+                title: 'Expensify 差旅',
+                description: '通过 Expensify 在全球预订折扣机票、酒店、租车和火车，并享受差旅关怀报告和集成费用管理。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Expensify Travel 适用于 Collect 和 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+            },
+            roles: {
+                title: '角色',
+                description: '为不同成员分配不同角色，以根据需要提高或降低可见性和控制权。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>角色可在 Collect 和 Control 方案中使用，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+            },
+            payments: {
+                title: '付款',
+                description: '直接从您的企业银行账户向员工报销。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>付款功能适用于 Collect 和 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+            },
+            accounting: {
+                title: '会计',
+                description: '从您的会计系统同步类别、标签、税率等信息到 Expensify，并导出费用报表和卡片交易记录——全程无需手动输入，也不用担心输入错误！',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>会计功能适用于 Collect 和 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+            },
+            expensifyCard: {
+                title: 'Expensify 卡',
+                description: '直接从您自己的银行账户发放公司卡（包括虚拟卡），通过牢不可破的连接实现实时消费管控，并享受最高 2% 返现！',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Expensify 卡适用于 Collect 和 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+                upgradeButton: '升级并启用',
+            },
+            invoicing: {
+                title: '开具发票',
+                description: '在 Expensify 中创建、发送并跟踪专业发票。通过集成付款和实时可见性，让收款更快捷。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>开票功能适用于 Collect 和 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
         },
         downgrade: {
@@ -6846,8 +6948,8 @@ ${reportName}
                     description: '适用于希望向雇主提交费用的员工。',
                 },
             },
-            description: '选择适合您的方案。要查看详细的功能和价格列表，请访问我们的',
-            subscriptionLink: '方案类型和价格帮助页面',
+            description: '选择适合你的方案。',
+            subscriptionLink: '了解详情',
             lockedPlanDescription: ({count, annualSubscriptionEndDate}: WorkspaceLockedPlanTypeParams) => ({
                 one: `在 Control 方案中，你已承诺在年度订阅到期（${annualSubscriptionEndDate}）前保持 1 位活跃成员。你可以在 ${annualSubscriptionEndDate} 起关闭自动续订，以改为按使用付费订阅并降级到 Collect 方案，操作入口在`,
                 other: `在年费订阅于${annualSubscriptionEndDate}结束之前，你已承诺在 Control 方案中保留 ${count} 名活跃成员。你可以在${annualSubscriptionEndDate}起，通过关闭自动续订，改为按使用量付费订阅并降级到 Collect 方案，操作入口在`,
@@ -6856,8 +6958,34 @@ ${reportName}
         },
         hr: {
             title: '人力资源',
+            connections: '连接',
             subtitle: '连接人力资源工具，保持员工审批同步。',
-            settingsTitle: 'Gusto 设置',
+            connect: '连接',
+            syncNow: '立即同步',
+            disconnect: '断开连接',
+            disconnectTitle: (providerName: string) => `断开 ${providerName}`,
+            disconnectPrompt: (providerName: string) => `确定要断开 ${providerName} 吗？`,
+            lastSync: (relativeDate: string) => `上次同步 ${relativeDate}`,
+            syncError: (providerName: string) => `无法连接到 ${providerName}`,
+            connectionDescription: (providerName: string) => `连接 ${providerName}，以在您的工作区中同步员工审批。`,
+            approvalMode: '审批模式',
+            providerApprovalMode: (providerName: string) => `${providerName} 审批模式`,
+            finalApprover: '最终审批人',
+            providerFinalApprover: (providerName: string) => `${providerName} 最终审批人`,
+            notSet: '未设置',
+            approvalModeDescription: (providerName: string) => `成员和管理员已设置为与 ${providerName} 同步。`,
+            approvalModeWarningTitle: '更改审批模式？',
+            approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
+                `您确定要更改此工作区的审批模式吗？在我们的<a href="${helpSiteURL}">帮助网站</a>中了解更多关于不同 ${providerName} 启用的工作流模式的信息。`,
+            approvalModeWarningConfirm: '更改审批模式',
+            approvalModes: {
+                basic: {label: '基本审批', description: '所有用户都提交给同一个人进行处理和审批。'},
+                manager: {
+                    label: '经理审批',
+                    description: (providerName: string) => `员工会将报销单提交给在 ${providerName} 中配置的直属经理。`,
+                },
+                custom: {label: '自定义审批', description: '我将在 Expensify 中手动设置审批工作流程。'},
+            },
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
                     case 'gustoSyncTitle':
@@ -6879,68 +7007,22 @@ ${reportName}
                     }
                 }
             },
+            syncResults: {
+                title: (provider: string) => `${provider} 同步完成`,
+                successTitle: (provider: string) => `已成功同步您的 ${provider} 连接！`,
+                added: '已添加',
+                removed: '已移除',
+                skipped: '已跳过',
+                employeeCount: () => ({
+                    one: '1 员工',
+                    other: (count: number) => `${count} 员工`,
+                }),
+            },
             gusto: {
                 title: 'Gusto',
-                approvalMode: '审批模式',
-                finalApprover: '最终审批人',
-                notSet: '未设置',
-                approvalModeDescription: '成员和管理员已设置为与 Gusto 同步。',
-                approvalModeWarningTitle: '更改审批模式？',
-                approvalModeWarningPrompt: (helpSiteURL: string) =>
-                    `您确定要更改此工作区的审批模式吗？在我们的<a href="${helpSiteURL}">帮助网站</a>中了解更多关于不同 Gusto 启用的工作流模式的信息。`,
-                approvalModeWarningConfirm: '更改审批模式',
-                approvalModes: {
-                    basic: {label: '基础审批', description: '所有用户都提交给同一个人进行处理和审批。'},
-                    manager: {label: '经理审批', description: '员工会将报销单提交给在 Gusto 中配置的直属经理。'},
-                    custom: {label: '自定义审批', description: '我将在 Expensify 中手动设置审批工作流程。'},
-                },
-                connect: '连接',
-                connectionDescription: '连接 Gusto，以在您的工作区中同步员工审批。',
-                syncNow: '立即同步',
-                disconnect: '断开连接',
-                lastSync: (relativeDate: string) => `上次同步时间：${relativeDate}`,
-                syncError: '无法连接到 Gusto',
-                disconnectTitle: '断开 Gusto',
-                disconnectPrompt: '确定要断开与 Gusto 的连接吗？',
-                syncResults: {
-                    title: 'Gusto 同步结果',
-                    successTitle: '已成功同步你的 Gusto 连接！',
-                    added: '已添加',
-                    removed: '已移除',
-                    skipped: '已跳过',
-                    employeeCount: () => ({
-                        one: '1 员工',
-                        other: (count: number) => `${count} 员工`,
-                    }),
-                },
-            },
-            merge: {
-                approvalMode: '审批模式',
-                finalApprover: '最终审批人',
             },
             zenefits: {
                 title: 'TriNet',
-                connect: '连接',
-                syncNow: '立即同步',
-                disconnect: '断开连接',
-                lastSync: (relativeDate: string) => `上次同步时间：${relativeDate}`,
-                syncError: '无法连接到 TriNet',
-                disconnectTitle: '断开 TriNet 连接',
-                disconnectPrompt: '确定要断开 TriNet 吗？',
-                connectionDescription: '连接 TriNet，将员工审批与你的工作区保持同步。',
-                approvalMode: '审批模式',
-                finalApprover: '最终审批人',
-                notSet: '未设置',
-                approvalModeDescription: '成员和管理者已设置为与 TriNet 同步。',
-                approvalModeWarningTitle: '更改审批模式？',
-                approvalModeWarningPrompt: (helpSiteURL: string) =>
-                    `您确定要更改此工作区的审批模式吗？在我们的<a href="${helpSiteURL}">帮助网站</a>中了解更多关于不同 TriNet 启用的工作流模式的信息。`,
-                approvalModeWarningConfirm: '更改审批模式',
-                approvalModes: {
-                    basic: {label: '基础审批', description: '所有用户都提交给同一个人进行处理和审批。'},
-                    manager: {label: '经理审批', description: '员工会将报销报告提交给在 TriNet 中配置的直属经理。'},
-                    custom: {label: '自定义审批', description: '我会在 Expensify 中手动设置审批流程。'},
-                },
             },
         },
     },

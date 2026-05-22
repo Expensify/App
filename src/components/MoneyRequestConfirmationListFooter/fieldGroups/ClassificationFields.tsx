@@ -42,11 +42,11 @@ type TagFieldRowProps = {
     /** ID of the originating report action when editing */
     reportActionID: string | undefined;
 
-    /** Active transaction */
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
-
     /** Form-level error message */
     formError: string;
+
+    /** Whether we're editing an existing split expense */
+    isEditingSplitBill: boolean;
 };
 
 function TagFieldRow({
@@ -60,8 +60,8 @@ function TagFieldRow({
     iouType,
     reportID,
     reportActionID,
-    transaction,
     formError,
+    isEditingSplitBill,
 }: TagFieldRowProps) {
     const policyTagList = policyTagLists.at(index);
     if (!policyTagList) {
@@ -80,8 +80,8 @@ function TagFieldRow({
             iouType={iouType}
             reportID={reportID}
             reportActionID={reportActionID}
-            transaction={transaction}
             formError={formError}
+            isEditingSplitBill={isEditingSplitBill}
         />
     );
 }
@@ -101,9 +101,6 @@ type ClassificationFieldsProps = {
 
     /** ID of the originating report action when editing */
     reportActionID: string | undefined;
-
-    /** Active transaction */
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
 
     /** Active policy */
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -152,6 +149,9 @@ type ClassificationFieldsProps = {
 
     /** Per-field visibility decisions resolved by `computeFieldVisibility` */
     fieldVisibility: Pick<FieldVisibility, 'categoryRequired' | 'categoryOptional' | 'date' | 'tagsRequired' | 'tagsOptional' | 'tax' | 'attendees'>;
+
+    /** Whether we're editing an existing split expense */
+    isEditingSplitBill: boolean;
 };
 
 function ClassificationFields({
@@ -160,7 +160,6 @@ function ClassificationFields({
     transactionID,
     reportID,
     reportActionID,
-    transaction,
     policy,
     policyForMovingExpenses,
     policyTagLists,
@@ -177,6 +176,7 @@ function ClassificationFields({
     formError,
     isCompactMode,
     fieldVisibility,
+    isEditingSplitBill,
 }: ClassificationFieldsProps) {
     const tagRowSharedProps = {
         policyTagLists,
@@ -188,8 +188,8 @@ function ClassificationFields({
         iouType,
         reportID,
         reportActionID,
-        transaction,
         formError,
+        isEditingSplitBill,
     };
 
     return (
@@ -205,10 +205,10 @@ function ClassificationFields({
                     reportID={reportID}
                     reportActionID={reportActionID}
                     policy={policy}
-                    transaction={transaction}
                     formError={formError}
                     shouldNavigateToUpgradePath={shouldNavigateToUpgradePath}
                     shouldSelectPolicy={shouldSelectPolicy}
+                    isEditingSplitBill={isEditingSplitBill}
                 />
             )}
 
@@ -222,7 +222,7 @@ function ClassificationFields({
                     iouType={iouType}
                     reportID={reportID}
                     reportActionID={reportActionID}
-                    transaction={transaction}
+                    isEditingSplitBill={isEditingSplitBill}
                 />
             )}
 
@@ -239,8 +239,8 @@ function ClassificationFields({
                     iouType={tagRowSharedProps.iouType}
                     reportID={tagRowSharedProps.reportID}
                     reportActionID={tagRowSharedProps.reportActionID}
-                    transaction={tagRowSharedProps.transaction}
                     formError={tagRowSharedProps.formError}
+                    isEditingSplitBill={tagRowSharedProps.isEditingSplitBill}
                 />
             ))}
 
@@ -258,8 +258,8 @@ function ClassificationFields({
                         iouType={tagRowSharedProps.iouType}
                         reportID={tagRowSharedProps.reportID}
                         reportActionID={tagRowSharedProps.reportActionID}
-                        transaction={tagRowSharedProps.transaction}
                         formError={tagRowSharedProps.formError}
+                        isEditingSplitBill={tagRowSharedProps.isEditingSplitBill}
                     />
                 ))}
 
@@ -267,7 +267,6 @@ function ClassificationFields({
                 <TaxFields
                     policy={policy}
                     policyForMovingExpenses={policyForMovingExpenses}
-                    transaction={transaction}
                     iouCurrencyCode={iouCurrencyCode}
                     canModifyTaxFields={canModifyTaxFields}
                     didConfirm={didConfirm}
@@ -276,6 +275,7 @@ function ClassificationFields({
                     iouType={iouType}
                     reportID={reportID}
                     formError={formError}
+                    isEditingSplitBill={isEditingSplitBill}
                 />
             )}
 
@@ -288,7 +288,6 @@ function ClassificationFields({
                     iouType={iouType}
                     reportID={reportID}
                     formError={formError}
-                    transaction={transaction}
                 />
             )}
         </>
