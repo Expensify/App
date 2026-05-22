@@ -4,7 +4,7 @@ import {Alert} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 import type {Camera, PhotoFile} from 'react-native-vision-camera';
 import useLocalize from '@hooks/useLocalize';
-import {pregenerateThumbnail} from '@hooks/useLocalReceiptThumbnail';
+import {precacheReceiptImage} from '@hooks/useLocalReceiptThumbnail';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import Log from '@libs/Log';
@@ -203,9 +203,21 @@ function useCapturePhoto({
                 }
 
                 // Fire Onyx merge immediately (non-blocking) while we await thumbnail generation.
-                // Both run in parallel — navigation proceeds once the thumbnail is cached.
+                // Limit the wait to THUMBNAIL_NAV_TIMEOUT_MS so a slow encode can't block navigation —
+                // the confirm-screen hook (`useLocalReceiptThumbnail`) generates lazily on mount as a fallback.
                 setMoneyRequestReceipt(transactionID, source, filename, !isEditing, 'image/jpeg');
-                pregenerateThumbnail(source).then(() => {
+                startSpan(CONST.TELEMETRY.SPAN_THUMBNAIL_GATE, {
+                    name: CONST.TELEMETRY.SPAN_THUMBNAIL_GATE,
+                    op: CONST.TELEMETRY.SPAN_THUMBNAIL_GATE,
+                    parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
+                });
+                Promise.race([
+                    precacheReceiptImage(source),
+                    new Promise((resolve) => {
+                        setTimeout(resolve, CONST.RECEIPT_CAMERA.THUMBNAIL_NAV_TIMEOUT_MS);
+                    }),
+                ]).then(() => {
+                    endSpan(CONST.TELEMETRY.SPAN_THUMBNAIL_GATE);
                     submitReceipts(newReceiptFiles);
                 });
             })
