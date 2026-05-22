@@ -55,6 +55,7 @@ type ReportActionsListItemRendererProps = {
 
     /** Did the user dismiss trying out NewDot? If true, it means they prefer using OldDot */
     isTryNewDotNVPDismissed: boolean | undefined;
+
     /** Whether the report is archived */
     isReportArchived: boolean;
 
