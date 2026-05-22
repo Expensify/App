@@ -678,6 +678,7 @@ function addAdminToDomain(domainAccountID: number, accountID: number, targetEmai
         targetEmail,
     };
 
+    setDomainHighlightItems(domainAccountID, 'admins', [String(accountID)]);
     API.write(WRITE_COMMANDS.ADD_DOMAIN_ADMIN, params, {optimisticData, successData, failureData});
 }
 
@@ -876,6 +877,7 @@ function addMemberToDomain(domainAccountID: number, email: string, defaultSecuri
                 [optimisticAccountID]: {
                     accountID: optimisticAccountID,
                     login: email,
+                    displayName: email,
                     isOptimisticPersonalDetail: true,
                 },
             },
@@ -979,6 +981,7 @@ function addMemberToDomain(domainAccountID: number, email: string, defaultSecuri
         domainAccountID,
     };
 
+    setDomainHighlightItems(domainAccountID, 'members', [String(optimisticAccountID)]);
     API.write(WRITE_COMMANDS.ADD_DOMAIN_MEMBER, params, {optimisticData, successData, failureData});
 }
 
@@ -2278,6 +2281,7 @@ function createDomainSecurityGroup(domainAccountID: number, newSecurityGroup: Do
         shouldSetAsDefaultGroup,
     };
 
+    setDomainHighlightItems(domainAccountID, 'groups', [groupID]);
     API.write(WRITE_COMMANDS.CREATE_DOMAIN_SECURITY_GROUP, params, {optimisticData, failureData, successData});
 }
 
@@ -2294,6 +2298,14 @@ function clearGroupCreateError(domainAccountID: number, groupID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
         [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`]: null,
     });
+}
+
+function setDomainHighlightItems(domainAccountID: number, type: 'admins' | 'members' | 'groups', items: string[]) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS}${domainAccountID}`, {[type]: items});
+}
+
+function clearDomainHighlightItems(domainAccountID: number, type: 'admins' | 'members' | 'groups') {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS}${domainAccountID}`, {[type]: null});
 }
 
 export {
@@ -2345,4 +2357,6 @@ export {
     clearDomainGroupCreatePreferredPolicyID,
     createDomainSecurityGroup,
     clearGroupCreateError,
+    setDomainHighlightItems,
+    clearDomainHighlightItems,
 };

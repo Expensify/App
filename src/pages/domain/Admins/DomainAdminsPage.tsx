@@ -1,14 +1,17 @@
+import {useIsFocused} from '@react-navigation/native';
 import {adminAccountIDsSelector, adminPendingActionSelector, domainNameSelector, technicalContactSettingsSelector} from '@selectors/Domain';
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
+import type {SelectionListHandle} from '@components/SelectionList/types';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePrevious from '@hooks/usePrevious';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,7 +20,8 @@ import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
 import BaseDomainMembersPage from '@pages/domain/BaseDomainMembersPage';
-import {clearAdminError} from '@userActions/Domain';
+import type {MemberOption} from '@pages/domain/BaseDomainMembersPage';
+import {clearAdminError, clearDomainHighlightItems} from '@userActions/Domain';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -33,10 +37,14 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const theme = useTheme();
     const illustrations = useMemoizedLazyIllustrations(['UserShield']);
     const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Plus', 'DotIndicator']);
+    const isFocused = useIsFocused();
+    const selectionListRef = useRef<SelectionListHandle<MemberOption>>(null);
 
     const [adminAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         selector: adminAccountIDsSelector,
     });
+    const prevAdminAccountIDs = usePrevious(adminAccountIDs);
+    const [highlightItems] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS}${domainAccountID}`);
 
     const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`);
 
@@ -72,6 +80,15 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
             leftHeaderText={translate('domain.admins.title')}
         />
     );
+
+    const highlightAdmins = highlightItems?.admins;
+    useEffect(() => {
+        if (!isFocused || !highlightAdmins?.length || adminAccountIDs === prevAdminAccountIDs) {
+            return;
+        }
+        selectionListRef.current?.scrollAndHighlightItem?.(highlightAdmins);
+        clearDomainHighlightItems(domainAccountID, 'admins');
+    }, [highlightAdmins, isFocused, adminAccountIDs, prevAdminAccountIDs, domainAccountID]);
 
     const hasSettingsErrors = hasDomainAdminsSettingsErrors(domainErrors);
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
@@ -111,6 +128,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
             getCustomRowProps={getCustomRowProps}
             onDismissError={(item) => clearAdminError(domainAccountID, item.accountID)}
             onSelectRow={(item) => Navigation.navigate(ROUTES.DOMAIN_ADMIN_DETAILS.getRoute(domainAccountID, item.accountID))}
+            selectionListRef={selectionListRef}
         />
     );
 }

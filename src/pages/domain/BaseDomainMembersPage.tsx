@@ -1,11 +1,11 @@
-import React from 'react';
+import React, {type RefObject} from 'react';
 import {View} from 'react-native';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchBar from '@components/SearchBar';
 import TableListItem from '@components/SelectionList/ListItem/TableListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -97,6 +97,9 @@ type BaseDomainMembersPageProps = {
 
     /** Subtitle to show in the empty state when the list has no items */
     emptyStateSubtitle?: string;
+
+    /** Ref forwarded to the inner SelectionListWithModal for scroll-and-highlight operations */
+    selectionListRef?: RefObject<SelectionListHandle<MemberOption> | null>;
 };
 
 function BaseDomainMembersPage({
@@ -121,6 +124,7 @@ function BaseDomainMembersPage({
     preFilter,
     emptyStateTitle,
     emptyStateSubtitle,
+    selectionListRef,
 }: BaseDomainMembersPageProps) {
     const {formatPhoneNumber, localeCompare, translate} = useLocalize();
     const styles = useThemeStyles();
@@ -279,6 +283,7 @@ function BaseDomainMembersPage({
                 </HeaderWithBackButton>
                 {shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.ph5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
                 <SelectionListWithModal
+                    ref={selectionListRef}
                     data={filteredData}
                     shouldShowRightCaret
                     style={{
