@@ -3,6 +3,8 @@ name: Codex review
 on:
   pull_request:
     types: [ready_for_review]
+  pull_request_target:
+    types: [ready_for_review]
   issue_comment:
     types: [created]
 
@@ -18,7 +20,13 @@ jobs:
       github.event_name == 'issue_comment'
       && github.event.issue.pull_request
       && contains(github.event.comment.body, '@Codex review')
-      && !contains(fromJSON('["OSBotify","imgbot[bot]","melvin-bot[bot]","codecov[bot]","github-actions[bot]","chatgpt-codex-connector"]'), github.actor)
+      && (
+        !contains(fromJSON('["OSBotify","imgbot[bot]","melvin-bot[bot]","codecov[bot]","chatgpt-codex-connector"]'), github.actor)
+        || (
+          github.actor == 'github-actions[bot]'
+          && github.event.comment.body == '@Codex review'
+        )
+      )
     runs-on: blacksmith-2vcpu-ubuntu-2404
     permissions:
       pull-requests: read
@@ -40,11 +48,24 @@ jobs:
             const {owner, repo} = context.repo;
             const {data: pr} = await github.rest.pulls.get({owner, repo, pull_number: prNumber});
 
+            core.setOutput('pr_number', String(prNumber));
+            core.setOutput('pr_author', pr.user.login);
+            core.setOutput('author_association', pr.author_association ?? 'NONE');
+
             const commenter = context.payload.comment.user.login;
+            const commentBody = context.payload.comment.body ?? '';
+
+            // Fork PRs are authorized in request_fork_codex before this comment is posted.
+            if (commenter === 'github-actions[bot]' && commentBody === '@Codex review') {
+              console.log('Automated @Codex review request; authorization already verified.');
+              core.setOutput('is_authorized', 'true');
+              core.setOutput('needs_gate', 'false');
+              return;
+            }
+
             const commenterAssoc = context.payload.comment.author_association ?? 'NONE';
             const hasWriteAccess = ['OWNER', 'MEMBER', 'COLLABORATOR'].includes(commenterAssoc);
 
-            // Contributor+ membership check requires read:org, which the default GITHUB_TOKEN lacks.
             const {getOctokit} = require('@actions/github');
             const cplusOctokit = getOctokit(process.env.OS_BOTIFY_TOKEN);
             let isCPlus = false;
@@ -66,9 +87,6 @@ jobs:
 
             console.log(`commenter=${commenter}, writeAccess=${hasWriteAccess}, isCPlus=${isCPlus}, needsGate=${needsGate}`);
 
-            core.setOutput('pr_number', String(prNumber));
-            core.setOutput('pr_author', pr.user.login);
-            core.setOutput('author_association', pr.author_association ?? 'NONE');
             core.setOutput('is_authorized', directAuth ? 'true' : 'false');
             core.setOutput('needs_gate', needsGate ? 'true' : 'false');
 
@@ -80,6 +98,97 @@ jobs:
       PR_NUMBER: ${{ fromJSON(needs.validate.outputs.pr_number) }}
       PR_AUTHOR: ${{ needs.validate.outputs.pr_author }}
       AUTHOR_ASSOCIATION: ${{ needs.validate.outputs.author_association }}
+
+  # Fork PRs cannot access secrets on pull_request, so we use pull_request_target to
+  # authorize the PR author and post @Codex review. This job never checks out PR code.
+  authorize_fork_author:
+    if: |
+      github.event_name == 'pull_request_target'
+      && github.event.pull_request.head.repo.fork == true
+      && github.event.pull_request.draft != true
+      && !contains(github.event.pull_request.title, 'Revert')
+      && github.actor != 'OSBotify'
+      && github.actor != 'imgbot[bot]'
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    permissions:
+      pull-requests: read
+    outputs:
+      pr_number: ${{ steps.auth.outputs.pr_number }}
+      pr_author: ${{ steps.auth.outputs.pr_author }}
+      author_association: ${{ steps.auth.outputs.author_association }}
+      is_authorized: ${{ steps.auth.outputs.is_authorized }}
+      needs_gate: ${{ steps.auth.outputs.needs_gate }}
+    steps:
+      - name: Authorize PR author
+        id: auth
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v7
+        env:
+          OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const username = pr.user.login;
+            const authorAssoc = pr.author_association ?? 'NONE';
+            const hasWriteAccess = ['OWNER', 'MEMBER', 'COLLABORATOR'].includes(authorAssoc);
+
+            const {getOctokit} = require('@actions/github');
+            const cplusOctokit = getOctokit(process.env.OS_BOTIFY_TOKEN);
+            let isCPlus = false;
+            try {
+              await cplusOctokit.rest.teams.getMembershipForUserInOrg({
+                org: 'Expensify',
+                team_slug: 'contributor-plus',
+                username,
+              });
+              isCPlus = true;
+            } catch (error) {
+              if (error.status !== 404) {
+                throw error;
+              }
+            }
+
+            const directAuth = hasWriteAccess || isCPlus;
+            const needsGate = !directAuth;
+
+            console.log(`author=${username}, writeAccess=${hasWriteAccess}, isCPlus=${isCPlus}, needsGate=${needsGate}`);
+
+            core.setOutput('pr_number', String(pr.number));
+            core.setOutput('pr_author', username);
+            core.setOutput('author_association', authorAssoc);
+            core.setOutput('is_authorized', directAuth ? 'true' : 'false');
+            core.setOutput('needs_gate', needsGate ? 'true' : 'false');
+
+  fork_contributor_gate:
+    needs: authorize_fork_author
+    if: needs.authorize_fork_author.outputs.needs_gate == 'true'
+    uses: ./.github/workflows/contributorValidationGate.yml
+    with:
+      PR_NUMBER: ${{ fromJSON(needs.authorize_fork_author.outputs.pr_number) }}
+      PR_AUTHOR: ${{ needs.authorize_fork_author.outputs.pr_author }}
+      AUTHOR_ASSOCIATION: ${{ needs.authorize_fork_author.outputs.author_association }}
+
+  request_fork_codex:
+    needs: [authorize_fork_author, fork_contributor_gate]
+    if: |
+      !cancelled()
+      && (
+        needs.authorize_fork_author.outputs.is_authorized == 'true'
+        || needs.fork_contributor_gate.outputs.IS_AUTHORIZED == 'true'
+      )
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    permissions:
+      issues: write
+    steps:
+      - name: Request Codex review via comment
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: Number('${{ needs.authorize_fork_author.outputs.pr_number }}'),
+              body: '@Codex review',
+            });
 
   codex_review:
     needs: [validate, contributor_gate]
