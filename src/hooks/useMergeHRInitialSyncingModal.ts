@@ -40,7 +40,7 @@ function useMergeHRInitialSyncingModal(policyID: string, isFocused: boolean) {
             return;
         }
 
-        const handle = TransitionTracker.runAfterTransitions({callback: showSyncingModal});
+        const handle = TransitionTracker.runAfterTransitions({callback: showSyncingModal, waitForUpcomingTransition: true});
         return () => handle.cancel();
     }, [mergeLastSync?.syncStatus, mergeLastSync?.syncType, isFocused]);
 }
