@@ -1,5 +1,7 @@
-import type {Color} from '@shopify/react-native-skia';
-import type {CustomRendererProps, TBlock} from 'react-native-render-html';
+import type {Color, SkTypeface} from '@shopify/react-native-skia';
+import type {ComponentProps} from 'react';
+import type {CustomRendererProps, TBlock, TNode} from 'react-native-render-html';
+import type {CartesianChart} from 'victory-native';
 import type {X_KEY, Y_KEY_PREFIX} from './constants';
 
 type VictoryChartRendererProps = CustomRendererProps<TBlock>;
@@ -108,4 +110,47 @@ type LegendItem = {
     symbolSpacer?: number;
 };
 
-export type {VictoryChartRendererProps, RawChartData, RawLegendData, RawAxisStyle, RawLabelStyle, RawLegendStyle, XKey, YKey, CartesianChartData, LabelItem, LegendItemEntry, LegendItem};
+/** Shared CartesianChart prop type used by the orchestrator, parsers, and Cartesian sub-component. */
+type CartesianChartProps = ComponentProps<typeof CartesianChart<CartesianChartData, keyof CartesianChartData, YKey>>;
+
+/** Fully merged result of walking the HTML tnode tree. */
+type ProcessNodeResult = {
+    data: Record<string, CartesianChartData>;
+    xKey: XKey;
+    yKeys: YKey[];
+    xAxis: CartesianChartProps['xAxis'];
+    yAxis: CartesianChartProps['yAxis'];
+    labelItems: LabelItem[];
+    legendItems: LegendItem[];
+};
+
+/** Partial slice produced by a single per-tag parser before merging. */
+type PartialProcessNodeResult = {
+    data?: Record<string, CartesianChartData>;
+    yKeys?: YKey[];
+    xAxis?: CartesianChartProps['xAxis'];
+    yAxis?: NonNullable<CartesianChartProps['yAxis']>;
+    labelItems?: LabelItem[];
+    legendItems?: LegendItem[];
+};
+
+type NodeParser = (tnode: TNode, typeface: SkTypeface | null) => PartialProcessNodeResult;
+
+export type {
+    VictoryChartRendererProps,
+    RawChartData,
+    RawLegendData,
+    RawAxisStyle,
+    RawLabelStyle,
+    RawLegendStyle,
+    XKey,
+    YKey,
+    CartesianChartData,
+    CartesianChartProps,
+    LabelItem,
+    LegendItemEntry,
+    LegendItem,
+    ProcessNodeResult,
+    PartialProcessNodeResult,
+    NodeParser,
+};
