@@ -26,6 +26,7 @@ import {createCardFeedKey} from '@libs/CardFeedUtils';
 import {getCardSettings} from '@libs/CardUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
@@ -36,12 +37,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-
-const EXPENSIFY_CARD_TRANSACTIONS_SEARCH_QUERY_FRAGMENTS = {
-    TYPE_EXPENSE: 'type:expense',
-    WITHDRAWN_NEVER: 'withdrawn:never',
-    WITHDRAWAL_STATUS_PENDING: 'withdrawal-status:pending',
-} as const;
 
 type WorkspaceCardsListLabelProps = {
     /** Label type */
@@ -126,7 +121,12 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     const handleViewTransactionsPress = () => {
         const fundIDForFeedKey = defaultFundID === CONST.DEFAULT_NUMBER_ID ? undefined : String(defaultFundID);
         const feedKey = createCardFeedKey(fundIDForFeedKey, CONST.EXPENSIFY_CARD.BANK, undefined);
-        const query = `${EXPENSIFY_CARD_TRANSACTIONS_SEARCH_QUERY_FRAGMENTS.TYPE_EXPENSE} feed:"${feedKey}" ${EXPENSIFY_CARD_TRANSACTIONS_SEARCH_QUERY_FRAGMENTS.WITHDRAWN_NEVER} ${EXPENSIFY_CARD_TRANSACTIONS_SEARCH_QUERY_FRAGMENTS.WITHDRAWAL_STATUS_PENDING}`;
+        const query = buildQueryStringFromFilterFormValues({
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            feed: [feedKey],
+            withdrawnOn: CONST.SEARCH.DATE_PRESETS.NEVER,
+            withdrawalStatus: [CONST.SEARCH.SETTLEMENT_STATUS.PENDING],
+        });
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));
     };
 
