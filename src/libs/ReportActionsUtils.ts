@@ -4128,10 +4128,10 @@ function getAddExpensifyCardRuleMessage(translate: LocalizedTranslate, reportAct
 
     const items: string[] = [];
     for (const merchant of merchants) {
-        items.push(merchant);
+        items.push(`'${merchant}'`);
     }
     for (const category of categories) {
-        items.push(getSpendRuleCategoryDisplayName(translate, category));
+        items.push(`'${getSpendRuleCategoryDisplayName(translate, category)}'`);
     }
     for (const amount of amounts) {
         const formattedAmount = getSpendRuleAmountString(translate, amount, currency);
