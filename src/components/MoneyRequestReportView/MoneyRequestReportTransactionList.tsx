@@ -327,6 +327,7 @@ function MoneyRequestReportTransactionList({
         return getColumnsToShow({
             currentAccountID: currentUserDetails?.accountID,
             data: transactions,
+            report,
             visibleColumns: (isExpenseReportViewFromIOUReport ? [] : (reportDetailsColumns ?? [])) as SearchCustomColumnIds[],
             isExpenseReportView: true,
             isExpenseReportViewFromIOUReport,
@@ -336,16 +337,7 @@ function MoneyRequestReportTransactionList({
             reportCurrency: report?.currency,
             isPolicyTaxEnabled: isTaxEnabled,
         });
-    }, [
-        transactions,
-        currentUserDetails?.accountID,
-        isExpenseReportViewFromIOUReport,
-        shouldShowBillableColumn,
-        shouldShowCommentsColumn,
-        reportDetailsColumns,
-        report?.currency,
-        isTaxEnabled,
-    ]);
+    }, [transactions, currentUserDetails?.accountID, isExpenseReportViewFromIOUReport, shouldShowBillableColumn, shouldShowCommentsColumn, reportDetailsColumns, report, isTaxEnabled]);
 
     const {windowWidth, windowHeight} = useWindowDimensions();
     const minTableWidth = getTableMinWidth(columnsToShow);

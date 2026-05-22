@@ -5177,6 +5177,7 @@ function getWithdrawalStatusDisplayText(value: SearchWithdrawalStatus | undefine
 function getColumnsToShow({
     currentAccountID,
     data,
+    report,
     visibleColumns = [],
     isExpenseReportView = false,
     type,
@@ -5191,6 +5192,7 @@ function getColumnsToShow({
 }: {
     currentAccountID: number | undefined;
     data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[];
+    report?: OnyxEntry<OnyxTypes.Report>;
     visibleColumns?: SearchCustomColumnIds[];
     isExpenseReportView?: boolean;
     type?: SearchDataTypes;
@@ -5203,6 +5205,14 @@ function getColumnsToShow({
     shouldUseStrictDefaultExpenseColumns?: boolean;
     isPolicyTaxEnabled?: boolean;
 }): SearchColumnType[] {
+    const reportCustomColumns = new Set<SearchColumnType>([
+        CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID,
+        CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID,
+        CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS,
+    ]);
+
+    const hasReportCustomColumnValue = (column: SearchColumnType, reportToCheck: OnyxEntry<OnyxTypes.Report>): boolean => !!getReportCustomColumnValue(column, reportToCheck);
+
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
         const defaultReportColumns: SearchColumnType[] = [
             CONST.SEARCH.TABLE_COLUMNS.AVATAR,
@@ -5238,7 +5248,24 @@ function getColumnsToShow({
             result.push(col);
         }
 
-        return result;
+        if (Array.isArray(data)) {
+            return result;
+        }
+
+        return result.filter((column) => {
+            if (!reportCustomColumns.has(column)) {
+                return true;
+            }
+
+            return Object.keys(data).some((key) => {
+                if (!isReportEntry(key)) {
+                    return false;
+                }
+
+                const reportToCheck = data[key as keyof typeof data] as OnyxTypes.Report | undefined;
+                return reportToCheck?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && hasReportCustomColumnValue(column, reportToCheck);
+            });
+        });
     }
 
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
@@ -5437,6 +5464,15 @@ function getColumnsToShow({
         // Only update when we have custom columns to filter (customResult) or in expense report view,
         // so that the default search page path doesn't show extra columns.
         if (customResult || isExpenseReportView) {
+            if (customResult) {
+                const reportForCustomColumns = Array.isArray(data) ? report : (getReportOrDraftReport(transaction.reportID) ?? data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`]);
+                for (const column of reportCustomColumns) {
+                    if (hasReportCustomColumnValue(column, reportForCustomColumns)) {
+                        columns[column] = true;
+                    }
+                }
+            }
+
             if (transaction.cardName && transaction.cardName !== CONST.EXPENSE.TYPE.CASH_CARD_NAME) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.CARD] = true;
             }
@@ -5470,18 +5506,18 @@ function getColumnsToShow({
             }
 
             if (!Array.isArray(data)) {
-                const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+                const transactionReport = data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
 
-                if (report?.submitted) {
+                if (transactionReport?.submitted) {
                     columns[CONST.SEARCH.TABLE_COLUMNS.SUBMITTED] = true;
                 }
 
-                if (report?.policyID) {
+                if (transactionReport?.policyID) {
                     columns[CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME] = true;
                 }
 
                 const reportAction = moneyRequestReportActionsByTransactionID?.get(transaction.transactionID);
-                const toFieldValue = getToFieldValueForTransaction(transaction, report, data.personalDetailsList, reportAction);
+                const toFieldValue = getToFieldValueForTransaction(transaction, transactionReport, data.personalDetailsList, reportAction);
                 if (toFieldValue.accountID) {
                     columns[CONST.SEARCH.TABLE_COLUMNS.TO] = true;
                 }
@@ -5500,7 +5536,7 @@ function getColumnsToShow({
 
         // The From/To columns display logic depends on the passed report/reportAction i.e. if data is SearchResults and not an array (Transaction[])
         if (!Array.isArray(data)) {
-            const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+            const transactionReport = data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
             const reportAction = moneyRequestReportActionsByTransactionID?.get(transaction.transactionID);
 
             // Handle From&To columns that are only shown in the Reports page
@@ -5512,16 +5548,16 @@ function getColumnsToShow({
 
             // Show category/tag if any non-IOU transaction has them.
             // Only set to true, never reset — so a previous non-IOU match is preserved.
-            if (hasCategory && !isIOUReportReportUtil(report)) {
+            if (hasCategory && !isIOUReportReportUtil(transactionReport)) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY] = true;
             }
-            if (hasTag && !isIOUReportReportUtil(report)) {
+            if (hasTag && !isIOUReportReportUtil(transactionReport)) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.TAG] = true;
             }
 
-            const toFieldValue = getToFieldValueForTransaction(transaction, report, data.personalDetailsList, reportAction);
+            const toFieldValue = getToFieldValueForTransaction(transaction, transactionReport, data.personalDetailsList, reportAction);
             if (!shouldUseStrictDefaultExpenseColumns && toFieldValue.accountID && toFieldValue.accountID !== currentAccountID && !columns[CONST.SEARCH.TABLE_COLUMNS.TO]) {
-                columns[CONST.SEARCH.TABLE_COLUMNS.TO] = !!report && !isOpenReport(report);
+                columns[CONST.SEARCH.TABLE_COLUMNS.TO] = !!transactionReport && !isOpenReport(transactionReport);
             }
         }
     };
@@ -5563,9 +5599,6 @@ function getColumnsToShow({
             CONST.SEARCH.TABLE_COLUMNS.ATTENDEES,
             CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE,
             CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
-            CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID,
-            CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID,
-            CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS,
         ]);
 
         return customResult.filter((col) => nonDataColumns.has(col) || columns[col]);
