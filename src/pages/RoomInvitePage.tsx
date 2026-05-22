@@ -87,31 +87,38 @@ function RoomInvitePage({
         includeRecentReports: false,
         includeUserToInvite: true,
         initialSearchPhrase: userSearchPhrase,
+        shouldKeepSelectedInAvailableOptions: true,
     });
+
+    const selectedNonExistingOptions = availableOptions.extraOptions.filter((option) => option.isSelected);
 
     const sections: MembersSection[] = [];
     if (areOptionsInitialized) {
-        if (availableOptions.userToInvite) {
+        // Selected non-existing users section (e.g., typed email addresses)
+        if (selectedNonExistingOptions.length > 0) {
+            sections.push({
+                title: undefined,
+                data: selectedNonExistingOptions,
+                sectionIndex: 0,
+            });
+        }
+
+        // Contacts section (selected items stay in-place with isSelected flag)
+        if (availableOptions.personalDetails.length > 0) {
+            sections.push({
+                title: translate('common.contacts'),
+                data: availableOptions.personalDetails,
+                sectionIndex: 1,
+            });
+        }
+
+        // User to invite section (hide if already selected)
+        if (availableOptions.userToInvite && !availableOptions.userToInvite.isSelected) {
             sections.push({
                 title: undefined,
                 data: [availableOptions.userToInvite],
-                sectionIndex: 0,
+                sectionIndex: 2,
             });
-        } else {
-            if (availableOptions.selectedOptions.length > 0) {
-                sections.push({
-                    title: undefined,
-                    data: availableOptions.selectedOptions,
-                    sectionIndex: 0,
-                });
-            }
-            if (availableOptions.personalDetails.length > 0) {
-                sections.push({
-                    title: translate('common.contacts'),
-                    data: availableOptions.personalDetails,
-                    sectionIndex: availableOptions.selectedOptions.length > 0 ? 1 : 0,
-                });
-            }
         }
     }
 
@@ -221,6 +228,8 @@ function RoomInvitePage({
                         onConfirm: inviteUsers,
                     }}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                    shouldUpdateFocusedIndex
+                    shouldPreventAutoScrollOnSelect
                     shouldShowLoadingPlaceholder={!areOptionsInitialized}
                     isLoadingNewOptions={!!isSearchingForReports}
                     shouldShowTextInput
