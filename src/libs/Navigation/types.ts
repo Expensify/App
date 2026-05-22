@@ -2744,6 +2744,16 @@ type WorkspaceSplitNavigatorParamList = {
          * dropped into the workflow without coordinating cross-page state.
          */
         seedApproverEmail?: string;
+
+        /**
+         * Optional optimistic accountID of an agent that was just created locally but does not
+         * have a server-assigned email yet. The Edit Approvers screen reads the personal
+         * details by accountID and seeds the workflow with whatever is there (display name,
+         * avatar, optimistic pendingAction). When the CREATE_AGENT response arrives the
+         * personal detail is upgraded with the real login, which then becomes the approver
+         * email for the workflow save.
+         */
+        seedApproverAccountID?: string;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EXPENSES_FROM]: {
         policyID: string;

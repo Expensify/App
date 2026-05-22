@@ -22,7 +22,7 @@ import {convertPolicyEmployeesToApprovalWorkflows, mergeWorkflowMembersWithAvail
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
-import {clearApprovalWorkflow, removeApprovalWorkflow, setApprovalWorkflow, updateApprovalWorkflow, validateApprovalWorkflow} from '@userActions/Workflow';
+import {clearApprovalWorkflow, queueDeferredAgentWorkflowSave, removeApprovalWorkflow, setApprovalWorkflow, updateApprovalWorkflow, validateApprovalWorkflow} from '@userActions/Workflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -51,6 +51,19 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         }
 
         if (!validateApprovalWorkflow(approvalWorkflow)) {
+            return;
+        }
+
+        // If any approver is still being created (seeded from Workflows > Add agent with an
+        // optimistic accountID), defer the actual save. We can't push it to the server yet —
+        // the approver's email is empty until CREATE_AGENT resolves — but the admin shouldn't
+        // be trapped on this screen either. Stash the workflow in `DEFERRED_AGENT_WORKFLOW_SAVES`
+        // and dismiss; WorkspaceWorkflowsPage will render the workflow with the faded agent
+        // and fire the real save once the agent's email lands.
+        const pendingApprover = approvalWorkflow.approvers.find((approver) => approver?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+        if (pendingApprover?.accountID !== undefined && route.params.firstApproverEmail) {
+            queueDeferredAgentWorkflowSave(route.params.policyID, route.params.firstApproverEmail, approvalWorkflow, initialApprovalWorkflow, pendingApprover.accountID);
+            Navigation.dismissModal();
             return;
         }
 
@@ -119,18 +132,53 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         }
 
         // Seed approver[0] when opened from Workflows > Add agent (skip if already in the workflow).
+        // Two entry points are supported:
+        //   1. `seedApproverEmail` — used when the new agent already has a server-assigned login
+        //      (the original happy path: AddAgentPage used to wait for CREATE_AGENT before navigating).
+        //   2. `seedApproverAccountID` — used when AddAgentPage navigates immediately with the
+        //      optimistic accountID from `createAgent`. The optimistic personal detail has a display
+        //      name and an avatar but no `login` yet; we seed the approver anyway, mark it as
+        //      pending so the row renders with opacity, and rely on the reconciliation effect below
+        //      to upgrade it to the real email/accountID once CREATE_AGENT resolves.
         const seedApproverEmail = route.params.seedApproverEmail;
-        const seedPersonalDetails = seedApproverEmail ? getPersonalDetailByEmail(seedApproverEmail) : undefined;
+        const seedApproverAccountID = route.params.seedApproverAccountID ? Number(route.params.seedApproverAccountID) : undefined;
+        const hasSeedApproverEmail = seedApproverEmail !== undefined && seedApproverEmail !== '';
+        const hasSeedRequest = hasSeedApproverEmail || seedApproverAccountID !== undefined;
+        let seedPersonalDetails;
+        if (hasSeedApproverEmail) {
+            seedPersonalDetails = getPersonalDetailByEmail(seedApproverEmail);
+        } else if (seedApproverAccountID !== undefined) {
+            seedPersonalDetails = personalDetails?.[seedApproverAccountID];
+        }
+
+        // `createAgent` queues the optimistic personal detail merge and AddAgentPage navigates
+        // here on the next tick — so on the first render the optimistic detail may still be
+        // undefined. Bail out without locking `initialApprovalWorkflow` so the effect re-runs
+        // when `personalDetails` next updates; that's when we'll actually find the seed and
+        // commit the seeded workflow. Without this guard the un-seeded workflow gets committed
+        // and the seed is lost forever (the bug that just showed up in testing).
+        if (hasSeedRequest && !seedPersonalDetails) {
+            return;
+        }
+
         let approvers: Approver[] = currentApprovalWorkflow.approvers;
-        if (seedApproverEmail && seedPersonalDetails) {
-            const isApproverAlreadyInWorkflow = currentApprovalWorkflow.approvers.some((approver) => approver.email === seedApproverEmail);
+        if (seedPersonalDetails) {
+            const seededEmail = seedApproverEmail ?? seedPersonalDetails.login ?? '';
+            const seededAccountID = seedPersonalDetails.accountID ?? seedApproverAccountID;
+            const isApproverAlreadyInWorkflow = currentApprovalWorkflow.approvers.some(
+                (approver) => (!!seededEmail && approver.email === seededEmail) || (seededAccountID !== undefined && approver.accountID === seededAccountID),
+            );
             if (!isApproverAlreadyInWorkflow) {
                 const seededApprover: Approver = {
-                    email: seedApproverEmail,
-                    displayName: seedPersonalDetails.displayName ?? seedApproverEmail,
+                    email: seededEmail,
+                    accountID: seededAccountID,
+                    displayName: seedPersonalDetails.displayName ?? seededEmail,
                     avatar: seedPersonalDetails.avatar,
                     approvalLimit: null,
                     overLimitForwardsTo: '',
+                    // Mark as pending only when the personal detail is optimistic (no login yet) so
+                    // the row renders with reduced opacity while CREATE_AGENT is in flight.
+                    ...(seedPersonalDetails.isOptimisticPersonalDetail ? {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : {}),
                 };
                 approvers = isControlPolicy(policy) ? [seededApprover, ...currentApprovalWorkflow.approvers] : [seededApprover, ...currentApprovalWorkflow.approvers.slice(1)];
             }
@@ -149,7 +197,67 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         // This runs alongside setApprovalWorkflow above and is part of the same logical update.
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setInitialApprovalWorkflow(currentApprovalWorkflow);
-    }, [currentApprovalWorkflow, defaultWorkflowMembers, initialApprovalWorkflow, usedApproverEmails, policy, route.params.policyID, route.params.seedApproverEmail]);
+    }, [
+        currentApprovalWorkflow,
+        defaultWorkflowMembers,
+        initialApprovalWorkflow,
+        usedApproverEmails,
+        policy,
+        route.params.policyID,
+        route.params.seedApproverEmail,
+        route.params.seedApproverAccountID,
+        personalDetails,
+    ]);
+
+    // Reconcile a pending (optimistic) seeded approver with the real personal detail once
+    // CREATE_AGENT resolves. The optimistic personal detail is deleted in `createAgent`'s
+    // successData and a new one with a positive accountID + real login is added by the
+    // server response. We detect the new agent via the policy's `employeeList` (the agent is
+    // added there when CREATE_AGENT is called with a `policyID`) and rebuild the approver
+    // entry with the real email/accountID, clearing `pendingAction` so the opacity goes away.
+    useEffect(() => {
+        if (!approvalWorkflow || !policy?.employeeList || !personalDetails) {
+            return;
+        }
+        const pendingApprover = approvalWorkflow.approvers.find((approver) => approver?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+        if (!pendingApprover) {
+            return;
+        }
+
+        // Walk the employeeList looking for a newly-added member that matches the optimistic
+        // agent by display name. The agent is added to the policy as part of the CREATE_AGENT
+        // response when `policyID` was provided, so this is a reliable signal it has landed.
+        const knownApproverEmails = new Set(approvalWorkflow.approvers.map((approver) => approver?.email).filter((email): email is string => !!email));
+        const candidateEntry = Object.keys(policy.employeeList).find((email) => {
+            if (!email || knownApproverEmails.has(email)) {
+                return false;
+            }
+            const personalDetail = Object.values(personalDetails).find((detail) => detail?.login === email);
+            return !!personalDetail && personalDetail.displayName === pendingApprover.displayName;
+        });
+        if (!candidateEntry) {
+            return;
+        }
+        const resolvedEmail = candidateEntry;
+        const resolvedPersonalDetail = Object.values(personalDetails).find((detail) => detail?.login === resolvedEmail);
+        if (!resolvedPersonalDetail) {
+            return;
+        }
+
+        const upgradedApprovers = approvalWorkflow.approvers.map((approver) =>
+            approver === pendingApprover
+                ? {
+                      ...approver,
+                      email: resolvedEmail,
+                      accountID: resolvedPersonalDetail.accountID,
+                      avatar: resolvedPersonalDetail.avatar ?? approver.avatar,
+                      displayName: resolvedPersonalDetail.displayName ?? approver.displayName,
+                      pendingAction: undefined,
+                  }
+                : approver,
+        );
+        setApprovalWorkflow({...approvalWorkflow, approvers: upgradedApprovers});
+    }, [approvalWorkflow, policy?.employeeList, personalDetails]);
 
     const submitButtonContainerStyles = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, style: [styles.mb5, styles.mh5]});
 

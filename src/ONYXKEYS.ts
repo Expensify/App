@@ -579,6 +579,16 @@ const ONYXKEYS = {
     /** Stores the information about currently edited advanced approval workflow */
     APPROVAL_WORKFLOW: 'approvalWorkflow',
 
+    /**
+     * Workflow saves the user committed while a freshly-created agent was still pending. Keyed
+     * by `${policyID}:${firstApproverEmail}`. WorkspaceWorkflowsPage overlays these entries on
+     * top of the regular workflows so the new agent shows up faded in the approver card, and
+     * a watcher fires the actual `updateApprovalWorkflow` once the agent gets its real email
+     * and clears the entry. This lets the admin "Save" before CREATE_AGENT resolves without
+     * the modal blocking on a `This field is required` validation error.
+     */
+    DEFERRED_AGENT_WORKFLOW_SAVES: 'deferredAgentWorkflowSaves',
+
     /** Stores the user search value for persistence across the screens */
     ROOM_MEMBERS_USER_SEARCH_PHRASE: 'roomMembersUserSearchPhrase',
 
@@ -1580,6 +1590,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS]: OnyxTypes.CancellationDetails[];
     [ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE]: string;
     [ONYXKEYS.APPROVAL_WORKFLOW]: OnyxTypes.ApprovalWorkflowOnyx;
+    [ONYXKEYS.DEFERRED_AGENT_WORKFLOW_SAVES]: Record<string, OnyxTypes.DeferredAgentWorkflowSave>;
     [ONYXKEYS.IMPORTED_SPREADSHEET]: OnyxTypes.ImportedSpreadsheet;
     [ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA]: OnyxTypes.ImportedSpreadsheetMemberData[];
     [ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_ROLE]: ValueOf<typeof CONST.POLICY.ROLE>;

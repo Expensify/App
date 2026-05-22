@@ -15,6 +15,7 @@ import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import Button from './Button';
 import Icon from './Icon';
 import MenuItem from './MenuItem';
+import OfflineWithFeedback from './OfflineWithFeedback';
 import Text from './Text';
 import UserPill from './UserPill';
 import UserPills from './UserPills';
@@ -119,38 +120,48 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, onAddAgentPress, ca
                 />
 
                 {approvalWorkflow.approvers.map((approver, index) => (
-                    // eslint-disable-next-line react/no-array-index-key
-                    <View key={`approver-${approver.email}-${index}`}>
-                        <View style={styles.workflowApprovalVerticalLine} />
-                        <MenuItem
-                            title={approverTitle(index)}
-                            style={styles.p0}
-                            titleStyle={styles.textLabelSupportingNormal}
-                            descriptionTextStyle={[styles.textNormalThemeText, styles.lineHeightXLarge]}
-                            icon={icons.UserCheck}
-                            shouldBeAccessible={false}
-                            tabIndex={-1}
-                            iconHeight={20}
-                            iconWidth={20}
-                            numberOfLinesDescription={1}
-                            iconFill={theme.icon}
-                            onPress={pressAction}
-                            shouldRemoveBackground
-                            titleComponent={
-                                <View style={[styles.ml3, styles.pr3]}>
-                                    <UserPill
-                                        avatar={approver.avatar}
-                                        displayName={approver.displayName}
-                                        email={approver.email}
-                                        style={styles.userPillStandalone}
-                                    />
-                                </View>
-                            }
-                            helperText={getApprovalLimitDescription({approver, currency, translate, convertToDisplayString})}
-                            helperTextStyle={styles.workflowApprovalLimitText}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_APPROVER}
-                        />
-                    </View>
+                    // Wrap each approver row in OfflineWithFeedback so an approver that's still
+                    // being confirmed by the server (e.g. one seeded from Workflows > Add agent
+                    // while CREATE_AGENT is in flight, or a deferred-save approver waiting on the
+                    // agent to land) renders with reduced opacity — that's the visual cue the
+                    // admin asked for. The wrapper is a no-op when `pendingAction` is undefined.
+                    <OfflineWithFeedback
+                        // eslint-disable-next-line react/no-array-index-key
+                        key={`approver-${approver.email || approver.accountID}-${index}`}
+                        pendingAction={approver.pendingAction}
+                    >
+                        <View>
+                            <View style={styles.workflowApprovalVerticalLine} />
+                            <MenuItem
+                                title={approverTitle(index)}
+                                style={styles.p0}
+                                titleStyle={styles.textLabelSupportingNormal}
+                                descriptionTextStyle={[styles.textNormalThemeText, styles.lineHeightXLarge]}
+                                icon={icons.UserCheck}
+                                shouldBeAccessible={false}
+                                tabIndex={-1}
+                                iconHeight={20}
+                                iconWidth={20}
+                                numberOfLinesDescription={1}
+                                iconFill={theme.icon}
+                                onPress={pressAction}
+                                shouldRemoveBackground
+                                titleComponent={
+                                    <View style={[styles.ml3, styles.pr3]}>
+                                        <UserPill
+                                            avatar={approver.avatar}
+                                            displayName={approver.displayName}
+                                            email={approver.email}
+                                            style={styles.userPillStandalone}
+                                        />
+                                    </View>
+                                }
+                                helperText={getApprovalLimitDescription({approver, currency, translate, convertToDisplayString})}
+                                helperTextStyle={styles.workflowApprovalLimitText}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_APPROVER}
+                            />
+                        </View>
+                    </OfflineWithFeedback>
                 ))}
             </View>
             {!isDisabled && (

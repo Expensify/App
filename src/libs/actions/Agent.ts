@@ -83,6 +83,38 @@ function createAgent(
         },
     ];
 
+    // When the agent is being created as part of a workspace flow, also mirror the
+    // pending/error state onto the policy. That way the failure surfaces as a brick road
+    // indicator on the workspace and an inline error on the Workflows page, instead of
+    // being hidden away in Settings > Agents (where the admin may never look).
+    if (policyID) {
+        const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {
+                pendingFields: {[CONST.POLICY.COLLECTION_KEYS.ADD_AGENT]: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                errorFields: {[CONST.POLICY.COLLECTION_KEYS.ADD_AGENT]: null},
+            },
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {
+                pendingFields: {[CONST.POLICY.COLLECTION_KEYS.ADD_AGENT]: null},
+                errorFields: {[CONST.POLICY.COLLECTION_KEYS.ADD_AGENT]: null},
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {
+                pendingFields: {[CONST.POLICY.COLLECTION_KEYS.ADD_AGENT]: null},
+                errorFields: {[CONST.POLICY.COLLECTION_KEYS.ADD_AGENT]: getMicroSecondOnyxErrorWithTranslationKey('agentsPage.error.genericAdd')},
+            },
+        });
+    }
+
     write(WRITE_COMMANDS.CREATE_AGENT, {firstName, prompt, customExpensifyAvatarID, file, policyID}, {optimisticData, successData, failureData});
 
     return {optimisticAccountID, avatarURI};

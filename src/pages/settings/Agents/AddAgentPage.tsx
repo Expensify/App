@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
 import FormProvider from '@components/Form/FormProvider';
@@ -14,7 +14,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isMobile} from '@libs/Browser';
@@ -40,8 +39,6 @@ function AddAgentPage({route}: AddAgentPageProps) {
     const policyID = route.params?.policyID;
     const workflowApproverEmail = route.params?.workflowApproverEmail;
     const isWorkflowSeedFlow = !!policyID && !!workflowApproverEmail;
-    const [agentPrompts] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT);
-    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {windowWidth, windowHeight} = useWindowDimensions();
@@ -53,12 +50,6 @@ function AddAgentPage({route}: AddAgentPageProps) {
     const avatarStyle = [styles.avatarXLarge, styles.alignSelfCenter];
     const [avatarSource, setAvatarSource] = useState<AvatarSource>(() => botAvatars[Math.floor(Math.random() * botAvatars.length)]);
     const pendingFileRef = useRef<{file: File | CustomRNImageManipulatorResult; uri: string} | null>(null);
-
-    // Snapshot of agent account IDs at submit time. Used by the workflow-seed flow to identify
-    // the freshly-created agent once CREATE_AGENT responds (any positive accountID not in this
-    // snapshot is the new agent). Refs avoid re-renders and survive across form submits.
-    const knownAgentAccountIDsRef = useRef<Set<number> | null>(null);
-    const [isAwaitingNewAgent, setIsAwaitingNewAgent] = useState(false);
 
     useFocusEffect(
         useCallback(() => {
@@ -102,56 +93,25 @@ function AddAgentPage({route}: AddAgentPageProps) {
         const prompt = values[INPUT_IDS.PROMPT].trim();
         const pendingFile = pendingFileRef.current;
 
-        if (isWorkflowSeedFlow) {
-            // Capture the set of agent account IDs the user already owns BEFORE the API write so the
-            // effect below can identify the freshly-created agent when CREATE_AGENT responds. We use
-            // a ref (instead of route params or a module store) so the snapshot is scoped to this
-            // mount and disappears when the page unmounts.
-            knownAgentAccountIDsRef.current = new Set(Object.keys(agentPrompts ?? {}).map((key) => Number(key.slice(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT.length))));
-            setIsAwaitingNewAgent(true);
-        }
+        // Pure optimistic flow — no waiting on the server, online or offline. `createAgent`
+        // returns the optimistic accountID it wrote into Onyx so we can hand it to the next
+        // screen and let it render the agent with opacity until CREATE_AGENT resolves.
+        const {optimisticAccountID} = pendingFile
+            ? createAgent(firstName, prompt, undefined, pendingFile.file, pendingFile.uri, policyID)
+            : createAgent(firstName, prompt, botAvatarIDs.get(avatarSource as BotAvatar), undefined, undefined, policyID);
 
-        if (pendingFile) {
-            createAgent(firstName, prompt, undefined, pendingFile.file, pendingFile.uri, policyID);
-        } else {
-            createAgent(firstName, prompt, botAvatarIDs.get(avatarSource as BotAvatar), undefined, undefined, policyID);
-        }
-
-        if (!isWorkflowSeedFlow) {
+        if (isWorkflowSeedFlow && policyID && workflowApproverEmail) {
+            // Drop the user on the Edit Approvers screen for the workflow they came from, with
+            // the optimistic agent already seeded as approver[0]. The Edit Approvers page reads
+            // the optimistic personal detail by accountID, renders it with reduced opacity
+            // (via `pendingAction`), and reconciles the email/accountID once CREATE_AGENT lands.
             Navigation.goBack();
-        }
-        // For the workflow-seed flow we stay mounted with the form in its loading state and let the
-        // effect below detect the new agent and navigate to the Edit Approval Workflow page once
-        // the API has produced a real accountID / email.
-    };
-
-    // Watch for the freshly-created agent and, when it arrives, navigate to the Edit Approval
-    // Workflow page with its real email as the approver seed.
-    useEffect(() => {
-        if (!isAwaitingNewAgent || !isWorkflowSeedFlow || !policyID || !workflowApproverEmail) {
+            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, workflowApproverEmail, undefined, optimisticAccountID));
             return;
         }
 
-        const knownAccountIDs = knownAgentAccountIDsRef.current ?? new Set<number>();
-        const newAgentAccountID = Object.keys(agentPrompts ?? {})
-            .map((key) => Number(key.slice(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT.length)))
-            // Only the server-assigned (positive) accountID is a valid approver target.
-            // Negative IDs come from the optimistic personal detail in `createAgent`.
-            .find((accountID) => accountID > 0 && !knownAccountIDs.has(accountID));
-        if (!newAgentAccountID) {
-            return;
-        }
-
-        const newAgentLogin = personalDetailsList?.[newAgentAccountID]?.login;
-        if (!newAgentLogin) {
-            return;
-        }
-
-        setIsAwaitingNewAgent(false);
-        knownAgentAccountIDsRef.current = null;
         Navigation.goBack();
-        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, workflowApproverEmail, newAgentLogin));
-    }, [agentPrompts, personalDetailsList, isAwaitingNewAgent, isWorkflowSeedFlow, policyID, workflowApproverEmail]);
+    };
 
     return (
         <ScreenWrapper
@@ -174,7 +134,6 @@ function AddAgentPage({route}: AddAgentPageProps) {
                 submitFlexEnabled={shouldUseScrollableLayout ? undefined : false}
                 shouldHideFixErrorsAlert
                 enabledWhenOffline
-                isLoading={isAwaitingNewAgent}
             >
                 <View style={[styles.flex1, styles.flexColumn, styles.gap5]}>
                     <View style={[styles.alignItemsCenter]}>
