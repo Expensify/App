@@ -35,7 +35,7 @@ import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 const TWO_FACTOR_AUTH_RECOVERY_CODES_FILENAME = 'DO-NOT-DELETE_Expensify-2FA-RecoveryCodes.txt';
 
 function CopyCodesPage({route}: TwoFactorAuthPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Download', 'Lightbulb']);
+    const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Lightbulb']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
