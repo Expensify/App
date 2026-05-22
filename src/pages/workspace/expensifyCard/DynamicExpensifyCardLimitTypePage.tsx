@@ -75,7 +75,7 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT_TYPE.path);
 
     const goBack = () => {
-        Navigation.goBack(backPath);
+        Navigation.goBack(backPath, {compareParams: false});
     };
 
     const fetchCardLimitTypeData = () => {

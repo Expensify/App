@@ -261,6 +261,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reset: 'Reset',
         done: 'Gotowe',
         more: 'Więcej',
+        other: 'Inne',
         debitCard: 'Karta debetowa',
         bankAccount: 'Konto bankowe',
         personalBankAccount: 'Prywatne konto bankowe',
@@ -958,8 +959,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 personalSubtitle: 'Portfel',
             },
         },
-        assignedCards: 'Twoje Karty Expensify',
-        assignedCardsRemaining: ({amount}: {amount: string}) => `Pozostało ${amount}`,
         announcements: 'Ogłoszenia',
         discoverSection: {
             title: 'Odkryj',
@@ -1018,8 +1017,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         freeTrialSection: {
             title: ({days}: {days: number}) => `Darmowy okres próbny: pozostało ${days} ${days === 1 ? 'dzień' : 'dni'}!`,
-            offer50Body: 'Zyskaj 50% zniżki na pierwszy rok!',
-            offer25Body: 'Uzyskaj 25% zniżki na pierwszy rok!',
+            offer50Body: 'Zyskaj 50% zniżki na pierwszy rok',
+            offer25Body: 'Uzyskaj 25% zniżki na pierwszy rok',
             addCardBody: 'Nie czekaj! Dodaj teraz swoją kartę płatniczą.',
             ctaClaim: 'Roszczenie',
             ctaAdd: 'Dodaj kartę',
@@ -1038,6 +1037,12 @@ const translations: TranslationDeepObject<typeof en> = {
             linkCompanyCards: 'Połącz firmowe karty',
             setupRules: 'Skonfiguruj zasady wydatków',
             inviteAccountant: 'Zaproś swojego księgowego',
+        },
+        yourSpend: {
+            title: 'Twoje wydatki',
+            awaitingApproval: 'Oczekuje na zatwierdzenie',
+            repaidLast30Days: 'Spłacono w ciągu ostatnich 30 dni',
+            recentTransactions: ({lastFour}: {lastFour: string}) => `Ostatnie transakcje • ${lastFour}`,
         },
     },
     allSettingsScreen: {
@@ -1504,6 +1509,7 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Niektóre z tych duplikatów zostały już zatwierdzone lub opłacone.',
         reviewDuplicates: 'Przejrzyj duplikaty',
         keepAll: 'Zachowaj wszystko',
+        keepSelected: 'Zachowaj wybrane',
         noDuplicatesTitle: 'Wszystko gotowe!',
         noDuplicatesDescription: 'Nie ma tutaj zduplikowanych transakcji do sprawdzenia.',
         confirmApprove: 'Potwierdź kwotę zatwierdzenia',
@@ -2399,8 +2405,8 @@ const translations: TranslationDeepObject<typeof en> = {
         addBankAccountToSendAndReceive: 'Dodaj konto bankowe, aby wysyłać lub odbierać płatności.',
         addDebitOrCreditCard: 'Dodaj kartę debetową lub kredytową',
         cardInactive: 'Nieaktywne',
-        assignedCards: 'Przypisane karty',
-        assignedCardsDescription: 'Transakcje z tych kart synchronizują się automatycznie.',
+        assignedCards: 'Karty',
+        assignedCardsDescription: 'Transakcje z przypisanych kart synchronizują się automatycznie.',
         expensifyCard: 'Karta Expensify',
         walletActivationPending: 'Sprawdzamy Twoje informacje. Sprawdź ponownie za kilka minut!',
         walletActivationFailed: 'Niestety w tej chwili nie można włączyć Twojego portfela. Skontaktuj się z Concierge, aby uzyskać dalszą pomoc.',
@@ -2467,6 +2473,7 @@ const translations: TranslationDeepObject<typeof en> = {
             expiration: 'Wygaśnięcie',
             cvv: 'CVV',
             address: 'Adres',
+            reveal: 'Pokaż',
             revealDetails: 'Pokaż szczegóły',
             revealCvv: 'Pokaż kod CVV',
             copyCardNumber: 'Skopiuj numer karty',
@@ -2528,6 +2535,11 @@ ${amount} dla ${merchant} - ${date}`,
         frozenByAdminNeedsUnfreeze: ({person}: {person: string}) => `Ta karta została zamrożona przez ${person}. Skontaktuj się z administratorem, aby ją odmrozić.`,
         spendRules: 'Zasady wydatków',
         editSpendRules: 'Edytuj zasady wydatków',
+        cardUnblocked: 'Karta odblokowana!',
+        cardUnblockedDescription: 'Przy następnych zakupach możesz zostać poproszony(-a) o włożenie karty do czytnika.',
+        pinBlocked: 'Twoja karta została zablokowana z powodu błędnego wprowadzenia kodu PIN.',
+        unblock: 'Odblokuj',
+        unblockCard: 'Odblokuj kartę',
     },
     workflowsPage: {
         workflowTitle: 'Wydatki',
@@ -2589,10 +2601,10 @@ ${amount} dla ${merchant} - ${date}`,
             approverSubtitle: 'Wszyscy zatwierdzający należą do istniejącego przepływu pracy.',
             bulkApproverSubtitle: 'Żaden akceptujący nie spełnia kryteriów dla wybranych raportów.',
         },
-        configureViaGusto: 'Skonfiguruj przez Gusto.',
-        gustoApprovalWorkflowLockedPrompt:
-            'Zatwierdzanie jest zarządzane przez Twoją integrację z Gusto. Aby zaktualizować swój proces zatwierdzania, przejdź do ustawień połączenia z Gusto.',
-        goToGustoSettings: 'Przejdź do ustawień Gusto',
+        configureViaHR: ({provider}: {provider: string}) => `Skonfiguruj przez ${provider}.`,
+        hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
+            `Zatwierdzanie jest zarządzane przez Twoją integrację z ${provider}. Aby zaktualizować swój proces zatwierdzania, przejdź do ustawień połączenia z ${provider}.`,
+        goToHRSettings: ({provider}: {provider: string}) => `Przejdź do ustawień ${provider}`,
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: 'Nie udało się zmienić częstotliwości wysyłania. Spróbuj ponownie lub skontaktuj się z pomocą techniczną.',
@@ -2992,6 +3004,8 @@ ${amount} dla ${merchant} - ${date}`,
         mergeBlockScreen: {
             title: 'Nie udało się dodać służbowego adresu e-mail',
             subtitle: (workEmail: string | undefined) => `Nie udało się dodać ${workEmail}. Spróbuj ponownie później w Ustawieniach lub porozmawiaj z Concierge, aby uzyskać pomoc.`,
+            workAccountClosedSubtitle:
+                'Konto służbowe powiązane z tym adresem e‑mail jest zamknięte. Skontaktuj się z administratorem w swojej firmie, żeby je ponownie aktywować, albo zarejestruj się przy użyciu innego adresu e‑mail.',
         },
         tasks: {
             testDriveAdminTask: {
@@ -4295,6 +4309,12 @@ ${amount} dla ${merchant} - ${date}`,
                         return 'Administrator';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Audytor';
+                    case CONST.POLICY.ROLE.CARD_ADMIN:
+                        return 'Administrator karty';
+                    case CONST.POLICY.ROLE.PEOPLE_ADMIN:
+                        return 'Administrator osób';
+                    case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
+                        return 'Administrator płatności';
                     case CONST.POLICY.ROLE.USER:
                         return 'Członek';
                     default:
@@ -4325,10 +4345,14 @@ ${amount} dla ${merchant} - ${date}`,
             budgetTypeForNotificationMessage: {tag: 'znacznik', category: 'kategoria'},
             policyExpenseChatName: (displayName: string) => `Wydatki ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>Transakcje z Karty Expensify będą automatycznie eksportowane do „Konta zobowiązań Karty Expensify” utworzonego dzięki <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">naszej integracji</a>.</muted-text-label>`,
-            travelInvoicing: 'Eksportuj należności z Expensify Travel do',
+            travelInvoicing: 'Eksportuj wydatki z fakturowania podróży jako',
             travelInvoicingVendor: 'Dostawca usług turystycznych',
             travelInvoicingPayableAccount: 'Konto zobowiązań z tytułu podróży',
             hr: 'HR',
+            rooms: 'Pokoje',
+            cardAdminAlternateText: 'Zarządzaj kartami przestrzeni roboczej.',
+            peopleAdminAlternateText: 'Zarządzaj członkami i procesami akceptacji.',
+            paymentsAdminAlternateText: 'Zarządzaj płatnościami w przepływie pracy.',
         },
         createdForClient: {
             title: 'Utworzyłeś przestrzeń roboczą dla swojego klienta!',
@@ -4648,6 +4672,7 @@ ${amount} dla ${merchant} - ${date}`,
             exportDeepDiveCompanyCard:
                 'Wyeksportowane wydatki zostaną zaksięgowane jako transakcje bankowe na poniższym koncie bankowym Xero, a daty transakcji będą zgodne z datami na Twoim wyciągu bankowym.',
             bankTransactions: 'Transakcje bankowe',
+            travelInvoicingDescription: 'Wydatki na podróże zostaną wyeksportowane jako transakcje bankowe na konto Xero wskazane poniżej.',
             xeroBankAccount: 'Konto bankowe Xero',
             xeroBankAccountDescription: 'Wybierz, gdzie wydatki będą księgowane jako transakcje bankowe.',
             exportExpensesDescription: 'Raporty zostaną wyeksportowane jako rachunek zakupu z datą i statusem wybranymi poniżej.',
@@ -4774,6 +4799,26 @@ ${amount} dla ${merchant} - ${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Wydatki z własnej kieszeni zostaną wyeksportowane po ostatecznym zatwierdzeniu',
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Wydatki z własnej kieszeni zostaną wyeksportowane po opłaceniu',
                 },
+            },
+        },
+        certinia: {
+            title: 'Certinia',
+            prerequisites: {
+                title: 'Zanim się połączysz',
+                installBundle: 'Dla połączeń FFA',
+                installBundleDescription: ({href, version}: {href: string; version: string}) =>
+                    `Zainstaluj pakiet Expensify w Salesforce, klikając ten link: <a href="${href}">Zainstaluj pakiet FFA Expensify (wersja ${version})</a>`,
+                installBundleConfirm: 'Zainstalowałem pakiet',
+                setupContacts: 'Skonfiguruj użytkownika i kontakty',
+                setupContactsBullet1:
+                    'Utwórz dla siebie zarówno użytkownika, jak i kontakt w Certinia, jeśli jeszcze nie istnieją, upewniając się, że adres e‑mail jest taki sam jak twój główny adres e‑mail w Expensify.',
+                setupContactsBullet2:
+                    'Utwórz kontakty dla każdego pracownika, który będzie składał raporty wydatków, oraz dla każdej osoby je zatwierdzającej. Upewnij się, że adres e‑mail każdego kontaktu odpowiada adresowi e‑mail na koncie Expensify pracownika.',
+                setupContactsBullet3: 'Ustaw uprawnienia dla swojego użytkownika dla każdego kontaktu/zasobu.',
+                setupContactsConfirm: 'Skonfigurowałem użytkownika i kontakty',
+                oauth: 'Zaloguj się przez Salesforce',
+                oauthDescription: 'Aby zakończyć konfigurację, musisz się zalogować przez Salesforce i Certinia.\n\nUżyj przycisku poniżej, żeby kontynuować.',
+                connectButton: 'Połącz z Certinia',
             },
         },
         netsuite: {
@@ -5537,8 +5582,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                         subtitle: 'Gratulacje! Wszystko gotowe, aby rezerwować i zarządzać podróżami w tym obszarze roboczym.',
                         manageTravelLabel: 'Zarządzaj podróżami',
                     },
-                    centralInvoicingSection: {
-                        title: 'Centralne fakturowanie',
+                    travelInvoicingSection: {
+                        title: 'Fakturowanie podróży',
                         subtitle: 'Skonsoliduj wszystkie wydatki na podróże w jednym miesięcznym rachunku zamiast płacić w momencie zakupu.',
                         learnHow: 'Dowiedz się jak.',
                         subsections: {
@@ -5555,7 +5600,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                             reduceLimitWarning:
                                 'Jeśli zmniejszysz limit, członkowie, którzy już wydali więcej niż ta kwota, nie będą mogli dokonywać nowych rezerwacji podróży do następnego miesiąca.',
                             provisioningError:
-                                'Nie udało się skonfigurować części członków twojej przestrzeni roboczej do scentralizowanego fakturowania. Spróbuj ponownie później albo skontaktuj się z Concierge, żeby uzyskać pomoc.',
+                                'Nie udało się utworzyć dostępu do fakturowania podróży dla części członków Twojego workspace. Spróbuj ponownie później albo skontaktuj się z Concierge, żeby uzyskać pomoc.',
                         },
                     },
                     disableModal: {
@@ -5576,7 +5621,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     exportToCSV: 'Eksportuj do CSV',
                     selectDateRangeError: 'Wybierz zakres dat do eksportu',
                     invalidDateRangeError: 'Data początkowa musi być wcześniejsza niż data końcowa',
-                    enabled: 'Centralne fakturowanie włączone!',
+                    enabled: 'Fakturowanie podróży włączone!',
                     enabledDescription: 'Wszystkie wydatki podróżne w tym obszarze roboczym będą teraz rozliczane na scentralizowanej, miesięcznej fakturze.',
                 },
                 personalDetailsDescription: 'Aby zarezerwować podróż, wpisz swoje imię i nazwisko dokładnie tak, jak widnieje w Twoim dokumencie tożsamości wydanym przez organ państwowy.',
@@ -5952,6 +5997,13 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `Za chwilę utworzysz i udostępnisz ${newWorkspaceName ?? ''} ${totalMembers ?? 0} członkom oryginalnego obszaru roboczego.`,
             error: 'Wystąpił błąd podczas duplikowania Twojego nowego obszaru roboczego. Spróbuj ponownie.',
+        },
+        copyPolicySettings: {
+            error: 'Wystąpił błąd podczas kopiowania ustawień przestrzeni roboczej. Spróbuj ponownie.',
+            title: 'Skopiuj ustawienia',
+            selectWorkspaces: 'Wybierz przestrzenie robocze',
+            description: 'Wybierz przestrzenie robocze, do których chcesz skopiować ustawienia, a potem zaznacz ustawienia, które chcesz skopiować.',
+            searchPlaceholder: 'Szukaj przestrzeni roboczych',
         },
         emptyWorkspace: {
             title: 'Nie masz żadnych przestrzeni roboczych',
@@ -6345,7 +6397,11 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 chooseBankAccount: 'Wybierz konto bankowe, do którego będą uzgadniane płatności kartą Karta Expensify.',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `Upewnij się, że to konto jest takie samo jak twoje <a href="${settlementAccountUrl}">konto rozliczeniowe Karty Expensify</a> (kończące się na ${lastFourPAN}), aby Ciągłe Uzgadnianie działało poprawnie.`,
+                chooseTravelInvoicingBankAccount: 'Wybierz konto bankowe, z którym będą uzgadniane płatności za faktury podróżne.',
+                travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
+                    `Upewnij się, że to konto jest takie samo jak konto rozliczeniowe do fakturowania podróży (kończące się na ${lastFourPAN}), żeby Ciągłe Uzgadnianie działało poprawnie.`,
             },
+            syncTravelInvoicingSettlements: 'Synchronizuj rozliczenia faktur podróżnych',
         },
         export: {
             notReadyHeading: 'Niegotowe do eksportu',
@@ -6424,7 +6480,13 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             errors: {
                 rateNameRequired: 'Nazwa stawki jest wymagana',
                 existingRateName: 'Stawka za odległość o tej nazwie już istnieje',
+                nameRequired: 'Imię jest wymagane',
+                startDateMustBeBeforeEndDate: 'Data początkowa musi być wcześniejsza niż data końcowa',
+                amountRequired: 'Kwota jest wymagana',
             },
+            amountPerUnit: (unit: string) => `Kwota za ${unit}`,
+            startDate: 'Data rozpoczęcia',
+            endDate: 'Data zakończenia',
         },
         editor: {
             descriptionInputLabel: 'Opis',
@@ -6550,6 +6612,12 @@ Czy na pewno chcesz wyeksportować je ponownie?`,
                 description: `Korzystaj z automatycznej synchronizacji i ogranicz ręczne wprowadzanie danych dzięki integracji Expensify + QuickBooks Desktop. Zyskaj maksymalną wydajność dzięki dwukierunkowemu połączeniu w czasie rzeczywistym oraz kategoryzacji wydatków według klasy, pozycji, klienta i projektu.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Nasza integracja z QuickBooks Desktop jest dostępna wyłącznie w planie Control, zaczynającym się od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `na aktywnego członka miesięcznie.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
+                title: 'Certinia',
+                description: `Korzystaj z automatycznej synchronizacji i ogranicz ręczne wprowadzanie danych dzięki integracji Expensify + Certinia. Dopasuj wymiary kategoryzacji wydatków i synchronizację podatków do konfiguracji Certinia, aby uzyskać lepszą widoczność finansową.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Integracja z Certinia jest dostępna tylko w planie Control, zaczynającym się od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `na aktywnego członka miesięcznie.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Zaawansowane zatwierdzanie',
@@ -6681,6 +6749,58 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                     'Połącz się ze swoim dostawcą HR, aby automatycznie synchronizować pracowników i zarządzać ścieżkami akceptacji. Utrzymuj listę członków zespołu i strukturę raportowania na bieżąco, bez ręcznej pracy.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Integracje HR są dostępne tylko w planie Control, zaczynającym się od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za osobę miesięcznie.` : `za aktywnego członka miesięcznie.`}</muted-text>`,
+            },
+            approvalSubmit: {
+                title: 'Zatwierdzenia',
+                description: 'Skonfiguruj centralnie, do kogo wszyscy członkowie składają raporty, włączając zatwierdzanie.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Zatwierdzanie jest dostępne w planach Collect i Control, zaczynając od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za członka za miesiąc.` : `za aktywnego członka miesięcznie.`}</muted-text>`,
+            },
+            companyCardSubmit: {
+                title: 'Firmowe karty',
+                description: `Dodaj swoją firmową kartę do Expensify, aby uzyskać automatyczny import, automatyczną kategoryzację, obsługę konfigurowalnych reguł i zintegrowane uzgadnianie.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Importowanie kart firmowych jest dostępne w planach Collect i Control, zaczynających się od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za członka za miesiąc.` : `za aktywnego członka miesięcznie.`}</muted-text>`,
+            },
+            travelSubmit: {
+                title: 'Podróże Expensify',
+                description: 'Rezerwuj na całym świecie tańsze loty, hotele, samochody i pociągi bezpośrednio w Expensify, z raportami duty of care i zintegrowanym zarządzaniem wydatkami.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Expensify Travel jest dostępny w planach Collect i Control, zaczynając od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za członka za miesiąc.` : `za aktywnego członka miesięcznie.`}</muted-text>`,
+            },
+            roles: {
+                title: 'Role',
+                description: 'Przypisz różne role różnym członkom, aby w razie potrzeby zwiększyć lub zmniejszyć poziom widoczności i kontroli.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Role są dostępne w planach Collect i Control, zaczynając od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za członka za miesiąc.` : `za aktywnego członka miesięcznie.`}</muted-text>`,
+            },
+            payments: {
+                title: 'Płatności',
+                description: 'Zwracaj pracownikom wydatki bezpośrednio z firmowego konta bankowego.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Płatności są dostępne w planach Collect i Control, zaczynając od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za członka za miesiąc.` : `za aktywnego członka miesięcznie.`}</muted-text>`,
+            },
+            accounting: {
+                title: 'Księgowość',
+                description:
+                    'Synchronizuj kategorie, tagi, stawki podatkowe i więcej z Twojego systemu księgowego do Expensify, a także eksportuj raporty wydatków i transakcje kartą – bez przepisywania (i bez literówek)!',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Księgowość jest dostępna w planach Collect i Control, zaczynając od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za członka za miesiąc.` : `za aktywnego członka miesięcznie.`}</muted-text>`,
+            },
+            expensifyCard: {
+                title: 'Karta Expensify',
+                description:
+                    'Wydawaj firmowe karty (w tym karty wirtualne) bezpośrednio z własnego konta bankowego, aby zyskać kontrolę nad wydatkami w czasie rzeczywistym dzięki nierozerwalnemu połączeniu i nawet do 2% zwrotu gotówki!',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Karta Expensify jest dostępna w planach Collect i Control, zaczynając od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za członka za miesiąc.` : `za aktywnego członka miesięcznie.`}</muted-text>`,
+                upgradeButton: 'Ulepsz i włącz',
+            },
+            invoicing: {
+                title: 'Fakturowanie',
+                description:
+                    'Twórz, wysyłaj i śledź profesjonalne faktury — wszystko w Expensify. Otrzymuj płatności szybciej dzięki zintegrowanym płatnościom i wglądowi w czasie rzeczywistym.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Fakturowanie jest dostępne w planach Collect i Control, zaczynając od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za członka za miesiąc.` : `za aktywnego członka miesięcznie.`}</muted-text>`,
             },
         },
         downgrade: {
@@ -7008,8 +7128,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                     description: 'Dla pracowników, którzy chcą przesyłać wydatki do pracodawcy.',
                 },
             },
-            description: 'Wybierz plan odpowiedni dla siebie. Szczegółową listę funkcji i cen znajdziesz w naszej',
-            subscriptionLink: 'strona pomocy dotycząca typów planów i cen',
+            description: 'Wybierz plan odpowiedni dla siebie.',
+            subscriptionLink: 'Dowiedz się więcej',
             lockedPlanDescription: ({count, annualSubscriptionEndDate}: WorkspaceLockedPlanTypeParams) => ({
                 one: `Zobowiązałeś(-aś) się do 1 aktywnego członka w planie Control do końca rocznej subskrypcji ${annualSubscriptionEndDate}. Możesz przejść na subskrypcję z rozliczaniem za użycie i zmienić plan na Collect od ${annualSubscriptionEndDate}, wyłączając automatyczne odnawianie w`,
                 other: `Zobowiązałeś(-aś) się do ${count} aktywnych członków w planie Control do końca rocznej subskrypcji ${annualSubscriptionEndDate}. Możesz przejść na subskrypcję płatną za użycie i zmienić plan na Collect od ${annualSubscriptionEndDate}, wyłączając automatyczne odnawianie w`,
@@ -7018,8 +7138,34 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         },
         hr: {
             title: 'HR',
+            connections: 'Połączenia',
             subtitle: 'Połącz narzędzia HR i utrzymuj zgody pracowników w synchronizacji.',
-            settingsTitle: 'Ustawienia Gusto',
+            connect: 'Połącz',
+            syncNow: 'Synchronizuj teraz',
+            disconnect: 'Odłącz',
+            disconnectTitle: (providerName: string) => `Odłącz ${providerName}`,
+            disconnectPrompt: (providerName: string) => `Czy na pewno chcesz odłączyć ${providerName}?`,
+            lastSync: (relativeDate: string) => `Ostatnia synchronizacja ${relativeDate}`,
+            syncError: (providerName: string) => `Nie można połączyć z ${providerName}`,
+            connectionDescription: (providerName: string) => `Połącz ${providerName}, aby synchronizować akceptacje pracowników z Twoim miejscem pracy.`,
+            approvalMode: 'Tryb zatwierdzania',
+            providerApprovalMode: (providerName: string) => `Tryb zatwierdzania ${providerName}`,
+            finalApprover: 'Ostateczny zatwierdzający',
+            providerFinalApprover: (providerName: string) => `Ostateczny zatwierdzający ${providerName}`,
+            notSet: 'Nie ustawiono',
+            approvalModeDescription: (providerName: string) => `Członkowie i menedżerowie są skonfigurowani do synchronizacji z ${providerName}.`,
+            approvalModeWarningTitle: 'Zmienić tryb zatwierdzania?',
+            approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
+                `Czy na pewno chcesz zmienić tryb zatwierdzania dla tego obszaru roboczego? Dowiedz się więcej o różnych trybach przepływu pracy obsługiwanych przez ${providerName} w naszej <a href="${helpSiteURL}">witrynie pomocy</a>.`,
+            approvalModeWarningConfirm: 'Zmień tryb zatwierdzania',
+            approvalModes: {
+                basic: {label: 'Podstawowe zatwierdzanie', description: 'Wszyscy użytkownicy przesyłają wydatki do jednej osoby w celu ich przetworzenia i zatwierdzenia.'},
+                manager: {
+                    label: 'Zatwierdzanie przez menedżera',
+                    description: (providerName: string) => `Pracownicy przesyłają raporty do swojego bezpośredniego menedżera skonfigurowanego w ${providerName}.`,
+                },
+                custom: {label: 'Niestandardowe zatwierdzanie', description: 'Ręcznie skonfiguruję procesy zatwierdzania w Expensify.'},
+            },
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
                     case 'gustoSyncTitle':
@@ -7041,64 +7187,22 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                     }
                 }
             },
+            syncResults: {
+                title: (provider: string) => `Synchronizacja z ${provider} zakończona`,
+                successTitle: (provider: string) => `Pomyślnie zsynchronizowano twoje połączenie z ${provider}!`,
+                added: 'Dodano',
+                removed: 'Usunięto',
+                skipped: 'Pominięto',
+                employeeCount: () => ({
+                    one: '1 pracownik',
+                    other: (count: number) => `${count} pracownicy`,
+                }),
+            },
             gusto: {
                 title: 'Gusto',
-                approvalMode: 'Tryb zatwierdzania',
-                finalApprover: 'Ostateczny zatwierdzający',
-                notSet: 'Nie ustawiono',
-                approvalModeDescription: 'Członkowie i menedżerowie są skonfigurowani do synchronizacji z Gusto.',
-                approvalModeWarningTitle: 'Zmienić tryb zatwierdzania?',
-                approvalModeWarningPrompt: (helpSiteURL: string) =>
-                    `Czy na pewno chcesz zmienić tryb zatwierdzania dla tego obszaru roboczego? Dowiedz się więcej o różnych trybach przepływu pracy obsługiwanych przez Gusto w naszej <a href="${helpSiteURL}">witrynie pomocy</a>.`,
-                approvalModeWarningConfirm: 'Zmień tryb zatwierdzania',
-                approvalModes: {
-                    basic: {label: 'Podstawowa akceptacja', description: 'Wszyscy użytkownicy przesyłają wydatki do jednej osoby w celu ich przetworzenia i zatwierdzenia.'},
-                    manager: {label: 'Zatwierdzenie przez menedżera', description: 'Pracownicy przesyłają raporty do swojego bezpośredniego menedżera skonfigurowanego w Gusto.'},
-                    custom: {label: 'Niestandardowa akceptacja', description: 'Ręcznie skonfiguruję procesy zatwierdzania w Expensify.'},
-                },
-                connect: 'Połącz',
-                connectionDescription: 'Połącz Gusto, aby synchronizować akceptacje pracowników z Twoim miejscem pracy.',
-                syncNow: 'Synchronizuj teraz',
-                disconnect: 'Odłącz',
-                lastSync: (relativeDate: string) => `Ostatnia synchronizacja: ${relativeDate}`,
-                syncError: 'Nie można połączyć się z Gusto',
-                disconnectTitle: 'Odłącz Gusto',
-                disconnectPrompt: 'Czy na pewno chcesz odłączyć Gusto?',
-                syncResults: {
-                    title: 'Wyniki synchronizacji Gusto',
-                    successTitle: 'Pomyślnie zsynchronizowano Twoje połączenie z Gusto!',
-                    added: 'Dodano',
-                    removed: 'Usunięto',
-                    skipped: 'Pominięto',
-                    employeeCount: () => ({
-                        one: '1 pracownik',
-                        other: (count: number) => `${count} pracownicy`,
-                    }),
-                },
             },
             zenefits: {
                 title: 'TriNet',
-                connect: 'Połącz',
-                syncNow: 'Synchronizuj teraz',
-                disconnect: 'Odłącz',
-                lastSync: (relativeDate: string) => `Ostatnia synchronizacja: ${relativeDate}`,
-                syncError: 'Nie można połączyć się z TriNet',
-                disconnectTitle: 'Odłącz TriNet',
-                disconnectPrompt: 'Czy na pewno chcesz odłączyć TriNet?',
-                connectionDescription: 'Połącz TriNet, żeby utrzymywać zatwierdzenia pracowników w synchronizacji z twoim workspace’em.',
-                approvalMode: 'Tryb zatwierdzania',
-                finalApprover: 'Ostateczny zatwierdzający',
-                notSet: 'Nie ustawiono',
-                approvalModeDescription: 'Członkowie i menedżerowie są skonfigurowani do synchronizacji z TriNet.',
-                approvalModeWarningTitle: 'Zmienić tryb zatwierdzania?',
-                approvalModeWarningPrompt: (helpSiteURL: string) =>
-                    `Czy na pewno chcesz zmienić tryb zatwierdzania dla tego workspace? Dowiedz się więcej o różnych trybach workflow obsługiwanych przez TriNet na naszej <a href="${helpSiteURL}">stronie pomocy</a>.`,
-                approvalModeWarningConfirm: 'Zmień tryb akceptacji',
-                approvalModes: {
-                    basic: {label: 'Podstawowa akceptacja', description: 'Wszyscy użytkownicy przesyłają wydatki do jednej osoby w celu ich przetworzenia i zatwierdzenia.'},
-                    manager: {label: 'Akceptacja przez menedżera', description: 'Pracownicy składają raporty do swojego bezpośredniego przełożonego skonfigurowanego w TriNet.'},
-                    custom: {label: 'Niestandardowe zatwierdzanie', description: 'Ręcznie skonfiguruję przepływy akceptacji w Expensify.'},
-                },
             },
         },
     },
@@ -7806,7 +7910,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `Wszystkie ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `Wszystkie zaimportowane karty CSV${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
-                centralInvoicing: 'Centralne fakturowanie',
+                travelInvoicing: 'Fakturowanie podróży',
             },
             reportField: (name: string, value: string) => `${name} to ${value}`,
             current: 'Bieżące',
@@ -7840,7 +7944,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Karta Expensify',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Zwrot kosztów',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Centralne fakturowanie',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Fakturowanie podróży',
             },
             is: 'Jest',
             action: {
@@ -8262,7 +8366,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         personalCard: 'Karta osobista',
         companyCard: 'Karta firmowa',
         expensifyCard: 'Karta Expensify',
-        centralInvoicing: 'Centralne fakturowanie',
+        travelInvoicing: 'Fakturowanie podróży',
         travelCard: 'Karta podróżna',
     },
     distance: {
@@ -8542,7 +8646,15 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             `<muted-text-label>Oczekuje na rachunek z powodu przerwanego połączenia z bankiem. Rozwiąż problem w sekcji <a href="${workspaceCompanyCardRoute}">Karty firmowe</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Paragon oczekuje z powodu zerwanego połączenia z bankiem. Poproś administratora przestrzeni roboczej o rozwiązanie problemu.',
         markAsCashToIgnore: 'Oznacz jako gotówkę, aby zignorować i poprosić o płatność.',
-        smartscanFailed: ({canEdit = true}) => `Skanowanie paragonu nie powiodło się.${canEdit ? 'Wpisz szczegóły ręcznie.' : ''}`,
+        smartscanFailed: ({canEdit = true, missingFields = []}: {canEdit?: boolean; missingFields?: string[]}) => {
+            if (missingFields.length > 0) {
+                const fieldNames: Record<string, string> = {merchant: 'sprzedawcy', date: 'daty', amount: 'kwoty'};
+                const translated = missingFields.map((f) => fieldNames[f] ?? f);
+                const fieldList = translated.join(translated.length > 2 ? ', ' : ' i ');
+                return `Skanowanie paragonu nie powiodło się — brak ${fieldList}.${canEdit ? ' Wpisz szczegóły ręcznie.' : ''}`;
+            }
+            return `Skanowanie paragonu nie powiodło się.${canEdit ? 'Wpisz szczegóły ręcznie.' : ''}`;
+        },
         receiptGeneratedWithAI: 'Potencjalny paragon wygenerowany przez AI',
         someTagLevelsRequired: (tagName?: string) => `Brak ${tagName ?? 'Tag'}`,
         tagOutOfPolicy: (tagName?: string) => `${tagName ?? 'Tag'} nie jest już ważny`,
@@ -8624,6 +8736,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         bookACallTextBottom:
             'Chętnie umówimy się z Tobą na rozmowę, aby zrozumieć dlaczego. Możesz zarezerwować rozmowę z jednym z naszych starszych menedżerów produktu, aby omówić swoje potrzeby.',
         takeMeToExpensifyClassic: 'Przejdź do Expensify Classic',
+        goBackJustOnce: 'Wróć tylko raz',
     },
     listBoundary: {
         errorMessage: 'Wystąpił błąd podczas wczytywania kolejnych wiadomości',

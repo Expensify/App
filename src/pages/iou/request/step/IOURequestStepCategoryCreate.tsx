@@ -2,14 +2,14 @@ import React from 'react';
 import type {FormOnyxValues} from '@components/Form/types';
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
-import {setMoneyRequestCategory} from '@libs/actions/IOU';
-import {getIOURequestPolicyID} from '@libs/actions/IOU/MoneyRequest';
+import {getIOURequestPolicyID, setMoneyRequestCategory} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestCategory} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {createPolicyCategory} from '@libs/actions/Policy/Category';
@@ -41,6 +41,7 @@ function IOURequestStepCategoryCreate({
 }: IOURequestStepCategoryCreateProps) {
     const {translate} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {currentSearchHash} = useSearchStateContext();
@@ -141,6 +142,7 @@ function IOURequestStepCategoryCreate({
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                 isASAPSubmitBetaEnabled,
                 hash: currentSearchHash,
+                delegateAccountID,
             });
         } else {
             setMoneyRequestCategory(transactionID, categoryName, policy);
