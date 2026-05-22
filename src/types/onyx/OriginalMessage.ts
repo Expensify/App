@@ -765,10 +765,10 @@ type OriginalMessagePolicyChangeLog = {
     /** Whether the user joined the workspace via joining link */
     didJoinPolicy?: boolean;
 
-    /** Spend rule action (`block` or `allow`) sent by the new structured changelog payload */
+    /** Spend rule action (`block` or `allow`) */
     action?: string;
 
-    /** Previous spend rule action when the rule's restriction type changed in an update */
+    /** Previous spend rule action when the rule's restriction type was updated */
     oldAction?: string;
 
     /** Merchants included in a spend rule */
@@ -777,7 +777,7 @@ type OriginalMessagePolicyChangeLog = {
     /** Previous list of merchants when a spend rule was updated */
     oldMerchants?: string[];
 
-    /** Categories (slugs) included in a spend rule */
+    /** Categories included in a spend rule */
     categories?: string[];
 
     /** Previous list of categories when a spend rule was updated */
@@ -785,19 +785,19 @@ type OriginalMessagePolicyChangeLog = {
 
     /** Max-amount filters in a spend rule */
     amounts?: Array<{
-        /** Operator (`gte` for "over", `lte` for "under") */
+        /** Operator (`gt` for "over", `lte` for "under") */
         operator: string;
 
-        /** Amount value as cents serialized to a string array (`['100000']`) */
+        /** Amount value as a decimal dollar string array (e.g. `['100.40']`) */
         value: string[];
     }>;
 
     /** Previous list of max-amount filters when a spend rule was updated */
     oldAmounts?: Array<{
-        /** Operator (`gte` for "over", `lte` for "under") */
+        /** Operator (`gt` for "over", `lte` for "under") */
         operator: string;
 
-        /** Amount value as cents serialized to a string array (`['100000']`) */
+        /** Amount value as a decimal dollar string array (e.g. `['100.40']`) */
         value: string[];
     }>;
 

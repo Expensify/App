@@ -3979,7 +3979,7 @@ function formatSpendRuleAmountToCents(value: string[]): number {
     if (firstValue === '' || !Number.isFinite(Number(firstValue))) {
         return 0;
     }
-    return Number.parseInt(firstValue, 10) * 100;
+    return Math.round(parseFloat(firstValue) * 100);
 }
 
 function spendRuleFormatAmountValue(amount: {value: string[]}, currency: string): string {
@@ -4019,12 +4019,12 @@ type SpendRuleCard = {cardID?: number | string; displayName?: string};
 type SpendRuleCardDiff = {added: SpendRuleCard[]; removed: SpendRuleCard[]};
 
 function spendRuleCardID(card: SpendRuleCard): number | undefined {
-    const raw = card?.cardID;
-    if (typeof raw === 'number' && Number.isFinite(raw)) {
-        return raw;
+    const cardID = card?.cardID;
+    if (typeof cardID === 'number' && Number.isFinite(cardID)) {
+        return cardID;
     }
-    if (typeof raw === 'string' && /^\d+$/.test(raw)) {
-        return Number.parseInt(raw, 10);
+    if (typeof cardID === 'string' && /^\d+$/.test(cardID)) {
+        return Number.parseInt(cardID, 10);
     }
     return undefined;
 }
