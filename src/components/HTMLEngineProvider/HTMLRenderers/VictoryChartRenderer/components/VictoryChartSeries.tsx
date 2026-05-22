@@ -1,5 +1,6 @@
 import React from 'react';
 import type {TNode} from 'react-native-render-html';
+import Log from '@libs/Log';
 import VictoryChartBar from './VictoryChartBar';
 import VictoryChartLine from './VictoryChartLine';
 
@@ -19,6 +20,7 @@ const SERIES_RENDERERS: Partial<Record<string, SeriesComponent>> = {
 function VictoryChartSeries({tnode}: VictoryChartSeriesProps) {
     const SeriesRenderer = SERIES_RENDERERS[tnode.tagName ?? ''];
     if (!SeriesRenderer) {
+        Log.warn('Unsupported series chart', {tagName: tnode.tagName});
         return null;
     }
     return <SeriesRenderer tnode={tnode} />;
