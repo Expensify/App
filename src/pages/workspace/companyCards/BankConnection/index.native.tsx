@@ -78,6 +78,10 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
     const hasEverDetectedNewFeed = useRef(false);
     const hasShownDuplicateModal = useRef(false);
     const {showConfirmModal} = useConfirmModal();
+    const showConfirmModalRef = useRef(showConfirmModal);
+    showConfirmModalRef.current = showConfirmModal;
+    const translateRef = useRef(translate);
+    translateRef.current = translate;
 
     const activityReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'BankConnection',
@@ -152,10 +156,10 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
                 hasShownDuplicateModal.current = true;
                 Navigation.closeRHPFlow();
                 Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
-                showConfirmModal({
-                    title: translate('workspace.companyCards.addNewCard.duplicateFeedModal.title'),
-                    prompt: translate('workspace.companyCards.addNewCard.duplicateFeedModal.prompt'),
-                    confirmText: translate('common.buttonConfirm'),
+                showConfirmModalRef.current({
+                    title: translateRef.current('workspace.companyCards.addNewCard.duplicateFeedModal.title'),
+                    prompt: translateRef.current('workspace.companyCards.addNewCard.duplicateFeedModal.prompt'),
+                    confirmText: translateRef.current('common.buttonConfirm'),
                     shouldShowCancelButton: false,
                     shouldHandleNavigationBack: false,
                 });
@@ -186,8 +190,6 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
         isFeedConnectionBroken,
         updateBrokenConnection,
         isNewFeedHasError,
-        showConfirmModal,
-        translate,
     ]);
 
     const checkIfConnectionCompleted = (navState: WebViewNavigation) => {
