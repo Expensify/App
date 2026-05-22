@@ -1,9 +1,9 @@
 import {useCallback, useEffect, useRef} from 'react';
-import useConfirmModal from '@hooks/useConfirmModal';
-import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import useConfirmModal from './useConfirmModal';
+import useLocalize from './useLocalize';
 
 type UseDuplicateFeedDetectionParams = {
     policyID: string | undefined;
