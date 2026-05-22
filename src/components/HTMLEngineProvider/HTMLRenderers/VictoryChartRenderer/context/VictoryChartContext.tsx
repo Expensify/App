@@ -35,7 +35,7 @@ function VictoryChartProvider({tnode, children}: {tnode: TNode; children: React.
     const hasPolarData = false;
     let type: ChartType | null = null;
 
-    // XNOR Check. There must one and only one valid chart
+    // XNOR Check. There must be one and only one valid chart
     if (hasCartesianData === hasPolarData) {
         type = null;
     } else if (hasCartesianData) {
