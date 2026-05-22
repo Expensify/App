@@ -39,7 +39,6 @@ jobs:
       PULL_REQUEST_NUMBER: ${{ inputs.pull-request-number }}
     steps:
       - name: Checkout
-        # v1
         uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
           ref: ${{ inputs.ref }}

@@ -44,7 +44,6 @@ jobs:
       MOBILE_PR_NUMBER: ${{ steps.extractMobilePRNumber.outputs.PR_NUMBER }}
     steps:
       - name: Checkout
-        # v1
         uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
 
       - name: Validate that user is an Expensify employee
@@ -134,7 +133,6 @@ jobs:
         MOBILE_EXPENSIFY_REF: ${{ steps.getHeadRef.outputs.REF || 'main' }}
       steps:
         - name: Checkout
-          # v1
           uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
 
         - name: Check if Expensify/Mobile-Expensify pull request number is correct

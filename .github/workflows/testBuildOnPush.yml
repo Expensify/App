@@ -11,7 +11,6 @@ jobs:
     timeout-minutes: 120
     steps:
       - name: Checkout
-        # v1
         uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
 
       - name: Wait for earlier runs to finish (FIFO queue)
@@ -31,7 +30,6 @@ jobs:
       BUILD_MOBILE: ${{ steps.detectOSBotifyPush.outputs.BUILD_MOBILE || 'true' }}
     steps:
       - name: Checkout
-        # v1
         uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
 
       - name: Validate that user is an Expensify employee

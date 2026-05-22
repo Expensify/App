@@ -32,7 +32,6 @@ jobs:
       standalone_patches_hash: ${{ steps.getNewPatchesHash.outputs.STANDALONE_APP_HASH }}
     steps:
       - name: Checkout
-        # v1
         uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
           submodules: true
@@ -139,7 +138,6 @@ jobs:
       cancel-in-progress: true
     steps:
       - name: Checkout Code
-        # v1
         uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
           submodules: ${{ matrix.is_hybrid }}

@@ -54,7 +54,6 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
       - name: Check out
-        # v1
         uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
           ref: main
