@@ -42,9 +42,22 @@ function SearchPage({route}: SearchPageProps) {
     const [hasFilterBars = false] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: hasFilterBarsSelector});
 
     const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
-    const [selectedCurrency, setSelectedCurrency] = useState<string | undefined>();
-    const [defaultFooterCurrency, setDefaultFooterCurrency] = useState<string | undefined>();
-    const [pendingFooterCurrency, setPendingFooterCurrency] = useState<string | undefined>();
+    type FooterCurrencyState = {
+        searchHash: typeof currentSearchHash | undefined;
+        selectedCurrency: string | undefined;
+        defaultCurrency: string | undefined;
+        pendingCurrency: string | undefined;
+    };
+    const [footerCurrencyState, setFooterCurrencyState] = useState<FooterCurrencyState>({
+        searchHash: undefined,
+        selectedCurrency: undefined,
+        defaultCurrency: undefined,
+        pendingCurrency: undefined,
+    });
+    const isCurrentFooterState = footerCurrencyState.searchHash === currentSearchHash;
+    const selectedCurrency = isCurrentFooterState ? footerCurrencyState.selectedCurrency : undefined;
+    const defaultFooterCurrency = isCurrentFooterState ? footerCurrencyState.defaultCurrency : undefined;
+    const pendingFooterCurrency = isCurrentFooterState ? footerCurrencyState.pendingCurrency : undefined;
 
     useConfirmReadyToOpenApp();
     useSearchPageSetup(currentSearchQueryJSON);
@@ -107,29 +120,7 @@ function SearchPage({route}: SearchPageProps) {
         setIsSorting(false);
     }, [currentSearchResults?.isLoading, isSorting, prevIsLoading]);
 
-    useEffect(() => {
-        setSelectedCurrency(undefined);
-        setDefaultFooterCurrency(undefined);
-        setPendingFooterCurrency(undefined);
-    }, [currentSearchHash]);
-
-    useEffect(() => {
-        if (defaultFooterCurrency || selectedCurrency || !metadata?.currency) {
-            return;
-        }
-
-        setDefaultFooterCurrency(metadata.currency);
-    }, [defaultFooterCurrency, metadata?.currency, selectedCurrency]);
-
     const hasPendingFooterCurrencySettled = !!pendingFooterCurrency && metadata?.currency === pendingFooterCurrency && metadata?.count != null && metadata?.total != null;
-
-    useEffect(() => {
-        if (!hasPendingFooterCurrencySettled) {
-            return;
-        }
-
-        setPendingFooterCurrency(undefined);
-    }, [hasPendingFooterCurrencySettled]);
 
     const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
 
@@ -146,13 +137,18 @@ function SearchPage({route}: SearchPageProps) {
 
     const handleFooterCurrencyChange = useCallback(
         (currency: string | undefined) => {
-            const nextCurrency = currency ?? defaultFooterCurrency ?? metadata?.currency;
+            const fallbackDefaultCurrency = defaultFooterCurrency ?? metadata?.currency;
+            const nextCurrency = currency ?? fallbackDefaultCurrency;
             if (!currentSearchQueryJSON || !nextCurrency) {
                 return;
             }
 
-            setSelectedCurrency(currency);
-            setPendingFooterCurrency(nextCurrency);
+            setFooterCurrencyState({
+                searchHash: currentSearchHash,
+                selectedCurrency: currency,
+                defaultCurrency: fallbackDefaultCurrency,
+                pendingCurrency: nextCurrency,
+            });
             handleSearchAction({
                 queryJSON: currentSearchQueryJSON,
                 searchKey: currentSearchKey,
@@ -162,7 +158,7 @@ function SearchPage({route}: SearchPageProps) {
                 targetCurrency: nextCurrency,
             });
         },
-        [currentSearchKey, currentSearchQueryJSON, defaultFooterCurrency, handleSearchAction, metadata?.currency],
+        [currentSearchHash, currentSearchKey, currentSearchQueryJSON, defaultFooterCurrency, handleSearchAction, metadata?.currency],
     );
 
     const footerData = useMemo(() => {

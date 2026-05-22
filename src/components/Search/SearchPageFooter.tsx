@@ -2,14 +2,10 @@ import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
-import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
-import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
-import type {DropdownButtonProps} from '@components/Search/FilterDropdowns/DropdownButton';
-import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import SkeletonRect from '@components/SkeletonRect';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
 import Text from '@components/Text';
-import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyList';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -17,9 +13,12 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCurrencyOptions} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type {SingleSelectItem} from './FilterComponents/SingleSelect';
+import DropdownButton from './FilterDropdowns/DropdownButton';
+import type {DropdownButtonProps} from './FilterDropdowns/DropdownButton';
+import GroupCurrencyPopup from './FilterDropdowns/GroupCurrencyPopup';
 
 type SearchPageFooterProps = {
     count: number | undefined;
@@ -32,22 +31,20 @@ type SearchPageFooterProps = {
 
 const TOTAL_SKELETON_WIDTH = 72;
 const TOTAL_SKELETON_HEIGHT = 8;
+type TotalButtonProps = React.ComponentProps<NonNullable<DropdownButtonProps['ButtonComponent']>>;
 
 function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoading, onCurrencyChange}: SearchPageFooterProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {convertToDisplayString, getCurrencySymbol} = useCurrencyListActions();
-    const {currencyList} = useCurrencyListState();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const valueTextStyle = useMemo(() => (isOffline ? [styles.textLabelSupporting, styles.labelStrong] : [styles.labelStrong]), [isOffline, styles]);
-    const currencyOptions = useMemo(() => getCurrencyOptions(currencyList, getCurrencySymbol), [currencyList, getCurrencySymbol]);
-    const selectedCurrencyOption = useMemo(() => currencyOptions.find((option) => option.value === currency), [currencyOptions, currency]);
 
     const handleCurrencyChange = useCallback(
         (item: SingleSelectItem<string> | undefined) => {
@@ -60,24 +57,22 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
         [defaultCurrency, onCurrencyChange],
     );
 
-    const renderCurrencyPopup = useCallback(
-        ({closeOverlay, isExpanded}: {closeOverlay: () => void; isExpanded: boolean}) => (
-            <SingleSelectPopup
-                items={currencyOptions}
-                value={selectedCurrencyOption}
+    const renderCurrencyPopup: DropdownButtonProps['PopoverComponent'] = useCallback(
+        ({closeOverlay, isExpanded}) => (
+            <GroupCurrencyPopup
+                value={currency}
                 closeOverlay={closeOverlay}
                 onChange={handleCurrencyChange}
-                isSearchable
                 searchPlaceholder={translate('common.search')}
                 defaultValue={defaultCurrency}
                 shouldShowList={isExpanded}
             />
         ),
-        [currencyOptions, defaultCurrency, handleCurrencyChange, selectedCurrencyOption, translate],
+        [currency, defaultCurrency, handleCurrencyChange, translate],
     );
 
     const totalButton: DropdownButtonProps['ButtonComponent'] = useCallback(
-        (props) => (
+        (props: TotalButtonProps) => (
             <PressableWithFeedback
                 ref={props.ref}
                 accessibilityLabel={translate('common.totalSpend')}

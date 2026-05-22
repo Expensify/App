@@ -1,38 +1,40 @@
-import {filterGroupCurrencySelector} from '@selectors/Search';
-import React from 'react';
+import React, {useMemo} from 'react';
 import {useCurrencyListActions, useCurrencyListState} from '@components/CurrencyListContextProvider';
 import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import {getCurrencyOptions} from '@libs/SearchUIUtils';
-import ONYXKEYS from '@src/ONYXKEYS';
 import SingleSelectPopup from './SingleSelectPopup';
 
 type GroupCurrencyPopupProps = {
-    onBackButtonPress: () => void;
+    onBackButtonPress?: () => void;
     closeOverlay: () => void;
     onChange: (item: SingleSelectItem<string> | undefined) => void;
+    value?: string;
+    defaultValue?: string;
+    searchPlaceholder?: string;
+    shouldShowList?: boolean;
 };
 
-function GroupCurrencyPopup({onBackButtonPress, onChange, closeOverlay}: GroupCurrencyPopupProps) {
+function GroupCurrencyPopup({onBackButtonPress, onChange, closeOverlay, value, defaultValue, searchPlaceholder, shouldShowList}: GroupCurrencyPopupProps) {
     const {translate} = useLocalize();
     const {currencyList} = useCurrencyListState();
     const {getCurrencySymbol} = useCurrencyListActions();
-    const groupCurrencyOptions = getCurrencyOptions(currencyList, getCurrencySymbol);
-    const [groupCurrency] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: filterGroupCurrencySelector});
 
-    const groupCurrencyValue = groupCurrencyOptions.find((option) => option.value === groupCurrency);
+    const groupCurrencyOptions = useMemo(() => getCurrencyOptions(currencyList, getCurrencySymbol), [currencyList, getCurrencySymbol]);
+    const groupCurrencyValue = useMemo(() => groupCurrencyOptions.find((option) => option.value === value), [groupCurrencyOptions, value]);
 
     return (
         <SingleSelectPopup
             items={groupCurrencyOptions}
             value={groupCurrencyValue}
-            label={translate('common.groupCurrency')}
+            label={onBackButtonPress ? translate('common.groupCurrency') : undefined}
             onBackButtonPress={onBackButtonPress}
             closeOverlay={closeOverlay}
             onChange={onChange}
             isSearchable
-            searchPlaceholder={translate('common.groupCurrency')}
+            searchPlaceholder={searchPlaceholder ?? translate('common.groupCurrency')}
+            defaultValue={defaultValue}
+            shouldShowList={shouldShowList}
         />
     );
 }

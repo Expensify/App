@@ -206,6 +206,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY:
             return (
                 <GroupCurrencyPopup
+                    value={searchAdvancedFilters[CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]}
                     onChange={(item) => updateFilterForm({groupCurrency: item?.value})}
                     onBackButtonPress={goBack}
                     closeOverlay={closeOverlay}
