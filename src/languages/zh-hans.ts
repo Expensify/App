@@ -674,6 +674,7 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: '我们未能寄出您的卡。请重试。'},
         revealPin: {couldNotReveal: '我们无法显示您的 PIN。请重试。'},
         changePin: {didNotChange: '我们未更改您的 PIN。请重试。'},
+        revealCardDetail: {couldNotReveal: '我们无法显示您的卡片详情。请重试。'},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -6966,6 +6967,8 @@ ${reportName}
             disconnect: '断开连接',
             disconnectTitle: (providerName: string) => `断开 ${providerName}`,
             disconnectPrompt: (providerName: string) => `确定要断开 ${providerName} 吗？`,
+            alreadyConnectedTitle: '无法连接到多个人力资源平台',
+            alreadyConnectedPrompt: '在连接其他人力资源平台之前，您必须先断开当前的人力资源平台。',
             lastSync: (relativeDate: string) => `上次同步 ${relativeDate}`,
             syncError: (providerName: string) => `无法连接到 ${providerName}`,
             connectionDescription: (providerName: string) => `连接 ${providerName}，以在您的工作区中同步员工审批。`,

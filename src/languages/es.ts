@@ -653,6 +653,7 @@ const translations: TranslationDeepObject<typeof en> = {
         changePin: {
             didNotChange: 'No pudimos cambiar tu PIN. Por favor, inténtalo de nuevo.',
         },
+        revealCardDetail: {couldNotReveal: 'No hemos podido mostrar los datos de tu tarjeta. Por favor, inténtalo de nuevo.'},
     },
     validateCodeModal: {
         successfulSignInTitle: 'Abracadabra,\n¡sesión iniciada!',
@@ -6291,6 +6292,8 @@ ${amount} para ${merchant} - ${date}`,
             disconnect: 'Desconectar',
             disconnectTitle: (providerName: string) => `Desconectar ${providerName}`,
             disconnectPrompt: (providerName: string) => `¿Seguro que quieres desconectar ${providerName}?`,
+            alreadyConnectedTitle: 'No se puede conectar a varias plataformas de RR. HH.',
+            alreadyConnectedPrompt: 'Debes desconectar tu plataforma de RR. HH. actual antes de conectar otra.',
             lastSync: (relativeDate: string) => `Última sincronización ${relativeDate}`,
             syncError: (providerName: string) => `No se puede conectar con ${providerName}`,
             connectionDescription: (providerName: string) => `Conecta ${providerName} para mantener sincronizadas las aprobaciones de empleados con tu espacio de trabajo.`,

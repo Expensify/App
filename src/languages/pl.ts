@@ -695,6 +695,7 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: 'Nie wysłaliśmy twojej karty. Spróbuj ponownie.'},
         revealPin: {couldNotReveal: 'Nie udało się wyświetlić twojego PIN-u. Spróbuj ponownie.'},
         changePin: {didNotChange: 'Nie zmieniliśmy twojego PIN-u. Spróbuj ponownie.'},
+        revealCardDetail: {couldNotReveal: 'Nie udało się wyświetlić szczegółów Twojej karty. Spróbuj ponownie.'},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -7147,6 +7148,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             disconnect: 'Odłącz',
             disconnectTitle: (providerName: string) => `Odłącz ${providerName}`,
             disconnectPrompt: (providerName: string) => `Czy na pewno chcesz odłączyć ${providerName}?`,
+            alreadyConnectedTitle: 'Nie można połączyć się z wieloma platformami HR',
+            alreadyConnectedPrompt: 'Musisz odłączyć swoją obecną platformę HR, zanim podłączysz inną.',
             lastSync: (relativeDate: string) => `Ostatnia synchronizacja ${relativeDate}`,
             syncError: (providerName: string) => `Nie można połączyć z ${providerName}`,
             connectionDescription: (providerName: string) => `Połącz ${providerName}, aby synchronizować akceptacje pracowników z Twoim miejscem pracy.`,
