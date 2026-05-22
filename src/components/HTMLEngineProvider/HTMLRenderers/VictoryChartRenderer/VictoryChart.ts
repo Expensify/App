@@ -7,7 +7,8 @@ import VictoryChartLegend from './components/VictoryChartLegend';
 import VictoryChartLine from './components/VictoryChartLine';
 import VictoryChartPolar from './components/VictoryChartPolar';
 import VictoryChartSeries from './components/VictoryChartSeries';
-import {VictoryChartProvider, VictoryChartRenderArgsProvider} from './context/VictoryChartContext';
+import {VictoryChartProvider} from './context/VictoryChartContext';
+import {VictoryChartRenderArgsProvider} from './context/VictoryChartRenderArgsContext';
 
 const VictoryChart = {
     Provider: VictoryChartProvider,

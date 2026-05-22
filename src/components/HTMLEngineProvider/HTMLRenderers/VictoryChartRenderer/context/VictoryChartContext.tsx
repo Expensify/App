@@ -1,11 +1,10 @@
 import React, {createContext, useContext} from 'react';
 import type {TNode} from 'react-native-render-html';
-import type {CartesianChartRenderArg} from 'victory-native';
 import {useChartDefaultTypeface} from '@components/Charts/hooks';
+import {CHART_TYPE} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import processVictoryChartTree from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/processVictoryChartTree';
-import type {CartesianChartData, ChartType, ProcessNodeResult, YKey} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+import type {ChartType, ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import parseStyles from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseStyles';
-import {CHART_TYPE} from '../constants';
 
 type VictoryChartContextValue = {
     tnode: TNode;
@@ -22,7 +21,6 @@ type VictoryChartContextValue = {
 };
 
 const VictoryChartContext = createContext<VictoryChartContextValue | null>(null);
-const VictoryChartRenderArgsContext = createContext<CartesianChartRenderArg<CartesianChartData, YKey> | null>(null);
 
 /**
  * Parses the HTML tnode tree into chart config and makes it available to all chart sub-components.
@@ -69,16 +67,6 @@ function VictoryChartProvider({tnode, children}: {tnode: TNode; children: React.
 
 VictoryChartProvider.displayName = 'VictoryChartProvider';
 
-/**
- * Makes the CartesianChart render-prop arguments available to series sub-components
- * (VictoryChartBar, VictoryChartLine) rendered inside the chart's children callback.
- */
-function VictoryChartRenderArgsProvider({value, children}: {value: CartesianChartRenderArg<CartesianChartData, YKey>; children: React.ReactNode}) {
-    return <VictoryChartRenderArgsContext.Provider value={value}>{children}</VictoryChartRenderArgsContext.Provider>;
-}
-
-VictoryChartRenderArgsProvider.displayName = 'VictoryChartRenderArgsProvider';
-
 function useVictoryChartContext(): VictoryChartContextValue {
     const context = useContext(VictoryChartContext);
     if (!context) {
@@ -87,13 +75,5 @@ function useVictoryChartContext(): VictoryChartContextValue {
     return context;
 }
 
-function useVictoryChartRenderArgs(): CartesianChartRenderArg<CartesianChartData, YKey> {
-    const context = useContext(VictoryChartRenderArgsContext);
-    if (!context) {
-        throw new Error('useVictoryChartRenderArgs must be used within VictoryChartRenderArgsProvider');
-    }
-    return context;
-}
-
-export {VictoryChartProvider, VictoryChartRenderArgsProvider, useVictoryChartContext, useVictoryChartRenderArgs};
+export {VictoryChartProvider, useVictoryChartContext};
 export type {VictoryChartContextValue};
