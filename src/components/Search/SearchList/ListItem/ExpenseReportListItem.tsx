@@ -27,7 +27,7 @@ import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {getNonHeldAndFullAmount, isInvoiceReport, isOpenExpenseReport, isProcessingReport, isReportPendingDelete} from '@libs/ReportUtils';
-import {isOnHold, isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
+import {isOnHold, isViolationDismissed, shouldShowViolation, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -181,14 +181,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             },
             ownerBillingGracePeriodEnd,
             amountOwed,
-            onPendingCardTransactionsBlock: () => {
-                showConfirmModal({
-                    title: translate('iou.error.unableToSubmitReport'),
-                    prompt: translate('iou.error.allTransactionsPendingDescription'),
-                    confirmText: translate('common.buttonConfirm'),
-                    shouldShowCancelButton: false,
-                });
-            },
+            onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate),
         });
     }, [
         currentSearchHash,

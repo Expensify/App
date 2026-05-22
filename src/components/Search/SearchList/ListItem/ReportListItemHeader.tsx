@@ -17,6 +17,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 import {handleActionButtonPress} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -248,14 +249,7 @@ function ReportListItemHeader<TItem extends ListItem>({
             personalPolicyID,
             ownerBillingGracePeriodEnd,
             amountOwed,
-            onPendingCardTransactionsBlock: () => {
-                showConfirmModal({
-                    title: translate('iou.error.unableToSubmitReport'),
-                    prompt: translate('iou.error.allTransactionsPendingDescription'),
-                    confirmText: translate('common.buttonConfirm'),
-                    shouldShowCancelButton: false,
-                });
-            },
+            onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate),
         });
     };
     return !isLargeScreenWidth ? (

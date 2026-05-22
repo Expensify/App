@@ -56,6 +56,7 @@ import {navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     hasCustomUnitOutOfPolicyViolation,
+    hasOnlyPendingCardTransactions,
     hasTransactionBeenRejected,
     isDeletedTransaction,
     isDistanceRequest,
@@ -64,6 +65,7 @@ import {
     isPending,
     isPerDiemRequest,
     isScanning,
+    showPendingCardTransactionsBlockModal,
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import {initBulkEditDraftTransaction} from '@userActions/IOU/BulkEdit';
@@ -1272,13 +1274,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                               .map((id) => selectedTransactions[id]?.transaction ?? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`])
                               .filter((t): t is NonNullable<typeof t> => !!t);
 
-                    if (allSelectedTransactionsList.length > 0 && allSelectedTransactionsList.every((t) => isExpensifyCardTransaction(t) && isPending(t))) {
-                        showConfirmModal({
-                            title: translate('iou.error.unableToSubmitReport'),
-                            prompt: translate('iou.error.allTransactionsPendingDescription'),
-                            confirmText: translate('common.buttonConfirm'),
-                            shouldShowCancelButton: false,
-                        });
+                    if (hasOnlyPendingCardTransactions(allSelectedTransactionsList)) {
+                        showPendingCardTransactionsBlockModal(showConfirmModal, translate);
                         return;
                     }
 

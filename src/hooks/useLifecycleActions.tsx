@@ -19,7 +19,7 @@ import {
     isReportOwner,
     shouldBlockSubmitDueToStrictPolicyRules,
 } from '@libs/ReportUtils';
-import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, isExpensifyCardTransaction, isPending} from '@libs/TransactionUtils';
+import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 import {cancelPayment} from '@userActions/IOU/PayMoneyRequest';
 import {approveMoneyRequest, reopenReport, retractReport, submitReport, unapproveExpenseReport} from '@userActions/IOU/ReportWorkflow';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
@@ -228,14 +228,8 @@ function useLifecycleActions({reportID, startApprovedAnimation, startSubmittingA
                     return;
                 }
 
-                const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
-                if (hasOnlyPendingTransactions) {
-                    showConfirmModal({
-                        title: translate('iou.error.unableToSubmitReport'),
-                        prompt: translate('iou.error.allTransactionsPendingDescription'),
-                        confirmText: translate('common.buttonConfirm'),
-                        shouldShowCancelButton: false,
-                    });
+                if (hasOnlyPendingCardTransactions(transactions)) {
+                    showPendingCardTransactionsBlockModal(showConfirmModal, translate);
                     return;
                 }
 

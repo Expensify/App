@@ -1468,6 +1468,28 @@ function isPending(transaction: OnyxEntry<Transaction>): boolean {
 }
 
 /**
+ * Check if all transactions are pending Expensify card transactions.
+ */
+function hasOnlyPendingCardTransactions(transactions: OnyxEntry<Transaction>[]): boolean {
+    return transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
+}
+
+/**
+ * Show a confirm modal explaining that pending card transactions cannot be submitted.
+ */
+function showPendingCardTransactionsBlockModal(
+    showConfirmModal: (options: {title: string; prompt: string; confirmText: string; shouldShowCancelButton: boolean}) => void,
+    translate: LocaleContextProps['translate'],
+) {
+    showConfirmModal({
+        title: translate('iou.error.unableToSubmitReport'),
+        prompt: translate('iou.error.allTransactionsPendingDescription'),
+        confirmText: translate('common.buttonConfirm'),
+        shouldShowCancelButton: false,
+    });
+}
+
+/**
  * The transaction is considered scanning if it is a partial transaction, has a receipt, and the receipt is being scanned.
  * Note that this does not include receipts that are being scanned in the background for auditing / smart scan everything, because there should be no indication to the user that the receipt is being scanned.
  */
@@ -2938,6 +2960,8 @@ export {
     isManagedCardTransaction,
     isDuplicate,
     isPending,
+    hasOnlyPendingCardTransactions,
+    showPendingCardTransactionsBlockModal,
     isOnHold,
     getWaypoints,
     isAmountMissing,

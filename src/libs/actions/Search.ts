@@ -48,7 +48,7 @@ import type {SearchKey} from '@libs/SearchUIUtils';
 import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {isExpensifyCardTransaction, isPending} from '@libs/TransactionUtils';
+import {hasOnlyPendingCardTransactions} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -199,8 +199,7 @@ function handleActionButtonPress({
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(snapshotReport.policyID));
                 return;
             }
-            const hasOnlyPendingTransactions = allReportTransactions.length > 0 && allReportTransactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
-            if (hasOnlyPendingTransactions) {
+            if (hasOnlyPendingCardTransactions(allReportTransactions)) {
                 onPendingCardTransactionsBlock?.();
                 return;
             }

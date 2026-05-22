@@ -10,7 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
-import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, isExpensifyCardTransaction, isPending} from '@libs/TransactionUtils';
+import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 import {submitReport} from '@userActions/IOU/ReportWorkflow';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 import CONST from '@src/CONST';
@@ -57,20 +57,13 @@ function SubmitActionButton({iouReportID, isSubmittingAnimationRunning, stopAnim
 
     const confirmPendingRTERAndProceed = useConfirmPendingRTERAndProceed(hasAnyPendingRTERViolation, handleMarkPendingRTERTransactionsAsCash);
 
-    const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
-
     return (
         <AnimatedSubmitButton
             success
             text={translate('common.submit')}
             onPress={() => {
-                if (hasOnlyPendingTransactions) {
-                    showConfirmModal({
-                        title: translate('iou.error.unableToSubmitReport'),
-                        prompt: translate('iou.error.allTransactionsPendingDescription'),
-                        confirmText: translate('common.buttonConfirm'),
-                        shouldShowCancelButton: false,
-                    });
+                if (hasOnlyPendingCardTransactions(transactions)) {
+                    showPendingCardTransactionsBlockModal(showConfirmModal, translate);
                     return;
                 }
                 confirmPendingRTERAndProceed(() => {
