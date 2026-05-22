@@ -9224,7 +9224,7 @@ ${amount} para ${merchant} - ${date}`,
         copilotDelegatedAccess: 'Copilot: Acceso delegado',
         copilotDelegatedAccessDescription: 'Permitir que otros miembros accedan a tu cuenta.',
         learnMoreAboutDelegatedAccess: 'Más información sobre acceso delegado',
-        addCopilot: 'Añade un copiloto a tu cuenta',
+        addCopilot: 'Añade un copiloto',
         membersCanAccessYourAccount: 'Estos miembros pueden acceder a tu cuenta:',
         youCanAccessTheseAccounts: 'Puedes acceder a estas cuentas:',
         role: ({role} = {}) => {

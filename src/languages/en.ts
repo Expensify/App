@@ -9070,7 +9070,7 @@ const translations = {
         copilotDelegatedAccess: 'Copilot: Delegated access',
         copilotDelegatedAccessDescription: 'Allow other members to access your account.',
         learnMoreAboutDelegatedAccess: 'Learn more about delegated access',
-        addCopilot: 'Add a copilot to your account',
+        addCopilot: 'Add a copilot',
         membersCanAccessYourAccount: 'These members can access your account:',
         youCanAccessTheseAccounts: 'You can access these accounts:',
         role: ({role}: OptionalParam<DelegateRoleParams> = {}) => {
