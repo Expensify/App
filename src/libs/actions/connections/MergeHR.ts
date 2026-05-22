@@ -184,8 +184,8 @@ function updateMergeHRFinalApprover(policyID: string, finalApprover: string | nu
     );
 }
 
-function setMergeHRInitialSyncModalShown(policyID: string, timestamp: string) {
-    Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN}${policyID}`, timestamp);
+function setMergeHRInitialSyncModalShown(policyID: string) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN}${policyID}`, true);
 }
 
 type HRProviderName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.HR_CONNECTION_NAMES>;

@@ -133,7 +133,7 @@ function HRProviderCard({card, policy, handleConnect}: HRProviderCardProps) {
                 rightComponent={rightComponent}
                 fallbackIcon={fallbackIcon}
             />
-            {card.isConnected && !!approvalModeRoute && (
+            {card.isConnected && !card.isInitialSyncInProgress && !!approvalModeRoute && (
                 <OfflineWithFeedback
                     pendingAction={card.config?.pendingFields?.approvalMode}
                     errors={card.config?.errorFields?.approvalMode}
@@ -149,7 +149,7 @@ function HRProviderCard({card, policy, handleConnect}: HRProviderCardProps) {
                     />
                 </OfflineWithFeedback>
             )}
-            {card.isConnected && !!finalApproverRoute && (
+            {card.isConnected && !card.isInitialSyncInProgress && !!finalApproverRoute && (
                 <OfflineWithFeedback
                     pendingAction={card.config?.pendingFields?.finalApprover}
                     errors={card.config?.errorFields?.finalApprover}

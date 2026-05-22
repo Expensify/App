@@ -303,6 +303,9 @@ type ConnectionLastSync = {
 
     /** Type of the sync, only populated for Merge HR connections */
     syncType?: ValueOf<typeof CONST.MERGE_HR.SYNC_TYPE>;
+
+    /** Status of the sync, only populated for Merge HR connections */
+    syncStatus?: ValueOf<typeof CONST.MERGE_HR.SYNC_STATUS>;
 };
 
 /**

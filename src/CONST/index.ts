@@ -2914,8 +2914,17 @@ const CONST = {
             MANAGER: 'manager',
             CUSTOM: 'custom',
         },
+        SYNC_STATUS: {
+            SYNCING: 'SYNCING',
+            DONE: 'DONE',
+            FAILED: 'FAILED',
+            DISABLED: 'DISABLED',
+        },
         SYNC_TYPE: {
             INITIAL: 'initial',
+            MANUAL: 'manual',
+            AUTO: 'auto',
+            WEBHOOK: 'webhook',
         },
     },
 

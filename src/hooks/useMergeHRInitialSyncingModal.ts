@@ -4,25 +4,24 @@ import {setMergeHRInitialSyncModalShown} from '@libs/actions/connections/MergeHR
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Policy from '@src/types/onyx/Policy';
-import type {PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
 import useConfirmModal from './useConfirmModal';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 
 /**
  * Shows a one-time informational modal when the Merge HR connection's first backend-initiated sync starts.
- * The modal is suppressed for subsequent page loads during the same sync by persisting the sync timestamp in Onyx.
+ * The modal is suppressed for subsequent page loads during the same sync by persisting a sentinel value in Onyx.
  */
-function useMergeHRInitialSyncingModal(policyID: string, policy: OnyxEntry<Policy>, connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>, isFocused: boolean) {
+function useMergeHRInitialSyncingModal(policyID: string, policy: OnyxEntry<Policy>, isFocused: boolean) {
     const {showConfirmModal} = useConfirmModal();
     const {translate} = useLocalize();
-    const [shownForTimestamp] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN}${policyID}`);
+    const [shownSentinel] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN}${policyID}`);
 
-    const showSyncingModal = useEffectEvent((timestamp: string) => {
-        if (shownForTimestamp === timestamp) {
+    const showSyncingModal = useEffectEvent(() => {
+        if (shownSentinel) {
             return;
         }
-        setMergeHRInitialSyncModalShown(policyID, timestamp);
+        setMergeHRInitialSyncModalShown(policyID);
         showConfirmModal({
             id: `merge-hr-syncing-${policyID}`,
             title: translate('workspace.hr.syncingModalTitle'),
@@ -32,20 +31,17 @@ function useMergeHRInitialSyncingModal(policyID: string, policy: OnyxEntry<Polic
         });
     });
 
-    const lastSyncType = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]?.lastSync?.syncType;
+    const mergeLastSync = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]?.lastSync;
 
     useEffect(() => {
-        const isMergeHRInitialSyncStarting =
-            connectionSyncProgress?.connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR &&
-            connectionSyncProgress?.stageInProgress === CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.MERGE_HR_SYNC_TITLE &&
-            lastSyncType === CONST.MERGE_HR.SYNC_TYPE.INITIAL;
+        const isInitialSyncInProgress = mergeLastSync?.syncStatus === CONST.MERGE_HR.SYNC_STATUS.SYNCING && mergeLastSync?.syncType === CONST.MERGE_HR.SYNC_TYPE.INITIAL;
 
-        if (!isFocused || !isMergeHRInitialSyncStarting || !connectionSyncProgress?.timestamp) {
+        if (!isFocused || !isInitialSyncInProgress) {
             return;
         }
 
-        showSyncingModal(connectionSyncProgress.timestamp);
-    }, [connectionSyncProgress?.connectionName, connectionSyncProgress?.stageInProgress, lastSyncType, connectionSyncProgress?.timestamp, isFocused]);
+        showSyncingModal();
+    }, [mergeLastSync?.syncStatus, mergeLastSync?.syncType, isFocused]);
 }
 
 export default useMergeHRInitialSyncingModal;

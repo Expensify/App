@@ -27,6 +27,7 @@ function removePolicyConnection(policy: Policy, connectionName: PolicyConnection
             | typeof ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION
             | typeof ONYXKEYS.COLLECTION.TRAVEL_INVOICING_CONTINUOUS_RECONCILIATION_CONNECTION
             | typeof ONYXKEYS.COLLECTION.TRAVEL_INVOICING_USE_CONTINUOUS_RECONCILIATION
+            | typeof ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN
         >
     > = [
         {
@@ -64,6 +65,14 @@ function removePolicyConnection(policy: Policy, connectionName: PolicyConnection
             value: null,
         },
     ];
+
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN}${policyID}`,
+            value: null,
+        });
+    }
 
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
