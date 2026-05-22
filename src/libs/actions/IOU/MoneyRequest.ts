@@ -736,6 +736,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             taxCode: distanceTaxCode,
                             taxAmount: distanceTaxAmount,
                         },
+                        existingTransaction: transaction,
                         shouldHandleNavigation: overrides.shouldHandleNavigation,
                         shouldDeferForSearch: overrides.shouldDeferForSearch,
                         isASAPSubmitBetaEnabled,

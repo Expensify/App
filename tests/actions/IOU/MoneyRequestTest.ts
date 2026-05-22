@@ -1246,6 +1246,7 @@ describe('MoneyRequest', () => {
                     taxCode: '',
                     taxAmount: 0,
                 },
+                existingTransaction: fakeTransaction,
                 shouldHandleNavigation: true,
                 shouldDeferForSearch: false,
                 isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
