@@ -49,7 +49,10 @@ type MoneyRequestConfirmationListFooterProps = {
     /** Active transaction (read by hooks + section gates) */
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 
-    /** Active policy (read by sections + provides policyID for the Provider) */
+    /** Input policy ID (passed to the Provider so leaf fields read tags/categories from the same policy the parent's validation uses) */
+    policyID: string | undefined;
+
+    /** Active policy (read by sections — may differ from `policyID` in track-expense flows where the user moves the expense to a different workspace) */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** Selected participants (drives ReportField + InvoiceSender presentation) */
@@ -108,6 +111,7 @@ function MoneyRequestConfirmationListFooter({
     reportID,
     reportActionID,
     transaction,
+    policyID,
     policy,
     selectedParticipants,
     isReadOnly,
@@ -142,7 +146,7 @@ function MoneyRequestConfirmationListFooter({
             reportActionID={reportActionID}
             action={action}
             iouType={iouType}
-            policyID={policy?.id}
+            policyID={policyID}
             isReadOnly={isReadOnly}
             didConfirm={didConfirm}
             isEditingSplitBill={isEditingSplitBill}

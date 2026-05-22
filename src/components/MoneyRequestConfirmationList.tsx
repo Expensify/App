@@ -526,6 +526,7 @@ function MoneyRequestConfirmationList({
                 reportID={reportID}
                 reportActionID={reportActionID}
                 transaction={transaction}
+                policyID={policyID}
                 policy={policy}
                 selectedParticipants={selectedParticipantsProp}
                 isReadOnly={isReadOnly}

@@ -80,6 +80,7 @@ const renderMoneyRequestConfirmationListFooter = async (transaction: Transaction
         reportID: '123',
         reportActionID: '',
         transaction,
+        policyID: FAKE_POLICY_ID,
         policy: createRandomPolicy(Number(FAKE_POLICY_ID), CONST.POLICY.TYPE.TEAM),
         selectedParticipants: [
             {

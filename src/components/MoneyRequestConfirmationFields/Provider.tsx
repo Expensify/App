@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import type {ReactNode} from 'react';
 import type {IOUAction, IOUType} from '@src/CONST';
 import type CONST from '@src/CONST';
@@ -56,22 +56,19 @@ function Provider({
     isPolicyExpenseChat = false,
     children,
 }: ProviderProps) {
-    const value = useMemo(
-        () => ({
-            transactionID,
-            reportID,
-            reportActionID,
-            action,
-            iouType,
-            policyID,
-            isReadOnly,
-            didConfirm,
-            isEditingSplitBill,
-            isNewManualExpenseFlowEnabled,
-            isPolicyExpenseChat,
-        }),
-        [transactionID, reportID, reportActionID, action, iouType, policyID, isReadOnly, didConfirm, isEditingSplitBill, isNewManualExpenseFlowEnabled, isPolicyExpenseChat],
-    );
+    const value = {
+        transactionID,
+        reportID,
+        reportActionID,
+        action,
+        iouType,
+        policyID,
+        isReadOnly,
+        didConfirm,
+        isEditingSplitBill,
+        isNewManualExpenseFlowEnabled,
+        isPolicyExpenseChat,
+    };
     return <ConfirmationFieldsContext.Provider value={value}>{children}</ConfirmationFieldsContext.Provider>;
 }
 
