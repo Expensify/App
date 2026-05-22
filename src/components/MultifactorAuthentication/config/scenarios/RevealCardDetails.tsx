@@ -6,31 +6,31 @@ import type {
     MultifactorAuthenticationScenarioAdditionalParams,
     MultifactorAuthenticationScenarioCustomConfig,
 } from '@components/MultifactorAuthentication/config/types';
-import {revealPINForCard} from '@libs/actions/MultifactorAuthentication';
+import {revealCardDetailsWithSCA} from '@libs/actions/MultifactorAuthentication';
 import Navigation from '@libs/Navigation/Navigation';
-import {setRevealedPhysicalCardPin} from '@libs/RevealedCardSecretsStore';
+import {setRevealedVirtualCardDetails} from '@libs/RevealedCardSecretsStore';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 /**
- * Payload type for the REVEAL_PIN scenario.
- * Contains the cardID for the card whose PIN is being revealed.
+ * Payload type for the REVEAL_CARD_DETAILS scenario.
+ * Contains the cardID for the virtual card whose details are being revealed.
  */
 type Payload = {
     cardID: string;
 };
 
 /**
- * Type guard to verify the payload is a RevealPIN payload.
+ * Type guard to verify the payload is a RevealCardDetails payload.
  */
-function isRevealPINPayload(payload: MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario> | undefined): payload is Payload {
+function isRevealCardDetailsPayload(payload: MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario> | undefined): payload is Payload {
     return !!payload && 'cardID' in payload;
 }
 
 const ClientFailureScreen = createScreenWithDefaults(
     DefaultClientFailureScreen,
     {
-        subtitle: 'multifactorAuthentication.revealPin.couldNotReveal',
+        subtitle: 'multifactorAuthentication.revealCardDetail.couldNotReveal',
     },
     'ClientFailureScreen',
 );
@@ -38,26 +38,29 @@ const ClientFailureScreen = createScreenWithDefaults(
 const ServerFailureScreen = createScreenWithDefaults(
     DefaultServerFailureScreen,
     {
-        subtitle: 'multifactorAuthentication.revealPin.couldNotReveal',
+        subtitle: 'multifactorAuthentication.revealCardDetail.couldNotReveal',
     },
     'ServerFailureScreen',
 );
 
 /**
- * Configuration for the REVEAL_PIN multifactor authentication scenario.
- * This scenario is used when a UK/EU cardholder reveals the PIN of their physical card.
+ * Configuration for the REVEAL_CARD_DETAILS multifactor authentication scenario.
+ * Used by UK/EU virtual cardholders to reveal their card details (PAN/expiration/CVV)
+ * via Strong Customer Authentication instead of the email magic-code flow.
  *
  * Callback behavior:
- * - Success: Store the revealed PIN in RevealedCardSecretsStore and return SKIP_OUTCOME_SCREEN
+ * - Success: Store the revealed details in RevealedCardSecretsStore and return SKIP_OUTCOME_SCREEN
  * - Authentication failure: Return SHOW_OUTCOME_SCREEN to show failure screen
  */
 export default {
     allowedAuthenticationMethods: [CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS_HSM, CONST.MULTIFACTOR_AUTHENTICATION.TYPE.PASSKEYS],
-    action: revealPINForCard,
+    action: revealCardDetailsWithSCA,
     callback: async (isSuccessful, callbackInput, payload) => {
-        if (isSuccessful && isRevealPINPayload(payload)) {
-            const pin = typeof callbackInput.body?.pin === 'string' ? callbackInput.body.pin : '';
-            setRevealedPhysicalCardPin(payload.cardID, pin);
+        if (isSuccessful && isRevealCardDetailsPayload(payload)) {
+            const pan = typeof callbackInput.body?.pan === 'string' ? callbackInput.body.pan : '';
+            const expiration = typeof callbackInput.body?.expiration === 'string' ? callbackInput.body.expiration : '';
+            const cvv = typeof callbackInput.body?.cvv === 'string' ? callbackInput.body.cvv : '';
+            setRevealedVirtualCardDetails(payload.cardID, {pan, expiration, cvv});
             Navigation.closeRHPFlow();
             Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(String(payload.cardID)));
             return CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SKIP_OUTCOME_SCREEN;

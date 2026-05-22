@@ -693,6 +693,7 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: 'Não enviamos seu cartão. Tente novamente.'},
         revealPin: {couldNotReveal: 'Não foi possível revelar seu PIN. Tente novamente.'},
         changePin: {didNotChange: 'Nós não alteramos seu PIN. Tente novamente.'},
+        revealCardDetail: {couldNotReveal: 'Não foi possível exibir os detalhes do seu cartão. Tente novamente.'},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`

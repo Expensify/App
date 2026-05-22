@@ -723,6 +723,9 @@ const translations = {
         changePin: {
             didNotChange: "We didn't change your PIN. Please try again.",
         },
+        revealCardDetail: {
+            couldNotReveal: "We couldn't reveal your card details. Please try again.",
+        },
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
