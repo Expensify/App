@@ -90,7 +90,10 @@ function AddAgentPage({route}: AddAgentPageProps) {
     };
 
     const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_AGENT_FORM>) => {
-        const firstName = values[INPUT_IDS.FIRST_NAME].trim() || undefined;
+        // Fall back to the default agent name shown as the field default so the optimistic personal
+        // detail (and any UI derived from it, like the approver pill on the Workflows page) renders
+        // with a human-readable name instead of the optimistic placeholder email.
+        const firstName = values[INPUT_IDS.FIRST_NAME].trim() || defaultAgentName;
         const prompt = values[INPUT_IDS.PROMPT].trim();
         const pendingFile = pendingFileRef.current;
 

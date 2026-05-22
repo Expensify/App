@@ -75,5 +75,50 @@ function clearPendingPostCreateSeed() {
     pendingPostCreateSeed = null;
 }
 
-export type {PendingAgentApprover, PendingPostCreateSeed};
-export {setPendingAgentApprover, getPendingAgentApprover, clearPendingAgentApprover, setPendingPostCreateSeed, getPendingPostCreateSeed, clearPendingPostCreateSeed};
+/**
+ * Tracks an in-flight CREATE_AGENT call so we can swap the optimistic approver we seeded into
+ * `approvalWorkflow.approvers` for the real agent once the server response lands. Without this
+ * swap the approver keeps pointing at the (now-expired) optimistic email, and the agent appears
+ * to "fall out" of the workflow when the optimistic personalDetailsList / employeeList entries
+ * get nulled by CREATE_AGENT's successData.
+ */
+type PendingAgentApproverSwap = {
+    /** Optimistic email that was seeded as the approver (must match the value in approvalWorkflow) */
+    optimisticEmail: string;
+
+    /** Optimistic accountID used to derive the optimistic email; kept for diagnostics/parity */
+    optimisticAccountID: number;
+
+    /** Snapshot of owned agent accountIDs taken before submit — used to identify the new real agent */
+    knownAccountIDs: number[];
+
+    /** Policy this swap applies to. Prevents stale swaps from leaking across workspaces. */
+    policyID: string;
+};
+
+let pendingAgentApproverSwap: PendingAgentApproverSwap | null = null;
+
+function setPendingAgentApproverSwap(value: PendingAgentApproverSwap) {
+    pendingAgentApproverSwap = value;
+}
+
+function getPendingAgentApproverSwap(): PendingAgentApproverSwap | null {
+    return pendingAgentApproverSwap;
+}
+
+function clearPendingAgentApproverSwap() {
+    pendingAgentApproverSwap = null;
+}
+
+export type {PendingAgentApprover, PendingPostCreateSeed, PendingAgentApproverSwap};
+export {
+    setPendingAgentApprover,
+    getPendingAgentApprover,
+    clearPendingAgentApprover,
+    setPendingPostCreateSeed,
+    getPendingPostCreateSeed,
+    clearPendingPostCreateSeed,
+    setPendingAgentApproverSwap,
+    getPendingAgentApproverSwap,
+    clearPendingAgentApproverSwap,
+};

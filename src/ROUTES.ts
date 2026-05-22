@@ -2320,7 +2320,7 @@ const ROUTES = {
     WORKSPACE_WORKFLOWS_ADD_AGENT: {
         route: 'workspaces/:policyID/workflows/add-agent',
         getRoute: ({policyID, workflowApproverEmail}: {policyID: string; workflowApproverEmail?: string}) =>
-            `workspaces/${policyID}/workflows/add-agent${workflowApproverEmail ? `?workflowApproverEmail=${encodeURIComponent(workflowApproverEmail)}` : ''}` as const,
+            getUrlWithParams(`workspaces/${policyID}/workflows/add-agent`, {workflowApproverEmail}),
     },
     WORKSPACE_WORKFLOWS_PAYER: {
         route: 'workspaces/:policyID/workflows/payer',
