@@ -27,7 +27,7 @@ function WorkspaceRoomsTable({rooms}: WorkspaceRoomsTableProps) {
         {key: 'name', label: translate('common.name')},
         {key: 'createdBy', label: translate('common.createdBy')},
         {key: 'members', label: translate('common.members'), width: variables.workspaceRoomsMembersColumnWidth},
-        {key: 'actions', label: '', styling: {containerStyles: [styles.justifyContentEnd, styles.pr3]}},
+        {key: 'actions', label: '', width: variables.workspaceRoomsActionsColumnWidth, styling: {containerStyles: [styles.justifyContentEnd, styles.pr3]}},
     ];
 
     const compareItems: CompareItemsCallback<WorkspaceRoomRowData, WorkspaceRoomsTableColumnKey> = (a, b, activeSorting) => {

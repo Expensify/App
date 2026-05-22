@@ -70,6 +70,7 @@ function WorkspaceRoomsTableRow({item, rowIndex, shouldUseNarrowTableLayout}: Wo
                         <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
                             <ReportActionAvatars
                                 noRightMarginOnSubscriptContainer
+                                singleAvatarContainerStyle={[styles.mr0]}
                                 reportID={item.reportID}
                                 size={CONST.AVATAR_SIZE.DEFAULT}
                             />
@@ -101,6 +102,7 @@ function WorkspaceRoomsTableRow({item, rowIndex, shouldUseNarrowTableLayout}: Wo
                             <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
                                 <ReportActionAvatars
                                     noRightMarginOnSubscriptContainer
+                                    singleAvatarContainerStyle={[styles.mr0]}
                                     reportID={item.reportID}
                                     size={CONST.AVATAR_SIZE.SMALL}
                                 />
@@ -111,7 +113,7 @@ function WorkspaceRoomsTableRow({item, rowIndex, shouldUseNarrowTableLayout}: Wo
                                 />
                             </View>
 
-                            <View style={[styles.flex1, styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
+                            <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
                                 {!!item.ownerDisplayName && (
                                     <>
                                         {!!item.ownerAccountID && (
