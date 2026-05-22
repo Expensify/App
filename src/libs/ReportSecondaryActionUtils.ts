@@ -656,7 +656,8 @@ function shouldShowEditSplitInDeleteAction(
         return false;
     }
 
-    return shouldRedirectDeleteToSplitExpenseEdit(reportTransaction, originalTransaction) && isDeleteAction(report, reportTransactions, reportActions);
+    const isSelfDMSplit = isSelfDMReportUtils(report);
+    return shouldRedirectDeleteToSplitExpenseEdit(reportTransaction, originalTransaction, isSelfDMSplit) && isDeleteAction(report, reportTransactions, reportActions);
 }
 
 function isRetractAction(report: Report, policy?: Policy): boolean {

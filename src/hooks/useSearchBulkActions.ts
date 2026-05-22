@@ -1459,8 +1459,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             (firstOriginalTransactionID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstOriginalTransactionID}`] : undefined) ??
             (firstOriginalTransactionID ? transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstOriginalTransactionID}`] : undefined) ??
             (firstOriginalTransactionID ? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstOriginalTransactionID}`] : undefined);
+        const isFirstTransactionSelfDMSplit = isSelfDM(firstTransactionReport);
         const shouldShowEditSplitOnDeleteAction =
-            canShowDeleteAction && selectedTransactionsKeys.length === 1 && shouldRedirectDeleteToSplitExpenseEdit(firstTransaction, firstOriginalTransaction);
+            canShowDeleteAction && selectedTransactionsKeys.length === 1 && shouldRedirectDeleteToSplitExpenseEdit(firstTransaction, firstOriginalTransaction, isFirstTransactionSelfDMSplit);
 
         const isSplittable = !!firstTransactionMeta?.canSplit;
         const isAlreadySplit = !!firstTransactionMeta?.hasBeenSplit;

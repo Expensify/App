@@ -11,6 +11,7 @@ import initSplitExpense from '@libs/actions/SplitExpenses';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {calculateAmount as calculateIOUAmount} from '@libs/IOUUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {isSelfDM} from '@libs/ReportUtils';
 import {getActiveGroupSearchHashes} from '@libs/SearchUIUtils';
 import {
     getChildTransactions,
@@ -93,13 +94,14 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             }
 
             const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.comment?.originalTransactionID}`];
-            if (!shouldRedirectDeleteToSplitExpenseEdit(transaction, originalTransaction)) {
+            const isSelfDMSplit = isSelfDM(report) || (!!selfDMReportID && transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
+            if (!shouldRedirectDeleteToSplitExpenseEdit(transaction, originalTransaction, isSelfDMSplit)) {
                 return undefined;
             }
 
             return transaction;
         },
-        [allTransactions],
+        [allTransactions, report, selfDMReportID],
     );
 
     const shouldOpenSplitExpenseEditFlowOnDelete = useCallback(
@@ -134,7 +136,9 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             const splitExpenseEditTransaction = getSplitExpenseEditTransactionOnDelete(transactionIDs);
 
             if (splitExpenseEditTransaction) {
-                const splitExpenseEditTransactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${splitExpenseEditTransaction.reportID}`];
+                const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${splitExpenseEditTransaction.reportID}`];
+                const selfDMReport = isSelfDM(report) ? report : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
+                const splitExpenseEditTransactionReport = transactionReport ?? selfDMReport;
                 initSplitExpense(splitExpenseEditTransaction, policy, splitExpenseEditTransactionReport, {navigateToEditSplitExpense: true});
                 return {
                     action: 'redirected',
