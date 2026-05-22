@@ -394,6 +394,7 @@ function MoneyRequestConfirmationList({
         transaction,
         iouAmount,
         iouCurrencyCode,
+        currentUserAccountID: currentUserPersonalDetails.accountID,
     });
 
     const canEditParticipant = isFromGlobalCreateAndCanEditParticipant && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice);
