@@ -6,6 +6,16 @@ import * as KeyCommand from 'react-native-key-command';
 import type {ValueOf} from 'type-fest';
 import type {SearchFilterKey} from '@components/Search/types';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+import {
+    ANIMATED_TRANSITION as ANIMATION_TIMING_ANIMATED_TRANSITION,
+    DEFAULT_IN as ANIMATION_TIMING_DEFAULT_IN,
+    DEFAULT_OUT as ANIMATION_TIMING_DEFAULT_OUT,
+    DEFAULT_RIGHT_DOCKED_IOS_IN as ANIMATION_TIMING_DEFAULT_RIGHT_DOCKED_IOS_IN,
+    DEFAULT_RIGHT_DOCKED_IOS_OUT as ANIMATION_TIMING_DEFAULT_RIGHT_DOCKED_IOS_OUT,
+    FAB_IN as ANIMATION_TIMING_FAB_IN,
+    FAB_OUT as ANIMATION_TIMING_FAB_OUT,
+    MENU_ANIMATION_DURATION as ANIMATION_TIMING_MENU_ANIMATION_DURATION,
+} from '@libs/Animation/animationTiming';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
 import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/VALUES';
 import addTrailingForwardSlash from '@libs/UrlUtils';
@@ -226,7 +236,8 @@ const CONST = {
     ANIMATED_HIGHLIGHT_WORKSPACE_FEATURE_ITEM_END_DURATION: 3000,
     ANIMATED_HIGHLIGHT_END_DELAY: 800,
     ANIMATED_HIGHLIGHT_END_DURATION: 2000,
-    ANIMATED_TRANSITION: 300,
+    ANIMATED_TRANSITION: ANIMATION_TIMING_ANIMATED_TRANSITION,
+    MENU_ANIMATION_DURATION: ANIMATION_TIMING_MENU_ANIMATION_DURATION,
     KEYBOARD_RESTORATION_FLAG_RESET_DELAY: 100,
     SIDE_PANEL_ANIMATED_TRANSITION: 300,
     ANIMATED_TRANSITION_FROM_VALUE: 100,
@@ -261,6 +272,7 @@ const CONST = {
     POPOVER_DROPDOWN_MAX_HEIGHT: 416,
     POPOVER_MENU_MAX_HEIGHT: 496,
     POPOVER_MENU_MAX_HEIGHT_MOBILE: 432,
+    MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD: 8,
     POPOVER_DATE_WIDTH: 338,
     POPOVER_DATE_RANGE_WIDTH: 672,
     POPOVER_DATE_MAX_HEIGHT: 366,
@@ -280,6 +292,8 @@ const CONST = {
     ANIMATION_PAID_BUTTON_HIDE_DELAY: 300,
     BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
     SCREEN_TRANSITION_END_TIMEOUT: 1000,
+    PENDING_TRANSACTION_DELETION_DELAY: 4000,
+    PENDING_TRANSACTION_SCROLL_DELAY: 1000,
 
     // Delay before pre-inserting the Search fullscreen route under the RHP on the confirmation screen.
     // Chosen to be long enough for the RHP entrance animation to complete (~250ms) and avoid jank
@@ -311,6 +325,10 @@ const CONST = {
         PHOTO_WIDTH: 4032,
         PHOTO_HEIGHT: 3024,
         PHOTO_ASPECT_RATIO: 4 / 3,
+        // Limit how long the shutter handler waits for thumbnail pre-generation before navigating
+        // to the confirmation screen. Past this, we navigate and let the confirm-side hook
+        // generate the thumbnail lazily (brief source swap is acceptable).
+        THUMBNAIL_NAV_TIMEOUT_MS: 150,
     },
 
     API_ATTACHMENT_VALIDATIONS: {
@@ -450,6 +468,14 @@ const CONST = {
 
     REQUEST_PREVIEW: {
         MAX_LENGTH: 83,
+    },
+
+    EXPORT_DOWNLOAD: {
+        STATE: {
+            PREPARING: 'preparing',
+            READY: 'ready',
+            FAILED: 'failed',
+        },
     },
 
     EXPORT_LABELS: {
@@ -880,7 +906,6 @@ const CONST = {
     BETAS: {
         ALL: 'all',
         ASAP_SUBMIT: 'asapSubmit',
-        CSV_CARD_IMPORT: 'csvCardImport',
         CUSTOM_AGENT: 'customAgent',
         DEFAULT_ROOMS: 'defaultRooms',
         PREVENT_SPOTNANA_TRAVEL: 'preventSpotnanaTravel',
@@ -899,6 +924,7 @@ const CONST = {
         BULK_EDIT: 'bulkEdit',
         NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
         SUBMIT_2026: 'submit2026',
+        DATE_BOUND_MILEAGE_RATE: 'dateBoundMileageRate',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         WORKSPACE_ROOMS_PAGE: 'workspaceRoomsPage',
         CERTINIA: 'financialForceNewDot',
@@ -915,18 +941,23 @@ const CONST = {
         WALLET: 'WALLET',
     },
     COUNTRY: {
-        US: 'US',
-        MX: 'MX',
+        AS: 'AS',
         AU: 'AU',
         CA: 'CA',
+        FI: 'FI',
+        FR: 'FR',
         GB: 'GB',
         GI: 'GI',
-        IT: 'IT',
-        PR: 'PR',
         GU: 'GU',
-        VI: 'VI',
-        AS: 'AS',
+        IE: 'IE',
+        IL: 'IL',
+        IS: 'IS',
+        IT: 'IT',
         MP: 'MP',
+        MX: 'MX',
+        PR: 'PR',
+        US: 'US',
+        VI: 'VI',
     },
     SWIPE_DIRECTION: {
         DOWN: 'down',
@@ -1894,13 +1925,16 @@ const CONST = {
             PRESERVE: 'preserve',
         },
         ANIMATION_TIMING: {
-            DEFAULT_IN: 300,
-            DEFAULT_OUT: 200,
-            DEFAULT_RIGHT_DOCKED_IOS_IN: 500,
-            DEFAULT_RIGHT_DOCKED_IOS_OUT: 400,
-            FAB_IN: 350,
-            FAB_OUT: 200,
+            DEFAULT_IN: ANIMATION_TIMING_DEFAULT_IN,
+            DEFAULT_OUT: ANIMATION_TIMING_DEFAULT_OUT,
+            DEFAULT_RIGHT_DOCKED_IOS_IN: ANIMATION_TIMING_DEFAULT_RIGHT_DOCKED_IOS_IN,
+            DEFAULT_RIGHT_DOCKED_IOS_OUT: ANIMATION_TIMING_DEFAULT_RIGHT_DOCKED_IOS_OUT,
+            FAB_IN: ANIMATION_TIMING_FAB_IN,
+            FAB_OUT: ANIMATION_TIMING_FAB_OUT,
+            RHP_DURATION_IN_WEB: 150,
+            RHP_DURATION_OUT_WEB: 100,
         },
+        RHP_ENTER_OFFSET_PX_WEB: 60,
     },
     FAB_MENU_ITEM_IDS: {
         QUICK_ACTION: 'quick-action',
@@ -2007,6 +2041,7 @@ const CONST = {
         SPAN_ENTRY_TO_SCAN_NAVIGATION: 'ManualEntryToScanNavigation',
         SPAN_ENTRY_TO_SCAN_READY: 'ManualEntryToScanReady',
         SPAN_SHUTTER_TO_CONFIRMATION: 'ManualShutterToConfirmation',
+        SPAN_THUMBNAIL_GATE: 'ManualThumbnailGate',
         SPAN_RECEIPT_CAPTURE: 'ManualReceiptCapture',
         SPAN_SCAN_PROCESS_AND_NAVIGATE: 'ManualScanProcessAndNavigate',
         SPAN_CONFIRMATION_MOUNT: 'ManualConfirmationMount',
@@ -2590,7 +2625,6 @@ const CONST = {
         WIDTH: 320,
         HEIGHT: 416,
     },
-    SEARCH_ITEM_LIMIT: 15,
     CATEGORY_SHORTCUT_BAR_HEIGHT: 32,
     SMALL_EMOJI_PICKER_SIZE: {
         WIDTH: '100%',
@@ -2755,6 +2789,7 @@ const CONST = {
             REPORT_FIELD: 'REPORT_FIELD',
         },
         ACCOUNTING_METHOD: 'accountingMethod',
+        TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
     },
 
     SAGE_INTACCT_MAPPING_VALUE: {
@@ -2778,6 +2813,8 @@ const CONST = {
         PRODUCTION: 'https://login.salesforce.com/packaging/installPackage.apexp?p0=04t4p000001UQVo',
         SANDBOX: 'https://test.salesforce.com/packaging/installPackage.apexp?p0=04t4p000001UQVo',
     },
+
+    CERTINIA_FFA_BUNDLE_VERSION: '1.4',
 
     CERTINIA_CONFIG: {
         EXPORTER: 'exporter',
@@ -3635,7 +3672,7 @@ const CONST = {
             // Often referred to as "collect" workspaces
             TEAM: 'team',
 
-            // Free "Submit" plan for employees submitting expenses to their employer
+            // Often referred to as "submit" workspaces
             SUBMIT: 'submit2026',
         },
         RULE_CONDITIONS: {
@@ -3656,6 +3693,32 @@ const CONST = {
             AUDITOR: 'auditor',
             USER: 'user',
             EDITOR: 'editor',
+            CARD_ADMIN: 'cardAdmin',
+            PEOPLE_ADMIN: 'peopleAdmin',
+            PAYMENTS_ADMIN: 'paymentsAdmin',
+        },
+        POLICY_FEATURE: {
+            OVERVIEW: 'overview',
+            MEMBERS: 'members',
+            ASSIGN_ELEVATED_ROLES: 'assignElevatedRoles',
+            WORKFLOWS: 'workflows',
+            WORKFLOWS_APPROVALS: 'workflowsApprovals',
+            WORKFLOWS_PAYMENTS: 'workflowsPayments',
+            EXPENSIFY_CARD: 'expensifyCard',
+            COMPANY_CARDS: 'companyCards',
+            CATEGORIES: 'categories',
+            TAGS: 'tags',
+            TAXES: 'taxes',
+            RULES: 'rules',
+            DISTANCE_RATES: 'distanceRates',
+            PER_DIEM: 'perDiem',
+            REPORT_FIELDS: 'reportFields',
+            ACCOUNTING: 'accounting',
+            MORE_FEATURES: 'moreFeatures',
+        },
+        POLICY_FEATURE_ACCESS: {
+            READ: 'read',
+            WRITE: 'write',
         },
         AUTO_REIMBURSEMENT_MAX_LIMIT_CENTS: 2000000,
 
@@ -3861,11 +3924,11 @@ const CONST = {
                 gusto: 'Gusto',
                 billCom: 'Bill.com',
                 zenefits: 'TriNet',
+                merge_hris: 'Merge HR',
                 sap: 'SAP',
                 oracle: 'Oracle',
                 microsoftDynamics: 'Microsoft Dynamics',
                 other: 'Other',
-                merge_hris: 'Merge HR',
             },
             get ACCOUNTING_CONNECTION_NAMES() {
                 return [this.NAME.QBO, this.NAME.QBD, this.NAME.XERO, this.NAME.NETSUITE, this.NAME.SAGE_INTACCT, this.NAME.CERTINIA] as const;
@@ -3958,6 +4021,7 @@ const CONST = {
                 ZENEFITS_SYNC_TITLE: 'zenefitsSyncTitle',
                 ZENEFITS_SYNC_LOAD_DATA: 'zenefitsSyncLoadData',
                 ZENEFITS_SYNC_PROVISIONING: 'zenefitsSyncProvisioning',
+                MERGE_HR_SYNC_TITLE: 'mergeHRSyncTitle',
                 FINANCIAL_FORCE_SYNC_CONNECTION: 'financialForceSyncConnection',
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
@@ -4123,6 +4187,12 @@ const CONST = {
         NAME: 'expensifyCard',
         BANK: 'Expensify Card',
         ROUTE: 'expensify-card',
+        // Countries where the most terminals are "offline," so users must
+        // change their PIN at an ATM rather than via the in-app online flow.
+        // - Offline-only: GB, IE
+        // - Mostly offline: FR
+        // - Many offline terminals: FI, IL, IS
+        OFFLINE_PIN_MARKETS: ['GB', 'IE', 'FR', 'FI', 'IL', 'IS'] as string[],
         CARD_PROGRAM: {
             CURRENT: 'CURRENT',
         },
@@ -4935,19 +5005,23 @@ const CONST = {
         {
             name: '+1',
             code: '👍',
+            hexcode: '1F44D',
             types: ['👍🏿', '👍🏾', '👍🏽', '👍🏼', '👍🏻'],
         },
         {
             name: 'heart',
             code: '❤️',
+            hexcode: '2764',
         },
         {
             name: 'joy',
             code: '😂',
+            hexcode: '1F602',
         },
         {
             name: 'fire',
             code: '🔥',
+            hexcode: '1F525',
         },
     ],
 
@@ -6325,6 +6399,8 @@ const CONST = {
         MENUITEM: 'menuitem',
         /** Use for selectable options within a listbox. */
         OPTION: 'option',
+        /** Use to group related elements together for assistive technology. */
+        GROUP: 'group',
         /** Use when no specific role is needed. */
         NONE: 'none',
         /** Use for elements that don't require a specific role. */
@@ -6476,6 +6552,12 @@ const CONST = {
         SMALL: 'small',
     },
 
+    BUTTON_SIZE: {
+        LARGE: 'large',
+        MEDIUM: 'medium',
+        SMALL: 'small',
+    },
+
     SF_COORDINATES: [-122.4194, 37.7749],
 
     NAVIGATION: {
@@ -6510,7 +6592,7 @@ const CONST = {
         PM: 'PM',
     },
     INDENTS: '    ',
-    PARENT_CHILD_SEPARATOR: ': ',
+    PARENT_CHILD_SEPARATOR: ':',
     DISTANCE_MERCHANT_SEPARATOR: '@',
     COLON: ':',
     MAPBOX: {
@@ -6837,6 +6919,7 @@ const CONST = {
         RHP_HOME_PAGE: 'rhpHomePage',
         TRACK_EXPENSES_WITH_CONCIERGE: 'trackExpensesWithConcierge',
         CONTROL: 'control',
+        INB_ADMINS_WEL: 'inbAdminsWel',
     },
     ONBOARDING_JOINABLE_WORKSPACES_LIMIT: 5,
     ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE: 'What would you like to do with this expense?',
@@ -6855,6 +6938,9 @@ const CONST = {
 
     // We need to store this server side error in order to not show the blocking screen when the error is for invalid code
     MERGE_ACCOUNT_INVALID_CODE_ERROR: '401 Not authorized - Invalid validateCode',
+
+    // Returned when a user tries to add a work email tied to a closed work account, so we can show a specific error message instead of the generic blocking screen subtitle
+    WORK_ACCOUNT_CLOSED_ERROR: '401 work account is closed',
     REIMBURSEMENT_ACCOUNT: {
         DEFAULT_DATA: {
             achData: {
@@ -8494,6 +8580,14 @@ const CONST = {
                 description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.QBD}.description` as const,
                 icon: 'QBDSquare',
             },
+            [this.POLICY.CONNECTIONS.NAME.CERTINIA]: {
+                id: this.POLICY.CONNECTIONS.NAME.CERTINIA,
+                alias: 'certinia',
+                name: this.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.financialforce,
+                title: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.CERTINIA}.title` as const,
+                description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.CERTINIA}.description` as const,
+                icon: 'CertiniaSquare',
+            },
             approvals: {
                 id: 'approvals' as const,
                 alias: 'approvals' as const,
@@ -8597,6 +8691,70 @@ const CONST = {
                 title: 'workspace.upgrade.reports.title' as const,
                 description: 'workspace.upgrade.reports.description' as const,
                 icon: 'ReportReceipt',
+            },
+            roles: {
+                id: 'roles' as const,
+                alias: 'roles',
+                name: 'Roles',
+                title: 'workspace.upgrade.roles.title' as const,
+                description: 'workspace.upgrade.roles.description' as const,
+                icon: 'BlueShield',
+            },
+            payments: {
+                id: 'payments' as const,
+                alias: 'payments',
+                name: 'Payments',
+                title: 'workspace.upgrade.payments.title' as const,
+                description: 'workspace.upgrade.payments.description' as const,
+                icon: 'Workflows',
+            },
+            accounting: {
+                id: 'accounting' as const,
+                alias: 'accounting',
+                name: 'Accounting',
+                title: 'workspace.upgrade.accounting.title' as const,
+                description: 'workspace.upgrade.accounting.description' as const,
+                icon: 'Accounting',
+            },
+            expensifyCard: {
+                id: 'expensifyCard' as const,
+                alias: 'expensify-card',
+                name: 'Expensify Card',
+                title: 'workspace.upgrade.expensifyCard.title' as const,
+                description: 'workspace.upgrade.expensifyCard.description' as const,
+                icon: 'HandCard',
+            },
+            invoicing: {
+                id: 'invoicing' as const,
+                alias: 'invoicing',
+                name: 'Invoicing',
+                title: 'workspace.upgrade.invoicing.title' as const,
+                description: 'workspace.upgrade.invoicing.description' as const,
+                icon: 'InvoiceBlue',
+            },
+            companyCardSubmit: {
+                id: 'companyCardSubmit' as const,
+                alias: 'company-card-submit',
+                name: 'Company cards',
+                title: 'workspace.upgrade.companyCardSubmit.title' as const,
+                description: 'workspace.upgrade.companyCardSubmit.description' as const,
+                icon: 'CompanyCard',
+            },
+            travelSubmit: {
+                id: 'travelSubmit' as const,
+                alias: 'travel-submit',
+                name: 'Travel',
+                title: 'workspace.upgrade.travelSubmit.title' as const,
+                description: 'workspace.upgrade.travelSubmit.description' as const,
+                icon: 'Luggage',
+            },
+            approvalSubmit: {
+                id: 'approvalSubmit' as const,
+                alias: 'approval-submit',
+                name: 'Approvals',
+                title: 'workspace.upgrade.approvalSubmit.title' as const,
+                description: 'workspace.upgrade.approvalSubmit.description' as const,
+                icon: 'AdvancedApprovalsSquare',
             },
         };
     },
@@ -8754,19 +8912,19 @@ const CONST = {
         EVENT: {
             SIGN_UP: {
                 NAME: 'sign_up',
-                META: 'SignUp',
+                META: 'CompleteRegistration',
                 REDDIT: 'SignUp',
                 LINKEDIN: 507587661,
             },
             WORKSPACE_CREATED: {
                 NAME: 'workspace_created',
-                META: 'WorkspaceCreated',
+                META: 'Lead',
                 REDDIT: 'Lead',
                 LINKEDIN: 25474804,
             },
             PAID_ADOPTION: {
                 NAME: 'paid_adoption',
-                META: 'PaidAdoption',
+                META: 'Purchase',
                 REDDIT: 'Purchase',
                 LINKEDIN: 25474820,
             },
@@ -9885,6 +10043,18 @@ const CONST = {
     },
 } as const;
 
+/** Upgrade intro feature ids from UPGRADE_FEATURE_INTRO_MAPPING for Submit workspace */
+const SUBMIT_FEATURE_IDS: ReadonlySet<string> = new Set([
+    CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCardSubmit.id,
+    CONST.UPGRADE_FEATURE_INTRO_MAPPING.travelSubmit.id,
+    CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.id,
+    CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.id,
+    CONST.UPGRADE_FEATURE_INTRO_MAPPING.payments.id,
+    CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.id,
+    CONST.UPGRADE_FEATURE_INTRO_MAPPING.expensifyCard.id,
+    CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoicing.id,
+]);
+
 const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
@@ -9950,6 +10120,6 @@ export type {
     IOUActionParams,
 };
 
-export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS, TASK_TO_FEATURE, FRAUD_PROTECTION_EVENT, COUNTRIES_US_BANK_FLOW};
+export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS, TASK_TO_FEATURE, FRAUD_PROTECTION_EVENT, COUNTRIES_US_BANK_FLOW, SUBMIT_FEATURE_IDS};
 
 export default CONST;
