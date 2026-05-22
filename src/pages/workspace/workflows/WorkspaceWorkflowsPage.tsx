@@ -253,8 +253,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID));
     }, [policy, route.params.policyID, availableMembers, usedApproverEmails, canAccessSubmit2026Features, navigateToSubmitWorkspaceApprovalsUpgrade]);
 
+    const isMergeHRManagerMode = policy?.connections?.merge_hris?.config?.approvalMode === CONST.MERGE_HR.APPROVAL_MODE.MANAGER;
+
     const filteredApprovalWorkflows =
-        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED || policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL
+        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED || policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL || isMergeHRManagerMode
             ? approvalWorkflows
             : approvalWorkflows.filter((workflow) => workflow.isDefault);
 
@@ -458,6 +460,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                     }
                                     currency={policy?.outputCurrency}
                                     isDisabled={shouldBlockApprovalWorkflowEditing}
+                                    hrProviderName={isHRConnected ? hrProviderName : undefined}
+                                    isHRManagerMode={isMergeHRManagerMode}
                                 />
                             </OfflineWithFeedback>
                         ))}
@@ -657,6 +661,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         onPressAutoReportingFrequency,
         isSmartLimitEnabled,
         isHRConnected,
+        hrProviderName,
+        isMergeHRManagerMode,
         shouldBlockApprovalWorkflowEditing,
         approvalSubtitle,
         navigateToSubmitWorkspaceApprovalsUpgrade,

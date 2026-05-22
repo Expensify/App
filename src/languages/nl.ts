@@ -2609,6 +2609,9 @@ ${amount} voor ${merchant} - ${date}`,
         hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
             `Goedkeuringen worden beheerd door je ${provider}-integratie. Ga naar je ${provider}-verbindingsinstellingen om je goedkeuringsworkflow bij te werken.`,
         goToHRSettings: ({provider}: {provider: string}) => `Ga naar ${provider}-instellingen`,
+        approverFromProvider: ({provider}: {provider: string}) => `van ${provider}`,
+        finalApprover: 'Eindgoedkeurder',
+        manager: 'Manager',
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: 'Indienfrequentie kon niet worden gewijzigd. Probeer het opnieuw of neem contact op met support.',

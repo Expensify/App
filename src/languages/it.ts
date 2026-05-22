@@ -2612,6 +2612,9 @@ ${amount} per ${merchant} - ${date}`,
         hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
             `Le approvazioni sono gestite dalla tua integrazione con ${provider}. Per aggiornare il flusso di approvazione, vai alle impostazioni di connessione di ${provider}.`,
         goToHRSettings: ({provider}: {provider: string}) => `Vai alle impostazioni di ${provider}`,
+        approverFromProvider: ({provider}: {provider: string}) => `da ${provider}`,
+        finalApprover: 'Approvatore finale',
+        manager: 'Manager',
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: 'Impossibile modificare la frequenza di invio. Riprova oppure contatta l’assistenza.',

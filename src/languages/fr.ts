@@ -2622,6 +2622,9 @@ ${amount} pour ${merchant} - ${date}`,
         hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
             `Les validations sont gérées par votre intégration ${provider}. Pour mettre à jour votre workflow de validation, accédez aux paramètres de connexion ${provider}.`,
         goToHRSettings: ({provider}: {provider: string}) => `Aller aux paramètres ${provider}`,
+        approverFromProvider: ({provider}: {provider: string}) => `de ${provider}`,
+        finalApprover: 'Approbateur final',
+        manager: 'Manager',
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: "La fréquence de soumission n'a pas pu être modifiée. Veuillez réessayer ou contacter l'assistance.",

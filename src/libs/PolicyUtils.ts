@@ -1300,6 +1300,26 @@ function getApprovalWorkflow(policy: OnyxEntry<Policy>): ValueOf<typeof CONST.PO
     return policy?.approvalMode ?? CONST.POLICY.APPROVAL_MODE.ADVANCED;
 }
 
+/** Returns the Merge HR finalApprover when the integration is in "basic" approval mode, or null otherwise. */
+function getMergeHRBasicModeFinalApprover(policy: OnyxEntry<Policy>): string | null {
+    const mergeConfig = policy?.connections?.merge_hris?.config;
+    if (mergeConfig?.approvalMode === CONST.MERGE_HR.APPROVAL_MODE.BASIC && mergeConfig.finalApprover) {
+        return mergeConfig.finalApprover;
+    }
+
+    return null;
+}
+
+/** Returns the Merge HR finalApprover when the integration is in basic or manager mode, or null otherwise. */
+function getMergeHRFinalApprover(policy: OnyxEntry<Policy>): string | null {
+    const mergeConfig = policy?.connections?.merge_hris?.config;
+    if ((mergeConfig?.approvalMode === CONST.MERGE_HR.APPROVAL_MODE.BASIC || mergeConfig?.approvalMode === CONST.MERGE_HR.APPROVAL_MODE.MANAGER) && mergeConfig?.finalApprover) {
+        return mergeConfig.finalApprover;
+    }
+
+    return null;
+}
+
 function getDefaultApprover(policy: OnyxEntry<Policy>): string {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     return policy?.approver || policy?.owner || '';
@@ -2485,6 +2505,8 @@ export {
     getCurrentConnectionName,
     getCustomersOrJobsLabelNetSuite,
     getDefaultApprover,
+    getMergeHRBasicModeFinalApprover,
+    getMergeHRFinalApprover,
     getApprovalWorkflow,
     getReimburserAccountID,
     isControlPolicy,

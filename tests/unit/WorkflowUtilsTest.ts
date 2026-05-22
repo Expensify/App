@@ -758,6 +758,58 @@ describe('WorkflowUtils', () => {
             const approverEmails = approvalWorkflows.flatMap((w) => w.approvers.map((a) => a.email));
             expect(approverEmails).not.toContain('guide@expensify.com');
         });
+
+        it('Should use HR finalApprover as default approver for unassigned employees in manager mode', () => {
+            const employees: PolicyEmployeeList = {
+                'unassigned@example.com': {
+                    email: 'unassigned@example.com',
+                    submitsTo: 'finalapprover@example.com',
+                },
+                'assigned@example.com': {
+                    email: 'assigned@example.com',
+                    submitsTo: 'manager@external.com',
+                },
+                'finalapprover@example.com': {
+                    email: 'finalapprover@example.com',
+                    submitsTo: 'finalapprover@example.com',
+                },
+            };
+            const policy: Partial<Policy> = {
+                ...createMockPolicy(employees, 'owner@example.com'),
+                owner: 'owner@example.com',
+                approver: 'owner@example.com',
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
+                        config: {
+                            approvalMode: CONST.MERGE_HR.APPROVAL_MODE.MANAGER,
+                            finalApprover: 'finalapprover@example.com',
+                            integration: 'workday',
+                        },
+                    },
+                },
+            };
+            const personalDetailsForTest: PersonalDetailsList = {
+                'unassigned@example.com': {accountID: 1, login: 'unassigned@example.com', displayName: 'Unassigned'},
+                'assigned@example.com': {accountID: 2, login: 'assigned@example.com', displayName: 'Assigned'},
+                'finalapprover@example.com': {accountID: 3, login: 'finalapprover@example.com', displayName: 'Final Approver'},
+                'manager@external.com': {accountID: 4, login: 'manager@external.com', displayName: 'Manager'},
+            };
+
+            const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({
+                policy: policy as Policy,
+                personalDetails: personalDetailsForTest,
+                localeCompare,
+            });
+
+            // The default workflow should use HR finalApprover (not the policy owner)
+            const defaultWorkflow = approvalWorkflows.find((w) => w.isDefault);
+            expect(defaultWorkflow).toBeDefined();
+            expect(defaultWorkflow?.approvers.at(0)?.email).toBe('finalapprover@example.com');
+
+            // Unassigned employee submits to the finalApprover (HR default), so they end up in the default workflow
+            const unassignedMember = defaultWorkflow?.members.find((m) => m.email === 'unassigned@example.com');
+            expect(unassignedMember).toBeDefined();
+        });
     });
 
     describe('mergeWorkflowMembersWithAvailableMembers', () => {

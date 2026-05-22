@@ -13,7 +13,7 @@ import type Policy from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
-import {getDefaultApprover, isExpensifyTeam, shouldFilterExpensifyTeam} from './PolicyUtils';
+import {getDefaultApprover, getMergeHRFinalApprover, isExpensifyTeam, shouldFilterExpensifyTeam} from './PolicyUtils';
 
 const INITIAL_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
     members: [],
@@ -150,7 +150,7 @@ function findFirstNonExpensifyApprover(employees: PolicyEmployeeList, startEmail
 /** Convert a list of policy employees to a list of approval workflows */
 function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, firstApprover, localeCompare, currentUserLogin}: PolicyConversionParams): PolicyConversionResult {
     const employees = policy?.employeeList ?? {};
-    const defaultApprover = getDefaultApprover(policy);
+    const defaultApprover = getMergeHRFinalApprover(policy) ?? getDefaultApprover(policy);
     const approvalWorkflows: Record<string, ApprovalWorkflow> = {};
     const shouldFilterOutExpensifyTeam = shouldFilterExpensifyTeam(policy?.owner, currentUserLogin);
 
@@ -161,6 +161,7 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
         personalDetailsByEmail[value?.login ?? key] = value;
     }
     const availableMembers: Member[] = [];
+    const isMergeHRManagerMode = policy?.connections?.merge_hris?.config?.approvalMode === CONST.MERGE_HR.APPROVAL_MODE.MANAGER;
 
     for (const employee of Object.values(employees)) {
         const {email, submitsTo, pendingAction} = employee;
@@ -179,19 +180,30 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
             availableMembers.push(member);
         }
 
-        if (!submitsTo || !employees[submitsTo]) {
+        if (!submitsTo) {
+            continue;
+        }
+
+        if (!employees[submitsTo] && !isMergeHRManagerMode) {
             continue;
         }
 
         // If submitsTo is an Expensify team member, find the first non-Expensify approver in the chain
-        const effectiveSubmitsTo = shouldFilterOutExpensifyTeam ? (findFirstNonExpensifyApprover(employees, submitsTo) ?? submitsTo) : submitsTo;
-
-        if (!employees[effectiveSubmitsTo]) {
-            continue;
-        }
+        const effectiveSubmitsTo = shouldFilterOutExpensifyTeam && employees[submitsTo] ? (findFirstNonExpensifyApprover(employees, submitsTo) ?? submitsTo) : submitsTo;
 
         if (!approvalWorkflows[effectiveSubmitsTo]) {
             let approvers = calculateApprovers({employees, firstEmail: effectiveSubmitsTo, personalDetailsByEmail});
+            if (approvers.length === 0) {
+                approvers = [
+                    {
+                        email: effectiveSubmitsTo,
+                        forwardsTo: undefined,
+                        avatar: personalDetailsByEmail[effectiveSubmitsTo]?.avatar,
+                        displayName: personalDetailsByEmail[effectiveSubmitsTo]?.displayName ?? effectiveSubmitsTo,
+                        isCircularReference: false,
+                    },
+                ];
+            }
             if (shouldFilterOutExpensifyTeam) {
                 approvers = approvers.filter((approver) => !isExpensifyTeam(approver.email));
             }
@@ -222,6 +234,25 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
         // should not affect the workflow's display state (e.g., strikethrough styling)
         if (pendingAction && pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             approvalWorkflows[effectiveSubmitsTo].pendingAction = pendingAction;
+        }
+    }
+
+    // In Merge HR manager mode, append the finalApprover to each chain if not already present
+    const mergeConfig = policy?.connections?.merge_hris?.config;
+    if (isMergeHRManagerMode && mergeConfig?.finalApprover) {
+        const finalApproverEmail = mergeConfig.finalApprover;
+        for (const workflow of Object.values(approvalWorkflows)) {
+            const lastApprover = workflow.approvers.at(-1);
+            if (lastApprover && lastApprover.email !== finalApproverEmail) {
+                workflow.approvers.push({
+                    email: finalApproverEmail,
+                    forwardsTo: undefined,
+                    avatar: personalDetailsByEmail[finalApproverEmail]?.avatar,
+                    displayName: personalDetailsByEmail[finalApproverEmail]?.displayName ?? finalApproverEmail,
+                    isCircularReference: false,
+                });
+                usedApproverEmails.add(finalApproverEmail);
+            }
         }
     }
 

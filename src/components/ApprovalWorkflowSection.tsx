@@ -30,9 +30,15 @@ type ApprovalWorkflowSectionProps = {
 
     /** Whether the workflow should be shown as read-only */
     isDisabled?: boolean;
+
+    /** HR provider display name, used in manager mode to show "Manager (from {provider})" */
+    hrProviderName?: string;
+
+    /** When true, uses HR manager mode labels: "Manager (from {provider})" then "Final approver" */
+    isHRManagerMode?: boolean;
 };
 
-function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CURRENCY.USD, isDisabled = false}: ApprovalWorkflowSectionProps) {
+function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CURRENCY.USD, isDisabled = false, hrProviderName, isHRManagerMode = false}: ApprovalWorkflowSectionProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Lightbulb', 'Users', 'UserCheck']);
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -40,8 +46,18 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
     const {convertToDisplayString} = useCurrencyListActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const approverTitle = (index: number) =>
-        approvalWorkflow.approvers.length > 1 ? `${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}` : `${translate('workflowsPage.approver')}`;
+    const fromProviderSuffix = hrProviderName ? ` (${translate('workflowsPage.approverFromProvider', {provider: hrProviderName})})` : '';
+
+    const approverTitle = (index: number) => {
+        if (isHRManagerMode) {
+            const isLastApprover = index === approvalWorkflow.approvers.length - 1;
+            if (isLastApprover) {
+                return translate('workflowsPage.finalApprover');
+            }
+            return `${translate('workflowsPage.manager')}${fromProviderSuffix}`;
+        }
+        return approvalWorkflow.approvers.length > 1 ? `${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}` : translate('workflowsPage.approver');
+    };
 
     const sortedMembers = approvalWorkflow.isDefault ? [] : sortAlphabetically(approvalWorkflow.members, 'displayName', localeCompare);
 

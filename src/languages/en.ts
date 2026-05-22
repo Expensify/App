@@ -2624,6 +2624,9 @@ const translations = {
         hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
             `Approvals are managed by your ${provider} integration. To update your approval workflow, head to your ${provider} connection settings.`,
         goToHRSettings: ({provider}: {provider: string}) => `Go to ${provider} settings`,
+        approverFromProvider: ({provider}: {provider: string}) => `from ${provider}`,
+        finalApprover: 'Final approver',
+        manager: 'Manager',
         makeOrTrackPaymentsTitle: 'Payments',
         makeOrTrackPaymentsDescription: 'Add an authorized payer for payments made in Expensify or track payments made elsewhere.',
         customApprovalWorkflowEnabled:
