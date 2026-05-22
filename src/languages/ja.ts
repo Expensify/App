@@ -899,7 +899,6 @@ const translations: TranslationDeepObject<typeof en> = {
         buttonFind: '何かを検索…',
         buttonMySettings: '自分の設定',
         fabNewChat: 'チャットを開始',
-        fabNewChatExplained: 'アクションメニューを開く',
         fabScanReceiptExplained: 'レシートをスキャン',
         chatPinned: 'チャットをピン留めしました',
         draftedMessage: '作成中のメッセージ',
@@ -2193,7 +2192,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     deviceManagementPage: {
         title: 'デバイス管理',
-        description: 'Expensifyアカウントでログインしたすべてのデバイスを管理します。',
+        description:
+            'Expensify アカウントでログインしているすべてのデバイスを管理できます。<a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">詳しくはこちら</a>',
         revoke: '取り消す',
         unknownDevice: '不明なデバイス',
     },
@@ -8199,6 +8199,7 @@ ${reportName}
         selectAllFeatures: 'すべての機能を選択',
         selectAllTransactions: 'すべての取引を選択',
         selectAllItems: 'すべての項目を選択',
+        openActionsMenu: 'アクションメニューを開く',
         selectAllCategories: 'すべてのカテゴリを選択',
         selectAllDistanceRates: 'すべての距離レートを選択',
         selectAllTags: 'すべてのタグを選択',

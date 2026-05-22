@@ -940,7 +940,6 @@ const translations = {
         buttonFind: 'Find something...',
         buttonMySettings: 'My settings',
         fabNewChat: 'Start chat',
-        fabNewChatExplained: 'Open actions menu',
         fabScanReceiptExplained: 'Scan receipt',
         chatPinned: 'Chat pinned',
         draftedMessage: 'Drafted message',
@@ -2286,7 +2285,8 @@ const translations = {
     },
     deviceManagementPage: {
         title: 'Device management',
-        description: 'Manage all the devices that you have logged into with your Expensify Account.',
+        description:
+            'Manage all the devices that you have logged into with your Expensify Account. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Learn more</a>',
         revoke: 'Revoke',
         unknownDevice: 'Unknown Device',
     },
@@ -8305,6 +8305,7 @@ const translations = {
         selectAllFeatures: 'Select all features',
         selectAllTransactions: 'Select all transactions',
         selectAllItems: 'Select all items',
+        openActionsMenu: 'Open actions menu',
         selectAllCategories: 'Select all categories',
         selectAllDistanceRates: 'Select all distance rates',
         selectAllTags: 'Select all tags',
