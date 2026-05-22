@@ -632,6 +632,14 @@ function MoneyRequestReportTransactionList({
         [groupByOptions, reportLayoutGroupBy, styles, windowHeight, isInLandscapeMode],
     );
 
+    const isDesktopTableLayout = !shouldUseNarrowLayout;
+
+    const lastTransactionID = useMemo(() => {
+        const allTransactions = shouldShowGroupedTransactions ? groupedTransactions.flatMap((group) => group.transactions) : resolvedTransactions;
+        const visibleTransactions = allTransactions.filter((t) => isOffline || !isTransactionPendingDelete(t));
+        return visibleTransactions.at(-1)?.transactionID;
+    }, [shouldShowGroupedTransactions, groupedTransactions, resolvedTransactions, isOffline]);
+
     const listItems = useMemo<TransactionListItemData[]>(() => {
         if (shouldShowGroupedTransactions) {
             const items: TransactionListItemData[] = [];
