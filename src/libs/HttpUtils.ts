@@ -16,6 +16,7 @@ import Log from './Log';
 import {setLoadTestParameters} from './Network/LoadTestState';
 import {PREFETCH_HEADER_KEY} from './PrefetchQueries';
 import prepareRequestPayload from './prepareRequestPayload';
+import markAppStartupNetworkRequestEnd from './telemetry/markAppStartupNetworkRequestEnd';
 
 let shouldFailAllRequests = false;
 let shouldForceOffline = false;
@@ -82,13 +83,15 @@ function processHTTPRequest<TKey extends OnyxKey>(
         credentials: 'omit',
     };
 
+    const command = url.match(APICommandRegex)?.[1];
+
     // Prefetch the request on next app start if the prefetch key is present in the headers
     // This allows to fetch the request natively before the JS bundle is loaded. Once the request with this prefetch key is made, it will already be cached and served from the cache.
     if (headers[PREFETCH_HEADER_KEY]) {
         try {
             prefetchOnAppStart(url, fetchParams);
         } catch (error) {
-            Log.warn('[HttpUtils] prefetchOnAppStart failed', {error});
+            Log.warn(`[HttpUtils] prefetchOnAppStart failed for ${command})`, {error, fetchParams, url});
         }
     }
 
@@ -99,8 +102,8 @@ function processHTTPRequest<TKey extends OnyxKey>(
             }
 
             // We are calculating the skew to minimize the delay when posting the messages
-            const match = url.match(APICommandRegex)?.[1];
-            if (match && addSkewList.has(match) && response.headers) {
+
+            if (command && addSkewList.has(command) && response.headers) {
                 const dateHeaderValue = response.headers.get('Date');
                 const serverTime = dateHeaderValue ? new Date(dateHeaderValue).valueOf() : new Date().valueOf();
                 const endTime = new Date().valueOf();
@@ -180,7 +183,8 @@ function processHTTPRequest<TKey extends OnyxKey>(
                 alertUser();
             }
             return response;
-        });
+        })
+        .finally(() => markAppStartupNetworkRequestEnd(command));
 }
 
 /**
