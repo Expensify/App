@@ -186,6 +186,7 @@ function CopyPolicySettingsSelectWorkspacesPage() {
                         onSelectRow={toggleItem}
                         onSelectAll={eligiblePolicies.length > 0 ? toggleAll : undefined}
                         selectionButtonPosition={CONST.SELECTION_BUTTON_POSITION.RIGHT}
+                        shouldHeaderBeInsideList
                         shouldSingleExecuteRowSelect
                         addBottomSafeAreaPadding
                         confirmButtonOptions={confirmButtonOptions}
