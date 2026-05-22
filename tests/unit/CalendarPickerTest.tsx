@@ -3,6 +3,7 @@ import {fireEvent, render, screen, userEvent, within} from '@testing-library/rea
 import {addMonths, addYears, subMonths, subYears} from 'date-fns';
 import type {ComponentType, ReactNode} from 'react';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
+import * as Modal from '@libs/actions/Modal';
 import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -592,15 +593,28 @@ describe('CalendarPicker', () => {
         expect(navigatedRoute).toContain('currentYear=2025');
     });
 
-    test('the year button invokes onBeforeOpenYearPicker before navigating (so popover hosts can dismiss themselves)', () => {
+    test('the year button dismisses the host popover before navigating when shouldCloseModalOnYearPickerOpen is set', () => {
         mockNavigate.mockClear();
-        const onBeforeOpenYearPicker = jest.fn();
-        render(<CalendarPicker onBeforeOpenYearPicker={onBeforeOpenYearPicker} />);
+        const closeTopSpy = jest.spyOn(Modal, 'closeTop').mockImplementation(() => {});
+        render(<CalendarPicker shouldCloseModalOnYearPickerOpen />);
 
         fireEvent.press(screen.getByTestId('currentYearButton'));
 
-        expect(onBeforeOpenYearPicker).toHaveBeenCalledTimes(1);
+        expect(closeTopSpy).toHaveBeenCalledTimes(1);
         expect(mockNavigate).toHaveBeenCalledTimes(1);
+        closeTopSpy.mockRestore();
+    });
+
+    test('the year button does not dismiss any modal when shouldCloseModalOnYearPickerOpen is not set', () => {
+        mockNavigate.mockClear();
+        const closeTopSpy = jest.spyOn(Modal, 'closeTop').mockImplementation(() => {});
+        render(<CalendarPicker />);
+
+        fireEvent.press(screen.getByTestId('currentYearButton'));
+
+        expect(closeTopSpy).not.toHaveBeenCalled();
+        expect(mockNavigate).toHaveBeenCalledTimes(1);
+        closeTopSpy.mockRestore();
     });
 
     test('closing the month picker via onClose hides the modal', () => {

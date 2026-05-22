@@ -1,6 +1,6 @@
 import {addMonths, addYears, format, isSameDay, parseISO, setDate, setMonth, setYear, startOfDay, subMonths, subYears} from 'date-fns';
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useId, useRef, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -12,6 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearCalendarPickerSelectedYear} from '@libs/actions/CalendarPicker';
+import {closeTop} from '@libs/actions/Modal';
 import DateUtils from '@libs/DateUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -57,11 +58,11 @@ type CalendarPickerProps = {
     pickerContextID?: string;
 
     /**
-     * Called right before navigating to the year picker screen. Hosts that render CalendarPicker
-     * inside a popover/modal use this to dismiss it first, so the year picker screen is not
-     * rendered behind it.
+     * Whether the popover/modal hosting this CalendarPicker should be dismissed (via `Modal.closeTop`)
+     * before navigating to the year picker screen, so the year picker screen is not rendered behind it.
+     * Wide-screen popover hosts set this; the full-screen mobile overlay leaves it off.
      */
-    onBeforeOpenYearPicker?: () => void;
+    shouldCloseModalOnYearPickerOpen?: boolean;
 };
 
 function getInitialCurrentDateView(value: Date | string, minDate: Date, maxDate: Date) {
@@ -95,7 +96,7 @@ function CalendarPicker({
     headerContainerStyle,
     shouldEnableMonthYearBackdropInNarrowPane = false,
     pickerContextID,
-    onBeforeOpenYearPicker,
+    shouldCloseModalOnYearPickerOpen = false,
 }: CalendarPickerProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -106,7 +107,7 @@ function CalendarPicker({
     const monthPressableRef = useRef<View>(null);
     const [currentDateView, setCurrentDateView] = useState(() => getInitialCurrentDateView(value, minDate, maxDate));
     const [isMonthPickerVisible, setIsMonthPickerVisible] = useState(false);
-    const [fallbackContextID] = useState(() => `calendarPicker-${Math.random().toString(36).slice(2)}`);
+    const fallbackContextID = useId();
     const contextID = pickerContextID ?? fallbackContextID;
     const [selectedYearResult] = useOnyx(ONYXKEYS.CALENDAR_PICKER_SELECTED_YEAR);
     const isFirstRender = useRef(true);
@@ -128,11 +129,18 @@ function CalendarPicker({
         }
         const {year} = selectedYearResult;
         clearCalendarPickerSelectedYear();
+        // Defer applying the year to the next frame: this effect reacts to an Onyx-delivered
+        // selection, and updating state synchronously inside the effect triggers a cascading
+        // render (react-hooks/set-state-in-effect).
         requestAnimationFrame(() => setCurrentDateView((prev) => setYear(new Date(prev), year)));
     }, [selectedYearResult, contextID]);
 
     const openYearPicker = () => {
-        onBeforeOpenYearPicker?.();
+        // Dismiss the popover/modal hosting this CalendarPicker (if any) so the year picker
+        // screen is not rendered behind it.
+        if (shouldCloseModalOnYearPickerOpen) {
+            closeTop();
+        }
         Navigation.navigate(
             createDynamicRoute(`${DYNAMIC_ROUTES.YEAR_SELECTOR.path}?contextID=${encodeURIComponent(contextID)}&currentYear=${currentYearView}&minYear=${minYear}&maxYear=${maxYear}`),
         );
