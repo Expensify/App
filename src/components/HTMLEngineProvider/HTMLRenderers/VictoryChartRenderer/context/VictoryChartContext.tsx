@@ -16,10 +16,8 @@ type VictoryChartContextValue = {
     yAxis: ProcessNodeResult['yAxis'];
     labelItems: ProcessNodeResult['labelItems'];
     legendItems: ProcessNodeResult['legendItems'];
-    nodeStyles: ReturnType<typeof parseStyles>['nodeStyles'];
-    parentNodeStyles: ReturnType<typeof parseStyles>['parentNodeStyles'];
-    regularTypeface: SkTypeface | null;
-    boldTypeface: SkTypeface | null;
+    chartContentStyles: ReturnType<typeof parseStyles>['nodeStyles'];
+    chartContainerStyles: ReturnType<typeof parseStyles>['parentNodeStyles'];
     isValidCartesian: boolean;
     isValidPolar: boolean;
 };
@@ -32,9 +30,9 @@ const VictoryChartRenderArgsContext = createContext<CartesianChartRenderArg<Cart
  * Returns null when the chart data is invalid (no data points, or mixed cartesian/polar content).
  */
 function VictoryChartProvider({tnode, children}: {tnode: TNode; children: React.ReactNode}) {
-    const {regular: regularTypeface, bold: boldTypeface} = useChartDefaultTypeface();
+    const {regular: regularTypeface} = useChartDefaultTypeface();
     const {data, xKey, yKeys, xAxis, yAxis, labelItems, legendItems} = processVictoryChartTree(tnode, regularTypeface);
-    const {nodeStyles, parentNodeStyles} = parseStyles(tnode);
+    const {nodeStyles: chartContentStyles, parentNodeStyles: chartContainerStyles} = parseStyles(tnode);
     const isValidCartesian = Object.keys(data).length > 0;
     const isValidPolar = false;
 
@@ -52,10 +50,8 @@ function VictoryChartProvider({tnode, children}: {tnode: TNode; children: React.
         yAxis,
         labelItems,
         legendItems,
-        nodeStyles,
-        parentNodeStyles,
-        regularTypeface,
-        boldTypeface,
+        chartContentStyles,
+        chartContainerStyles,
         isValidCartesian,
         isValidPolar,
     };

@@ -5,7 +5,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 function VictoryChartContainer({children}: {children: React.ReactNode}) {
     const styles = useThemeStyles();
-    const {nodeStyles: chartContentStyles, parentNodeStyles: chartContainerStyles} = useVictoryChartContext();
+    const {chartContentStyles, chartContainerStyles} = useVictoryChartContext();
     return (
         <View style={[styles.chartContainer, styles.mw100, chartContainerStyles]}>
             <View style={[styles.chartContent, styles.mw100, chartContentStyles]}>{children}</View>

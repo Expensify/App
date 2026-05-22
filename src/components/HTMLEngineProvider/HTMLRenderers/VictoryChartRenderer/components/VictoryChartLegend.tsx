@@ -1,13 +1,18 @@
 import {Circle, Skia, Text as SkText} from '@shopify/react-native-skia';
 import React, {Fragment} from 'react';
-import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
+import {useChartDefaultTypeface} from '@components/Charts/hooks';
+import type {LegendItem} from '../types';
+
+type VictoryChartLegendProps = {
+    legendItems: LegendItem[];
+};
 
 /**
  * Renders Skia legend symbols and labels (from `<victorylegend>` nodes) over the chart canvas.
  * Intended for use inside CartesianChart's `renderOutside` callback.
  */
-function VictoryChartLegend() {
-    const {legendItems, regularTypeface, boldTypeface} = useVictoryChartContext();
+function VictoryChartLegend({legendItems}: VictoryChartLegendProps) {
+    const {regular: regularTypeface, bold: boldTypeface} = useChartDefaultTypeface();
     return (
         <>
             {legendItems.map(({x: startX, y, entries, gutter, symbolSpacer}) => {

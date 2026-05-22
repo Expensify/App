@@ -13,7 +13,7 @@ import VictoryChartSeries from './VictoryChartSeries';
  * Labels and legend overlays are handled internally via `renderOutside`.
  */
 function VictoryChartCartesian() {
-    const {data, xKey, yKeys, xAxis, yAxis, tnode, isValidCartesian} = useVictoryChartContext();
+    const {data, xKey, yKeys, xAxis, yAxis, tnode, labelItems, legendItems, isValidCartesian} = useVictoryChartContext();
 
     if (!isValidCartesian) {
         return;
@@ -31,8 +31,8 @@ function VictoryChartCartesian() {
             padding={parseAttribute(tnode.attributes.padding)}
             renderOutside={(renderArgs) => (
                 <VictoryChartRenderArgsProvider value={renderArgs}>
-                    <VictoryChartLabels />
-                    <VictoryChartLegend />
+                    <VictoryChartLabels labelItems={labelItems} />
+                    <VictoryChartLegend legendItems={legendItems} />
                 </VictoryChartRenderArgsProvider>
             )}
         >
