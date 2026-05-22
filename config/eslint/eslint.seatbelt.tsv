@@ -18,7 +18,7 @@
 "../../src/Expensify.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/GlobalModals.tsx"	"no-restricted-syntax"	2
 "../../src/ONYXKEYS.ts"	"no-restricted-syntax"	2
-"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	171
+"../../src/ROUTES.ts"	"@typescript-eslint/no-deprecated/getUrlWithBackToParam"	160
 "../../src/components/AccountingConnectionConfirmationModal.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/components/ActionSheetAwareScrollView/useActionSheetAwareScrollViewRef.ts"	"react-hooks/immutability"	1
 "../../src/components/ActionSheetAwareScrollView/useActionSheetKeyboardSpacing.ts"	"@typescript-eslint/no-deprecated/useScrollViewOffset"	1
@@ -305,7 +305,7 @@
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/getReportName"	3
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/getSearchReportName"	1
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	43
-"../../src/libs/ReportUtils.ts"	"rulesdir/no-onyx-connect"	17
+"../../src/libs/ReportUtils.ts"	"rulesdir/no-onyx-connect"	16
 "../../src/libs/SearchUIUtils.ts"	"@typescript-eslint/no-deprecated/getSearchReportName"	1
 "../../src/libs/SubscriptionUtils.ts"	"rulesdir/no-onyx-connect"	1
 "../../src/libs/TransactionUtils/index.ts"	"@typescript-eslint/no-deprecated/translateLocal"	5
@@ -415,7 +415,6 @@
 "../../src/libs/actions/Transaction.ts"	"rulesdir/no-onyx-connect"	3
 "../../src/libs/actions/Travel.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/TravelInvoicing.ts"	"no-restricted-syntax"	3
-"../../src/libs/actions/TwoFactorAuthActions.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/libs/actions/UnreportedExpenses.tsx"	"no-restricted-syntax"	1
 "../../src/libs/actions/User.ts"	"no-restricted-syntax"	8
 "../../src/libs/actions/VacationDelegate.ts"	"no-restricted-syntax"	2
@@ -561,6 +560,7 @@
 "../../src/pages/settings/Security/MergeAccounts/AccountDetailsPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	3
 "../../src/pages/settings/Security/MergeAccounts/AccountValidatePage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/settings/Security/MergeAccounts/MergeResultPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
+"../../src/pages/settings/Security/TwoFactorAuth/DynamicVerifyPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/settings/Security/TwoFactorAuth/ReplaceDeviceVerifyNewPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/settings/Security/TwoFactorAuth/VerifyPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/settings/Subscription/CardAuthenticationModal/index.tsx"	"react-hooks/set-state-in-effect"	1
@@ -650,7 +650,6 @@
 "../../src/pages/workspace/expensifyCard/WorkspaceEditCardLimitPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/workspace/expensifyCard/WorkspaceEditCardLimitTypePage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/workspace/expensifyCard/WorkspaceExpensifyCardDetailsPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	2
-"../../src/pages/workspace/hr/gusto/GustoApprovalModePage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/workspace/members/ImportMembersPage.tsx"	"no-restricted-syntax"	1
 "../../src/pages/workspace/members/ImportMembersPage.tsx"	"rulesdir/no-default-id-values"	1
 "../../src/pages/workspace/members/ImportedMembersConfirmationPage.tsx"	"react-hooks/refs"	7

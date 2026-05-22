@@ -8,9 +8,10 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import useGustoSyncResultsModal from '@hooks/useGustoSyncResultsModal';
+import useHRSyncResultsModal from '@hooks/useHRSyncResultsModal';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useMergeHRInitialSyncingModal from '@hooks/useMergeHRInitialSyncingModal';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -46,7 +47,7 @@ function WorkspaceHRPage({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const policy = usePolicy(policyID);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
-    const icons = useMemoizedLazyExpensifyIcons(['GustoSquare', 'ZenefitsSquare']);
+    const icons = useMemoizedLazyExpensifyIcons(['GustoSquare', 'TriNetSquare']);
     const illustrations = useMemoizedLazyIllustrations(['NewUser']);
     const [activeHRFlow, setActiveHRFlow] = useState<{setupLink: string; key: number} | undefined>();
 
@@ -58,7 +59,8 @@ function WorkspaceHRPage({
         openPolicyHRPage(policyID);
     }, [policyID]);
 
-    useGustoSyncResultsModal(policyID, connectionSyncProgress, isFocused);
+    useHRSyncResultsModal(policyID, connectionSyncProgress, isFocused);
+    useMergeHRInitialSyncingModal(policyID, isFocused);
 
     const cards = getHRCards({
         policy,
@@ -68,7 +70,7 @@ function WorkspaceHRPage({
         translate,
         policyID,
         gustoIcon: icons.GustoSquare,
-        zenefitsIcon: icons.ZenefitsSquare,
+        trinetIcon: icons.TriNetSquare,
     });
 
     const connectedCards: HRCardDescriptor[] = [];
@@ -144,7 +146,7 @@ function WorkspaceHRPage({
                                     ))}
                             </View>
 
-                            {connectedCards.length > 0 && disconnectedCards.length > 0 && (
+                            {connectedCards.length > 0 && disconnectedCards.length > 0 && !connectedCards.some((c) => c.isInitialSyncInProgress) && (
                                 <CollapsibleSection
                                     title={translate('workspace.accounting.other')}
                                     wrapperStyle={[styles.pr3, styles.mt5, styles.pv3]}

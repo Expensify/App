@@ -229,8 +229,8 @@ type BuildPolicyDataOptions = {
     type?: typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE | typeof CONST.POLICY.TYPE.SUBMIT;
     // TODO: Make it required once we complete refactoring the buildPolicyData function to use isSelfTourViewed. Refactor issue: https://github.com/Expensify/App/issues/66424
     isSelfTourViewed?: boolean;
-    betas: OnyxEntry<Beta[]>;
     hasActiveAdminPolicies: boolean | undefined;
+    betas?: OnyxEntry<Beta[]>;
 };
 
 // TODO: Remove this type once we complete refactoring the buildPolicyData function to use isSelfTourViewed. Refactor issue: https://github.com/Expensify/App/issues/66424
@@ -2554,7 +2554,6 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         shouldCreateControlPolicy = false,
         type,
         isSelfTourViewed,
-        betas,
         hasActiveAdminPolicies,
     } = options;
 
@@ -3027,23 +3026,14 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
             onboardingPurposeSelected,
             companySize: companySize ?? (introSelected?.companySize as OnboardingCompanySize),
             isSelfTourViewed,
-            betas,
         });
         if (!onboardingData) {
             return {successData, optimisticData, failureData, params};
         }
-        const {
-            guidedSetupData,
-            optimisticData: taskOptimisticData,
-            successData: taskSuccessData,
-            failureData: taskFailureData,
-            bespokeWelcomeMessage,
-            optimisticConciergeReportActionID,
-        } = onboardingData;
+        const {guidedSetupData, optimisticData: taskOptimisticData, successData: taskSuccessData, failureData: taskFailureData, optimisticConciergeReportActionID} = onboardingData;
 
         params.guidedSetupData = JSON.stringify(guidedSetupData);
         params.engagementChoice = engagementChoice;
-        params.bespokeWelcomeMessage = bespokeWelcomeMessage;
         params.optimisticConciergeReportActionID = optimisticConciergeReportActionID;
 
         optimisticData.push(...taskOptimisticData);
@@ -4504,12 +4494,15 @@ function createWorkspaceFromIOUPayment(
         });
     }
 
-    // To optimistically remove the GBR from the DM we need to update the hasOutstandingChildRequest param to false
+    // To optimistically remove the GBR from the DM we need to update the hasOutstandingChildRequest param to false.
+    // We also clear iouReportID so the moved IOU report is no longer resolved from this DM when a new expense is
+    // created there (otherwise the moved report would be reused and "reappear" in the DM preview).
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${oldChatReportID}`,
         value: {
             hasOutstandingChildRequest: false,
+            iouReportID: null,
         },
     });
     failureData.push({
@@ -4517,6 +4510,7 @@ function createWorkspaceFromIOUPayment(
         key: `${ONYXKEYS.COLLECTION.REPORT}${oldChatReportID}`,
         value: {
             hasOutstandingChildRequest: true,
+            iouReportID,
         },
     });
 
