@@ -126,14 +126,7 @@ type ProcessNodeResult = {
 };
 
 /** Partial slice produced by a single per-tag parser before merging. */
-type PartialProcessNodeResult = {
-    data?: Record<string, CartesianChartData>;
-    yKeys?: YKey[];
-    xAxis?: CartesianChartProps['xAxis'];
-    yAxis?: NonNullable<CartesianChartProps['yAxis']>;
-    labelItems?: LabelItem[];
-    legendItems?: LegendItem[];
-};
+type PartialProcessNodeResult = Partial<ProcessNodeResult>;
 
 type NodeParser = (tnode: TNode, typeface: SkTypeface | null) => PartialProcessNodeResult;
 
