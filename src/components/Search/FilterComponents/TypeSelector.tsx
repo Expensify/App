@@ -62,7 +62,7 @@ function TypeSelector({value = CONST.SEARCH.DATA_TYPES.EXPENSE, selectionListSty
                 if (!item) {
                     return;
                 }
-                onChange(item.value)
+                onChange(item.value);
             }}
         />
     );
