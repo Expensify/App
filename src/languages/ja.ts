@@ -6038,7 +6038,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 `このワークスペースから${memberName}を削除すると、技術連絡先はワークスペースのオーナーである${workspaceOwner}に置き換えられます。`,
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
                 `${memberName} は、対応が必要な未処理のレポートがあります。ワークスペースから削除する前に、必要な対応を完了するよう依頼してください。`,
-            allMembers: 'すべてのメンバー',
+            members: 'メンバー',
             admins: '管理者',
             approvers: '承認者',
             auditors: '監査担当者',

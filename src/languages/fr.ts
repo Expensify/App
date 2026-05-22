@@ -6136,7 +6136,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 `Si vous supprimez ${memberName} de cet espace de travail, nous le remplacerons en tant que contact technique par ${workspaceOwner}, le responsable de l’espace de travail.`,
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
                 `${memberName} a une note de frais en cours de traitement sur laquelle il doit agir. Veuillez lui demander d’effectuer l’action requise avant de le retirer de l’espace de travail.`,
-            allMembers: 'Tous les membres',
+            members: 'Membres',
             admins: 'Administrateurs',
             approvers: 'Approbateurs',
             auditors: 'Auditeurs',
