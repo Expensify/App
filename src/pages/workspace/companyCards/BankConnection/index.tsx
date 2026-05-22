@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -7,7 +7,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useCardFeeds from '@hooks/useCardFeeds';
-import useConfirmModal from '@hooks/useConfirmModal';
 import useImportPlaidAccounts from '@hooks/useImportPlaidAccounts';
 import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -33,6 +32,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import openBankConnection from './openBankConnection';
+import useDuplicateFeedDetection from './useDuplicateFeedDetection';
 
 let customWindow: Window | null = null;
 
@@ -79,19 +79,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
     const isNewFeedHasError = !!(newFeed && cardFeeds?.[newFeed]?.errors);
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
-    const hasEverDetectedNewFeed = useRef(false);
-    const hasShownDuplicateModal = useRef(false);
-    const {showConfirmModal} = useConfirmModal();
-    const showConfirmModalRef = useRef(showConfirmModal);
-    const translateRef = useRef(translate);
-
-    useEffect(() => {
-        showConfirmModalRef.current = showConfirmModal;
-    }, [showConfirmModal]);
-
-    useEffect(() => {
-        translateRef.current = translate;
-    }, [translate]);
+    const {checkForDuplicateFeed} = useDuplicateFeedDetection({policyID, isPlaid});
 
     const onOpenBankConnectionFlow = useCallback(() => {
         if (!url) {
@@ -167,22 +155,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
             setShouldBlockWindowOpen(true);
             customWindow?.close();
 
-            // Track whether we've ever seen a new feed to distinguish duplicates
-            if (newFeed) {
-                hasEverDetectedNewFeed.current = true;
-            }
-            const isDuplicateFeed = !newFeed && isPlaid && !hasEverDetectedNewFeed.current;
-            if (isDuplicateFeed && !hasShownDuplicateModal.current) {
-                hasShownDuplicateModal.current = true;
-                Navigation.closeRHPFlow();
-                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
-                showConfirmModalRef.current({
-                    title: translateRef.current('workspace.companyCards.addNewCard.duplicateFeedModal.title'),
-                    prompt: translateRef.current('workspace.companyCards.addNewCard.duplicateFeedModal.prompt'),
-                    confirmText: translateRef.current('common.buttonConfirm'),
-                    shouldShowCancelButton: false,
-                    shouldHandleNavigationBack: false,
-                });
+            if (checkForDuplicateFeed(newFeed)) {
                 return;
             }
 
@@ -220,6 +193,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
         isFeedConnectionBroken,
         updateBrokenConnection,
         isNewFeedHasError,
+        checkForDuplicateFeed,
     ]);
 
     const getContent = () => {
