@@ -124,30 +124,15 @@ function SearchPage({route}: SearchPageProps) {
         const shouldUseClientTotal = selectedTransactionsKeys.length > 0 || !metadata?.count;
         const selectedTransactionItems = Object.values(selectedTransactions);
         const currency = metadata?.currency ?? selectedTransactionItems.at(0)?.groupCurrency ?? selectedTransactionItems.at(0)?.currency;
-
-        const isGroupedSelection = selectedTransactionsKeys.some((key) => key.startsWith(CONST.SEARCH.GROUP_PREFIX) || !!selectedTransactions[key]?.groupKey);
-
-        let numberOfExpense: number | undefined;
-        if (!shouldUseClientTotal) {
-            numberOfExpense = metadata?.count;
-        } else if (isGroupedSelection) {
-            const uniqueGroupKeys = new Set<string>();
-            for (const key of selectedTransactionsKeys) {
-                const groupKey = key.startsWith(CONST.SEARCH.GROUP_PREFIX) ? key : selectedTransactions[key]?.groupKey;
-                if (groupKey) {
-                    uniqueGroupKeys.add(groupKey);
-                }
-            }
-            numberOfExpense = uniqueGroupKeys.size;
-        } else {
-            numberOfExpense = selectedTransactionsKeys.reduce((count, key) => {
-                const item = selectedTransactions[key];
-                if (item.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === item.reportID) {
-                    return count;
-                }
-                return count + 1;
-            }, 0);
-        }
+        const numberOfExpense = shouldUseClientTotal
+            ? selectedTransactionsKeys.reduce((count, key) => {
+                  const item = selectedTransactions[key];
+                  if (item.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === item.reportID) {
+                      return count;
+                  }
+                  return count + 1;
+              }, 0)
+            : metadata?.count;
         const total = shouldUseClientTotal ? selectedTransactionItems.reduce((acc, transaction) => acc - (transaction.groupAmount ?? -Math.abs(transaction.amount)), 0) : metadata?.total;
 
         return {count: numberOfExpense, total, currency};

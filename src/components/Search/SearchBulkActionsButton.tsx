@@ -108,20 +108,8 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
             return reportIDs.size;
         }
 
-        const isGroupedSelection = selectedTransactionsKeys.some((key) => key.startsWith(CONST.SEARCH.GROUP_PREFIX) || !!selectedTransactions[key]?.groupKey);
-        if (isGroupedSelection) {
-            const uniqueGroupKeys = new Set<string>();
-            for (const key of selectedTransactionsKeys) {
-                const groupKey = key.startsWith(CONST.SEARCH.GROUP_PREFIX) ? key : selectedTransactions[key]?.groupKey;
-                if (groupKey) {
-                    uniqueGroupKeys.add(groupKey);
-                }
-            }
-            return uniqueGroupKeys.size;
-        }
-
         return selectedTransactionsKeys.length;
-    }, [selectedTransactions, selectedTransactionsKeys, isExpenseReportType]);
+    }, [selectedTransactions, selectedTransactionsKeys.length, isExpenseReportType]);
 
     const selectionButtonText = areAllMatchingItemsSelected ? translate('search.exportAll.allMatchingItemsSelected') : translate('workspace.common.selected', {count: selectedItemsCount});
 
