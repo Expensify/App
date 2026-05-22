@@ -148,7 +148,7 @@ function AuthScreens() {
             gestureEnabled: animationEnabled,
             web: {
                 ...rootNavigatorScreenOptions.fullScreenTabPage.web,
-                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true, animationEnabled}),
+                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, enter: animationEnabled ? {kind: 'slide-from-width'} : {kind: 'none'}}),
             },
         };
     };

@@ -82,6 +82,9 @@ type UseSearchSelectorConfig = {
 
     /** Whether to keep selected options in availableOptions instead of filtering them out */
     shouldKeepSelectedInAvailableOptions?: boolean;
+
+    /** Whether to separate selected options that are not in availableOptions.personalDetails (e.g. non-existing users invited by email) */
+    shouldSeparateNonExistingSelectedOptions?: boolean;
 };
 
 type ContactState = {
@@ -125,6 +128,9 @@ type UseSearchSelectorReturn = {
 
     /** Currently selected options used for list display. This prop can be used in selection list to display selected options that are filtered by search term */
     selectedOptionsForDisplay: OptionData[];
+
+    /** Selected options that are not present in availableOptions.personalDetails (e.g. non-existing users invited by email). Only populated when shouldSeparateNonExistingSelectedOptions is true */
+    selectedNonExistingOptions?: OptionData[];
 
     /** Function to set selected options */
     setSelectedOptions: (options: OptionData[]) => void;
@@ -174,6 +180,7 @@ function useSearchSelectorBase({
     recentAttendees,
     shouldAllowNameOnlyOptions = false,
     shouldKeepSelectedInAvailableOptions = false,
+    shouldSeparateNonExistingSelectedOptions = false,
 }: UseSearchSelectorConfig): UseSearchSelectorReturn {
     const {options: defaultOptions, areOptionsInitialized} = useOptionsList({
         shouldInitialize,
@@ -422,6 +429,13 @@ function useSearchSelectorBase({
         );
     });
 
+    const selectedNonExistingOptions = shouldSeparateNonExistingSelectedOptions
+        ? (() => {
+              const personalDetailLogins = new Set(filteredPersonalDetails.map((option) => option.login).filter(Boolean));
+              return selectedOptionsForDisplay.filter((option) => !personalDetailLogins.has(option.login));
+          })()
+        : [];
+
     return {
         searchTerm,
         debouncedSearchTerm,
@@ -435,6 +449,7 @@ function useSearchSelectorBase({
         contactState: undefined,
         onListEndReached,
         selectedOptionsForDisplay,
+        selectedNonExistingOptions,
     };
 }
 

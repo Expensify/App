@@ -64,3 +64,11 @@
 - Upstream PR/issue: TBD
 - E/App issue: https://github.com/Expensify/App/issues/89768
 - PR introducing patch: https://github.com/Expensify/App/pull/90218
+
+### [@shopify+flash-list+2.3.0+009+ignore-stale-viewholder-layout.patch](@shopify+flash-list+2.3.0+009+ignore-stale-viewholder-layout.patch)
+
+- Reason: Prevents stale `ViewHolder.onLayout` callbacks from crashing FlashList after the list data/layout table has changed. `validateItemSize` previously read the stored layout with `recyclerViewManager.getLayout(index)`, which throws when the callback's render-time index is no longer present in the layout manager. The patch uses `recyclerViewManager.tryGetLayout(index)` and returns early when the layout is missing, so obsolete measurements are ignored while current indexes continue through the existing width/height comparison.
+- Files changed: Both `src/recyclerview/RecyclerView.tsx` and `dist/recyclerview/RecyclerView.js`.
+- Upstream PR/issue: https://github.com/Shopify/flash-list/issues/2291
+- E/App issue: https://github.com/Expensify/App/issues/89933
+- PR introducing patch: https://github.com/Expensify/App/pull/91248

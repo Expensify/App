@@ -184,10 +184,8 @@ function BaseReportActionContextMenu({
     const lhnOneTransactionThreadReportID = getOneTransactionThreadReportID(report, reportChatReport, reportActions);
     const [lhnOneTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(lhnOneTransactionThreadReportID)}`);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(reportID)}`);
-    const [harvestReport] = useOnyx(
-        `${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(getHarvestOriginalReportID(reportNameValuePairs?.origin, reportNameValuePairs?.originalID))}`,
-        {},
-    );
+    const harvestReportOriginalID = getNonEmptyStringOnyxID(getHarvestOriginalReportID(reportNameValuePairs?.origin, reportNameValuePairs?.originalID));
+    const [harvestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${harvestReportOriginalID}`, {});
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`);
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const policyID = report?.policyID;
@@ -410,6 +408,7 @@ function BaseReportActionContextMenu({
                                 policyTags,
                                 translate,
                                 harvestReport,
+                                harvestReportOriginalID,
                                 introSelected,
                                 isSelfTourViewed,
                                 betas,
