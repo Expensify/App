@@ -28,6 +28,11 @@ type PopoverComponentProps = {
     setPopoverWidth?: (width: number | undefined) => void;
 };
 
+type DropdownButtonComponentProps = {
+    onPress: () => void;
+    ref: RefObject<View | null>;
+};
+
 type DropdownButtonProps = WithSentryLabel & {
     children?: (triggerRef: RefObject<View | null>, onPress: () => void) => ReactNode;
 
@@ -43,7 +48,7 @@ type DropdownButtonProps = WithSentryLabel & {
     /** The component to render in the popover */
     PopoverComponent: (props: PopoverComponentProps) => ReactNode;
 
-    ButtonComponent?: React.ComponentType<{onPress: () => void; ref: RefObject<View | null>}>;
+    ButtonComponent?: React.ComponentType<DropdownButtonComponentProps>;
 
     /** Whether to use medium size button instead of small */
     medium?: boolean;
@@ -239,5 +244,5 @@ function DropdownButton({
     );
 }
 
-export type {PopoverComponentProps, DropdownButtonProps};
+export type {PopoverComponentProps, DropdownButtonComponentProps, DropdownButtonProps};
 export default withViewportOffsetTop(DropdownButton);

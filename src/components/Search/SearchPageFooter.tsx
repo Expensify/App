@@ -1,9 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import Icon from '@components/Icon';
-import {PressableWithFeedback} from '@components/Pressable';
-import SkeletonRect from '@components/SkeletonRect';
-import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
+import Button from '@components/Button';
 import Text from '@components/Text';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -13,11 +10,10 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {SingleSelectItem} from './FilterComponents/SingleSelect';
 import DropdownButton from './FilterDropdowns/DropdownButton';
-import type {DropdownButtonProps} from './FilterDropdowns/DropdownButton';
+import type {DropdownButtonComponentProps, DropdownButtonProps} from './FilterDropdowns/DropdownButton';
 import GroupCurrencyPopup from './FilterDropdowns/GroupCurrencyPopup';
 
 type SearchPageFooterProps = {
@@ -28,10 +24,6 @@ type SearchPageFooterProps = {
     isTotalLoading: boolean;
     onCurrencyChange: (currency: string | undefined) => void;
 };
-
-const TOTAL_SKELETON_WIDTH = 72;
-const TOTAL_SKELETON_HEIGHT = 8;
-type TotalButtonProps = React.ComponentProps<NonNullable<DropdownButtonProps['ButtonComponent']>>;
 
 function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoading, onCurrencyChange}: SearchPageFooterProps) {
     const theme = useTheme();
@@ -72,40 +64,21 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
     );
 
     const totalButton: DropdownButtonProps['ButtonComponent'] = useCallback(
-        (props: TotalButtonProps) => (
-            <PressableWithFeedback
+        (props: DropdownButtonComponentProps) => (
+            <Button
                 ref={props.ref}
                 accessibilityLabel={translate('common.totalSpend')}
-                role={CONST.ROLE.BUTTON}
-                style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}
-                hoverStyle={styles.buttonHoveredBG}
-                disabled={isTotalLoading}
+                innerStyles={[styles.bgTransparent, styles.gap1]}
+                text={convertToDisplayString(total, currency)}
+                textStyles={valueTextStyle}
+                isLoading={isTotalLoading}
+                small
+                shouldShowRightIcon
+                iconRight={icons.DownArrow}
+                iconRightFill={theme.icon}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_GROUP_CURRENCY}
                 onPress={props.onPress}
-            >
-                {isTotalLoading ? (
-                    <SkeletonViewContentLoader
-                        animate
-                        width={TOTAL_SKELETON_WIDTH}
-                        height={TOTAL_SKELETON_HEIGHT}
-                        backgroundColor={theme.skeletonLHNIn}
-                        foregroundColor={theme.skeletonLHNOut}
-                    >
-                        <SkeletonRect
-                            width={TOTAL_SKELETON_WIDTH}
-                            height={TOTAL_SKELETON_HEIGHT}
-                        />
-                    </SkeletonViewContentLoader>
-                ) : (
-                    <Text style={valueTextStyle}>{convertToDisplayString(total, currency)}</Text>
-                )}
-                <Icon
-                    src={icons.DownArrow}
-                    fill={theme.icon}
-                    width={variables.iconSizeExtraSmall}
-                    height={variables.iconSizeExtraSmall}
-                />
-            </PressableWithFeedback>
+            />
         ),
         [convertToDisplayString, currency, icons.DownArrow, isTotalLoading, styles, theme, total, translate, valueTextStyle],
     );
