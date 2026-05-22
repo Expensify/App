@@ -15,11 +15,7 @@ function selectChildTransactionInfo(transactions: OnyxCollection<Transaction>, o
     }
     const result: ChildTransactionInfo[] = [];
     for (const t of Object.values(transactions ?? {})) {
-        if (
-            t?.comment?.originalTransactionID === originalTransactionID &&
-            t?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-            t?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID
-        ) {
+        if (t?.comment?.originalTransactionID === originalTransactionID && t?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             result.push({reportID: t?.reportID, isSplitSource: t?.comment?.source === CONST.IOU.TYPE.SPLIT});
         }
     }
