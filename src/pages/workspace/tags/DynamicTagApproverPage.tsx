@@ -16,11 +16,11 @@ import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-type TagApproverPageProps =
+type DynamicTagApproverPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_APPROVER>
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_APPROVER>;
 
-function TagApproverPage({route}: TagApproverPageProps) {
+function DynamicTagApproverPage({route}: DynamicTagApproverPageProps) {
     const {policyID, tagName} = route.params;
 
     const styles = useThemeStyles();
@@ -44,7 +44,7 @@ function TagApproverPage({route}: TagApproverPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID="TagApproverPage"
+                testID="DynamicTagApproverPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -64,4 +64,4 @@ function TagApproverPage({route}: TagApproverPageProps) {
     );
 }
 
-export default TagApproverPage;
+export default DynamicTagApproverPage;

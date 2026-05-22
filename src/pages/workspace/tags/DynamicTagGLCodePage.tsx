@@ -23,11 +23,11 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTagForm';
 
-type EditTagGLCodePageProps =
+type DynamicTagGLCodePageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_GL_CODE>
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_GL_CODE>;
 
-function TagGLCodePage({route}: EditTagGLCodePageProps) {
+function DynamicTagGLCodePage({route}: DynamicTagGLCodePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -82,7 +82,7 @@ function TagGLCodePage({route}: EditTagGLCodePageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID="TagGLCodePage"
+                testID="DynamicTagGLCodePage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -114,4 +114,4 @@ function TagGLCodePage({route}: EditTagGLCodePageProps) {
     );
 }
 
-export default TagGLCodePage;
+export default DynamicTagGLCodePage;

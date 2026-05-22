@@ -23,11 +23,11 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PolicyTagNameForm';
 
-type WorkspaceEditTagsPageProps =
+type DynamicEditTagsPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAGS_EDIT>
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAGS_EDIT>;
 
-function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
+function DynamicEditTagsPage({route}: DynamicEditTagsPageProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${route?.params?.policyID}`);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -71,7 +71,7 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID="WorkspaceEditTagsPage"
+                testID="DynamicEditTagsPage"
             >
                 <HeaderWithBackButton
                     title={translate(`workspace.tags.customTagName`)}
@@ -105,4 +105,4 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
     );
 }
 
-export default WorkspaceEditTagsPage;
+export default DynamicEditTagsPage;

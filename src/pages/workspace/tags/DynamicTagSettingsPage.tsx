@@ -40,11 +40,11 @@ import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-type TagSettingsPageProps =
+type DynamicTagSettingsPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_SETTINGS>
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_SETTINGS>;
 
-function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
+function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps) {
     const {policyID, tagName, parentTagsFilter} = route.params;
     const orderWeight = Number(route.params.orderWeight);
     const styles = useThemeStyles();
@@ -127,7 +127,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID="TagSettingsPage"
+                testID="DynamicTagSettingsPage"
             >
                 <HeaderWithBackButton
                     title={getCleanedTagName(tagName)}
@@ -241,4 +241,4 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     );
 }
 
-export default TagSettingsPage;
+export default DynamicTagSettingsPage;

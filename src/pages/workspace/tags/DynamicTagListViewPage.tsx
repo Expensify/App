@@ -57,11 +57,11 @@ import type {PolicyTag} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {TagListItem} from './types';
 
-type WorkspaceViewTagsProps =
+type DynamicTagListViewPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_LIST_VIEW>
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_LIST_VIEW>;
 
-function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
+function DynamicTagListViewPage({route}: DynamicTagListViewPageProps) {
     const {policyID, orderWeight: orderWeightParam} = route.params;
     const orderWeight = Number(orderWeightParam);
 
@@ -227,7 +227,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     };
 
     const isLoading = !isOffline && policyTags === undefined;
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'WorkspaceViewTagsPage', isOffline, isPolicyTagsUndefined: policyTags === undefined};
+    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'DynamicTagListViewPage', isOffline, isPolicyTagsUndefined: policyTags === undefined};
 
     const listHeaderContent =
         tagList.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? (
@@ -357,7 +357,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID="WorkspaceViewTagsPage"
+                testID="DynamicTagListViewPage"
             >
                 <HeaderWithBackButton
                     title={selectionModeHeader ? translate('common.selectMultiple') : currentTagListName}
@@ -455,4 +455,4 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     );
 }
 
-export default WorkspaceViewTagsPage;
+export default DynamicTagListViewPage;
