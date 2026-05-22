@@ -751,7 +751,6 @@ function ReportActionsList({
                         shouldDisplayReplyDivider={renderedVisibleReportActions.length > 1}
                         isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                         shouldUseThreadDividerLine={shouldUseThreadDividerLine}
-                        personalDetails={personalDetailsList}
                         isReportArchived={isReportArchived}
                         userBillingFundID={userBillingFundID}
                         isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
@@ -779,7 +778,6 @@ function ReportActionsList({
             onShowPreviousMessages,
             parentReportAction,
             parentReportActionForTransactionThread,
-            personalDetailsList,
             renderedVisibleReportActions,
             report,
             reportNameValuePairs?.origin,

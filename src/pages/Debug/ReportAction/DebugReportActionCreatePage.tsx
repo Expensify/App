@@ -118,7 +118,6 @@ function DebugReportActionCreatePage({
                                     index={0}
                                     isFirstVisibleReportAction={false}
                                     shouldDisplayContextMenu={false}
-                                    personalDetails={personalDetailsList}
                                     userBillingFundID={userBillingFundID}
                                     isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                                 />

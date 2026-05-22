@@ -6,7 +6,6 @@ import type {LayoutChangeEvent, ListRenderItemInfo, NativeScrollEvent, NativeSyn
 // eslint-disable-next-line no-restricted-imports
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import FlatListWithScrollKey from '@components/FlatList/FlatListWithScrollKey';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScrollView from '@components/ScrollView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLoadReportActions from '@hooks/useLoadReportActions';
@@ -126,7 +125,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const parentReportAction = useParentReportAction(report);
 
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
-    const personalDetails = usePersonalDetails();
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -567,7 +565,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                     isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                     shouldHideThreadDividerLine
                     linkedReportActionID={linkedReportActionID}
-                    personalDetails={personalDetails}
                     userBillingFundID={userBillingFundID}
                     isReportArchived={isReportArchived}
                     isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
@@ -585,7 +582,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             unreadMarkerReportActionID,
             firstVisibleReportActionID,
             linkedReportActionID,
-            personalDetails,
             userBillingFundID,
             isTryNewDotNVPDismissed,
             isReportArchived,

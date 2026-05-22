@@ -3,7 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isChatThread} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import type {PersonalDetailsList, Report, ReportAction} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
 
@@ -50,9 +50,6 @@ type ReportActionsListItemRendererProps = {
     /** Animate highlight action in few seconds */
     shouldHighlight?: boolean;
 
-    /** Personal details list */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-
     /** User billing fund ID */
     userBillingFundID: number | undefined;
 
@@ -84,7 +81,6 @@ function ReportActionsListItemRenderer({
     shouldHighlight = false,
     parentReportActionForTransactionThread,
     userBillingFundID,
-    personalDetails,
     isTryNewDotNVPDismissed = false,
     isReportArchived = false,
     reportNameValuePairsOrigin,
@@ -178,7 +174,6 @@ function ReportActionsListItemRenderer({
                 index={index}
                 isFirstVisibleReportAction={isFirstVisibleReportAction}
                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
-                personalDetails={personalDetails}
                 userBillingFundID={userBillingFundID}
                 isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                 isReportArchived={isReportArchived}
@@ -201,7 +196,6 @@ function ReportActionsListItemRenderer({
             isFirstVisibleReportAction={isFirstVisibleReportAction}
             shouldUseThreadDividerLine={shouldUseThreadDividerLine}
             shouldHighlight={shouldHighlight}
-            personalDetails={personalDetails}
             userBillingFundID={userBillingFundID}
             isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
             reportNameValuePairsOrigin={reportNameValuePairsOrigin}

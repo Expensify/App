@@ -1,9 +1,12 @@
 import type {OnyxEntry} from 'react-native-onyx';
+import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import type {PersonalDetailsList, Report} from '@src/types/onyx';
 import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 
 const personalDetailsSelector = (accountID: number) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[accountID];
+
+const personalDetailsDisplayNameSelector = (accountID: number) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getDisplayNameOrDefault(personalDetailsList?.[accountID]);
 
 const personalDetailsLoginSelector = (accountID: number) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[accountID]?.login;
 
@@ -25,4 +28,11 @@ const accountIDToLoginSelector = (reportsToArchive: Report[]) => (personalDetail
     return map;
 };
 
-export {personalDetailsSelector, personalDetailsLoginSelector, personalDetailByAccountIDSelector, conciergePersonalDetailSelector, accountIDToLoginSelector};
+export {
+    personalDetailsSelector,
+    personalDetailsDisplayNameSelector,
+    personalDetailsLoginSelector,
+    personalDetailByAccountIDSelector,
+    conciergePersonalDetailSelector,
+    accountIDToLoginSelector,
+};

@@ -112,9 +112,6 @@ type ActionContentRouterProps = {
     /** The originalID component of report name value pairs (used by the Created action of harvest reports) */
     reportNameValuePairsOriginalID?: string;
 
-    /** Personal details list */
-    personalDetails?: OnyxTypes.PersonalDetailsList;
-
     /** Did the user dismiss trying out NewDot? */
     isTryNewDotNVPDismissed?: boolean;
 
@@ -151,7 +148,6 @@ function ActionContentRouter({
     isClosedExpenseReportWithNoExpenses,
     isHarvestCreatedExpenseReport,
     reportNameValuePairsOriginalID,
-    personalDetails,
     isTryNewDotNVPDismissed,
     shouldShowBorder,
     isOnSearch,
@@ -247,7 +243,6 @@ function ActionContentRouter({
                 action={action}
                 report={report}
                 iouReport={iouReport}
-                personalDetails={personalDetails}
             />
         );
     }

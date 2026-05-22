@@ -1,6 +1,5 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScrollView from '@components/ScrollView';
 import useOnyx from '@hooks/useOnyx';
 import ReportActionItem from '@pages/inbox/report/ReportActionItem';
@@ -16,7 +15,6 @@ type DebugReportActionPreviewProps = {
 };
 
 function DebugReportActionPreview({reportAction, reportID}: DebugReportActionPreviewProps) {
-    const personalDetails = usePersonalDetails();
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
@@ -33,7 +31,6 @@ function DebugReportActionPreview({reportAction, reportID}: DebugReportActionPre
                 index={0}
                 isFirstVisibleReportAction={false}
                 shouldDisplayContextMenu={false}
-                personalDetails={personalDetails}
                 userBillingFundID={userBillingFundID}
                 isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
             />

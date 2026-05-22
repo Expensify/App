@@ -7,7 +7,7 @@ import useReportTransactions from '@hooks/useReportTransactions';
 import {getIOUReportIDFromReportActionPreview, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {isArchivedNonExpenseReport, isClosedExpenseReportWithNoExpenses} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Transaction} from '@src/types/onyx';
+import type {Transaction} from '@src/types/onyx';
 import type {PureReportActionItemProps} from './PureReportActionItem';
 import PureReportActionItem from './PureReportActionItem';
 import {useReportActionActiveEdit} from './ReportActionEditMessageContext';
@@ -15,9 +15,6 @@ import {useReportActionActiveEdit} from './ReportActionEditMessageContext';
 type ReportActionItemProps = PureReportActionItemProps & {
     /** Draft message for the report action */
     draftMessage?: string;
-
-    /** Personal details list */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
 
     /** User billing fund ID */
     userBillingFundID: number | undefined;
@@ -30,7 +27,6 @@ function ReportActionItem({
     action,
     report,
     draftMessage: draftMessageProp,
-    personalDetails,
     userBillingFundID,
     linkedTransactionRouteError: linkedTransactionRouteErrorProp,
     isTryNewDotNVPDismissed,
@@ -66,7 +62,6 @@ function ReportActionItem({
             draftMessage={draftMessage}
             iouReport={iouReport}
             linkedTransactionRouteError={linkedTransactionRouteError}
-            personalDetails={personalDetails}
             originalReportID={originalReportID}
             originalReport={originalReport}
             isArchivedRoom={isArchivedNonExpenseReport(originalReport, isOriginalReportArchived)}

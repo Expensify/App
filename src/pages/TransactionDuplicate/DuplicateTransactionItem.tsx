@@ -1,7 +1,6 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -23,8 +22,6 @@ const linkedTransactionRouteErrorSelector = (transaction: OnyxEntry<Transaction>
 
 function DuplicateTransactionItem({transaction, index, onPreviewPressed}: DuplicateTransactionItemProps) {
     const styles = useThemeStyles();
-    const personalDetails = usePersonalDetails();
-
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`);
@@ -70,7 +67,6 @@ function DuplicateTransactionItem({transaction, index, onPreviewPressed}: Duplic
                         shouldDisplayNewMarker={false}
                         isFirstVisibleReportAction={false}
                         shouldDisplayContextMenu={false}
-                        personalDetails={personalDetails}
                         draftMessage={matchingDraftMessage}
                         linkedTransactionRouteError={linkedTransactionRouteError}
                         userBillingFundID={userBillingFundID}
