@@ -4,7 +4,7 @@ description: Learn how to use the Spend page in New Expensify to view, filter, a
 keywords: [New Expensify, Spend page, report preview, report table, filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline]
 ---
 
-The Spend page in New Expensify gives you a full list of your reports and related expenses. While the Inbox highlights what needs your attention, the Reports page helps you explore, filter, and export your expense data.
+The Spend page in New Expensify gives you a full list of your reports and related expenses. From the Spend page you can explore, filter, and export your expense data.
 
 ---
 
