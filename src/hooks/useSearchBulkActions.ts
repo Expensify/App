@@ -61,6 +61,7 @@ import {
     isDeletedTransaction,
     isDistanceRequest,
     isManagedCardTransaction,
+    isPending,
     isPerDiemRequest,
     isScanning,
     shouldRedirectDeleteToSplitExpenseEdit,
@@ -622,7 +623,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const isDeletingOnlyExpenses = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE && expenseCount > 0;
     const deleteCount = isDeletingOnlyExpenses ? expenseCount : uniqueReportCount;
     const deleteModalTitle = isDeletingOnlyExpenses ? translate('iou.deleteExpense', {count: expenseCount}) : translate('iou.deleteReport', {count: deleteCount});
-    const deleteModalPrompt = isDeletingOnlyExpenses ? translate('iou.deleteConfirmation', {count: expenseCount}) : translate('iou.deleteReportConfirmation', {count: deleteCount});
+    const deleteModalPrompt =
+        isDeletingOnlyExpenses && expenseCount === 1 && isPending(firstTransaction)
+            ? translate('iou.deleteConfirmationPendingBYOC')
+            : isDeletingOnlyExpenses
+              ? translate('iou.deleteConfirmation', {count: expenseCount})
+              : translate('iou.deleteReportConfirmation', {count: deleteCount});
 
     const handleDeleteSelectedTransactions = useCallback(async () => {
         if (!hash) {
