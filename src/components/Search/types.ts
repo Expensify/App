@@ -198,11 +198,16 @@ type SearchStateContextValue = SearchContextData & {
 };
 
 type SearchActionsContextValue = {
-    /** If you want to set `selectedTransactionIDs`, pass an array as the first argument, object/record otherwise */
+    /**
+     * If you want to set `selectedTransactionIDs`, pass an array as the first argument, object/record otherwise.
+     * The optional `data` argument lets callers atomically update `selectedReports` in the same commit
+     * to avoid a transient render where the two pieces of state are out of sync.
+     */
     setSelectedTransactions: {
         (selectedTransactionIDs: string[], unused?: undefined): void;
-        (selectedTransactions: SelectedTransactions, data: TransactionListItemType[] | TransactionGroupListItemType[] | ReportActionListItemType[] | TaskListItemType[]): void;
+        (selectedTransactions: SelectedTransactions, data?: TransactionListItemType[] | TransactionGroupListItemType[] | ReportActionListItemType[] | TaskListItemType[]): void;
     };
+    setSelectedReports: (reports: SelectedReports[]) => void;
     setCurrentSelectedTransactionReportID: (reportID: string | undefined) => void;
     /** If you want to clear `selectedTransactionIDs`, pass `true` as the first argument */
     clearSelectedTransactions: {

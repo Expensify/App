@@ -8,7 +8,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToBackendAmount, convertToFrontendAmountAsString, getCurrencyDecimals} from '@libs/CurrencyUtils';
+import {convertToBackendAmount, convertToFrontendAmountAsString, getCurrencyDecimals, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import {formatToParts} from '@libs/NumberFormatUtils';
 import {parseFloatAnyLocale, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getTransactionDetails, isInvoiceReport, shouldEnableNegative} from '@libs/ReportUtils';
@@ -121,10 +121,11 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, report,
     // Some currencies display with a space between symbol and amount (e.g., "CZK 100.00") in convertToDisplayString (in preview).
     // We detect this spacing and apply matching padding to the input to prevent visual flicker when entering edit mode.
     // See: https://github.com/Expensify/App/pull/83127#issuecomment-4240055145
+    const sanitizedCurrency = sanitizeCurrencyCode(currency);
     const hasSymbolSpaceInPreview = formatToParts(preferredLocale, 0, {
         style: 'currency',
-        currency,
-        minimumFractionDigits: getCurrencyDecimals(currency),
+        currency: sanitizedCurrency,
+        minimumFractionDigits: getCurrencyDecimals(sanitizedCurrency),
         maximumFractionDigits: CONST.DEFAULT_CURRENCY_DECIMALS,
     }).some((part) => part.type === 'literal' && part.value.trim() === '');
 
