@@ -1,8 +1,8 @@
 import React from 'react';
 import type {TNode} from 'react-native-render-html';
-import VictoryChartBar from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/components/VictoryChartBar';
-import VictoryChartLine from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/components/VictoryChartLine';
 import Log from '@libs/Log';
+import VictoryChartBar from './VictoryChartBar';
+import VictoryChartLine from './VictoryChartLine';
 
 type VictoryChartSeriesProps = {tnode: TNode};
 

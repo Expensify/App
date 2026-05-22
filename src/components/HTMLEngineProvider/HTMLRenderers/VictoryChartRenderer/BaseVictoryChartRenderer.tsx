@@ -1,7 +1,7 @@
 import React from 'react';
-import VictoryChartContainer from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/components/VictoryChartContainer';
-import VictoryChartContent from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/components/VictoryChartContent';
-import {VictoryChartProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
+import VictoryChartContainer from './components/VictoryChartContainer';
+import VictoryChartContent from './components/VictoryChartContent';
+import {VictoryChartProvider} from './context/VictoryChartContext';
 import type {VictoryChartRendererProps} from './types';
 
 function BaseVictoryChartRenderer({tnode}: VictoryChartRendererProps) {

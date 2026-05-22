@@ -1,8 +1,8 @@
 import React from 'react';
-import VictoryChartCartesian from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/components/VictoryChartCartesian';
-import VictoryChartPolar from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/components/VictoryChartPolar';
 import {CHART_TYPE} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
+import VictoryChartCartesian from './VictoryChartCartesian';
+import VictoryChartPolar from './VictoryChartPolar';
 
 function VictoryChartContent() {
     const {type} = useVictoryChartContext();
@@ -12,9 +12,9 @@ function VictoryChartContent() {
             return <VictoryChartCartesian />;
         case CHART_TYPE.POLAR:
             return <VictoryChartPolar />;
+        default:
+            return null;
     }
-
-    return null;
 }
 
 VictoryChartContent.displayName = 'VictoryChartContent';
