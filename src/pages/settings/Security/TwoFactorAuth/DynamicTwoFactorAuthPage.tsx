@@ -11,29 +11,29 @@ import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayTo
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {READ_COMMANDS} from '@libs/API/types';
 import Clipboard from '@libs/Clipboard';
 import getPlatform from '@libs/getPlatform';
 import localFileDownload from '@libs/localFileDownload';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {toggleTwoFactorAuth} from '@userActions/Session';
 import {quitAndNavigateBack, setCodesAreCopied} from '@userActions/TwoFactorAuthActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import type {TwoFactorAuthPageProps} from './TwoFactorAuthPage';
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
 const TWO_FACTOR_AUTH_RECOVERY_CODES_FILENAME = 'DO-NOT-DELETE_Expensify-2FA-RecoveryCodes.txt';
 
-function CopyCodesPage({route}: TwoFactorAuthPageProps) {
+function DynamicTwoFactorAuthPage() {
     const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Download']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -43,6 +43,8 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
     const [error, setError] = useState('');
     const [statusAnnouncement, setStatusAnnouncement] = useState({id: 0, text: ''});
     const isFocused = useIsFocused();
+
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_ROOT.path);
 
     const isWeb = getPlatform() === CONST.PLATFORM.WEB;
 
@@ -56,28 +58,36 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
     const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
 
     const isUserValidated = account?.validated ?? false;
+    const is2FAEnabled = !!account?.requiresTwoFactorAuth;
     const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
-    const accountLoadingReasonAttributes: SkeletonSpanReasonAttributes = {context: 'CopyCodesPage', isLoading: !!account?.isLoading};
+    const accountLoadingReasonAttributes: SkeletonSpanReasonAttributes = {context: 'DynamicTwoFactorAuthPage', isLoading: !!account?.isLoading};
 
     useEffect(() => {
         if (!isUserValidated) {
-            Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT.getRoute());
+            Navigation.isNavigationReady().then(() => {
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY_ACCOUNT.path, backPath), {forceReplace: true});
+            });
             return;
         }
 
-        if (isLoadingOnyxValue(accountMetadata) || account?.requiresTwoFactorAuth || account?.recoveryCodes || !isUserValidated) {
+        if (isFocused && is2FAEnabled) {
+            Navigation.isNavigationReady().then(() => {
+                Navigation.navigate(ROUTES.SETTINGS_2FA_ENABLED, {forceReplace: true});
+            });
             return;
         }
 
-        // This screen is rendered underneath other 2FA screens. We don't want it making
-        // API calls in the background in response to state updates
+        if (isLoadingOnyxValue(accountMetadata) || is2FAEnabled || account?.recoveryCodes || !isUserValidated) {
+            return;
+        }
+
         if (!isFocused) {
             return;
         }
 
         toggleTwoFactorAuth(true);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- We want to run this when component mounts
-    }, [isUserValidated, accountMetadata.status, isFocused]);
+    }, [isUserValidated, accountMetadata.status, isFocused, is2FAEnabled]);
 
     return (
         <TwoFactorAuthWrapper
@@ -89,9 +99,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
             }}
             shouldEnableKeyboardAvoidingView={false}
             stepName={CONST.TWO_FACTOR_AUTH_STEPS.COPY_CODES}
-            // When the 2FA code step is open from Xero flow, we don't need to pass backTo because we build the necessary root route
-            // from the backTo param in the route (in getMatchingRootRouteForRHPRoute) and goBack will not need a fallbackRoute.
-            onBackButtonPress={() => quitAndNavigateBack(route?.params?.forwardTo?.includes(READ_COMMANDS.CONNECT_POLICY_TO_XERO) ? undefined : route?.params?.backTo)}
+            onBackButtonPress={() => quitAndNavigateBack(backPath)}
         >
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 {!!isUserValidated && (
@@ -195,7 +203,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                             if (!account?.codesAreCopied) {
                                 return setError(translate('twoFactorAuth.errorStepCodes'));
                             }
-                            Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY.getRoute(route.params?.backTo, route.params?.forwardTo));
+                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY.path, backPath), {forceReplace: true});
                         }}
                     />
                 </FixedFooter>
@@ -204,4 +212,4 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
     );
 }
 
-export default CopyCodesPage;
+export default DynamicTwoFactorAuthPage;
