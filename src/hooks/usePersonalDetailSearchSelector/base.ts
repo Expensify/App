@@ -269,7 +269,16 @@ function usePersonalDetailSearchSelectorBase({
         setSelectedAccountIDs(new Set());
     };
 
-    const selectedNonExistingOptions = extraOptions.filter((option) => option.isSelected);
+    const selectedNonExistingOptions = extraOptions.filter((option) => {
+        if (!option.isSelected) {
+            return false;
+        }
+        if (!debouncedSearchTerm) {
+            return true;
+        }
+        const searchValue = debouncedSearchTerm.trim().toLowerCase();
+        return !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
+    });
 
     return {
         searchTerm,
