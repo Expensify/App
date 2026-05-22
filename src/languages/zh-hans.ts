@@ -882,7 +882,6 @@ const translations: TranslationDeepObject<typeof en> = {
         buttonFind: '查找内容…',
         buttonMySettings: '我的设置',
         fabNewChat: '开始聊天',
-        fabNewChatExplained: '打开操作菜单',
         fabScanReceiptExplained: '扫描收据',
         chatPinned: '聊天已置顶',
         draftedMessage: '已起草的消息',
@@ -1462,6 +1461,7 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: '其中一些重复项已被批准或支付。',
         reviewDuplicates: '审核重复项',
         keepAll: '全部保留',
+        keepSelected: '保留所选项',
         noDuplicatesTitle: '全部完成！',
         noDuplicatesDescription: '这里没有需要审核的重复交易。',
         confirmApprove: '确认批准金额',
@@ -2340,8 +2340,8 @@ const translations: TranslationDeepObject<typeof en> = {
         addBankAccountToSendAndReceive: '添加银行账户以进行或接收付款。',
         addDebitOrCreditCard: '添加借记卡或信用卡',
         cardInactive: '未激活',
-        assignedCards: '已分配的卡片',
-        assignedCardsDescription: '这些银行卡的交易会自动同步。',
+        assignedCards: '卡片',
+        assignedCardsDescription: '已分配卡片的交易会自动同步。',
         expensifyCard: 'Expensify 卡',
         walletActivationPending: '我们正在审核您的信息。请几分钟后再回来查看！',
         walletActivationFailed: '很遗憾，您的钱包目前无法启用。请与 Concierge 聊天以获取进一步帮助。',
@@ -4687,6 +4687,24 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 },
             },
         },
+        certinia: {
+            title: 'Certinia',
+            prerequisites: {
+                title: '在你连接之前',
+                installBundle: '用于 FFA 连接',
+                installBundleDescription: ({href, version}: {href: string; version: string}) =>
+                    `通过点击此链接在 Salesforce 中安装 Expensify 组件包：<a href="${href}">安装 FFA Expensify 组件包（版本 ${version}）</a>`,
+                installBundleConfirm: '我已安装此捆绑包',
+                setupContacts: '设置用户和联系人',
+                setupContactsBullet1: '如果 Certinia 中尚未为你创建用户和联系人，请为自己分别创建一个用户和一个联系人，并确保其电子邮箱与你在 Expensify 中的主要邮箱一致。',
+                setupContactsBullet2: '为每位将提交报销报告的员工以及每位报销审批人创建联系人。请确保每个联系人的电子邮箱地址与该员工的 Expensify 账户中的邮箱地址一致。',
+                setupContactsBullet3: '为每位联系人/资源设置用户的权限控制。',
+                setupContactsConfirm: '我已设置用户和联系人',
+                oauth: '通过 Salesforce 登录',
+                oauthDescription: '要完成设置，您需要通过 Salesforce 和 Certinia 登录。\n\n请使用下方按钮继续。',
+                connectButton: '连接到 Certinia',
+            },
+        },
         netsuite: {
             subsidiary: '子公司',
             subsidiarySelectDescription: '选择要从中导入数据的 NetSuite 子公司。',
@@ -5831,7 +5849,13 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 `您即将创建并共享 ${newWorkspaceName ?? ''}，其中包含来自原始工作区的 ${totalMembers ?? 0} 位成员。`,
             error: '复制您的新工作区时发生错误。请重试。',
         },
-        copyPolicySettings: {error: '复制工作区设置时发生错误。请重试。'},
+        copyPolicySettings: {
+            error: '复制工作区设置时发生错误。请重试。',
+            title: '复制设置',
+            selectWorkspaces: '选择工作区',
+            description: '选择要复制设置到的工作区，然后选择你想复制的设置。',
+            searchPlaceholder: '搜索工作区',
+        },
         emptyWorkspace: {
             title: '你还没有工作区',
             subtitle: '跟踪收据、报销费用、管理差旅、发送发票等。',
@@ -6298,7 +6322,13 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             errors: {
                 rateNameRequired: '费率名称为必填项',
                 existingRateName: '已存在同名的里程费率',
+                nameRequired: '姓名为必填项',
+                startDateMustBeBeforeEndDate: '开始日期必须早于结束日期',
+                amountRequired: '金额为必填项',
             },
+            amountPerUnit: (unit: string) => `每${unit}金额`,
+            startDate: '开始日期',
+            endDate: '结束日期',
         },
         editor: {
             descriptionInputLabel: '描述',
@@ -6417,6 +6447,12 @@ ${reportName}
                 description: `通过 Expensify 与 QuickBooks Desktop 的集成，享受自动同步，减少手动录入。借助实时双向连接以及按类别、项目、客户和项目进行费用编码，实现极致效率。`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>我们的 QuickBooks Desktop 集成仅适用于 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
+                title: 'Certinia',
+                description: `通过 Expensify 与 Certinia 的集成，享受自动同步，减少手动录入。将费用编码维度与税务同步与您的 Certinia 配置对齐，以获得更清晰的财务可见性。`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>我们的 Certinia 集成仅适用于 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: '高级审批',
@@ -6932,7 +6968,9 @@ ${reportName}
             syncError: (providerName: string) => `无法连接到 ${providerName}`,
             connectionDescription: (providerName: string) => `连接 ${providerName}，以在您的工作区中同步员工审批。`,
             approvalMode: '审批模式',
+            providerApprovalMode: (providerName: string) => `${providerName} 审批模式`,
             finalApprover: '最终审批人',
+            providerFinalApprover: (providerName: string) => `${providerName} 最终审批人`,
             notSet: '未设置',
             approvalModeDescription: (providerName: string) => `成员和管理员已设置为与 ${providerName} 同步。`,
             approvalModeWarningTitle: '更改审批模式？',
@@ -6968,19 +7006,19 @@ ${reportName}
                     }
                 }
             },
+            syncResults: {
+                title: (provider: string) => `${provider} 同步完成`,
+                successTitle: (provider: string) => `已成功同步您的 ${provider} 连接！`,
+                added: '已添加',
+                removed: '已移除',
+                skipped: '已跳过',
+                employeeCount: () => ({
+                    one: '1 员工',
+                    other: (count: number) => `${count} 员工`,
+                }),
+            },
             gusto: {
                 title: 'Gusto',
-                syncResults: {
-                    title: 'Gusto 同步结果',
-                    successTitle: '已成功同步你的 Gusto 连接！',
-                    added: '已添加',
-                    removed: '已移除',
-                    skipped: '已跳过',
-                    employeeCount: () => ({
-                        one: '1 员工',
-                        other: (count: number) => `${count} 员工`,
-                    }),
-                },
             },
             zenefits: {
                 title: 'TriNet',
@@ -8014,6 +8052,7 @@ ${reportName}
         selectAllFeatures: '选择所有功能',
         selectAllTransactions: '选择所有交易',
         selectAllItems: '全选所有项目',
+        openActionsMenu: '打开操作菜单',
         selectAllCategories: '选择所有类别',
         selectAllDistanceRates: '选择所有距离费率',
         selectAllTags: '选择所有标签',

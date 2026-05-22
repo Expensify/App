@@ -940,7 +940,6 @@ const translations = {
         buttonFind: 'Find something...',
         buttonMySettings: 'My settings',
         fabNewChat: 'Start chat',
-        fabNewChatExplained: 'Open actions menu',
         fabScanReceiptExplained: 'Scan receipt',
         chatPinned: 'Chat pinned',
         draftedMessage: 'Drafted message',
@@ -1567,6 +1566,7 @@ const translations = {
         someDuplicatesArePaid: 'Some of these duplicates have been approved or paid already.',
         reviewDuplicates: 'Review duplicates',
         keepAll: 'Keep all',
+        keepSelected: 'Keep selected',
         noDuplicatesTitle: 'All set!',
         noDuplicatesDescription: 'There are no duplicate transactions for review here.',
         confirmApprove: 'Confirm approval amount',
@@ -2480,8 +2480,8 @@ const translations = {
         addBankAccountToSendAndReceive: 'Add a bank account to make or receive payments.',
         addDebitOrCreditCard: 'Add debit or credit card',
         cardInactive: 'Inactive',
-        assignedCards: 'Assigned cards',
-        assignedCardsDescription: 'Transactions from these cards sync automatically.',
+        assignedCards: 'Cards',
+        assignedCardsDescription: 'Transactions from assigned cards sync automatically.',
         expensifyCard: 'Expensify Card',
         walletActivationPending: "We're reviewing your information. Please check back in a few minutes!",
         walletActivationFailed: "Unfortunately, your wallet can't be enabled at this time. Please chat with Concierge for further assistance.",
@@ -4909,6 +4909,26 @@ const translations = {
                 },
             },
         },
+        certinia: {
+            title: 'Certinia',
+            prerequisites: {
+                title: 'Before you connect',
+                installBundle: 'For FFA Connections',
+                installBundleDescription: ({href, version}: {href: string; version: string}) =>
+                    `Install the Expensify bundle in Salesforce by clicking this link: <a href="${href}">Install FFA Expensify Bundle (Version ${version})</a>`,
+                installBundleConfirm: "I've installed the bundle",
+                setupContacts: 'Set up user and contacts',
+                setupContactsBullet1:
+                    "Create both a User and a Contact for yourself if these don't already exist in Certinia making sure the email matches your primary email in Expensify.\n\n",
+                setupContactsBullet2:
+                    "Create contacts for each employee who will be submitting expense reports and for each report approver. Make sure each contact's email address corresponds with the email address on the employee's Expensify account.\n\n",
+                setupContactsBullet3: 'Set permission controls for your user for each contact/resource.\n\n',
+                setupContactsConfirm: "I've set up the user and contacts",
+                oauth: 'Log in through Salesforce',
+                oauthDescription: "To finish setup, you'll have to sign in through Salesforce and Certinia.\n\nUse the button below to continue.",
+                connectButton: 'Connect to Certinia',
+            },
+        },
         netsuite: {
             subsidiary: 'Subsidiary',
             subsidiarySelectDescription: "Choose the subsidiary in NetSuite that you'd like to import data from.",
@@ -6036,6 +6056,10 @@ const translations = {
         },
         copyPolicySettings: {
             error: 'An error occurred while copying workspace settings. Please try again.',
+            title: 'Copy settings',
+            selectWorkspaces: 'Select workspaces',
+            description: 'Choose the workspaces you want to copy settings to, then select the settings you’d like to copy.',
+            searchPlaceholder: 'Search workspaces',
         },
         emptyWorkspace: {
             title: 'No workspaces yet',
@@ -6455,7 +6479,9 @@ const translations = {
             syncError: (providerName: string) => `Can't connect to ${providerName}`,
             connectionDescription: (providerName: string) => `Connect ${providerName} to keep employee approvals in sync with your workspace.`,
             approvalMode: 'Approval mode',
+            providerApprovalMode: (providerName: string) => `${providerName} approval mode`,
             finalApprover: 'Final approver',
+            providerFinalApprover: (providerName: string) => `${providerName} final approver`,
             notSet: 'Not set',
             approvalModeDescription: (providerName: string) => `Members and managers are set up to sync with ${providerName}.`,
             approvalModeWarningTitle: 'Change approval mode?',
@@ -6493,19 +6519,19 @@ const translations = {
                     }
                 }
             },
+            syncResults: {
+                title: (provider: string) => `${provider} sync complete`,
+                successTitle: (provider: string) => `Successfully synced your ${provider} connection!`,
+                added: 'Added',
+                removed: 'Removed',
+                skipped: 'Skipped',
+                employeeCount: () => ({
+                    one: '1 employee',
+                    other: (count: number) => `${count} employees`,
+                }),
+            },
             gusto: {
                 title: 'Gusto',
-                syncResults: {
-                    title: 'Gusto sync results',
-                    successTitle: 'Successfully synced your Gusto connection!',
-                    added: 'Added',
-                    removed: 'Removed',
-                    skipped: 'Skipped',
-                    employeeCount: () => ({
-                        one: '1 employee',
-                        other: (count: number) => `${count} employees`,
-                    }),
-                },
             },
             zenefits: {
                 title: 'TriNet',
@@ -6585,9 +6611,15 @@ const translations = {
                 one: 'Are you sure you want to delete this rate?',
                 other: 'Are you sure you want to delete these rates?',
             }),
+            amountPerUnit: (unit: string) => `Amount per ${unit}`,
+            startDate: 'Start date',
+            endDate: 'End date',
             errors: {
                 rateNameRequired: 'Rate name is required',
                 existingRateName: 'A distance rate with this name already exists',
+                nameRequired: 'Name is required',
+                amountRequired: 'Amount is required',
+                startDateMustBeBeforeEndDate: 'Start date must be before end date',
             },
         },
         editor: {
@@ -6700,6 +6732,12 @@ const translations = {
                 description: `Enjoy automated syncing and reduce manual entries with the Expensify + QuickBooks Desktop integration. Gain ultimate efficiency with a realtime, two-way connection and expense coding by class, item, customer, and project.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Our QuickBooks Desktop integration is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
+                title: 'Certinia',
+                description: `Enjoy automated syncing and reduce manual entries with the Expensify + Certinia integration. Align expense coding dimensions and tax sync with your Certinia setup for clearer financial visibility.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Our Certinia integration is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Advanced Approvals',
@@ -8266,6 +8304,7 @@ const translations = {
         selectAllFeatures: 'Select all features',
         selectAllTransactions: 'Select all transactions',
         selectAllItems: 'Select all items',
+        openActionsMenu: 'Open actions menu',
         selectAllCategories: 'Select all categories',
         selectAllDistanceRates: 'Select all distance rates',
         selectAllTags: 'Select all tags',

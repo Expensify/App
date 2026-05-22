@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
@@ -19,15 +19,15 @@ type FirstAndLastName = {
     lastName: string;
 };
 
-let personalDetails: Array<PersonalDetails | null> = [];
+let deprecatedPersonalDetails: Array<PersonalDetails | null> = [];
 let allPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
 let emailToPersonalDetailsCache: Record<string, PersonalDetails> = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
-        personalDetails = Object.values(val ?? {});
+        deprecatedPersonalDetails = Object.values(val ?? {});
         allPersonalDetails = val;
-        emailToPersonalDetailsCache = personalDetails.reduce((acc: Record<string, PersonalDetails>, detail) => {
+        emailToPersonalDetailsCache = deprecatedPersonalDetails.reduce((acc: Record<string, PersonalDetails>, detail) => {
             if (detail?.login) {
                 acc[detail.login.toLowerCase()] = detail;
             }
@@ -134,6 +134,26 @@ function getPersonalDetailsByIDs({
         });
 
     return result;
+}
+
+function newGetPersonalDetailsByIDs(accountIDs: number[], personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetails[] {
+    const result: PersonalDetails[] = [];
+    for (const accountID of accountIDs) {
+        const detail = personalDetails?.[accountID];
+        if (!detail) {
+            continue;
+        }
+
+        result.push(detail);
+    }
+    return result;
+}
+
+function getDisplayNameOrYou(displayName: string, accountID: number, currentUserAccountID: number, translate: LocalizedTranslate) {
+    if (accountID === currentUserAccountID) {
+        return translate('common.you');
+    }
+    return displayName;
 }
 
 function getPersonalDetailByEmail(email: string | undefined): PersonalDetails | undefined {
@@ -458,6 +478,8 @@ function areTravelPersonalDetailsMissing(privatePersonalDetails: OnyxEntry<Priva
 export {
     getDisplayNameOrDefault,
     getPersonalDetailsByIDs,
+    newGetPersonalDetailsByIDs,
+    getDisplayNameOrYou,
     getPersonalDetailByEmail,
     getAccountIDsByLogins,
     getLoginsByAccountIDs,
