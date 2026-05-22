@@ -51,13 +51,6 @@ function useOdometerReceiptStitcher({
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
 
-    // Compiler-safe ref-update-in-effect pattern. The one-render lag is benign — async .then()
-    // callbacks read the latest transaction here.
-    const transactionRef = useRef(transaction);
-    useEffect(() => {
-        transactionRef.current = transaction;
-    }, [transaction]);
-
     const abortRef = useRef<AbortController | null>(null);
 
     // Tracks the derivation key currently owned by this hook instance. Drives the dedupe so re-renders
@@ -124,11 +117,7 @@ function useOdometerReceiptStitcher({
                 if (controller.signal.aborted) {
                     return;
                 }
-                const liveTx = transactionRef.current;
-                if (!liveTx) {
-                    return;
-                }
-                setMoneyRequestReceipt(liveTx.transactionID, result.uri, result.name, true, result.type);
+                setMoneyRequestReceipt(transaction.transactionID, result.uri, result.name, true, result.type);
                 dispatch({type: 'markReady', derivationKey: newKey});
             })
             .catch((error: unknown) => {
