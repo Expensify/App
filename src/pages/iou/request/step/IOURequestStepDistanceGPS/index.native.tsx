@@ -1,4 +1,6 @@
-import React, {useEffect, useRef, useState} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import {getCurrentPositionAsync} from 'expo-location';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import DistanceMapView from '@components/DistanceMapView';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
@@ -19,6 +21,7 @@ import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {handleMoneyRequestStepDistanceNavigation, setGPSTransactionDraftData} from '@libs/actions/IOU/MoneyRequest';
 import {init as initMapboxToken, stop as stopMapboxToken} from '@libs/actions/MapboxToken';
+import {setUserLocation} from '@libs/actions/UserLocation';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getGPSConvertedDistance, getGpsPoints, getGPSWaypoints, getLastGpsPoint, getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -32,6 +35,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {hasSeenTourSelector} from '@src/selectors/Onboarding';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import {FOREGROUND_LOCATION_TRACKING_INTERVAL_MS} from './const';
 import GPSButtons from './GPSButtons';
 import type IOURequestStepDistanceGPSProps from './types';
 import useGPSWaypointMarkers from './useGPSWaypointMarkers';
@@ -173,6 +177,40 @@ function IOURequestStepDistanceGPS({
         }
         mapRef.current?.flyTo([latestPoint.long, latestPoint.lat], CONST.MAPBOX.DEFAULT_ZOOM, 1000);
     }, [gpsDraftDetails]);
+
+    // Poll foreground location every 5 seconds when there is no ongoing GPS trip to keep the user location updated
+    useFocusEffect(
+        useCallback(() => {
+            // If there is an ongoing GPS trip, do not poll foreground location
+            if (gpsDraftDetails?.isTracking) {
+                return;
+            }
+
+            let cancelled = false;
+
+            const intervalId = setInterval(() => {
+                if (cancelled) {
+                    return;
+                }
+
+                // We do not check foreground location permissions here because
+                // it's already checked in DistanceMapView to get initial user's location
+                getCurrentPositionAsync()
+                    .then((params) => {
+                        const currentCoords = {longitude: params.coords.longitude, latitude: params.coords.latitude};
+                        setUserLocation(currentCoords);
+                    })
+                    .catch(() => {
+                        // Silently fail if location unavailable or permission denied
+                    });
+            }, FOREGROUND_LOCATION_TRACKING_INTERVAL_MS);
+
+            return () => {
+                cancelled = true;
+                clearInterval(intervalId);
+            };
+        }, [gpsDraftDetails?.isTracking]),
+    );
 
     const waypointMarkers = useGPSWaypointMarkers();
 
