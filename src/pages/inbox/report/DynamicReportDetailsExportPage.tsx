@@ -23,13 +23,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type ReportDetailsExportPageProps = PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_EXPORT>;
+type DynamicReportDetailsExportPageProps = PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_EXPORT>;
 
 type ExportType = ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>;
 
 type ExportSelectorType = SelectorType<ExportType>;
 
-function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
+function DynamicReportDetailsExportPage({route}: DynamicReportDetailsExportPageProps) {
     const connectionName = route?.params?.connectionName;
     const reportID = route.params.reportID;
     const navigateBackFromExportPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_DETAILS_EXPORT.path);
@@ -103,7 +103,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
 
     if (!canBeExported) {
         return (
-            <ScreenWrapper testID="ReportDetailsExportPage">
+            <ScreenWrapper testID="DynamicReportDetailsExportPage">
                 <HeaderWithBackButton
                     title={translate('common.export')}
                     onBackButtonPress={() => Navigation.goBack(navigateBackFromExportPath)}
@@ -127,7 +127,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName="ReportDetailsExportPage"
+            displayName="DynamicReportDetailsExportPage"
             data={exportSelectorOptions}
             ListItem={SingleSelectWithAvatarListItem}
             shouldBeBlocked={false}
@@ -145,5 +145,5 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
     );
 }
 
-export default ReportDetailsExportPage;
+export default DynamicReportDetailsExportPage;
 export type {ExportType};

@@ -45,12 +45,13 @@ import NotFoundPage from './ErrorPage/NotFoundPage';
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
 import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 
-type ReportChangeWorkspacePageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportChangeWorkspaceNavigatorParamList, typeof SCREENS.REPORT_CHANGE_WORKSPACE.DYNAMIC_ROOT>;
+type DynamicReportChangeWorkspacePageProps = WithReportOrNotFoundProps &
+    PlatformStackScreenProps<ReportChangeWorkspaceNavigatorParamList, typeof SCREENS.REPORT_CHANGE_WORKSPACE.DYNAMIC_ROOT>;
 
 const changePolicyTrainingModalDismissedSelector = (nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>): boolean =>
     !!nvpDismissedProductTraining?.[CONST.CHANGE_POLICY_TRAINING_MODAL];
 
-function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
+function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspacePageProps) {
     const reportID = report?.reportID;
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
@@ -195,7 +196,7 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
 
     return (
         <ScreenWrapper
-            testID="ReportChangeWorkspacePage"
+            testID="DynamicReportChangeWorkspacePage"
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
@@ -211,7 +212,7 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
                         <View style={[styles.flex1, styles.fullScreenLoading]}>
                             <ActivityIndicator
                                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                                reasonAttributes={{context: 'ReportChangeWorkspacePage', isLoadingApp: !!isLoadingApp}}
+                                reasonAttributes={{context: 'DynamicReportChangeWorkspacePage', isLoadingApp: !!isLoadingApp}}
                             />
                         </View>
                     ) : (
@@ -231,4 +232,4 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
     );
 }
 
-export default withReportOrNotFound()(ReportChangeWorkspacePage);
+export default withReportOrNotFound()(DynamicReportChangeWorkspacePage);

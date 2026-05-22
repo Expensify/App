@@ -7,7 +7,7 @@ import type Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
-import ReportDetailsPage from '@pages/ReportDetailsPage';
+import DynamicReportDetailsPage from '@pages/DynamicReportDetailsPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -30,7 +30,7 @@ jest.mock('@react-navigation/native', () => {
 
 const mockHtmlToText = jest.spyOn(Parser, 'htmlToText');
 
-describe('ReportDetailsPage', () => {
+describe('DynamicReportDetailsPage', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -74,7 +74,7 @@ describe('ReportDetailsPage', () => {
         render(
             <OnyxListItemProvider>
                 <LocaleContextProvider>
-                    <ReportDetailsPage
+                    <DynamicReportDetailsPage
                         betas={[]}
                         isLoadingReportData={false}
                         navigation={{} as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT>['navigation']}

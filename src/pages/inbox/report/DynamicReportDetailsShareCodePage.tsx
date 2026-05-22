@@ -10,9 +10,9 @@ import type SCREENS from '@src/SCREENS';
 import type {WithReportOrNotFoundProps} from './withReportOrNotFound';
 import withReportOrNotFound from './withReportOrNotFound';
 
-type ReportDetailsShareCodePageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_SHARE_CODE>;
+type DynamicReportDetailsShareCodePageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_SHARE_CODE>;
 
-function ReportDetailsShareCodePage({report, policy}: ReportDetailsShareCodePageProps) {
+function DynamicReportDetailsShareCodePage({report, policy}: DynamicReportDetailsShareCodePageProps) {
     const navigateBackRoute = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_DETAILS_SHARE_CODE.path);
 
     if (isSelfDM(report)) {
@@ -28,4 +28,4 @@ function ReportDetailsShareCodePage({report, policy}: ReportDetailsShareCodePage
     );
 }
 
-export default withReportOrNotFound()(ReportDetailsShareCodePage);
+export default withReportOrNotFound()(DynamicReportDetailsShareCodePage);

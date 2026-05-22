@@ -137,7 +137,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
 import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 
-type ReportDetailsPageMenuItem = {
+type DynamicReportDetailsPageMenuItem = {
     key: DeepValueOf<typeof CONST.REPORT_DETAILS_MENU_ITEM>;
     translationKey: TranslationPaths;
     icon: IconAsset;
@@ -149,7 +149,7 @@ type ReportDetailsPageMenuItem = {
     subtitleStyle?: StyleProp<ViewStyle>;
 };
 
-type ReportDetailsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT>;
+type DynamicReportDetailsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT>;
 
 const CASES = {
     DEFAULT: 'default',
@@ -159,7 +159,7 @@ const CASES = {
 
 type CaseID = ValueOf<typeof CASES>;
 
-function ReportDetailsPage({policy, report, route, reportMetadata, reportLoadingState}: ReportDetailsPageProps) {
+function DynamicReportDetailsPage({policy, report, route, reportMetadata, reportLoadingState}: DynamicReportDetailsPageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
@@ -398,8 +398,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
     const shouldShowWriteCapability = !isMoneyRequestReport;
     const shouldShowMenuItem = shouldShowNotificationPref || shouldShowWriteCapability || (!!report?.visibility && report.chatType !== CONST.REPORT.CHAT_TYPE.INVOICE);
 
-    const menuItems: ReportDetailsPageMenuItem[] = useMemo(() => {
-        const items: ReportDetailsPageMenuItem[] = [];
+    const menuItems: DynamicReportDetailsPageMenuItem[] = useMemo(() => {
+        const items: DynamicReportDetailsPageMenuItem[] = [];
 
         if (isSelfDM) {
             return [];
@@ -1048,7 +1048,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
         !isEmptyObject(parentNavigationSubtitleData) && (shouldShowEditableTitleField || isMoneyRequestReport || isInvoiceReport || isMoneyRequest || isTaskReport);
 
     return (
-        <ScreenWrapper testID="ReportDetailsPage">
+        <ScreenWrapper testID="DynamicReportDetailsPage">
             <FullPageNotFoundView shouldShow={isEmptyObject(report)}>
                 <HeaderWithBackButton
                     title={translate('common.details')}
@@ -1133,4 +1133,4 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
     );
 }
 
-export default withReportOrNotFound()(ReportDetailsPage);
+export default withReportOrNotFound()(DynamicReportDetailsPage);
