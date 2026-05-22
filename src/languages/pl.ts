@@ -1963,7 +1963,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         aiPromptSection: {
             title: 'Prompt AI',
-            subtitle: 'Te dane są wyświetlane w twoim publicznym profilu. Każdy może je zobaczyć.',
+            subtitle: 'Napisz niestandardowe instrukcje',
             prompt: 'Zachęta',
             editPrompt: 'Edytuj podpowiedź',
             promptCannotBeEmpty: 'Pole nie może być puste',

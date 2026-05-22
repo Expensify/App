@@ -1947,7 +1947,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         aiPromptSection: {
             title: 'AIプロンプト',
-            subtitle: 'これらの詳細はあなたの公開プロフィールに表示されます。誰でも見ることができます。',
+            subtitle: 'カスタム指示を作成',
             prompt: 'プロンプト',
             editPrompt: 'プロンプトを編集',
             promptCannotBeEmpty: 'プロンプトを入力してください',

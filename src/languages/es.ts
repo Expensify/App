@@ -1856,7 +1856,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         aiPromptSection: {
             title: 'Indicaciones de IA',
-            subtitle: 'Estos datos se muestran en tu perfil público. Cualquiera puede verlos.',
+            subtitle: 'Escribe instrucciones personalizadas',
             prompt: 'Indicador',
             editPrompt: 'Editar mensaje',
             promptCannotBeEmpty: 'El campo de indicaciones no puede estar vacío',

@@ -1962,7 +1962,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         aiPromptSection: {
             title: 'AI-prompt',
-            subtitle: 'Deze gegevens worden weergegeven op je openbare profiel. Iedereen kan ze zien.',
+            subtitle: 'Schrijf aangepaste instructies',
             prompt: 'Prompt',
             editPrompt: 'Prompt bewerken',
             promptCannotBeEmpty: 'Prompt mag niet leeg zijn',

@@ -1967,7 +1967,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         aiPromptSection: {
             title: 'Prompt IA',
-            subtitle: 'Questi dati sono visualizzati sul tuo profilo pubblico. Chiunque può vederli.',
+            subtitle: 'Scrivi istruzioni personalizzate',
             prompt: 'Prompt',
             editPrompt: 'Modifica prompt',
             promptCannotBeEmpty: 'Il prompt non può essere vuoto',

@@ -1969,7 +1969,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         aiPromptSection: {
             title: 'KI-Aufforderung',
-            subtitle: 'Diese Angaben werden in Ihrem öffentlichen Profil angezeigt. Jeder kann sie sehen.',
+            subtitle: 'Eigene Anweisungen schreiben',
             prompt: 'Aufforderung',
             editPrompt: 'Eingabeaufforderung bearbeiten',
             promptCannotBeEmpty: 'Eingabe darf nicht leer sein',

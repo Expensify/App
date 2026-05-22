@@ -1975,7 +1975,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         aiPromptSection: {
             title: 'Invite IA',
-            subtitle: 'Ces informations sont affichées sur votre profil public. Tout le monde peut les voir.',
+            subtitle: 'Rédiger des instructions personnalisées',
             prompt: 'Invite',
             editPrompt: "Modifier l'invite",
             promptCannotBeEmpty: "L'invite ne peut pas être vide",
