@@ -59,7 +59,6 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const archivedReportsIdSet = useArchivedReportsIDSet();
 
     const isValidated = isCurrentUserValidated(loginList, session?.email);

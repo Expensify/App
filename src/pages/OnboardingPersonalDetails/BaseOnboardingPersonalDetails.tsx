@@ -46,7 +46,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const archivedReportsIdSet = useArchivedReportsIDSet();
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
