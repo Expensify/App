@@ -7689,6 +7689,7 @@ function updateReportPreview(
             },
         ],
         childLastMoneyRequestComment: comment || reportPreviewAction?.childLastMoneyRequestComment,
+        childLastActorAccountID: isPayRequest ? reportPreviewAction?.childLastActorAccountID : deprecatedCurrentUserAccountID,
         childMoneyRequestCount: (reportPreviewAction?.childMoneyRequestCount ?? 0) + (isPayRequest ? 0 : 1),
         childRecentReceiptTransactionIDs: hasReceipt
             ? {
@@ -12419,7 +12420,6 @@ function getIntegrationNameFromExportMessage(reportActions: OnyxEntry<ReportActi
 }
 
 function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[], report?: OnyxEntry<Report>): boolean {
-    // If report object is provided and has the property, use it directly
     if (report?.isExportedToIntegration !== undefined) {
         return report.isExportedToIntegration;
     }
@@ -12467,9 +12467,13 @@ function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[], re
 }
 
 function hasExportError(reportActions: OnyxEntry<ReportActions> | ReportAction[], report?: OnyxEntry<Report>) {
-    // If report object is provided and has the property, use it directly
-    if (report?.hasExportError !== undefined) {
-        return report.hasExportError;
+    if (report?.hasExportError) {
+        return true;
+    }
+
+    const exportErrors = report?.errorFields?.export;
+    if (exportErrors && Object.values(exportErrors).some((error) => error != null)) {
+        return true;
     }
 
     // Fallback to checking actions for backward compatibility
@@ -12777,7 +12781,6 @@ function canRejectReportAction(currentUserLogin: string, report: Report): boolea
 }
 
 function hasReportBeenReopened(report: OnyxEntry<Report>, reportActions?: OnyxEntry<ReportActions> | ReportAction[]): boolean {
-    // If report object is provided and has the property, use it directly
     if (report?.hasReportBeenReopened !== undefined) {
         return report.hasReportBeenReopened;
     }
@@ -12792,7 +12795,6 @@ function hasReportBeenReopened(report: OnyxEntry<Report>, reportActions?: OnyxEn
 }
 
 function hasReportBeenRetracted(report: OnyxEntry<Report>, reportActions?: OnyxEntry<ReportActions> | ReportAction[]): boolean {
-    // If report object is provided and has the property, use it directly
     if (report?.hasReportBeenRetracted !== undefined) {
         return report.hasReportBeenRetracted;
     }
