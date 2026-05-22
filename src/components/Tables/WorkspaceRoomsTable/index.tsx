@@ -1,12 +1,15 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
-import type {CompareItemsCallback, TableColumn} from '@components/Table';
+import {View} from 'react-native';
+import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
 import Table from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import WorkspaceRoomsTableRow from './WorkspaceRoomsTableRow';
 import type {WorkspaceRoomRowData} from './WorkspaceRoomsTableRow';
+
+const SEARCH_BAR_WIDE_MAX_WIDTH = 335;
 
 type WorkspaceRoomsTableColumnKey = 'name' | 'createdBy' | 'members' | 'actions';
 
@@ -42,6 +45,8 @@ function WorkspaceRoomsTable({rooms}: WorkspaceRoomsTableProps) {
         return orderMultiplier * localeCompare(a.name, b.name);
     };
 
+    const isItemInSearch: IsItemInSearchCallback<WorkspaceRoomRowData> = (item, searchValue) => item.name.toLowerCase().includes(searchValue.toLowerCase());
+
     const renderItem = ({item, index}: ListRenderItemInfo<WorkspaceRoomRowData>) => (
         <WorkspaceRoomsTableRow
             item={item}
@@ -56,10 +61,14 @@ function WorkspaceRoomsTable({rooms}: WorkspaceRoomsTableProps) {
             columns={columns}
             renderItem={renderItem}
             compareItems={compareItems}
+            isItemInSearch={isItemInSearch}
             initialSortColumn="name"
             title={translate('workspace.common.rooms')}
             keyExtractor={(row) => row.reportID}
         >
+            <View style={[styles.mh5, styles.mb3, !shouldUseNarrowTableLayout && {maxWidth: SEARCH_BAR_WIDE_MAX_WIDTH}]}>
+                <Table.SearchBar label={translate('workspace.common.findRoom')} />
+            </View>
             <Table.Header />
             <Table.Body />
         </Table>

@@ -32,7 +32,12 @@ import {useTableContext} from './TableContext';
  * </Table>
  * ```
  */
-function TableSearchBar() {
+type TableSearchBarProps = {
+    /** Optional label and accessibility label for the search input. Defaults to "Find card". */
+    label?: string;
+};
+
+function TableSearchBar({label}: TableSearchBarProps = {}) {
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
     const {
@@ -40,11 +45,13 @@ function TableSearchBar() {
         tableMethods: {updateSearchString},
     } = useTableContext();
 
+    const inputLabel = label ?? translate('workspace.companyCards.findCard');
+
     return (
         <View>
             <TextInput
-                label={translate('workspace.companyCards.findCard')}
-                accessibilityLabel={translate('workspace.companyCards.findCard')}
+                label={inputLabel}
+                accessibilityLabel={inputLabel}
                 value={activeSearchString}
                 onChangeText={(text) => updateSearchString(text)}
                 icon={activeSearchString.length === 0 ? expensifyIcons.MagnifyingGlass : undefined}

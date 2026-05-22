@@ -1,6 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {policyChatRoomsSelector} from '@selectors/Report';
 import React from 'react';
+import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -94,14 +95,29 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                     onBackButtonPress={Navigation.goBack}
                     shouldDisplayHelpButton
                 >
-                    <Button
-                        success
-                        isDisabled
-                        onPress={() => {}}
-                        icon={headerIcons.Plus}
-                        text={translate('common.create')}
-                    />
+                    {!shouldUseNarrowLayout && (
+                        <Button
+                            success
+                            isDisabled
+                            onPress={() => {}}
+                            icon={headerIcons.Plus}
+                            text={translate('common.create')}
+                        />
+                    )}
                 </HeaderWithBackButton>
+
+                {shouldUseNarrowLayout && (
+                    <View style={[styles.ph5, styles.pb3]}>
+                        <Button
+                            success
+                            isDisabled
+                            onPress={() => {}}
+                            icon={headerIcons.Plus}
+                            text={translate('common.create')}
+                            style={styles.w100}
+                        />
+                    </View>
+                )}
 
                 <WorkspaceRoomsTable rooms={rooms} />
             </ScreenWrapper>
