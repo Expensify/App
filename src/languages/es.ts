@@ -4717,6 +4717,26 @@ ${amount} para ${merchant} - ${date}`,
                 },
             },
         },
+        certinia: {
+            title: 'Certinia',
+            prerequisites: {
+                title: 'Antes de conectarte',
+                installBundle: 'Para conexiones FFA',
+                installBundleDescription: ({href, version}: {href: string; version: string}) =>
+                    `Instala el paquete de Expensify en Salesforce haciendo clic en este enlace: <a href="${href}">Instalar FFA Expensify Bundle (Versión ${version})</a>`,
+                installBundleConfirm: 'He instalado el paquete',
+                setupContacts: 'Configura usuario y contactos',
+                setupContactsBullet1:
+                    'Crea tanto un usuario como un contacto para ti si aún no existen en Certinia, asegurándote de que el correo electrónico coincida con tu correo principal en Expensify.',
+                setupContactsBullet2:
+                    'Crea contactos para cada empleado que vaya a enviar informes de gastos y para cada aprobador de informes. Asegúrate de que la dirección de correo electrónico de cada contacto corresponda con la dirección de correo electrónico de la cuenta de Expensify del empleado.',
+                setupContactsBullet3: 'Configura controles de permisos para tu usuario para cada contacto/recurso.',
+                setupContactsConfirm: 'He configurado el usuario y los contactos',
+                oauth: 'Inicia sesión con Salesforce',
+                oauthDescription: 'Para terminar la configuración, tendrás que iniciar sesión a través de Salesforce y Certinia.\n\nUsa el botón de abajo para continuar.',
+                connectButton: 'Conectar con Certinia',
+            },
+        },
         netsuite: {
             subsidiary: 'Subsidiaria',
             subsidiarySelectDescription: 'Elige la subsidiaria de NetSuite de la que deseas importar datos.',
@@ -6551,6 +6571,12 @@ ${amount} para ${merchant} - ${date}`,
                 description: `Disfruta de la sincronización automática y reduce las entradas manuales con la integración de Expensify + QuickBooks Desktop. Obtén la máxima eficiencia con una conexión bidireccional en tiempo real y la codificación de gastos por clase, artículo, cliente y proyecto.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
                     `<muted-text>Nuestra integración con QuickBooks Desktop solo está disponible en el plan Controlar, que comienza en <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
+                title: 'Certinia',
+                description: `Disfruta de la sincronización automatizada y reduce las entradas manuales con la integración Expensify + Certinia. Alinea dimensiones de codificación de gastos y la sincronización de impuestos con tu configuración de Certinia para una visibilidad financiera más clara.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
+                    `<muted-text>Nuestra integración con Certinia solo está disponible en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Aprobaciones anticipadas',
