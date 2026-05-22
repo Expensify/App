@@ -43,7 +43,6 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
     const rateID = route.params.rateID;
     const customUnit = useMemo(() => getDistanceRateCustomUnit(policy), [policy]);
     const rate = customUnit?.rates[rateID];
-    const customUnitID = customUnit?.customUnitID;
 
     const policyReportsSelector = useCallback(
         (reports: OnyxCollection<Report>) => {
