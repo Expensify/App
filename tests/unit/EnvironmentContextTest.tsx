@@ -8,7 +8,6 @@ const mockGetEnvironment: jest.MockedFunction<() => Promise<string>> = jest.fn()
 const mockGetEnvironmentURL: jest.MockedFunction<() => Promise<string>> = jest.fn();
 
 jest.mock('@libs/Environment/getEnvironment', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(() => mockGetEnvironment()),
 }));
@@ -40,7 +39,7 @@ describe('EnvironmentProvider', () => {
             // Wait for useEffect to resolve mocked promises
             await waitFor(() => {
                 expect(mockGetEnvironment).toHaveBeenCalled();
-                // eslint-disable-next-line testing-library/no-wait-for-multiple-assertions
+
                 expect(mockGetEnvironmentURL).toHaveBeenCalled();
             });
         };

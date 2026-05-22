@@ -1,4 +1,3 @@
-/* eslint-disable rulesdir/no-negated-variables */
 import {useIsFocused} from '@react-navigation/native';
 import type {ComponentType} from 'react';
 import React, {useEffect} from 'react';
@@ -115,7 +114,12 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
                         isLoadingReportData: isLoadingReportData !== false,
                         shouldFetchReport,
                     };
-                    return <FullscreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+                    return (
+                        <FullscreenLoadingIndicator
+                            shouldUseGoBackButton
+                            reasonAttributes={reasonAttributes}
+                        />
+                    );
                 }
 
                 if (shouldShowNotFoundPage) {
@@ -129,7 +133,6 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
 
             return (
                 <WrappedComponent
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                     report={report}
                     betas={betas}

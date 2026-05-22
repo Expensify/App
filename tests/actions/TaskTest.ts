@@ -5,7 +5,6 @@ import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import useParentReport from '@hooks/useParentReport';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as ReportModule from '@libs/actions/Report';
 import {
     canActionTask,
@@ -19,14 +18,10 @@ import {
     getFinishOnboardingTaskOnyxData,
     getNavigationUrlOnTaskDelete,
 } from '@libs/actions/Task';
-// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as API from '@libs/API';
-// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
-// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as ReportUtils from '@libs/ReportUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
@@ -318,6 +313,8 @@ describe('actions/Task', () => {
         const mockPolicyID = 'policy_123';
         const mockCurrentUserAccountID = 123;
         const mockCurrentUserEmail = 'creator@example.com';
+        const mockCurrentUserDisplayName = 'Creator User';
+        const mockCurrentUserAvatar = 'https://example.com/avatar.png';
 
         beforeEach(async () => {
             jest.clearAllMocks();
@@ -417,6 +414,8 @@ describe('actions/Task', () => {
                 assigneeEmail: mockAssigneeEmail,
                 currentUserAccountID: mockCurrentUserAccountID,
                 currentUserEmail: mockCurrentUserEmail,
+                currentUserDisplayName: mockCurrentUserDisplayName,
+                currentUserAvatar: mockCurrentUserAvatar,
                 assigneeAccountID: mockAssigneeAccountID,
                 assigneeChatReport: mockAssigneeChatReport,
                 policyID: mockPolicyID,
@@ -459,6 +458,8 @@ describe('actions/Task', () => {
                 assigneeEmail: mockAssigneeEmail,
                 currentUserAccountID: mockCurrentUserAccountID,
                 currentUserEmail: mockCurrentUserEmail,
+                currentUserDisplayName: mockCurrentUserDisplayName,
+                currentUserAvatar: mockCurrentUserAvatar,
                 assigneeAccountID: mockAssigneeAccountID,
                 policyID: mockPolicyID,
                 isCreatedUsingMarkdown: false,
@@ -486,6 +487,8 @@ describe('actions/Task', () => {
                 assigneeEmail: mockAssigneeEmail,
                 currentUserAccountID: mockCurrentUserAccountID,
                 currentUserEmail: mockCurrentUserEmail,
+                currentUserDisplayName: mockCurrentUserDisplayName,
+                currentUserAvatar: mockCurrentUserAvatar,
                 assigneeAccountID: mockAssigneeAccountID,
                 policyID: mockPolicyID,
                 isCreatedUsingMarkdown: false,
@@ -517,6 +520,8 @@ describe('actions/Task', () => {
                 assigneeEmail: mockAssigneeEmail,
                 currentUserAccountID: mockCurrentUserAccountID,
                 currentUserEmail: mockCurrentUserEmail,
+                currentUserDisplayName: mockCurrentUserDisplayName,
+                currentUserAvatar: mockCurrentUserAvatar,
                 assigneeAccountID: mockAssigneeAccountID,
                 assigneeChatReport: undefined,
                 policyID: mockPolicyID,
@@ -577,6 +582,8 @@ describe('actions/Task', () => {
                 assigneeEmail: mockAssigneeEmail,
                 currentUserAccountID: mockCurrentUserAccountID,
                 currentUserEmail: mockCurrentUserEmail,
+                currentUserDisplayName: mockCurrentUserDisplayName,
+                currentUserAvatar: mockCurrentUserAvatar,
                 assigneeAccountID: mockAssigneeAccountID,
                 assigneeChatReport: mockAssigneeChatReport,
                 policyID: mockPolicyID,
@@ -615,6 +622,8 @@ describe('actions/Task', () => {
                 assigneeEmail: mockAssigneeEmail,
                 currentUserAccountID: mockCurrentUserAccountID,
                 currentUserEmail: mockCurrentUserEmail,
+                currentUserDisplayName: mockCurrentUserDisplayName,
+                currentUserAvatar: mockCurrentUserAvatar,
                 assigneeAccountID: mockAssigneeAccountID,
                 assigneeChatReport: mockAssigneeChatReport,
                 policyID: CONST.POLICY.OWNER_EMAIL_FAKE,
@@ -660,6 +669,8 @@ describe('actions/Task', () => {
                 assigneeEmail: mockCurrentUserEmail,
                 currentUserAccountID: mockCurrentUserAccountID,
                 currentUserEmail: mockCurrentUserEmail,
+                currentUserDisplayName: mockCurrentUserDisplayName,
+                currentUserAvatar: mockCurrentUserAvatar,
                 assigneeAccountID: mockCurrentUserAccountID, // assignee is current user
                 assigneeChatReport: mockAssigneeChatReport,
                 policyID: mockPolicyID,
@@ -715,6 +726,8 @@ describe('actions/Task', () => {
                 assigneeEmail: mockAssigneeEmail,
                 currentUserAccountID: mockCurrentUserAccountID,
                 currentUserEmail: mockCurrentUserEmail,
+                currentUserDisplayName: mockCurrentUserDisplayName,
+                currentUserAvatar: mockCurrentUserAvatar,
                 assigneeAccountID: mockAssigneeAccountID,
                 assigneeChatReport: mockAssigneeChatReport,
                 policyID: mockPolicyID,
@@ -750,6 +763,8 @@ describe('actions/Task', () => {
                 assigneeEmail: mockAssigneeEmail,
                 currentUserAccountID: mockCurrentUserAccountID,
                 currentUserEmail: mockCurrentUserEmail,
+                currentUserDisplayName: mockCurrentUserDisplayName,
+                currentUserAvatar: mockCurrentUserAvatar,
                 assigneeAccountID: mockAssigneeAccountID,
                 assigneeChatReport: mockAssigneeChatReport,
                 policyID: mockPolicyID,
@@ -775,6 +790,126 @@ describe('actions/Task', () => {
                             }),
                         }),
                     ]),
+                }),
+            );
+        });
+
+        it('should forward currentUserAccountID, currentUserEmail, currentUserDisplayName and currentUserAvatar to buildOptimisticCreatedReportAction when all are provided', () => {
+            // Given: All current user identity fields are provided as defined values
+            // When: createTaskAndNavigate is called
+            createTaskAndNavigate({
+                parentReport: {reportID: mockParentReportID},
+                title: mockTitle,
+                description: mockDescription,
+                assigneeEmail: mockAssigneeEmail,
+                currentUserAccountID: mockCurrentUserAccountID,
+                currentUserEmail: mockCurrentUserEmail,
+                currentUserDisplayName: mockCurrentUserDisplayName,
+                currentUserAvatar: mockCurrentUserAvatar,
+                assigneeAccountID: mockAssigneeAccountID,
+                policyID: mockPolicyID,
+                isCreatedUsingMarkdown: false,
+                quickAction: {},
+            });
+
+            // Then: buildOptimisticCreatedReportAction receives the exact identity values that were passed in
+            expect(mockBuildOptimisticCreatedReportAction).toHaveBeenCalledWith({
+                emailCreatingAction: mockCurrentUserEmail,
+                currentUserAccountID: mockCurrentUserAccountID,
+                currentUserDisplayName: mockCurrentUserDisplayName,
+                currentUserEmail: mockCurrentUserEmail,
+                currentUserAvatar: mockCurrentUserAvatar,
+            });
+        });
+
+        it('should forward undefined currentUserDisplayName and currentUserAvatar to buildOptimisticCreatedReportAction without substituting fallbacks', () => {
+            // Given: currentUserDisplayName and currentUserAvatar are explicitly undefined
+            // When: createTaskAndNavigate is called
+            createTaskAndNavigate({
+                parentReport: {reportID: mockParentReportID},
+                title: mockTitle,
+                description: mockDescription,
+                assigneeEmail: mockAssigneeEmail,
+                currentUserAccountID: mockCurrentUserAccountID,
+                currentUserEmail: mockCurrentUserEmail,
+                currentUserDisplayName: undefined,
+                currentUserAvatar: undefined,
+                assigneeAccountID: mockAssigneeAccountID,
+                policyID: mockPolicyID,
+                isCreatedUsingMarkdown: false,
+                quickAction: {},
+            });
+
+            // Then: buildOptimisticCreatedReportAction is invoked with the same undefined values
+            expect(mockBuildOptimisticCreatedReportAction).toHaveBeenCalledWith({
+                emailCreatingAction: mockCurrentUserEmail,
+                currentUserAccountID: mockCurrentUserAccountID,
+                currentUserDisplayName: undefined,
+                currentUserEmail: mockCurrentUserEmail,
+                currentUserAvatar: undefined,
+            });
+        });
+
+        it('should forward an empty currentUserEmail to buildOptimisticCreatedReportAction so emailCreatingAction is also empty', () => {
+            // Given: currentUserEmail is provided as an empty string (caller bypassing missing data)
+            // When: createTaskAndNavigate is called
+            createTaskAndNavigate({
+                parentReport: {reportID: mockParentReportID},
+                title: mockTitle,
+                description: mockDescription,
+                assigneeEmail: mockAssigneeEmail,
+                currentUserAccountID: mockCurrentUserAccountID,
+                currentUserEmail: '',
+                currentUserDisplayName: mockCurrentUserDisplayName,
+                currentUserAvatar: mockCurrentUserAvatar,
+                assigneeAccountID: mockAssigneeAccountID,
+                policyID: mockPolicyID,
+                isCreatedUsingMarkdown: false,
+                quickAction: {},
+            });
+
+            // Then: emailCreatingAction is the empty string we provided (no fallback to a session value)
+            expect(mockBuildOptimisticCreatedReportAction).toHaveBeenCalledWith({
+                emailCreatingAction: '',
+                currentUserAccountID: mockCurrentUserAccountID,
+                currentUserDisplayName: mockCurrentUserDisplayName,
+                currentUserEmail: '',
+                currentUserAvatar: mockCurrentUserAvatar,
+            });
+        });
+
+        it('should use the provided currentUserAccountID as actorAccountID and lastActorAccountID instead of reading from session', async () => {
+            // Given: a currentUserAccountID different from the session account that overrides what session says
+            const overrideUserAccountID = 999;
+
+            // When: createTaskAndNavigate is called with that override
+            createTaskAndNavigate({
+                parentReport: {reportID: mockParentReportID},
+                title: mockTitle,
+                description: mockDescription,
+                assigneeEmail: mockAssigneeEmail,
+                currentUserAccountID: overrideUserAccountID,
+                currentUserEmail: mockCurrentUserEmail,
+                currentUserDisplayName: mockCurrentUserDisplayName,
+                currentUserAvatar: mockCurrentUserAvatar,
+                assigneeAccountID: mockAssigneeAccountID,
+                policyID: mockPolicyID,
+                isCreatedUsingMarkdown: false,
+                quickAction: {},
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // Then: the optimistic parent report update uses the provided account ID, proving the function does not read the session
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const [, , onyx] = (API.write as jest.Mock).mock.calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT>];
+            const parentReportUpdate = onyx.optimisticData?.find(
+                (update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${mockParentReportID}` && (update.value as Report | undefined)?.lastActorAccountID !== undefined,
+            );
+            expect((parentReportUpdate?.value as Report | undefined)?.lastActorAccountID).toBe(overrideUserAccountID);
+            expect(mockBuildOptimisticCreatedReportAction).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    currentUserAccountID: overrideUserAccountID,
                 }),
             );
         });

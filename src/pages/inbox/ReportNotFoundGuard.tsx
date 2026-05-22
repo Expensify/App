@@ -25,7 +25,7 @@ type ReportNotFoundGuardProps = {
  * all "obvious" not-found cases (invalid path, report missing after load).
  *
  */
-// eslint-disable-next-line rulesdir/no-negated-variables
+
 function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
     const route = useRoute();
     const styles = useThemeStyles();
@@ -50,7 +50,6 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
     const isLoading = isLoadingApp !== false || isLoadingReportData || (!isOffline && !!isLoadingInitialReportActions);
     const reportExists = !!reportID || isOptimisticDelete || userLeavingStatus;
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = !deleteTransactionNavigateBackUrl && (isInvalidReportPath || (!isLoading && !reportExists));
 
     useEffect(() => {
@@ -113,7 +112,7 @@ type ReportNotFoundInnerGuardProps = {
  * Inner guard for transaction threads only. Subscribes to the expensive
  * parentReportMetadata and parentReportAction to detect deleted parent actions.
  */
-// eslint-disable-next-line rulesdir/no-negated-variables
+
 function ReportNotFoundInnerGuard({reportIDFromPath, children}: ReportNotFoundInnerGuardProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -132,7 +131,7 @@ function ReportNotFoundInnerGuard({reportIDFromPath, children}: ReportNotFoundIn
         parentReportLoadingState,
         isOffline,
     });
-    // eslint-disable-next-line rulesdir/no-negated-variables
+
     const shouldShowNotFoundPage = isParentActionDeleted || isParentActionMissingAfterLoad;
 
     useEffect(() => {

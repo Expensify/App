@@ -29,6 +29,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import type {Beta, IntroSelected, Report} from '@src/types/onyx';
 import {doneCheckingPublicRoom, navigateToConciergeChat, openReport} from './Report';
 import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
@@ -261,6 +262,12 @@ function openReportFromDeepLink(
         route = '';
     }
 
+    // React Navigation generates /Home (capitalized) for the root URL because PublicScreens uses SCREENS.HOME ('Home')
+    // at the root level without a path mapping. Treat it as empty route to avoid showing a “not found” page after sign-in.
+    if (normalizePath(route) === `/${SCREENS.HOME}`) {
+        route = '';
+    }
+
     // If we are not authenticated and are navigating to a public screen, we don't want to navigate again to the screen after sign-in/sign-up
     if (!isAuthenticated && isPublicScreenRoute(route)) {
         return;
@@ -277,7 +284,6 @@ function openReportFromDeepLink(
     }
 
     // Navigate to the report after sign-in/sign-up.
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
         waitForUserSignIn().then(() => {
             // Subscribe to onboarding data using connectWithoutView to determine if user has completed the onboarding flow without affecting UI
@@ -353,7 +359,6 @@ function openReportFromDeepLink(
                                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                                     // eslint-disable-next-line rulesdir/prefer-early-return
                                     callback: (report) => {
-                                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                         if (report?.errorFields?.notFound || report?.reportID || (report === undefined && CONST.REGEX.NON_NUMERIC.test(reportID))) {
                                             Onyx.disconnect(reportConnection);
                                             navigateHandler(report);
@@ -365,7 +370,7 @@ function openReportFromDeepLink(
                             }
                         };
 
-                        if (isAnonymousUser()) {
+                        if (hasCompletedGuidedSetupFlowSelector(val) || isAnonymousUser()) {
                             handleDeeplinkNavigation();
                         }
                     });

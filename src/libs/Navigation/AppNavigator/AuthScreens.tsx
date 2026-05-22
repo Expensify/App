@@ -2,7 +2,6 @@ import type {RouteProp} from '@react-navigation/native';
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import React, {useEffect} from 'react';
 import ComposeProviders from '@components/ComposeProviders';
-import OpenConfirmNavigateExpensifyClassicModal from '@components/ConfirmNavigateExpensifyClassicModal';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import GPSInProgressModal from '@components/GPSInProgressModal';
@@ -147,7 +146,7 @@ function AuthScreens() {
             gestureEnabled: animationEnabled,
             web: {
                 ...rootNavigatorScreenOptions.fullScreenTabPage.web,
-                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true, animationEnabled}),
+                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, enter: animationEnabled ? {kind: 'slide-from-width'} : {kind: 'none'}}),
             },
         };
     };
@@ -383,7 +382,6 @@ function AuthScreens() {
                     <GPSInProgressModal />
                     <OpenAppFailureModal />
                     <PriorityModeController />
-                    <OpenConfirmNavigateExpensifyClassicModal />
                 </ComposeProviders>
             </DelegatorConnectGuard>
         </>

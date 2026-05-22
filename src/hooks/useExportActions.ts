@@ -71,6 +71,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Table',
+        'TablePencil',
         'Export',
         'Download',
         'Printer',
@@ -204,9 +205,10 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
     };
 
     for (const template of exportTemplates) {
+        const isStandardTemplate = template.templateName === CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT || template.templateName === CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT;
         exportSubmenuOptions[template.name] = {
             text: template.name,
-            icon: expensifyIcons.Table,
+            icon: isStandardTemplate ? expensifyIcons.Table : expensifyIcons.TablePencil,
             value: template.templateName,
             description: template.description,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.EXPORT_FILE,
@@ -234,6 +236,10 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
             icon: expensifyIcons.Download,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.DOWNLOAD_PDF,
             onSelected: () => {
+                if (isOffline) {
+                    showOfflineModal();
+                    return;
+                }
                 if (!moneyRequestReport?.reportID) {
                     return;
                 }
@@ -265,4 +271,3 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
 }
 
 export default useExportActions;
-export type {UseExportActionsParams, UseExportActionsReturn};

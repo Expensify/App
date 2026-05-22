@@ -21,6 +21,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import {
     getAssignedCardSortKey,
     getCardFeedIcon,
@@ -274,23 +275,22 @@ function PaymentMethodList({
                     } else {
                         cardDescription = getDescriptionForPolicyDomainCard(card.domainName, policiesForAssignedCards);
                     }
-                    // Personal cards navigate to personal card details page (except CSV cards which need 3-dot menu for delete)
+                    // Personal cards (including CSV imported) navigate to the personal card details page
                     // Company cards use the pressHandler callback (for 3-dot menu behavior)
-                    const cardOnPress =
-                        isUserPersonalCard && !isCSVCard
-                            ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(String(card.cardID)))
-                            : (e: GestureResponderEvent | KeyboardEvent | undefined) =>
-                                  pressHandler({
-                                      event: e,
-                                      cardData: card,
-                                      icon: {
-                                          icon,
-                                          iconStyles: [styles.cardIcon],
-                                          iconWidth: variables.cardIconWidth,
-                                          iconHeight: variables.cardIconHeight,
-                                      },
-                                      cardID: card.cardID,
-                                  });
+                    const cardOnPress = isUserPersonalCard
+                        ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(String(card.cardID)))
+                        : (e: GestureResponderEvent | KeyboardEvent | undefined) =>
+                              pressHandler({
+                                  event: e,
+                                  cardData: card,
+                                  icon: {
+                                      icon,
+                                      iconStyles: [styles.cardIcon],
+                                      iconWidth: variables.cardIconWidth,
+                                      iconHeight: variables.cardIconHeight,
+                                  },
+                                  cardID: card.cardID,
+                              });
 
                     assignedCardsGrouped.push({
                         key: card.cardID.toString(),
@@ -300,7 +300,7 @@ function PaymentMethodList({
                         interactive: !isDisabled,
                         disabled: isDisabled,
                         shouldShowRightIcon,
-                        shouldShowThreeDotsMenu: !isUserPersonalCard || isCSVCard,
+                        shouldShowThreeDotsMenu: !isUserPersonalCard,
                         errors: isUserPersonalCard ? undefined : card.errors,
                         canDismissError: false,
                         pendingAction: card.pendingAction,
@@ -453,6 +453,8 @@ function PaymentMethodList({
                 methodID: paymentMethod.methodID,
                 description: paymentMethod.description,
             };
+            const isMissingPersonalInfo = isPersonalBankAccountMissingInfo(paymentMethod.accountData);
+
             return {
                 ...paymentMethod,
                 title: paymentMethod.title?.includes(CONST.MASKED_PAN_PREFIX) ? paymentMethod.accountData?.additionalData?.bankName : paymentMethod.title,
@@ -473,6 +475,7 @@ function PaymentMethodList({
                 iconRight: itemIconRight ?? expensifyIcons.ThreeDots,
                 shouldShowRightIcon,
                 canDismissError: true,
+                isMissingPersonalInfo,
             };
         });
         return combinedPaymentMethods;

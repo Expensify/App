@@ -5,6 +5,7 @@ import {
     flushDeferredWrite,
     getOptimisticWatchKey,
     hasDeferredWrite,
+    hasDeferredWriteForReport,
     registerDeferredWrite,
     reserveDeferredWriteChannel,
     resetForTesting,
@@ -289,6 +290,42 @@ describe('deferredLayoutWrite', () => {
 
             flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
             expect(apiWrite).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('hasDeferredWriteForReport', () => {
+        it('returns false when no channel is registered', () => {
+            expect(hasDeferredWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, 'report-1')).toBe(false);
+        });
+
+        it('returns false when reservation has no destination', () => {
+            reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+            expect(hasDeferredWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, 'report-1')).toBe(false);
+        });
+
+        it('returns true only when destination matches the queried report', () => {
+            reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID: 'report-A'});
+
+            expect(hasDeferredWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, 'report-A')).toBe(true);
+            expect(hasDeferredWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, 'report-B')).toBe(false);
+        });
+
+        it('returns false when reportID arg is undefined', () => {
+            reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID: 'report-A'});
+            expect(hasDeferredWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, undefined)).toBe(false);
+        });
+
+        it('preserves the destination across reserve -> register handoff', () => {
+            reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID: 'report-A'});
+
+            const apiWrite = jest.fn();
+            deferOrExecuteWrite(apiWrite, {shouldDeferForSearch: false});
+
+            expect(hasDeferredWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, 'report-A')).toBe(true);
+            expect(hasDeferredWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, 'report-B')).toBe(false);
+
+            flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+            expect(hasDeferredWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, 'report-A')).toBe(false);
         });
     });
 });

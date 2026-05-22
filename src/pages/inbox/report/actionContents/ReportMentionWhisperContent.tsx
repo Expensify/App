@@ -1,12 +1,13 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import type {ActionableItem} from '@components/ReportActionItem/ActionableItemButtons';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import ReportActionItemMessage from '@pages/inbox/report/ReportActionItemMessage';
+import {resolveActionableReportMentionWhisper} from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {Report, ReportAction} from '@src/types/onyx';
 
@@ -15,16 +16,10 @@ type ReportMentionWhisperContentProps = {
     reportID: string | undefined;
     report: OnyxEntry<Report>;
     originalReport: OnyxEntry<Report>;
-    isReportArchived: boolean;
-    resolveActionableReportMentionWhisper: (
-        report: OnyxEntry<Report>,
-        reportAction: OnyxEntry<ReportAction>,
-        resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION>,
-        isReportArchived?: boolean,
-    ) => void;
 };
 
-function ReportMentionWhisperContent({action, reportID, report, originalReport, isReportArchived, resolveActionableReportMentionWhisper}: ReportMentionWhisperContentProps) {
+function ReportMentionWhisperContent({action, reportID, report, originalReport}: ReportMentionWhisperContentProps) {
+    const isReportArchived = useReportIsArchived(reportID);
     const reportActionReport = originalReport ?? report;
     const resolution = getOriginalMessage(action)?.resolution;
     const mentionReportContextValue = {currentReportID: report?.reportID, exactlyMatch: true};

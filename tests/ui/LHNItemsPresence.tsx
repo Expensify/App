@@ -72,7 +72,6 @@ jest.mock('@components/withCurrentUserPersonalDetails', () => {
 
             return (
                 <Component
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...(props as TProps)}
                     currentUserPersonalDetails={LHNTestUtilsMock.fakePersonalDetails[currentUserAccountID]}
                 />
@@ -299,8 +298,8 @@ describe('SidebarLinksData', () => {
 
             await waitForBatchedUpdatesWithAct();
 
-            // Then the RBR icon should be shown
-            expect(screen.getByTestId('RBR Icon', {includeHiddenElements: true})).toBeOnTheScreen();
+            // Then the Fix action badge should be shown (action badges replace the RBR dot)
+            expect(screen.getByText('Fix')).toBeOnTheScreen();
         });
 
         it('should display the GBR on the parent task when it has an open subtask', async () => {
@@ -624,7 +623,7 @@ describe('SidebarLinksData', () => {
                 transactionID: expenseTransaction.transactionID,
                 iouReportID: expenseReport.reportID,
             });
-            const transactionThreadReport = buildTransactionThread(expenseCreatedAction, expenseReport);
+            const transactionThreadReport = buildTransactionThread(expenseCreatedAction, expenseReport, TEST_USER_ACCOUNT_ID);
             expenseCreatedAction.childReportID = transactionThreadReport.reportID;
 
             // When a single transaction thread is initialized in Onyx

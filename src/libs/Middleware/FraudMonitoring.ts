@@ -50,6 +50,7 @@ const fraudSignalFactoryByApiCommand: Record<string, FraudSignalFactory> = {
     [WRITE_COMMANDS.INVITE_TO_ROOM]: createNewAccountCountSignal,
     [WRITE_COMMANDS.SEND_MONEY_ELSEWHERE]: createNewAccountCountSignal,
     [WRITE_COMMANDS.SEND_MONEY_WITH_WALLET]: createNewAccountCountSignal,
+    [WRITE_COMMANDS.OPEN_REPORT]: createNewAccountCountSignal,
 };
 
 const FraudMonitoring: Middleware = (response, request) =>

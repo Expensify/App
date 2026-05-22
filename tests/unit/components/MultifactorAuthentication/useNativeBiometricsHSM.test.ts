@@ -6,7 +6,6 @@ import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import CONST from '@src/CONST';
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({
         accountID: 12345,
@@ -14,7 +13,6 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
 }));
 
 jest.mock('@hooks/useLocalize', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({
         translate: (key: string) => `translated_${key}`,
@@ -24,7 +22,6 @@ jest.mock('@hooks/useLocalize', () => ({
 let mockMultifactorAuthenticationPublicKeyIDs: string[] | undefined = [];
 
 jest.mock('@hooks/useOnyx', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => [mockMultifactorAuthenticationPublicKeyIDs],
 }));

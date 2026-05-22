@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -41,7 +40,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 jest.mock('@react-navigation/native');
 
 jest.mock('@src/libs/actions/Report', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const originalModule = jest.requireActual('@src/libs/actions/Report');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
@@ -187,7 +185,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
 
         it('should the createdIOUReportActionID parameter not be undefined when rejecting an expense to an open report', async () => {
             // Mock API.write for this test
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             const openingReport = {
@@ -441,7 +439,6 @@ describe('actions/IOU/RejectMoneyRequest', () => {
         });
 
         it('should call notifyNewAction after resolving the violation', async () => {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             const {notifyNewAction} = require('@src/libs/actions/Report');
 
             if (!transaction?.transactionID || !iouReport?.reportID) {
@@ -459,7 +456,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
         it('should not make API call or notify when reportID is undefined', async () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
             const {notifyNewAction} = require('@src/libs/actions/Report');
 
             if (!transaction?.transactionID) {
