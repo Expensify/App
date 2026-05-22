@@ -5650,12 +5650,45 @@ function setForeignCurrencyDefault(policyID: string, taxCode: string, currentTax
     API.write(WRITE_COMMANDS.SET_POLICY_TAXES_FOREIGN_CURRENCY_DEFAULT, parameters, onyxData);
 }
 
+/**
+ * Corporate (Control) upgrade fields shared between `upgradeToCorporate` and `upgradeSubmit`.
+ * Keep in sync with `UpgradeToCorporate` API semantics.
+ */
+function getCorporateUpgradeOnyxFields(policy: OnyxEntry<Policy>) {
+    return {
+        optimistic: {
+            maxExpenseAge: CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE,
+            maxExpenseAmount: CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT,
+            maxExpenseAmountNoReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT,
+            maxExpenseAmountNoItemizedReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_ITEMIZED_RECEIPT,
+            glCodes: true,
+            eReceipts: policy?.outputCurrency === CONST.CURRENCY.USD ? true : policy?.eReceipts,
+            harvesting: {
+                enabled: false,
+            },
+            isAttendeeTrackingEnabled: false,
+        },
+        failure: {
+            maxExpenseAge: policy?.maxExpenseAge ?? null,
+            maxExpenseAmount: policy?.maxExpenseAmount ?? null,
+            maxExpenseAmountNoReceipt: policy?.maxExpenseAmountNoReceipt ?? null,
+            maxExpenseAmountNoItemizedReceipt: policy?.maxExpenseAmountNoItemizedReceipt ?? null,
+            glCodes: policy?.glCodes ?? null,
+            harvesting: policy?.harvesting ?? null,
+            isAttendeeTrackingEnabled: null,
+            eReceipts: policy?.eReceipts,
+        },
+    };
+}
+
 function upgradeToCorporate(policy: OnyxEntry<Policy>, featureName?: string) {
     if (!policy) {
         return;
     }
 
     const policyID = policy.id;
+    const {optimistic: corporateUpgradeOptimistic, failure: corporateUpgradeFailureRevert} = getCorporateUpgradeOnyxFields(policy);
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -5663,16 +5696,7 @@ function upgradeToCorporate(policy: OnyxEntry<Policy>, featureName?: string) {
             value: {
                 isPendingUpgrade: true,
                 type: CONST.POLICY.TYPE.CORPORATE,
-                maxExpenseAge: CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE,
-                maxExpenseAmount: CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT,
-                maxExpenseAmountNoReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT,
-                maxExpenseAmountNoItemizedReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_ITEMIZED_RECEIPT,
-                glCodes: true,
-                eReceipts: policy?.outputCurrency === CONST.CURRENCY.USD ? true : policy?.eReceipts,
-                harvesting: {
-                    enabled: false,
-                },
-                isAttendeeTrackingEnabled: false,
+                ...corporateUpgradeOptimistic,
             },
         },
     ];
@@ -5694,14 +5718,7 @@ function upgradeToCorporate(policy: OnyxEntry<Policy>, featureName?: string) {
             value: {
                 isPendingUpgrade: false,
                 type: policy?.type,
-                maxExpenseAge: policy?.maxExpenseAge ?? null,
-                maxExpenseAmount: policy?.maxExpenseAmount ?? null,
-                maxExpenseAmountNoReceipt: policy?.maxExpenseAmountNoReceipt ?? null,
-                maxExpenseAmountNoItemizedReceipt: policy?.maxExpenseAmountNoItemizedReceipt ?? null,
-                glCodes: policy?.glCodes ?? null,
-                harvesting: policy?.harvesting ?? null,
-                isAttendeeTrackingEnabled: null,
-                eReceipts: policy?.eReceipts,
+                ...corporateUpgradeFailureRevert,
             },
         },
     ];
@@ -5768,6 +5785,7 @@ function upgradeSubmit(
     const optimisticOwnerAccountID = currentUserAccountID !== undefined && currentUserLogin ? Number(currentUserAccountID) : priorOwnerAccountID;
 
     const isCorporateControlUpgrade = targetType === CONST.POLICY.TYPE.CORPORATE;
+    const corporateUpgradeOnyxFields = isCorporateControlUpgrade ? getCorporateUpgradeOnyxFields(policy) : null;
 
     let newReimbursementChoice;
     if (!!policy?.achAccount && !isCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '')) {
@@ -5799,24 +5817,10 @@ function upgradeSubmit(
                 ...(optimisticOwnerAccountID !== undefined ? {ownerAccountID: optimisticOwnerAccountID} : {}),
                 role: CONST.POLICY.ROLE.ADMIN,
                 employeeList: optimisticEmployeeList,
-                ...(isCorporateControlUpgrade
-                    ? {
-                          maxExpenseAge: CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE,
-                          maxExpenseAmount: CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT,
-                          maxExpenseAmountNoReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT,
-                          maxExpenseAmountNoItemizedReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_ITEMIZED_RECEIPT,
-                          glCodes: true,
-                          eReceipts: policy?.outputCurrency === CONST.CURRENCY.USD ? true : policy?.eReceipts,
-                          harvesting: {
-                              enabled: false,
-                          },
-                          isAttendeeTrackingEnabled: false,
-                      }
-                    : {}),
+                ...(corporateUpgradeOnyxFields?.optimistic ?? {}),
                 pendingFields: {
                     type: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
-                errorFields: {type: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
             },
         },
     ];
@@ -5860,18 +5864,7 @@ function upgradeSubmit(
                 ...(priorOwnerAccountID !== undefined ? {ownerAccountID: priorOwnerAccountID} : {}),
                 ...(policy?.role !== undefined ? {role: policy.role} : {}),
                 ...(policy?.employeeList ? {employeeList: policy.employeeList} : {}),
-                ...(isCorporateControlUpgrade
-                    ? {
-                          maxExpenseAge: policy?.maxExpenseAge ?? null,
-                          maxExpenseAmount: policy?.maxExpenseAmount ?? null,
-                          maxExpenseAmountNoReceipt: policy?.maxExpenseAmountNoReceipt ?? null,
-                          maxExpenseAmountNoItemizedReceipt: policy?.maxExpenseAmountNoItemizedReceipt ?? null,
-                          glCodes: policy?.glCodes ?? null,
-                          harvesting: policy?.harvesting ?? null,
-                          isAttendeeTrackingEnabled: null,
-                          eReceipts: policy?.eReceipts,
-                      }
-                    : {}),
+                ...(corporateUpgradeOnyxFields?.failure ?? {}),
                 errorFields: {type: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
             },
         },
