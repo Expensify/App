@@ -101,6 +101,7 @@ jest.mock('@components/AvatarButtonWithIcon', () => {
 jest.mock('@pages/settings/Agents/pendingAgentAvatarStore', () => ({
     setInitialPresetID: jest.fn(),
     setNavigationToken: jest.fn(),
+    setReturnRoute: jest.fn(),
     getPendingAvatar: jest.fn(() => null),
     clearPendingAvatar: jest.fn(),
 }));
@@ -243,9 +244,10 @@ describe('AddAgentPage', () => {
             expect(mockNavigate).not.toHaveBeenCalled();
         });
 
-        it('also goes back when policyID is set: the backend handles wiring the agent into the workflow, so the page does not navigate to Edit Approval Workflow optimistically', () => {
-            // Optimistic seeding with a placeholder email would persist a fake approver into the
-            // workflow on save, so the page deliberately defers to the CREATE_AGENT response.
+        it('defers navigation when policyID + workflowApproverEmail are set — waits for CREATE_AGENT to produce a real email before navigating to Edit Approval Workflow', () => {
+            // The Edit page can only seed an approver with the real server-assigned email, so the
+            // page stays mounted with a loading spinner on submit and a useEffect handles the
+            // hop to the editor once the new agent appears in agentPrompts + personalDetailsList.
             render(
                 <AddAgentPage
                     route={makeRoute({policyID: 'POL_42', workflowApproverEmail: 'manager@example.com'})}
@@ -255,7 +257,7 @@ describe('AddAgentPage', () => {
 
             mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
 
-            expect(mockGoBack).toHaveBeenCalledTimes(1);
+            expect(mockGoBack).not.toHaveBeenCalled();
             expect(mockNavigate).not.toHaveBeenCalledWith(expect.stringContaining('workflows/approvals'));
         });
     });

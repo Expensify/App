@@ -30,7 +30,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/AddAgentForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import {clearPendingAvatar, getPendingAvatar, setInitialPresetID, setNavigationToken} from './pendingAgentAvatarStore';
+import {clearPendingAvatar, getPendingAvatar, setInitialPresetID, setNavigationToken, setReturnRoute} from './pendingAgentAvatarStore';
 
 type AddAgentPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.ADD>
@@ -85,6 +85,7 @@ function AddAgentPage({route}: AddAgentPageProps) {
         const presetID = botAvatarIDs.get(avatarSource as BotAvatar);
         setInitialPresetID(presetID);
         setNavigationToken();
+        setReturnRoute(isWorkflowSeedFlow ? ROUTES.WORKSPACE_WORKFLOWS_ADD_AGENT.getRoute({policyID, workflowApproverEmail}) : ROUTES.SETTINGS_AGENTS_ADD.getRoute());
         Navigation.navigate(ROUTES.SETTINGS_AGENTS_ADD_AVATAR);
     };
 

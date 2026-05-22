@@ -170,21 +170,8 @@ describe('createAgent', () => {
         expect(result.avatarURI).toBeTruthy();
     });
 
-    it('adds the agent to the policy employeeList optimistically when policyID is set', () => {
+    it('never touches the policy employeeList — the server adds the real entry on the CREATE_AGENT response', () => {
         createAgent('Bot', 'My prompt', undefined, undefined, undefined, 'POLICY_42');
-
-        const {optimisticData} = getWriteOptions();
-        const employeeListUpdate = optimisticData.find((u) => u.key === `${ONYXKEYS.COLLECTION.POLICY}POLICY_42`);
-
-        expect(employeeListUpdate).toBeTruthy();
-        const employeeList = (employeeListUpdate?.value as {employeeList: Record<string, unknown>} | undefined)?.employeeList;
-        expect(employeeList).toBeTruthy();
-        const optimisticEntry = Object.values(employeeList ?? {}).at(0) as {pendingAction?: string} | undefined;
-        expect(optimisticEntry?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-    });
-
-    it('does not touch the policy employeeList when policyID is omitted', () => {
-        createAgent('Bot', 'My prompt');
 
         const {optimisticData, successData, failureData} = getWriteOptions();
         const allKeys: string[] = [...optimisticData, ...successData, ...failureData].map((u) => String(u.key));
@@ -192,7 +179,7 @@ describe('createAgent', () => {
         expect(allKeys.some((k) => k.startsWith(ONYXKEYS.COLLECTION.POLICY))).toBe(false);
     });
 
-    it('sets login on the optimistic personal detail entry so the agent renders as a workspace member', () => {
+    it('omits login on the optimistic personal detail entry — the real email is server-assigned', () => {
         createAgent('Bot', 'My prompt', undefined, undefined, undefined, 'POLICY_42');
 
         const {optimisticData} = getWriteOptions();
@@ -200,8 +187,7 @@ describe('createAgent', () => {
         const accountID = getOptimisticAccountID(optimisticData);
         const entry = (personalDetailUpdate?.value as Record<string, unknown>)?.[accountID] as Record<string, unknown>;
 
-        expect(typeof entry.login).toBe('string');
-        expect(entry.login).toMatch(/@expensify\.com$/);
+        expect(entry.login).toBeUndefined();
     });
 
     it('does not merge ADD_AGENT_FORM (navigation handles UX after submit)', () => {
