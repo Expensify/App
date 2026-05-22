@@ -1,4 +1,3 @@
-
 import React, {useEffect} from 'react';
 import Log from '@libs/Log';
 import BaseErrorBoundary from './BaseErrorBoundary';
