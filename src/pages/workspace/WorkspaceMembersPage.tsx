@@ -11,10 +11,10 @@ import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericE
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MessagesRow from '@components/MessagesRow';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
-import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
+import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
+import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import SearchBar from '@components/SearchBar';
 import TableListItem from '@components/SelectionList/ListItem/TableListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
@@ -110,14 +110,14 @@ type MemberOption = Omit<ListItem, 'accountID' | 'login'> & {
 };
 
 const WORKSPACE_MEMBER_FILTER_VALUES = {
-    ALL: 'all',
+    MEMBERS: 'members',
     ADMINS: 'admins',
     APPROVERS: 'approvers',
     AUDITORS: 'auditors',
 } as const;
 
 type WorkspaceMemberFilterValue = ValueOf<typeof WORKSPACE_MEMBER_FILTER_VALUES>;
-type WorkspaceMemberFilterOption = SingleSelectItem<WorkspaceMemberFilterValue>;
+type WorkspaceMemberFilterOption = MultiSelectItem<WorkspaceMemberFilterValue>;
 
 function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembersPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'common.members');
@@ -134,7 +134,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const prevAccountIDs = usePrevious(accountIDs);
     const textInputRef = useRef<BaseTextInputRef>(null);
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
-    const [selectedRoleFilter, setSelectedRoleFilter] = useState<WorkspaceMemberFilterOption | null>(null);
+    const [selectedRoleFilters, setSelectedRoleFilters] = useState<WorkspaceMemberFilterOption[]>([]);
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const {isAccountLocked} = useLockedAccountState();
@@ -511,7 +511,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     }, []);
     const sortMembers = useCallback((memberOptions: MemberOption[]) => sortAlphabetically(memberOptions, 'text', localeCompare), [localeCompare]);
     const roleFilterOptions: WorkspaceMemberFilterOption[] = [
-        {text: translate('workspace.people.allMembers'), value: WORKSPACE_MEMBER_FILTER_VALUES.ALL},
+        {text: translate('workspace.people.members'), value: WORKSPACE_MEMBER_FILTER_VALUES.MEMBERS},
         {text: translate('workspace.people.admins'), value: WORKSPACE_MEMBER_FILTER_VALUES.ADMINS},
         {text: translate('workspace.people.approvers'), value: WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS},
     ];
@@ -523,34 +523,36 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         });
     }
 
-    const handleRoleFilterChange = (item: WorkspaceMemberFilterOption | undefined) => {
+    const handleRoleFilterChange = (items: WorkspaceMemberFilterOption[]) => {
         setSelectedEmployees([]);
-
-        if (!item || item.value === WORKSPACE_MEMBER_FILTER_VALUES.ALL) {
-            setSelectedRoleFilter(null);
-            return;
-        }
-
-        setSelectedRoleFilter(item);
+        setSelectedRoleFilters(items);
     };
 
     const rolePreFilter = (member: MemberOption) => {
-        if (!selectedRoleFilter) {
+        if (selectedRoleFilters.length === 0) {
             return true;
         }
 
         const employee = policy?.employeeList?.[member.login];
+        const isAdmin = member.login === policy?.owner || employee?.role === CONST.POLICY.ROLE.ADMIN;
+        const isApprover = isPolicyApprover(policy, member.login);
+        const isAuditor = employee?.role === CONST.POLICY.ROLE.AUDITOR;
+        const isMember = !isAdmin && !isApprover && !isAuditor;
 
-        switch (selectedRoleFilter.value) {
-            case WORKSPACE_MEMBER_FILTER_VALUES.ADMINS:
-                return member.login === policy?.owner || employee?.role === CONST.POLICY.ROLE.ADMIN;
-            case WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS:
-                return isPolicyApprover(policy, member.login);
-            case WORKSPACE_MEMBER_FILTER_VALUES.AUDITORS:
-                return employee?.role === CONST.POLICY.ROLE.AUDITOR;
-            default:
-                return true;
-        }
+        return selectedRoleFilters.some(({value}) => {
+            switch (value) {
+                case WORKSPACE_MEMBER_FILTER_VALUES.MEMBERS:
+                    return isMember;
+                case WORKSPACE_MEMBER_FILTER_VALUES.ADMINS:
+                    return isAdmin;
+                case WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS:
+                    return isApprover;
+                case WORKSPACE_MEMBER_FILTER_VALUES.AUDITORS:
+                    return isAuditor;
+                default:
+                    return false;
+            }
+        });
     };
     const [inputValue, setInputValue, filteredData] = useSearchResults(data, filterMember, sortMembers, rolePreFilter);
 
@@ -598,7 +600,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const displayedFilteredData = isFilteringMembers ? debouncedFilteredData : filteredData;
     const hasNoDisplayedMembers = displayedFilteredData.length === 0;
     const shouldShowRoleFilter = data.length > 0;
-    const shouldShowRoleFilterEmptyState = shouldShowRoleFilter && !!selectedRoleFilter && inputValue.length === 0 && hasNoDisplayedMembers;
+    const shouldShowRoleFilterEmptyState = shouldShowRoleFilter && selectedRoleFilters.length > 0 && inputValue.length === 0 && hasNoDisplayedMembers;
     const shouldShowEmptySearchMessage = !shouldShowRoleFilterEmptyState && hasNoDisplayedMembers;
     const noResultsMessage = translate('common.noResultsFoundMatching', inputValue);
 
@@ -608,20 +610,20 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     useDebouncedAccessibilityAnnouncement(noResultsMessage, shouldShowEmptySearchMessage, inputValue);
 
     const rolePopoverComponent = ({closeOverlay}: PopoverComponentProps) => (
-        <SingleSelectPopup
+        <MultiSelectPopup
             label={translate('common.role')}
             items={roleFilterOptions}
-            value={selectedRoleFilter ?? roleFilterOptions.at(0)}
+            value={selectedRoleFilters}
             closeOverlay={closeOverlay}
             onChange={handleRoleFilterChange}
-            defaultValue={roleFilterOptions.at(0)?.value}
-            itemHeight={variables.optionRowHeightCompact}
         />
     );
 
+    const roleFilterDropdownLabel = selectedRoleFilters.length > 0 ? selectedRoleFilters.map(({text}) => text).join(', ') : translate('workspace.people.members');
+
     const roleFilterDropdown = shouldShowRoleFilter ? (
         <DropdownButton
-            label={selectedRoleFilter?.text ?? translate('workspace.people.allMembers')}
+            label={roleFilterDropdownLabel}
             value={null}
             PopoverComponent={rolePopoverComponent}
             innerStyles={[styles.gap2, shouldUseNarrowLayout && styles.mw100]}
