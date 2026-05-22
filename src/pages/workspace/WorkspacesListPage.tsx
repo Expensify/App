@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ActivityIndicator from '@components/ActivityIndicator';
+import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -34,6 +35,7 @@ import {calculateBillNewDot, clearDeleteWorkspaceError, clearDuplicateWorkspace,
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 import {filterInactiveCards} from '@libs/CardUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import FreezeWrapper from '@libs/Navigation/AppNavigator/FreezeWrapper';
 import openInternalRouteInNewTab from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
@@ -69,7 +71,6 @@ import type {Policy as PolicyType} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {PolicyDetailsForNonMembers} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import WorkspacesListPageHeaderButton from './WorkspacesListPageHeaderButton';
 
 type GetWorkspaceMenuItem = {item: WorkspaceRowData; index: number};
 
@@ -590,7 +591,15 @@ function WorkspacesListPageContent() {
         clearDuplicateWorkspace();
     }, [duplicateWorkspace?.policyID, isFocused]);
 
-    const headerButton = <WorkspacesListPageHeaderButton shouldShowNewWorkspaceButton={!isRestrictedPolicyCreation && !!workspaceRows.length} />;
+    const headerButton = !isRestrictedPolicyCreation && !!workspaceRows.length && (
+        <Button
+            accessibilityLabel={translate('common.new')}
+            text={translate('common.new')}
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.NEW_WORKSPACE_BUTTON}
+            onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route)))}
+            icon={icons.Plus}
+        />
+    );
 
     const onBackButtonPress = () => {
         Navigation.goBack(route.params?.backTo);

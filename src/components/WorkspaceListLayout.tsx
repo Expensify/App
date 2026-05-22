@@ -79,7 +79,7 @@ export default function WorkspaceListLayout({children, headerButton}: WorkspaceL
                         <View style={[styles.pr3]}>{!shouldDisplayButtonsInSeparateLine && headerButton}</View>
                     </TopBarWithLoadingBar>
 
-                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.pr5, styles.pt1]}>
+                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.pr5, styles.pt1, styles.pb2]}>
                         <TabSelectorBase
                             tabs={navigationOptions}
                             activeTabKey={activeNarrowLayoutTabKey}
