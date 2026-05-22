@@ -19,6 +19,7 @@ function useMergeHRInitialSyncingModal(policyID: string, isFocused: boolean) {
     const {translate} = useLocalize();
     const [hasShownModal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN}${policyID}`);
     const [isAppVisible, setIsAppVisible] = useState(Visibility.isVisible);
+    const [isAnyModalVisible] = useOnyx(ONYXKEYS.MODAL, {selector: (modal) => !!modal?.isVisible});
 
     useEffect(() => Visibility.onVisibilityChange(() => setIsAppVisible(Visibility.isVisible())), []);
 
@@ -40,13 +41,13 @@ function useMergeHRInitialSyncingModal(policyID: string, isFocused: boolean) {
 
     useEffect(() => {
         const isInitialSyncInProgress = mergeLastSync?.syncStatus === CONST.MERGE_HR.SYNC_STATUS.SYNCING && mergeLastSync?.syncType === CONST.MERGE_HR.SYNC_TYPE.INITIAL;
-        if (!isFocused || !isInitialSyncInProgress || !isAppVisible) {
+        if (!isFocused || !isInitialSyncInProgress || !isAppVisible || isAnyModalVisible) {
             return;
         }
 
         const handle = TransitionTracker.runAfterTransitions({callback: showSyncingModal, waitForUpcomingTransition: true});
         return () => handle.cancel();
-    }, [mergeLastSync?.syncStatus, mergeLastSync?.syncType, isFocused, isAppVisible]);
+    }, [mergeLastSync?.syncStatus, mergeLastSync?.syncType, isFocused, isAppVisible, isAnyModalVisible]);
 }
 
 export default useMergeHRInitialSyncingModal;
