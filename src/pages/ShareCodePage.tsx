@@ -59,7 +59,7 @@ type ShareCodePageProps = ShareCodePageOnyxProps & BackToParams;
  */
 
 function getLogoForWorkspace(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>): ImageSourcePropType | undefined {
-    if (!policy || !policy.id || report?.type !== 'chat') {
+    if (!policy?.id || report?.type !== 'chat') {
         return expensifyLogo;
     }
 
@@ -169,7 +169,6 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
                             isAnonymousAction
                             title={translate('common.download')}
                             icon={icons.Download}
-                            // eslint-disable-next-line @typescript-eslint/no-misused-promises
                             onPress={() => qrCodeRef.current?.download?.()}
                         />
                     )}

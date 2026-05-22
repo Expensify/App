@@ -40,7 +40,7 @@ function stateReducer(state: MultifactorAuthenticationState, action: Action): Mu
             }
             // Invalid validate code is a continuable error - it doesn't fail the entire MFA flow,
             // instead it's displayed on the current screen and the user can retry
-            if (action.payload.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.INVALID_VALIDATE_CODE) {
+            if (action.payload.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.CLIENT_ERRORS.INVALID_VALIDATE_CODE) {
                 return {...state, continuableError: action.payload, error: undefined};
             }
             return {...state, error: action.payload, continuableError: undefined};

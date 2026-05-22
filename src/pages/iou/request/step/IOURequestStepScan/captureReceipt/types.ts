@@ -5,8 +5,10 @@ type CaptureReceiptOptions = {
     hasFlash: boolean;
     isPlatformMuted: boolean | undefined;
     path: string;
+    isInLandscapeMode: boolean;
 };
 
 type CaptureReceipt = (camera: Camera, options: CaptureReceiptOptions) => Promise<PhotoFile>;
 
-export type {CaptureReceipt, CaptureReceiptOptions};
+// eslint-disable-next-line import/prefer-default-export
+export type {CaptureReceipt};

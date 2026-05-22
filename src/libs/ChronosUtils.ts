@@ -1,7 +1,6 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {OnyxInputOrEntry} from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import {getReportActionText} from './ReportActionsUtils';
 
@@ -28,7 +27,7 @@ function findPreviousVisibleReportAction(reportActions: ReportAction[], actionIn
     return undefined;
 }
 
-function isChronosOOOListAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CHRONOS_OOO_LIST> {
+function isChronosOOOListAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CHRONOS_OOO_LIST> {
     const action = reportAction as {actionName?: string} | null | undefined;
     return action?.actionName === CONST.REPORT.ACTIONS.TYPE.CHRONOS_OOO_LIST;
 }
@@ -54,14 +53,11 @@ function isChronosStartOrStopMessage(text: string): ChronosTimerCommandValue | n
     return null;
 }
 
-function isChronosAutomaticTimerAction(reportAction: OnyxInputOrEntry<ReportAction>, isChronosReport: boolean): boolean {
+function isChronosAutomaticTimerAction(reportAction: OnyxEntry<ReportAction>, isChronosReport: boolean): boolean {
     return isChronosReport && isChronosStartOrStopMessage(getReportActionText(reportAction as GetReportActionTextArg)) !== null;
 }
 
-/**
- * From visible report actions sorted newest-first, returns the latest ADD_COMMENT from the current user that looks like a Chronos timer command.
- */
-function getLatestUserChronosTimerCommand(sortedVisibleReportActionsDesc: ReportAction[], currentUserAccountID: number): ChronosTimerCommandValue | null {
+function getTimeOfChronosTimerRunningFromVisibleActions(sortedVisibleReportActionsDesc: ReportAction[], currentUserAccountID: number): string | null {
     for (const action of sortedVisibleReportActionsDesc) {
         if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) {
             continue;
@@ -70,15 +66,14 @@ function getLatestUserChronosTimerCommand(sortedVisibleReportActionsDesc: Report
             continue;
         }
         const kind = isChronosStartOrStopMessage(getReportActionText(action as GetReportActionTextArg));
+        if (kind === CONST.CHRONOS.TIMER_COMMAND.START) {
+            return action.created;
+        }
         if (kind !== null) {
-            return kind;
+            return null;
         }
     }
     return null;
-}
-
-function isChronosTimerRunningFromVisibleActions(sortedVisibleReportActionsDesc: ReportAction[], currentUserAccountID: number): boolean {
-    return getLatestUserChronosTimerCommand(sortedVisibleReportActionsDesc, currentUserAccountID) === CONST.CHRONOS.TIMER_COMMAND.START;
 }
 
 /**
@@ -125,12 +120,4 @@ function buildOOOCommand({date, time, durationAmount, durationUnit, reason, work
     return command;
 }
 
-export type {ChronosTimerCommandValue};
-export {
-    buildOOOCommand,
-    getLatestUserChronosTimerCommand,
-    isChronosOOOListAction,
-    isChronosStartOrStopMessage,
-    isChronosTimerRunningFromVisibleActions,
-    isConsecutiveChronosAutomaticTimerAction,
-};
+export {buildOOOCommand, getTimeOfChronosTimerRunningFromVisibleActions, isChronosOOOListAction, isChronosStartOrStopMessage, isConsecutiveChronosAutomaticTimerAction};

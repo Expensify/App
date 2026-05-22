@@ -23,7 +23,7 @@ function Popover(props: PopoverProps) {
         fullscreen,
         onLayout,
         animationOutTiming,
-        animationInTiming = CONST.ANIMATED_TRANSITION,
+        animationInTiming = CONST.MENU_ANIMATION_DURATION,
         disableAnimation = true,
         withoutOverlay = false,
         anchorPosition = {},
@@ -78,7 +78,6 @@ function Popover(props: PopoverProps) {
     if (!fullscreen && !shouldUseNarrowLayout) {
         return createPortal(
             <Modal
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 onClose={onCloseWithPopoverContext}
                 type={CONST.MODAL.MODAL_TYPE.POPOVER}
@@ -96,7 +95,6 @@ function Popover(props: PopoverProps) {
     if (withoutOverlay && !shouldUseNarrowLayout) {
         return createPortal(
             <PopoverWithoutOverlay
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 withoutOverlayRef={withoutOverlayRef}
                 animationIn={animationIn}
@@ -108,7 +106,6 @@ function Popover(props: PopoverProps) {
 
     return (
         <Modal
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             onClose={onCloseWithPopoverContext}
             shouldHandleNavigationBack={props.shouldHandleNavigationBack}

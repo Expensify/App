@@ -656,4 +656,107 @@ describe('useUpcomingTravelReservations', () => {
             expect(result.current).toEqual([]);
         });
     });
+
+    it('should skip reservations with invalid start date and keep valid ones', async () => {
+        const invalidFlight = makeAirPnr('PNR_INVALID', 'not-a-date', 'not-a-date');
+        const validFlight = makeAirPnr('PNR_VALID', daysFromNow(2), daysFromNow(2, 15));
+        const tripRoom = makeTripRoomReport('1000', [invalidFlight, validFlight]);
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1000`, tripRoom);
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useUpcomingTravelReservations());
+
+        await waitFor(() => {
+            expect(result.current).toHaveLength(1);
+        });
+        expect(result.current.at(0)?.reservation.reservationID).toBe('PNR_VALID');
+    });
+
+    it('should return empty array when all reservations have invalid start dates', async () => {
+        const invalidFlight = makeAirPnr('PNR_INVALID_ALL', '', '');
+        const tripRoom = makeTripRoomReport('1001', [invalidFlight]);
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1001`, tripRoom);
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useUpcomingTravelReservations());
+
+        await waitFor(() => {
+            expect(result.current).toEqual([]);
+        });
+    });
+
+    it('should include reservation at the exact 7-day boundary', async () => {
+        const boundaryFlight = makeAirPnr('PNR_BOUNDARY', daysFromNow(CONST.UPCOMING_TRAVEL_WINDOW_DAYS, 0), daysFromNow(CONST.UPCOMING_TRAVEL_WINDOW_DAYS, 3));
+        const tripRoom = makeTripRoomReport('1002', [boundaryFlight]);
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1002`, tripRoom);
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useUpcomingTravelReservations());
+
+        await waitFor(() => {
+            expect(result.current).toHaveLength(1);
+        });
+        expect(result.current.at(0)?.reservation.reservationID).toBe('PNR_BOUNDARY');
+    });
+
+    it('should return empty array for trip room without tripData', async () => {
+        const tripRoom = {
+            reportID: '1003',
+            ownerAccountID: TEST_ACCOUNT_ID,
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM,
+            reportName: 'Trip 1003',
+            policyID: 'policy1',
+        } as Report;
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1003`, tripRoom);
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useUpcomingTravelReservations());
+
+        await waitFor(() => {
+            expect(result.current).toEqual([]);
+        });
+    });
+
+    it('should return empty array for trip room with empty pnrs array', async () => {
+        const tripRoom = makeTripRoomReport('1004', []);
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1004`, tripRoom);
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useUpcomingTravelReservations());
+
+        await waitFor(() => {
+            expect(result.current).toEqual([]);
+        });
+    });
+
+    it('should ignore non-trip-room reports', async () => {
+        const flight = makeAirPnr('PNR_NON_TRIP', daysFromNow(2), daysFromNow(2, 15));
+        const nonTripReport = {
+            reportID: '1005',
+            ownerAccountID: TEST_ACCOUNT_ID,
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+            reportName: 'Policy Room',
+            policyID: 'policy1',
+            tripData: {
+                tripID: 'trip-1005',
+                payload: {pnrs: [flight]},
+            },
+        } as Report;
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1005`, nonTripReport);
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useUpcomingTravelReservations());
+
+        await waitFor(() => {
+            expect(result.current).toEqual([]);
+        });
+    });
 });

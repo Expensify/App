@@ -8,16 +8,18 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import BareUserListItem from '@components/SelectionList/ListItem/BareUserListItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addAttachmentWithComment, addComment, openReport} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -26,7 +28,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import {getReportDisplayOption} from '@libs/OptionsListUtils';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
-import {getReportOrDraftReport, isDraftReport} from '@libs/ReportUtils';
+import {isDraftReport} from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import variables from '@styles/variables';
@@ -37,9 +39,9 @@ import type SCREENS from '@src/SCREENS';
 import type {Report as ReportType} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import KeyboardUtils from '@src/utils/keyboard';
-import getFileSize from './getFileSize';
 import ShareButton from './ShareButton';
 import {showErrorAlert} from './ShareRootPage';
+import useShareFileSizeValidation from './useShareFileSizeValidation';
 
 type ShareDetailsPageProps = StackScreenProps<ShareNavigatorParamList, typeof SCREENS.SHARE.SHARE_DETAILS>;
 
@@ -54,6 +56,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const [validatedFile] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const delegateAccountID = useDelegateAccountID();
 
     const reportAttributesDerived = useReportAttributes();
     const personalDetails = usePersonalDetails();
@@ -64,7 +67,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
-    const report: OnyxEntry<ReportType> = getReportOrDraftReport(reportOrAccountID);
+    const report: OnyxEntry<ReportType> = useReportOrReportDraft(reportOrAccountID);
     const privateIsArchived = useReportIsArchived(report?.reportID);
     const ancestors = useAncestors(report);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
@@ -97,22 +100,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
         Navigation.navigate(ROUTES.SHARE_DETAILS_ATTACHMENT);
     }, [reportAttachmentsContext, fileSource, validateFileName, icons.FallbackAvatar]);
 
-    useEffect(() => {
-        if (!currentAttachment?.content || errorTitle || !shouldShowAttachment) {
-            return;
-        }
-        getFileSize(currentAttachment?.content).then((size) => {
-            if (size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-                setErrorTitle(translate('attachmentPicker.attachmentTooLarge'));
-                setErrorMessage(translate('attachmentPicker.sizeExceeded'));
-            }
-
-            if (size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-                setErrorTitle(translate('attachmentPicker.attachmentTooSmall'));
-                setErrorMessage(translate('attachmentPicker.sizeNotMet'));
-            }
-        });
-    }, [currentAttachment?.content, errorTitle, translate, shouldShowAttachment]);
+    useShareFileSizeValidation(currentAttachment?.content, setErrorTitle, setErrorMessage, !errorTitle && shouldShowAttachment);
 
     useEffect(() => {
         if (!errorTitle || !errorMessage) {
@@ -141,9 +129,10 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                 text: message,
                 timezoneParam: personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: personalDetail.accountID,
+                delegateAccountID,
             });
             const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
-            Navigation.navigate(routeToNavigate, {forceReplace: true});
+            Navigation.revealRouteBeforeDismissingModal(routeToNavigate);
             return;
         }
 
@@ -155,7 +144,14 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                     openReport({
                         reportID: report.reportID,
                         introSelected,
-                        participantLoginList: displayReport.participantsList?.filter((u) => u.accountID !== personalDetail.accountID).map((u) => u.login ?? '') ?? [],
+                        participants:
+                            displayReport.participantsList
+                                ?.filter((u) => u.accountID !== personalDetail.accountID)
+                                .map((u) => ({
+                                    login: u.login ?? '',
+                                    accountID: u.accountID,
+                                })) ?? [],
+                        personalDetails,
                         newReportObject: report,
                         betas,
                     });
@@ -169,11 +165,12 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                         currentUserAccountID: personalDetail.accountID,
                         text: message,
                         timezone: personalDetail.timezone,
+                        delegateAccountID,
                     });
                 }
 
                 const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
-                Navigation.navigate(routeToNavigate, {forceReplace: true});
+                Navigation.revealRouteBeforeDismissingModal(routeToNavigate);
             },
             () => {},
             fileType,
@@ -217,7 +214,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                             <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
                                 <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('common.to')}</Text>
                             </View>
-                            <UserListItem
+                            <BareUserListItem
                                 item={displayReport}
                                 isFocused={false}
                                 showTooltip={false}

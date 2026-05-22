@@ -9,6 +9,7 @@ import {OptionsListActionsContext, OptionsListStateContext} from '@components/Op
 import SearchAutocompleteInput from '@components/Search/SearchAutocompleteInput';
 import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
+import {setHasRadio} from '@libs/NetworkState';
 import {createOptionList} from '@libs/OptionsListUtils';
 import ComposeProviders from '@src/components/ComposeProviders';
 import CONST from '@src/CONST';
@@ -42,16 +43,15 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     getTopmostReportId: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
     isDisplayedInModal: jest.fn(() => false),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
 }));
 
 jest.mock('@src/hooks/useRootNavigationState', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({contextualReportID: undefined, isSearchRouterScreen: false}),
 }));
 
 jest.mock('@hooks/useExportedToFilterOptions', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({
         exportedToFilterOptions: [],
@@ -118,7 +118,7 @@ beforeAll(() =>
 beforeEach(() => {
     global.fetch = TestHelper.getGlobalFetchMock();
     wrapOnyxWithWaitForBatchedUpdates(Onyx);
-    Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+    setHasRadio(true);
 });
 
 // Clear out Onyx after each test so that each test starts with a clean state

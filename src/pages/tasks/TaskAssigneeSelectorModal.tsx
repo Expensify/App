@@ -1,7 +1,7 @@
-/* eslint-disable es/no-optional-chaining */
 import {useRoute} from '@react-navigation/native';
 import {delegateEmailSelector} from '@selectors/Account';
 import React, {useEffect} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -14,6 +14,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -28,18 +29,23 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getHeaderMessage, isCurrentUser} from '@libs/OptionsListUtils';
 import {isOpenTaskReport, isTaskReport} from '@libs/ReportUtils';
-import type {TaskDetailsNavigatorParamList} from '@navigation/types';
+import type {NewTaskNavigatorParamList, TaskDetailsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 
 function TaskAssigneeSelectorModal() {
     const styles = useThemeStyles();
-    const route = useRoute<PlatformStackRouteProp<TaskDetailsNavigatorParamList, typeof SCREENS.TASK.ASSIGNEE>>();
+    const route = useRoute<
+        | PlatformStackRouteProp<TaskDetailsNavigatorParamList, typeof SCREENS.DYNAMIC_TASK_ASSIGNEE>
+        | PlatformStackRouteProp<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.TASK_ASSIGNEE_SELECTOR>
+    >();
     const {translate} = useLocalize();
-    const backTo = route.params?.backTo;
+    const reportID = route.params && 'reportID' in route.params ? route.params.reportID : undefined;
+    const backTo = route.params && 'backTo' in route.params ? route.params.backTo : undefined;
+    const taskEditBackPath = useDynamicBackPath(DYNAMIC_ROUTES.TASK_ASSIGNEE.path);
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [task] = useOnyx(ONYXKEYS.TASK);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
@@ -82,16 +88,16 @@ function TaskAssigneeSelectorModal() {
     const allPersonalDetails = usePersonalDetails();
 
     const report: OnyxEntry<Report> = (() => {
-        if (!route.params?.reportID) {
+        if (!reportID) {
             return;
         }
-        const reportOnyx = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${route.params?.reportID}`];
+        const reportOnyx = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
         if (reportOnyx && !isTaskReport(reportOnyx)) {
             Navigation.isNavigationReady().then(() => {
                 Navigation.dismissModalWithReport({reportID: reportOnyx.reportID});
             });
         }
-        return reports?.[`${ONYXKEYS.COLLECTION.REPORT}${route.params?.reportID}`];
+        return reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     })();
 
     const parentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
@@ -182,7 +188,6 @@ function TaskAssigneeSelectorModal() {
                     isOptimisticReport,
                 });
             }
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 Navigation.dismissModalWithReport({reportID: report?.reportID});
             });
@@ -195,14 +200,19 @@ function TaskAssigneeSelectorModal() {
                 undefined, // passing null as report is null in this condition
                 isCurrentUser({...option, accountID: option?.accountID ?? CONST.DEFAULT_NUMBER_ID, login: option?.login ?? undefined}, loginList, currentUserEmail),
             );
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 Navigation.goBack(ROUTES.NEW_TASK.getRoute(backTo));
             });
         }
     };
 
-    const handleBackButtonPress = () => Navigation.goBack(!route.params?.reportID ? ROUTES.NEW_TASK.getRoute(backTo) : backTo);
+    const handleBackButtonPress = () => {
+        if (!reportID) {
+            Navigation.goBack(ROUTES.NEW_TASK.getRoute(backTo));
+            return;
+        }
+        Navigation.goBack(taskEditBackPath);
+    };
 
     const isOpen = isOpenTaskReport(report);
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);

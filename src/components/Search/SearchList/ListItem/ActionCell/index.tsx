@@ -3,6 +3,7 @@ import Button from '@components/Button';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import CONST from '@src/CONST';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import actionTranslationsMap from './actionTranslationsMap';
@@ -11,7 +12,7 @@ import PayActionCell from './PayActionCell';
 type ActionCellProps = {
     action?: SearchTransactionAction;
     isSelected?: boolean;
-    onButtonPress: () => void;
+    onButtonPress: (event?: ModifiedMouseEvent) => void;
     isChildListItem?: boolean;
     isLoading?: boolean;
     policyID?: string;
@@ -80,6 +81,9 @@ function ActionCell({
 
     const text = translate(actionTranslationsMap[action]);
 
+    const shouldBeDisabledOffline = action !== CONST.SEARCH.ACTION_TYPES.UNDELETE && isOffline;
+    const buttonInnerStyles = isSelected && action === CONST.SEARCH.ACTION_TYPES.UNDELETE ? styles.buttonDefaultSelected : {};
+
     return (
         <Button
             text={text}
@@ -89,8 +93,9 @@ function ActionCell({
             style={[styles.w100, shouldDisablePointerEvents && styles.pointerEventsNone]}
             isLoading={isLoading}
             success={action !== CONST.SEARCH.ACTION_TYPES.UNDELETE}
-            isDisabled={isOffline || shouldDisablePointerEvents}
+            isDisabled={shouldBeDisabledOffline || shouldDisablePointerEvents}
             shouldStayNormalOnDisable={shouldDisablePointerEvents}
+            innerStyles={buttonInnerStyles}
             isNested
             sentryLabel={CONST.SENTRY_LABEL.SEARCH.ACTION_CELL_ACTION}
         />

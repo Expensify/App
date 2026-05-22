@@ -506,26 +506,6 @@ function deleteAvatar(currentUserPersonalDetails: Pick<CurrentUserPersonalDetail
 }
 
 /**
- * Clear error and pending fields for the current user's avatar
- */
-function clearAvatarErrors(currentUserAccountID: number) {
-    if (!currentUserAccountID) {
-        return;
-    }
-
-    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        [currentUserAccountID]: {
-            errorFields: {
-                avatar: null,
-            },
-            pendingFields: {
-                avatar: null,
-            },
-        },
-    });
-}
-
-/**
  * Clear errors for the current user's personal details
  */
 function clearPersonalDetailsErrors() {
@@ -563,7 +543,6 @@ function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeo
 }
 
 export {
-    clearAvatarErrors,
     deleteAvatar,
     openPublicProfilePage,
     updateAddress,

@@ -51,7 +51,7 @@ const isEqualPersonalDetail = (prevPersonalDetail: PersonalDetails, personalDeta
     prevPersonalDetail?.displayName === personalDetail?.displayName;
 
 function buildUpdatedReportsMap(reportOptions: OptionList['reports']) {
-    return new Map(reportOptions.filter((report) => report && report.reportID).map((report) => [report.reportID, report]));
+    return new Map(reportOptions.filter((report) => report?.reportID).map((report) => [report.reportID, report]));
 }
 
 function OptionsListContextProvider({children}: OptionsListProviderProps) {
@@ -435,4 +435,4 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
 
 export default OptionsListContextProvider;
 
-export {useOptionsList, useOptionsListState, useOptionsListActions, OptionsListStateContext, OptionsListActionsContext};
+export {useOptionsList, OptionsListStateContext, OptionsListActionsContext};

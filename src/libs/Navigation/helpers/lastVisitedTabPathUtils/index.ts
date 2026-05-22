@@ -1,5 +1,3 @@
-import type {InitialState, NavigationState, PartialState} from '@react-navigation/native';
-import {findFocusedRoute} from '@react-navigation/native';
 import type {ValueOf} from 'type-fest';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import CONST from '@src/CONST';
@@ -32,17 +30,6 @@ function getTabStateFromSessionStorage(key: LastVisitedTabPathKey) {
     return getStateFromPath(path);
 }
 
-/**
- * Generic function to extract the path from currently focused route
- */
-function getLastVisitedTabPath(state: NavigationState | PartialState<NavigationState>) {
-    const focusedRoute = findFocusedRoute(state);
-    if (!focusedRoute) {
-        return undefined;
-    }
-    return focusedRoute.path as Route;
-}
-
 function saveWorkspacesTabPathToSessionStorage(url: string) {
     saveTabPathToSessionStorage(CONST.SESSION_STORAGE_KEYS.LAST_VISITED_PATH.WORKSPACES_TAB, url);
 }
@@ -55,24 +42,4 @@ function saveSettingsTabPathToSessionStorage(url: string) {
     saveTabPathToSessionStorage(CONST.SESSION_STORAGE_KEYS.LAST_VISITED_PATH.SETTINGS_TAB, url);
 }
 
-function getSettingsTabStateFromSessionStorage() {
-    return getTabStateFromSessionStorage(CONST.SESSION_STORAGE_KEYS.LAST_VISITED_PATH.SETTINGS_TAB);
-}
-
-function getLastVisitedWorkspaceTabScreen() {
-    const workspacesTabState = getWorkspacesTabStateFromSessionStorage();
-    if (!workspacesTabState) {
-        return undefined;
-    }
-    return findFocusedRoute(workspacesTabState as InitialState)?.name;
-}
-
-export {
-    clearSessionStorage,
-    getLastVisitedWorkspaceTabScreen,
-    getLastVisitedTabPath,
-    saveSettingsTabPathToSessionStorage,
-    getSettingsTabStateFromSessionStorage,
-    saveWorkspacesTabPathToSessionStorage,
-    getWorkspacesTabStateFromSessionStorage,
-};
+export {clearSessionStorage, saveSettingsTabPathToSessionStorage, saveWorkspacesTabPathToSessionStorage, getWorkspacesTabStateFromSessionStorage};

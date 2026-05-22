@@ -14,6 +14,16 @@ import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithA
 
 const mockOpenPicker = jest.fn();
 
+jest.mock('@react-navigation/native', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const actual = jest.requireActual('@react-navigation/native');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        ...actual,
+        useRoute: () => ({key: 'test', name: 'test', params: {}}),
+    };
+});
+
 jest.mock('@components/AttachmentPicker', () => {
     function MockAttachmentPicker({children}: {children: (props: {openPicker: (opts: {onPicked: (files: unknown[]) => void}) => void}) => React.ReactNode}) {
         return <>{children({openPicker: mockOpenPicker})}</>;
@@ -36,7 +46,7 @@ jest.mock(
 );
 
 jest.mock('@components/ReportActionItem/ReportActionItemImage', () => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {useEffect} = require('react');
     function MockReportActionItemImage({onLoad}: {onLoad?: () => void}) {
         (useEffect as typeof React.useEffect)(() => {
@@ -48,9 +58,9 @@ jest.mock('@components/ReportActionItem/ReportActionItemImage', () => {
 });
 
 jest.mock('@src/languages/IntlStore', () => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const en: Record<string, unknown> = require('@src/languages/en').default;
-    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const flatten: (obj: Record<string, unknown>) => Record<string, unknown> = require('@src/languages/flattenObject').default;
     const cache = new Map<string, Record<string, unknown>>();
     cache.set('en', flatten(en));
@@ -70,7 +80,7 @@ jest.mock('@assets/emojis', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...actual,
-        // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
         default: actual.default,
         importEmojiLocale: jest.fn(() => Promise.resolve()),
     };

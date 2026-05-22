@@ -1,8 +1,8 @@
 ---
 title: Create Expense Categories
 description: Add categories to use for coding expenses.
-keywords: [New Expensify, expense categories, GL codes, payroll codes, chart of accounts, import categories, expense coding]
-internalScope: Audience is Workspace Admins. Covers creating, importing, enabling, and managing expense categories, including GL and payroll codes. Does not cover personal expense rules or accounting integration setup.
+keywords: [New Expensify, expense categories, GL codes, payroll codes, chart of accounts, import categories, expense coding, add category from expense, create category inline]
+internalScope: Audience is Workspace Admins. Covers creating, importing, enabling, and managing expense categories, including GL and payroll codes and inline category creation from the expense flow. Does not cover personal expense rules or accounting integration setup.
 ---
 
 
@@ -28,6 +28,19 @@ To delete a category:
 1. Click the category from the list.
 2. Click the **three-dot menu** in the top-right corner.
 3. Select **Delete category**.
+
+---
+
+## How to add a category while creating or editing an expense
+
+Workspace Admins can also create a new category directly from the category picker when creating or editing an expense, without navigating to workspace settings first. This option is available when no accounting integration is connected to the workspace.
+
+1. While creating or editing an expense, tap the **Category** field.
+2. Tap the **+** icon in the top-right corner.
+3. Enter a category name.
+4. Tap **Save**.
+
+The new category is immediately applied to the expense and added to the workspace's category list.
 
 ---
 
@@ -113,6 +126,19 @@ Expensify learns your category preferences over time and suggests them automatic
 - If you manually change a category, Expensify remembers the update.
 - Existing expenses are not updated retroactively.
 - These suggestions are based on patterns and may vary by user.
+
+## How to set default categories by MCC code
+
+Expensify can automatically assign a default category based on the merchant's MCC (Merchant Category Code). For example, you can set all airline expenses to default to a "Flights" category.
+
+To manage MCC default categories:
+
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
+2. Click your **workspace name**.
+3. Click **Categories**.
+4.  Click **More**
+5. Click **Settings**. 
+6. Update the default category for any MCC group (e.g., Airlines, Gas, Groceries).
 
 ## Workspace Merchant Rules
 

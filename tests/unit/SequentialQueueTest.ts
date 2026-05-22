@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
-import {getAll, getLength, getOngoingRequest} from '@userActions/PersistedRequests';
+import {getAll, getLength, getOngoingRequest, updateOngoingRequest} from '@userActions/PersistedRequests';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
 import type Request from '../../src/types/onyx/Request';
@@ -20,7 +20,9 @@ beforeAll(() => {
 });
 beforeEach(() => {
     global.fetch = TestHelper.getGlobalFetchMock();
-    return Onyx.clear().then(waitForBatchedUpdates);
+    return Onyx.clear()
+        .then(() => SequentialQueue.clearQueueFlushedData())
+        .then(waitForBatchedUpdates);
 });
 describe('SequentialQueue', () => {
     it('should push one request and persist one', () => {
@@ -53,10 +55,10 @@ describe('SequentialQueue', () => {
         };
         SequentialQueue.push(requestWithConflictResolution);
         expect(getLength()).toBe(1);
-        // We know there is only one request in the queue, so we can get the first one and verify
-        // that the persisted request is the second one.
-        const persistedRequest = getAll().at(0);
-        expect(persistedRequest?.data?.accountID).toBe(56789);
+        // We know there is only one request and it's ongoing.
+        // We can get it and verify that the ongoing request is the second one.
+        const ongoingRequest = getOngoingRequest();
+        expect(ongoingRequest?.data?.accountID).toBe(56789);
     });
 
     it('should push two requests with conflict resolution and push', () => {
@@ -109,7 +111,9 @@ describe('SequentialQueue', () => {
         };
 
         SequentialQueue.push(requestWithConflictResolution);
-        expect(getLength()).toBe(2);
+
+        const ongoingRequest = getOngoingRequest();
+        expect(ongoingRequest?.data?.accountID).toBe(56789);
     });
 
     it('should replace request request in queue while a similar one is ongoing', async () => {
@@ -175,9 +179,14 @@ describe('SequentialQueue', () => {
 
         expect(getLength()).toBe(4);
         const persistedRequests = getAll();
-        // We know ReconnectApp is at index 1 in the queue, so we can get it to verify
+        const ongoingRequest = getOngoingRequest();
+
+        // The first OpenReport call is ongoing
+        expect(ongoingRequest?.command).toBe('OpenReport');
+
+        // We know ReconnectApp is at index 0 in the queue now, so we can get it to verify
         // that was replaced by the new request.
-        expect(persistedRequests.at(1)?.data?.accountID).toBe(56789);
+        expect(persistedRequests.at(0)?.data?.accountID).toBe(56789);
     });
 
     // need to test a rance condition between processing the next request and then pushing a new request with conflict resolver
@@ -254,6 +263,21 @@ describe('SequentialQueue', () => {
 
         expect(persistedRequest).toEqual(getOngoingRequest());
         expect(getAll().length).toBe(1);
+    });
+
+    it('should not flush queueFlushedData while an ongoing request still exists', async () => {
+        const persistedRequest = {...request, persistWhenOngoing: true, initiatedOffline: false};
+        const flushedUpdate: OnyxUpdate<typeof ONYXKEYS.USER_METADATA> = {key: 'userMetadata', onyxMethod: 'set', value: {accountID: 1234}};
+
+        updateOngoingRequest(persistedRequest as AnyRequest);
+        await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+        await SequentialQueue.saveQueueFlushedData(flushedUpdate);
+        await waitForBatchedUpdates();
+
+        SequentialQueue.flush();
+        await Promise.resolve();
+        await waitForBatchedUpdates();
+        expect(SequentialQueue.getQueueFlushedData()).toEqual([flushedUpdate]);
     });
 });
 

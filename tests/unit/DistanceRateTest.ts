@@ -156,7 +156,7 @@ describe('DistanceRate', () => {
                 });
             });
 
-            if (!policy || !policy.customUnits) {
+            if (!policy?.customUnits) {
                 return;
             }
 

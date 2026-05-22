@@ -224,7 +224,7 @@ function createPolicyTag({
             currentUserAccountID,
             setupTagsHasOutstandingChildTask ?? false,
             setupTagsParentReportAction,
-            // Will be refactored in next PR; buildOptimisticTaskReportAction falls back to module-level Onyx.connect value; tracked in https://github.com/Expensify/App/issues/66417
+            // delegateEmail: will be threaded in PR 16; buildOptimisticTaskReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
             undefined,
         );
     }
@@ -238,7 +238,7 @@ function createPolicyTag({
             currentUserAccountID,
             setupCategoriesAndTagsHasOutstandingChildTask ?? false,
             setupCategoriesAndTagsParentReportAction,
-            // Will be refactored in next PR; buildOptimisticTaskReportAction falls back to module-level Onyx.connect value; tracked in https://github.com/Expensify/App/issues/66417
+            // delegateEmail: will be threaded in PR 16; buildOptimisticTaskReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
             undefined,
         );
     }
@@ -856,9 +856,22 @@ function enablePolicyTags(policyData: PolicyData, enabled: boolean) {
     }
 }
 
-function cleanPolicyTags(policyID: string) {
-    // We do not have any optimistic data or success data for this command as this action cannot be done offline
-    API.write(WRITE_COMMANDS.CLEAN_POLICY_TAGS, {policyID});
+function cleanPolicyTags(policyID: string, shouldDisableRequiresTag = false) {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> | undefined = shouldDisableRequiresTag
+        ? {
+              successData: [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                      value: {
+                          requiresTag: false,
+                      },
+                  },
+              ],
+          }
+        : undefined;
+
+    API.write(WRITE_COMMANDS.CLEAN_POLICY_TAGS, {policyID}, onyxData);
 }
 
 function setImportedSpreadsheetIsImportingMultiLevelTags(isImportingMultiLevelTags: boolean) {
@@ -875,10 +888,6 @@ function setImportedSpreadsheetIsFirstLineHeader(containsHeader: boolean) {
 
 function setImportedSpreadsheetIsGLAdjacent(isGLAdjacent: boolean) {
     Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {isGLAdjacent});
-}
-
-function setImportedSpreadsheetFileURI(fileURI: string) {
-    Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {fileURI});
 }
 
 function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet | undefined) {
@@ -1078,7 +1087,7 @@ function setPolicyRequiresTag(policyData: PolicyData, requiresTag: boolean) {
 
 function setPolicyTagsRequired(policyData: PolicyData, requiresTag: boolean, tagListIndex: number) {
     const policyTag = PolicyUtils.getTagLists(policyData.tags)?.at(tagListIndex);
-    if (!policyTag || !policyTag.name) {
+    if (!policyTag?.name) {
         return;
     }
 
@@ -1348,6 +1357,5 @@ export {
     setImportedSpreadsheetIsImportingIndependentMultiLevelTags,
     setImportedSpreadsheetIsFirstLineHeader,
     setImportedSpreadsheetIsGLAdjacent,
-    setImportedSpreadsheetFileURI,
     importMultiLevelTags,
 };

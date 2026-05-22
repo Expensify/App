@@ -2,6 +2,7 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
+import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {SearchActionsContext, SearchStateContext} from '@components/Search/SearchContext';
@@ -40,18 +41,22 @@ const mockSearchStateContext = {
     shouldUseLiveData: false,
     currentSimilarSearchHash: -1,
     suggestedSearches: {} as SearchStateContextValue['suggestedSearches'],
+    sortedReportIDs: [],
+    hasSelectedTransactions: false,
 } satisfies SearchStateContextValue;
 
 const mockSearchActionsContext = {
     setLastSearchType: jest.fn(),
     setCurrentSelectedTransactionReportID: jest.fn(),
     setSelectedTransactions: jest.fn(),
+    setSelectedReports: jest.fn(),
     removeTransaction: jest.fn(),
     clearSelectedTransactions: jest.fn(),
     setShouldShowFiltersBarLoading: jest.fn(),
     setShouldShowSelectAllMatchingItems: jest.fn(),
     selectAllMatchingItems: jest.fn(),
     setShouldResetSearchQuery: jest.fn(),
+    setSortedReportIDs: jest.fn(),
 } satisfies SearchActionsContextValue;
 
 const createMonthListItem = (year: number, month: number, options: Partial<TransactionMonthGroupListItemType> = {}): TransactionMonthGroupListItemType => ({
@@ -84,7 +89,7 @@ const renderMonthListItemHeader = (
     }> = {},
 ) => {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
             <SearchStateContext.Provider value={mockSearchStateContext}>
                 <SearchActionsContext.Provider value={mockSearchActionsContext}>
                     <MonthListItemHeader

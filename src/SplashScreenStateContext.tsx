@@ -72,5 +72,4 @@ function useSplashScreenActions() {
     return useContext(SplashScreenActionsContext);
 }
 
-export default SplashScreenStateContext;
 export {SplashScreenStateContextProvider, useSplashScreenState, useSplashScreenActions};
