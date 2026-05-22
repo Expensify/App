@@ -130,7 +130,6 @@ function SelectedDateReportField({ref, field, value: initialValue, selectedDateM
         isDateModifierSelected: () => !!selectedDateModifier,
         applySelectedFieldAndGoBack: () => {
             dateFilterRef.current?.save();
-            onDateModifierSelected(null);
         },
         resetSelectedFieldAndGoBack: () => {
             if (selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
