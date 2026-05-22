@@ -1074,10 +1074,10 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_EXPORT_STATUS]: Parameters.UpdateFinancialForceGenericTypeParams<'value', string>;
     [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_EXPORT_DATE]: Parameters.UpdateFinancialForceGenericTypeParams<'value', string>;
     [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DEFAULT_VENDOR]: Parameters.UpdateFinancialForceGenericTypeParams<'vendorID', string>;
-    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DIMENSION1_MAPPING]: Parameters.UpdateFinancialForceGenericTypeParams<'value', string>;
-    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DIMENSION2_MAPPING]: Parameters.UpdateFinancialForceGenericTypeParams<'value', string>;
-    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DIMENSION3_MAPPING]: Parameters.UpdateFinancialForceGenericTypeParams<'value', string>;
-    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DIMENSION4_MAPPING]: Parameters.UpdateFinancialForceGenericTypeParams<'value', string>;
+    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DIMENSION1_MAPPING]: Parameters.UpdateFinancialForceGenericTypeParams<'mappingType', string>;
+    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DIMENSION2_MAPPING]: Parameters.UpdateFinancialForceGenericTypeParams<'mappingType', string>;
+    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DIMENSION3_MAPPING]: Parameters.UpdateFinancialForceGenericTypeParams<'mappingType', string>;
+    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_DIMENSION4_MAPPING]: Parameters.UpdateFinancialForceGenericTypeParams<'mappingType', string>;
     [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_SYNC_TAX]: Parameters.UpdateFinancialForceGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_AUTO_SYNC]: Parameters.UpdateFinancialForceGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_SYNC_REIMBURSED_REPORTS]: Parameters.UpdateFinancialForceGenericTypeParams<'enabled', boolean>;
