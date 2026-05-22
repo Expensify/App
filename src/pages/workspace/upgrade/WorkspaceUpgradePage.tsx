@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -25,6 +25,7 @@ import {
     getDefaultApprover,
     getPerDiemCustomUnit,
     isControlPolicy,
+    isPaidGroupPolicy,
 } from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {enablePerDiem} from '@userActions/Policy/PerDiem';
@@ -78,14 +79,28 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const canAccessSubmitWorkspaceFeatures = canAccessSubmitWorkspaceFeaturesUtils(policy, isSubmit2026BetaEnabled);
     const featureNameAlias = route.params?.featureName && getFeatureNameAlias(route.params.featureName);
+    const [upgradingFromSubmit, setUpgradingFromSubmit] = useState<boolean | undefined>(undefined);
 
-    const feature = useMemo(
-        () =>
-            Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
-                .filter((value) => value.id !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id)
-                .find((f) => f.alias === featureNameAlias),
-        [featureNameAlias],
-    );
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- snapshot is workspace-scoped; clear when route policyID changes
+        setUpgradingFromSubmit(undefined);
+    }, [policyID]);
+
+    useEffect(() => {
+        if (!policy?.type) {
+            return;
+        }
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- latch once when policy loads; functional update preserves sticky value across upgrades
+        setUpgradingFromSubmit((previous) => (previous !== undefined ? previous : canAccessSubmitWorkspaceFeatures));
+    }, [policy?.type, policyID, canAccessSubmitWorkspaceFeatures]);
+
+    const feature = featureNameAlias
+        ? Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
+              .filter((value) => value.id !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id)
+              .find((f) => f.alias === featureNameAlias)
+        : undefined;
+
+    const isUpgraded = !!policy?.type && upgradingFromSubmit !== undefined && (isControlPolicy(policy) || !!(upgradingFromSubmit && isPaidGroupPolicy(policy)));
     const {translate} = useLocalize();
     const {accountID, email = ''} = useCurrentUserPersonalDetails();
     const [priorFirstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
@@ -95,10 +110,10 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const [ownerPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: ownerPoliciesSelectorWithAccountID});
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {isOffline} = useNetwork();
-    const canPerformUpgrade = useMemo(() => canModifyPlan(ownerPolicies, policy) || canAccessSubmitWorkspaceFeatures, [ownerPolicies, policy, canAccessSubmitWorkspaceFeatures]);
-    const isUpgraded = useMemo(() => isControlPolicy(policy), [policy]);
+    const canPerformUpgrade = canModifyPlan(ownerPolicies, policy) || canAccessSubmitWorkspaceFeatures;
     const policyData = usePolicyData(policyID);
     const policyDataRef = useRef(policyData);
+
     useEffect(() => {
         policyDataRef.current = policyData;
     });
