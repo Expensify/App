@@ -8,10 +8,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
 jest.mock('@libs/API');
-jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn()}));
+jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn(), goBack: jest.fn()}));
 
 const mockWrite = jest.mocked(write);
-const mockNavigate = jest.mocked(Navigation.navigate);
+const mockGoBack = jest.mocked(Navigation.goBack);
 
 function getWriteOptions(): {optimisticData: AnyOnyxUpdate[]; successData: AnyOnyxUpdate[]; failureData: AnyOnyxUpdate[]} {
     const options = mockWrite.mock.calls.at(0)?.at(2);
@@ -386,10 +386,10 @@ describe('deleteAgent', () => {
         expect((promptUpdate?.value as Record<string, unknown>)?.errors).toBeTruthy();
     });
 
-    it('calls Navigation.navigate after issuing the write', () => {
+    it('calls Navigation.goBack after issuing the write', () => {
         deleteAgent(TEST_ACCOUNT_ID);
 
-        expect(mockNavigate).toHaveBeenCalledTimes(1);
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 });
 
