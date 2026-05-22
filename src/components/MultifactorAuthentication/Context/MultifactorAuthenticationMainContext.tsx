@@ -19,6 +19,7 @@ import getPlatform from '@libs/getPlatform';
 import {isHttpSuccess} from '@libs/MultifactorAuthentication/shared/helpers';
 import {createLocalMFAError, createMFAErrorFromApiResponse} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import type {MultifactorAuthenticationCallbackInput} from '@libs/MultifactorAuthentication/shared/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {clearLocalMFAPublicKeyList, getDeviceBiometricsOnyxKey, requestAuthorizationChallenge, requestRegistrationChallenge} from '@userActions/MultifactorAuthentication';
 import {processRegistration, processScenarioAction} from '@userActions/MultifactorAuthentication/processing';
 import CONST from '@src/CONST';
@@ -149,7 +150,10 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 return;
             }
 
-            mfaNavigate(isSuccessful ? SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS : SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE);
+            // Wait out any callback-initiated transition (e.g. RHP goBack) before pushing the outcome screen.
+            // Android raced the two animations and the RHP slide-out leaked through the outgoing screen.
+            const outcomeScreen = isSuccessful ? SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS : SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE;
+            TransitionTracker.runAfterTransitions({callback: () => mfaNavigate(outcomeScreen)});
         },
         [captureCredentialsState, dispatch, state],
     );
