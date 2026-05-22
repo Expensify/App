@@ -1,4 +1,3 @@
-import type {SkTypeface} from '@shopify/react-native-skia';
 import React, {createContext, useContext} from 'react';
 import type {TNode} from 'react-native-render-html';
 import type {CartesianChartRenderArg} from 'victory-native';

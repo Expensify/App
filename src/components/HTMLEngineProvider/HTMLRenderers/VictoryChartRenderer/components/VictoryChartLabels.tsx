@@ -1,7 +1,7 @@
 import {Skia, Text as SkText} from '@shopify/react-native-skia';
 import React from 'react';
 import {useChartDefaultTypeface} from '@components/Charts/hooks';
-import type {LabelItem} from '../types';
+import type {LabelItem} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 
 type VictoryChartLabelsProps = {
     labelItems: LabelItem[];

@@ -1,7 +1,7 @@
 import {Circle, Skia, Text as SkText} from '@shopify/react-native-skia';
 import React, {Fragment} from 'react';
 import {useChartDefaultTypeface} from '@components/Charts/hooks';
-import type {LegendItem} from '../types';
+import type {LegendItem} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 
 type VictoryChartLegendProps = {
     legendItems: LegendItem[];

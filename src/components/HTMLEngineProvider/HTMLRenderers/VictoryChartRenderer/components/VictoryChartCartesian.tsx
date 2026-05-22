@@ -1,9 +1,9 @@
 import React from 'react';
 import {CartesianChart} from 'victory-native';
 import {useVictoryChartContext, VictoryChartRenderArgsProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
+import getYKey from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getYKey';
 import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 import parseDomainPadding from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseDomainPadding';
-import getYKey from '../utils/getYKey';
 import VictoryChartLabels from './VictoryChartLabels';
 import VictoryChartLegend from './VictoryChartLegend';
 import VictoryChartSeries from './VictoryChartSeries';
