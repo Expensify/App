@@ -3661,7 +3661,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             const iouReportID = '801';
 
             const fakeChatReport: Report = {
-                ...createRandomReport(Number(chatReportID)),
+                ...createRandomReport(Number(chatReportID), undefined),
                 reportID: chatReportID,
                 iouReportID,
                 hasOutstandingChildRequest: true,
@@ -3686,7 +3686,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             });
             await waitForBatchedUpdates();
 
-            const result = getIOUReportActionWithBadge(fakeChatReport, null, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID);
+            const result = getIOUReportActionWithBadge(fakeChatReport, undefined, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID);
             expect(result.reportAction).toMatchObject(reportPreviewAction);
             expect(result.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.PAY);
         });
@@ -3696,7 +3696,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             const iouReportID = '811';
 
             const fakeChatReport: Report = {
-                ...createRandomReport(Number(chatReportID)),
+                ...createRandomReport(Number(chatReportID), undefined),
                 reportID: chatReportID,
                 iouReportID,
                 hasOutstandingChildRequest: true,
@@ -3719,7 +3719,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             });
             await waitForBatchedUpdates();
 
-            const result = getIOUReportActionWithBadge(fakeChatReport, null, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID);
+            const result = getIOUReportActionWithBadge(fakeChatReport, undefined, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID);
             expect(result.reportAction).toBeUndefined();
             expect(result.actionBadge).toBeUndefined();
         });
@@ -3729,7 +3729,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             const iouReportID = '821';
 
             const fakeChatReport: Report = {
-                ...createRandomReport(Number(chatReportID)),
+                ...createRandomReport(Number(chatReportID), undefined),
                 reportID: chatReportID,
                 iouReportID,
                 hasOutstandingChildRequest: true,
@@ -3752,7 +3752,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             });
             await waitForBatchedUpdates();
 
-            const result = getIOUReportActionWithBadge(fakeChatReport, null, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID);
+            const result = getIOUReportActionWithBadge(fakeChatReport, undefined, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID);
             expect(result.reportAction).toBeUndefined();
             expect(result.actionBadge).toBeUndefined();
         });
