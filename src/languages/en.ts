@@ -6476,7 +6476,7 @@ const translations = {
             disconnect: 'Disconnect',
             disconnectTitle: (providerName: string) => `Disconnect ${providerName}`,
             disconnectPrompt: (providerName: string) => `Are you sure you want to disconnect ${providerName}?`,
-            alreadyConnectedTitle: 'Cannot connect to multiple HR platform',
+            alreadyConnectedTitle: 'Cannot connect to multiple HR platforms',
             alreadyConnectedPrompt: 'You must disconnect your current HR platform before connecting another.',
             lastSync: (relativeDate: string) => `Last synced ${relativeDate}`,
             syncError: (providerName: string) => `Can't connect to ${providerName}`,

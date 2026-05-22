@@ -98,7 +98,7 @@ function WorkspaceHRPage({
                 prompt: translate('workspace.hr.alreadyConnectedPrompt'),
                 confirmText: translate('common.buttonConfirm'),
                 shouldShowCancelButton: false,
-                innerContainerStyle: shouldUseNarrowLayout ? undefined : StyleUtils.getWidthStyle(variables.hrAlreadyConnectedModalWidth),
+                innerContainerStyle: shouldUseNarrowLayout ? undefined : StyleUtils.getWidthStyle(variables.wideConfirmModalWidth),
             });
             return;
         }

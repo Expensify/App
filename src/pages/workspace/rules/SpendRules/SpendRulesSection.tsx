@@ -1,5 +1,5 @@
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
+import React, { useEffect } from 'react';
+import { View } from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
@@ -8,10 +8,10 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import { useCurrencyListActions } from '@hooks/useCurrencyList';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useEnvironment from '@hooks/useEnvironment';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import { useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations } from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -19,11 +19,11 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {openPolicyExpensifyCardsPage} from '@libs/actions/Policy/Policy';
-import {filterInactiveCards, getCardDescriptionForSearchTable, getSelectedCardsSharedCurrency} from '@libs/CardUtils';
+import { openPolicyExpensifyCardsPage } from '@libs/actions/Policy/Policy';
+import { filterInactiveCards, getCardDescriptionForSearchTable, getSelectedCardsSharedCurrency } from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getSpendRuleFormValuesFromCardRule, getSpendRuleSummaryParts, getTruncatedSpendRuleSummary} from '@libs/SpendRulesUtils';
+import { getDisplayNameOrDefault } from '@libs/PersonalDetailsUtils';
+import { getSpendRuleFormValuesFromCardRule, getSpendRuleSummaryParts, getTruncatedSpendRuleSummary } from '@libs/SpendRulesUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,21 +34,21 @@ type SpendRulesSectionProps = {
     policyID: string;
 };
 
-function SpendRulesSection({policyID}: SpendRulesSectionProps) {
-    const {convertToDisplayString} = useCurrencyListActions();
-    const {translate, localeCompare} = useLocalize();
+function SpendRulesSection({ policyID }: SpendRulesSectionProps) {
+    const { convertToDisplayString } = useCurrencyListActions();
+    const { translate, localeCompare } = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const { shouldUseNarrowLayout } = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock', 'Plus']);
-    const {showConfirmModal} = useConfirmModal();
+    const { showConfirmModal } = useConfirmModal();
     const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardProtectionIllustration']);
-    const {isProduction} = useEnvironment();
-    const {isOffline} = useNetwork();
+    const { isProduction } = useEnvironment();
+    const { isOffline } = useNetwork();
     const defaultFundID = useDefaultFundID(policyID);
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
-    const [cardsList, cardsListResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
+    const [cardsList, cardsListResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, { selector: filterInactiveCards });
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     useEffect(() => {
@@ -80,7 +80,7 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
             shouldShowCancelButton: false,
             success: false,
             confirmText: translate('common.buttonConfirm'),
-            innerContainerStyle: shouldUseNarrowLayout ? undefined : StyleUtils.getWidthStyle(variables.builtInProtectionModalWidth),
+            innerContainerStyle: shouldUseNarrowLayout ? undefined : StyleUtils.getWidthStyle(variables.wideConfirmModalWidth),
         });
     };
 
@@ -111,7 +111,7 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                     const displayName = getDisplayNameOrDefault(personalDetails?.[accountID], '', false);
                     return getCardDescriptionForSearchTable(card, translate, displayName || undefined) || cardID;
                 }),
-                (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}),
+                (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', { summary, count }),
             );
 
             return {
@@ -129,7 +129,7 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
 
     const renderSectionTitle = () => (
         <View style={[styles.flexRow, styles.alignItemsCenter]}>
-            <Text style={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, {color: theme.text}]}>{translate('workspace.rules.spendRules.title')}</Text>
+            <Text style={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, { color: theme.text }]}>{translate('workspace.rules.spendRules.title')}</Text>
             <Badge
                 text={translate('common.newFeature')}
                 isCondensed
