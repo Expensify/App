@@ -5,6 +5,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {LastSelectedDistanceRates, OnyxInputOrEntry, Transaction} from '@src/types/onyx';
+import type DefaultP2PMileageRate from '@src/types/onyx/DefaultP2PMileageRate';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -287,11 +288,11 @@ function getDistanceMerchant(
  */
 function getRateForP2P(currency: string, transaction: OnyxEntry<Transaction>): MileageRate {
     const defaultRate = getStoredDefaultP2PMileageRate();
-    const p2pRate = defaultRate ?? {rate: 6700, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES};
+    const p2pRate: DefaultP2PMileageRate = defaultRate ?? {rate: 6700, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES};
     const rate = getCurrency(transaction) === currency ? (transaction?.comment?.customUnit?.defaultP2PRate ?? p2pRate.rate) : p2pRate.rate;
     return {
         rate,
-        unit: p2pRate.unit as Unit,
+        unit: p2pRate.unit,
         currency: defaultRate ? currency : CONST.CURRENCY.USD,
     };
 }
