@@ -623,12 +623,16 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const isDeletingOnlyExpenses = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE && expenseCount > 0;
     const deleteCount = isDeletingOnlyExpenses ? expenseCount : uniqueReportCount;
     const deleteModalTitle = isDeletingOnlyExpenses ? translate('iou.deleteExpense', {count: expenseCount}) : translate('iou.deleteReport', {count: deleteCount});
-    const deleteModalPrompt =
-        isDeletingOnlyExpenses && expenseCount === 1 && isPending(firstTransaction)
-            ? translate('iou.deleteConfirmationPendingBYOC')
-            : isDeletingOnlyExpenses
-              ? translate('iou.deleteConfirmation', {count: expenseCount})
-              : translate('iou.deleteReportConfirmation', {count: deleteCount});
+    const getDeleteModalPrompt = () => {
+        if (isDeletingOnlyExpenses && expenseCount === 1 && isPending(firstTransaction)) {
+            return translate('iou.deleteConfirmationPendingBYOC');
+        }
+        if (isDeletingOnlyExpenses) {
+            return translate('iou.deleteConfirmation', {count: expenseCount});
+        }
+        return translate('iou.deleteReportConfirmation', {count: deleteCount});
+    };
+    const deleteModalPrompt = getDeleteModalPrompt();
 
     const handleDeleteSelectedTransactions = useCallback(async () => {
         if (!hash) {
