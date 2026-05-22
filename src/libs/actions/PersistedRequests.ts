@@ -168,20 +168,6 @@ Onyx.connectWithoutView({
 Onyx.connectWithoutView({
     key: ONYXKEYS.PERSISTED_ONGOING_REQUESTS,
     callback: (val) => {
-        // After initialization, when we have pending own writes to this key,
-        // the callback is from our own Onyx.set/multiSet. Skip it to prevent
-        // a stale serialized copy (delivered out of order by Onyx) from
-        // overwriting the current in-memory value and triggering a spurious
-        // flush() via triggerInitializationCallback().
-        if (isInitialized && pendingOwnOngoingRequestWrites > 0) {
-            Log.info('[PersistedRequests] ONGOING_REQUEST callback skipped (own write pending)', false, {
-                diskValue: val?.command ?? 'null',
-                inMemoryCommand: ongoingRequest?.command ?? 'null',
-                pendingOwnWrites: pendingOwnOngoingRequestWrites,
-            });
-            return;
-        }
-
         const previousOngoingRequest = ongoingRequest;
         ongoingRequest = val ?? null;
 
@@ -190,7 +176,17 @@ Onyx.connectWithoutView({
             newOngoingCommand: ongoingRequest?.command ?? 'null',
             diskValue: val?.command ?? 'null',
             changed: previousOngoingRequest !== ongoingRequest,
+            pendingOwnWrites: pendingOwnOngoingRequestWrites,
         });
+
+        // When we have pending own writes to this key, the callback may be
+        // delivering a stale serialized copy out of order. We still update
+        // ongoingRequest above (so cross-tab updates are never lost), but
+        // skip triggerInitializationCallback to prevent a spurious flush().
+        if (isInitialized && pendingOwnOngoingRequestWrites > 0) {
+            Log.info('[PersistedRequests] ONGOING_REQUEST skipping triggerInitializationCallback (own write pending)', false);
+            return;
+        }
 
         if (isInitialized && ongoingRequest && previousOngoingRequest !== ongoingRequest) {
             Log.info('[PersistedRequests] Triggering initialization callback from ongoing request', false);
