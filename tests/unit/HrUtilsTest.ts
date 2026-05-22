@@ -59,7 +59,7 @@ function makeGetHRCardsParams(overrides: Partial<GetHRCardsParams> = {}): GetHRC
         translate: stubTranslate,
         policyID: POLICY_ID,
         gustoIcon: STUB_ICON,
-        zenefitsIcon: STUB_ICON,
+        trinetIcon: STUB_ICON,
         ...overrides,
     };
 }
@@ -459,12 +459,12 @@ describe('getHRCards', () => {
 
     it('uses provider icons from params for static providers', () => {
         const gustoIcon = {testId: 'gusto'} as unknown as IconAsset;
-        const zenefitsIcon = {testId: 'zenefits'} as unknown as IconAsset;
+        const trinetIcon = {testId: 'zenefits'} as unknown as IconAsset;
         const isBetaEnabled: GetHRCardsParams['isBetaEnabled'] = (beta) => beta === CONST.BETAS.GUSTO || beta === CONST.BETAS.ZENEFITS;
-        const cards = getHRCards(makeGetHRCardsParams({gustoIcon, zenefitsIcon, isBetaEnabled}));
+        const cards = getHRCards(makeGetHRCardsParams({gustoIcon, trinetIcon, isBetaEnabled}));
 
         expect(cards?.at(0)?.icon).toBe(gustoIcon);
-        expect(cards?.at(1)?.icon).toBe(zenefitsIcon);
+        expect(cards?.at(1)?.icon).toBe(trinetIcon);
     });
 
     it('uses provider iconUrl for Merge cards', () => {
