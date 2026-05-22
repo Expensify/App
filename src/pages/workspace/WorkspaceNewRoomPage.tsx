@@ -233,7 +233,7 @@ function WorkspaceNewRoomPage({ref, policyID: lockedPolicyID}: WorkspaceNewRoomP
 
             return errors;
         },
-        [reports, policyID, translate, shouldEnableValidation],
+        [reports, policyID, translate, shouldEnableValidation, isLocked],
     );
 
     const writeCapabilityOptions = useMemo(
