@@ -34,6 +34,7 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
     const [selectedGoal, setSelectedGoal] = useState<string | null>(null);
     const [somethingElseText, setSomethingElseText] = useState('');
     const [error, setError] = useState('');
+    const [inputError, setInputError] = useState('');
     const illustrations = useMemoizedLazyIllustrations(['RealEstate', 'HouseMoney', 'TargetWithArrow', 'Binoculars']);
 
     const isSomethingElseSelected = selectedGoal === CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE;
@@ -64,6 +65,7 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
             onPress: () => {
                 setSelectedGoal(goal);
                 setError('');
+                setInputError('');
             },
         };
     });
@@ -108,8 +110,16 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
                                 onChangeText={(text) => {
                                     setSomethingElseText(text);
                                     setError('');
+                                    setInputError('');
                                 }}
                             />
+                            {!!inputError && (
+                                <FormHelpMessage
+                                    style={[styles.ph1, styles.mt2]}
+                                    isError
+                                    message={inputError}
+                                />
+                            )}
                         </View>
                     )}
                 </View>
@@ -132,7 +142,7 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
                             return;
                         }
                         if (isSomethingElseSelected && !somethingElseText.trim()) {
-                            setError(translate('onboarding.errorSelection'));
+                            setInputError(translate('common.error.fieldRequired'));
                             return;
                         }
                         const goalValue = isSomethingElseSelected ? somethingElseText.trim() : selectedGoal;
