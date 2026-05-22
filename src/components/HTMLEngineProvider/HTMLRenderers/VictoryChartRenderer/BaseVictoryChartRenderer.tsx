@@ -6,8 +6,7 @@ function BaseVictoryChartRenderer({tnode}: VictoryChartRendererProps) {
     return (
         <VictoryChart.Provider tnode={tnode}>
             <VictoryChart.Container>
-                <VictoryChart.Cartesian />
-                <VictoryChart.Polar />
+                <VictoryChart.Content />
             </VictoryChart.Container>
         </VictoryChart.Provider>
     );
