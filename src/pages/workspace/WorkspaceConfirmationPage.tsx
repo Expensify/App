@@ -68,6 +68,7 @@ function WorkspaceConfirmationPage() {
             betas,
             hasActiveAdminPolicies,
             isAnnualSubscription,
+            didPreinsertWorkspaceRouteUnderModal: !shouldShowSuccessPage,
         });
     };
     const currentUrl = getCurrentUrl();
