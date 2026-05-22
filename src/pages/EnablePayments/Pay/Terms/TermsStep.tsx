@@ -9,12 +9,12 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import LongTermsForm from '@pages/EnablePayments/shared/TermsPage/LongTermsForm';
+import ShortTermsForm from '@pages/EnablePayments/shared/TermsPage/ShortTermsForm';
 import {acceptWalletTerms} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {UserWallet} from '@src/types/onyx';
-import LongTermsForm from './TermsPage/LongTermsForm';
-import ShortTermsForm from './TermsPage/ShortTermsForm';
 
 type TermsStepProps = {
     /** The user's wallet */

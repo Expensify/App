@@ -11,16 +11,16 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import FailedKYC from '@pages/EnablePayments/shared/FailedKYC';
+import useHasFreshWalletData from '@pages/EnablePayments/shared/useHasFreshWalletData';
 import {openEnablePaymentsPage} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AddBankAccount from './AddBankAccount/AddBankAccount';
-import FailedKYC from './FailedKYC';
 import FeesAndTerms from './FeesAndTerms/FeesAndTerms';
 import PersonalInfo from './PersonalInfo/PersonalInfo';
-import useHasFreshWalletData from './useHasFreshWalletData';
 import VerifyIdentity from './VerifyIdentity/VerifyIdentity';
 
 function EnablePaymentsPage() {
