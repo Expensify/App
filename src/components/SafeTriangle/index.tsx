@@ -121,7 +121,7 @@ function SafeTriangleOverlay({submenuRef, containerRef}: SafeTriangleOverlayProp
                 top: rect.top,
                 left: x + OFFSET,
                 height: rect.height,
-                width: rect.left - x + 2,
+                width: rect.left - x - OFFSET,
             });
             timeoutRef.current = setTimeout(clearTriangle, SAFE_TRIANGLE_CLEAR_DELAY_MS);
         } else {
