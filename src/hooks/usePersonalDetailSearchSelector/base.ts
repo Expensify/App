@@ -127,6 +127,9 @@ type UseSearchSelectorReturn = {
 
     /** Contact-related state and functions (when enablePhoneContacts is true) */
     contactState?: ContactState;
+
+    /** Selected options that don't exist in the personal details list (e.g. typed email addresses) */
+    selectedNonExistingOptions: OptionData[];
 };
 
 const defaultListOptions = {
@@ -266,6 +269,8 @@ function usePersonalDetailSearchSelectorBase({
         setSelectedAccountIDs(new Set());
     };
 
+    const selectedNonExistingOptions = extraOptions.filter((option) => option.isSelected);
+
     return {
         searchTerm,
         debouncedSearchTerm,
@@ -281,6 +286,7 @@ function usePersonalDetailSearchSelectorBase({
         resetSelection,
         areOptionsInitialized,
         contactState: undefined,
+        selectedNonExistingOptions,
     };
 }
 

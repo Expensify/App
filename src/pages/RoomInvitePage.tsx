@@ -79,18 +79,17 @@ function RoomInvitePage({
         excludedUsers[smsDomain] = true;
     }
 
-    const {searchTerm, debouncedSearchTerm, setSearchTerm, selectedOptions, availableOptions, toggleSelection, areOptionsInitialized} = usePersonalDetailSearchSelector({
-        shouldInitialize: didScreenTransitionEnd,
-        selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
-        excludeLogins: excludedUsers,
-        includeCurrentUser: false,
-        includeRecentReports: false,
-        includeUserToInvite: true,
-        initialSearchPhrase: userSearchPhrase,
-        shouldKeepSelectedInAvailableOptions: true,
-    });
-
-    const selectedNonExistingOptions = availableOptions.extraOptions.filter((option) => option.isSelected);
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, selectedOptions, availableOptions, selectedNonExistingOptions, toggleSelection, areOptionsInitialized} =
+        usePersonalDetailSearchSelector({
+            shouldInitialize: didScreenTransitionEnd,
+            selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+            excludeLogins: excludedUsers,
+            includeCurrentUser: false,
+            includeRecentReports: false,
+            includeUserToInvite: true,
+            initialSearchPhrase: userSearchPhrase,
+            shouldKeepSelectedInAvailableOptions: true,
+        });
 
     const sections: MembersSection[] = [];
     if (areOptionsInitialized) {
