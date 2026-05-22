@@ -206,7 +206,7 @@ function RoomInvitePage({
             isDisabled={!validSelectedOptions.length}
             buttonText={translate('common.invite')}
             onSubmit={inviteUsers}
-            containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5, styles.ph5]}
+            containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
             enabledWhenOffline
             isAlertVisible={false}
         />
