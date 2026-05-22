@@ -5,6 +5,7 @@ import Table from '@components/Table/';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import WorkspaceCategoriesTableRow from './WorkspaceCategoriesTableRow';
 
@@ -114,6 +115,7 @@ export default function WorkspaceCategoriesTable({ref, categories, shouldShowApp
             renderItem={renderCategoryItem}
             onRowSelectionChange={onRowSelectionChange}
         >
+            {categories.length > CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.categories.findCategory')} />}
             <Table.Header />
             <Table.Body />
         </Table>
