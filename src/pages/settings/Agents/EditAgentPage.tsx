@@ -111,7 +111,7 @@ function EditAgentPage({route}: EditAgentPageProps) {
                         title={agent?.prompt?.trim() ?? ''}
                         shouldParseTitle
                         shouldTruncateTitle
-                        characterLimit={300}
+                        characterLimit={CONST.AGENT_PROMPT_LIMIT}
                         shouldShowRightIcon
                         onPress={handleEditPromptPress}
                     />
