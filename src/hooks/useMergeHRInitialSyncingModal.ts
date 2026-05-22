@@ -41,6 +41,7 @@ function useMergeHRInitialSyncingModal(policyID: string, isFocused: boolean) {
 
     useEffect(() => {
         const isInitialSyncInProgress = mergeLastSync?.syncStatus === CONST.MERGE_HR.SYNC_STATUS.SYNCING && mergeLastSync?.syncType === CONST.MERGE_HR.SYNC_TYPE.INITIAL;
+        console.log({isFocused, isInitialSyncInProgress, isAppVisible, isAnyModalVisible});
         if (!isFocused || !isInitialSyncInProgress || !isAppVisible || isAnyModalVisible) {
             return;
         }
