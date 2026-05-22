@@ -80,6 +80,9 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     const personalDetails = usePersonalDetails();
     const isPolicyExpenseChat = useMemo(() => isPolicyExpenseChatUtils(report), [report]);
     const backTo = route.params.backTo;
+    const navigateBackToReportDetails = useCallback(() => {
+        Navigation.goBack(backTo ?? createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, ROUTES.REPORT_WITH_ID.getRoute(report.reportID)));
+    }, [backTo, report.reportID]);
     const isReportArchived = useReportIsArchived(report.reportID);
     const reportForSubtitle = useMemo(() => getReportForHeader(report), [report]);
 
@@ -275,7 +278,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
         onClearSelection: () => setSelectedMembers([]),
         onNavigationCallBack: () => {
             setSearchValue('');
-            Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path));
+            navigateBackToReportDetails();
         },
     });
 
@@ -437,9 +440,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
             <FullPageNotFoundView
                 shouldShow={isEmptyObject(report) || isReportArchived || (!isChatThread(report) && ((isUserCreatedPolicyRoom(report) && !isPolicyEmployee) || isDefaultRoom(report)))}
                 subtitleKey={subtitleKey}
-                onBackButtonPress={() => {
-                    Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path));
-                }}
+                onBackButtonPress={navigateBackToReportDetails}
             >
                 <HeaderWithBackButton
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
@@ -454,7 +455,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
                         }
 
                         setSearchValue('');
-                        Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path));
+                        navigateBackToReportDetails();
                     }}
                 />
                 <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>

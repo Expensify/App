@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import Badge from '@components/Badge';
@@ -66,6 +66,12 @@ type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 type ReportParticipantsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.ROOT>;
 function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     const backTo = route.params.backTo;
+    const navigateBackToReportDetails = useCallback(() => {
+        if (!report) {
+            return;
+        }
+        Navigation.goBack(backTo ?? createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, ROUTES.REPORT_WITH_ID.getRoute(report.reportID)));
+    }, [backTo, report]);
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'MakeAdmin', 'Plus', 'RemoveMembers', 'User']);
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
@@ -149,7 +155,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
             }
 
             setSearchValue('');
-            Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path));
+            navigateBackToReportDetails();
         },
     });
 
@@ -331,7 +337,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
 
                         if (report) {
                             setSearchValue('');
-                            Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path));
+                            navigateBackToReportDetails();
                         }
                     }}
                     subtitle={StringUtils.lineBreaksToSpaces(getReportName(report, reportAttributes))}
