@@ -86,6 +86,12 @@ export default function WorkspaceCategoriesTable({ref, categories, shouldShowApp
             return (enabled1 - enabled2) * orderMultiplier;
         }
 
+        if (activeSorting.columnKey === 'glCode') {
+            const glCode1 = item1.glCode ?? '';
+            const glCode2 = item2.glCode ?? '';
+            return localeCompare(glCode1, glCode2) * orderMultiplier;
+        }
+
         return localeCompare(item1.name, item2.name) * orderMultiplier;
     };
 
