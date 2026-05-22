@@ -2,7 +2,7 @@
 title: Assign Company Cards
 description: Learn how to assign company cards to members in your Workspace using the Company cards page.
 keywords: [New Expensify, assign company cards, Expensify card assignment, workspace company cards, assign card to employee, copilot assign card, delegate assign card]
-internalScope: Audience is Workspace Admins and Copilots. Covers assigning company cards to members in New Expensify, does not cover initial connection or troubleshooting connection issues. 
+internalScope: Audience is Workspace Admins and their Copilots. Covers assigning company cards to members in New Expensify, does not cover initial connection or troubleshooting connection issues. 
 ---
 
 # Assign Company Cards
@@ -13,7 +13,7 @@ Assigning company cards links company cards to Workspace members so their transa
 
 ## Who can assign company cards 
 
-Workspace Admins and Copilots can assign company cards after a company card feed is connected.
+Workspace Admins and their Copilots can assign company cards after a company card feed is connected.
 
 If you haven’t set up a feed yet, learn how to set one up:
 
@@ -48,4 +48,4 @@ Yes. A member can have multiple company cards assigned. Each card’s transactio
 
 ## Can members unassign their own company cards?
 
-No. Only Workspace Admins and Copilots can assign or reassign company cards.
+No. Only Workspace Admins and s can assign or reassign company cards.
