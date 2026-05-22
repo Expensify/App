@@ -250,7 +250,6 @@
 "../../src/libs/CurrencyUtils.ts"	"rulesdir/no-onyx-connect"	1
 "../../src/libs/Environment/betaChecker/index.android.ts"	"no-restricted-syntax"	1
 "../../src/libs/ErrorUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	1
-"../../src/libs/Fullstory/index.ts"	"no-restricted-syntax"	1
 "../../src/libs/KeyboardShortcut/isEnterWhileComposition.ts"	"@typescript-eslint/no-deprecated/event.keyCode"	1
 "../../src/libs/KeyboardShortcut/isEnterWhileComposition.ts"	"no-restricted-syntax"	1
 "../../src/libs/LocalePhoneNumber.ts"	"rulesdir/no-onyx-connect"	1
