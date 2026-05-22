@@ -64,6 +64,12 @@ type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Sort order index for displaying rates */
         index?: number;
+
+        /** ISO 8601 date string for when this rate becomes effective */
+        startDate?: string;
+
+        /** ISO 8601 date string for when this rate expires */
+        endDate?: string;
     },
     keyof TaxRateAttributes
 >;

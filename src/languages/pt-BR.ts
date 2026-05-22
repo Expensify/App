@@ -1508,6 +1508,7 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Alguns desses duplicados já foram aprovados ou pagos.',
         reviewDuplicates: 'Revisar duplicados',
         keepAll: 'Manter tudo',
+        keepSelected: 'Manter selecionados',
         noDuplicatesTitle: 'Tudo pronto!',
         noDuplicatesDescription: 'Não há transações duplicadas para revisar aqui.',
         confirmApprove: 'Confirmar valor da aprovação',
@@ -4804,6 +4805,26 @@ ${amount} para ${merchant} - ${date}`,
                 },
             },
         },
+        certinia: {
+            title: 'Certinia',
+            prerequisites: {
+                title: 'Antes de conectar',
+                installBundle: 'Para conexões FFA',
+                installBundleDescription: ({href, version}: {href: string; version: string}) =>
+                    `Instale o pacote do Expensify no Salesforce clicando neste link: <a href="${href}">Instalar FFA Expensify Bundle (Versão ${version})</a>`,
+                installBundleConfirm: 'Eu instalei o pacote',
+                setupContacts: 'Configurar usuário e contatos',
+                setupContactsBullet1:
+                    'Crie um Usuário e um Contato para você, caso eles ainda não existam no Certinia, certificando-se de que o e-mail corresponda ao seu e-mail principal no Expensify.',
+                setupContactsBullet2:
+                    'Crie contatos para cada funcionário que for enviar relatórios de despesas e para cada aprovador de relatórios. Certifique-se de que o e-mail de cada contato corresponda ao endereço de e-mail na conta Expensify do funcionário.',
+                setupContactsBullet3: 'Defina controles de permissão para o seu usuário para cada contato/recurso.',
+                setupContactsConfirm: 'Configurei o usuário e os contatos',
+                oauth: 'Entrar pelo Salesforce',
+                oauthDescription: 'Para concluir a configuração, você precisa entrar pelo Salesforce e pela Certinia.\n\nUse o botão abaixo para continuar.',
+                connectButton: 'Conectar ao Certinia',
+            },
+        },
         netsuite: {
             subsidiary: 'Subsidiária',
             subsidiarySelectDescription: 'Escolha a subsidiária no NetSuite da qual você gostaria de importar dados.',
@@ -5984,7 +6005,13 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 `Você está prestes to criar e compartilhar ${newWorkspaceName ?? ''} com ${totalMembers ?? 0} membros do workspace original.`,
             error: 'Ocorreu um erro ao duplicar seu novo espaço de trabalho. Tente novamente.',
         },
-        copyPolicySettings: {error: 'Ocorreu um erro ao copiar as configurações do workspace. Tente novamente.'},
+        copyPolicySettings: {
+            error: 'Ocorreu um erro ao copiar as configurações do workspace. Tente novamente.',
+            title: 'Copiar configurações',
+            selectWorkspaces: 'Selecionar espaços de trabalho',
+            description: 'Escolha os espaços de trabalho para os quais você quer copiar as configurações e, em seguida, selecione quais configurações deseja copiar.',
+            searchPlaceholder: 'Buscar espaços de trabalho',
+        },
         emptyWorkspace: {
             title: 'Você não tem nenhum workspace',
             subtitle: 'Controle recibos, reembolse despesas, gerencie viagens, envie faturas e muito mais.',
@@ -6462,7 +6489,13 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             errors: {
                 rateNameRequired: 'Nome da tarifa é obrigatório',
                 existingRateName: 'Já existe uma tarifa de distância com este nome',
+                nameRequired: 'Nome é obrigatório',
+                startDateMustBeBeforeEndDate: 'A data de início deve ser anterior à data de término',
+                amountRequired: 'O valor é obrigatório',
             },
+            amountPerUnit: (unit: string) => `Valor por ${unit}`,
+            startDate: 'Data de início',
+            endDate: 'Data de término',
         },
         editor: {
             descriptionInputLabel: 'Descrição',
@@ -6588,6 +6621,12 @@ Tem certeza de que deseja exportá-los novamente?`,
                 description: `Aproveite a sincronização automática e reduza lançamentos manuais com a integração Expensify + QuickBooks Desktop. Alcance máxima eficiência com uma conexão bidirecional em tempo real e categorização de despesas por classe, item, cliente e projeto.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Nossa integração com o QuickBooks Desktop está disponível apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
+                title: 'Certinia',
+                description: `Aproveite a sincronização automática e reduza lançamentos manuais com a integração Expensify + Certinia. Alinhe dimensões de categorização de despesas e a sincronização de impostos à sua configuração Certinia para maior visibilidade financeira.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Nossa integração com a Certinia está disponível apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Aprovações Avançadas',

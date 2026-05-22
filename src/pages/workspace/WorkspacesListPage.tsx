@@ -1,5 +1,5 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -34,6 +34,7 @@ import {calculateBillNewDot, clearDeleteWorkspaceError, clearDuplicateWorkspace,
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 import {filterInactiveCards} from '@libs/CardUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import FreezeWrapper from '@libs/Navigation/AppNavigator/FreezeWrapper';
 import openInternalRouteInNewTab from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import Navigation from '@libs/Navigation/Navigation';
@@ -100,11 +101,10 @@ function isUserReimburserForPolicy(policies: Record<string, PolicyType | undefin
     return policy.achAccount?.reimburser === userEmail;
 }
 
-function WorkspacesListPage() {
+function WorkspacesListPageContent() {
     const tableRef = useRef<TableHandle<WorkspaceRowData, WorkspaceTableColumnKey, string>>(null);
-    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Star', 'Trashcan', 'Transfer', 'FallbackWorkspaceAvatar']);
+    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Star', 'Trashcan', 'Transfer', 'FallbackWorkspaceAvatar', 'Plus']);
     const styles = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Star', 'Trashcan', 'Transfer', 'Plus', 'FallbackWorkspaceAvatar']);
     const {translate, localeCompare} = useLocalize();
     useDocumentTitle(translate('common.workspaces'));
     const {isOffline} = useNetwork();
@@ -311,6 +311,24 @@ function WorkspacesListPage() {
         );
     };
 
+    const copySettingsEligibleTargets = useMemo(() => {
+        const adminNonPersonal: string[] = [];
+        const corporateOnly: string[] = [];
+        if (!policies) {
+            return {adminNonPersonal, corporateOnly};
+        }
+        for (const policy of Object.values(policies)) {
+            if (!policy || policy.type === CONST.POLICY.TYPE.PERSONAL || !isPolicyAdmin(policy, session?.email)) {
+                continue;
+            }
+            adminNonPersonal.push(policy.id);
+            if (policy.type === CONST.POLICY.TYPE.CORPORATE) {
+                corporateOnly.push(policy.id);
+            }
+        }
+        return {adminNonPersonal, corporateOnly};
+    }, [policies, session?.email]);
+
     /**
      * Gets the menu item for each workspace
      */
@@ -321,7 +339,7 @@ function WorkspacesListPage() {
 
         const threeDotsMenuItems: PopoverMenuItem[] = [
             {
-                icon: expensifyIcons.Building,
+                icon: icons.Building,
                 text: translate('workspace.common.goToWorkspace'),
                 onSelected: item.action,
             },
@@ -329,7 +347,7 @@ function WorkspacesListPage() {
 
         if (!isOwner && (item.policyID !== preferredPolicyID || !isRestrictedToPreferredPolicy)) {
             threeDotsMenuItems.push({
-                icon: expensifyIcons.Exit,
+                icon: icons.Exit,
                 text: translate('common.leave'),
                 onSelected: callFunctionIfActionIsAllowed(() => {
                     close(() => {
@@ -350,10 +368,21 @@ function WorkspacesListPage() {
 
         if (isAdmin) {
             threeDotsMenuItems.push({
-                icon: icons.Copy,
+                icon: icons.Plus,
                 text: translate('workspace.common.duplicateWorkspace'),
                 onSelected: () => (item.policyID ? Navigation.navigate(ROUTES.WORKSPACE_DUPLICATE.getRoute(item.policyID)) : undefined),
             });
+            const isSourceCorporate = item.type === CONST.POLICY.TYPE.CORPORATE;
+            const candidates = isSourceCorporate ? copySettingsEligibleTargets.corporateOnly : copySettingsEligibleTargets.adminNonPersonal;
+            const hasEligibleCopyTarget = candidates.length > 1 || (candidates.length === 1 && candidates.at(0) !== item.policyID);
+
+            if (hasEligibleCopyTarget) {
+                threeDotsMenuItems.push({
+                    icon: icons.Copy,
+                    text: translate('workspace.copyPolicySettings.title'),
+                    onSelected: () => (item.policyID ? Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS.getRoute(item.policyID)) : undefined),
+                });
+            }
         }
 
         if (!isDefault && !item?.isJoinRequestPending && !isRestrictedToPreferredPolicy) {
@@ -633,6 +662,14 @@ function WorkspacesListPage() {
             />
             {outstandingBalanceModal}
         </WorkspaceListLayout>
+    );
+}
+
+function WorkspacesListPage() {
+    return (
+        <FreezeWrapper>
+            <WorkspacesListPageContent />
+        </FreezeWrapper>
     );
 }
 
