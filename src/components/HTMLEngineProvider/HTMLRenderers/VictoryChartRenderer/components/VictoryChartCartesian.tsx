@@ -1,6 +1,5 @@
 import React from 'react';
 import {CartesianChart} from 'victory-native';
-import {CHART_TYPE} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import {VictoryChartRenderArgsProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartRenderArgsContext';
 import getYKey from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getYKey';
@@ -15,11 +14,7 @@ import VictoryChartSeries from './VictoryChartSeries';
  * Labels and legend overlays are handled internally via `renderOutside`.
  */
 function VictoryChartCartesian() {
-    const {data, xKey, yKeys, xAxis, yAxis, tnode, labelItems, legendItems, type} = useVictoryChartContext();
-
-    if (type !== CHART_TYPE.CARTESIAN) {
-        return null;
-    }
+    const {data, xKey, yKeys, xAxis, yAxis, tnode, labelItems, legendItems} = useVictoryChartContext();
 
     return (
         <CartesianChart
