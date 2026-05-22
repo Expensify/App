@@ -2,6 +2,7 @@
 import {act, renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import useSelectionModeReportActions from '@hooks/useSelectionModeReportActions';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
@@ -779,48 +780,39 @@ describe('useSelectionModeReportActions', () => {
     });
 
     describe('shouldShowApproveButton with BYOC pending transactions', () => {
-        const TransactionUtils = require('@libs/TransactionUtils') as Record<string, jest.Mock>;
-        const IOUActions = require('@libs/actions/IOU/ReportWorkflow') as Record<string, jest.Mock>;
-
         it('passes shouldShowApproveButton=false to usePaymentOptions when all transactions are pending (BYOC)', () => {
             // canApproveIOU returns true so approve button would normally show
             IOUActions.canApproveIOU.mockReturnValue(true);
             // All transactions are pending (BYOC)
-            TransactionUtils.isPending.mockReturnValue(true);
+            (TransactionUtils.isPending as jest.Mock).mockReturnValue(true);
 
             const transactions = [buildTransaction(1), buildTransaction(2)];
             renderSelectionModeHook({transactions, selectedTransactionIDs: ['1', '2']});
 
-            const usePaymentOptionsMock = require('@hooks/usePaymentOptions') as {default: jest.Mock};
-            const lastCallArgs = usePaymentOptionsMock.default.mock.lastCall?.[0] as {shouldShowApproveButton?: boolean} | undefined;
-            expect(lastCallArgs?.shouldShowApproveButton).toBe(false);
+            expect(usePaymentOptionsMock.default).toHaveBeenCalledWith(expect.objectContaining({shouldShowApproveButton: false}));
         });
 
         it('passes shouldShowApproveButton=true to usePaymentOptions when transactions are not pending', () => {
             IOUActions.canApproveIOU.mockReturnValue(true);
             // Transactions are not pending
-            TransactionUtils.isPending.mockReturnValue(false);
+            (TransactionUtils.isPending as jest.Mock).mockReturnValue(false);
 
             const transactions = [buildTransaction(1), buildTransaction(2)];
             renderSelectionModeHook({transactions, selectedTransactionIDs: ['1', '2']});
 
-            const usePaymentOptionsMock = require('@hooks/usePaymentOptions') as {default: jest.Mock};
-            const lastCallArgs = usePaymentOptionsMock.default.mock.lastCall?.[0] as {shouldShowApproveButton?: boolean} | undefined;
-            expect(lastCallArgs?.shouldShowApproveButton).toBe(true);
+            expect(usePaymentOptionsMock.default).toHaveBeenCalledWith(expect.objectContaining({shouldShowApproveButton: true}));
         });
 
-        it('passes shouldShowApproveButton=false when only some transactions are pending (mixed)', () => {
+        it('passes shouldShowApproveButton=true when only some transactions are pending (mixed)', () => {
             IOUActions.canApproveIOU.mockReturnValue(true);
             // isPending alternates: first call true, second call false → not ALL pending → approve button still shows
-            TransactionUtils.isPending.mockReturnValueOnce(true).mockReturnValueOnce(false);
+            (TransactionUtils.isPending as jest.Mock).mockReturnValueOnce(true).mockReturnValueOnce(false);
 
             const transactions = [buildTransaction(1), buildTransaction(2)];
             renderSelectionModeHook({transactions, selectedTransactionIDs: ['1', '2']});
 
-            const usePaymentOptionsMock = require('@hooks/usePaymentOptions') as {default: jest.Mock};
-            const lastCallArgs = usePaymentOptionsMock.default.mock.lastCall?.[0] as {shouldShowApproveButton?: boolean} | undefined;
             // Not ALL pending → hasOnlyPendingTransactions=false → approve shows
-            expect(lastCallArgs?.shouldShowApproveButton).toBe(true);
+            expect(usePaymentOptionsMock.default).toHaveBeenCalledWith(expect.objectContaining({shouldShowApproveButton: true}));
         });
     });
 });

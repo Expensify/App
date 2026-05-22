@@ -403,7 +403,9 @@ function isPartialTransaction(transaction: OnyxEntry<Transaction>): boolean {
 
 function isPendingCardOrScanningTransaction(transaction: OnyxEntry<Transaction>): boolean {
     return (
-        isPending(transaction) || (isScanRequest(transaction) && isMerchantMissing(transaction) && isAmountMissing(transaction)) || (isScanRequest(transaction) && isScanning(transaction))
+        (isExpensifyCardTransaction(transaction) && isPending(transaction)) ||
+        (isScanRequest(transaction) && isMerchantMissing(transaction) && isAmountMissing(transaction)) ||
+        (isScanRequest(transaction) && isScanning(transaction))
     );
 }
 
