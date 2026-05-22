@@ -15,7 +15,6 @@ import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import {isSpendRuleCategory} from '@src/types/form/SpendRuleForm';
 import type {
     Card,
     CompanyCardFeed,
@@ -3934,11 +3933,10 @@ function spendRuleAmountOperatorWord(translate: LocalizedTranslate, operator: st
 
 function getSpendRuleAmountString(translate: LocalizedTranslate, amount: {operator: string; value: string[]}, currency: string): string {
     const operatorWord = spendRuleAmountOperatorWord(translate, amount.operator);
-    const firstValue = amount.value.at(0);
-    if (firstValue === undefined) {
+    if (amount.value.length === 0) {
         return '';
     }
-    return translate('workspaceActions.expensifyCardRule.amountFilter', {operator: operatorWord, amount: convertAmountToDisplayString(Number(firstValue), currency)});
+    return translate('workspaceActions.expensifyCardRule.amountFilter', {operator: operatorWord, amount: formatSpendRuleAmount(amount, currency)});
 }
 
 function getSpendRuleCardsSummary(translate: LocalizedTranslate, cards: ReadonlyArray<{displayName?: string}> | undefined): string {
@@ -3958,8 +3956,9 @@ function getSpendRuleJoinFilters(translate: LocalizedTranslate, items: readonly 
 }
 
 function getSpendRuleCategoryDisplayName(translate: LocalizedTranslate, category: string): string {
-    if (isSpendRuleCategory(category)) {
-        return translate(`workspace.rules.spendRules.categoryOptions.${category}`);
+    const knownCategories = Object.values(CONST.SPEND_RULES.CATEGORIES) as string[];
+    if (knownCategories.includes(category)) {
+        return translate(`workspace.rules.spendRules.categoryOptions.${category as ValueOf<typeof CONST.SPEND_RULES.CATEGORIES>}`);
     }
     return category;
 }
@@ -3993,13 +3992,24 @@ function computeSpendRuleStringDiff(oldValues: string[], newValues: string[]): S
 type SpendRuleAmount = {operator: string; value: string[]};
 type SpendRuleAmountDiff = {added: SpendRuleAmount[]; removed: SpendRuleAmount[]};
 
+function getSpendRuleValueInCents(value: string[]): number {
+    const firstValue = value.at(0) ?? '';
+    return Number.isFinite(Number(firstValue)) ? Math.round(parseFloat(firstValue) * 100) : 0;
+}
+
 function computeSpendRuleAmountDiff(oldAmounts: SpendRuleAmount[], newAmounts: SpendRuleAmount[]): SpendRuleAmountDiff {
     const oldAmount = oldAmounts.at(0);
     const newAmount = newAmounts.at(0);
-    if (!oldAmount || !newAmount) {
+    if (!oldAmount && !newAmount) {
         return {added: [], removed: []};
     }
-    const sameAmount = oldAmount.value === newAmount.value;
+    if (!oldAmount) {
+        return {added: newAmount ? [newAmount] : [], removed: []};
+    }
+    if (!newAmount) {
+        return {added: [], removed: [oldAmount]};
+    }
+    const sameAmount = getSpendRuleValueInCents(oldAmount.value) === getSpendRuleValueInCents(newAmount.value);
     if (sameAmount) {
         return {added: [], removed: []};
     }
@@ -4134,7 +4144,7 @@ function getAddExpensifyCardRuleMessage(translate: LocalizedTranslate, reportAct
     const filters = getSpendRuleJoinFilters(translate, items);
     const cardsSummary = getSpendRuleCardsSummary(translate, cards);
 
-    if (verb === '' && filters === '' && cardsSummary === '') {
+    if (verb === '') {
         return getReportActionText(reportAction);
     }
 
@@ -4279,7 +4289,7 @@ function getUpdateExpensifyCardRuleMessage(translate: LocalizedTranslate, report
     }
 
     if (phrases.length === 0) {
-        return getAddExpensifyCardRuleMessage(translate, reportAction);
+        return getReportActionText(reportAction);
     }
 
     const joined = joinSpendRulePhrases(translate, phrases);
