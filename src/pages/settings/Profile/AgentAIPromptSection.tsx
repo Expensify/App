@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React, {useEffect, useRef, useState} from 'react';
 import type {TextInputKeyPressEvent} from 'react-native';
 import {View} from 'react-native';
@@ -14,6 +15,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAgentPromptUpdateError, openProfilePage, updateAgentPrompt} from '@libs/actions/Agent';
 import Parser from '@libs/Parser';
+import {containsHtmlTag} from '@libs/ValidationUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -33,6 +35,17 @@ function AgentAIPromptSection({accountID}: AgentAIPromptSectionProps) {
     const [showEmptyError, setShowEmptyError] = useState(false);
     const inputRef = useRef<BaseTextInputRef>(null);
 
+    // Mirrors FormProvider's HTML-tag validation so inputs like `<script>...</script>` are blocked
+    // here the same way they are in EditPromptPage (which uses FormProvider).
+    const hasHtmlTag = containsHtmlTag(draftPrompt);
+    let errorText = '';
+    if (showEmptyError) {
+        errorText = translate('profilePage.aiPromptSection.promptCannotBeEmpty');
+    } else if (hasHtmlTag) {
+        errorText = translate('common.error.invalidCharacter');
+    }
+    const storedPrompt = Str.htmlDecode(agentPrompt?.prompt ?? '');
+
     // Delegate.connect seeds IS_LOADING_APP=true via clearOnyxForDelegateTransition and OpenApp's optimisticData,
     // then flips it back to false in OpenApp's finallyData. By that point NetworkStore.authToken is the delegate.
     // Waiting on this transition prevents firing OpenProfilePage with the owner authToken during a copilot switch.
@@ -48,12 +61,12 @@ function AgentAIPromptSection({accountID}: AgentAIPromptSectionProps) {
             return;
         }
         // eslint-disable-next-line react-hooks/set-state-in-effect
-        setDraftPrompt(agentPrompt?.prompt ?? '');
+        setDraftPrompt(storedPrompt);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [agentPrompt?.promptErrors]);
 
     const handleEditPress = () => {
-        setDraftPrompt(agentPrompt?.prompt ?? '');
+        setDraftPrompt(storedPrompt);
         setShowEmptyError(false);
         setIsEditing(true);
     };
@@ -62,6 +75,10 @@ function AgentAIPromptSection({accountID}: AgentAIPromptSectionProps) {
         const trimmed = draftPrompt.trim();
         if (!trimmed) {
             setShowEmptyError(true);
+            inputRef.current?.focus();
+            return;
+        }
+        if (containsHtmlTag(trimmed)) {
             inputRef.current?.focus();
             return;
         }
@@ -114,7 +131,7 @@ function AgentAIPromptSection({accountID}: AgentAIPromptSectionProps) {
                         multiline
                         autoGrowHeight
                         maxAutoGrowHeight={variables.lineHeightNormal * MAX_VISIBLE_PROMPT_LINES}
-                        errorText={showEmptyError ? translate('profilePage.aiPromptSection.promptCannotBeEmpty') : ''}
+                        errorText={errorText}
                         containerStyles={[styles.mb4]}
                         testID="ai-prompt-input"
                         autoFocus
@@ -129,7 +146,7 @@ function AgentAIPromptSection({accountID}: AgentAIPromptSectionProps) {
                             style={{maxHeight: variables.lineHeightNormal * MAX_VISIBLE_PROMPT_LINES}}
                             testID="ai-prompt-text"
                         >
-                            <RenderHTML html={Parser.replace(agentPrompt?.prompt ?? '')} />
+                            <RenderHTML html={Parser.replace(storedPrompt)} />
                         </ScrollView>
                     </View>
                 )}
@@ -140,6 +157,7 @@ function AgentAIPromptSection({accountID}: AgentAIPromptSectionProps) {
                         success
                         text={translate('common.save')}
                         onPress={handleSave}
+                        isDisabled={hasHtmlTag}
                         style={[styles.alignSelfStart]}
                         testID="save-prompt-button"
                     />
