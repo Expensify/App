@@ -1285,7 +1285,7 @@ const translations: TranslationDeepObject<typeof en> = {
         receiptStatusText: 'Vous seul pouvez voir ce reçu pendant son analyse. Revenez plus tard ou saisissez les détails maintenant.',
         receiptScanningFailed: 'L’analyse du reçu a échoué. Veuillez saisir les détails manuellement.',
         allTransactionsPendingNextStep:
-            "Toutes les transactions sont en attente. Vous ne pouvez pas soumettre ce rapport tant qu'elles ne sont pas enregistrées. Cela peut prendre quelques jours.",
+            "Toutes les transactions sont en attente. Vous ne pouvez pas soumettre cette note de frais avant qu'elles ne soient comptabilisées dans quelques jours.",
         companyInfo: 'Informations sur l’entreprise',
         companyInfoDescription: 'Nous avons besoin de quelques informations supplémentaires avant que vous puissiez envoyer votre première facture.',
         yourCompanyName: 'Nom de votre entreprise',
@@ -1473,8 +1473,9 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: 'La date de fin ne peut pas être identique à la date de début',
             manySplitsProvided: `Le nombre maximal de répartitions autorisées est de ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `La plage de dates ne peut pas dépasser ${CONST.IOU.SPLITS_LIMIT} jours.`,
-            unableToSubmitReport: 'Impossible de soumettre le rapport',
-            allTransactionsPendingDescription: 'Vous ne pouvez pas soumettre ce rapport car toutes les transactions sont en attente. Leur enregistrement peut prendre quelques jours.',
+            unableToSubmitReport: 'Impossible de soumettre la note de frais',
+            allTransactionsPendingDescription:
+                'Vous ne pouvez pas soumettre cette note de frais, car toutes les transactions sont en attente. Leur comptabilisation peut prendre quelques jours.',
             stitchOdometerImagesFailed: 'Échec de la combinaison des images de l’odomètre. Veuillez réessayer plus tard.',
             failedToSaveOdometerDraft: 'Impossible d’enregistrer votre brouillon de compteur kilométrique. Veuillez réessayer.',
         },
