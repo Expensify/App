@@ -22,7 +22,7 @@ import {cancelSpan} from '@libs/telemetry/activeSpans';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
-import {updateLastLocationPermissionPrompt} from '@userActions/IOU';
+import {updateLastLocationPermissionPrompt} from '@userActions/IOU/MoneyRequest';
 import {replaceReceipt} from '@userActions/IOU/Receipt';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -106,6 +106,7 @@ function IOURequestStepScan({
     const policy = usePolicy(report?.policyID);
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
+    const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
 
     const {handleCameraInitialized} = useCameraInitTelemetry({cameraPermissionStatus, device});
 
@@ -124,9 +125,16 @@ function IOURequestStepScan({
             } else {
                 navigateBack();
             }
-            replaceReceipt({transactionID: initialTransactionID, file: file as File, source, transactionPolicy: policy, transactionPolicyCategories: policyCategories});
+            replaceReceipt({
+                transactionID: initialTransactionID,
+                file: file as File,
+                source,
+                transactionPolicy: policy,
+                transactionPolicyCategories: policyCategories,
+                transactionPolicyTagList: policyTagList,
+            });
         },
-        [initialTransactionID, policy, policyCategories, backTo, navigateBack],
+        [initialTransactionID, policy, policyCategories, backTo, navigateBack, policyTagList],
     );
 
     const getSource = useCallback((file: FileObject) => file.uri ?? '', []);

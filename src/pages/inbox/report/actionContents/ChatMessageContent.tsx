@@ -1,26 +1,24 @@
 import React from 'react';
-import type {TextInput} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {AttachmentContext} from '@components/AttachmentContext';
 import Button from '@components/Button';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import {useBlockedFromConcierge} from '@components/OnyxListItemProvider';
-import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {parseFollowupsFromHtml} from '@libs/ReportActionFollowupUtils';
 import {
+    getModerationFlagState,
     getReportActionMessage,
     isActionableAddPaymentCard,
     isActionableTrackExpense,
     isConciergeCategoryOptions,
     isConciergeDescriptionOptions,
-    isPendingRemove,
 } from '@libs/ReportActionsUtils';
 import {chatIncludesConcierge, isArchivedNonExpenseReport} from '@libs/ReportUtils';
-import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import ReportActionItemMessage from '@pages/inbox/report/ReportActionItemMessage';
 import ReportActionItemMessageEdit from '@pages/inbox/report/ReportActionItemMessageEdit';
 import {isBlockedFromConcierge} from '@userActions/User';
@@ -38,26 +36,9 @@ type ChatMessageContentProps = {
     draftMessage: string | undefined;
     index: number;
     isHidden: boolean;
-    moderationDecision: OnyxTypes.DecisionName;
     updateHiddenState: (isHiddenValue: boolean) => void;
     isArchivedRoom?: boolean;
-    composerTextInputRef: React.RefObject<TextInput | HTMLTextAreaElement | null>;
     isOnSearch: boolean;
-    currentSearchHash: number | undefined;
-    contextMenuStateValue: {
-        anchor: ContextMenuAnchor | null;
-        report: OnyxEntry<OnyxTypes.Report>;
-        isReportArchived: boolean;
-        action: OnyxTypes.ReportAction;
-        transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
-        isDisabled: boolean;
-        shouldDisplayContextMenu: boolean;
-        originalReportID: string | undefined;
-    };
-    contextMenuActionsValue: {
-        checkIfContextMenuActive: () => void;
-        onShowContextMenu: (callback: () => void) => void;
-    };
     userBillingFundID: number | undefined;
 };
 
@@ -71,27 +52,23 @@ function ChatMessageContent({
     draftMessage,
     index,
     isHidden,
-    moderationDecision,
     updateHiddenState,
     isArchivedRoom,
-    composerTextInputRef,
     isOnSearch,
-    currentSearchHash,
-    contextMenuStateValue,
-    contextMenuActionsValue,
     userBillingFundID,
 }: ChatMessageContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const blockedFromConcierge = useBlockedFromConcierge();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const isEditingInline = !shouldUseNarrowLayout && draftMessage !== undefined;
 
     const mentionReportContextValue = {currentReportID: report?.reportID, exactlyMatch: true};
 
-    const attachmentContextValue = isOnSearch ? {type: CONST.ATTACHMENT_TYPE.SEARCH, currentSearchHash} : {reportID, type: CONST.ATTACHMENT_TYPE.REPORT};
+    const attachmentContextValue = isOnSearch ? {type: CONST.ATTACHMENT_TYPE.SEARCH} : {reportID, type: CONST.ATTACHMENT_TYPE.REPORT};
 
-    const hasBeenFlagged =
-        ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) && !isPendingRemove(action);
+    const {hasBeenFlagged} = getModerationFlagState(action);
 
     const messageHtml = getReportActionMessage(action)?.html;
     const mayHaveActionableButtons =
@@ -103,65 +80,55 @@ function ChatMessageContent({
 
     return (
         <MentionReportContext.Provider value={mentionReportContextValue}>
-            <ShowContextMenuStateContext.Provider value={contextMenuStateValue}>
-                <ShowContextMenuActionsContext.Provider value={contextMenuActionsValue}>
-                    <AttachmentContext.Provider value={attachmentContextValue}>
-                        {draftMessage === undefined ? (
-                            <View style={displayAsGroup && hasBeenFlagged ? styles.blockquote : {}}>
-                                <ReportActionItemMessage
-                                    reportID={reportID}
-                                    action={action}
-                                    displayAsGroup={displayAsGroup}
-                                    isHidden={isHidden}
-                                />
-                                {hasBeenFlagged && (
-                                    <Button
-                                        small
-                                        style={[styles.mt2, styles.alignSelfStart]}
-                                        onPress={() => updateHiddenState(!isHidden)}
-                                        sentryLabel={CONST.SENTRY_LABEL.REPORT.MODERATION_BUTTON}
-                                    >
-                                        <Text
-                                            style={[styles.buttonSmallText, styles.userSelectNone]}
-                                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                                        >
-                                            {isHidden ? translate('moderation.revealMessage') : translate('moderation.hideMessage')}
-                                        </Text>
-                                    </Button>
-                                )}
-                                {mayHaveActionableButtons && (
-                                    <ChatActionableButtons
-                                        action={action}
-                                        report={report}
-                                        originalReport={originalReport}
-                                        reportID={reportID}
-                                        originalReportID={originalReportID}
-                                        userBillingFundID={userBillingFundID}
-                                    />
-                                )}
-                            </View>
-                        ) : (
-                            <ReportActionItemMessageEdit
+            <AttachmentContext.Provider value={attachmentContextValue}>
+                {isEditingInline ? (
+                    <ReportActionItemMessageEdit
+                        action={action}
+                        reportID={reportID}
+                        originalReportID={originalReportID}
+                        policyID={report?.policyID}
+                        index={index}
+                        shouldDisableEmojiPicker={(chatIncludesConcierge(report) && isBlockedFromConcierge(blockedFromConcierge)) || isArchivedNonExpenseReport(report, isArchivedRoom)}
+                        isGroupPolicyReport={!!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE}
+                    />
+                ) : (
+                    <View style={displayAsGroup && hasBeenFlagged ? styles.blockquote : {}}>
+                        <ReportActionItemMessage
+                            reportID={reportID}
+                            action={action}
+                            displayAsGroup={displayAsGroup}
+                            isHidden={isHidden}
+                        />
+                        {hasBeenFlagged && (
+                            <Button
+                                small
+                                style={[styles.mt2, styles.alignSelfStart]}
+                                onPress={() => updateHiddenState(!isHidden)}
+                                sentryLabel={CONST.SENTRY_LABEL.REPORT.MODERATION_BUTTON}
+                            >
+                                <Text
+                                    style={[styles.buttonSmallText, styles.userSelectNone]}
+                                    dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                                >
+                                    {isHidden ? translate('moderation.revealMessage') : translate('moderation.hideMessage')}
+                                </Text>
+                            </Button>
+                        )}
+                        {mayHaveActionableButtons && (
+                            <ChatActionableButtons
                                 action={action}
-                                draftMessage={draftMessage}
+                                report={report}
+                                originalReport={originalReport}
                                 reportID={reportID}
                                 originalReportID={originalReportID}
-                                policyID={report?.policyID}
-                                index={index}
-                                ref={composerTextInputRef}
-                                shouldDisableEmojiPicker={
-                                    (chatIncludesConcierge(report) && isBlockedFromConcierge(blockedFromConcierge)) || isArchivedNonExpenseReport(report, isArchivedRoom)
-                                }
-                                isGroupPolicyReport={!!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE}
+                                userBillingFundID={userBillingFundID}
                             />
                         )}
-                    </AttachmentContext.Provider>
-                </ShowContextMenuActionsContext.Provider>
-            </ShowContextMenuStateContext.Provider>
+                    </View>
+                )}
+            </AttachmentContext.Provider>
         </MentionReportContext.Provider>
     );
 }
-
-ChatMessageContent.displayName = 'ChatMessageContent';
 
 export default ChatMessageContent;
