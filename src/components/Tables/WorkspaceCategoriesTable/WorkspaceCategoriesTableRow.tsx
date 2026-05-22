@@ -75,11 +75,13 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
                         </View>
                     )}
 
-                    <Switch
-                        isOn={item.enabled}
-                        accessibilityLabel={`${translate('workspace.categories.enableCategory')}: ${item.name}`}
-                        onToggle={item.onToggleEnabled}
-                    />
+                    <View style={[styles.justifyContentCenter]}>
+                        <Switch
+                            isOn={item.enabled}
+                            accessibilityLabel={`${translate('workspace.categories.enableCategory')}: ${item.name}`}
+                            onToggle={item.onToggleEnabled}
+                        />
+                    </View>
 
                     <Icon
                         src={icons.ArrowRight}

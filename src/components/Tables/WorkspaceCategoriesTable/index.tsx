@@ -5,6 +5,7 @@ import Table from '@components/Table/';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import WorkspaceCategoriesTableRow from './WorkspaceCategoriesTableRow';
@@ -61,13 +62,13 @@ export default function WorkspaceCategoriesTable({ref, categories, shouldShowApp
             key: 'enabled',
             label: translate('common.enabled'),
             sortable: true,
-            width: 64,
+            width: variables.tableSwitchColumnWidth,
         },
         {
             key: 'actions',
             label: '',
             sortable: false,
-            width: 52,
+            width: variables.tableCaretColumnWidth,
         },
     ];
 
