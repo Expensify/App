@@ -38,7 +38,7 @@ Note: Only Travel Admins can create or manage travel policies in Expensify Trave
   - **Passive approval**: No approval required, but the approver receives an email.
   - **Soft approval** (Recommended): Booking proceeds unless declined.
   - **Hard approval**: Booking is canceled unless explicitly approved.
-  - **Pre-booking approval**: Approval must be obtained before the booking can proceed. Available for Air, Hotel, and Car only.
+  - **Pre-Booking Approval**: Approval must be obtained before the booking can proceed. Available for Air, Hotel, and Car only.
   - **Block booking**: Booking is blocked and members have no way to request an exception.
 - **Approver Type**:
   - **Manager Approval**: Uses the manager from the member's Expensify workflow.
