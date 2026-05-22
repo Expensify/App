@@ -6082,8 +6082,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             approvers: 'Osoby zatwierdzające',
             auditors: 'Audytorzy',
             emptyRoleFilter: {title: 'Żadni członkowie nie pasują do tego filtra', subtitle: 'Zaproś członka lub zmień filtr powyżej.'},
-            configureGustoSync: 'Skonfiguruj synchronizację z Gusto.',
-            syncWithGusto: 'Synchronizuj z Gusto',
+            configureHRSync: (providerName: string) => `Skonfiguruj synchronizację ${providerName}.`,
+            syncWithHR: (providerName: string) => `Synchronizuj z ${providerName}`,
         },
         card: {
             getStartedIssuing: 'Zacznij od wydania swojej pierwszej wirtualnej lub fizycznej karty.',
@@ -7204,6 +7204,9 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             zenefits: {
                 title: 'TriNet',
             },
+            syncingModalTitle: 'Twoje połączenie jest synchronizowane',
+            syncingModalDescription: 'Pierwsze połączenie może chwilę potrwać. Zostaniesz powiadomiony o wszelkich błędach.',
+            syncing: 'Synchronizowanie pracowników',
         },
     },
     getAssistancePage: {

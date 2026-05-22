@@ -5936,8 +5936,6 @@ ${amount} para ${merchant} - ${date}`,
             addedWithPrimary: 'Se agregaron algunos miembros con sus nombres de usuario principales.',
             invitedBySecondaryLogin: (secondaryLogin) => `Agregado por nombre de usuario secundario ${secondaryLogin}.`,
             workspaceMembersCount: (count) => `Total de miembros del espacio de trabajo: ${count}`,
-            configureGustoSync: 'Configurar sincronización de Gusto.',
-            syncWithGusto: 'Sincronizar con Gusto',
             allMembers: 'Todos los miembros',
             admins: 'Administradores',
             approvers: 'Aprobadores',
@@ -5959,6 +5957,8 @@ ${amount} para ${merchant} - ${date}`,
                 `${memberName} tiene gastos pendientes por aprobar. Por favor, pídeles que aprueben o tomen el control de sus informes antes de eliminarlos del espacio de trabajo.`,
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
                 `${memberName} tiene un informe en proceso pendiente de acción. Pídele que complete la acción requerida antes de eliminarlo del espacio de trabajo.`,
+            configureHRSync: (providerName: string) => `Configura la sincronización de ${providerName}.`,
+            syncWithHR: (providerName: string) => `Sincronizar con ${providerName}`,
         },
         accounting: {
             settings: 'configuración',
@@ -6324,8 +6324,6 @@ ${amount} para ${merchant} - ${date}`,
                         return 'Cargando datos desde TriNet';
                     case 'zenefitsSyncProvisioning':
                         return 'Aprovisionar empleados en la política';
-                    case 'mergeHRSyncTitle':
-                        return 'Sincronización de empleados de HR';
                     case 'jobDone':
                         return 'Esperando a que se carguen los datos importados';
                     default: {
@@ -6350,6 +6348,9 @@ ${amount} para ${merchant} - ${date}`,
             zenefits: {
                 title: 'TriNet',
             },
+            syncingModalTitle: 'Tu conexión se está sincronizando',
+            syncingModalDescription: 'La primera conexión puede tardar un poco. Se te notificará de cualquier error.',
+            syncing: 'Sincronizando empleados',
         },
         export: {
             notReadyHeading: 'No está listo para exportar',

@@ -2932,6 +2932,18 @@ const CONST = {
             MANAGER: 'manager',
             CUSTOM: 'custom',
         },
+        SYNC_STATUS: {
+            SYNCING: 'SYNCING',
+            DONE: 'DONE',
+            FAILED: 'FAILED',
+            DISABLED: 'DISABLED',
+        },
+        SYNC_TYPE: {
+            INITIAL: 'initial',
+            MANUAL: 'manual',
+            AUTO: 'auto',
+            WEBHOOK: 'webhook',
+        },
     },
 
     QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {
@@ -3783,7 +3795,7 @@ const CONST = {
             DOWNLOAD_CSV: 'downloadCSV',
             SETTINGS: 'settings',
             EXPORT: 'export',
-            SYNC_WITH_GUSTO: 'syncWithGusto',
+            SYNC_WITH_HR: 'syncWithHR',
         },
         MEMBERS_BULK_ACTION_TYPES: {
             REMOVE: 'remove',
@@ -4023,7 +4035,6 @@ const CONST = {
                 ZENEFITS_SYNC_TITLE: 'zenefitsSyncTitle',
                 ZENEFITS_SYNC_LOAD_DATA: 'zenefitsSyncLoadData',
                 ZENEFITS_SYNC_PROVISIONING: 'zenefitsSyncProvisioning',
-                MERGE_HR_SYNC_TITLE: 'mergeHRSyncTitle',
                 FINANCIAL_FORCE_SYNC_CONNECTION: 'financialForceSyncConnection',
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,

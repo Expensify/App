@@ -6088,8 +6088,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             approvers: 'Fiatteurs',
             auditors: 'Accountants',
             emptyRoleFilter: {title: 'Geen leden komen overeen met dit filter', subtitle: 'Nodig een lid uit of wijzig het filter hierboven.'},
-            configureGustoSync: 'Gusto-synchronisatie configureren.',
-            syncWithGusto: 'Synchroniseren met Gusto',
+            configureHRSync: (providerName: string) => `Stel ${providerName}-synchronisatie in.`,
+            syncWithHR: (providerName: string) => `Synchroniseren met ${providerName}`,
         },
         card: {
             getStartedIssuing: 'Begin met het uitgeven van je eerste virtuele of fysieke kaart.',
@@ -7209,6 +7209,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             zenefits: {
                 title: 'TriNet',
             },
+            syncingModalTitle: 'Je verbinding wordt gesynchroniseerd',
+            syncingModalDescription: 'De eerste verbinding kan even duren. Je krijgt een melding als er fouten optreden.',
+            syncing: 'Werknemers synchroniseren',
         },
     },
     getAssistancePage: {

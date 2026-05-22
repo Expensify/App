@@ -66,6 +66,7 @@ import {isPersonalDetailsReady, sortAlphabetically} from '@libs/OptionsListUtils
 import {getDisplayNameOrDefault, newGetPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {
     canEditWorkspaceSettings,
+    getConnectedHRProvider,
     getConnectionExporters,
     getMemberAccountIDsForWorkspace,
     isControlPolicy,
@@ -581,10 +582,14 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     }, [isLoading, policy?.employeeList, translate, isOfflineAndNoMemberDataAvailable]);
 
     const memberCount = data.filter((member) => member.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
-    const hasGustoConnection = !!policy?.connections?.gusto;
-    const shouldShowGustoSyncLink = isPolicyAdmin && hasGustoConnection;
-    const isGustoSyncInProgress =
-        hasGustoConnection && connectionSyncProgress?.connectionName === CONST.POLICY.CONNECTIONS.NAME.GUSTO && isConnectionInProgress(connectionSyncProgress, policy);
+    const connectedHRProvider = getConnectedHRProvider(policy);
+    const shouldShowHRSyncLink = isPolicyAdmin && !!connectedHRProvider;
+    const isMergeHRSyncInProgress =
+        connectedHRProvider?.connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR &&
+        policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]?.lastSync?.syncStatus === CONST.MERGE_HR.SYNC_STATUS.SYNCING;
+    const isHRSyncInProgress =
+        shouldShowHRSyncLink &&
+        (isMergeHRSyncInProgress || (connectionSyncProgress?.connectionName === connectedHRProvider?.connectionName && isConnectionInProgress(connectionSyncProgress, policy)));
     const isPendingAddOrDelete =
         isOffline && data?.some((member) => member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
     const shouldShowSearchBar = data.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
@@ -632,16 +637,18 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             <View style={[styles.pl5, styles.mb5, styles.mt3, styles.flexRow, styles.alignItemsCenter]}>
                 <Text style={[styles.textSupporting, styles.flexShrink1, isPendingAddOrDelete && styles.offlineFeedbackPending]}>
                     {translate('workspace.people.workspaceMembersCount', memberCount)}
-                    {shouldShowGustoSyncLink && '. '}
-                    {shouldShowGustoSyncLink && (
-                        <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID))}>{translate('workspace.people.configureGustoSync')}</TextLink>
+                    {shouldShowHRSyncLink && '. '}
+                    {shouldShowHRSyncLink && (
+                        <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID))}>
+                            {translate('workspace.people.configureHRSync', connectedHRProvider?.displayName ?? '')}
+                        </TextLink>
                     )}
                 </Text>
-                {shouldShowGustoSyncLink && isGustoSyncInProgress && (
+                {shouldShowHRSyncLink && isHRSyncInProgress && (
                     <ActivityIndicator
                         size="small"
                         style={styles.ml2}
-                        reasonAttributes={{context: 'WorkspaceMembersPage.gustoSync'}}
+                        reasonAttributes={{context: 'WorkspaceMembersPage.hrSync'}}
                     />
                 )}
             </View>
@@ -840,20 +847,21 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             },
         ];
 
-        if (hasGustoConnection) {
+        const hrProvider = getConnectedHRProvider(policy);
+        if (hrProvider) {
             menuItems.push({
                 icon: icons.Sync,
-                text: translate('workspace.people.syncWithGusto'),
+                text: translate('workspace.people.syncWithHR', hrProvider.displayName),
                 onSelected: () => {
                     if (isOffline) {
                         close(showRequiresInternetModal);
                         return;
                     }
 
-                    close(() => syncConnection(policy, CONST.POLICY.CONNECTIONS.NAME.GUSTO));
+                    close(() => syncConnection(policy, hrProvider.connectionName));
                 },
-                value: CONST.POLICY.SECONDARY_ACTIONS.SYNC_WITH_GUSTO,
-                disabled: isGustoSyncInProgress,
+                value: CONST.POLICY.SECONDARY_ACTIONS.SYNC_WITH_HR,
+                disabled: isHRSyncInProgress,
             });
         }
 
@@ -869,8 +877,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         policyID,
         showLockedAccountModal,
         showRequiresInternetModal,
-        hasGustoConnection,
-        isGustoSyncInProgress,
+        isHRSyncInProgress,
         policy,
     ]);
 

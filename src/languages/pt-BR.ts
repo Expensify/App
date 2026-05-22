@@ -6088,8 +6088,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             approvers: 'Aprovadores',
             auditors: 'Auditores',
             emptyRoleFilter: {title: 'Nenhum membro corresponde a este filtro', subtitle: 'Convide um membro ou altere o filtro acima.'},
-            configureGustoSync: 'Configurar sincronização com Gusto.',
-            syncWithGusto: 'Sincronizar com Gusto',
+            configureHRSync: (providerName: string) => `Configurar a sincronização do ${providerName}.`,
+            syncWithHR: (providerName: string) => `Sincronizar com ${providerName}`,
         },
         card: {
             getStartedIssuing: 'Comece emitindo seu primeiro cartão virtual ou físico.',
@@ -7209,6 +7209,9 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             zenefits: {
                 title: 'TriNet',
             },
+            syncingModalTitle: 'Sua conexão está sincronizando',
+            syncingModalDescription: 'A primeira conexão pode levar algum tempo. Você será notificado sobre quaisquer erros.',
+            syncing: 'Sincronizando funcionários',
         },
     },
     getAssistancePage: {

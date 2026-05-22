@@ -6041,8 +6041,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             approvers: '承認者',
             auditors: '監査担当者',
             emptyRoleFilter: {title: 'このフィルターに一致するメンバーはいません', subtitle: 'メンバーを招待するか、上のフィルターを変更してください。'},
-            configureGustoSync: 'Gusto 同期を設定する。',
-            syncWithGusto: 'Gusto と同期',
+            configureHRSync: (providerName: string) => `${providerName} の同期を設定します。`,
+            syncWithHR: (providerName: string) => `${providerName}と同期`,
         },
         card: {
             getStartedIssuing: 'まずは最初のバーチャルカードまたは物理カードを発行しましょう。',
@@ -7153,6 +7153,9 @@ ${reportName}
             zenefits: {
                 title: 'TriNet',
             },
+            syncingModalTitle: '接続を同期しています',
+            syncingModalDescription: '最初の接続には時間がかかる場合があります。エラーが発生した場合は通知されます。',
+            syncing: '従業員を同期しています',
         },
     },
     getAssistancePage: {

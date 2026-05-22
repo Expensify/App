@@ -6139,8 +6139,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             approvers: 'Approbateurs',
             auditors: 'Auditeurs',
             emptyRoleFilter: {title: 'Aucun membre ne correspond à ce filtre', subtitle: 'Invitez un membre ou modifiez le filtre ci-dessus.'},
-            configureGustoSync: 'Configurer la synchronisation Gusto.',
-            syncWithGusto: 'Synchroniser avec Gusto',
+            configureHRSync: (providerName: string) => `Configurer la synchronisation ${providerName}.`,
+            syncWithHR: (providerName: string) => `Synchroniser avec ${providerName}`,
         },
         card: {
             getStartedIssuing: 'Commencez par émettre votre première carte virtuelle ou physique.',
@@ -7276,6 +7276,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             zenefits: {
                 title: 'TriNet',
             },
+            syncingModalTitle: 'Votre connexion est en cours de synchronisation',
+            syncingModalDescription: 'La première connexion peut prendre un certain temps. Vous serez informé de toute erreur.',
+            syncing: 'Synchronisation des employés',
         },
     },
     getAssistancePage: {

@@ -6121,8 +6121,8 @@ const translations = {
             addedWithPrimary: 'Some members were added with their primary logins.',
             invitedBySecondaryLogin: (secondaryLogin: string) => `Added by secondary login ${secondaryLogin}.`,
             workspaceMembersCount: (count: number) => `Total workspace members: ${count}`,
-            configureGustoSync: 'Configure Gusto sync.',
-            syncWithGusto: 'Sync with Gusto',
+            configureHRSync: (providerName: string) => `Configure ${providerName} sync.`,
+            syncWithHR: (providerName: string) => `Sync with ${providerName}`,
             allMembers: 'All members',
             admins: 'Admins',
             approvers: 'Approvers',
@@ -6484,6 +6484,9 @@ const translations = {
             finalApprover: 'Final approver',
             providerFinalApprover: (providerName: string) => `${providerName} final approver`,
             notSet: 'Not set',
+            syncing: 'Syncing employees',
+            syncingModalTitle: 'Your connection is syncing',
+            syncingModalDescription: "The first connection can take some time. You'll be notified of any errors.",
             approvalModeDescription: (providerName: string) => `Members and managers are set up to sync with ${providerName}.`,
             approvalModeWarningTitle: 'Change approval mode?',
             approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
@@ -6511,8 +6514,6 @@ const translations = {
                         return 'Loading data from TriNet';
                     case 'zenefitsSyncProvisioning':
                         return 'Provisioning employees in policy';
-                    case 'mergeHRSyncTitle':
-                        return 'Synchronizing HR Employees';
                     case 'jobDone':
                         return 'Waiting for imported data to load';
                     default: {
