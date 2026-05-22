@@ -1,6 +1,6 @@
 import type {CONST as COMMON_CONST} from 'expensify-common';
 import type {ValueOf} from 'type-fest';
-import type {GustoSyncResult} from '@libs/API/GustoSyncResult';
+import type {HrSyncResult} from '@libs/API/HrSyncResult';
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
@@ -64,6 +64,12 @@ type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Sort order index for displaying rates */
         index?: number;
+
+        /** ISO 8601 date string for when this rate becomes effective */
+        startDate?: string;
+
+        /** ISO 8601 date string for when this rate expires */
+        endDate?: string;
     },
     keyof TaxRateAttributes
 >;
@@ -2372,7 +2378,7 @@ type PolicyConnectionSyncProgress = {
     timestamp: string;
 
     /** Optional result payload shown after a completed sync */
-    result?: GustoSyncResult;
+    result?: HrSyncResult;
 };
 
 export default Policy;

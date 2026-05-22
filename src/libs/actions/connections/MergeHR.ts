@@ -1,7 +1,7 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
-import {read, write} from '@libs/API';
+import type {TupleToUnion, ValueOf} from 'type-fest';
+import {write} from '@libs/API';
 import type {ConnectPolicyToMergeParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
@@ -43,7 +43,7 @@ function syncMergeHR(policyID: string) {
         },
     ];
 
-    read(READ_COMMANDS.SYNC_POLICY_TO_MERGE_HR, {policyID}, {optimisticData, failureData});
+    write(WRITE_COMMANDS.SYNC_POLICY_TO_MERGE, {policyID}, {optimisticData, failureData});
 }
 
 /**
@@ -106,7 +106,7 @@ function updateMergeHRApprovalMode(policyID: string, approvalMode: ValueOf<typeo
     ];
 
     write(
-        WRITE_COMMANDS.UPDATE_MERGE_HR_APPROVAL_MODE,
+        WRITE_COMMANDS.UPDATE_MERGE_APPROVAL_MODE,
         {
             policyID,
             approvalMode,
@@ -175,7 +175,7 @@ function updateMergeHRFinalApprover(policyID: string, finalApprover: string | nu
     ];
 
     write(
-        WRITE_COMMANDS.UPDATE_MERGE_HR_FINAL_APPROVER,
+        WRITE_COMMANDS.UPDATE_MERGE_FINAL_APPROVER,
         {
             policyID,
             finalApprover,
@@ -184,6 +184,25 @@ function updateMergeHRFinalApprover(policyID: string, finalApprover: string | nu
     );
 }
 
-export {syncMergeHR, updateMergeHRApprovalMode, updateMergeHRFinalApprover};
+type HRProviderName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.HR_CONNECTION_NAMES>;
+
+type HRConnectionErrorFieldName = 'approvalMode' | 'finalApprover';
+
+function clearHRConnectionErrorField(policyID: string | undefined, provider: HRProviderName | undefined, fieldName: HRConnectionErrorFieldName) {
+    if (!policyID || !provider) {
+        return;
+    }
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        connections: {
+            [provider]: {
+                config: {
+                    errorFields: {[fieldName]: null},
+                },
+            },
+        },
+    });
+}
+
+export {syncMergeHR, updateMergeHRApprovalMode, updateMergeHRFinalApprover, clearHRConnectionErrorField};
 
 export default getMergeHRSetupLink;

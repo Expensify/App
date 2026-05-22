@@ -3,6 +3,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {hasSynchronizationErrorMessage, isConnectionInProgress} from '@libs/actions/connections';
 import getGustoSetupLink from '@libs/actions/connections/Gusto';
 import getMergeHRSetupLink from '@libs/actions/connections/MergeHR';
+import getZenefitsSetupLink from '@libs/actions/connections/Zenefits';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import type {HRConnectionName} from '@libs/PolicyUtils';
 import {getConnectedHRProvider, getHRApprovalMode, getIntegrationLastSuccessfulDate} from '@libs/PolicyUtils';
@@ -121,12 +122,15 @@ function getApprovalModeLabel(policy: OnyxEntry<Policy>, connectionName: HRConne
     switch (approvalMode) {
         case CONST.GUSTO.APPROVAL_MODE.BASIC:
         case CONST.MERGE_HR.APPROVAL_MODE.BASIC:
+        case CONST.ZENEFITS.APPROVAL_MODE.BASIC:
             return translate('workspace.hr.approvalModes.basic.label');
         case CONST.GUSTO.APPROVAL_MODE.MANAGER:
         case CONST.MERGE_HR.APPROVAL_MODE.MANAGER:
+        case CONST.ZENEFITS.APPROVAL_MODE.MANAGER:
             return translate('workspace.hr.approvalModes.manager.label');
         case CONST.GUSTO.APPROVAL_MODE.CUSTOM:
         case CONST.MERGE_HR.APPROVAL_MODE.CUSTOM:
+        case CONST.ZENEFITS.APPROVAL_MODE.CUSTOM:
             return translate('workspace.hr.approvalModes.custom.label');
         default:
             return translate('workspace.hr.notSet');
@@ -171,10 +175,10 @@ const STATIC_HR_PROVIDERS = [
         beta: CONST.BETAS.ZENEFITS,
         connectionName: CONST.POLICY.CONNECTIONS.NAME.ZENEFITS,
         titleKey: 'workspace.hr.zenefits.title',
-        iconParam: 'zenefitsIcon',
+        iconParam: 'trinetIcon',
         approvalModeRoute: ROUTES.WORKSPACE_HR_ZENEFITS_APPROVAL_MODE,
         finalApproverRoute: ROUTES.WORKSPACE_HR_ZENEFITS_FINAL_APPROVER,
-        getSetupLink: undefined,
+        getSetupLink: getZenefitsSetupLink,
     },
 ] as const;
 
@@ -200,8 +204,8 @@ type GetHRCardsParams = {
     /** Local icon asset for the Gusto provider card. */
     gustoIcon: IconAsset;
 
-    /** Local icon asset for the Zenefits provider card. */
-    zenefitsIcon: IconAsset;
+    /** Local icon asset for the TriNet provider card. */
+    trinetIcon: IconAsset;
 };
 
 /** Builds the full list of HR provider card descriptors for the workspace HR page, including static providers (Gusto, Zenefits) and dynamic Merge HR sub-providers gated by betas. */
