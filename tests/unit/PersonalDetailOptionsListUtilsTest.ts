@@ -503,7 +503,7 @@ describe('PersonalDetailOptionsListUtils', () => {
             };
             const option = createOption(contactDetail, undefined, formatPhoneNumber);
             expect(option.text).toBe('John Smith');
-            expect(option.icons[0].name).toBe('John Smith');
+            expect(option.icons?.[0]?.name).toBe('John Smith');
         });
 
         it('should resolve displayName correctly for Onyx-backed personal details (no regression)', () => {
