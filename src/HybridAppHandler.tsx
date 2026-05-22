@@ -1,4 +1,5 @@
 import {useEffect} from 'react';
+import {NativeModules, Platform} from 'react-native';
 import CONFIG from './CONFIG';
 import CONST from './CONST';
 import useOnyx from './hooks/useOnyx';
@@ -67,6 +68,13 @@ function HybridAppHandler() {
                     op: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION,
                     startTime: hybridAppSettings.hybridApp.transitionStartTimestamp,
                 });
+
+                // BEGIN DEADLOCK REPRODUCTION (APP-7B2)
+                if (Platform.OS === 'ios' && NativeModules.DeadlockRepro) {
+                    Log.info('[DeadlockRepro] Clearing descriptor caches to reproduce APP-7B2 deadlock');
+                    NativeModules.DeadlockRepro.clearDescriptorCache();
+                }
+                // END DEADLOCK REPRODUCTION
             }
 
             finalizeTransitionFromOldDot(hybridAppSettings);

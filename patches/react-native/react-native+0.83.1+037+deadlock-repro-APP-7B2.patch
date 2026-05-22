@@ -1,0 +1,402 @@
+diff --git a/node_modules/react-native/React/Fabric/Mounting/RCTComponentViewFactory.h b/node_modules/react-native/React/Fabric/Mounting/RCTComponentViewFactory.h
+index 21c0bb0..0744feb 100644
+--- a/node_modules/react-native/React/Fabric/Mounting/RCTComponentViewFactory.h
++++ b/node_modules/react-native/React/Fabric/Mounting/RCTComponentViewFactory.h
+@@ -60,6 +60,9 @@ void RCTInstallNativeComponentRegistryBinding(facebook::jsi::Runtime &runtime);
+ - (facebook::react::ComponentDescriptorRegistry::Shared)createComponentDescriptorRegistryWithParameters:
+     (facebook::react::ComponentDescriptorParameters)parameters;
+ 
++- (void)clearDescriptorCacheForTesting;
++- (void)callBrokenLookupForTesting;
++
+ @end
+ 
+ NS_ASSUME_NONNULL_END
+diff --git a/node_modules/react-native/React/Fabric/Mounting/RCTComponentViewFactory.mm b/node_modules/react-native/React/Fabric/Mounting/RCTComponentViewFactory.mm
+index 608d75c..6bffd9f 100644
+--- a/node_modules/react-native/React/Fabric/Mounting/RCTComponentViewFactory.mm
++++ b/node_modules/react-native/React/Fabric/Mounting/RCTComponentViewFactory.mm
+@@ -72,6 +72,7 @@ @implementation RCTComponentViewFactory {
+   std::unordered_map<std::string, bool> _registrationStatusMap;
+   ComponentDescriptorProviderRegistry _providerRegistry;
+   std::shared_mutex _mutex;
++  std::vector<ComponentDescriptorProvider> _legacyInteropProviders;
+ }
+ 
+ + (RCTComponentViewFactory *)currentComponentViewFactory
+@@ -152,6 +153,11 @@ - (void)_registerComponentIfPossible:(const std::string &)name
+   // Fallback 3: Try to use Paper Interop.
+   // TODO(T174674274): Implement lazy loading of legacy view managers in the new architecture.
+   if (RCTFabricInteropLayerEnabled() && [RCTLegacyViewManagerInteropComponentView isSupported:componentNameString]) {
++    static BOOL logged = NO;
++    if (!logged) {
++      logged = YES;
++      NSLog(@"[DeadlockRepro] -> _registerComponentIfPossible: Fallback 3 (Paper Interop) for '%s' - calling _providerRegistry.add()", name.c_str());
++    }
+     auto flavor = std::make_shared<const std::string>(name);
+     auto componentName = ComponentName{flavor->c_str()};
+     auto componentHandle = reinterpret_cast<ComponentHandle>(componentName);
+@@ -164,6 +170,7 @@ - (void)_registerComponentIfPossible:(const std::string &)name
+     _componentViewClasses[componentHandle] =
+         [self _componentViewClassDescriptorFromClass:[RCTLegacyViewManagerInteropComponentView class]];
+     _registrationStatusMap.insert({provider.name, true});
++    _legacyInteropProviders.push_back(provider);
+     return;
+   }
+ 
+@@ -228,4 +235,37 @@ - (RCTComponentViewDescriptor)createComponentViewWithComponentHandle:(facebook::
+   return _providerRegistry.createComponentDescriptorRegistry(parameters);
+ }
+ 
++- (void)clearDescriptorCacheForTesting
++{
++  NSLog(@"[DeadlockRepro] -> clearDescriptorCacheForTesting - clearing %lu legacy interop providers, will re-add with same handles",
++        (unsigned long)_legacyInteropProviders.size());
++  std::vector<ComponentDescriptorProvider> providers;
++  {
++    std::unique_lock lock(_mutex);
++    providers = _legacyInteropProviders;
++    for (const auto& provider : providers) {
++      _registrationStatusMap.erase(provider.name);
++    }
++    _providerRegistry.clearProvidersForTesting(providers);
++  }
++
++  for (const auto& provider : providers) {
++    NSLog(@"[DeadlockRepro] -> clearDescriptorCacheForTesting - re-adding provider '%s' (same flavor/handle)", provider.name);
++    _providerRegistry.add(provider);
++    _registrationStatusMap.insert({provider.name, true});
++  }
++  NSLog(@"[DeadlockRepro] -> clearDescriptorCacheForTesting - finished (should NOT appear if deadlocked)");
++}
++
++- (void)callBrokenLookupForTesting
++{
++  static BOOL logged = NO;
++  if (!logged) {
++    logged = YES;
++    NSLog(@"[DeadlockRepro] -> callBrokenLookupForTesting - calling providerRegistry.callBrokenLookupForTesting(RCTViewComponentView handle)");
++  }
++  ComponentHandle handle = [RCTViewComponentView componentDescriptorProvider].handle;
++  _providerRegistry.callBrokenLookupForTesting(handle);
++}
++
+ @end
+diff --git a/node_modules/react-native/React/Fabric/Mounting/RCTDeadlockRepro.h b/node_modules/react-native/React/Fabric/Mounting/RCTDeadlockRepro.h
+new file mode 100644
+index 0000000..8d64054
+--- /dev/null
++++ b/node_modules/react-native/React/Fabric/Mounting/RCTDeadlockRepro.h
+@@ -0,0 +1,5 @@
++#import <React/RCTBridgeModule.h>
++
++@interface RCTDeadlockRepro : NSObject <RCTBridgeModule>
++
++@end
+diff --git a/node_modules/react-native/React/Fabric/Mounting/RCTDeadlockRepro.mm b/node_modules/react-native/React/Fabric/Mounting/RCTDeadlockRepro.mm
+new file mode 100644
+index 0000000..f905f1c
+--- /dev/null
++++ b/node_modules/react-native/React/Fabric/Mounting/RCTDeadlockRepro.mm
+@@ -0,0 +1,116 @@
++#import "RCTDeadlockRepro.h"
++
++#import <QuartzCore/CADisplayLink.h>
++#import <React/RCTComponentViewFactory.h>
++#import <React/RCTLog.h>
++#include <pthread.h>
++
++@implementation RCTDeadlockRepro {
++  CADisplayLink *_displayLink;
++  RCTComponentViewFactory *_factory;
++  dispatch_semaphore_t _started;
++  BOOL _signaled;
++  BOOL _mainThreadStackLogged;
++  pthread_t _backgroundThread;
++  pthread_t _mainThread;
++  BOOL _deadlockConfirmed;
++}
++
++RCT_EXPORT_MODULE(DeadlockRepro);
++
+++ (BOOL)requiresMainQueueSetup {
++  return NO;
++}
++
++- (void)displayLinkTick:(CADisplayLink *)link
++{
++  if (!_signaled) {
++    _signaled = YES;
++    _mainThread = pthread_self();
++    NSLog(@"[DeadlockRepro] [MAIN] CADisplayLink fired - signaling background thread to start re-registration");
++    dispatch_semaphore_signal(_started);
++  }
++
++  if (!_mainThreadStackLogged) {
++    _mainThreadStackLogged = YES;
++    NSLog(@"[DeadlockRepro] [MAIN] -> displayLinkTick - about to call callBrokenLookupForTesting in tight loop (simulates animation tick)");
++    NSLog(@"[DeadlockRepro] [MAIN] -> callBrokenLookupForTesting -> providerRegistry.callBrokenLookupForTesting (no provider lock)");
++    NSLog(@"[DeadlockRepro] [MAIN] -> -> findComponentDescriptorByHandle_DO_NOT_USE_THIS_IS_BROKEN -> shared_lock(mutex_)");
++    NSLog(@"[DeadlockRepro] [MAIN] This matches Sentry Thread 0: CADisplayLink -> stepAnimations -> synchronouslyUpdateViewOnUIThread -> findComponentDescriptorByHandle -> shared_lock");
++  }
++
++  for (int i = 0; i < 50000; i++) {
++    [_factory callBrokenLookupForTesting];
++  }
++}
++
++RCT_EXPORT_METHOD(clearDescriptorCache)
++{
++  NSLog(@"[DeadlockRepro] ========== DEADLOCK REPRODUCTION START ==========");
++
++  _factory = [RCTComponentViewFactory currentComponentViewFactory];
++  _started = dispatch_semaphore_create(0);
++  _signaled = NO;
++  _mainThreadStackLogged = NO;
++  _deadlockConfirmed = NO;
++  _backgroundThread = pthread_self();
++
++  dispatch_async(dispatch_get_main_queue(), ^{
++    NSLog(@"[DeadlockRepro] [MAIN] Registering CADisplayLink on main RunLoop");
++    self->_displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(displayLinkTick:)];
++    [self->_displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
++  });
++
++  dispatch_semaphore_wait(_started, DISPATCH_TIME_FOREVER);
++
++  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 3 * NSEC_PER_SEC), dispatch_get_global_queue(QOS_CLASS_DEFAULT, 0), ^{
++    if (self->_deadlockConfirmed) return;
++    self->_deadlockConfirmed = YES;
++    NSLog(@"[DeadlockRepro] =============================================");
++    NSLog(@"[DeadlockRepro] DEADLOCK CONFIRMED (3s watchdog fired)");
++    NSLog(@"[DeadlockRepro] =============================================");
++    NSLog(@"[DeadlockRepro]");
++    NSLog(@"[DeadlockRepro] MAIN THREAD (pthread %p) is BLOCKED on:", (void *)self->_mainThread);
++    NSLog(@"[DeadlockRepro]   shared_lock(mutex_)");
++    NSLog(@"[DeadlockRepro]   inside: ComponentDescriptorRegistry::findComponentDescriptorByHandle_DO_NOT_USE_THIS_IS_BROKEN");
++    NSLog(@"[DeadlockRepro]   called from: CADisplayLink -> displayLinkTick -> callBrokenLookupForTesting");
++    NSLog(@"[DeadlockRepro]");
++    NSLog(@"[DeadlockRepro] BACKGROUND THREAD (pthread %p) is BLOCKED on:", (void *)self->_backgroundThread);
++    NSLog(@"[DeadlockRepro]   RCTUnsafeExecuteOnMainQueueSync (waiting for main thread)");
++    NSLog(@"[DeadlockRepro]   inside: constructCoordinator -> LegacyViewManagerInteropComponentDescriptor::ctor");
++    NSLog(@"[DeadlockRepro]   called from: ComponentDescriptorRegistry::add (HOLDS unique_lock on mutex_)");
++    NSLog(@"[DeadlockRepro]            <- ComponentDescriptorProviderRegistry::add");
++    NSLog(@"[DeadlockRepro]            <- _registerComponentIfPossible (Fallback 3: Paper Interop)");
++    NSLog(@"[DeadlockRepro]            <- clearDescriptorCacheForTesting");
++    NSLog(@"[DeadlockRepro]");
++    NSLog(@"[DeadlockRepro] CIRCULAR DEPENDENCY:");
++    NSLog(@"[DeadlockRepro]   Main thread wants shared_lock(mutex_) -> but BG thread holds unique_lock(mutex_)");
++    NSLog(@"[DeadlockRepro]   BG thread wants main queue (RCTUnsafeExecuteOnMainQueueSync) -> but main thread is blocked");
++    NSLog(@"[DeadlockRepro]");
++    NSLog(@"[DeadlockRepro] MATCHES SENTRY EVENT 531b37a537dd4bd9b7562f3c0ca71dc1 (APP-7B2):");
++    NSLog(@"[DeadlockRepro]   Thread 0 (main):  std::__1::shared_mutex::lock_shared -> findComponentDescriptorByHandle_DO_NOT_USE_THIS_IS_BROKEN -> RCTSurfacePresenter synchronouslyUpdateViewOnUIThread -> stepAnimations");
++    NSLog(@"[DeadlockRepro]   Thread 24 (JS):   RCTUnsafeExecuteOnMainQueueSync -> LegacyViewManagerInteropComponentDescriptor::ctor -> ComponentDescriptorRegistry::add -> _registerComponentIfPossible");
++    NSLog(@"[DeadlockRepro] =============================================");
++  });
++
++  NSLog(@"[DeadlockRepro] [BG] Background thread starting re-registration chain:");
++  NSLog(@"[DeadlockRepro] [BG] -> clearDescriptorCacheForTesting");
++  NSLog(@"[DeadlockRepro] [BG]   -> _registerComponentIfPossible (Fallback 3: legacy interop)");
++  NSLog(@"[DeadlockRepro] [BG]     -> ComponentDescriptorProviderRegistry::add");
++  NSLog(@"[DeadlockRepro] [BG]       -> ComponentDescriptorRegistry::add - acquires unique_lock(mutex_)");
++  NSLog(@"[DeadlockRepro] [BG]         -> LegacyViewManagerInteropComponentDescriptor constructor");
++  NSLog(@"[DeadlockRepro] [BG]           -> constructCoordinator -> RCTUnsafeExecuteOnMainQueueSync (WILL BLOCK)");
++  NSLog(@"[DeadlockRepro] [BG] This matches Sentry Thread 24: _registerComponentIfPossible -> add -> add -> ctor -> RCTUnsafeExecuteOnMainQueueSync");
++
++  [_factory clearDescriptorCacheForTesting];
++
++  _deadlockConfirmed = YES;
++  NSLog(@"[DeadlockRepro] [BG] Re-registration finished - deadlock did NOT occur");
++
++  dispatch_async(dispatch_get_main_queue(), ^{
++    [self->_displayLink invalidate];
++    self->_displayLink = nil;
++  });
++}
++
++@end
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/componentregistry/ComponentDescriptorProviderRegistry.cpp b/node_modules/react-native/ReactCommon/react/renderer/componentregistry/ComponentDescriptorProviderRegistry.cpp
+index 0a949f0..1ca604f 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/componentregistry/ComponentDescriptorProviderRegistry.cpp
++++ b/node_modules/react-native/ReactCommon/react/renderer/componentregistry/ComponentDescriptorProviderRegistry.cpp
+@@ -7,10 +7,17 @@
+ 
+ #include "ComponentDescriptorProviderRegistry.h"
+ 
++#include <cstdio>
++#include <atomic>
++
+ namespace facebook::react {
+ 
+ void ComponentDescriptorProviderRegistry::add(
+     const ComponentDescriptorProvider& provider) const {
++  static std::atomic<bool> logged{false};
++  if (!logged.exchange(true)) {
++    fprintf(stderr, "[DeadlockRepro] -> ComponentDescriptorProviderRegistry::add - acquiring unique_lock, then calling registry->add()\n");
++  }
+   std::unique_lock lock(mutex_);
+ 
+   /*
+@@ -63,6 +70,45 @@ void ComponentDescriptorProviderRegistry::request(
+   }
+ }
+ 
++void ComponentDescriptorProviderRegistry::callBrokenLookupForTesting(
++    ComponentHandle handle) const {
++  static std::atomic<bool> logged{false};
++  if (!logged.exchange(true)) {
++    fprintf(stderr, "[DeadlockRepro] -> ComponentDescriptorProviderRegistry::callBrokenLookupForTesting - NO provider lock, calling findComponentDescriptorByHandle_DO_NOT_USE_THIS_IS_BROKEN directly\n");
++  }
++  for (const auto& weakRegistry : componentDescriptorRegistries_) {
++    auto registry = weakRegistry.lock();
++    if (registry) {
++      registry->findComponentDescriptorByHandle_DO_NOT_USE_THIS_IS_BROKEN(handle);
++    }
++  }
++}
++
++void ComponentDescriptorProviderRegistry::clearForTesting() const {
++  std::unique_lock lock(mutex_);
++  for (const auto& weakRegistry : componentDescriptorRegistries_) {
++    auto registry = weakRegistry.lock();
++    if (registry) {
++      registry->retainCurrentDescriptors();
++    }
++  }
++  componentDescriptorProviders_.clear();
++}
++
++void ComponentDescriptorProviderRegistry::clearProvidersForTesting(
++    const std::vector<ComponentDescriptorProvider>& providers) const {
++  std::unique_lock lock(mutex_);
++  for (const auto& weakRegistry : componentDescriptorRegistries_) {
++    auto registry = weakRegistry.lock();
++    if (registry) {
++      registry->retainCurrentDescriptors();
++    }
++  }
++  for (const auto& provider : providers) {
++    componentDescriptorProviders_.erase(provider.handle);
++  }
++}
++
+ ComponentDescriptorRegistry::Shared
+ ComponentDescriptorProviderRegistry::createComponentDescriptorRegistry(
+     const ComponentDescriptorParameters& parameters) const {
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/componentregistry/ComponentDescriptorProviderRegistry.h b/node_modules/react-native/ReactCommon/react/renderer/componentregistry/ComponentDescriptorProviderRegistry.h
+index 9d9bad3..21a72ee 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/componentregistry/ComponentDescriptorProviderRegistry.h
++++ b/node_modules/react-native/ReactCommon/react/renderer/componentregistry/ComponentDescriptorProviderRegistry.h
+@@ -51,6 +51,10 @@ class ComponentDescriptorProviderRegistry final {
+   ComponentDescriptorRegistry::Shared createComponentDescriptorRegistry(
+       const ComponentDescriptorParameters &parameters) const;
+ 
++  void clearForTesting() const;
++  void clearProvidersForTesting(const std::vector<ComponentDescriptorProvider>& providers) const;
++  void callBrokenLookupForTesting(ComponentHandle handle) const;
++
+  private:
+   friend class ComponentDescriptorRegistry;
+ 
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/componentregistry/ComponentDescriptorRegistry.cpp b/node_modules/react-native/ReactCommon/react/renderer/componentregistry/ComponentDescriptorRegistry.cpp
+index 4838b3b..567cb64 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/componentregistry/ComponentDescriptorRegistry.cpp
++++ b/node_modules/react-native/ReactCommon/react/renderer/componentregistry/ComponentDescriptorRegistry.cpp
+@@ -17,6 +17,8 @@
+ #include <react/renderer/core/PropsParserContext.h>
+ #include <react/renderer/core/ShadowNodeFragment.h>
+ #include <utility>
++#include <cstdio>
++#include <atomic>
+ 
+ namespace facebook::react {
+ 
+@@ -30,7 +32,14 @@ ComponentDescriptorRegistry::ComponentDescriptorRegistry(
+ 
+ void ComponentDescriptorRegistry::add(
+     const ComponentDescriptorProvider& componentDescriptorProvider) const {
++  static std::atomic<bool> logged{false};
++  if (!logged.exchange(true)) {
++    fprintf(stderr, "[DeadlockRepro] -> ComponentDescriptorRegistry::add - acquiring unique_lock(mutex_)\n");
++  }
+   std::unique_lock lock(mutex_);
++  if (!logged.load()) { // won't fire again but the pattern is clear
++    fprintf(stderr, "[DeadlockRepro] -> ComponentDescriptorRegistry::add - unique_lock acquired, calling constructor\n");
++  }
+ 
+   auto componentDescriptor = componentDescriptorProvider.constructor(
+       {.eventDispatcher = parameters_.eventDispatcher,
+@@ -116,6 +125,10 @@ const ComponentDescriptor& ComponentDescriptorRegistry::at(
+ const ComponentDescriptor* ComponentDescriptorRegistry::
+     findComponentDescriptorByHandle_DO_NOT_USE_THIS_IS_BROKEN(
+         ComponentHandle componentHandle) const {
++  static std::atomic<bool> logged{false};
++  if (!logged.exchange(true)) {
++    fprintf(stderr, "[DeadlockRepro] -> findComponentDescriptorByHandle_DO_NOT_USE_THIS_IS_BROKEN - acquiring shared_lock(mutex_)\n");
++  }
+   std::shared_lock lock(mutex_);
+ 
+   auto iterator = _registryByHandle.find(componentHandle);
+@@ -141,6 +154,14 @@ bool ComponentDescriptorRegistry::hasComponentDescriptorAt(
+   return iterator != _registryByHandle.end();
+ }
+ 
++void ComponentDescriptorRegistry::retainCurrentDescriptors() const {
++  static std::vector<SharedComponentDescriptor> keepAlive;
++  std::shared_lock lock(mutex_);
++  for (const auto& pair : _registryByHandle) {
++    keepAlive.push_back(pair.second);
++  }
++}
++
+ void ComponentDescriptorRegistry::setFallbackComponentDescriptor(
+     const SharedComponentDescriptor& descriptor) {
+   _fallbackComponentDescriptor = descriptor;
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/componentregistry/ComponentDescriptorRegistry.h b/node_modules/react-native/ReactCommon/react/renderer/componentregistry/ComponentDescriptorRegistry.h
+index 54e5ff5..0d2c565 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/componentregistry/ComponentDescriptorRegistry.h
++++ b/node_modules/react-native/ReactCommon/react/renderer/componentregistry/ComponentDescriptorRegistry.h
+@@ -55,6 +55,8 @@ class ComponentDescriptorRegistry {
+   void setFallbackComponentDescriptor(const SharedComponentDescriptor &descriptor);
+   ComponentDescriptor::Shared getFallbackComponentDescriptor() const;
+ 
++  void retainCurrentDescriptors() const;
++
+  private:
+   friend class ComponentDescriptorProviderRegistry;
+ 
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/legacyviewmanagerinterop/LegacyViewManagerInteropComponentDescriptor.mm b/node_modules/react-native/ReactCommon/react/renderer/components/legacyviewmanagerinterop/LegacyViewManagerInteropComponentDescriptor.mm
+index 18caef1..2ede03f 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/components/legacyviewmanagerinterop/LegacyViewManagerInteropComponentDescriptor.mm
++++ b/node_modules/react-native/ReactCommon/react/renderer/components/legacyviewmanagerinterop/LegacyViewManagerInteropComponentDescriptor.mm
+@@ -16,6 +16,7 @@
+ #import <react/featureflags/ReactNativeFeatureFlags.h>
+ #include <react/utils/ContextContainer.h>
+ #include <react/utils/ManagedObjectWrapper.h>
++#include <React/RCTUtils.h>
+ #include "LegacyViewManagerInteropState.h"
+ #include "RCTLegacyViewManagerInteropCoordinator.h"
+ 
+@@ -121,7 +122,13 @@ static Class getViewManagerClass(const std::string &componentName, RCTBridge *br
+   }
+ 
+   auto componentName = *std::static_pointer_cast<const std::string>(flavor);
+-  Class viewManagerClass = getViewManagerClass(componentName, bridge, bridgeProxy);
++  NSLog(@"[DeadlockRepro] -> constructCoordinator('%s') - about to call RCTUnsafeExecuteOnMainQueueSync (will BLOCK if main thread holds shared_lock)", componentName.c_str());
++  __block Class viewManagerClass = nil;
++  RCTUnsafeExecuteOnMainQueueSync(^{
++    NSLog(@"[DeadlockRepro] -> constructCoordinator('%s') - inside RCTUnsafeExecuteOnMainQueueSync, running on main thread now", componentName.c_str());
++    viewManagerClass = getViewManagerClass(componentName, bridge, bridgeProxy);
++  });
++  NSLog(@"[DeadlockRepro] -> constructCoordinator('%s') - RCTUnsafeExecuteOnMainQueueSync returned (should NOT appear if deadlocked)", componentName.c_str());
+   assert(viewManagerClass);
+ 
+   auto optionalEventDispatcher = contextContainer->find<std::shared_ptr<void>>("RCTEventDispatcher");
+@@ -151,6 +158,7 @@ static Class getViewManagerClass(const std::string &componentName, RCTBridge *br
+     const ComponentDescriptorParameters &parameters)
+     : ConcreteComponentDescriptor(parameters), _coordinator(constructCoordinator(contextContainer_, flavor_))
+ {
++  NSLog(@"[DeadlockRepro] -> LegacyViewManagerInteropComponentDescriptor::ctor - construction complete");
+ }
+ 
+ ComponentHandle LegacyViewManagerInteropComponentDescriptor::getComponentHandle() const 
