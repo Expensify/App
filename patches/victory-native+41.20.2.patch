@@ -1,0 +1,519 @@
+diff --git a/node_modules/victory-native/src/cartesian/CartesianChart.tsx b/node_modules/victory-native/src/cartesian/CartesianChart.tsx
+index 9b82b54..87aa466 100644
+--- a/node_modules/victory-native/src/cartesian/CartesianChart.tsx
++++ b/node_modules/victory-native/src/cartesian/CartesianChart.tsx
+@@ -113,6 +113,7 @@ type CartesianChartProps<
+     pan?: PanTransformGestureConfig;
+     pinch?: PinchTransformGestureConfig;
+   };
++  horizontal?: boolean;
+   customGestures?: ComposedGesture;
+   actionsRef?: MutableRefObject<CartesianActionsHandle<
+     | ChartPressState<{
+@@ -140,11 +141,15 @@ export function CartesianChart<
+   transformState,
+   children,
+   ref,
++  horizontal = false,
+   ...rest
+ }: CartesianChartProps<RawData, XK, YK>) {
+   return (
+     <CartesianTransformProvider transformState={transformState}>
+-      <CartesianChartContent {...{ ...rest, transformState }} ref={ref}>
++      <CartesianChartContent
++        {...{ ...rest, transformState, horizontal }}
++        ref={ref}
++      >
+         {children}
+       </CartesianChartContent>
+     </CartesianTransformProvider>
+@@ -179,6 +184,7 @@ function CartesianChartContent<
+   customGestures,
+   actionsRef,
+   viewport,
++  horizontal = false,
+   ref,
+ }: CartesianChartProps<RawData, XK, YK>) {
+   const [size, setSize] = React.useState({ width: 0, height: 0 });
+@@ -248,12 +254,19 @@ function CartesianChartContent<
+         data,
+         xKey,
+         yKeys,
+-        outputWindow: {
+-          xMin: valueFromSidedNumber(padding, "left"),
+-          xMax: size.width - valueFromSidedNumber(padding, "right"),
+-          yMin: valueFromSidedNumber(padding, "top"),
+-          yMax: size.height - valueFromSidedNumber(padding, "bottom"),
+-        },
++        outputWindow: horizontal
++          ? {
++              xMin: valueFromSidedNumber(padding, "top"),
++              xMax: size.height - valueFromSidedNumber(padding, "bottom"),
++              yMin: valueFromSidedNumber(padding, "left"),
++              yMax: size.width - valueFromSidedNumber(padding, "right"),
++            }
++          : {
++              xMin: valueFromSidedNumber(padding, "left"),
++              xMax: size.width - valueFromSidedNumber(padding, "right"),
++              yMin: valueFromSidedNumber(padding, "top"),
++              yMax: size.height - valueFromSidedNumber(padding, "bottom"),
++            },
+         domain,
+         domainPadding,
+         xAxis: normalizedAxisProps.xAxis,
+@@ -261,6 +274,7 @@ function CartesianChartContent<
+         viewport,
+         labelRotate: normalizedAxisProps.xAxis.labelRotate,
+         axisScales: axisOptions?.axisScales,
++        horizontal,
+       });
+ 
+     const primaryYAxis = yAxes[0];
+@@ -680,6 +694,7 @@ function CartesianChartContent<
+                   : rescaledTicks
+               }
+               chartBounds={chartBounds}
++              horizontal={horizontal}
+             />
+           );
+         })
+@@ -695,6 +710,7 @@ function CartesianChartContent<
+         isNumericalData={isNumericalData}
+         chartBounds={chartBounds}
+         zoom={zoomX}
++        horizontal={horizontal}
+       />
+     ) : null;
+ 
+@@ -713,7 +729,7 @@ function CartesianChartContent<
+       {YAxisComponents}
+       {XAxisComponents}
+       {FrameComponent}
+-      <CartesianChartProvider yScale={primaryYScale} xScale={xScale}>
++      <CartesianChartProvider yScale={primaryYScale} xScale={xScale} horizontal={horizontal}>
+         <Group clip={clipRect}>
+           <Group matrix={transformState?.matrix}>
+             {hasMeasuredLayoutSize && children(renderArg)}
+diff --git a/node_modules/victory-native/src/cartesian/components/XAxis.tsx b/node_modules/victory-native/src/cartesian/components/XAxis.tsx
+index 6d83472..c49f52a 100644
+--- a/node_modules/victory-native/src/cartesian/components/XAxis.tsx
++++ b/node_modules/victory-native/src/cartesian/components/XAxis.tsx
+@@ -42,6 +42,7 @@ export const XAxis = <
+   chartBounds,
+   enableRescaling,
+   zoom,
++  horizontal = false,
+ }: XAxisProps<RawData, XK>) => {
+   const xScale = zoom ? zoom.rescaleX(xScaleProp) : xScaleProp;
+   const [y1 = 0, y2 = 0] = yScale.domain();
+@@ -52,6 +53,57 @@ export const XAxis = <
+       ? xScale.ticks(tickCount)
+       : xScaleProp.ticks(tickCount);
+ 
++  if (horizontal) {
++    // In horizontal mode, xScale maps category indices → canvas Y positions.
++    // We draw one horizontal grid line per category, spanning the full chart width,
++    // with the category label on the left side.
++    const xAxisNodes = xTicksNormalized.map((tick) => {
++      const canvasY = xScale(tick);
++      // Grid line: horizontal from left baseline to right max across the chart
++      const p1 = vec(chartBounds.top, canvasY);
++      const p2 = vec(chartBounds.bottom, canvasY);
++
++      const val = isNumericalData ? tick : ix[tick];
++      const contentX = formatXLabel(val as never);
++      const labelWidth =
++        font
++          ?.getGlyphWidths?.(font.getGlyphIDs(contentX))
++          .reduce((sum, value) => sum + value, 0) ?? 0;
++
++      const labelY = canvasY + fontSize / 3;
++      const labelX =
++        axisSide === "left" || axisSide === "bottom"
++          ? chartBounds.top - labelWidth - labelOffset
++          : chartBounds.bottom + labelOffset;
++
++      const canFitLabelContent =
++        canvasY >= chartBounds.left && canvasY <= chartBounds.right;
++
++      return (
++        <React.Fragment key={`x-tick-${tick}`}>
++          {lineWidth > 0 ? (
++            <Group clip={boundsToClip(chartBounds)}>
++              <Line p1={p1} p2={p2} color={lineColor} strokeWidth={lineWidth}>
++                {linePathEffect ? linePathEffect : null}
++              </Line>
++            </Group>
++          ) : null}
++          {font && labelWidth && canFitLabelContent ? (
++            <Text
++              color={labelColor}
++              text={contentX}
++              font={font}
++              y={labelY}
++              x={labelX}
++            />
++          ) : null}
++          <></>
++        </React.Fragment>
++      );
++    });
++    return xAxisNodes;
++  }
++
+   const xAxisNodes = xTicksNormalized.map((tick) => {
+     const p1 = vec(xScale(tick), yScale(y2));
+     const p2 = vec(xScale(tick), yScale(y1));
+diff --git a/node_modules/victory-native/src/cartesian/components/YAxis.tsx b/node_modules/victory-native/src/cartesian/components/YAxis.tsx
+index 478f6f0..38e4fdd 100644
+--- a/node_modules/victory-native/src/cartesian/components/YAxis.tsx
++++ b/node_modules/victory-native/src/cartesian/components/YAxis.tsx
+@@ -27,10 +27,74 @@ export const YAxis = <
+   formatYLabel = (label: ValueOf<InputDatum>) => String(label),
+   linePathEffect,
+   chartBounds,
++  horizontal = false,
+ }: YAxisProps<RawData, YK>) => {
+   const [x1 = 0, x2 = 0] = xScale.domain();
+   const [_ = 0, y2 = 0] = yScale.domain();
+   const fontSize = font?.getSize() ?? 0;
++
++  if (horizontal) {
++    // In horizontal mode, yScale maps values → canvas X positions.
++    // We draw one vertical grid line per value tick, spanning the full chart height,
++    // with value labels below (or above) the chart.
++    const yAxisNodes = yTicksNormalized.map((tick) => {
++      const canvasX = yScale(tick);
++      // Grid line: vertical from top of chart to bottom
++      const p1 = vec(canvasX, xScale(x1));
++      const p2 = vec(canvasX, xScale(x2));
++
++      const contentY = formatYLabel(tick as never);
++      const labelWidth =
++        font
++          ?.getGlyphWidths?.(font.getGlyphIDs(contentY))
++          .reduce((sum, value) => sum + value, 0) ?? 0;
++
++      const labelX = canvasX - labelWidth / 2;
++      const labelY = (() => {
++        // bottom, outset (default for horizontal value axis)
++        if (axisSide === "left" && labelPosition === "outset") {
++          return chartBounds.right + labelOffset + fontSize;
++        }
++        // top, outset
++        if (axisSide === "right" && labelPosition === "outset") {
++          return chartBounds.left - labelOffset;
++        }
++        // inset variants
++        if (axisSide === "left" && labelPosition === "inset") {
++          return chartBounds.right - labelOffset;
++        }
++        return chartBounds.left + fontSize + labelOffset;
++      })();
++
++      const canFitLabelContent =
++        canvasX >= chartBounds.top && canvasX <= chartBounds.bottom;
++
++      return (
++        <React.Fragment key={`y-tick-${tick}`}>
++          {lineWidth > 0 ? (
++            <Group clip={boundsToClip(chartBounds)}>
++              <Line p1={p1} p2={p2} color={lineColor} strokeWidth={lineWidth}>
++                {linePathEffect ? linePathEffect : null}
++              </Line>
++            </Group>
++          ) : null}
++          {font
++            ? canFitLabelContent && (
++                <Text
++                  color={labelColor}
++                  text={contentY}
++                  font={font}
++                  y={labelY}
++                  x={labelX}
++                />
++              )
++            : null}
++        </React.Fragment>
++      );
++    });
++    return yAxisNodes;
++  }
++
+   const yAxisNodes = yTicksNormalized.map((tick) => {
+     const contentY = formatYLabel(tick as never);
+     const labelWidth =
+diff --git a/node_modules/victory-native/src/cartesian/contexts/CartesianChartContext.tsx b/node_modules/victory-native/src/cartesian/contexts/CartesianChartContext.tsx
+index eaac897..4c25bcc 100644
+--- a/node_modules/victory-native/src/cartesian/contexts/CartesianChartContext.tsx
++++ b/node_modules/victory-native/src/cartesian/contexts/CartesianChartContext.tsx
+@@ -8,6 +8,7 @@ import React, {
+ interface CartesianChartContext {
+   xScale: ScaleLinear<number, number, never>;
+   yScale: ScaleLinear<number, number, never>;
++  horizontal: boolean;
+ }
+ 
+ const CartesianChartContext = createContext<CartesianChartContext | undefined>(
+@@ -17,18 +18,20 @@ const CartesianChartContext = createContext<CartesianChartContext | undefined>(
+ interface CartesianChartProviderProps {
+   xScale: ScaleLinear<number, number, never>;
+   yScale: ScaleLinear<number, number, never>;
++  horizontal?: boolean;
+ }
+ 
+ export const CartesianChartProvider = (
+   props: PropsWithChildren<CartesianChartProviderProps>,
+ ) => {
+-  const { children, xScale, yScale } = props;
++  const { children, xScale, yScale, horizontal = false } = props;
+ 
+   return (
+     <CartesianChartContext.Provider
+       value={{
+         xScale,
+         yScale,
++        horizontal,
+       }}
+     >
+       {children}
+diff --git a/node_modules/victory-native/src/cartesian/hooks/useBarGroupPaths.ts b/node_modules/victory-native/src/cartesian/hooks/useBarGroupPaths.ts
+index 4bfb6d4..0430a94 100644
+--- a/node_modules/victory-native/src/cartesian/hooks/useBarGroupPaths.ts
++++ b/node_modules/victory-native/src/cartesian/hooks/useBarGroupPaths.ts
+@@ -18,8 +18,10 @@ export const useBarGroupPaths = (
+ ) => {
+   const numGroups = points[0]?.length || 0;
+ 
+-  const { yScale } = useCartesianChartContext();
++  const { yScale, horizontal } = useCartesianChartContext();
+ 
++  // In both modes, chartBounds.right - chartBounds.left represents the span
++  // across the categorical axis (width in vertical, height in horizontal).
+   const groupWidth = React.useMemo(() => {
+     return (
+       ((1 - betweenGroupPadding) * (chartBounds.right - chartBounds.left)) /
+@@ -44,26 +46,53 @@ export const useBarGroupPaths = (
+     return points.map((pointSet, i) => {
+       const p = Skia.Path.Make();
+       const offset = -groupWidth / 2 + i * (barWidth + gapWidth);
+-      pointSet.forEach(({ x, y, yValue }) => {
+-        if (typeof y !== "number") return;
+-        const barHeight = yScale(0) - y;
+-        if (roundedCorners) {
+-          const nonUniformRoundedRect = createRoundedRectPath(
+-            x + offset,
+-            y,
+-            barWidth,
+-            barHeight,
+-            roundedCorners,
+-            Number(yValue),
+-          );
+-          p.addRRect(nonUniformRoundedRect);
+-        } else {
+-          p.addRect(Skia.XYWHRect(x + offset, y, barWidth, barHeight));
+-        }
+-      });
++
++      if (horizontal) {
++        // In horizontal mode:
++        //   x = canvas Y position of the category group center
++        //   y = canvas X position of the value (bar right edge)
++        //   yScale(0) = canvas X of value=0 (left baseline)
++        const baseline = yScale(0);
++        pointSet.forEach(({ x, y, yValue }) => {
++          if (typeof y !== "number") return;
++          const barLength = y - baseline;
++          if (roundedCorners) {
++            const nonUniformRoundedRect = createRoundedRectPath(
++              baseline,
++              x + offset,
++              barLength,
++              barWidth,
++              roundedCorners,
++              Number(yValue),
++            );
++            p.addRRect(nonUniformRoundedRect);
++          } else {
++            p.addRect(Skia.XYWHRect(baseline, x + offset, barLength, barWidth));
++          }
++        });
++      } else {
++        pointSet.forEach(({ x, y, yValue }) => {
++          if (typeof y !== "number") return;
++          const barHeight = yScale(0) - y;
++          if (roundedCorners) {
++            const nonUniformRoundedRect = createRoundedRectPath(
++              x + offset,
++              y,
++              barWidth,
++              barHeight,
++              roundedCorners,
++              Number(yValue),
++            );
++            p.addRRect(nonUniformRoundedRect);
++          } else {
++            p.addRect(Skia.XYWHRect(x + offset, y, barWidth, barHeight));
++          }
++        });
++      }
++
+       return p;
+     });
+-  }, [barWidth, gapWidth, groupWidth, points, roundedCorners, yScale]);
++  }, [barWidth, gapWidth, groupWidth, horizontal, points, roundedCorners, yScale]);
+ 
+   return { barWidth, groupWidth, gapWidth, paths };
+ };
+diff --git a/node_modules/victory-native/src/cartesian/hooks/useBarPath.ts b/node_modules/victory-native/src/cartesian/hooks/useBarPath.ts
+index 815f3e3..1afb84a 100644
+--- a/node_modules/victory-native/src/cartesian/hooks/useBarPath.ts
++++ b/node_modules/victory-native/src/cartesian/hooks/useBarPath.ts
+@@ -16,7 +16,7 @@ export const useBarPath = (
+   customBarWidth?: number,
+   barCount?: number,
+ ) => {
+-  const { yScale } = useCartesianChartContext();
++  const { yScale, horizontal } = useCartesianChartContext();
+   const barWidth = useBarWidth({
+     points,
+     chartBounds,
+@@ -28,28 +28,55 @@ export const useBarPath = (
+   const path = React.useMemo(() => {
+     const path = Skia.Path.Make();
+ 
+-    points.forEach(({ x, y, yValue }) => {
+-      if (typeof y !== "number") return;
++    if (horizontal) {
++      // In horizontal mode:
++      //   x = canvas Y position of the category (bar center)
++      //   y = canvas X position of the value (bar right edge)
++      //   yScale(0) = canvas X of value=0 (left baseline)
++      const baseline = yScale(0);
++      points.forEach(({ x, y, yValue }) => {
++        if (typeof y !== "number") return;
++        const barLength = y - baseline;
++        if (roundedCorners) {
++          const nonUniformRoundedRect = createRoundedRectPath(
++            baseline,
++            x - barWidth / 2,
++            barLength,
++            barWidth,
++            roundedCorners,
++            Number(yValue),
++          );
++          path.addRRect(nonUniformRoundedRect);
++        } else {
++          path.addRect(
++            Skia.XYWHRect(baseline, x - barWidth / 2, barLength, barWidth),
++          );
++        }
++      });
++    } else {
++      points.forEach(({ x, y, yValue }) => {
++        if (typeof y !== "number") return;
+ 
+-      const barHeight = yScale(0) - y;
++        const barHeight = yScale(0) - y;
+ 
+-      if (roundedCorners) {
+-        const nonUniformRoundedRect = createRoundedRectPath(
+-          x - barWidth / 2,
+-          y,
+-          barWidth,
+-          barHeight,
+-          roundedCorners,
+-          Number(yValue),
+-        );
+-        path.addRRect(nonUniformRoundedRect);
+-      } else {
+-        path.addRect(Skia.XYWHRect(x - barWidth / 2, y, barWidth, barHeight));
+-      }
+-    });
++        if (roundedCorners) {
++          const nonUniformRoundedRect = createRoundedRectPath(
++            x - barWidth / 2,
++            y,
++            barWidth,
++            barHeight,
++            roundedCorners,
++            Number(yValue),
++          );
++          path.addRRect(nonUniformRoundedRect);
++        } else {
++          path.addRect(Skia.XYWHRect(x - barWidth / 2, y, barWidth, barHeight));
++        }
++      });
++    }
+ 
+     return path;
+-  }, [barWidth, points, roundedCorners, yScale]);
++  }, [barWidth, horizontal, points, roundedCorners, yScale]);
+ 
+   return { path, barWidth };
+ };
+diff --git a/node_modules/victory-native/src/cartesian/utils/transformInputData.ts b/node_modules/victory-native/src/cartesian/utils/transformInputData.ts
+index 8d4403c..52c6a37 100644
+--- a/node_modules/victory-native/src/cartesian/utils/transformInputData.ts
++++ b/node_modules/victory-native/src/cartesian/utils/transformInputData.ts
+@@ -47,6 +47,7 @@ export const transformInputData = <
+   viewport,
+   labelRotate,
+   axisScales,
++  horizontal = false,
+ }: {
+   data: RawData[];
+   xKey: XK;
+@@ -65,6 +66,7 @@ export const transformInputData = <
+   };
+   labelRotate?: number;
+   axisScales?: AxisScales;
++  horizontal?: boolean;
+ }): TransformedData<RawData, XK, YK> & {
+   xScale: ScaleLinear<number, number>;
+   isNumericalData: boolean;
+@@ -187,12 +189,18 @@ export const transformInputData = <
+           }, -Infinity);
+         }),
+       );
+-    // Set up our y-scale, notice how domain is "flipped" because
+-    //  we're moving from cartesian to canvas coordinates
+-    // Also, if single data point, manually add upper & lower bounds so chart renders properly
+-    const yScaleDomain = (
+-      yMax === yMin ? [yMax + 1, yMin - 1] : [yMax, yMin]
+-    ) as [number, number];
++    // Set up our y-scale. In vertical mode the domain is flipped (yMax→top, yMin→bottom)
++    // to convert from cartesian to canvas coordinates. In horizontal mode the domain is
++    // NOT flipped so that values increase left-to-right (mapped to canvas X positions).
++    const yScaleDomain = horizontal
++      ? ((yMax === yMin ? [yMin - 1, yMax + 1] : [yMin, yMax]) as [
++          number,
++          number,
++        ])
++      : ((yMax === yMin ? [yMax + 1, yMin - 1] : [yMax, yMin]) as [
++          number,
++          number,
++        ]);
+ 
+     const yScaleRange: [number, number] = (() => {
+       const xTickCount =
+diff --git a/node_modules/victory-native/src/types.ts b/node_modules/victory-native/src/types.ts
+index a3a4c81..c78ad3b 100644
+--- a/node_modules/victory-native/src/types.ts
++++ b/node_modules/victory-native/src/types.ts
+@@ -233,6 +233,7 @@ export type XAxisProps<
+   ix: InputFields<RawData>[XK][];
+   chartBounds: ChartBounds;
+   zoom?: ZoomTransform;
++  horizontal?: boolean;
+ };
+ 
+ export type YAxisInputProps<
+@@ -280,6 +281,7 @@ export type YAxisProps<
+   yTicksNormalized: number[];
+   yKeys: YK[];
+   chartBounds: ChartBounds;
++  horizontal?: boolean;
+ };
+ 
+ export type FrameInputProps = {
