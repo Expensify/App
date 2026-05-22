@@ -7724,7 +7724,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             `dodano pole raportu typu ${fieldType} „${fieldName}”${defaultValue ? ` z domyślną wartością „${defaultValue}”` : ''}`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'włączone' : 'wyłączone'} wymóg dotyczący zakupów kartą służbową`,
         expensifyCardRule: {
-            actionVerb: {block: 'zablokowano', allow: 'dozwolone'},
+            actionVerb: {block: 'zablokowane', allow: 'dozwolone'},
             amountOperator: {over: 'ponad', under: 'pod'},
             amountFilter: ({operator, amount}: {operator: string; amount: string}) => `kwoty ${operator} ${amount}`,
             theCard: 'karta',
@@ -7744,34 +7744,32 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             addRule: ({verb, filters, cards}: {verb: string; filters: string; cards: string}) => {
                 let text = verb;
                 if (filters !== '') {
-                    text += `${text === '' ? '' : ' '}${filters}`;
+                    text += ` ${filters}`;
                 }
-                if (cards !== '') {
-                    text += `${text === '' ? '' : ' '} na ${cards}`;
-                }
+                text += `na ${cards}`;
                 return text;
             },
-            removeRule: ({cards}: {cards: string}) => (cards !== '' ? `usunięto regułę wydatków z ${cards}` : 'usunięto regułę wydatków'),
+            removeRule: ({cards}: {cards: string}) => `usunięto regułę wydatków z ${cards}`,
             restrictionVerb: {block: 'zablokuj', allow: 'zezwól tylko'},
             update: {
                 modeChange: ({fromAction, toAction, cards}: {fromAction: string; toAction: string; cards: string}) =>
-                    cards !== '' ? `zmieniono regułę wydatków z ${fromAction} na ${toAction} na ${cards}` : `zmienił(a) regułę wydatków z ${fromAction} na ${toAction}`,
+                    `zmienił(-a) regułę wydatków z ${fromAction} na ${toAction} na ${cards}`,
                 appliedToAdditionalCards: ({count}: {count: number}) => `zastosowano regułę wydatków do ${count} dodatkowych kart`,
                 phraseVerb: {added: 'dodano', removed: 'usunięto', changed: 'zmieniono', set: 'ustaw', applied: 'zastosowano'},
-                bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} sprzedawca „${value}”` : `sprzedawca „${value}”`),
+                bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} sprzedawca '${value}'` : `sprzedawca „${value}”`),
                 bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `${adjective} sprzedawcę z „${oldValue}” na „${newValue}”` : `sprzedawcę z „${oldValue}” na „${newValue}”`,
                 bodySpendCategory: ({adjective, value}: {adjective: string; value: string}) =>
-                    adjective !== '' ? `kategoria wydatków ${adjective} „${value}”` : `kategoria wydatków „${value}”`,
+                    adjective !== '' ? `${adjective} kategoria wydatków „${value}”` : `kategoria wydatków „${value}”`,
                 bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `${adjective} kategorię wydatków z „${oldValue}” na „${newValue}”` : `kategoria wydatku z „${oldValue}” na „${newValue}”`,
                 bodyMaxAmount: 'maksymalna kwota',
                 bodyMaxAmountSet: ({value}: {value: string}) => `maksymalna kwota do ${value}`,
-                bodyMaxAmountChange: ({oldValue, newValue}: {oldValue: string; newValue: string}) => `maksymalna kwota z ${oldValue} na ${newValue}`,
+                bodyMaxAmountChange: ({oldValue, newValue}: {oldValue: string; newValue: string}) => `maksymalną kwotę z ${oldValue} na ${newValue}`,
                 bodyAppliedToAdditionalCards: ({count}: {count: number}) => `zasada wydatków dla ${count} dodatkowych kart`,
                 bodyRemovedFromCards: ({cards}: {cards: string}) => `reguła wydatków z ${cards}`,
-                composeOnCards: ({content, cards}: {content: string; cards: string}) => (cards !== '' ? `${content} na ${cards}` : content),
-                composeFromCards: ({content, cards}: {content: string; cards: string}) => (cards !== '' ? `${content} z ${cards}` : content),
+                composeOnCards: ({content, cards}: {content: string; cards: string}) => `${content} na ${cards}`,
+                composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} z ${cards}`,
             },
         },
     },

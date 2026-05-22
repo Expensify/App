@@ -7747,39 +7747,37 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 if (items.length === 2) {
                     return `${items.at(0)} en ${items.at(1)}`;
                 }
-                return `${items.slice(0, -1).join(', ')} en ${items.at(-1)}`;
+                return `${items.slice(0, -1).join(', ')}, en ${items.at(-1)}`;
             },
             addRule: ({verb, filters, cards}: {verb: string; filters: string; cards: string}) => {
                 let text = verb;
                 if (filters !== '') {
-                    text += `${text === '' ? '' : ' '}${filters}`;
+                    text += ` ${filters}`;
                 }
-                if (cards !== '') {
-                    text += `${text === '' ? '' : ' '}op ${cards}`;
-                }
+                text += `op ${cards}`;
                 return text;
             },
-            removeRule: ({cards}: {cards: string}) => (cards !== '' ? `uitgavenregel verwijderd van ${cards}` : 'uitgave-regel verwijderd'),
+            removeRule: ({cards}: {cards: string}) => `besteedregel verwijderd van ${cards}`,
             restrictionVerb: {block: 'blokkeren', allow: 'alleen toestaan'},
             update: {
                 modeChange: ({fromAction, toAction, cards}: {fromAction: string; toAction: string; cards: string}) =>
-                    cards !== '' ? `uitgave-regel gewijzigd van ${fromAction} naar ${toAction} op ${cards}` : `heeft bestedingsregel gewijzigd van ${fromAction} naar ${toAction}`,
+                    `heeft de bestedingsregel gewijzigd van ${fromAction} naar ${toAction} op ${cards}`,
                 appliedToAdditionalCards: ({count}: {count: number}) => `bestedingsregel toegepast op ${count} extra kaarten`,
                 phraseVerb: {added: 'toegevoegd', removed: 'verwijderd', changed: 'gewijzigd', set: 'instellen', applied: 'toegepast'},
                 bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} handelaar '${value}'` : `handelaar '${value}'`),
                 bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
-                    adjective !== '' ? `${adjective} handelaar van '${oldValue}' naar '${newValue}'` : `handelaar van '${oldValue}' naar '${newValue}'`,
+                    adjective !== '' ? `${adjective} handelaar gewijzigd van '${oldValue}' naar '${newValue}'` : `handelaar van '${oldValue}' naar '${newValue}'`,
                 bodySpendCategory: ({adjective, value}: {adjective: string; value: string}) =>
-                    adjective !== '' ? `${adjective} uitgavencategorie '${value}'` : `uitgavencategorie '${value}'`,
+                    adjective !== '' ? `${adjective} uitgavencategorie '${value}'` : `uitgavencategorie ‘${value}’`,
                 bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
-                    adjective !== '' ? `${adjective} uitgavencategorie van '${oldValue}' naar '${newValue}'` : `uitgavecategorie van '${oldValue}' naar '${newValue}'`,
-                bodyMaxAmount: 'max. bedrag',
+                    adjective !== '' ? `${adjective} uitgavencategorie van '${oldValue}' naar '${newValue}'` : `bestedingscategorie van '${oldValue}' naar '${newValue}'`,
+                bodyMaxAmount: 'maximumbedrag',
                 bodyMaxAmountSet: ({value}: {value: string}) => `max. bedrag tot ${value}`,
-                bodyMaxAmountChange: ({oldValue, newValue}: {oldValue: string; newValue: string}) => `max. bedrag van ${oldValue} naar ${newValue}`,
-                bodyAppliedToAdditionalCards: ({count}: {count: number}) => `bestedsregel naar ${count} extra kaarten`,
+                bodyMaxAmountChange: ({oldValue, newValue}: {oldValue: string; newValue: string}) => `maximumbedrag van ${oldValue} naar ${newValue}`,
+                bodyAppliedToAdditionalCards: ({count}: {count: number}) => `bestedingsregel naar ${count} extra kaarten`,
                 bodyRemovedFromCards: ({cards}: {cards: string}) => `bestedingsregel van ${cards}`,
-                composeOnCards: ({content, cards}: {content: string; cards: string}) => (cards !== '' ? `${content} op ${cards}` : content),
-                composeFromCards: ({content, cards}: {content: string; cards: string}) => (cards !== '' ? `${content} van ${cards}` : content),
+                composeOnCards: ({content, cards}: {content: string; cards: string}) => `${content} op ${cards}`,
+                composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} van ${cards}`,
             },
         },
     },

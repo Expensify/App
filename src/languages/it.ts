@@ -7781,34 +7781,32 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             addRule: ({verb, filters, cards}: {verb: string; filters: string; cards: string}) => {
                 let text = verb;
                 if (filters !== '') {
-                    text += `${text === '' ? '' : ' '}${filters}`;
+                    text += ` ${filters}`;
                 }
-                if (cards !== '') {
-                    text += `${text === '' ? '' : ' '} su ${cards}`;
-                }
+                text += `su ${cards}`;
                 return text;
             },
-            removeRule: ({cards}: {cards: string}) => (cards !== '' ? `ha rimosso la regola di spesa da ${cards}` : 'regola di spesa rimossa'),
-            restrictionVerb: {block: 'bloc', allow: 'consenti solo'},
+            removeRule: ({cards}: {cards: string}) => `ha rimosso la regola di spesa da ${cards}`,
+            restrictionVerb: {block: 'blocca', allow: 'consenti solo'},
             update: {
                 modeChange: ({fromAction, toAction, cards}: {fromAction: string; toAction: string; cards: string}) =>
-                    cards !== '' ? `ha modificato la regola di spesa da ${fromAction} a ${toAction} su ${cards}` : `ha modificato la regola di spesa da ${fromAction} a ${toAction}`,
+                    `ha modificato la regola di spesa da ${fromAction} a ${toAction} su ${cards}`,
                 appliedToAdditionalCards: ({count}: {count: number}) => `regola di spesa applicata a ${count} carte aggiuntive`,
-                phraseVerb: {added: 'aggiunto', removed: 'rimosso', changed: 'modificato', set: 'imposta', applied: 'applicato'},
-                bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} esercente '${value}'` : `esercente '${value}'`),
+                phraseVerb: {added: 'aggiunto', removed: 'rimosso', changed: 'modificato', set: 'imposta', applied: 'applicata'},
+                bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `Commerciante ${adjective} '${value}'` : `esercente '${value}'`),
                 bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
-                    adjective !== '' ? `${adjective} esercente da '${oldValue}' a '${newValue}'` : `esercente da '${oldValue}' a '${newValue}'`,
+                    adjective !== '' ? `commerciante ${adjective} da '${oldValue}' a '${newValue}'` : `esercente da '${oldValue}' a '${newValue}'`,
                 bodySpendCategory: ({adjective, value}: {adjective: string; value: string}) =>
-                    adjective !== '' ? `categoria di spesa ${adjective} "${value}"` : `categoria di spesa '${value}'`,
+                    adjective !== '' ? `Categoria di spesa ${adjective} "${value}"` : `categoria di spesa "${value}"`,
                 bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `categoria di spesa ${adjective} da '${oldValue}' a '${newValue}'` : `categoria di spesa da '${oldValue}' a '${newValue}'`,
                 bodyMaxAmount: 'importo massimo',
-                bodyMaxAmountSet: ({value}: {value: string}) => `importo massimo pari a ${value}`,
+                bodyMaxAmountSet: ({value}: {value: string}) => `importo massimo a ${value}`,
                 bodyMaxAmountChange: ({oldValue, newValue}: {oldValue: string; newValue: string}) => `importo massimo da ${oldValue} a ${newValue}`,
                 bodyAppliedToAdditionalCards: ({count}: {count: number}) => `regola di spesa per ${count} carte aggiuntive`,
                 bodyRemovedFromCards: ({cards}: {cards: string}) => `regola di spesa da ${cards}`,
-                composeOnCards: ({content, cards}: {content: string; cards: string}) => (cards !== '' ? `${content} su ${cards}` : content),
-                composeFromCards: ({content, cards}: {content: string; cards: string}) => (cards !== '' ? `${content} da ${cards}` : content),
+                composeOnCards: ({content, cards}: {content: string; cards: string}) => `${content} su ${cards}`,
+                composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} da ${cards}`,
             },
         },
     },

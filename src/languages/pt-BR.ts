@@ -7725,7 +7725,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'ativado' : 'desativado'} o requisito de compras com cartão corporativo`,
         expensifyCardRule: {
             actionVerb: {block: 'bloqueado', allow: 'permitido'},
-            amountOperator: {over: 'sobre', under: 'abaixo'},
+            amountOperator: {over: 'sobre', under: 'embaixo'},
             amountFilter: ({operator, amount}: {operator: string; amount: string}) => `valores ${operator} ${amount}`,
             theCard: 'o cartão',
             multipleCards: ({count}: {count: number}) => `${count} cartões`,
@@ -7739,39 +7739,37 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 if (items.length === 2) {
                     return `${items.at(0)} e ${items.at(1)}`;
                 }
-                return `${items.slice(0, -1).join(', ')}, e ${items.at(-1)}`;
+                return `${items.slice(0, -1).join(', ')} e ${items.at(-1)}`;
             },
             addRule: ({verb, filters, cards}: {verb: string; filters: string; cards: string}) => {
                 let text = verb;
                 if (filters !== '') {
-                    text += `${text === '' ? '' : ' '}${filters}`;
+                    text += ` ${filters}`;
                 }
-                if (cards !== '') {
-                    text += `${text === '' ? '' : ' '}em ${cards}`;
-                }
+                text += `em ${cards}`;
                 return text;
             },
-            removeRule: ({cards}: {cards: string}) => (cards !== '' ? `removeu a regra de gasto de ${cards}` : 'removeu a regra de gasto'),
+            removeRule: ({cards}: {cards: string}) => `removeu a regra de gasto de ${cards}`,
             restrictionVerb: {block: 'bloquear', allow: 'permitir somente'},
             update: {
                 modeChange: ({fromAction, toAction, cards}: {fromAction: string; toAction: string; cards: string}) =>
-                    cards !== '' ? `alterou a regra de gasto de ${fromAction} para ${toAction} em ${cards}` : `alterou a regra de gasto de ${fromAction} para ${toAction}`,
+                    `alterou a regra de gasto de ${fromAction} para ${toAction} em ${cards}`,
                 appliedToAdditionalCards: ({count}: {count: number}) => `regra de gasto aplicada a mais ${count} cartões`,
                 phraseVerb: {added: 'adicionado', removed: 'removido', changed: 'alterado', set: 'definir', applied: 'aplicado'},
                 bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `Comerciante ${adjective} '${value}'` : `estabelecimento '${value}'`),
                 bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
-                    adjective !== '' ? `${adjective} comerciante de '${oldValue}' para '${newValue}'` : `estabelecimento comercial de '${oldValue}' para '${newValue}'`,
+                    adjective !== '' ? `${adjective} comerciante de '${oldValue}' para '${newValue}'` : `estabelecimento de '${oldValue}' para '${newValue}'`,
                 bodySpendCategory: ({adjective, value}: {adjective: string; value: string}) =>
-                    adjective !== '' ? `categoria de gasto ${adjective} '${value}'` : `categoria de despesa '${value}'`,
+                    adjective !== '' ? `categoria de gasto ${adjective} '${value}'` : `categoria de gasto '${value}'`,
                 bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `categoria de gasto ${adjective} de '${oldValue}' para '${newValue}'` : `categoria de gasto de '${oldValue}' para '${newValue}'`,
                 bodyMaxAmount: 'valor máximo',
-                bodyMaxAmountSet: ({value}: {value: string}) => `valor máximo de ${value}`,
+                bodyMaxAmountSet: ({value}: {value: string}) => `valor máximo para ${value}`,
                 bodyMaxAmountChange: ({oldValue, newValue}: {oldValue: string; newValue: string}) => `valor máximo de ${oldValue} para ${newValue}`,
-                bodyAppliedToAdditionalCards: ({count}: {count: number}) => `regra de gasto para ${count} cartões adicionais`,
+                bodyAppliedToAdditionalCards: ({count}: {count: number}) => `regra de gasto para mais ${count} cartões adicionais`,
                 bodyRemovedFromCards: ({cards}: {cards: string}) => `regra de gasto de ${cards}`,
-                composeOnCards: ({content, cards}: {content: string; cards: string}) => (cards !== '' ? `${content} em ${cards}` : content),
-                composeFromCards: ({content, cards}: {content: string; cards: string}) => (cards !== '' ? `${content} de ${cards}` : content),
+                composeOnCards: ({content, cards}: {content: string; cards: string}) => `${content} em ${cards}`,
+                composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} de ${cards}`,
             },
         },
     },
