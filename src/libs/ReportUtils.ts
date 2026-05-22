@@ -2145,15 +2145,15 @@ function pushTransactionViolationsOnyxData(
     for (const {transactions, violations} of nonInvoiceReportTransactionsAndViolations) {
         for (const transaction of Object.values(transactions)) {
             const existingViolations = violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
-            const optimisticViolations = ViolationsUtils.getViolationsOnyxData(
-                transaction,
-                existingViolations ?? [],
-                optimisticPolicy,
-                optimisticTagLists,
-                optimisticCategories,
+            const optimisticViolations = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations: existingViolations ?? [],
+                policy: optimisticPolicy,
+                policyTagList: optimisticTagLists,
+                policyCategories: optimisticCategories,
                 hasDependentTags,
-                false,
-            );
+                isInvoiceTransaction: false,
+            });
 
             if (!isEmptyObject(optimisticViolations)) {
                 onyxData.optimisticData?.push(optimisticViolations);

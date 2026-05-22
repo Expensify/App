@@ -339,19 +339,31 @@ const ViolationsUtils = {
      * Checks a transaction for policy violations and returns an object with Onyx method, key and updated transaction
      * violations.
      */
-    getViolationsOnyxData(
-        updatedTransaction: Transaction,
-        transactionViolations: TransactionViolation[],
-        policy: Policy,
-        policyTagList: PolicyTagLists,
-        policyCategories: PolicyCategories,
-        hasDependentTags: boolean,
-        isInvoiceTransaction: boolean,
-        isSelfDM?: boolean,
-        iouReport?: OnyxEntry<Report>,
-        isFromExpenseReport?: boolean,
-        shouldRemoveRejectedExpenseViolation?: boolean,
-    ): OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> {
+    getViolationsOnyxData({
+        updatedTransaction,
+        transactionViolations,
+        policy,
+        policyTagList,
+        policyCategories,
+        hasDependentTags,
+        isInvoiceTransaction,
+        isSelfDM,
+        iouReport,
+        isFromExpenseReport,
+        shouldRemoveRejectedExpenseViolation,
+    }: {
+        updatedTransaction: Transaction;
+        transactionViolations: TransactionViolation[];
+        policy: Policy;
+        policyTagList: PolicyTagLists;
+        policyCategories: PolicyCategories;
+        hasDependentTags: boolean;
+        isInvoiceTransaction: boolean;
+        isSelfDM?: boolean;
+        iouReport?: OnyxEntry<Report>;
+        isFromExpenseReport?: boolean;
+        shouldRemoveRejectedExpenseViolation?: boolean;
+    }): OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> {
         const isScanning = TransactionUtils.isScanning(updatedTransaction);
         const isScanRequest = TransactionUtils.isScanRequest(updatedTransaction);
         const isPartialTransaction = TransactionUtils.isPartialTransaction(updatedTransaction);

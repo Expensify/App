@@ -1540,18 +1540,18 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             );
         }
 
-        const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
+        const violationsOnyxData = ViolationsUtils.getViolationsOnyxData({
             updatedTransaction,
-            optimisticViolations,
+            transactionViolations: optimisticViolations,
             policy,
-            policyTagList ?? {},
-            policyCategories ?? {},
-            hasDependentTags(policy, policyTagList ?? {}),
-            isInvoice,
-            isSelfDM(iouReport),
+            policyTagList: policyTagList ?? {},
+            policyCategories: policyCategories ?? {},
+            hasDependentTags: hasDependentTags(policy, policyTagList ?? {}),
+            isInvoiceTransaction: isInvoice,
+            isSelfDM: isSelfDM(iouReport),
             iouReport,
             isFromExpenseReport,
-        );
+        });
         optimisticData.push(violationsOnyxData);
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
