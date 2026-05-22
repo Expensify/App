@@ -178,7 +178,7 @@ function MultifactorAuthenticationModalNavigator() {
                                         // is 0 at push start, the slide range collapses to 0→0 and the screen appears
                                         // via opacity only. modalCardStyleInterpolator uses a constant variables.sideBarWidth
                                         // on wide layout, so the slide range is stable regardless of layout timing.
-                                        cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props}),
+                                        cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, enter: {kind: 'slide-from-width'}}),
                                     },
                                 }}
                             >
