@@ -60,6 +60,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {MoneyRequestReportTransactionListController, TransactionListItemData} from './MoneyRequestReportTransactionList';
 import MoneyRequestReportTransactionList from './MoneyRequestReportTransactionList';
 import MoneyRequestViewReportFields from './MoneyRequestViewReportFields';
 import ReportActionsListLoadingSkeleton from './ReportActionsListLoadingSkeleton';
@@ -77,6 +78,11 @@ const DELAY_FOR_SCROLLING_TO_END = 100;
 // The server page size for report actions is ~50. Gaps from IOU prioritization only happen
 // when the initial load is truncated, so skip backfill for smaller reports.
 const BACKFILL_MIN_ACTIONS_THRESHOLD = 50;
+
+/** Single virtualised data item rendered by the unified FlatList. Mixes transactions, a footer marker, and report actions in one scroll. */
+type UnifiedListItem = TransactionListItemData | {readonly type: 'transactions-footer'} | {readonly type: 'report-action'; readonly action: OnyxTypes.ReportAction};
+
+const TRANSACTIONS_FOOTER_ITEM: UnifiedListItem = {type: 'transactions-footer'};
 
 type MoneyRequestReportListProps = {
     /** Callback executed on layout */
@@ -547,18 +553,18 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         }
     }, [visibleReportActions, lastActionEventId, enableScrollToEnd, reportScrollManager]);
 
-    const renderItem = useCallback(
-        ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
+    const renderReportAction = useCallback(
+        (reportAction: OnyxTypes.ReportAction, indexWithinReportActions: number) => {
             const displayAsGroup =
-                !isConsecutiveChronosAutomaticTimerAction(visibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
-                hasNextActionMadeBySameActor(visibleReportActions, index, isOffline);
+                !isConsecutiveChronosAutomaticTimerAction(visibleReportActions, indexWithinReportActions, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
+                hasNextActionMadeBySameActor(visibleReportActions, indexWithinReportActions, isOffline);
 
             return (
                 <ReportActionsListItemRenderer
                     reportAction={reportAction}
                     parentReportAction={parentReportAction}
                     parentReportActionForTransactionThread={EmptyParentReportActionForTransactionThread}
-                    index={index}
+                    index={indexWithinReportActions}
                     report={report}
                     transactionThreadReport={transactionThreadReport}
                     displayAsGroup={displayAsGroup}
@@ -635,7 +641,20 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     }, [report, shouldShowOpenReportLoadingSkeleton]);
 
     // Wrapped into useCallback to stabilize children re-renders
-    const keyExtractor = useCallback((item: OnyxTypes.ReportAction) => item.reportActionID, []);
+    const keyExtractor = useCallback((item: UnifiedListItem) => {
+        switch (item.type) {
+            case 'section-header':
+                return `group-${item.groupKey}`;
+            case 'transaction':
+                return item.transaction.transactionID;
+            case 'transactions-footer':
+                return 'transactions-footer';
+            case 'report-action':
+                return item.action.reportActionID;
+            default:
+                return '';
+        }
+    }, []);
 
     const {windowHeight} = useWindowDimensions();
     /**
@@ -692,47 +711,77 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                     </ScrollView>
                 )}
                 {!isReportEmpty && (
-                    <FlatListWithScrollKey
-                        initialNumToRender={initialNumToRender}
-                        accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
-                        testID="money-request-report-actions-list"
-                        style={styles.overscrollBehaviorContain}
-                        data={visibleReportActions}
-                        renderItem={renderItem}
-                        onViewableItemsChanged={onViewableItemsChanged}
-                        keyExtractor={keyExtractor}
-                        onLayout={recordTimeToMeasureItemLayout}
-                        onEndReached={onEndReached}
-                        onEndReachedThreshold={0.75}
-                        onStartReached={onStartReached}
-                        onStartReachedThreshold={0.75}
-                        ListHeaderComponent={
-                            <>
-                                <MoneyRequestViewReportFields
-                                    report={report}
-                                    policy={policy}
+                    <MoneyRequestReportTransactionList
+                        report={report}
+                        onLayout={onLayout}
+                        transactions={transactions}
+                        newTransactions={newTransactions}
+                        hasPendingDeletionTransaction={hasPendingDeletionTransaction}
+                        reportActions={reportActions}
+                        scrollToNewTransaction={scrollToNewTransaction}
+                        policy={policy}
+                        hasComments={visibleReportActions.length > 0}
+                        isLoadingInitialReportActions={showReportActionsLoadingState}
+                        render={(controller: MoneyRequestReportTransactionListController) => {
+                            const reportActionItems: UnifiedListItem[] = visibleReportActions.map((action) => ({type: 'report-action', action}));
+                            const data: UnifiedListItem[] = controller.isEmptyTransactions
+                                ? reportActionItems
+                                : [...controller.transactionListItems, TRANSACTIONS_FOOTER_ITEM, ...reportActionItems];
+                            const lastTransactionItemIndex = controller.transactionListItems.length - 1;
+                            const reportActionIndexOffset = controller.isEmptyTransactions ? 0 : controller.transactionListItems.length + 1;
+
+                            const dispatchRenderItem = ({item, index}: ListRenderItemInfo<UnifiedListItem>) => {
+                                switch (item.type) {
+                                    case 'section-header':
+                                    case 'transaction':
+                                        return controller.renderTransactionListItem(item, {isFirst: index === 0, isLast: index === lastTransactionItemIndex});
+                                    case 'transactions-footer':
+                                        return controller.afterListContent;
+                                    case 'report-action':
+                                        return renderReportAction(item.action, index - reportActionIndexOffset);
+                                    default:
+                                        return null;
+                                }
+                            };
+
+                            const listElement = (
+                                <FlatListWithScrollKey<UnifiedListItem>
+                                    initialNumToRender={initialNumToRender}
+                                    accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
+                                    testID="money-request-report-actions-list"
+                                    style={styles.overscrollBehaviorContain}
+                                    data={data}
+                                    renderItem={dispatchRenderItem}
+                                    onViewableItemsChanged={onViewableItemsChanged}
+                                    keyExtractor={keyExtractor}
+                                    onLayout={recordTimeToMeasureItemLayout}
+                                    onEndReached={onEndReached}
+                                    onEndReachedThreshold={0.75}
+                                    onStartReached={onStartReached}
+                                    onStartReachedThreshold={0.75}
+                                    ListHeaderComponent={
+                                        <>
+                                            <MoneyRequestViewReportFields
+                                                report={report}
+                                                policy={policy}
+                                            />
+                                            {controller.beforeListContent}
+                                        </>
+                                    }
+                                    keyboardShouldPersistTaps="handled"
+                                    onScroll={trackVerticalScrolling}
+                                    contentContainerStyle={[shouldUseNarrowLayout ? styles.pt4 : styles.pt3]}
+                                    ref={reportScrollManager.ref}
+                                    ListEmptyComponent={
+                                        !isOffline && showReportActionsLoadingState ? <ReportActionsListLoadingSkeleton reasonAttributes={skeletonReasonAttributes} /> : undefined
+                                    }
+                                    removeClippedSubviews={false}
+                                    initialScrollKey={linkedReportActionID}
                                 />
-                                <MoneyRequestReportTransactionList
-                                    report={report}
-                                    onLayout={onLayout}
-                                    transactions={transactions}
-                                    newTransactions={newTransactions}
-                                    hasPendingDeletionTransaction={hasPendingDeletionTransaction}
-                                    reportActions={reportActions}
-                                    scrollToNewTransaction={scrollToNewTransaction}
-                                    policy={policy}
-                                    hasComments={visibleReportActions.length > 0}
-                                    isLoadingInitialReportActions={showReportActionsLoadingState}
-                                />
-                            </>
-                        }
-                        keyboardShouldPersistTaps="handled"
-                        onScroll={trackVerticalScrolling}
-                        contentContainerStyle={[shouldUseNarrowLayout ? styles.pt4 : styles.pt3]}
-                        ref={reportScrollManager.ref}
-                        ListEmptyComponent={!isOffline && showReportActionsLoadingState ? <ReportActionsListLoadingSkeleton reasonAttributes={skeletonReasonAttributes} /> : undefined} // This skeleton component is only used for loading state, the empty state is handled by SearchMoneyRequestReportEmptyState
-                        removeClippedSubviews={false}
-                        initialScrollKey={linkedReportActionID}
+                            );
+
+                            return controller.wrapWithHorizontalScroll(listElement);
+                        }}
                     />
                 )}
             </View>
