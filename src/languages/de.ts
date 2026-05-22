@@ -2618,7 +2618,7 @@ ${amount} für ${merchant} – ${date}`,
             `Genehmigungen werden über deine ${provider}-Integration verwaltet. Um deinen Genehmigungsworkflow zu aktualisieren, gehe zu deinen ${provider}-Verbindungseinstellungen.`,
         goToHRSettings: ({provider}: {provider: string}) => `Zu den ${provider}-Einstellungen gehen`,
         approverFromProvider: ({provider}: {provider: string}) => `von ${provider}`,
-        finalApprover: 'Endgenehmiger',
+        finalApprover: 'Letzte*r Genehmigende*r',
         manager: 'Manager',
     },
     workflowsDelayedSubmissionPage: {

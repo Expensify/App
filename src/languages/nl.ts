@@ -2610,7 +2610,7 @@ ${amount} voor ${merchant} - ${date}`,
             `Goedkeuringen worden beheerd door je ${provider}-integratie. Ga naar je ${provider}-verbindingsinstellingen om je goedkeuringsworkflow bij te werken.`,
         goToHRSettings: ({provider}: {provider: string}) => `Ga naar ${provider}-instellingen`,
         approverFromProvider: ({provider}: {provider: string}) => `van ${provider}`,
-        finalApprover: 'Eindgoedkeurder',
+        finalApprover: 'Laatste fiatteur',
         manager: 'Manager',
     },
     workflowsDelayedSubmissionPage: {
