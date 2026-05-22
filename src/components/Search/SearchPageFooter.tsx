@@ -68,7 +68,7 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
             <Button
                 ref={props.ref}
                 accessibilityLabel={translate('common.totalSpend')}
-                innerStyles={[styles.bgTransparent, styles.gap1]}
+                innerStyles={[styles.bgTransparent, styles.gap1, styles.mnh0, styles.ph0, styles.pv0]}
                 text={convertToDisplayString(total, currency)}
                 textStyles={valueTextStyle}
                 isLoading={isTotalLoading}
@@ -91,15 +91,16 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
                 styles.ph5,
                 styles.pv3,
                 styles.flexRow,
+                styles.alignItemsCenter,
                 styles.gap3,
                 StyleUtils.getBackgroundColorStyle(theme.appBG),
             ]}
         >
-            <View style={[styles.flexRow, styles.gap1]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
                 <Text style={styles.textLabelSupporting}>{`${translate('common.expenses')}:`}</Text>
                 <Text style={valueTextStyle}>{count}</Text>
             </View>
-            <View style={[styles.flexRow, styles.gap1]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
                 <Text style={styles.textLabelSupporting}>{`${translate('common.totalSpend')}:`}</Text>
                 <DropdownButton
                     label={translate('common.currency')}

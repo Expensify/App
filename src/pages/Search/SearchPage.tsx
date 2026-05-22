@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import Animated from 'react-native-reanimated';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
-import type {SearchParams} from '@components/Search/types';
+import type {SearchParams, SearchStateContextValue} from '@components/Search/types';
 import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
 import useDocumentTitle from '@hooks/useDocumentTitle';
@@ -29,6 +29,13 @@ import SearchPageWide from './SearchPageWide';
 
 type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
 
+type FooterCurrencyState = {
+    searchHash: SearchStateContextValue['currentSearchHash'] | undefined;
+    selectedCurrency: string | undefined;
+    defaultCurrency: string | undefined;
+    pendingCurrency: string | undefined;
+};
+
 function SearchPage({route}: SearchPageProps) {
     const {translate} = useLocalize();
     useDocumentTitle(translate('common.spend'));
@@ -42,12 +49,6 @@ function SearchPage({route}: SearchPageProps) {
     const [hasFilterBars = false] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: hasFilterBarsSelector});
 
     const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
-    type FooterCurrencyState = {
-        searchHash: typeof currentSearchHash | undefined;
-        selectedCurrency: string | undefined;
-        defaultCurrency: string | undefined;
-        pendingCurrency: string | undefined;
-    };
     const [footerCurrencyState, setFooterCurrencyState] = useState<FooterCurrencyState>({
         searchHash: undefined,
         selectedCurrency: undefined,
