@@ -1494,8 +1494,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_IMPORTED]: {
                             path: ROUTES.SETTINGS_CATEGORIES_IMPORTED.route,
                         },
-                        [SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_PAYROLL_CODE]: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.path,
-                        [SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_GL_CODE]: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_GL_CODE.path,
+                        [SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_PAYROLL_CODE]: {
+                            path: ROUTES.SETTINGS_CATEGORY_PAYROLL_CODE.route,
+                        },
+                        [SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_GL_CODE]: {
+                            path: ROUTES.SETTINGS_CATEGORY_GL_CODE.route,
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SETTINGS_TAGS]: {
