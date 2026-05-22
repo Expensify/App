@@ -1,7 +1,14 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {MoneyRequestStepScanParticipantsFlowParams} from '@libs/actions/IOU/MoneyRequest';
-import {createTransaction, getMoneyRequestParticipantOptions, handleMoneyRequestStepDistanceNavigation, handleMoneyRequestStepScanParticipants} from '@libs/actions/IOU/MoneyRequest';
+import {
+    clearMoneyRequestAmount,
+    createTransaction,
+    getMoneyRequestParticipantOptions,
+    handleMoneyRequestStepDistanceNavigation,
+    handleMoneyRequestStepScanParticipants,
+    setMoneyRequestAmount,
+} from '@libs/actions/IOU/MoneyRequest';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {GeolocationErrorCode} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import Navigation from '@libs/Navigation/Navigation';
@@ -1772,8 +1779,6 @@ describe('MoneyRequest', () => {
         });
 
         it('sets isAmountSet to true when the user enters an amount', async () => {
-            const {setMoneyRequestAmount} = jest.requireActual<typeof import('@libs/actions/IOU/MoneyRequest')>('@libs/actions/IOU/MoneyRequest');
-
             setMoneyRequestAmount(transactionID, 1500, 'USD');
             await waitForBatchedUpdates();
 
@@ -1784,8 +1789,6 @@ describe('MoneyRequest', () => {
         });
 
         it('allows explicitly setting zero as a valid amount via isAmountSet', async () => {
-            const {setMoneyRequestAmount} = jest.requireActual<typeof import('@libs/actions/IOU/MoneyRequest')>('@libs/actions/IOU/MoneyRequest');
-
             setMoneyRequestAmount(transactionID, 0, 'USD');
             await waitForBatchedUpdates();
 
@@ -1795,8 +1798,6 @@ describe('MoneyRequest', () => {
         });
 
         it('clears isAmountSet when the user deletes the amount input', async () => {
-            const {setMoneyRequestAmount, clearMoneyRequestAmount} = jest.requireActual<typeof import('@libs/actions/IOU/MoneyRequest')>('@libs/actions/IOU/MoneyRequest');
-
             setMoneyRequestAmount(transactionID, 2500, 'USD');
             await waitForBatchedUpdates();
 

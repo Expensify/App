@@ -44,21 +44,6 @@ function createManualTransaction(participants: Participant[], overrides: Partial
     });
 }
 
-function createValidationParamsForParticipant(
-    participant: Participant,
-    overrides: ValidationParamsOverrides = {},
-    transactionOverrides: Partial<OnyxTypes.Transaction> = {},
-): UseConfirmationValidationParams {
-    const participants = transactionOverrides.participants ?? [participant];
-
-    return {
-        ...baseParams,
-        ...overrides,
-        selectedParticipants: overrides.selectedParticipants ?? participants,
-        transaction: createManualTransaction(participants, transactionOverrides),
-    };
-}
-
 const baseParams = {
     transaction: createTransactionBase({amount: 100, participants: [P2P_PARTICIPANT]}),
     transactionReport: undefined,
@@ -88,6 +73,21 @@ const baseParams = {
     routeError: undefined,
     isNewManualExpenseFlowEnabled: false,
 } satisfies UseConfirmationValidationParams;
+
+function createValidationParamsForParticipant(
+    participant: Participant,
+    overrides: ValidationParamsOverrides = {},
+    transactionOverrides: Partial<OnyxTypes.Transaction> = {},
+): UseConfirmationValidationParams {
+    const participants = transactionOverrides.participants ?? [participant];
+
+    return {
+        ...baseParams,
+        ...overrides,
+        selectedParticipants: overrides.selectedParticipants ?? participants,
+        transaction: createManualTransaction(participants, transactionOverrides),
+    };
+}
 
 describe('useConfirmationValidation', () => {
     it('returns null when routeError is set', () => {
