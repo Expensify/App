@@ -146,7 +146,7 @@ function WorkspaceHRPage({
                                     ))}
                             </View>
 
-                            {connectedCards.length > 0 && disconnectedCards.length > 0 && (
+                            {connectedCards.length > 0 && disconnectedCards.length > 0 && !connectedCards.some((c) => c.isInitialSyncInProgress) && (
                                 <CollapsibleSection
                                     title={translate('workspace.accounting.other')}
                                     wrapperStyle={[styles.pr3, styles.mt5, styles.pv3]}
