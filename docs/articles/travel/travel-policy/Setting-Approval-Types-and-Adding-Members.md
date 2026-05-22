@@ -2,6 +2,7 @@
 title: Setting Approval Types and Adding Members
 description: Learn how to configure approval types and assign members to a travel policy in Expensify Travel.
 keywords: [travel policy, approval type, soft approval, hard approval, pre-booking approval, add policy members, default approver, travel policy members]
+internalScope: Audience is travel admins. Covers configuring approval types and adding members to a travel policy. Does not cover approving or denying individual travel requests.
 ---
 
 
