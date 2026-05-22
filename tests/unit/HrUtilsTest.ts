@@ -214,21 +214,27 @@ describe('getHRCardState', () => {
             expect(state.isConnected).toBe(true);
         });
 
-        it('detects sync in progress with stage info', () => {
+        it('detects sync in progress from lastSync.syncStatus', () => {
             const policy = makePolicy({
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                connections: {merge_hris: {config: {integration: 'bamboohr'}, data: {}, lastSync: {}}} as unknown as Policy['connections'],
+                connections: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    merge_hris: {
+                        config: {integration: 'bamboohr'},
+                        data: {},
+                        lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.SYNCING, syncType: CONST.MERGE_HR.SYNC_TYPE.INITIAL},
+                    },
+                } as unknown as Policy['connections'],
             });
-            const syncProgress = makeSyncProgress(MERGE_HR, CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.MERGE_HR_SYNC_TITLE);
             const state = getHRCardState({
                 policy,
                 connectionName: MERGE_HR,
-                connectionSyncProgress: syncProgress,
+                connectionSyncProgress: undefined,
                 getLocalDateFromDatetime: stubGetLocalDateFromDatetime,
                 mergeSlug: 'bamboohr',
             });
             expect(state.isSyncInProgress).toBe(true);
-            expect(state.syncStageInProgress).toBe(CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.MERGE_HR_SYNC_TITLE);
+            expect(state.isInitialSyncInProgress).toBe(true);
+            expect(state.syncStageInProgress).toBeUndefined();
         });
 
         it('ignores sync progress for a different connection', () => {
@@ -405,7 +411,7 @@ describe('getHRCards', () => {
                 merge_hris: {
                     config: {integration: 'bamboohr'},
                     data: {},
-                    lastSync: {isSuccessful: false, errorDate: new Date().toISOString(), errorMessage: 'Auth failed'},
+                    lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.FAILED, errorMessage: 'Auth failed'},
                 },
             } as unknown as Policy['connections'],
         });
@@ -437,24 +443,24 @@ describe('getHRCards', () => {
         expect(workday?.lastSyncErrorMessage).toBeUndefined();
     });
 
-    it('connected Merge card gets syncStageInProgress during sync', () => {
+    it('connected Merge card detects sync in progress from lastSync.syncStatus', () => {
         const policy = makePolicy({
             connections: {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 merge_hris: {
                     config: {integration: 'bamboohr'},
                     data: {},
-                    lastSync: {},
+                    lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.SYNCING, syncType: CONST.MERGE_HR.SYNC_TYPE.INITIAL},
                 },
             } as unknown as Policy['connections'],
         });
-        const syncProgress = makeSyncProgress(MERGE_HR, CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.MERGE_HR_SYNC_TITLE);
         const isBetaEnabled: GetHRCardsParams['isBetaEnabled'] = (beta) => beta === CONST.BETAS.MERGE_HR;
-        const cards = getHRCards(makeGetHRCardsParams({policy, connectionSyncProgress: syncProgress, isBetaEnabled}));
+        const cards = getHRCards(makeGetHRCardsParams({policy, connectionSyncProgress: undefined, isBetaEnabled}));
 
         const bamboo = cards.find((c) => c.key === 'merge_bamboohr');
         expect(bamboo?.isSyncInProgress).toBe(true);
-        expect(bamboo?.syncStageInProgress).toBe(CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.MERGE_HR_SYNC_TITLE);
+        expect(bamboo?.isInitialSyncInProgress).toBe(true);
+        expect(bamboo?.syncStageInProgress).toBeUndefined();
     });
 
     it('uses provider icons from params for static providers', () => {
