@@ -1465,7 +1465,7 @@ function isPending(transaction: OnyxEntry<Transaction>): boolean {
 /**
  * Check if all transactions are pending Expensify card transactions.
  */
-function hasOnlyPendingCardTransactions(transactions: OnyxEntry<Transaction>[]): boolean {
+function hasOnlyPendingCardTransactions(transactions: Array<OnyxEntry<Transaction>>): boolean {
     return transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
 }
 
@@ -1473,7 +1473,7 @@ function hasOnlyPendingCardTransactions(transactions: OnyxEntry<Transaction>[]):
  * Show a confirm modal explaining that pending card transactions cannot be submitted.
  */
 function showPendingCardTransactionsBlockModal(
-    showConfirmModal: (options: {title: string; prompt: string; confirmText: string; shouldShowCancelButton: boolean}) => void,
+    showConfirmModal: (options: {title: string; prompt: string; confirmText: string; shouldShowCancelButton: boolean}) => void | Promise<unknown>,
     translate: LocaleContextProps['translate'],
 ) {
     showConfirmModal({
