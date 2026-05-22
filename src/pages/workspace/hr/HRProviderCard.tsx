@@ -134,7 +134,11 @@ function HRProviderCard({card, policy, handleConnect}: HRProviderCardProps) {
                 fallbackIcon={fallbackIcon}
             />
             {card.isConnected && !!approvalModeRoute && (
-                <OfflineWithFeedback pendingAction={card.config?.pendingFields?.approvalMode}>
+                <OfflineWithFeedback
+                    pendingAction={card.config?.pendingFields?.approvalMode}
+                    errors={card.config?.errorFields?.approvalMode}
+                    onClose={() => clearHRConnectionErrorField(policy?.id, card.connectionName, 'approvalMode')}
+                >
                     <MenuItemWithTopDescription
                         description={translate('workspace.hr.approvalMode')}
                         title={card.approvalModeLabel}
