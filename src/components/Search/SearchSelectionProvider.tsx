@@ -5,6 +5,7 @@ import {hasValidModifiedAmount} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {SearchSelectionActionsContext, SearchSelectionContext} from './SearchContextDefinitions';
+import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from './SearchList/ListItem/types';
 import {useSearchQueryContext} from './SearchQueryProvider';
 import type {SearchSelectionActionsValue, SearchSelectionContextValue, SelectedReports, SelectedTransactions} from './types';
 
@@ -28,6 +29,77 @@ const defaultSelectionState: SelectionState = {
     shouldTurnOffSelectionMode: false,
 };
 
+function deriveSelectedReports(
+    transactionIDs: SelectedTransactions,
+    data: TransactionListItemType[] | TransactionGroupListItemType[] | ReportActionListItemType[] | TaskListItemType[],
+): SelectedReports[] {
+    if (data.length && data.every(isTransactionReportGroupListItemType)) {
+        return data
+            .filter((item) => {
+                if (!isMoneyRequestReport(item)) {
+                    return false;
+                }
+                if (item.transactions.length === 0) {
+                    return !!item.keyForList && transactionIDs[item.keyForList]?.isSelected;
+                }
+                return item.transactions.every(({keyForList}) => transactionIDs[keyForList]?.isSelected);
+            })
+            .map(
+                ({
+                    reportID,
+                    action = CONST.SEARCH.ACTION_TYPES.VIEW,
+                    total = CONST.DEFAULT_NUMBER_ID,
+                    policyID,
+                    allActions = [action],
+                    currency,
+                    chatReportID,
+                    managerID,
+                    ownerAccountID,
+                    parentReportActionID,
+                    parentReportID,
+                    type,
+                }) => ({
+                    reportID,
+                    action,
+                    total,
+                    policyID,
+                    allActions,
+                    currency,
+                    chatReportID,
+                    managerID,
+                    ownerAccountID,
+                    parentReportActionID,
+                    parentReportID,
+                    type,
+                }),
+            );
+    }
+    if (data.length && data.every(isTransactionListItemType)) {
+        return data
+            .filter(({keyForList}) => !!keyForList && transactionIDs[keyForList]?.isSelected)
+            .map((item) => {
+                const total = hasValidModifiedAmount(item) ? Number(item.modifiedAmount) : (item.amount ?? CONST.DEFAULT_NUMBER_ID);
+                const action = item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW;
+
+                return {
+                    reportID: item.reportID,
+                    action,
+                    total,
+                    policyID: item.policyID,
+                    allActions: item.allActions ?? [action],
+                    currency: item.currency,
+                    chatReportID: item.report?.chatReportID,
+                    managerID: item.report?.managerID,
+                    ownerAccountID: item.report?.ownerAccountID,
+                    parentReportActionID: item.report?.parentReportActionID,
+                    parentReportID: item.report?.parentReportID,
+                    type: item.report?.type,
+                };
+            });
+    }
+    return [];
+}
+
 function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
     const {currentSearchHash} = useSearchQueryContext();
 
@@ -37,11 +109,12 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
     const [selectionState, setSelectionState] = useState<SelectionState>(defaultSelectionState);
 
     const currentSearchHashRef = useRef(currentSearchHash);
+    
     useEffect(() => {
         currentSearchHashRef.current = currentSearchHash;
     }, [currentSearchHash]);
 
-    const setSelectedTransactions: SearchSelectionActionsValue['setSelectedTransactions'] = (transactionIDs, data = []) => {
+    const setSelectedTransactions: SearchSelectionActionsValue['setSelectedTransactions'] = (transactionIDs, data) => {
         if (transactionIDs instanceof Array) {
             if (!transactionIDs.length && areTransactionsEmpty.current) {
                 areTransactionsEmpty.current = true;
@@ -55,79 +128,36 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
             return;
         }
 
-        // When selecting transactions, we also need to manage the reports to which these transactions belong. This is done to ensure proper exporting to CSV.
-        let matchingReports: SelectedReports[] = [];
-
-        if (data.length && data.every(isTransactionReportGroupListItemType)) {
-            matchingReports = data
-                .filter((item) => {
-                    if (!isMoneyRequestReport(item)) {
-                        return false;
-                    }
-                    if (item.transactions.length === 0) {
-                        return !!item.keyForList && transactionIDs[item.keyForList]?.isSelected;
-                    }
-                    return item.transactions.every(({keyForList}) => transactionIDs[keyForList]?.isSelected);
-                })
-                .map(
-                    ({
-                        reportID,
-                        action = CONST.SEARCH.ACTION_TYPES.VIEW,
-                        total = CONST.DEFAULT_NUMBER_ID,
-                        policyID,
-                        allActions = [action],
-                        currency,
-                        chatReportID,
-                        managerID,
-                        ownerAccountID,
-                        parentReportActionID,
-                        parentReportID,
-                        type,
-                    }) => ({
-                        reportID,
-                        action,
-                        total,
-                        policyID,
-                        allActions,
-                        currency,
-                        chatReportID,
-                        managerID,
-                        ownerAccountID,
-                        parentReportActionID,
-                        parentReportID,
-                        type,
-                    }),
-                );
-        } else if (data.length && data.every(isTransactionListItemType)) {
-            matchingReports = data
-                .filter(({keyForList}) => !!keyForList && transactionIDs[keyForList]?.isSelected)
-                .map((item) => {
-                    const total = hasValidModifiedAmount(item) ? Number(item.modifiedAmount) : (item.amount ?? CONST.DEFAULT_NUMBER_ID);
-                    const action = item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW;
-
-                    return {
-                        reportID: item.reportID,
-                        action,
-                        total,
-                        policyID: item.policyID,
-                        allActions: item.allActions ?? [action],
-                        currency: item.currency,
-                        chatReportID: item.report?.chatReportID,
-                        managerID: item.report?.managerID,
-                        ownerAccountID: item.report?.ownerAccountID,
-                        parentReportActionID: item.report?.parentReportActionID,
-                        parentReportID: item.report?.parentReportID,
-                        type: item.report?.type,
-                    };
-                });
+        // When the caller provides `data`, derive `selectedReports` in the same commit so the
+        // two state slices can't diverge for a render. Used by callers (e.g. the refresh-selection
+        // effect) that already have `filteredData` in scope and react to it changing.
+        if (data) {
+            setSelectionState((prevState) => ({
+                ...prevState,
+                selectedTransactions: transactionIDs,
+                selectedReports: deriveSelectedReports(transactionIDs, data),
+                shouldTurnOffSelectionMode: false,
+            }));
+            return;
         }
 
         setSelectionState((prevState) => ({
             ...prevState,
-            selectedReports: matchingReports,
             selectedTransactions: transactionIDs,
             shouldTurnOffSelectionMode: false,
         }));
+    };
+
+    const setSelectedReports: SearchSelectionActionsValue['setSelectedReports'] = (reports) => {
+        setSelectionState((prevState) => {
+            if (prevState.selectedReports.length === 0 && reports.length === 0) {
+                return prevState;
+            }
+            return {
+                ...prevState,
+                selectedReports: reports,
+            };
+        });
     };
 
     const setCurrentSelectedTransactionReportID: SearchSelectionActionsValue['setCurrentSelectedTransactionReportID'] = (reportID) => {
@@ -210,6 +240,7 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
 
     const selectionActionsValue: SearchSelectionActionsValue = {
         setSelectedTransactions,
+        setSelectedReports,
         setCurrentSelectedTransactionReportID,
         clearSelectedTransactions,
         removeTransaction,
@@ -237,4 +268,26 @@ function useSearchSelectionActions() {
     return useContext(SearchSelectionActionsContext);
 }
 
-export {SearchSelectionProvider, useSearchSelectionContext, useSearchSelectionActions, SearchSelectionContext, SearchSelectionActionsContext};
+/**
+ * Derives `selectedReports` from the current selection + visible rows and syncs it into context.
+ * Used by the Search component so `toggleTransaction` can stay independent of `filteredData`.
+ *
+ * `data` is read via a ref so this effect only fires when `selectedTransactions` changes.
+ * Without that, a `data` change (e.g. Onyx push) would fire this effect with a stale
+ * `selectedTransactions` from closure and clobber any atomic update made in the same commit.
+ */
+function useSyncSelectedReports(data: TransactionListItemType[] | TransactionGroupListItemType[] | ReportActionListItemType[] | TaskListItemType[]) {
+    const {selectedTransactions} = useSearchSelectionContext();
+    const {setSelectedReports} = useSearchSelectionActions();
+
+    const dataRef = useRef(data);
+    useEffect(() => {
+        dataRef.current = data;
+    });
+
+    useEffect(() => {
+        setSelectedReports(deriveSelectedReports(selectedTransactions, dataRef.current));
+    }, [selectedTransactions, setSelectedReports]);
+}
+
+export {SearchSelectionProvider, useSearchSelectionContext, useSearchSelectionActions, useSyncSelectedReports, SearchSelectionContext, SearchSelectionActionsContext};

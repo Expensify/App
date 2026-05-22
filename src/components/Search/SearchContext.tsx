@@ -1,7 +1,14 @@
 import React from 'react';
 import {SearchQueryActionsContext, SearchQueryContext, SearchQueryProvider, useSearchQueryActions, useSearchQueryContext} from './SearchQueryProvider';
 import {SearchResultsActionsContext, SearchResultsContext, SearchResultsProvider, useSearchResultsActions, useSearchResultsContext} from './SearchResultsProvider';
-import {SearchSelectionActionsContext, SearchSelectionContext, SearchSelectionProvider, useSearchSelectionActions, useSearchSelectionContext} from './SearchSelectionProvider';
+import {
+    SearchSelectionActionsContext,
+    SearchSelectionContext,
+    SearchSelectionProvider,
+    useSearchSelectionActions,
+    useSearchSelectionContext,
+    useSyncSelectedReports,
+} from './SearchSelectionProvider';
 
 type SearchContextProps = {
     children: React.ReactNode;
@@ -25,6 +32,7 @@ export {
     useSearchResultsActions,
     useSearchSelectionContext,
     useSearchSelectionActions,
+    useSyncSelectedReports,
     SearchQueryContext,
     SearchQueryActionsContext,
     SearchResultsContext,
