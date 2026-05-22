@@ -32,6 +32,16 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     isNavigationReady: jest.fn(() => Promise.resolve()),
 }));
 
+jest.mock('@components/RenderHTML', () => {
+    const ReactMock = require('react') as typeof React;
+    const {Text} = require('react-native') as {Text: React.ComponentType<{children?: React.ReactNode}>};
+
+    return ({html}: {html: string}) => {
+        const plainText = html.replaceAll(/<[^>]*>/g, '');
+        return ReactMock.createElement(Text, null, plainText);
+    };
+});
+
 jest.mock('@libs/actions/Agent', () => ({
     openAgentsPage: jest.fn(),
     clearAgentPromptUpdateError: jest.fn(),
