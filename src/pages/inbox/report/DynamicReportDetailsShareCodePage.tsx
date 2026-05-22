@@ -21,7 +21,7 @@ function DynamicReportDetailsShareCodePage({report, policy}: DynamicReportDetail
 
     return (
         <ShareCodePage
-            reportNavigateBackRoute={navigateBackRoute}
+            backTo={navigateBackRoute}
             report={report}
             policy={policy}
         />
