@@ -83,7 +83,7 @@ describe('WorkspaceListPage', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        const newWorkspaceButton = screen.queryByAccessibilityHint('New workspace');
+        const newWorkspaceButton = screen.queryByAccessibilityHint('New');
         expect(newWorkspaceButton).not.toBeOnTheScreen();
     });
 
@@ -125,7 +125,7 @@ describe('WorkspaceListPage', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        const newWorkspaceButton = screen.queryByAccessibilityHint('New workspace');
+        const newWorkspaceButton = screen.queryByAccessibilityHint('New');
         expect(newWorkspaceButton).toBeOnTheScreen();
     });
 
@@ -146,7 +146,7 @@ describe('WorkspaceListPage', () => {
         const newDropdownButton = screen.queryByTestId('dropdown-button-new');
         expect(newDropdownButton).not.toBeOnTheScreen();
 
-        const newWorkspaceButton = screen.queryByAccessibilityHint('New workspace');
+        const newWorkspaceButton = screen.queryByAccessibilityHint('New');
         expect(newWorkspaceButton).toBeOnTheScreen();
     });
 });
