@@ -42,9 +42,9 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null): Pro
 
     for (const child of tnode.children) {
         const childResult = processVictoryChartTree(child, typeface);
+        lodashMerge(data, childResult.data);
         yKeys.push(...childResult.yKeys);
         if (childResult.xAxis) {
-            // Safe to replace — there should be at most one xAxis per chart
             xAxis = childResult.xAxis;
         }
         if (childResult.yAxis?.length) {
@@ -52,7 +52,6 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null): Pro
         }
         labelItems.push(...childResult.labelItems);
         legendItems.push(...childResult.legendItems);
-        lodashMerge(data, childResult.data);
     }
 
     return {data, xKey: X_KEY, yKeys, xAxis, yAxis, labelItems, legendItems};
