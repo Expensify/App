@@ -4,6 +4,7 @@ import VictoryChartContainer from './components/VictoryChartContainer';
 import VictoryChartLabels from './components/VictoryChartLabels';
 import VictoryChartLegend from './components/VictoryChartLegend';
 import VictoryChartLine from './components/VictoryChartLine';
+import VictoryChartPolar from './components/VictoryChartPolar';
 import VictoryChartSeries from './components/VictoryChartSeries';
 import {VictoryChartProvider, VictoryChartRenderArgsProvider} from './context/VictoryChartContext';
 
@@ -12,6 +13,7 @@ const VictoryChart = {
     RenderArgsProvider: VictoryChartRenderArgsProvider,
     Container: VictoryChartContainer,
     Cartesian: VictoryChartCartesian,
+    Polar: VictoryChartPolar,
     Series: VictoryChartSeries,
     Bar: VictoryChartBar,
     Line: VictoryChartLine,

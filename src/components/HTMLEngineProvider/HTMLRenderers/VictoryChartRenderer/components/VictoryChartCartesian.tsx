@@ -1,23 +1,24 @@
 import React from 'react';
-import type {CartesianChartRenderArg} from 'victory-native';
 import {CartesianChart} from 'victory-native';
-import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
-import type {CartesianChartData, YKey} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+import {useVictoryChartContext, VictoryChartRenderArgsProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 import parseDomainPadding from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseDomainPadding';
+import getYKey from '../utils/getYKey';
 import VictoryChartLabels from './VictoryChartLabels';
 import VictoryChartLegend from './VictoryChartLegend';
-
-type VictoryChartCartesianProps = {
-    children: (renderArgs: CartesianChartRenderArg<CartesianChartData, YKey>) => React.ReactNode;
-};
+import VictoryChartSeries from './VictoryChartSeries';
 
 /**
  * Renders the CartesianChart with data, axes, and domain config drawn from context.
  * Labels and legend overlays are handled internally via `renderOutside`.
  */
-function VictoryChartCartesian({children}: VictoryChartCartesianProps) {
-    const {data, xKey, yKeys, xAxis, yAxis, tnode} = useVictoryChartContext();
+function VictoryChartCartesian() {
+    const {data, xKey, yKeys, xAxis, yAxis, tnode, isValidCartesian} = useVictoryChartContext();
+
+    if (!isValidCartesian) {
+        return;
+    }
+
     return (
         <CartesianChart
             data={Object.values(data)}
@@ -28,14 +29,23 @@ function VictoryChartCartesian({children}: VictoryChartCartesianProps) {
             domain={parseAttribute(tnode.attributes.domain)}
             domainPadding={parseDomainPadding(tnode.attributes.domainpadding)}
             padding={parseAttribute(tnode.attributes.padding)}
-            renderOutside={() => (
-                <>
+            renderOutside={(renderArgs) => (
+                <VictoryChartRenderArgsProvider value={renderArgs}>
                     <VictoryChartLabels />
                     <VictoryChartLegend />
-                </>
+                </VictoryChartRenderArgsProvider>
             )}
         >
-            {children}
+            {(renderArgs) => (
+                <VictoryChartRenderArgsProvider value={renderArgs}>
+                    {tnode.children.map((child) => (
+                        <VictoryChartSeries
+                            key={`${child.tagName ?? 'node'}-${getYKey(child)}`}
+                            tnode={child}
+                        />
+                    ))}
+                </VictoryChartRenderArgsProvider>
+            )}
         </CartesianChart>
     );
 }

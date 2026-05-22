@@ -21,6 +21,7 @@ type VictoryChartContextValue = {
     regularTypeface: SkTypeface | null;
     boldTypeface: SkTypeface | null;
     isValidCartesian: boolean;
+    isValidPolar: boolean;
 };
 
 const VictoryChartContext = createContext<VictoryChartContextValue | null>(null);
@@ -35,8 +36,10 @@ function VictoryChartProvider({tnode, children}: {tnode: TNode; children: React.
     const {data, xKey, yKeys, xAxis, yAxis, labelItems, legendItems} = processVictoryChartTree(tnode, regularTypeface);
     const {nodeStyles, parentNodeStyles} = parseStyles(tnode);
     const isValidCartesian = Object.keys(data).length > 0;
+    const isValidPolar = false;
 
-    if (!isValidCartesian) {
+    // XNOR Check. There must one and only one valid chart
+    if (isValidCartesian === isValidPolar) {
         return null;
     }
 
@@ -54,6 +57,7 @@ function VictoryChartProvider({tnode, children}: {tnode: TNode; children: React.
         regularTypeface,
         boldTypeface,
         isValidCartesian,
+        isValidPolar,
     };
 
     return <VictoryChartContext.Provider value={contextValue}>{children}</VictoryChartContext.Provider>;
