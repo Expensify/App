@@ -271,13 +271,6 @@
 - Upstream PR/issue: [facebook/react-native#55398](https://github.com/facebook/react-native/pull/55398)
 - E/App issue: [#90623](https://github.com/Expensify/App/issues/90623)
 
-### [react-native+0.83.1+036+rounded-inline-code-background.patch](react-native+0.83.1+036+rounded-inline-code-background.patch)
-
-- Reason: Draws inline code block background with rounded corners on iOS when `borderTopLeftRadius` is set.
-- Upstream PR/issue: 🛑
-- E/App issue: https://github.com/Expensify/App/issues/57556
-- PR introducing patch: https://github.com/Expensify/App/pull/79815
-
 ### [react-native+0.83.1+037+nested-text-border-radius.patch](react-native+0.83.1+037+nested-text-border-radius.patch)
 
 - Reason:
