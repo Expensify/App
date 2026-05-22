@@ -7,11 +7,16 @@ permissions:
 on:
   pull_request_target:
     types: [opened, ready_for_review]
-  pull_request_review:
-    types: [submitted]
+  # Re-run via repository_dispatch when a Contributor+ approves a PR. We use
+  # repository_dispatch instead of pull_request_review because pull_request_review on
+  # fork PRs is treated like pull_request: no secrets, read-only token. /dispatches
+  # requires Contents: write on this repo, so externals/forks cannot fire it.
+  repository_dispatch:
+    types: [claude-review-request]
 
 concurrency:
-  group: claude-review-${{ github.event.pull_request.html_url }}
+  # Scope to PR so rapid C+ re-approvals on the same PR cancel earlier in-progress runs.
+  group: claude-review-${{ github.event.pull_request.html_url || format('pr-{0}', github.event.client_payload.pr_number) }}
   cancel-in-progress: true
 
 jobs:
@@ -23,38 +28,83 @@ jobs:
       PR_AUTHOR: ${{ github.event.pull_request.user.login }}
       AUTHOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
 
-  checkCPlusApproval:
-    if: github.event_name == 'pull_request_review' && github.event.review.state == 'approved'
+  resolvePR:
+    if: github.event_name == 'repository_dispatch'
     runs-on: blacksmith-2vcpu-ubuntu-2404
     outputs:
-      IS_CPLUS: ${{ steps.check.outputs.IS_CPLUS }}
+      PR_NUMBER: ${{ steps.pr.outputs.PR_NUMBER }}
+      HEAD_SHA: ${{ steps.pr.outputs.HEAD_SHA }}
+      BASE_REF: ${{ steps.pr.outputs.BASE_REF }}
+      IS_DRAFT: ${{ steps.pr.outputs.IS_DRAFT }}
+      TITLE: ${{ steps.pr.outputs.TITLE }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-        with:
-          fetch-depth: 1
+      - name: Verify dispatcher
+        if: github.actor != 'expensify-bot[bot]'
+        run: |
+          echo "::error::claude-review-request can only be dispatched by expensify-bot[bot] (got: ${{ github.actor }})"
+          exit 1
 
-      - name: Check Contributor+ membership
-        id: check
-        uses: ./.github/actions/composite/isContributorPlus
-        with:
-          USERNAME: ${{ github.event.review.user.login }}
-          OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+      # Treat the client_payload as untrusted: pass through env vars and validate format
+      # before letting any value reach a shell command. Avoids ${{ ... }} interpolation
+      # injection from a forged-by-an-insider payload.
+      - name: Validate payload
+        env:
+          PR_NUMBER_RAW: ${{ github.event.client_payload.pr_number }}
+          REVIEWER_RAW: ${{ github.event.client_payload.reviewer }}
+        run: |
+          if ! [[ "$PR_NUMBER_RAW" =~ ^[0-9]+$ ]]; then
+            echo "::error::Invalid pr_number in client_payload: $PR_NUMBER_RAW"
+            exit 1
+          fi
+          if ! [[ "$REVIEWER_RAW" =~ ^[A-Za-z0-9-]{1,39}$ ]]; then
+            echo "::error::Invalid reviewer in client_payload"
+            exit 1
+          fi
+
+      # Re-resolve PR data from GitHub rather than trusting the dispatch payload for
+      # anything beyond pr_number. This way a bogus payload can only point Claude at a
+      # different real PR; it cannot fabricate code or metadata.
+      - name: Resolve PR
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.client_payload.pr_number }}
+        run: |
+          JSON=$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" \
+            --json number,title,isDraft,headRefOid,baseRefName)
+          {
+            echo "PR_NUMBER=$(echo "$JSON" | jq -r '.number')"
+            echo "HEAD_SHA=$(echo "$JSON" | jq -r '.headRefOid')"
+            echo "BASE_REF=$(echo "$JSON" | jq -r '.baseRefName')"
+            echo "IS_DRAFT=$(echo "$JSON" | jq -r '.isDraft')"
+            echo "TITLE<<RESOLVE_EOF"
+            echo "$JSON" | jq -r '.title'
+            echo "RESOLVE_EOF"
+          } >> "$GITHUB_OUTPUT"
 
   review:
-    needs: [validate, checkCPlusApproval]
+    needs: [validate, resolvePR]
     if: |
       !cancelled()
-      && github.event.pull_request.draft != true
-      && !contains(github.event.pull_request.title, 'Revert')
       && (
-        (github.event_name == 'pull_request_target' && needs.validate.outputs.IS_AUTHORIZED == 'true')
-        || (github.event_name == 'pull_request_review' && needs.checkCPlusApproval.outputs.IS_CPLUS == 'true')
+        (github.event_name == 'pull_request_target'
+          && needs.validate.outputs.IS_AUTHORIZED == 'true'
+          && github.event.pull_request.draft != true
+          && !contains(github.event.pull_request.title, 'Revert'))
+        || (github.event_name == 'repository_dispatch'
+          && needs.resolvePR.result == 'success'
+          && needs.resolvePR.outputs.IS_DRAFT == 'false'
+          && !contains(needs.resolvePR.outputs.TITLE, 'Revert'))
       )
     runs-on: blacksmith-2vcpu-ubuntu-2404
     env:
-      PR_NUMBER: ${{ github.event.pull_request.number }}
+      PR_NUMBER: ${{ github.event.pull_request.number || needs.resolvePR.outputs.PR_NUMBER }}
     steps:
+      # Always check out the trusted base ref. Claude reads PR contents via the
+      # gh pr diff/view tools, and the path filter below uses gh pr view --json files,
+      # so we never need fork code on disk. This avoids the pwn-request pattern under
+      # pull_request_target where running repo scripts against PR-head code would
+      # expose secrets to fork-controlled changes.
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
@@ -63,16 +113,25 @@ jobs:
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
+      # Determine which review prompts to run from the PR's file list via the API,
+      # so the same step works for pull_request_target and repository_dispatch
+      # without needing PR-head code or extra git history on disk.
       - name: Filter paths
-        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
         id: filter
-        with:
-          filters: |
-            code:
-              - 'src/**'
-            docs:
-              - 'docs/**/*.md'
-              - 'docs/**/*.csv'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          FILES=$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json files --jq '.files[].path')
+          if echo "$FILES" | grep -qE '^src/'; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "code=false" >> "$GITHUB_OUTPUT"
+          fi
+          if echo "$FILES" | grep -qE '^docs/.+\.(md|csv)$'; then
+            echo "docs=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "docs=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Setup Claude review toolkit
         id: toolkit
@@ -93,7 +152,7 @@ jobs:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           allowed_non_write_users: "*"
-          prompt: "/review-code-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ github.event.pull_request.number }}"
+          prompt: "/review-code-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ env.PR_NUMBER }}"
           claude_args: |
             --model claude-opus-4-6
             --allowedTools "Task,Glob,Grep,Read,Bash(gh pr diff:*),Bash(gh pr view:*),Bash(check-compiler.sh:*)" --json-schema '${{ steps.toolkit.outputs.schema_json }}'
@@ -128,7 +187,7 @@ jobs:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           allowed_non_write_users: "*"
-          prompt: "/review-helpdot-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ github.event.pull_request.number }}"
+          prompt: "/review-helpdot-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ env.PR_NUMBER }}"
           claude_args: |
             --model claude-opus-4-6
             --allowedTools "Task,Glob,Grep,Read,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),mcp__github_inline_comment__create_inline_comment"
