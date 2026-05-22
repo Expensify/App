@@ -51,17 +51,17 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {PolicyTag} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {TagListItem} from './types';
 
-type WorkspaceViewTagsProps =
-    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_LIST_VIEW>
+type DynamicTagListViewPageProps =
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_LIST_VIEW>
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_LIST_VIEW>;
 
-function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
+function DynamicTagListViewPage({route}: DynamicTagListViewPageProps) {
     const {policyID, orderWeight: orderWeightParam} = route.params;
     const orderWeight = Number(orderWeightParam);
 
@@ -83,7 +83,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const isMultiLevelTags = isMultiLevelTagsPolicyUtils(policyTags);
     const currentPolicyTag = policyTags?.[currentTagListName];
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_LIST_VIEW;
-    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_TAG_LIST_VIEW.path);
+    const backPath = useDynamicBackPath(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAG_LIST_VIEW.path : DYNAMIC_ROUTES.WORKSPACE_TAG_LIST_VIEW.path);
     const fetchTags = useCallback(() => {
         openPolicyTagsPage(policyID);
     }, [policyID]);
@@ -114,7 +114,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         onClearSelection: () => {
             setSelectedTags([]);
         },
-        onNavigationCallBack: () => Navigation.goBack(isQuickSettingsFlow ? backPath : undefined),
+        onNavigationCallBack: () => Navigation.goBack(backPath),
     });
 
     const updateWorkspaceTagEnabled = useCallback(
@@ -216,14 +216,18 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
 
     const navigateToTagSettings = (tag: TagListItem) => {
         Navigation.navigate(
-            isQuickSettingsFlow
-                ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_SETTINGS.getRoute(orderWeight, tag.value))
-                : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, orderWeight, tag.value, tag?.rules?.parentTagsFilter ?? undefined),
+            createDynamicRoute(
+                (isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAG_SETTINGS : DYNAMIC_ROUTES.WORKSPACE_TAG_SETTINGS).getRoute(
+                    orderWeight,
+                    tag.value,
+                    tag?.rules?.parentTagsFilter ?? undefined,
+                ),
+            ),
         );
     };
 
     const isLoading = !isOffline && policyTags === undefined;
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'WorkspaceViewTagsPage', isOffline, isPolicyTagsUndefined: policyTags === undefined};
+    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'DynamicTagListViewPage', isOffline, isPolicyTagsUndefined: policyTags === undefined};
 
     const listHeaderContent =
         tagList.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? (
@@ -339,11 +343,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     }
 
     const navigateToEditTag = () => {
-        Navigation.navigate(
-            isQuickSettingsFlow
-                ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAGS_EDIT.getRoute(currentPolicyTag?.orderWeight ?? 0))
-                : ROUTES.WORKSPACE_EDIT_TAGS.getRoute(route.params.policyID, currentPolicyTag?.orderWeight ?? 0, Navigation.getActiveRoute()),
-        );
+        Navigation.navigate(createDynamicRoute((isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAGS_EDIT : DYNAMIC_ROUTES.WORKSPACE_TAGS_EDIT).getRoute(currentPolicyTag?.orderWeight ?? 0)));
     };
 
     const selectionModeHeader = isMobileSelectionModeEnabled && isSmallScreenWidth;
@@ -357,7 +357,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID="WorkspaceViewTagsPage"
+                testID="DynamicTagListViewPage"
             >
                 <HeaderWithBackButton
                     title={selectionModeHeader ? translate('common.selectMultiple') : currentTagListName}
@@ -367,7 +367,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                             turnOffMobileSelectionMode();
                             return;
                         }
-                        Navigation.goBack(isQuickSettingsFlow ? backPath : undefined);
+                        Navigation.goBack(backPath);
                     }}
                 >
                     {!shouldDisplayButtonsInSeparateLine && getHeaderButtons()}
@@ -455,4 +455,4 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     );
 }
 
-export default WorkspaceViewTagsPage;
+export default DynamicTagListViewPage;
