@@ -104,6 +104,7 @@ const defaultParams = {
     loginList: {},
     policies: {},
     visibleReportActionsData: undefined,
+    sortedActions: undefined,
     currentUserAccountID: 100,
     currentUserEmail: 'me@example.com',
     personalDetails: {},
