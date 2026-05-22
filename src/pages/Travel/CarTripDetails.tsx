@@ -86,6 +86,7 @@ function CarTripDetails({reservation, personalDetails}: CarTripDetailsProps) {
                 <MenuItemWithTopDescription
                     description={translate('travel.carDetails.driver')}
                     interactive={false}
+                    accessibilityLabel={`${translate('travel.carDetails.driver')} ${displayName}`}
                     titleComponent={
                         <SingleUserPill
                             avatar={personalDetails?.avatar}

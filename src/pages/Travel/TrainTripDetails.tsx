@@ -97,6 +97,7 @@ function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps)
                 <MenuItemWithTopDescription
                     description={translate('travel.trainDetails.passenger')}
                     interactive={false}
+                    accessibilityLabel={`${translate('travel.trainDetails.passenger')} ${displayName}`}
                     titleComponent={
                         <SingleUserPill
                             avatar={personalDetails?.avatar}

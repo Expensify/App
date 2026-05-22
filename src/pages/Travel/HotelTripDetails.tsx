@@ -87,6 +87,7 @@ function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps)
                 <MenuItemWithTopDescription
                     description={translate('travel.hotelDetails.guest')}
                     interactive={false}
+                    accessibilityLabel={`${translate('travel.hotelDetails.guest')} ${displayName}`}
                     titleComponent={
                         <SingleUserPill
                             avatar={personalDetails?.avatar}
