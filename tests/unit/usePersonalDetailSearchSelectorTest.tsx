@@ -134,7 +134,7 @@ describe('usePersonalDetailSearchSelector selectedNonExistingOptions', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(result.current.selectedNonExistingOptions).toHaveLength(1);
-        expect(result.current.selectedNonExistingOptions.at(0).login).toBe('invitee@gmail.com');
+        expect(result.current.selectedNonExistingOptions.at(0)?.login).toBe('invitee@gmail.com');
     });
 
     it('does not include existing contacts in selectedNonExistingOptions', async () => {
@@ -156,7 +156,7 @@ describe('usePersonalDetailSearchSelector selectedNonExistingOptions', () => {
         expect(result.current.selectedNonExistingOptions).toHaveLength(0);
         // But should be in selectedOptions
         expect(result.current.selectedOptions).toHaveLength(1);
-        expect(result.current.selectedOptions.at(0).login).toBe('alice@expensify.com');
+        expect(result.current.selectedOptions.at(0)?.login).toBe('alice@expensify.com');
     });
 
     it('removes non-existing user from selectedNonExistingOptions after deselection', async () => {
@@ -206,7 +206,7 @@ describe('usePersonalDetailSearchSelector selectedNonExistingOptions', () => {
 
         // Only the non-existing user should be in selectedNonExistingOptions
         expect(result.current.selectedNonExistingOptions).toHaveLength(1);
-        expect(result.current.selectedNonExistingOptions.at(0).login).toBe('invitee@gmail.com');
+        expect(result.current.selectedNonExistingOptions.at(0)?.login).toBe('invitee@gmail.com');
     });
 
     it('clears selectedNonExistingOptions on resetSelection', async () => {
@@ -265,7 +265,7 @@ describe('usePersonalDetailSearchSelector selectedNonExistingOptions', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(result.current.selectedNonExistingOptions).toHaveLength(1);
-        expect(result.current.selectedNonExistingOptions.at(0).login).toBe('invitee@gmail.com');
+        expect(result.current.selectedNonExistingOptions.at(0)?.login).toBe('invitee@gmail.com');
 
         jest.useRealTimers();
     });
@@ -326,7 +326,7 @@ describe('usePersonalDetailSearchSelector selectedNonExistingOptions', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(result.current.selectedNonExistingOptions).toHaveLength(1);
-        expect(result.current.selectedNonExistingOptions.at(0).text).toBe('Custom Name');
+        expect(result.current.selectedNonExistingOptions.at(0)?.text).toBe('Custom Name');
 
         jest.useRealTimers();
     });
