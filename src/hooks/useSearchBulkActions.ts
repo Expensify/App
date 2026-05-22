@@ -132,11 +132,9 @@ function addSelectedGroupsFilter(
     }
 
     const groupKeys = new Set<string>();
-    for (const [key, info] of Object.entries(selectedTransactions)) {
+    for (const key of Object.keys(selectedTransactions)) {
         if (key.startsWith(CONST.SEARCH.GROUP_PREFIX)) {
             groupKeys.add(key);
-        } else if (info?.groupKey) {
-            groupKeys.add(info.groupKey);
         }
     }
 

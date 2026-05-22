@@ -1118,8 +1118,7 @@ function Search({
             email,
             accountID,
             outstandingReportsByPolicyID,
-            isExpenseReportType,
-            validGroupBy,
+            searchResults?.data,
         ],
     );
 
