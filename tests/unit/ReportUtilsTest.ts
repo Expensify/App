@@ -879,7 +879,7 @@ describe('ReportUtils', () => {
 
             expect(setupSpecialistDetail).toBeDefined();
             expect(setupSpecialistDetail?.accountID).toBeDefined();
-            expect(setupSpecialistDetail?.accountID).toBe(515109196);
+            expect(setupSpecialistDetail?.accountID).toBe(CONST.ACCOUNT_ID.QA_GUIDE);
             expect(setupSpecialistDetail?.avatar).toBeDefined();
             expect(setupSpecialistDetail?.avatar).toContain('images/avatars/');
 
