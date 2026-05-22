@@ -81,9 +81,6 @@ type ContactState = {
     /** Function to trigger contact import */
     importContacts: () => void;
 
-    /** Function to initiate contact import and set state */
-    initiateContactImportAndSetState: () => void;
-
     /** Function to set permission state */
     setContactPermissionState: (status: PermissionStatus) => void;
 };
