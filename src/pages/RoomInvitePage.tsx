@@ -1,5 +1,5 @@
 import {pendingChatMembersSelector} from '@selectors/ReportMetaData';
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import type {SectionListData} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -201,18 +201,15 @@ function RoomInvitePage({
         headerMessage: getHeaderMessageText(),
     };
 
-    const footerContent = useMemo(
-        () => (
-            <FormAlertWithSubmitButton
-                isDisabled={!validSelectedOptions.length}
-                buttonText={translate('common.invite')}
-                onSubmit={inviteUsers}
-                containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5, styles.ph5]}
-                enabledWhenOffline
-                isAlertVisible={false}
-            />
-        ),
-        [inviteUsers, validSelectedOptions.length, styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5, styles.ph5, translate],
+    const footerContent = (
+        <FormAlertWithSubmitButton
+            isDisabled={!validSelectedOptions.length}
+            buttonText={translate('common.invite')}
+            onSubmit={inviteUsers}
+            containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5, styles.ph5]}
+            enabledWhenOffline
+            isAlertVisible={false}
+        />
     );
 
     return (
