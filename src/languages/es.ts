@@ -653,6 +653,7 @@ const translations: TranslationDeepObject<typeof en> = {
         changePin: {
             didNotChange: 'No pudimos cambiar tu PIN. Por favor, inténtalo de nuevo.',
         },
+        revealCardDetail: {couldNotReveal: 'No hemos podido mostrar los datos de tu tarjeta. Por favor, inténtalo de nuevo.'},
     },
     validateCodeModal: {
         successfulSignInTitle: 'Abracadabra,\n¡sesión iniciada!',
@@ -1239,7 +1240,7 @@ const translations: TranslationDeepObject<typeof en> = {
         receiptStatusTitle: 'Escaneando…',
         receiptStatusText: 'Solo tú puedes ver este recibo cuando se está escaneando. Vuelve más tarde o introduce los detalles ahora.',
         receiptScanningFailed: 'El escaneo de recibo ha fallado. Introduce los detalles manualmente.',
-        transactionPendingDescription: 'Transacción pendiente. Puede tardar unos días en contabilizarse.',
+        allTransactionsPendingNextStep: 'Todas las transacciones están pendientes. No puedes enviar este informe hasta que se registren dentro de unos días.',
         companyInfo: 'Información de la empresa',
         companyInfoDescription: 'Necesitamos algunos detalles más antes de que pueda enviar su primera factura.',
         yourCompanyName: 'Nombre de su empresa',
@@ -1400,6 +1401,8 @@ const translations: TranslationDeepObject<typeof en> = {
             distanceAmountTooLargeReduceDistance: 'El importe total es demasiado alto. Reduce la distancia.',
             distanceAmountTooLargeReduceRate: 'El importe total es demasiado alto. Disminuye la tarifa.',
             odometerReadingTooLarge: (formattedMax: string) => `Las lecturas del odómetro no pueden superar ${formattedMax}.`,
+            unableToSubmitReport: 'No se puede enviar el informe',
+            allTransactionsPendingDescription: 'No puedes enviar este informe porque todas las transacciones están pendientes. Pueden tardar unos días en procesarse.',
             stitchOdometerImagesFailed: 'No se pudieron combinar las imágenes del odómetro. Por favor, inténtalo de nuevo más tarde.',
             failedToSaveOdometerDraft: 'No se pudo guardar el borrador del odómetro. Por favor, inténtalo de nuevo.',
             invalidIntegerAmount: 'Por favor, introduce un importe entero en dólares antes de continuar',
@@ -1476,7 +1479,6 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Algunos de estos duplicados ya han sido aprobados o pagados.',
         reviewDuplicates: 'Revisar duplicados',
         keepAll: 'Mantener todos',
-        keepSelected: 'Mantener seleccionado',
         noDuplicatesTitle: '¡Todo listo!',
         noDuplicatesDescription: 'No hay transacciones duplicadas para revisar aquí.',
         confirmApprove: 'Confirmar importe a aprobar',

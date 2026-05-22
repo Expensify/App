@@ -694,6 +694,7 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: 'We hebben je kaart niet verzonden. Probeer het opnieuw.'},
         revealPin: {couldNotReveal: 'We konden je pincode niet tonen. Probeer het opnieuw.'},
         changePin: {didNotChange: 'We hebben je pincode niet gewijzigd. Probeer het opnieuw.'},
+        revealCardDetail: {couldNotReveal: 'We konden je kaartgegevens niet weergeven. Probeer het opnieuw.'},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -1278,7 +1279,7 @@ const translations: TranslationDeepObject<typeof en> = {
         receiptStatusTitle: 'Scannen…',
         receiptStatusText: 'Alleen jij kunt deze bon zien terwijl hij wordt gescand. Kom later terug of voer de gegevens nu in.',
         receiptScanningFailed: 'Bon scannen mislukt. Voer de gegevens handmatig in.',
-        transactionPendingDescription: 'Transactie in behandeling. Het kan een paar dagen duren voordat deze wordt verwerkt.',
+        allTransactionsPendingNextStep: 'Alle transacties zijn in behandeling. Je kunt dit rapport pas indienen als ze over een paar dagen zijn geboekt.',
         companyInfo: 'Bedrijfsgegevens',
         companyInfoDescription: 'We hebben nog een paar gegevens nodig voordat je je eerste factuur kunt versturen.',
         yourCompanyName: 'Naam van je bedrijf',
@@ -1464,6 +1465,8 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: 'De einddatum mag niet gelijk zijn aan de startdatum',
             manySplitsProvided: `Het maximale aantal toegestane splitsingen is ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `Het datumbereik mag niet meer dan ${CONST.IOU.SPLITS_LIMIT} dagen zijn.`,
+            unableToSubmitReport: 'Rapport kan niet worden ingediend',
+            allTransactionsPendingDescription: 'Je kunt dit rapport niet indienen omdat alle transacties in behandeling zijn. Het kan een paar dagen duren voordat ze worden verwerkt.',
             stitchOdometerImagesFailed: 'Odometerafbeeldingen combineren mislukt. Probeer het later opnieuw.',
             failedToSaveOdometerDraft: 'De conceptkilometerstand kon niet worden opgeslagen. Probeer het opnieuw.',
         },
@@ -1510,7 +1513,6 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Sommige van deze duplicaten zijn al goedgekeurd of betaald.',
         reviewDuplicates: 'Dubbele items controleren',
         keepAll: 'Alles behouden',
-        keepSelected: 'Selectie behouden',
         noDuplicatesTitle: 'Alles in orde!',
         noDuplicatesDescription: 'Er zijn hier geen dubbele transacties om te beoordelen.',
         confirmApprove: 'Bevestig goedkeuringsbedrag',

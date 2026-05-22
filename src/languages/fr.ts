@@ -697,6 +697,7 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: 'Nous n’avons pas envoyé votre carte. Veuillez réessayer.'},
         revealPin: {couldNotReveal: "Nous n'avons pas pu afficher votre code PIN. Veuillez réessayer."},
         changePin: {didNotChange: "Nous n'avons pas modifié votre code PIN. Veuillez réessayer."},
+        revealCardDetail: {couldNotReveal: 'Nous n’avons pas pu afficher les détails de votre carte. Veuillez réessayer.'},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -1284,7 +1285,8 @@ const translations: TranslationDeepObject<typeof en> = {
         receiptStatusTitle: 'Analyse en cours…',
         receiptStatusText: 'Vous seul pouvez voir ce reçu pendant son analyse. Revenez plus tard ou saisissez les détails maintenant.',
         receiptScanningFailed: 'L’analyse du reçu a échoué. Veuillez saisir les détails manuellement.',
-        transactionPendingDescription: "Transaction en attente. L'inscription peut prendre quelques jours.",
+        allTransactionsPendingNextStep:
+            "Toutes les transactions sont en attente. Vous ne pouvez pas soumettre cette note de frais avant qu'elles ne soient comptabilisées dans quelques jours.",
         companyInfo: 'Informations sur l’entreprise',
         companyInfoDescription: 'Nous avons besoin de quelques informations supplémentaires avant que vous puissiez envoyer votre première facture.',
         yourCompanyName: 'Nom de votre entreprise',
@@ -1472,6 +1474,9 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: 'La date de fin ne peut pas être identique à la date de début',
             manySplitsProvided: `Le nombre maximal de répartitions autorisées est de ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `La plage de dates ne peut pas dépasser ${CONST.IOU.SPLITS_LIMIT} jours.`,
+            unableToSubmitReport: 'Impossible de soumettre la note de frais',
+            allTransactionsPendingDescription:
+                'Vous ne pouvez pas soumettre cette note de frais, car toutes les transactions sont en attente. Leur comptabilisation peut prendre quelques jours.',
             stitchOdometerImagesFailed: 'Échec de la combinaison des images de l’odomètre. Veuillez réessayer plus tard.',
             failedToSaveOdometerDraft: 'Impossible d’enregistrer votre brouillon de compteur kilométrique. Veuillez réessayer.',
         },
@@ -1518,7 +1523,6 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Certains de ces doublons ont déjà été approuvés ou payés.',
         reviewDuplicates: 'Examiner les doublons',
         keepAll: 'Tout garder',
-        keepSelected: 'Garder la sélection',
         noDuplicatesTitle: 'Tout est en ordre !',
         noDuplicatesDescription: "Il n'y a aucune transaction en double à vérifier ici.",
         confirmApprove: 'Confirmer le montant approuvé',

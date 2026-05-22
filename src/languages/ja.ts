@@ -684,6 +684,7 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: 'カードを発送できませんでした。もう一度お試しください。'},
         revealPin: {couldNotReveal: 'PIN を表示できませんでした。もう一度お試しください。'},
         changePin: {didNotChange: 'お客様の暗証番号は変更されていません。もう一度お試しください。'},
+        revealCardDetail: {couldNotReveal: 'カード情報を表示できませんでした。もう一度お試しください。'},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -1263,7 +1264,7 @@ const translations: TranslationDeepObject<typeof en> = {
         receiptStatusTitle: 'スキャン中…',
         receiptStatusText: 'スキャン中のレシートは、あなただけが見ることができます。後でまた確認するか、今すぐ詳細を入力してください。',
         receiptScanningFailed: 'レシートのスキャンに失敗しました。詳細を手入力してください。',
-        transactionPendingDescription: '取引は保留中です。記帳されるまで数日かかる場合があります。',
+        allTransactionsPendingNextStep: 'すべての取引が保留中です。数日後に処理が完了するまで、このレポートを提出することはできません。',
         companyInfo: '会社情報',
         companyInfoDescription: '最初の請求書を送信する前に、いくつか追加の情報が必要です。',
         yourCompanyName: '会社名',
@@ -1449,6 +1450,8 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: '終了日は開始日と同じにはできません',
             manySplitsProvided: `分割できる最大数は${CONST.IOU.SPLITS_LIMIT}件です。`,
             dateRangeExceedsMaxDays: `日付範囲は${CONST.IOU.SPLITS_LIMIT}日を超えることはできません。`,
+            unableToSubmitReport: 'レポートを送信できません',
+            allTransactionsPendingDescription: 'すべての取引が保留中のため、このレポートは提出できません。反映されるまでに数日かかる場合があります。',
             stitchOdometerImagesFailed: '走行距離計の画像を結合できませんでした。後でもう一度お試しください。',
             failedToSaveOdometerDraft: 'オドメーターの下書きを保存できませんでした。もう一度お試しください。',
         },
@@ -1495,7 +1498,6 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'これらの重複の一部は、すでに承認または支払い済みです。',
         reviewDuplicates: '重複を確認',
         keepAll: 'すべて保持',
-        keepSelected: '選択したものを保持',
         noDuplicatesTitle: '準備完了！',
         noDuplicatesDescription: '確認が必要な重複取引はありません。',
         confirmApprove: '承認金額を確認',

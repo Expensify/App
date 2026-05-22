@@ -696,6 +696,7 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: 'Non abbiamo spedito la tua carta. Riprova.'},
         revealPin: {couldNotReveal: 'Non siamo riusciti a mostrare il tuo PIN. Riprova.'},
         changePin: {didNotChange: 'Non abbiamo modificato il tuo PIN. Riprova.'},
+        revealCardDetail: {couldNotReveal: 'Non siamo riusciti a mostrare i dettagli della tua carta. Riprova.'},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -1280,7 +1281,7 @@ const translations: TranslationDeepObject<typeof en> = {
         receiptStatusTitle: 'Scansione in corso…',
         receiptStatusText: 'Solo tu puoi vedere questa ricevuta mentre viene scansionata. Controlla più tardi o inserisci i dettagli ora.',
         receiptScanningFailed: 'Scansione della ricevuta non riuscita. Inserisci i dettagli manualmente.',
-        transactionPendingDescription: 'Transazione in sospeso. Potrebbero essere necessari alcuni giorni prima che venga registrata.',
+        allTransactionsPendingNextStep: 'Tutte le transazioni sono in sospeso. Non puoi inviare questo rendiconto finché non saranno registrate tra qualche giorno.',
         companyInfo: 'Informazioni azienda',
         companyInfoDescription: 'Ci servono ancora alcuni dettagli prima che tu possa inviare la tua prima fattura.',
         yourCompanyName: 'Nome dell’azienda',
@@ -1466,6 +1467,8 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateBeforeStartDate: 'La data di fine non può essere precedente alla data di inizio',
             endDateSameAsStartDate: 'La data di fine non può essere uguale alla data di inizio',
             manySplitsProvided: `Il numero massimo di suddivisioni consentite è ${CONST.IOU.SPLITS_LIMIT}.`,
+            unableToSubmitReport: 'Impossibile inviare il report',
+            allTransactionsPendingDescription: 'Non puoi inviare questo report perché tutte le transazioni sono in sospeso. Potrebbero volerci alcuni giorni prima che vengano registrate.',
             dateRangeExceedsMaxDays: `L’intervallo di date non può superare ${CONST.IOU.SPLITS_LIMIT} giorni.`,
             stitchOdometerImagesFailed: 'Impossibile combinare le immagini del contachilometri. Riprova più tardi.',
             failedToSaveOdometerDraft: 'Impossibile salvare la tua bozza del contachilometri. Riprova.',
@@ -1514,7 +1517,6 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Alcuni di questi duplicati sono già stati approvati o pagati.',
         reviewDuplicates: 'Controlla duplicati',
         keepAll: 'Mantieni tutto',
-        keepSelected: 'Mantieni selezionati',
         noDuplicatesTitle: 'Tutto a posto!',
         noDuplicatesDescription: 'Non ci sono transazioni duplicate da verificare qui.',
         confirmApprove: 'Conferma l’importo approvato',

@@ -695,6 +695,7 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: 'Wir haben Ihre Karte nicht versendet. Bitte versuchen Sie es erneut.'},
         revealPin: {couldNotReveal: 'Wir konnten Ihre PIN nicht anzeigen. Bitte versuchen Sie es erneut.'},
         changePin: {didNotChange: 'Wir haben Ihre PIN nicht geändert. Bitte versuchen Sie es erneut.'},
+        revealCardDetail: {couldNotReveal: 'Wir konnten Ihre Kartendaten nicht anzeigen. Bitte versuchen Sie es noch einmal.'},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -1280,7 +1281,7 @@ const translations: TranslationDeepObject<typeof en> = {
         receiptStatusTitle: 'Scannen …',
         receiptStatusText: 'Nur du kannst diesen Beleg sehen, während er gescannt wird. Schau später noch einmal vorbei oder gib die Details jetzt ein.',
         receiptScanningFailed: 'Belegerkennung fehlgeschlagen. Bitte geben Sie die Details manuell ein.',
-        transactionPendingDescription: 'Transaktion ausstehend. Die Buchung kann ein paar Tage dauern.',
+        allTransactionsPendingNextStep: 'Alle Transaktionen sind ausstehend. Sie können diesen Bericht erst einreichen, wenn sie in ein paar Tagen verbucht wurden.',
         companyInfo: 'Unternehmensinfos',
         companyInfoDescription: 'Wir benötigen noch ein paar weitere Angaben, bevor du deine erste Rechnung senden kannst.',
         yourCompanyName: 'Ihr Firmenname',
@@ -1469,6 +1470,8 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: 'Das Enddatum darf nicht mit dem Startdatum übereinstimmen',
             manySplitsProvided: `Die maximale Anzahl zulässiger Aufteilungen beträgt ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `Der Datumsbereich darf ${CONST.IOU.SPLITS_LIMIT} Tage nicht überschreiten.`,
+            unableToSubmitReport: 'Bericht kann nicht eingereicht werden',
+            allTransactionsPendingDescription: 'Sie können diesen Bericht nicht einreichen, weil alle Transaktionen ausstehen. Es kann einige Tage dauern, bis sie gebucht werden.',
             stitchOdometerImagesFailed: 'Kilometerzählerbilder konnten nicht zusammengeführt werden. Bitte versuchen Sie es später noch einmal.',
             failedToSaveOdometerDraft: 'Dein Kilometerzähler-Entwurf konnte nicht gespeichert werden. Bitte versuche es erneut.',
         },
@@ -1515,7 +1518,6 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Einige dieser Duplikate wurden bereits genehmigt oder bezahlt.',
         reviewDuplicates: 'Duplikate prüfen',
         keepAll: 'Alle behalten',
-        keepSelected: 'Auswahl behalten',
         noDuplicatesTitle: 'Alles erledigt!',
         noDuplicatesDescription: 'Es gibt hier keine doppelten Transaktionen zur Überprüfung.',
         confirmApprove: 'Genehmigungsbetrag bestätigen',

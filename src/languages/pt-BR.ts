@@ -693,6 +693,7 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: 'Não enviamos seu cartão. Tente novamente.'},
         revealPin: {couldNotReveal: 'Não foi possível revelar seu PIN. Tente novamente.'},
         changePin: {didNotChange: 'Nós não alteramos seu PIN. Tente novamente.'},
+        revealCardDetail: {couldNotReveal: 'Não foi possível exibir os detalhes do seu cartão. Tente novamente.'},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -1278,7 +1279,7 @@ const translations: TranslationDeepObject<typeof en> = {
         receiptStatusTitle: 'Escaneando…',
         receiptStatusText: 'Só você pode ver este recibo enquanto ele está sendo digitalizado. Volte mais tarde ou insira os detalhes agora.',
         receiptScanningFailed: 'Falha ao escanear o recibo. Insira os detalhes manualmente.',
-        transactionPendingDescription: 'Transação pendente. Pode levar alguns dias para ser lançada.',
+        allTransactionsPendingNextStep: 'Todas as transações estão pendentes. Você não pode enviar este relatório até que elas sejam lançadas em alguns dias.',
         companyInfo: 'Informações da empresa',
         companyInfoDescription: 'Precisamos de mais alguns detalhes antes que você possa enviar sua primeira fatura.',
         yourCompanyName: 'Nome da sua empresa',
@@ -1462,6 +1463,8 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: 'A data de término não pode ser igual à data de início',
             manySplitsProvided: `O número máximo de divisões permitido é ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `O intervalo de datas não pode exceder ${CONST.IOU.SPLITS_LIMIT} dias.`,
+            unableToSubmitReport: 'Não foi possível enviar o relatório',
+            allTransactionsPendingDescription: 'Você não pode enviar este relatório porque todas as transações estão pendentes. Elas podem levar alguns dias para serem lançadas.',
             stitchOdometerImagesFailed: 'Falha ao combinar imagens do hodômetro. Tente novamente mais tarde.',
             failedToSaveOdometerDraft: 'Não foi possível salvar seu rascunho do hodômetro. Tente novamente.',
         },
@@ -1508,7 +1511,6 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Alguns desses duplicados já foram aprovados ou pagos.',
         reviewDuplicates: 'Revisar duplicados',
         keepAll: 'Manter tudo',
-        keepSelected: 'Manter selecionados',
         noDuplicatesTitle: 'Tudo pronto!',
         noDuplicatesDescription: 'Não há transações duplicadas para revisar aqui.',
         confirmApprove: 'Confirmar valor da aprovação',

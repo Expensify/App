@@ -86,7 +86,6 @@ import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {getBankAccountFromID} from './actions/BankAccounts';
-import {getUserAccountID} from './actions/IOU';
 import {unholdRequest} from './actions/IOU/Hold';
 import {
     createDraftTransaction,
@@ -4322,8 +4321,14 @@ function getReasonAndReportActionThatRequiresAttention(
  * @param option (report or optionItem)
  * @param parentReportAction (the report action the current report is a thread of)
  */
-function requiresAttentionFromCurrentUser(optionOrReport: OnyxEntry<Report> | OptionData, parentReportAction?: OnyxEntry<ReportAction>, isReportArchived = false) {
-    return !!getReasonAndReportActionThatRequiresAttention(optionOrReport, getCurrentUserEmail() ?? '', getUserAccountID(), parentReportAction, isReportArchived);
+function requiresAttentionFromCurrentUser(
+    optionOrReport: OnyxEntry<Report> | OptionData,
+    currentUserLogin: string,
+    currentUserAccountID: number,
+    parentReportAction?: OnyxEntry<ReportAction>,
+    isReportArchived = false,
+) {
+    return !!getReasonAndReportActionThatRequiresAttention(optionOrReport, currentUserLogin, currentUserAccountID, parentReportAction, isReportArchived);
 }
 
 /**
@@ -9490,6 +9495,8 @@ type ShouldReportBeInOptionListParams = {
     doesReportHaveViolations: boolean;
     includeSelfDM?: boolean;
     login?: string;
+    currentUserLogin?: string;
+    currentUserAccountID?: number;
     includeDomainEmail?: boolean;
     isReportArchived: boolean | undefined;
     draftComment: string | undefined;
@@ -9508,6 +9515,8 @@ function reasonForReportToBeInOptionList({
     draftComment,
     includeSelfDM = false,
     login,
+    currentUserLogin,
+    currentUserAccountID,
     includeDomainEmail = false,
     isReportArchived,
     requiresAttention,
@@ -9591,7 +9600,7 @@ function reasonForReportToBeInOptionList({
         return CONST.REPORT_IN_LHN_REASONS.HAS_DRAFT_COMMENT;
     }
 
-    if (requiresAttention ?? requiresAttentionFromCurrentUser(report, undefined, isReportArchived)) {
+    if (requiresAttention ?? requiresAttentionFromCurrentUser(report, currentUserLogin ?? '', currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, undefined, isReportArchived)) {
         return CONST.REPORT_IN_LHN_REASONS.HAS_GBR;
     }
 

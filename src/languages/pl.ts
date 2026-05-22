@@ -695,6 +695,7 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: 'Nie wysłaliśmy twojej karty. Spróbuj ponownie.'},
         revealPin: {couldNotReveal: 'Nie udało się wyświetlić twojego PIN-u. Spróbuj ponownie.'},
         changePin: {didNotChange: 'Nie zmieniliśmy twojego PIN-u. Spróbuj ponownie.'},
+        revealCardDetail: {couldNotReveal: 'Nie udało się wyświetlić szczegółów Twojej karty. Spróbuj ponownie.'},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -1278,7 +1279,7 @@ const translations: TranslationDeepObject<typeof en> = {
         receiptStatusTitle: 'Skanowanie…',
         receiptStatusText: 'Tylko ty widzisz ten paragon podczas skanowania. Sprawdź ponownie później lub wprowadź szczegóły teraz.',
         receiptScanningFailed: 'Skanowanie paragonu nie powiodło się. Wprowadź dane ręcznie.',
-        transactionPendingDescription: 'Transakcja w toku. Zaksięgowanie może potrwać kilka dni.',
+        allTransactionsPendingNextStep: 'Wszystkie transakcje są w toku. Nie możesz złożyć tego raportu, dopóki nie zostaną zaksięgowane za kilka dni.',
         companyInfo: 'Informacje o firmie',
         companyInfoDescription: 'Potrzebujemy jeszcze kilku informacji, zanim będziesz mógł wysłać swoją pierwszą fakturę.',
         yourCompanyName: 'Nazwa Twojej firmy',
@@ -1463,6 +1464,8 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: 'Data zakończenia nie może być taka sama jak data rozpoczęcia',
             manySplitsProvided: `Maksymalna dozwolona liczba podziałów to ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `Zakres dat nie może przekraczać ${CONST.IOU.SPLITS_LIMIT} dni.`,
+            unableToSubmitReport: 'Nie można wysłać raportu',
+            allTransactionsPendingDescription: 'Nie możesz przesłać tego raportu, ponieważ wszystkie transakcje są w toku. Zaksięgowanie ich może zająć kilka dni.',
             stitchOdometerImagesFailed: 'Nie udało się połączyć zdjęć licznika kilometrów. Spróbuj ponownie później.',
             failedToSaveOdometerDraft: 'Nie udało się zapisać Twojego szkicu licznika przebiegu. Spróbuj ponownie.',
         },
@@ -1509,7 +1512,6 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Niektóre z tych duplikatów zostały już zatwierdzone lub opłacone.',
         reviewDuplicates: 'Przejrzyj duplikaty',
         keepAll: 'Zachowaj wszystko',
-        keepSelected: 'Zachowaj wybrane',
         noDuplicatesTitle: 'Wszystko gotowe!',
         noDuplicatesDescription: 'Nie ma tutaj zduplikowanych transakcji do sprawdzenia.',
         confirmApprove: 'Potwierdź kwotę zatwierdzenia',

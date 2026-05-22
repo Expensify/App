@@ -674,6 +674,7 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: '我们未能寄出您的卡。请重试。'},
         revealPin: {couldNotReveal: '我们无法显示您的 PIN。请重试。'},
         changePin: {didNotChange: '我们未更改您的 PIN。请重试。'},
+        revealCardDetail: {couldNotReveal: '我们无法显示您的卡片详情。请重试。'},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -1234,7 +1235,7 @@ const translations: TranslationDeepObject<typeof en> = {
         receiptStatusTitle: '正在扫描…',
         receiptStatusText: '扫描期间只有你自己能看到这张收据。稍后再来查看，或立即输入详细信息。',
         receiptScanningFailed: '收据扫描失败。请手动输入详细信息。',
-        transactionPendingDescription: '交易待处理。入账可能需要几天时间。',
+        allTransactionsPendingNextStep: '所有交易都在待处理状态。在几天后这些交易入账之前，你无法提交此报表。',
         companyInfo: '公司信息',
         companyInfoDescription: '在您发送第一张发票之前，我们还需要一些详细信息。',
         yourCompanyName: '您的公司名称',
@@ -1417,6 +1418,8 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: '结束日期不能与开始日期相同',
             manySplitsProvided: `允许的最大拆分数为 ${CONST.IOU.SPLITS_LIMIT}。`,
             dateRangeExceedsMaxDays: `日期范围不能超过 ${CONST.IOU.SPLITS_LIMIT} 天。`,
+            unableToSubmitReport: '无法提交报表',
+            allTransactionsPendingDescription: '您无法提交此报表，因为所有交易都在待处理。它们可能需要几天时间才会入账。',
             stitchOdometerImagesFailed: '合并里程表图片失败。请稍后重试。',
             failedToSaveOdometerDraft: '无法保存你的里程表草稿。请重试。',
         },
@@ -1462,7 +1465,6 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: '其中一些重复项已被批准或支付。',
         reviewDuplicates: '审核重复项',
         keepAll: '全部保留',
-        keepSelected: '保留所选项',
         noDuplicatesTitle: '全部完成！',
         noDuplicatesDescription: '这里没有需要审核的重复交易。',
         confirmApprove: '确认批准金额',

@@ -12,13 +12,15 @@
 
 ### [@shopify+flash-list+2.3.0+002+skip-layout-when-hidden.patch](@shopify+flash-list+2.3.0+002+skip-layout-when-hidden.patch)
 
-- Reason: Prevents FlashList from losing its render state when a navigation stack hides the parent container with `display: none`. Two early-return guards added in `RecyclerView`:
-  1. **First `useLayoutEffect`** (measures parent container): After calling `measureParentSize()`, if both width and height are 0, return early before calling `updateLayoutParams()` or updating `containerViewSizeRef`. This preserves the last known valid window size and prevents the layout manager from receiving zero dimensions.
-  2. **Second `useLayoutEffect`** (measures individual items): If `containerViewSizeRef.current` is 0x0 (because the first effect bailed out), return early before calling `modifyChildrenLayout()`. This prevents item measurements taken under `display: none` (also 0) from corrupting stored layouts.
+- Reason: Prevents FlashList from losing its render state when a navigation stack hides the parent container with `display: none`. Four guards in total — two in `RecyclerView` to skip layout processing while hidden, and two in `useRecyclerViewController` to make scroll methods safe while hidden:
+  1. **First `useLayoutEffect`** in `RecyclerView` (measures parent container): After calling `measureParentSize()`, if both width and height are 0, return early before calling `updateLayoutParams()` or updating `containerViewSizeRef`. This preserves the last known valid window size and prevents the layout manager from receiving zero dimensions.
+  2. **Second `useLayoutEffect`** in `RecyclerView` (measures individual items): If `containerViewSizeRef.current` is 0x0 (because the first effect bailed out), return early before calling `modifyChildrenLayout()`. This prevents item measurements taken under `display: none` (also 0) from corrupting stored layouts.
+  3. **`scrollToIndex`** in `useRecyclerViewController`: When the list is hidden, guards 1/2 leave `layoutManager` undefined. Any `scrollToIndex` call (also reached via `scrollToEnd`, `scrollToItem`, `scrollToTop`) would then throw "LayoutManager is not initialized, window size is unavailable" from `recyclerViewManager.getWindowSize()`. Early-return a resolved Promise when `!recyclerViewManager.hasLayout()` so the call becomes a safe no-op; the list will scroll correctly on its next layout pass.
+  4. **`scrollToOffset` RTL+horizontal branch** in `useRecyclerViewController`: Only the `I18nManager.isRTL && horizontal` branch reads `getChildContainerDimensions()` and `getWindowSize()`, both of which throw when `layoutManager` is undefined. Gate the branch on `recyclerViewManager.hasLayout()` so the RTL math is skipped while hidden; the non-RTL / vertical paths are unaffected and continue using the underlying `scrollViewRef.scrollTo()` directly.
   When the container becomes visible again, `onLayout` fires (React Native Web uses ResizeObserver), triggering a re-render with correct dimensions so FlashList resumes normally without re-initialization.
-- Files changed: Both `src/recyclerview/RecyclerView.tsx` and `dist/recyclerview/RecyclerView.js`. The `src/` file contains the full explanatory comments describing the intent of each guard. The `dist/` file contains only the bare code without comments, since it is compiled output. If the `dist/` file changes in a future version, refer to the `src/` diff to understand the intent and re-apply the equivalent guards.
+- Files changed: `dist/recyclerview/RecyclerView.js` and `dist/recyclerview/hooks/useRecyclerViewController.js`.
 - Upstream PR/issue: TBD
-- E/App issue: https://github.com/Expensify/App/issues/83976
+- E/App issue: https://github.com/Expensify/App/issues/83976 (original), https://github.com/Expensify/App/issues/90756 (scroll-while-hidden follow-up)
 - PR introducing patch: https://github.com/Expensify/App/pull/84887
 
 ### [@shopify+flash-list+2.3.0+003+fix-inverted-scroll-direction-on-web.patch](@shopify+flash-list+2.3.0+003+fix-inverted-scroll-direction-on-web.patch)
