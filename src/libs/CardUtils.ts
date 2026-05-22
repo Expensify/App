@@ -1248,6 +1248,24 @@ function isCardConnectionBroken(card: Card): boolean {
 }
 
 /**
+ * Check whether a broken card connection has been unresolved long enough that we should stop
+ * actively prompting the user (remove the time-sensitive task and the RBR). The error itself is
+ * kept, so this is only used to gate the proactive surfacing, not the underlying broken state.
+ *
+ * `lastScrape` is the last successful update timestamp (a separate `lastImportAttempt` tracks
+ * attempts), so for a broken connection its age equals how long the connection has been failing.
+ *
+ * @param card the card to check
+ * @returns true if the connection is broken and has been unresolved for at least the grace period
+ */
+function isBrokenConnectionPastDismissThreshold(card: Card): boolean {
+    if (!isCardConnectionBroken(card) || !card.lastScrape) {
+        return false;
+    }
+    return DateUtils.getDifferenceInDaysFromNow(new Date(card.lastScrape)) >= CONST.COMPANY_CARDS.BROKEN_CONNECTION_DISMISS_AFTER_DAYS;
+}
+
+/**
  * Checks if an Expensify Card was issued for a given workspace.
  */
 function hasIssuedExpensifyCard(workspaceAccountID: number, allCardList: OnyxCollection<WorkspaceCardsList>): boolean {
@@ -1863,6 +1881,7 @@ export {
     getFeedType,
     flattenWorkspaceCardsList,
     isCardConnectionBroken,
+    isBrokenConnectionPastDismissThreshold,
     isSmartLimitEnabled,
     lastFourNumbersFromCardName,
     isMatchingCard,

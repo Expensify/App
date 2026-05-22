@@ -1,6 +1,6 @@
 import {buildFeedKeysWithAssignedCards} from '@selectors/Card';
 import {getCombinedCardFeedsFromAllFeeds, getWorkspaceCardFeedsStatus} from '@libs/CardFeedUtils';
-import {filterInactiveCards, getCardFeedWithDomainID, isCardConnectionBroken, isPersonalCard} from '@libs/CardUtils';
+import {filterInactiveCards, getCardFeedWithDomainID, isBrokenConnectionPastDismissThreshold, isCardConnectionBroken, isPersonalCard} from '@libs/CardUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -61,7 +61,9 @@ export default createOnyxDerivedValueConfig({
                     : {}),
             } as Record<string, CardErrors>;
 
-            const isFeedConnectionBroken = isCardConnectionBroken(card);
+            // Stop surfacing the broken connection (task + RBR) once it has been unresolved past the
+            // grace period; the underlying error on the card is kept so the user can still fix it.
+            const isFeedConnectionBroken = isCardConnectionBroken(card) && !isBrokenConnectionPastDismissThreshold(card);
             // Track personal cards with broken feed connection
             if (isFeedConnectionBroken) {
                 personalCardsWithBrokenConnection[card.cardID] = card;
@@ -116,7 +118,9 @@ export default createOnyxDerivedValueConfig({
                     : {}),
             } as Record<string, CardErrors>;
 
-            const isFeedConnectionBroken = isCardConnectionBroken(card);
+            // Stop surfacing the broken connection (task + RBR) once it has been unresolved past the
+            // grace period; the underlying error on the card is kept so the user can still fix it.
+            const isFeedConnectionBroken = isCardConnectionBroken(card) && !isBrokenConnectionPastDismissThreshold(card);
 
             const newFeedState: Omit<CardFeedErrorState, 'shouldShowRBR'> = {
                 isFeedConnectionBroken: isFeedConnectionBroken || previousFeedErrors.isFeedConnectionBroken,
