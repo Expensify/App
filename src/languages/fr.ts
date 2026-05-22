@@ -7211,7 +7211,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             disconnect: 'Déconnecter',
             disconnectTitle: (providerName: string) => `Déconnecter ${providerName}`,
             disconnectPrompt: (providerName: string) => `Êtes-vous sûr de vouloir déconnecter ${providerName} ?`,
-            alreadyConnectedTitle: 'Impossible de connecter plusieurs plateformes RH',
+            alreadyConnectedTitle: 'Impossible de se connecter à plusieurs plateformes RH',
             alreadyConnectedPrompt: "Vous devez déconnecter votre plateforme RH actuelle avant d'en connecter une autre.",
             lastSync: (relativeDate: string) => `Dernière synchronisation ${relativeDate}`,
             syncError: (providerName: string) => `Impossible de se connecter à ${providerName}`,

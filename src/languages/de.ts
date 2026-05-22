@@ -7189,7 +7189,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             disconnectTitle: (providerName: string) => `${providerName} trennen`,
             disconnectPrompt: (providerName: string) => `Möchten Sie ${providerName} wirklich trennen?`,
             alreadyConnectedTitle: 'Verbindung mit mehreren HR-Plattformen nicht möglich',
-            alreadyConnectedPrompt: 'Sie müssen Ihre aktuelle HR-Plattform trennen, bevor Sie eine andere verbinden können.',
+            alreadyConnectedPrompt: 'Sie müssen Ihre derzeitige HR-Plattform trennen, bevor Sie eine andere verbinden.',
             lastSync: (relativeDate: string) => `Zuletzt synchronisiert ${relativeDate}`,
             syncError: (providerName: string) => `Verbindung zu ${providerName} nicht möglich`,
             connectionDescription: (providerName: string) => `Verbinden Sie ${providerName}, um Mitarbeitergenehmigungen mit Ihrem Workspace zu synchronisieren.`,
