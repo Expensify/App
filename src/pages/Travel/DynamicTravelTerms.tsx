@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import Str from 'expensify-common/dist/str';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -23,11 +23,12 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addComment} from '@libs/actions/Report';
 import {acceptSpotnanaTerms, cleanupTravelProvisioningSession} from '@libs/actions/Travel';
-import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import {getLatestErrorMessage, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
+import Onyx from 'react-native-onyx';
 import colors from '@styles/theme/colors';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -54,6 +55,11 @@ function DynamicTravelTerms({route}: TravelTermsPageProps) {
     const delegateAccountID = useDelegateAccountID();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.TRAVEL_TCS.path);
+
+    // Clean up any stale provisioning state from previous attempts when the component mounts
+    useEffect(() => {
+        cleanupTravelProvisioningSession();
+    }, []);
 
     const errorMessage = travelProvisioning?.errors && !travelProvisioning?.error ? getLatestErrorMessage(travelProvisioning) : '';
     const isLoading = travelProvisioning?.isLoading;
@@ -133,7 +139,9 @@ function DynamicTravelTerms({route}: TravelTermsPageProps) {
                 return Promise.reject(new Error('No token received'));
             })
             .catch(() => {
-                // Errors are surfaced via TRAVEL_PROVISIONING in Onyx
+                // Set error state when the API returns an unsuccessful response (HTTP 200 with
+                // missing/invalid data), since failureData only fires on transport-level failures.
+                Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, {isLoading: false, errors: getMicroSecondOnyxErrorWithTranslationKey('travel.errorMessage')});
             });
     };
 
