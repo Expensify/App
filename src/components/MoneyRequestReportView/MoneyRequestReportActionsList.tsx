@@ -31,6 +31,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions, isActionVisibleOnMoneyRequestReport} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {
     getFilteredReportActionsForReportView,
@@ -294,8 +295,9 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             loadOlderChats(false);
             return;
         }
-
-        InteractionManager.runAfterInteractions(() => requestAnimationFrame(() => loadOlderChats(false)));
+        TransitionTracker.runAfterTransitions({
+            callback: () => requestAnimationFrame(() => loadOlderChats(false)),
+        });
     }, [loadOlderChats]);
 
     const onEndReached = useCallback(() => {
