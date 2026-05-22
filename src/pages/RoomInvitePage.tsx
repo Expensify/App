@@ -234,6 +234,7 @@ function RoomInvitePage({
                     textInputOptions={textInputOptions}
                     onSelectRow={toggleSelection}
                     confirmButtonOptions={{
+                        isDisabled: !validSelectedOptions.length,
                         onConfirm: inviteUsers,
                     }}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
