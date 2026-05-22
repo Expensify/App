@@ -554,7 +554,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
                 icon: expensifyIcons.Pencil,
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
-                action: () => navigateToPrivateNotes(report, currentUserPersonalDetails.accountID, backTo),
+                action: () => navigateToPrivateNotes(report, currentUserPersonalDetails.accountID),
                 brickRoadIndicator: hasErrorInPrivateNotes(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             });
         }
@@ -1064,7 +1064,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
                                     characterLimit={100}
                                     shouldCheckActionAllowedOnPress={false}
                                     description={translate('reportDescriptionPage.roomDescription')}
-                                    onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID, Navigation.getActiveRoute()))}
+                                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DESCRIPTION.path))}
                                 />
                             </MentionReportContext.Provider>
                         </OfflineWithFeedback>

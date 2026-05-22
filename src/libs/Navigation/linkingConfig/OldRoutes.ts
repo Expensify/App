@@ -21,6 +21,10 @@ const oldRoutes: Record<string, string> = {
     '/settings/workspaces/*': '/workspaces/$1',
     '/settings/workspaces': '/workspaces',
     '/r/*/settings/name': '/r/$1/details/settings/name',
+    '/r/*/title': '/r/$1/title',
+    '/r/*/description': '/r/$1/description',
+    '/r/*/assignee': '/r/$1/assignee',
+    '/r/*/notes/*/edit': '/r/$1/notes-edit/$2',
     '/workspaces/*/overview/address': '/workspaces/$1/overview/workspace-address',
     '/workspaces/*/categories/settings': '/workspaces/$1/categories/categories-settings',
     '/workspaces/*/categories/new': '/workspaces/$1/categories/category-new',
@@ -43,6 +47,7 @@ const oldRoutes: Record<string, string> = {
         '/workspaces/$1/accounting/quickbooks-desktop/export/qbd-out-of-pocket-expense/qbd-entity-select',
     '/flag/*/*': '/r/$1/flag/$1/$2',
     '/a/*/avatar': '/avatar/$1',
+    '/settings/profile/contact-methods/verify': '/settings/profile/contact-methods/verify-account',
     '/home-page': '/home',
     /* eslint-enable @typescript-eslint/naming-convention */
 };

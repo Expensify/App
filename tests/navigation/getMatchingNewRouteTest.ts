@@ -31,6 +31,22 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/r/123/settings/name?backTo=/home')).toBe('/r/123/details/settings/name?backTo=/home');
     });
 
+    it('redirects old task title path', () => {
+        expect(getMatchingNewRoute('/r/123/title')).toBe('/r/123/title');
+    });
+
+    it('redirects old report description path', () => {
+        expect(getMatchingNewRoute('/r/123/description')).toBe('/r/123/description');
+    });
+
+    it('redirects old task assignee path', () => {
+        expect(getMatchingNewRoute('/r/123/assignee')).toBe('/r/123/assignee');
+    });
+
+    it('redirects old private notes edit path to the new dynamic suffix shape', () => {
+        expect(getMatchingNewRoute('/r/123/notes/456/edit')).toBe('/r/123/notes-edit/456');
+    });
+
     it('redirects old workspace overview address path', () => {
         expect(getMatchingNewRoute('/workspaces/abc/overview/address')).toBe('/workspaces/abc/overview/workspace-address');
     });
