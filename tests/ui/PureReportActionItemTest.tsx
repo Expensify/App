@@ -2587,7 +2587,18 @@ describe('PureReportActionItem', () => {
             expect(screen.getByTestId('MoneyRequestReportPreviewContent-wrapper')).toBeOnTheScreen();
         });
 
+        const HARVEST_REPORT_ID = 'harvestReport123';
+        const ORIGINAL_REPORT_ID = 'origReport123';
+
         it('CREATED harvest renders CreateHarvestReportAction via BasicMessage', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${HARVEST_REPORT_ID}`, {
+                    origin: 'harvest',
+                    originalID: ORIGINAL_REPORT_ID,
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.CREATED, {});
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
@@ -2595,7 +2606,7 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    report={undefined}
+                                    report={{reportID: HARVEST_REPORT_ID}}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -2614,12 +2625,16 @@ describe('PureReportActionItem', () => {
             expect(screen.getByText(/created this report to hold/i)).toBeOnTheScreen();
             // When the original report is not loaded in Onyx, the link must fall back to "#<originalID>"
             // instead of rendering an empty hyperlink (regression guard for issue #90422).
-            expect(screen.getByText('#origReport123')).toBeOnTheScreen();
+            expect(screen.getByText(`#${ORIGINAL_REPORT_ID}`)).toBeOnTheScreen();
         });
         it('CREATED harvest renders the original report name when it is loaded in Onyx', async () => {
             await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}origReport123`, {
-                    reportID: 'origReport123',
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${HARVEST_REPORT_ID}`, {
+                    origin: 'harvest',
+                    originalID: ORIGINAL_REPORT_ID,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${ORIGINAL_REPORT_ID}`, {
+                    reportID: ORIGINAL_REPORT_ID,
                     reportName: 'Q1 Expenses',
                 });
             });
@@ -2632,13 +2647,14 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    report={undefined}
+                                    report={{reportID: HARVEST_REPORT_ID}}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
+                                    isHarvestCreatedExpenseReport
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -2649,7 +2665,7 @@ describe('PureReportActionItem', () => {
 
             expect(screen.getByText(/created this report to hold/i)).toBeOnTheScreen();
             expect(screen.getByText('Q1 Expenses')).toBeOnTheScreen();
-            expect(screen.queryByText('#origReport123')).not.toBeOnTheScreen();
+            expect(screen.queryByText(`#${ORIGINAL_REPORT_ID}`)).not.toBeOnTheScreen();
         });
         it('isWhisperActionTargetedToOthers returns null', async () => {
             await act(async () => {
