@@ -184,7 +184,7 @@ function AmountFilterComponent({filterKey, value, onChange}: AmountFilterCompone
                 keyboardShouldPersistTaps="handled"
                 // In landscape mode, when a virtual keyboard shows, the whole scroll view is shrinked and won't receive any input,
                 // so we set a minimum height to have enough visibility.
-                style={[StyleUtils.getMinimumHeight(100)]}
+                style={[StyleUtils.getMinimumHeight(50)]}
             >
                 {modifierConfig.map((config) => (
                     <Fragment key={config.keyForList}>
