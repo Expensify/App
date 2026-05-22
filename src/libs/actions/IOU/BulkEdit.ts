@@ -83,6 +83,7 @@ type UpdateMultipleMoneyRequestsParams = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     currentUserLogin: string;
     currentUserAccountID: number;
+    delegateAccountID: number | undefined;
 };
 
 function updateMultipleMoneyRequests({
@@ -100,6 +101,7 @@ function updateMultipleMoneyRequests({
     betas,
     currentUserAccountID,
     currentUserLogin,
+    delegateAccountID,
 }: UpdateMultipleMoneyRequestsParams) {
     // Track running totals per report so multiple edits in the same report compound correctly.
     const optimisticReportsByID: Record<string, OnyxTypes.Report> = {};
@@ -411,6 +413,7 @@ function updateMultipleMoneyRequests({
             optimisticTransactionChanges,
             isFromExpenseReport,
             transactionPolicy,
+            delegateAccountID,
             updatedTransaction,
         );
 

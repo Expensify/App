@@ -11,6 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ConnectionName, Connections, PolicyConnectionName, PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {syncMergeHR} from './MergeHR';
 
 type ConnectionNameExceptNetSuite = Exclude<ConnectionName, typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE>;
 
@@ -24,6 +25,8 @@ function removePolicyConnection(policy: Policy, connectionName: PolicyConnection
             | typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS
             | typeof ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION
             | typeof ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION
+            | typeof ONYXKEYS.COLLECTION.TRAVEL_INVOICING_CONTINUOUS_RECONCILIATION_CONNECTION
+            | typeof ONYXKEYS.COLLECTION.TRAVEL_INVOICING_USE_CONTINUOUS_RECONCILIATION
         >
     > = [
         {
@@ -48,6 +51,16 @@ function removePolicyConnection(policy: Policy, connectionName: PolicyConnection
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRAVEL_INVOICING_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRAVEL_INVOICING_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`,
             value: null,
         },
     ];
@@ -143,6 +156,12 @@ function syncConnection(policy: Policy | undefined, connectionName: PolicyConnec
         return;
     }
     const policyID = policy.id;
+
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR) {
+        syncMergeHR(policyID);
+        return;
+    }
+
     const syncConnectionData = getSyncConnectionParameters(connectionName);
 
     if (!syncConnectionData) {
