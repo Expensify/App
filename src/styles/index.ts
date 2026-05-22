@@ -324,6 +324,14 @@ const staticStyles = (theme: ThemeColors) =>
             fontStyle: FontUtils.fontFamily.platform.EXP_NEUE_ITALIC.fontStyle,
         },
 
+        numberedListItemMarker: {
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.fontSizeNormalHeight,
+            minWidth: 32,
+            textAlign: 'right',
+            paddingHorizontal: 8,
+        },
+
         autoCompleteSuggestionContainer: {
             flexDirection: 'row',
             alignItems: 'center',
@@ -995,6 +1003,13 @@ const staticStyles = (theme: ThemeColors) =>
             ...visibility.visible,
         },
 
+        // Visually invisible but kept in the accessibility tree — opacity:0 (not `visibility:hidden`) so screen-reader linear navigation can still reach it.
+        screenReaderOnlyAnchor: {
+            width: 1,
+            height: 1,
+            opacity: 0,
+        },
+
         loadingVBAAnimation: {
             width: 140,
             height: 140,
@@ -1130,6 +1145,57 @@ const staticStyles = (theme: ThemeColors) =>
             borderWidth: 1,
             borderRadius: variables.componentBorderRadius,
             borderColor: theme.bordersBold,
+        },
+
+        /**
+         * Matches the border and padding of editableCell so column headers stay
+         * visually aligned with their editable cells.
+         */
+        editableCellHeader: {
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadius,
+            borderColor: 'transparent',
+            paddingHorizontal: 4,
+        },
+
+        editableCell: {
+            width: '100%',
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadius,
+            borderColor: 'transparent',
+            padding: 4,
+            height: 'auto',
+            minHeight: variables.editableCellHeight,
+            overflow: 'hidden',
+            justifyContent: 'center',
+        },
+
+        editableCellHover: {
+            borderColor: theme.buttonHoveredBG,
+        },
+
+        editableCellFocus: {
+            borderColor: theme.borderFocus,
+            backgroundColor: theme.appBG,
+        },
+
+        /** Suppresses all visual styling on TextInput when rendered inside EditableCell */
+        editableCellInputStyle: {
+            padding: 0,
+            borderWidth: 0,
+            borderColor: 'transparent',
+            borderRadius: 0,
+            backgroundColor: 'transparent',
+            height: '100%',
+            minHeight: 0,
+            fontSize: variables.fontSizeNormal,
+        },
+
+        editableCellSymbolStyle: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
+            color: theme.textSupporting,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.fontSizeNormalHeight,
         },
 
         borderColorFocus: {
@@ -5930,6 +5996,13 @@ const staticStyles = (theme: ThemeColors) =>
             width: 174,
             height: 156,
         },
+        copilotsIllustration: {
+            width: 272,
+            height: 138,
+        },
+        copilotRoleBadge: {
+            marginLeft: 6,
+        },
         aboutStaticIllustration: {
             width: 100,
             height: 106,
@@ -6132,7 +6205,7 @@ const dynamicStyles = (theme: ThemeColors) =>
                 left: positionLeftValue,
                 right: positionRightValue,
                 opacity: progress.interpolate({
-                    inputRange: [0, 1],
+                    inputRange: [0, 0.5],
                     outputRange: [0, variables.overlayOpacity],
                     extrapolate: 'clamp',
                 }),

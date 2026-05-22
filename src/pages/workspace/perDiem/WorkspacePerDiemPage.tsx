@@ -1,7 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -277,10 +276,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
 
     const handleDeletePerDiemRates = () => {
         deleteWorkspacePerDiemRates(policyID, customUnit, selectedPerDiem);
-
-        InteractionManager.runAfterInteractions(() => {
-            setSelectedPerDiem([]);
-        });
+        setSelectedPerDiem([]);
     };
 
     const hasVisibleSubRates = subRatesList.some((subRate) => subRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
@@ -425,7 +421,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
             <View style={[styles.renderHTML, styles.ph5, styles.pb5, styles.pt3, styles.flexRow, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                 <RenderHTML html={translate('workspace.perDiem.subtitle')} />
             </View>
-            {subRatesList.length > CONST.SEARCH_ITEM_LIMIT && (
+            {subRatesList.length >= CONST.STANDARD_LIST_ITEM_LIMIT && (
                 <SearchBar
                     label={translate('workspace.perDiem.findPerDiemRate')}
                     inputValue={inputValue}

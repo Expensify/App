@@ -66,6 +66,8 @@ function TransactionItemRow({
     isInSingleTransactionReport = false,
     shouldShowRadioButton = false,
     onRadioButtonPress = () => {},
+    radioButtonContainerStyle,
+    radioButtonWrapperStyle,
     shouldShowErrors = true,
     shouldHighlightItemWhenSelected = true,
     isDisabled = false,
@@ -80,6 +82,18 @@ function TransactionItemRow({
     isAttendeesEnabledForMovingPolicy,
     isActionColumnWide: isActionColumnWideProp,
     shouldRemoveTotalColumnFlex,
+    onEditDate,
+    onEditMerchant,
+    onEditDescription,
+    onEditCategory,
+    onEditAmount,
+    onEditTag,
+    canEditDate,
+    canEditMerchant,
+    canEditDescription,
+    canEditCategory,
+    canEditAmount,
+    canEditTag,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -121,7 +135,7 @@ function TransactionItemRow({
         const categoryForDisplay = isCategoryMissing(transactionItem?.category) ? '' : getDecodedCategoryName(transactionItem?.category ?? '');
         const shouldRenderChatBubbleCell = columns?.includes(CONST.SEARCH.TABLE_COLUMNS.COMMENTS) ?? false;
 
-        // TransactionItemRowNarrow intentionally omits column sizing, hover, action button, and related table-only props that only the wide layout consumes
+        // TransactionItemRowNarrow intentionally omits column sizing, hover, action button, and related table-only props that only the wide layout consumes.
         const narrowForwardedProps = {
             transactionItem,
             report,
@@ -133,6 +147,8 @@ function TransactionItemRow({
             isInSingleTransactionReport,
             shouldShowRadioButton,
             onRadioButtonPress,
+            radioButtonContainerStyle,
+            radioButtonWrapperStyle,
             shouldShowErrors,
             isDisabled,
             violations,
@@ -179,6 +195,7 @@ function TransactionItemRow({
         isInSingleTransactionReport,
         shouldShowRadioButton,
         onRadioButtonPress,
+        radioButtonContainerStyle,
         shouldShowErrors,
         shouldHighlightItemWhenSelected,
         isDisabled,
@@ -192,6 +209,18 @@ function TransactionItemRow({
         nonPersonalAndWorkspaceCards,
         isActionColumnWide: isActionColumnWideProp,
         shouldRemoveTotalColumnFlex,
+        onEditDate,
+        onEditMerchant,
+        onEditDescription,
+        onEditCategory,
+        onEditAmount,
+        onEditTag,
+        canEditDate,
+        canEditMerchant,
+        canEditDescription,
+        canEditCategory,
+        canEditAmount,
+        canEditTag,
     };
 
     const description = getDescription(transactionItem);

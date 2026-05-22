@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
@@ -478,7 +477,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     }, [isQuickSettingsFlow, policyID, backTo]);
 
     const navigateToCreateTagPage = () => {
-        Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_TAG_CREATE.getRoute(policyID, backTo) : ROUTES.WORKSPACE_TAG_CREATE.getRoute(policyID));
+        Navigation.navigate(createDynamicRoute(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAG_CREATE.path : DYNAMIC_ROUTES.WORKSPACE_TAG_CREATE.path));
     };
 
     const navigateToTagSettings = (tag: TagListItem) => {
@@ -487,25 +486,19 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             return;
         }
         if (tag.orderWeight !== undefined) {
-            Navigation.navigate(
-                isQuickSettingsFlow
-                    ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_LIST_VIEW.getRoute(tag.orderWeight))
-                    : ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(policyID, tag.orderWeight),
-            );
+            Navigation.navigate(createDynamicRoute((isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAG_LIST_VIEW : DYNAMIC_ROUTES.WORKSPACE_TAG_LIST_VIEW).getRoute(tag.orderWeight)));
         } else {
-            Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_TAG_SETTINGS.getRoute(policyID, 0, tag.value, backTo) : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, 0, tag.value));
+            Navigation.navigate(createDynamicRoute((isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAG_SETTINGS : DYNAMIC_ROUTES.WORKSPACE_TAG_SETTINGS).getRoute(0, tag.value)));
         }
     };
 
     const deleteTags = () => {
         deletePolicyTags(policyData, selectedTags);
 
-        InteractionManager.runAfterInteractions(() => {
-            setSelectedTags([]);
-            if (isMobileSelectionModeEnabled && selectedTags.length === Object.keys(policyTagLists.at(0)?.tags ?? {}).length) {
-                turnOffMobileSelectionMode();
-            }
-        });
+        setSelectedTags([]);
+        if (isMobileSelectionModeEnabled && selectedTags.length === Object.keys(policyTagLists.at(0)?.tags ?? {}).length) {
+            turnOffMobileSelectionMode();
+        }
     };
 
     const isLoading = !isOffline && policyTags === undefined;
@@ -835,7 +828,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const headerContent = (
         <>
             <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : undefined]}>{getHeaderSubtitle()}</View>
-            {tagList.length > CONST.SEARCH_ITEM_LIMIT && (
+            {tagList.length >= CONST.STANDARD_LIST_ITEM_LIMIT && (
                 <SearchBar
                     label={translate('workspace.tags.findTag')}
                     inputValue={inputValue}
