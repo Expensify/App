@@ -621,6 +621,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
         reportFieldID?: string;
     };
+    [SCREENS.WORKSPACE.REPORT_FIELDS_INITIAL_LIST_VALUE]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.REPORT_FIELDS_ADD_VALUE]: {
         policyID: string;
         reportFieldID?: string;

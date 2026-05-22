@@ -779,6 +779,7 @@ const SCREENS = {
         REPORT_FIELDS_SETTINGS: 'Workspace_ReportFields_Settings',
         REPORT_FIELDS_CREATE: 'Workspace_ReportFields_Create',
         REPORT_FIELDS_LIST_VALUES: 'Workspace_ReportFields_ListValues',
+        REPORT_FIELDS_INITIAL_LIST_VALUE: 'Workspace_ReportFields_InitialListValue',
         REPORT_FIELDS_ADD_VALUE: 'Workspace_ReportFields_AddValue',
         REPORT_FIELDS_VALUE_SETTINGS: 'Workspace_ReportFields_ValueSettings',
         REPORT_FIELDS_EDIT_VALUE: 'Workspace_ReportFields_EditValue',

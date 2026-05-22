@@ -272,6 +272,7 @@ function WorkspaceCreateReportFieldsPage({
                                 <InputWrapper
                                     InputComponent={InitialListValueSelector}
                                     inputID={INPUT_IDS.INITIAL_VALUE}
+                                    policyID={policyID}
                                     label={translate('common.initialValue')}
                                     subtitle={translate('workspace.reportFields.listValuesInputSubtitle')}
                                 />
