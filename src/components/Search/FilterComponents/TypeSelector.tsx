@@ -58,7 +58,12 @@ function TypeSelector({value = CONST.SEARCH.DATA_TYPES.EXPENSE, selectionListSty
             items={types}
             selectionListStyle={selectionListStyle}
             footer={footer}
-            onChange={(item) => onChange(item.value)}
+            onChange={(item) => {
+                if (!item) {
+                    return;
+                }
+                onChange(item.value)
+            }}
         />
     );
 }

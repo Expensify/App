@@ -5,7 +5,6 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {SearchFilterSelectionListProps} from '@components/Search/types';
 import CardListItem from '@components/SelectionList/ListItem/CardListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
-import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import type {TextInputOptions} from '@components/SelectionList/types';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useDebouncedState from '@hooks/useDebouncedState';
