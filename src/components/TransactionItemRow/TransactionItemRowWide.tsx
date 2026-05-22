@@ -76,6 +76,7 @@ function TransactionItemRowWide({
     isInSingleTransactionReport = false,
     shouldShowRadioButton = false,
     onRadioButtonPress = () => {},
+    radioButtonContainerStyle,
     shouldShowErrors = true,
     isDisabled = false,
     violations,
@@ -415,6 +416,8 @@ function TransactionItemRowWide({
                             shouldUseNarrowLayout={false}
                             canEdit={canEditAmount}
                             onSave={onEditAmount}
+                            report={report}
+                            policy={policy}
                         />
                     </View>
                 );
@@ -590,7 +593,7 @@ function TransactionItemRowWide({
                     )}
                     {columns?.map(renderColumn)}
                     {shouldShowRadioButton && (
-                        <View style={[styles.ml1, styles.justifyContentCenter]}>
+                        <View style={[styles.ml1, styles.justifyContentCenter, radioButtonContainerStyle]}>
                             <RadioButton
                                 isChecked={isSelected}
                                 disabled={isDisabled}
@@ -602,7 +605,7 @@ function TransactionItemRowWide({
                     {onArrowRightPress ? (
                         <PressableWithFeedback
                             disabled={!!isDisabled}
-                            onPress={() => onArrowRightPress?.()}
+                            onPress={onArrowRightPress}
                             style={[styles.pv2, styles.justifyContentCenter, styles.alignItemsEnd]}
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={CONST.ROLE.BUTTON}
