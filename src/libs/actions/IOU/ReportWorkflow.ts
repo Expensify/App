@@ -338,21 +338,24 @@ function getIOUReportActionWithBadge(
             continue;
         }
         const iouReport = getReportOrDraftReport(action.childReportID);
+
+        if (!iouReport) {
+            // Fallback for p2p IOUs when the IOU report isn't loaded in Onyx yet (e.g. right after login).
+            // Use the REPORTPREVIEW action's child* fields to determine PAY badge without the full report.
+            if (chatReport?.hasOutstandingChildRequest && canPayIOUFromReportAction(action, chatReport, currentUserAccountID)) {
+                if (!earliestAction || isOlderReportAction(action, earliestAction)) {
+                    earliestAction = action;
+                    actionBadge = CONST.REPORT.ACTION_BADGE.PAY;
+                }
+            }
+            continue;
+        }
+
         const badge = getBadgeFromIOUReport(iouReport, chatReport, policy, reportMetadata, invoiceReceiverPolicy, currentUserLogin, currentUserAccountID);
         if (badge) {
             if (!earliestAction || isOlderReportAction(action, earliestAction)) {
                 earliestAction = action;
                 actionBadge = badge;
-            }
-            continue;
-        }
-
-        // Fallback for p2p IOUs when the IOU report isn't loaded in Onyx yet (e.g. right after login).
-        // Use the REPORTPREVIEW action's child* fields to determine PAY badge without the full report.
-        if (!iouReport && chatReport?.hasOutstandingChildRequest && canPayIOUFromReportAction(action, chatReport, currentUserAccountID)) {
-            if (!earliestAction || isOlderReportAction(action, earliestAction)) {
-                earliestAction = action;
-                actionBadge = CONST.REPORT.ACTION_BADGE.PAY;
             }
         }
     }
