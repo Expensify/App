@@ -319,16 +319,6 @@ function clearApprovalWorkflowApprovers() {
     Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {approvers: []});
 }
 
-/**
- * Replace the approvers array on the approval workflow currently being edited. Used by the inline
- * agent creation flow on Workspace > Workflows to swap the optimistic agent approver written by
- * `createAgent` for the real one once the CREATE_AGENT response lands, without disturbing the
- * rest of the admin's in-progress edits.
- */
-function setApprovalWorkflowApprovers(approvers: Array<Approver | undefined>) {
-    Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {approvers});
-}
-
 /** Set whether the user is in the initial creation flow */
 function setApprovalWorkflowIsInitialFlow(isInitialFlow: boolean) {
     Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {isInitialFlow});
@@ -390,7 +380,6 @@ export {
     removeApprovalWorkflow,
     setApprovalWorkflowMembers,
     setApprovalWorkflowApprover,
-    setApprovalWorkflowApprovers,
     setApprovalWorkflow,
     clearApprovalWorkflowApprover,
     clearApprovalWorkflowApprovers,

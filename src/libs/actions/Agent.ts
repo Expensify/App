@@ -32,24 +32,22 @@ function createAgent(
         avatarURI = optimisticAvatarURI;
     }
 
-    // Stable optimistic email used for both PERSONAL_DETAILS_LIST and policy.employeeList so the
-    // optimistic agent renders consistently as a workspace member while the API call is in flight.
-    // The real email is server-assigned and replaces this entry via the API response.
-    const optimisticAgentEmail = `optimistic-agent-${Math.abs(optimisticAccountID)}@expensify.com`;
+    // The agent's real email is server-assigned and only known once CREATE_AGENT responds, so the
+    // optimistic personal detail intentionally omits `login`. Consumers that key off email (e.g.
+    // `policy.employeeList`, the Workflows page's `ownedAgents` derivation) therefore won't pick
+    // up the placeholder — they wait for the real entry that ships in the API response payload.
+    const optimisticPersonalDetail = {
+        accountID: optimisticAccountID,
+        displayName: firstName,
+        isOptimisticPersonalDetail: true,
+        ...(avatarURI ? {avatar: avatarURI, avatarThumbnail: avatarURI} : {}),
+    };
 
     const optimisticData: AnyOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [optimisticAccountID]: {
-                    accountID: optimisticAccountID,
-                    displayName: firstName,
-                    login: optimisticAgentEmail,
-                    isOptimisticPersonalDetail: true,
-                    ...(avatarURI ? {avatar: avatarURI, avatarThumbnail: avatarURI} : {}),
-                },
-            },
+            value: {[optimisticAccountID]: optimisticPersonalDetail},
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -62,9 +60,7 @@ function createAgent(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [optimisticAccountID]: null,
-            },
+            value: {[optimisticAccountID]: null},
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -77,15 +73,7 @@ function createAgent(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [optimisticAccountID]: {
-                    accountID: optimisticAccountID,
-                    displayName: firstName,
-                    login: optimisticAgentEmail,
-                    isOptimisticPersonalDetail: true,
-                    ...(avatarURI ? {avatar: avatarURI, avatarThumbnail: avatarURI} : {}),
-                },
-            },
+            value: {[optimisticAccountID]: optimisticPersonalDetail},
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -97,44 +85,6 @@ function createAgent(
             },
         },
     ];
-
-    // When the agent is being created from the Workspace > Workflows Add agent flow, surface them as
-    // a workspace member optimistically so the admin can see the new agent immediately. The server
-    // response is expected to add the real employeeList entry under the agent's real email, so we
-    // also null the placeholder entry in successData to avoid leaving a stale optimistic member.
-    if (policyID) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                employeeList: {
-                    [optimisticAgentEmail]: {
-                        email: optimisticAgentEmail,
-                        role: CONST.POLICY.ROLE.USER,
-                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    },
-                },
-            },
-        });
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                employeeList: {
-                    [optimisticAgentEmail]: null,
-                },
-            },
-        });
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                employeeList: {
-                    [optimisticAgentEmail]: null,
-                },
-            },
-        });
-    }
 
     write(WRITE_COMMANDS.CREATE_AGENT, {firstName, prompt, customExpensifyAvatarID, file, policyID}, {optimisticData, successData, failureData});
 

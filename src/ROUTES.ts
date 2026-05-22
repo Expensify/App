@@ -2294,7 +2294,10 @@ const ROUTES = {
     },
     WORKSPACE_WORKFLOWS_APPROVALS_EDIT: {
         route: 'workspaces/:policyID/workflows/approvals/:firstApproverEmail/edit',
-        getRoute: (policyID: string, firstApproverEmail: string) => `workspaces/${policyID}/workflows/approvals/${encodeURIComponent(firstApproverEmail)}/edit` as const,
+        getRoute: (policyID: string, firstApproverEmail: string, seedApproverEmail?: string) =>
+            `workspaces/${policyID}/workflows/approvals/${encodeURIComponent(firstApproverEmail)}/edit${
+                seedApproverEmail ? `?seedApproverEmail=${encodeURIComponent(seedApproverEmail)}` : ''
+            }` as const,
     },
     WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM: {
         route: 'workspaces/:policyID/workflows/approvals/expenses-from',

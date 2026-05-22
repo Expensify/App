@@ -2737,6 +2737,13 @@ type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EDIT]: {
         policyID: string;
         firstApproverEmail: string;
+
+        /**
+         * Optional email of a person/agent to seed as approver[0] when the editor mounts. Used by
+         * the inline Add Agent flow on the Workflows page so the freshly-created agent can be
+         * dropped into the workflow without coordinating cross-page state.
+         */
+        seedApproverEmail?: string;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EXPENSES_FROM]: {
         policyID: string;

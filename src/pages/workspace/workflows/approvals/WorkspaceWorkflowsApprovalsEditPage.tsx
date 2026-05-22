@@ -16,7 +16,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {canEditWorkspaceSettings, goBackFromInvalidPolicy, isPendingDeletePolicy} from '@libs/PolicyUtils';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {canEditWorkspaceSettings, goBackFromInvalidPolicy, isControlPolicy, isPendingDeletePolicy} from '@libs/PolicyUtils';
 import {convertPolicyEmployeesToApprovalWorkflows, mergeWorkflowMembersWithAvailableMembers} from '@libs/WorkflowUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -29,7 +30,6 @@ import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ApprovalWorkflowEditor from './ApprovalWorkflowEditor';
-import {clearPendingAgentApprover, getPendingAgentApprover} from './pendingAgentApproverStore';
 
 type WorkspaceWorkflowsApprovalsEditPageProps = WithPolicyAndFullscreenLoadingProps &
     PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EDIT>;
@@ -118,25 +118,29 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             return clearApprovalWorkflow();
         }
 
-        // Honour a one-shot agent approver seed coming from the Workflows page Add agent action.
-        // The seed scopes to the current policy so a stale value from another workspace can't leak in.
-        // We also guard against duplicating the agent if the workflow already has them as an approver,
+        // Honour an optional approver seed coming from the Workflows page "Add agent" flow. The
+        // seed is a real email at this point — either an agent the admin already owns or one
+        // that just came back from CREATE_AGENT — so no optimistic placeholders to reconcile.
+        // We still guard against duplicating the approver if they're already in the workflow,
         // which can happen if the admin re-enters the flow after a previous save.
-        const pendingAgentApprover = getPendingAgentApprover();
+        const seedApproverEmail = route.params.seedApproverEmail;
+        const seedPersonalDetails = seedApproverEmail ? getPersonalDetailByEmail(seedApproverEmail) : undefined;
         let approvers: Approver[] = currentApprovalWorkflow.approvers;
-        if (pendingAgentApprover && pendingAgentApprover.policyID === route.params.policyID) {
-            const isAgentAlreadyInWorkflow = currentApprovalWorkflow.approvers.some((approver) => approver.email === pendingAgentApprover.email);
-            if (!isAgentAlreadyInWorkflow) {
-                const agentApprover: Approver = {
-                    email: pendingAgentApprover.email,
-                    displayName: pendingAgentApprover.displayName,
-                    avatar: pendingAgentApprover.avatar,
+        if (seedApproverEmail && seedPersonalDetails) {
+            const isApproverAlreadyInWorkflow = currentApprovalWorkflow.approvers.some((approver) => approver.email === seedApproverEmail);
+            if (!isApproverAlreadyInWorkflow) {
+                const seededApprover: Approver = {
+                    email: seedApproverEmail,
+                    displayName: seedPersonalDetails.displayName ?? seedApproverEmail,
+                    avatar: seedPersonalDetails.avatar,
                     approvalLimit: null,
                     overLimitForwardsTo: '',
                 };
-                approvers = pendingAgentApprover.isAdvancedApproval ? [agentApprover, ...currentApprovalWorkflow.approvers] : [agentApprover, ...currentApprovalWorkflow.approvers.slice(1)];
+                // Control workspaces support multi-step approval, so we prepend the seed and keep
+                // the original chain. Collect workspaces only allow a single approver, so the seed
+                // replaces the existing one — matching the issue's behavioural spec.
+                approvers = isControlPolicy(policy) ? [seededApprover, ...currentApprovalWorkflow.approvers] : [seededApprover, ...currentApprovalWorkflow.approvers.slice(1)];
             }
-            clearPendingAgentApprover();
         }
 
         setApprovalWorkflow({
@@ -152,7 +156,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         // This runs alongside setApprovalWorkflow above and is part of the same logical update.
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setInitialApprovalWorkflow(currentApprovalWorkflow);
-    }, [currentApprovalWorkflow, defaultWorkflowMembers, initialApprovalWorkflow, usedApproverEmails, route.params.policyID]);
+    }, [currentApprovalWorkflow, defaultWorkflowMembers, initialApprovalWorkflow, usedApproverEmails, policy, route.params.policyID, route.params.seedApproverEmail]);
 
     const submitButtonContainerStyles = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, style: [styles.mb5, styles.mh5]});
 

@@ -45,7 +45,7 @@ import {
     setWorkspaceReimbursement,
 } from '@libs/actions/Policy/Policy';
 import {dismissProductTraining} from '@libs/actions/Welcome';
-import {setApprovalWorkflow, setApprovalWorkflowApprovers} from '@libs/actions/Workflow';
+import {setApprovalWorkflow} from '@libs/actions/Workflow';
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import {getAllCardsForWorkspace, isSmartLimitEnabled as isSmartLimitEnabledUtil} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -88,14 +88,6 @@ import type SCREENS from '@src/SCREENS';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type DismissedProductTraining from '@src/types/onyx/DismissedProductTraining';
 import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
-import {
-    clearPendingAgentApproverSwap,
-    clearPendingPostCreateSeed,
-    getPendingAgentApproverSwap,
-    getPendingPostCreateSeed,
-    setPendingAgentApprover,
-    setPendingAgentApproverSwap,
-} from './approvals/pendingAgentApproverStore';
 import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
 import {getAutoReportingFrequencyDisplayNames} from './WorkspaceAutoReportingFrequencyPage';
@@ -300,21 +292,11 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         (workflow: ApprovalWorkflow) => {
             const workflowApproverEmail = workflow.approvers.at(0)?.email ?? '';
 
-            if (ownedAgents.length === 0) {
-                Navigation.navigate(
-                    ROUTES.WORKSPACE_WORKFLOWS_ADD_AGENT.getRoute({
-                        policyID: route.params.policyID,
-                        workflowApproverEmail,
-                    }),
-                );
-                return;
-            }
-
             // Prefer the first owned agent that isn't already an approver on this workflow.
             // If every owned agent is already in the workflow there's nothing to seed, so we
             // route the admin to create a new agent instead of duplicating an existing one.
-            const agent = ownedAgents.find((candidate) => !workflow.approvers.some((approver) => approver.email === candidate.email));
-            if (!agent) {
+            const agentToSeed = ownedAgents.find((candidate) => !workflow.approvers.some((approver) => approver.email === candidate.email));
+            if (!agentToSeed) {
                 Navigation.navigate(
                     ROUTES.WORKSPACE_WORKFLOWS_ADD_AGENT.getRoute({
                         policyID: route.params.policyID,
@@ -324,11 +306,14 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 return;
             }
 
-            const isAlreadyMember = !!policy?.employeeList?.[agent.email];
+            // Ensure the agent is a workspace member before they show up as an approver. The
+            // server makes this idempotent so it's safe to call even if the agent was added via
+            // the API's `policyID` parameter when CREATE_AGENT was first called.
+            const isAlreadyMember = !!policy?.employeeList?.[agentToSeed.email];
             if (!isAlreadyMember && policy) {
                 const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy.employeeList, false, false));
                 addMembersToWorkspace(
-                    {[agent.email]: agent.accountID},
+                    {[agentToSeed.email]: agentToSeed.accountID},
                     '',
                     policy,
                     policyMemberAccountIDs,
@@ -338,102 +323,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 );
             }
 
-            setPendingAgentApprover({
-                email: agent.email,
-                displayName: agent.displayName,
-                avatar: agent.avatar,
-                policyID: route.params.policyID,
-                isAdvancedApproval: isControlPolicy(policy),
-            });
-
-            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, workflowApproverEmail));
+            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, workflowApproverEmail, agentToSeed.email));
         },
         [ownedAgents, policy, route.params.policyID, formatPhoneNumber, currentUserAccountID],
     );
-
-    const [approvalWorkflowOnyx] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
-
-    // When the user just created an agent from a workflow card, AddAgentPage records a
-    // pending post-create seed before returning here. Once the optimistic Onyx data lands
-    // we navigate to the Edit Approval Workflow page with the optimistic agent seeded as
-    // approver[0] for immediate feedback. The real (positive-accountID) agent is then
-    // swapped in via the second effect below once the CREATE_AGENT response arrives.
-    useEffect(() => {
-        const pending = getPendingPostCreateSeed();
-        if (!pending || pending.policyID !== route.params.policyID) {
-            return;
-        }
-
-        const knownSet = new Set(pending.knownAccountIDs);
-        const newAgent = ownedAgents.find((candidate) => !knownSet.has(candidate.accountID));
-        if (!newAgent) {
-            return;
-        }
-
-        clearPendingPostCreateSeed();
-
-        setPendingAgentApprover({
-            email: newAgent.email,
-            displayName: newAgent.displayName,
-            avatar: newAgent.avatar,
-            policyID: route.params.policyID,
-            isAdvancedApproval: isControlPolicy(policy),
-        });
-
-        // Optimistic accountIDs from `createAgent` are negative; remember the optimistic email and
-        // the snapshot of pre-existing agents so the swap effect can identify the real agent once
-        // the API response lands and rewrite approvalWorkflow.approvers in place.
-        if (newAgent.accountID < 0) {
-            setPendingAgentApproverSwap({
-                optimisticEmail: newAgent.email,
-                optimisticAccountID: newAgent.accountID,
-                knownAccountIDs: pending.knownAccountIDs,
-                policyID: route.params.policyID,
-            });
-        }
-
-        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, pending.workflowApproverEmail));
-    }, [ownedAgents, policy, route.params.policyID]);
-
-    // Once CREATE_AGENT responds the optimistic personal detail / employeeList entries are nulled,
-    // so the optimistic approver email seeded into `approvalWorkflow.approvers` is no longer valid.
-    // Locate the real agent (a positive accountID that wasn't in the pre-submit snapshot) and swap
-    // it into approver position in place, preserving the rest of the local edits the admin made.
-    useEffect(() => {
-        const swap = getPendingAgentApproverSwap();
-        if (!swap || swap.policyID !== route.params.policyID) {
-            return;
-        }
-
-        const knownSet = new Set(swap.knownAccountIDs);
-        const realAgent = ownedAgents.find((candidate) => candidate.accountID > 0 && !knownSet.has(candidate.accountID));
-        if (!realAgent) {
-            return;
-        }
-
-        const approvers = approvalWorkflowOnyx?.approvers;
-        const approverIndex = approvers?.findIndex((approver) => approver?.email === swap.optimisticEmail) ?? -1;
-        const existingApprover = approvers?.at(approverIndex);
-        if (!approvers || approverIndex < 0 || !existingApprover) {
-            // Either the user navigated away from the editor before the response landed or the
-            // approver was already swapped/replaced manually. Either way there's nothing to do.
-            clearPendingAgentApproverSwap();
-            return;
-        }
-
-        const swappedApprover: Approver = {
-            ...existingApprover,
-            email: realAgent.email,
-            displayName: realAgent.displayName,
-            avatar: realAgent.avatar,
-        };
-
-        const nextApprovers = [...approvers];
-        nextApprovers.splice(approverIndex, 1, swappedApprover);
-
-        clearPendingAgentApproverSwap();
-        setApprovalWorkflowApprovers(nextApprovers);
-    }, [ownedAgents, approvalWorkflowOnyx?.approvers, route.params.policyID]);
 
     const filteredApprovalWorkflows =
         policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED || policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL
