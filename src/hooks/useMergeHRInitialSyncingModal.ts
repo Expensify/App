@@ -26,14 +26,13 @@ function useMergeHRInitialSyncingModal(policyID: string, isFocused: boolean) {
         if (hasShownModal) {
             return;
         }
-        setMergeHRInitialSyncModalShown(policyID);
         showConfirmModal({
             id: `merge-hr-syncing-${policyID}`,
             title: translate('workspace.hr.syncingModalTitle'),
             prompt: translate('workspace.hr.syncingModalDescription'),
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
-        });
+        }).then(() => setMergeHRInitialSyncModalShown(policyID));
     });
 
     const mergeLastSync = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]?.lastSync;
@@ -44,7 +43,7 @@ function useMergeHRInitialSyncingModal(policyID: string, isFocused: boolean) {
             return;
         }
 
-        const handle = TransitionTracker.runAfterTransitions({callback: showSyncingModal, waitForUpcomingTransition: true});
+        const handle = TransitionTracker.runAfterTransitions({callback: showSyncingModal});
         return () => handle.cancel();
     }, [mergeLastSync?.syncStatus, mergeLastSync?.syncType, isFocused, isAppVisible]);
 }
