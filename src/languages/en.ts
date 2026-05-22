@@ -1332,7 +1332,7 @@ const translations = {
         receiptStatusText: "Only you can see this receipt when it's scanning. Check back later or enter the details now.",
         receiptScanningFailed: 'Receipt scanning failed. Please enter the details manually.',
         transactionPendingDescription: 'Transaction pending. It may take a few days to post.',
-        allTransactionsPendingNextStep: "All transactions are pending. You can't submit this report until they post. This may take a few days.",
+        allTransactionsPendingNextStep: "All transactions are pending. You can't submit this report until they post in a few days.",
         companyInfo: 'Company info',
         companyInfoDescription: 'We need a few more details before you can send your first invoice.',
         yourCompanyName: 'Your company name',
