@@ -4290,11 +4290,10 @@ describe('getConnectionBankAccountsForReconciliation', () => {
 });
 
 /**
- * Drift-detection: verifies that src/libs/CardArtworkColors.ts still matches
- * what the SVG artwork files actually contain. If a card SVG is updated without
- * regenerating CardArtworkColors.ts, this test will fail with a clear message.
- *
- * To fix a failure, run: npx ts-node scripts/generateCardColors.ts
+ * Drift-detection: verifies that the background colors in src/libs/CardArtworkColors.ts
+ * still match what the SVG artwork files actually contain. If a card SVG is updated without
+ * updating CardArtworkColors.ts, this test will fail with a clear message pointing to the
+ * affected entry.
  */
 describe('CardArtworkColors drift detection', () => {
     const ROOT = path.resolve(__dirname, '../..');
@@ -4362,19 +4361,19 @@ describe('CardArtworkColors drift detection', () => {
 
     const GENERIC_SVG_PATH = 'assets/images/companyCards/large/generic-light-large.svg';
 
-    it('GENERIC_CARD_BACKGROUND_COLOR matches generic-light-large.svg', () => {
-        const {GENERIC_CARD_BACKGROUND_COLOR} = jest.requireActual<typeof CardArtworkColorsModule>('@src/libs/CardArtworkColors');
+    it('GENERIC_CARD_COLORS.background matches generic-light-large.svg', () => {
+        const {GENERIC_CARD_COLORS} = jest.requireActual<typeof CardArtworkColorsModule>('@src/libs/CardArtworkColors');
         const svg = fs.readFileSync(path.join(ROOT, GENERIC_SVG_PATH), 'utf-8');
         const actual = extractBackgroundFill(svg);
         expect(actual).not.toBeNull();
-        expect(GENERIC_CARD_BACKGROUND_COLOR).toBe(actual);
+        expect(GENERIC_CARD_COLORS.background).toBe(actual);
     });
 
-    it.each(FEED_ARTWORK.flatMap(({keys, svgPath}) => keys.map((key) => ({key, svgPath}))))('CARD_FEED_BACKGROUND_COLORS[$key] matches $svgPath', ({key, svgPath}) => {
-        const {CARD_FEED_BACKGROUND_COLORS} = jest.requireActual<typeof CardArtworkColorsModule>('@src/libs/CardArtworkColors');
+    it.each(FEED_ARTWORK.flatMap(({keys, svgPath}) => keys.map((key) => ({key, svgPath}))))('CARD_FEED_COLORS[$key].background matches $svgPath', ({key, svgPath}) => {
+        const {CARD_FEED_COLORS} = jest.requireActual<typeof CardArtworkColorsModule>('@src/libs/CardArtworkColors');
         const svg = fs.readFileSync(path.join(ROOT, svgPath), 'utf-8');
         const actual = extractBackgroundFill(svg);
         expect(actual).not.toBeNull();
-        expect(CARD_FEED_BACKGROUND_COLORS[key]).toBe(actual);
+        expect(CARD_FEED_COLORS[key].background).toBe(actual);
     });
 });

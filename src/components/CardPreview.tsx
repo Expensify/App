@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCardFeedBackgroundColor, getCardHolderTextColor} from '@libs/CardUtils';
+import {getCardFeedTextColor} from '@libs/CardUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -50,7 +50,7 @@ function CardPreview({overlayImage, overlayContainerStyle}: CardPreviewProps) {
                     width={variables.cardPreviewWidth}
                 />
                 <Text
-                    style={[styles.walletCardHolder, {color: getCardHolderTextColor(getCardFeedBackgroundColor(CONST.EXPENSIFY_CARD.BANK))}]}
+                    style={[styles.walletCardHolder, {color: getCardFeedTextColor(CONST.EXPENSIFY_CARD.BANK)}]}
                     numberOfLines={1}
                     ellipsizeMode="tail"
                 >

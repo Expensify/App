@@ -6,7 +6,6 @@ import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {CombinedCardFeed, CombinedCardFeeds} from '@hooks/useCardFeeds';
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
-import colors from '@styles/theme/colors';
 import type IllustrationsType from '@styles/theme/illustrations/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -47,37 +46,32 @@ import type {Connections} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
-import {CARD_FEED_BACKGROUND_COLORS, GENERIC_CARD_BACKGROUND_COLOR} from './CardArtworkColors';
-import {getContrastCrossover, getRelativeLuminance} from './ColorUtils';
+import {CARD_FEED_COLORS, GENERIC_CARD_COLORS} from './CardArtworkColors';
 import DateUtils from './DateUtils';
 import {filterObject} from './ObjectUtils';
 import {arePersonalDetailsMissing, getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import StringUtils from './StringUtils';
 
-/** Luminance crossover at which colors.productLight900 and white produce equal WCAG contrast. */
-const CARD_TEXT_LUMINANCE_CROSSOVER = getContrastCrossover(colors.productLight900, colors.white);
-
 /**
- * Returns a design-system text color (white or near-black) that meets WCAG 2.1 AA contrast
- * against the given card background hex color.
- * These colors are intentionally theme-independent: card artwork never changes with the app theme,
- * so overlay text must be anchored to the artwork's actual background, not to theme.textLight/textDark
- * which can flip in high-contrast mode.
- */
-function getCardHolderTextColor(cardBackgroundHex: string): string {
-    return getRelativeLuminance(cardBackgroundHex) > CARD_TEXT_LUMINANCE_CROSSOVER ? colors.productLight900 : colors.white;
-}
-
-/**
- * Returns the background hex color for the card image shown for a given feed.
+ * Returns the artwork colors (background fill + WCAG-compliant overlay text) for a given feed.
  * Uses prefix-matching to handle feed names that include a suffix (e.g. "vcf123").
  */
-function getCardFeedBackgroundColor(cardFeed: string | undefined): string {
+function getCardFeedColors(cardFeed: string | undefined): {background: string; text: string} {
     if (!cardFeed) {
-        return GENERIC_CARD_BACKGROUND_COLOR;
+        return GENERIC_CARD_COLORS;
     }
-    const feedKey = Object.keys(CARD_FEED_BACKGROUND_COLORS).find((key) => cardFeed.startsWith(key));
-    return feedKey !== undefined ? CARD_FEED_BACKGROUND_COLORS[feedKey] : GENERIC_CARD_BACKGROUND_COLOR;
+    const feedKey = Object.keys(CARD_FEED_COLORS).find((key) => cardFeed.startsWith(key));
+    return feedKey !== undefined ? CARD_FEED_COLORS[feedKey] : GENERIC_CARD_COLORS;
+}
+
+/** Returns the background hex color for the card image shown for a given feed. */
+function getCardFeedBackgroundColor(cardFeed: string | undefined): string {
+    return getCardFeedColors(cardFeed).background;
+}
+
+/** Returns the WCAG-compliant overlay text color for a given feed's card artwork. */
+function getCardFeedTextColor(cardFeed: string | undefined): string {
+    return getCardFeedColors(cardFeed).text;
 }
 
 const COMPANY_CARD_FEED_ICON_NAMES = [
@@ -1838,7 +1832,8 @@ function resolveTransactionCardFields<T extends Transaction>(transactions: T[], 
 export {
     getAssignedCardSortKey,
     getCardFeedBackgroundColor,
-    getCardHolderTextColor,
+    getCardFeedColors,
+    getCardFeedTextColor,
     getDefaultExpensifyCardLimitType,
     isExpensifyCard,
     supportsPINManagementFeatures,

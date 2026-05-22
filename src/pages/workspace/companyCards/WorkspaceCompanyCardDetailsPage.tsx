@@ -26,9 +26,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isUsingStagingApi} from '@libs/ApiUtils';
 import navigateToCardTransactions from '@libs/CardNavigationUtils';
 import {
-    getCardFeedBackgroundColor,
     getCardFeedIcon,
-    getCardHolderTextColor,
+    getCardFeedTextColor,
     getCompanyCardFeed,
     getCompanyFeeds,
     getDefaultCardName,
@@ -168,7 +167,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             />
                         )}
                         <Text
-                            style={[styles.walletCardHolder, {color: getCardHolderTextColor(getCardFeedBackgroundColor(feedName))}]}
+                            style={[styles.walletCardHolder, {color: getCardFeedTextColor(feedName)}]}
                             numberOfLines={1}
                             ellipsizeMode="tail"
                         >
