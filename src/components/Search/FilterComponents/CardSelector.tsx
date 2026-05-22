@@ -72,7 +72,7 @@ function CardSelector({value = [], selectionListTextInputStyle, selectionListSty
         !!item.lastFourPAN?.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase()) ||
         !!item.cardName?.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase()) ||
         (item.isVirtual && translate('workspace.expensifyCard.virtual').toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase()));
-    
+
     const selectedData = [...individualCardsSectionData, ...closedCardsSectionData].filter((item) => item.isSelected && searchFunction(item));
     const unselectedIndividualCardsData = individualCardsSectionData.filter((item) => !item.isSelected && searchFunction(item));
     const unselectedClosedCardsData = closedCardsSectionData.filter((item) => !item.isSelected && searchFunction(item));
