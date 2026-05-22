@@ -2,6 +2,7 @@ import {defaultExpensifyCardSelector} from '@selectors/Card';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import isTrackOnboardingChoice from '@libs/OnboardingUtils';
 import {createTypeMenuSections, doesSearchItemMatchSort} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -42,8 +43,7 @@ const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
     accountID: session?.accountID,
 });
 
-const isTrackIntentUserSelector = (introSelected: OnyxEntry<IntroSelected>) =>
-    introSelected?.choice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND || introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE;
+const isTrackIntentUserSelector = (introSelected: OnyxEntry<IntroSelected>) => isTrackOnboardingChoice(introSelected?.choice);
 
 type UseSearchTypeMenuSectionsParams = {
     hash?: number;
@@ -168,9 +168,12 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
         return -1;
     }, [typeMenuSections, savedSearches, hash, similarSearchHash, sortBy, sortOrder, type]);
 
+    const activeKey = activeItemIndex < 0 ? undefined : typeMenuSections.flatMap((section) => section.menuItems).at(activeItemIndex)?.key;
+
     return {
         typeMenuSections,
         activeItemIndex,
+        activeKey,
     };
 };
 

@@ -20,13 +20,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions as ReportActionsType} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
-import OptionRowLHN from './OptionRowLHNCore';
+import OptionRowLHN from './OptionRowLHN';
 
 /*
  * This component gets the data from onyx for the actual
  * OptionRowLHN component.
- * The OptionRowLHN component is memoized, so it will only
- * re-render if the data really changed.
+ * OptionRowLHN is auto-memoized by React Compiler, so it will
+ * only re-render when the inputs derived from this wrapper change.
  */
 function OptionRowLHNData({
     isOptionFocused = false,
@@ -38,10 +38,10 @@ function OptionRowLHNData({
     policy,
     invoiceReceiverPolicy,
     viewMode = 'default',
+    reportID,
     ...propsToForward
 }: OptionRowLHNDataProps) {
     const styles = useThemeStyles();
-    const reportID = propsToForward.reportID;
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const isReportFocused = isOptionFocused && currentReportIDValue === reportID;
     const {translate, localeCompare} = useLocalize();
@@ -192,12 +192,10 @@ function OptionRowLHNData({
 
     return (
         <OptionRowLHN
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...propsToForward}
             viewMode={viewMode}
             isOptionFocused={isReportFocused}
             optionItem={finalOptionItem}
-            report={fullReport}
             hasDraftComment={hasDraftComment}
         />
     );

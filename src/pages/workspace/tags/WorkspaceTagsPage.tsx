@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
@@ -502,12 +501,10 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const deleteTags = () => {
         deletePolicyTags(policyData, selectedTags);
 
-        InteractionManager.runAfterInteractions(() => {
-            setSelectedTags([]);
-            if (isMobileSelectionModeEnabled && selectedTags.length === Object.keys(policyTagLists.at(0)?.tags ?? {}).length) {
-                turnOffMobileSelectionMode();
-            }
-        });
+        setSelectedTags([]);
+        if (isMobileSelectionModeEnabled && selectedTags.length === Object.keys(policyTagLists.at(0)?.tags ?? {}).length) {
+            turnOffMobileSelectionMode();
+        }
     };
 
     const isLoading = !isOffline && policyTags === undefined;
@@ -837,7 +834,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const headerContent = (
         <>
             <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : undefined]}>{getHeaderSubtitle()}</View>
-            {tagList.length > CONST.SEARCH_ITEM_LIMIT && (
+            {tagList.length >= CONST.STANDARD_LIST_ITEM_LIMIT && (
                 <SearchBar
                     label={translate('workspace.tags.findTag')}
                     inputValue={inputValue}
@@ -913,6 +910,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             selectedItems={selectedTags}
                             onSelectRow={navigateToTagSettings}
                             canSelectMultiple={canSelectMultiple}
+                            selectAllAccessibilityLabel={translate('accessibilityHints.selectAllTags')}
                             onSelectAll={filteredTagList.length > 0 ? toggleAllTags : undefined}
                             customListHeader={filteredTagList.length > 0 ? getCustomListHeader() : undefined}
                             onDismissError={(item) => !hasDependentTags && clearPolicyTagErrors({policyID, tagName: item.value, tagListIndex: 0, policyTags})}
@@ -932,7 +930,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     {!hasVisibleTags && !isLoading && (
                         <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                             <GenericEmptyStateComponent
-                                // eslint-disable-next-line react/jsx-props-no-spreading
                                 {...genericIllustration}
                                 title={translate('workspace.tags.emptyTags.title')}
                                 subtitleText={subtitleText}

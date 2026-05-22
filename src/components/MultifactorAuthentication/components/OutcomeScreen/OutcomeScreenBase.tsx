@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -25,6 +25,7 @@ type OutcomeScreenBaseProps = {
     subtitle?: string;
     customSubtitle?: React.ReactElement;
     padding?: ViewStyle;
+    titleStyle?: StyleProp<TextStyle>;
 };
 
 function HTMLSubtitle({htmlString = '', style}: {htmlString?: string; style?: ViewStyle}) {
@@ -45,7 +46,7 @@ function HTMLSubtitle({htmlString = '', style}: {htmlString?: string; style?: Vi
     );
 }
 
-function OutcomeScreenBase({headerTitle, illustration, iconWidth, iconHeight, title, subtitle, customSubtitle, padding}: OutcomeScreenBaseProps) {
+function OutcomeScreenBase({headerTitle, illustration, iconWidth, iconHeight, title, subtitle, customSubtitle, padding, titleStyle}: OutcomeScreenBaseProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {asset: icon} = useMemoizedLazyAsset(() => loadIllustration(illustration));
@@ -76,7 +77,7 @@ function OutcomeScreenBase({headerTitle, illustration, iconWidth, iconHeight, ti
                         iconWidth={iconWidth}
                         iconHeight={iconHeight}
                         title={title}
-                        titleStyles={styles.mb2}
+                        titleStyles={[styles.mb2, titleStyle]}
                         CustomSubtitle={CustomSubtitle}
                         containerStyle={[styles.ph5, padding]}
                         testID={OutcomeScreenBase.displayName}
@@ -99,4 +100,3 @@ function OutcomeScreenBase({headerTitle, illustration, iconWidth, iconHeight, ti
 OutcomeScreenBase.displayName = 'OutcomeScreenBase';
 
 export default OutcomeScreenBase;
-export type {OutcomeScreenBaseProps};

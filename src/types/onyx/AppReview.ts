@@ -20,4 +20,4 @@ type AppReview = {
 };
 
 export default AppReview;
-export type {AppReviewTrigger, AppReviewResponse};
+export type {AppReviewResponse};

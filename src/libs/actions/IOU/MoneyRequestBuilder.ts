@@ -27,6 +27,7 @@ import {
     generateReportID,
     getChatByParticipants,
     getOutstandingChildRequest,
+    getReportTransactions,
     hasViolations as hasViolationsReportUtils,
     isDeprecatedGroupDM,
     isExpenseReport,
@@ -45,6 +46,7 @@ import {
     buildOptimisticTransaction,
     getAmount,
     getCurrency,
+    hasSubmissionBlockingViolationInReport,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
@@ -65,8 +67,9 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getAllPersonalDetails, getAllReportActionsFromIOU, getAllReportNameValuePairs, getAllReports, getCurrentUserPersonalDetails, getUserAccountID} from './index';
-import type {ReplaceReceipt, StartSplitBilActionParams} from './index';
+import type {ReplaceReceipt} from './Receipt';
 import {getSearchOnyxUpdate} from './SearchUpdate';
+import type {StartSplitBilActionParams} from './Split';
 import type BasePolicyParams from './types/BasePolicyParams';
 import type BaseTransactionParams from './types/BaseTransactionParams';
 import type {CreateTrackExpenseParams} from './types/CreateTrackExpenseParams';
@@ -172,6 +175,7 @@ type RequestMoneyInformation = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     shouldDeferAutoSubmit?: boolean;
+    shouldDeferForSearch?: boolean;
 };
 
 type MoneyRequestInformationParams = {
@@ -246,6 +250,7 @@ type BuildOnyxDataForMoneyRequestParams = {
     isASAPSubmitBetaEnabled: boolean;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
+    transactionViolations?: OnyxCollection<OnyxTypes.TransactionViolations>;
     hasViolations: boolean;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
@@ -401,6 +406,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         isASAPSubmitBetaEnabled,
         currentUserAccountIDParam,
         currentUserEmailParam,
+        transactionViolations = {},
         hasViolations,
         quickAction,
         personalDetails,
@@ -782,10 +788,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             value: {
                 pendingAction: null,
                 pendingFields: clearedPendingFields,
-                // The routes contains the distance in meters. Clearing the routes ensures we use the distance
-                // in the correct unit stored under the transaction customUnit once the request is created.
-                // The route is also not saved in the backend, so we can't rely on it.
-                routes: null,
+                // Keep `routes`: the BE never returns it, so it's the only source `ConfirmedRoute`/the preview can draw the map from (GH #90057).
             },
         },
 
@@ -1004,7 +1007,13 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     );
 
     if (violationsOnyxData) {
-        const shouldFixViolations = Array.isArray(violationsOnyxData.value) && violationsOnyxData.value.length > 0;
+        const reportTransactions = [...getReportTransactions(iou.report.reportID).filter((reportTransaction) => reportTransaction.transactionID !== transaction.transactionID), transaction];
+        const shouldFixViolations = hasSubmissionBlockingViolationInReport(
+            reportTransactions,
+            transactionViolations,
+            transaction.transactionID,
+            Array.isArray(violationsOnyxData.value) ? violationsOnyxData.value : null,
+        );
         const optimisticNextStep = buildOptimisticNextStep({
             report: iou.report,
             predictedNextStatus: iou.report.statusNum ?? CONST.REPORT.STATE_NUM.OPEN,
@@ -1489,6 +1498,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         isASAPSubmitBetaEnabled,
         currentUserAccountIDParam,
         currentUserEmailParam,
+        transactionViolations,
         hasViolations,
         quickAction,
         personalDetails,
@@ -1615,16 +1625,13 @@ function mergePolicyRecentlyUsedCurrencies(currency: string | undefined, policyR
 export {
     buildMinimalTransactionForFormula,
     buildOnyxDataForMoneyRequest,
-    buildOnyxDataForTestDriveIOU,
     calculateDiffAmount,
     getMoneyRequestInformation,
     getReceiptError,
     getReportPreviewAction,
     getTransactionWithPreservedLocalReceiptSource,
     getUpdatedMoneyRequestReportData,
-    maybeUpdateReportNameForFormulaTitle,
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
-    recalculateOptimisticReportName,
 };
 export type {BuildOnyxDataForMoneyRequestKeys, MoneyRequestInformation, MoneyRequestInformationParams, OneOnOneIOUReport, RequestMoneyInformation};

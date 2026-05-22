@@ -2,7 +2,15 @@
 import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {convertBulkTrackedExpensesToIOU, deleteTrackExpense, getDeleteTrackExpenseInformation, getTrackExpenseInformation, requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
+import {
+    convertBulkTrackedExpensesToIOU,
+    deleteTrackExpense,
+    getDeleteTrackExpenseInformation,
+    getTrackExpenseInformation,
+    hasManualDistanceOverride,
+    requestMoney,
+    trackExpense,
+} from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {addComment, openReport} from '@libs/actions/Report';
 import {subscribeToUserEvents} from '@libs/actions/User';
@@ -207,8 +215,7 @@ describe('actions/IOU/TrackExpense', () => {
                     customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
                 },
                 isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                currentUserEmailParam: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
@@ -313,8 +320,7 @@ describe('actions/IOU/TrackExpense', () => {
                     customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
                 },
                 isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                currentUserEmailParam: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
@@ -401,8 +407,7 @@ describe('actions/IOU/TrackExpense', () => {
                     billable: false,
                 },
                 isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                currentUserEmailParam: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
@@ -456,8 +461,7 @@ describe('actions/IOU/TrackExpense', () => {
                     accountant,
                 },
                 isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                currentUserEmailParam: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
@@ -539,8 +543,7 @@ describe('actions/IOU/TrackExpense', () => {
                     billable: false,
                 },
                 isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                currentUserEmailParam: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
@@ -594,8 +597,7 @@ describe('actions/IOU/TrackExpense', () => {
                     accountant,
                 },
                 isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                currentUserEmailParam: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
@@ -680,8 +682,7 @@ describe('actions/IOU/TrackExpense', () => {
                     billable: false,
                 },
                 isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                currentUserEmailParam: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
@@ -733,8 +734,7 @@ describe('actions/IOU/TrackExpense', () => {
                     accountant,
                 },
                 isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                currentUserEmailParam: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 introSelected: undefined,
 
                 quickAction: undefined,
@@ -817,8 +817,7 @@ describe('actions/IOU/TrackExpense', () => {
                     billable: false,
                 },
                 isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                currentUserEmailParam: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 introSelected: undefined,
 
                 quickAction: undefined,
@@ -871,8 +870,7 @@ describe('actions/IOU/TrackExpense', () => {
                     accountant,
                 },
                 isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                currentUserEmailParam: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 introSelected: undefined,
 
                 quickAction: undefined,
@@ -902,6 +900,171 @@ describe('actions/IOU/TrackExpense', () => {
             expect(announceChat?.writeCapability).toBe(CONST.REPORT.WRITE_CAPABILITIES.ADMINS);
         });
 
+        it('share with accountant not archived existing expense report via the explicit reportActionsList param (not the deprecated onyx fallback)', async () => {
+            // Given a policy without the accountant + an existing (orphaned) archived expense chat for the accountant + an archived nested expense report.
+            // The REPORT_PREVIEW action that links the chat to the expense report is supplied via the explicit reportActionsList,
+            // not seeded into ONYXKEYS.COLLECTION.REPORT_ACTIONS. Proves the explicit param wins over the deprecatedAllReportActions Onyx fallback.
+            const accountant: Required<Accountant> = {login: VIT_EMAIL, accountID: VIT_ACCOUNT_ID};
+            const policy: Policy = {...createRandomPolicy(1), id: 'ABC', employeeList: {}};
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: '10',
+            };
+            const ownPolicyExpenseChat: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: '123',
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.CHAT,
+                isOwnPolicyExpenseChat: true,
+            };
+            // Orphaned policy expense chat for the accountant: the accountant was removed from the workspace but the chat still exists.
+            const accountantExpenseChatID = '777';
+            const accountantExpenseChat: Report = {
+                ...createRandomReport(2, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: accountantExpenseChatID,
+                policyID: policy.id,
+                ownerAccountID: accountant.accountID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const archivedExpenseReportID = '888';
+            const transaction: Transaction = {...createRandomTransaction(1), transactionID: '555'};
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${ownPolicyExpenseChat.reportID}`, ownPolicyExpenseChat);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${accountantExpenseChat.reportID}`, accountantExpenseChat);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${accountantExpenseChatID}`, {private_isArchived: DateUtils.getDBTime()});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedExpenseReportID}`, {private_isArchived: DateUtils.getDBTime()});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, transaction);
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[accountant.accountID]: accountant});
+
+            // Build the REPORT_PREVIEW action OUTSIDE Onyx and pass it explicitly.
+            // If the implementation falls back to deprecatedAllReportActions (Onyx) instead of using this explicit param,
+            // the unarchive failure-data entry will not be generated and the assertion below will fail.
+            const reportPreviewAction: ReportAction = {
+                reportActionID: 'preview-1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                childReportID: archivedExpenseReportID,
+                created: DateUtils.getDBTime(),
+                message: [],
+            } as unknown as ReportAction;
+            const explicitReportActionsList = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${accountantExpenseChatID}`]: {
+                    [reportPreviewAction.reportActionID]: reportPreviewAction,
+                },
+            };
+
+            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
+            // Create the tracked expense first
+            trackExpense({
+                report: selfDMReport,
+                isDraftPolicy: true,
+                action: CONST.IOU.ACTION.CREATE,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {accountID: RORY_ACCOUNT_ID},
+                },
+                transactionParams: {
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: transaction.merchant,
+                    billable: false,
+                },
+                isASAPSubmitBetaEnabled: false,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                introSelected: undefined,
+                quickAction: undefined,
+                recentWaypoints,
+                betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [transaction.transactionID],
+                isSelfTourViewed: false,
+            });
+            await waitForBatchedUpdates();
+
+            const selfDMReportActionsOnyx = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
+                    waitForCollectionCallback: false,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
+            const linkedTrackedExpenseReportAction = Object.values(selfDMReportActionsOnyx ?? {}).find((reportAction) => isMoneyRequestAction(reportAction));
+            const reportActionableTrackExpense = Object.values(selfDMReportActionsOnyx ?? {}).find((reportAction) => isActionableTrackExpense(reportAction));
+
+            mockFetch?.pause?.();
+
+            // When sharing the tracked expense with the accountant, passing the explicit reportActionsList
+            trackExpense({
+                report: ownPolicyExpenseChat,
+                isDraftPolicy: false,
+                action: CONST.IOU.ACTION.SHARE,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {reportID: ownPolicyExpenseChat.reportID, isPolicyExpenseChat: true},
+                },
+                policyParams: {
+                    policy,
+                },
+                transactionParams: {
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: transaction.merchant,
+                    billable: false,
+                    actionableWhisperReportActionID: reportActionableTrackExpense?.reportActionID,
+                    linkedTrackedExpenseReportAction,
+                    linkedTrackedExpenseReportID: selfDMReport.reportID,
+                },
+                accountantParams: {
+                    accountant,
+                },
+                reportActionsList: explicitReportActionsList,
+                isASAPSubmitBetaEnabled: false,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                introSelected: undefined,
+                quickAction: undefined,
+                recentWaypoints,
+                betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [],
+                isSelfTourViewed: false,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the orphaned accountant expense chat AND the nested expense report should both be optimistically not archived
+            const accountantChatNvpAfter = await new Promise<OnyxEntry<{private_isArchived?: string | null}>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${accountantExpenseChatID}`,
+                    waitForCollectionCallback: false,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+            const expenseReportNvpAfter = await new Promise<OnyxEntry<{private_isArchived?: string | null}>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedExpenseReportID}`,
+                    waitForCollectionCallback: false,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
+            await mockFetch?.resume?.();
+
+            expect(accountantChatNvpAfter?.private_isArchived).toBeFalsy();
+            expect(expenseReportNvpAfter?.private_isArchived).toBeFalsy();
+        });
+
         /**
          * Creates default trackExpense parameters - only override what's needed for each test
          */
@@ -927,8 +1090,7 @@ describe('actions/IOU/TrackExpense', () => {
                     ...transactionOverrides,
                 },
                 isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                currentUserEmailParam: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints: [],
@@ -1149,8 +1311,7 @@ describe('actions/IOU/TrackExpense', () => {
                     linkedTrackedExpenseReportID: selfDMReport.reportID,
                 },
                 isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                currentUserEmailParam: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints: [],
@@ -1240,8 +1401,7 @@ describe('actions/IOU/TrackExpense', () => {
                     billable: false,
                 },
                 isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                currentUserEmailParam: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints: [],
@@ -1914,8 +2074,7 @@ describe('actions/IOU/TrackExpense', () => {
                     billable: false,
                 },
                 isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                currentUserEmailParam: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
@@ -2218,8 +2377,7 @@ describe('actions/IOU/TrackExpense', () => {
                     billable: false,
                 },
                 isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
-                currentUserEmailParam: TEST_USER_LOGIN,
+                currentUser: {accountID: TEST_USER_ACCOUNT_ID, email: TEST_USER_LOGIN},
                 introSelected: undefined,
 
                 quickAction: undefined,
@@ -2564,6 +2722,101 @@ describe('actions/IOU/TrackExpense', () => {
                     betas: [CONST.BETAS.ALL],
                 });
             }).not.toThrow();
+        });
+    });
+
+    describe('hasManualDistanceOverride', () => {
+        const KM_5_IN_METERS = 5000;
+
+        function buildDistanceTransaction(overrides: Partial<Transaction> = {}): Transaction {
+            return {
+                transactionID: 'distance_txn',
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                merchant: 'Test',
+                created: DateUtils.getDBTime(),
+                reportID: 'r1',
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        quantity: 5,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                        routeDistanceMeters: KM_5_IN_METERS,
+                    },
+                },
+                ...overrides,
+            } as Transaction;
+        }
+
+        function withCustomUnit(overrides: Record<string, unknown>): Partial<Transaction> {
+            return {
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        quantity: 5,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                        routeDistanceMeters: KM_5_IN_METERS,
+                        ...overrides,
+                    },
+                },
+            } as Partial<Transaction>;
+        }
+
+        it('returns false when quantity matches the route distance (GPS-tracked expense)', () => {
+            // 5 km display vs 5000 m route → 0 diff in display units.
+            expect(hasManualDistanceOverride(buildDistanceTransaction())).toBe(false);
+        });
+
+        it('returns false when quantity is at the 2dp rounding boundary (unedited GPS expense)', () => {
+            // `customUnit.quantity` is stored at 2dp via `roundToTwoDecimalPlaces`. A 5005 m route
+            // is 5.005 km in display units, well within the 0.01 km tolerance.
+            const transaction = buildDistanceTransaction(withCustomUnit({routeDistanceMeters: 5005}));
+            expect(hasManualDistanceOverride(transaction)).toBe(false);
+        });
+
+        it('returns true when quantity diverges from the route distance (manual override on map)', () => {
+            // 5 km display vs 10000 m (10 km) route → diff of 5 km, well above tolerance.
+            const transaction = buildDistanceTransaction(withCustomUnit({routeDistanceMeters: 10000}));
+            expect(hasManualDistanceOverride(transaction)).toBe(true);
+        });
+
+        it('returns false when transaction has no route distance (pure manual expense)', () => {
+            const transaction = buildDistanceTransaction(withCustomUnit({routeDistanceMeters: 0}));
+            expect(hasManualDistanceOverride(transaction)).toBe(false);
+        });
+
+        it('returns false when transaction has no customUnit.quantity', () => {
+            const transaction = buildDistanceTransaction({
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                        routeDistanceMeters: KM_5_IN_METERS,
+                    },
+                },
+            });
+            expect(hasManualDistanceOverride(transaction)).toBe(false);
+        });
+
+        it('returns false when transaction has no distanceUnit', () => {
+            const transaction = buildDistanceTransaction({
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        quantity: 5,
+                        routeDistanceMeters: KM_5_IN_METERS,
+                    },
+                },
+            });
+            expect(hasManualDistanceOverride(transaction)).toBe(false);
+        });
+
+        it('returns false when transaction is undefined', () => {
+            expect(hasManualDistanceOverride(undefined)).toBe(false);
         });
     });
 });
