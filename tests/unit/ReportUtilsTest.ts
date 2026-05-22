@@ -5962,8 +5962,6 @@ describe('ReportUtils', () => {
         });
 
         it('should NOT allow approver to edit RECEIPT when a non-expense report is passed', async () => {
-            // This tests the bug where passing a workspace chat or transaction thread
-            // instead of the expense report causes isApprover to be false
             const openExpenseReport: Report = {
                 reportID: '12352',
                 policyID,
@@ -6012,7 +6010,6 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
 
-            // Passing the correct expense report: approver CAN edit receipt
             expect(
                 canEditFieldOfMoneyRequest({
                     reportAction: moneyRequestAction,
@@ -6023,8 +6020,7 @@ describe('ReportUtils', () => {
                 }),
             ).toBe(true);
 
-            // Passing workspace chat instead of expense report: approver CANNOT edit receipt
-            // because isExpenseReport(workspaceChat) is false, so isApprover is false
+            // A workspace chat is not an expense report, so the approver check fails.
             expect(
                 canEditFieldOfMoneyRequest({reportAction: moneyRequestAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction, report: workspaceChat, policy: policyWithWorkflow}),
             ).toBe(false);
@@ -6113,7 +6109,6 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
 
-            // When managerID already matches the approver, both isManager AND isApprover are true
             expect(canEditMoneyRequest(moneyRequestAction, transaction, false, openExpenseReport, policyWithWorkflow)).toBe(true);
             expect(
                 canEditFieldOfMoneyRequest({

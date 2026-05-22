@@ -4705,7 +4705,7 @@ function canEditMoneyRequest(
         return true;
     }
 
-    // Allow workflow approvers to edit OPEN expense reports (excludes rule-based approvers who lack pre-submission access).
+    // Workflow approvers can edit OPEN reports; managerID is unreliable there so resolve from policy. getManagerAccountID excludes out-of-scope rule approvers.
     if (isExpenseReport(moneyRequestReport) && isOpenReport(moneyRequestReport) && deprecatedCurrentUserAccountID === getManagerAccountID(reportPolicy, moneyRequestReport)) {
         return true;
     }
@@ -4782,7 +4782,6 @@ function canEditReportPolicy(report: OnyxEntry<Report>, reportPolicy: OnyxEntry<
 
     if (isExpenseType) {
         if (isOpen) {
-            // Approvers can edit expenses but not change workspace
             return isSubmitter || isAdmin;
         }
 
@@ -4922,7 +4921,6 @@ function canEditFieldOfMoneyRequest({
     const isAdmin = isExpenseReport(moneyRequestReport) && reportPolicy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = isExpenseReport(moneyRequestReport) && deprecatedCurrentUserAccountID === moneyRequestReport?.managerID;
     const isRequestor = deprecatedCurrentUserAccountID === reportAction?.actorAccountID;
-    // Workflow approvers only — excludes rule-based approvers who lack pre-submission access.
     const isApprover = isExpenseReport(moneyRequestReport) && isOpenReport(moneyRequestReport) && deprecatedCurrentUserAccountID === getManagerAccountID(reportPolicy, moneyRequestReport);
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REIMBURSABLE) {
