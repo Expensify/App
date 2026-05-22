@@ -17,7 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
+import OnyxTabNavigator, {getSelectedTabFromRoute, TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {
     getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
     getActivePoliciesWithExpenseChatAndTimeEnabled,
@@ -68,8 +68,6 @@ function IOURequestStartPage({
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`);
     const policy = usePolicy(report?.policyID);
     const [lastSelectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`);
-    // Derive selectedTab directly instead of using state
-    const selectedTab = lastSelectedTab;
 
     const isLoadingSelectedTab = shouldUseTab ? isLoadingOnyxValue(selectedTabResult) : false;
     const [transaction, transactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(route?.params.transactionID)}`);
@@ -140,6 +138,8 @@ function IOURequestStartPage({
         }
         return tabs;
     }, [shouldUseTab, iouType, shouldShowPerDiemOption, shouldShowTimeOption]);
+    const selectedTabFromRoute = getSelectedTabFromRoute(route, [...availableTabs]) as SelectedTabRequest | undefined;
+    const selectedTab = selectedTabFromRoute ?? lastSelectedTab;
 
     // A quick-action deeplink (e.g. iOS home-screen "Scan receipt") bypasses startMoneyRequest
     // and leaves the previous flow's draft in place under OPTIMISTIC_TRANSACTION_ID. Detect it
@@ -155,11 +155,14 @@ function IOURequestStartPage({
         }
         // selectedTab must be valid for the currently-rendered tab set; otherwise let
         // OnyxTabNavigator.onTabSelected initialize from the URL (which is authoritative).
-        if (selectedTab && availableTabs.has(selectedTab)) {
-            return selectedTab;
+        if (selectedTabFromRoute) {
+            return selectedTabFromRoute;
+        }
+        if (lastSelectedTab && availableTabs.has(lastSelectedTab)) {
+            return lastSelectedTab;
         }
         return undefined;
-    }, [transaction?.iouRequestType, isStaleTransactionDraft, shouldUseTab, selectedTab, availableTabs]);
+    }, [transaction?.iouRequestType, isStaleTransactionDraft, shouldUseTab, selectedTabFromRoute, lastSelectedTab, availableTabs]);
 
     const resetIOUTypeIfChanged = useResetIOUType({
         reportID,
@@ -238,6 +241,7 @@ function IOURequestStartPage({
                             <OnyxTabNavigator
                                 id={CONST.TAB.IOU_REQUEST_TYPE}
                                 defaultSelectedTab={defaultSelectedTab}
+                                routeSelectedTab={selectedTabFromRoute}
                                 onTabSelected={resetIOUTypeIfChanged}
                                 onTabSelect={onTabSelectFocusHandler}
                                 tabBar={TabSelector}
