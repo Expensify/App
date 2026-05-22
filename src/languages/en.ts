@@ -9355,10 +9355,10 @@ const translations = {
             reportSuspiciousActivityConfirmationPrompt: 'We’ll review the account to verify it’s safe to unlock and reach out via Concierge with any questions.',
             membersFeatureList: {
                 title: 'Domain members',
-                subtitle: ({domainName}: {domainName: string}) =>
-                    `<muted-text>The Domain members section gives you control over how <strong>${domainName}</strong> users are managed in Expensify. Admins will be able to delete user accounts, set up Vacation Delegates, and manage 2FA logins. To access this feature you must verify yourself as an authorized company administrator.</muted-text>`,
-                controlPolicyCreation: 'Control policy creation',
+                subtitle: ({domainName}: {domainName: string}) => `<muted-text>Verify your domain for more control over <strong>${domainName}</strong> members in Expensify.</muted-text>`,
+                controlPolicyCreation: 'Restrict workspace creation',
                 enableSamlSso: 'Enable SAML SSO',
+                enforce2FA: 'Enforce 2FA',
             },
         },
         common: {

@@ -54,7 +54,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const {domainAccountID} = route.params;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['Profile', 'LaptopOnDeskWithCoffeeAndKey', 'LockClosed', 'ShieldYellow']);
+    const illustrations = useMemoizedLazyIllustrations(['Profile', 'LaptopWithMembers', 'LockClosed', 'ShieldYellow', 'Encryption']);
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Gear', 'DotIndicator', 'RemoveMembers', 'Download', 'Transfer']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
@@ -97,8 +97,12 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 icon: illustrations.LockClosed,
                 translationKey: 'domain.members.membersFeatureList.enableSamlSso',
             },
+            {
+                icon: illustrations.Encryption,
+                translationKey: 'domain.members.membersFeatureList.enforce2FA',
+            },
         ],
-        [illustrations.ShieldYellow, illustrations.LockClosed],
+        [illustrations.ShieldYellow, illustrations.LockClosed, illustrations.Encryption],
     );
 
     const groupPopoverComponent = ({closeOverlay, isExpanded}: PopoverComponentProps) => (
@@ -348,10 +352,10 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                                     onCtaPress={() => {
                                         Navigation.navigate(ROUTES.DOMAIN_VERIFY.getRoute(domainAccountID));
                                     }}
-                                    illustrationBackgroundColor={colors.blue700}
-                                    illustration={illustrations.LaptopOnDeskWithCoffeeAndKey}
+                                    illustrationBackgroundColor={colors.ice800}
+                                    illustration={illustrations.LaptopWithMembers}
                                     illustrationStyle={styles.emptyStateSamlIllustration}
-                                    illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentCenter]}
+                                    illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentCenter, styles.pv5]}
                                     titleStyles={styles.textHeadlineH1}
                                 />
                             </View>

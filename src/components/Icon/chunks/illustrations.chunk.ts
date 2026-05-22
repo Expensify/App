@@ -42,6 +42,7 @@ import ExpensifyCardProtectionIllustration from '@assets/images/expensifyCard/ca
 // Other Images
 import Hand from '@assets/images/hand.svg';
 import LaptopOnDeskWithCoffeeAndKey from '@assets/images/laptop-on-desk-with-coffee-and-key.svg';
+import LaptopWithMembers from '@assets/images/illustration-laptop-members.svg';
 import LaptopWithSecondScreenAndHourglass from '@assets/images/laptop-with-second-screen-and-hourglass.svg';
 import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
@@ -249,6 +250,7 @@ const Illustrations = {
     LaptopWithSecondScreenSync,
     LaptopWithSecondScreenX,
     LaptopOnDeskWithCoffeeAndKey,
+    LaptopWithMembers,
 
     // Expensify Card
     ExpensifyCardIllustration,
