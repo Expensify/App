@@ -108,10 +108,13 @@ function CopyPolicySettingsSelectFeaturesPage() {
     };
 
     const isPartVisible = (part: Part): boolean => {
-        if (isPartIncompatible(part)) {
-            return true;
+        if (!isPartIncompatible(part)) {
+            return isCopyPolicySettingsPartEnabledOnSource(part, sourceFeatureContext);
         }
-        return isCopyPolicySettingsPartEnabledOnSource(part, sourceFeatureContext);
+        if ((CODING_PARTS_TIED_TO_CONNECTION as readonly Part[]).includes(part)) {
+            return isCopyPolicySettingsPartEnabledOnSource(part, sourceFeatureContext);
+        }
+        return true;
     };
 
     const availableFeatureRows = FEATURE_ROWS.filter((row) => isPartVisible(row.part));
@@ -120,6 +123,17 @@ function CopyPolicySettingsSelectFeaturesPage() {
     const [selectedFeatures, setSelectedFeatures] = useState<readonly Part[]>([]);
     const selectedAvailableFeatures = selectedFeatures.filter((part) => availablePartSet.has(part));
     const isAccountingSelected = selectedAvailableFeatures.includes('accounting');
+
+    const isAccountingMismatch = (part: Part): boolean => {
+        if (part === 'accounting') {
+            return !isAccountingPartCompatible;
+        }
+        // When accounting is selected, the connection mismatch will be resolved by the copy
+        if (isAccountingSelected) {
+            return false;
+        }
+        return !isCodingCompatible && (CODING_PARTS_TIED_TO_CONNECTION as readonly Part[]).includes(part);
+    };
 
     const effectiveSelectedFeatures = isAccountingSelected
         ? Array.from(new Set<Part>([...selectedAvailableFeatures, ...ACCOUNTING_FORCE_ENABLED_PARTS.filter((part) => availablePartSet.has(part))]))
@@ -176,7 +190,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
     };
 
     const getAlternateText = (part: Part): string | undefined => {
-        if (isPartIncompatible(part)) {
+        if (isAccountingMismatch(part)) {
             return translate('workspace.copyPolicySettings.accountingMismatch', {
                 part: translate(FEATURE_ROWS.find((row) => row.part === part)?.labelKey ?? 'workspace.common.accounting').toLowerCase(),
             });
@@ -234,9 +248,9 @@ function CopyPolicySettingsSelectFeaturesPage() {
     const onConfirm = () => {
         const isWorkflowsSelected = effectiveSelectedFeatures.includes('workflows');
         const isMembersSelected = effectiveSelectedFeatures.includes('members');
-        const hasMembersToCopy = availablePartSet.has('members');
+        const isMembersPartAvailable = availablePartSet.has('members');
 
-        if (!isWorkflowsSelected || isMembersSelected || !hasMembersToCopy) {
+        if (!isWorkflowsSelected || isMembersSelected || !isMembersPartAvailable) {
             saveAndNavigate();
             return;
         }

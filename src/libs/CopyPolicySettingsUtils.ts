@@ -148,7 +148,7 @@ function arePoliciesAccountingCompatible(source: Policy | undefined, target: Pol
 
 /**
  * Copying accounting settings is allowed when the target is unconnected or already matches the source.
- * Swap (target connected to a different account) and wipe (source connected,s target unconnected) are rejected.
+ * Swap (target connected to a different account) and wipe (source unconnected, target connected) are rejected.
  */
 function isTargetCompatibleForAccountingPart(source: Policy | undefined, target: Policy | undefined): boolean {
     if (!target) {
@@ -234,5 +234,6 @@ export {
     isTargetCompatibleForAccountingPart,
     areAllTargetsCompatibleForAccountingPart,
     isCopyPolicySettingsPartEnabledOnSource,
-, FEATURE_ROWS};
+    FEATURE_ROWS,
+};
 export type {AccountingConnectionIdentity, CopyPolicySettingsSourceFeatureContext, FeatureRow};
