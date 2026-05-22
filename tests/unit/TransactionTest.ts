@@ -1360,7 +1360,6 @@ describe('Transaction', () => {
             ]);
             await waitForBatchedUpdates();
 
-            const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
             const allTransactions = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
             };
