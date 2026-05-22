@@ -453,6 +453,9 @@ const ViolationsUtils = {
             } else if (matchedVendor && hasInactiveVendorViolation) {
                 newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
             }
+        } else if (hasInactiveVendorViolation) {
+            // Vendor was cleared while the feature is still active — drop the now-stale violation.
+            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
         }
 
         const customUnitRateID = updatedTransaction?.comment?.customUnit?.customUnitRateID;
