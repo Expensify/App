@@ -1,4 +1,4 @@
-import {checkIfShouldUseNewPartnerName, isLoggingInAsDelegate} from '@src/libs/SessionUtils';
+import {checkIfShouldUseNewPartnerName, isAgentEmail, isLoggingInAsDelegate} from '@src/libs/SessionUtils';
 
 function mockHybridAppConfig(isHybridApp: boolean): () => void {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -27,6 +27,23 @@ function testPartnerNameBehavior(isHybridApp: boolean, partnerUserID: string | u
 }
 
 describe('SessionUtils', () => {
+    describe('isAgentEmail', () => {
+        test.each([
+            ['matches valid agent email', 'agent_123@expensify.ai', true],
+            ['matches agent email with multiple digits', 'agent_9999999@expensify.ai', true],
+            ['returns false for non-agent email', 'user@expensify.com', false],
+            ['returns false for non-agent expensify.ai email', 'user@expensify.ai', false],
+            ['returns false for agent email with wrong domain', 'agent_123@expensify.com', false],
+            ['returns false for agent prefix without digits', 'agent_@expensify.ai', false],
+            ['returns false for empty string', '', false],
+            ['returns false for undefined', undefined, false],
+            ['returns false when agent pattern has extra prefix', 'prefix_agent_123@expensify.ai', false],
+            ['returns false when agent pattern has extra suffix', 'agent_123@expensify.ai.evil.com', false],
+        ])('%s', (_description, email, expectedResult) => {
+            expect(isAgentEmail(email)).toBe(expectedResult);
+        });
+    });
+
     describe('checkIfShouldUseNewPartnerName', () => {
         test.each([
             // [description, isHybridApp, partnerUserID, expectedResult]

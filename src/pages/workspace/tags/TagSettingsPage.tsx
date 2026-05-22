@@ -94,7 +94,9 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
 
     const navigateToEditTag = () => {
         Navigation.navigate(
-            isQuickSettingsFlow ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_EDIT.path) : ROUTES.WORKSPACE_TAG_EDIT.getRoute(policyID, orderWeight, currentPolicyTag.name),
+            isQuickSettingsFlow
+                ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_EDIT.getRoute(orderWeight, currentPolicyTag.name))
+                : ROUTES.WORKSPACE_TAG_EDIT.getRoute(policyID, orderWeight, currentPolicyTag.name),
         );
     };
 
@@ -104,13 +106,17 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                 ROUTES.WORKSPACE_UPGRADE.getRoute(
                     policyID,
                     CONST.UPGRADE_FEATURE_INTRO_MAPPING.glCodes.alias,
-                    isQuickSettingsFlow ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_GL_CODE.path) : ROUTES.WORKSPACE_TAG_GL_CODE.getRoute(policyID, orderWeight, tagName),
+                    isQuickSettingsFlow
+                        ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_GL_CODE.getRoute(orderWeight, tagName))
+                        : ROUTES.WORKSPACE_TAG_GL_CODE.getRoute(policyID, orderWeight, tagName),
                 ),
             );
             return;
         }
         Navigation.navigate(
-            isQuickSettingsFlow ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_GL_CODE.path) : ROUTES.WORKSPACE_TAG_GL_CODE.getRoute(policyID, orderWeight, currentPolicyTag.name),
+            isQuickSettingsFlow
+                ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_GL_CODE.getRoute(orderWeight, currentPolicyTag.name))
+                : ROUTES.WORKSPACE_TAG_GL_CODE.getRoute(policyID, orderWeight, currentPolicyTag.name),
         );
     };
 
