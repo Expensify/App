@@ -37,7 +37,7 @@ function syncMergeHR(policy: OnyxEntry<Policy>) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    // eslint-disable-next-line @typescript-eslint/naming-convention -- merge_hris is the API-defined connection key
                     merge_hris: {
                         lastSync: {
                             syncStatus: CONST.MERGE_HR.SYNC_STATUS.SYNCING,
@@ -55,7 +55,7 @@ function syncMergeHR(policy: OnyxEntry<Policy>) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    // eslint-disable-next-line @typescript-eslint/naming-convention -- merge_hris is the API-defined connection key
                     merge_hris: {
                         lastSync: previousLastSync ?? null,
                     },
