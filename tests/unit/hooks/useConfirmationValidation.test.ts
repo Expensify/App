@@ -270,11 +270,22 @@ describe('useConfirmationValidation', () => {
                 expect(result.current.validate(CONST.IOU.PAYMENT_TYPE.ELSEWHERE)).toEqual({errorKey: 'common.error.fieldRequired'});
             });
 
-            it('returns errorKey: null when manual amount is explicitly set to zero', () => {
+            it('returns errorKey: null when manual amount is explicitly set to zero for submit', () => {
                 const {result} = renderHook(() =>
-                    useConfirmationValidation(createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, newManualFlowParams, {amount: 0, isAmountSet: true})),
+                    useConfirmationValidation(
+                        createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, {...newManualFlowParams, iouType: CONST.IOU.TYPE.SUBMIT}, {amount: 0, isAmountSet: true}),
+                    ),
                 );
                 expect(result.current.validate()).toEqual({errorKey: null});
+            });
+
+            it('returns invalidAmount when manual amount is explicitly set to zero for invoice', () => {
+                const {result} = renderHook(() =>
+                    useConfirmationValidation(
+                        createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, {...newManualFlowParams, iouType: CONST.IOU.TYPE.INVOICE}, {amount: 0, isAmountSet: true}),
+                    ),
+                );
+                expect(result.current.validate()).toEqual({errorKey: 'common.error.invalidAmount'});
             });
         });
 
@@ -318,17 +329,26 @@ describe('useConfirmationValidation', () => {
                 const {result} = renderHook(() => useConfirmationValidation(createValidationParamsForParticipant(P2P_PARTICIPANT, newManualFlowParams, {amount: 0, isAmountSet: true})));
                 expect(result.current.validate()).toEqual({errorKey: 'common.error.invalidAmount'});
             });
+
+            it('returns invalidAmount when manual amount is explicitly set to zero for invoice', () => {
+                const {result} = renderHook(() =>
+                    useConfirmationValidation(
+                        createValidationParamsForParticipant(P2P_PARTICIPANT, {...newManualFlowParams, iouType: CONST.IOU.TYPE.INVOICE}, {amount: 0, isAmountSet: true}),
+                    ),
+                );
+                expect(result.current.validate()).toEqual({errorKey: 'common.error.invalidAmount'});
+            });
         });
 
         describe('self-DM participant', () => {
-            it('returns invalidAmount for unset manual amount', () => {
+            it('returns fieldRequired for unset manual amount', () => {
                 const {result} = renderHook(() => useConfirmationValidation(createValidationParamsForParticipant(SELF_DM_PARTICIPANT, newManualFlowParams, {isAmountSet: false})));
-                expect(result.current.validate()).toEqual({errorKey: 'common.error.invalidAmount'});
+                expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
             });
 
-            it('returns invalidAmount when manual amount is explicitly set to zero', () => {
+            it('returns errorKey: null when manual amount is explicitly set to zero', () => {
                 const {result} = renderHook(() => useConfirmationValidation(createValidationParamsForParticipant(SELF_DM_PARTICIPANT, newManualFlowParams, {amount: 0, isAmountSet: true})));
-                expect(result.current.validate()).toEqual({errorKey: 'common.error.invalidAmount'});
+                expect(result.current.validate()).toEqual({errorKey: null});
             });
         });
 
@@ -619,6 +639,45 @@ describe('useConfirmationValidation', () => {
                 ),
             );
             expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
+        });
+
+        it('returns invalidAmount for split IOU type with zero amount and isAmountSet true', () => {
+            const splitParticipants = [POLICY_EXPENSE_CHAT_PARTICIPANT, {accountID: 3, isPolicyExpenseChat: false} as Participant];
+            const {result} = renderHook(() =>
+                useConfirmationValidation(
+                    createValidationParamsForParticipant(
+                        POLICY_EXPENSE_CHAT_PARTICIPANT,
+                        {
+                            iouType: CONST.IOU.TYPE.SPLIT,
+                            isNewManualExpenseFlowEnabled: true,
+                            iouAmount: 0,
+                            selectedParticipants: splitParticipants,
+                        },
+                        {amount: 0, isAmountSet: true, participants: splitParticipants},
+                    ),
+                ),
+            );
+            expect(result.current.validate()).toEqual({errorKey: 'common.error.invalidAmount'});
+        });
+
+        it('returns iou.error.invalidAmount when editing split bill with zero amount and isAmountSet true', () => {
+            const splitParticipants = [POLICY_EXPENSE_CHAT_PARTICIPANT, {accountID: 3, isPolicyExpenseChat: false} as Participant];
+            const {result} = renderHook(() =>
+                useConfirmationValidation({
+                    ...baseParams,
+                    isEditingSplitBill: true,
+                    iouAmount: 0,
+                    selectedParticipants: splitParticipants,
+                    transaction: createTransactionBase({
+                        amount: 100,
+                        isAmountSet: true,
+                        merchant: 'Coffee',
+                        participants: splitParticipants,
+                    }),
+                    transactionReport: {type: CONST.REPORT.TYPE.IOU} as unknown as OnyxTypes.Report,
+                }),
+            );
+            expect(result.current.validate()).toEqual({errorKey: 'iou.error.invalidAmount'});
         });
     });
 });
