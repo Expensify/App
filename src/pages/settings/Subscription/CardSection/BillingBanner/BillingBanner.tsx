@@ -44,9 +44,6 @@ type BillingBannerProps = {
     /** Accessibility label for the right icon. */
     rightIconAccessibilityLabel?: string;
 
-    /** Fill color for the right icon. Defaults to `theme.icon`. */
-    rightIconFill?: string;
-
     /** Sentry label for the right icon button. Defaults to `CONST.SENTRY_LABEL.BILLING_BANNER.RIGHT_ICON`. */
     rightIconSentryLabel?: string;
 
@@ -65,7 +62,6 @@ function BillingBanner({
     rightIcon,
     onRightIconPress,
     rightIconAccessibilityLabel,
-    rightIconFill,
     rightIconSentryLabel,
     rightComponent,
 }: BillingBannerProps) {
@@ -74,7 +70,6 @@ function BillingBanner({
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
 
-    const resolvedRightIconFill = rightIconFill ?? theme.icon;
     const rightIconComponent = useMemo(() => {
         if (rightIcon) {
             return onRightIconPress && rightIconAccessibilityLabel ? (
@@ -87,13 +82,13 @@ function BillingBanner({
                 >
                     <Icon
                         src={rightIcon}
-                        fill={resolvedRightIconFill}
+                        fill={theme.icon}
                     />
                 </PressableWithoutFeedback>
             ) : (
                 <Icon
                     src={rightIcon}
-                    fill={resolvedRightIconFill}
+                    fill={theme.icon}
                 />
             );
         }
@@ -112,9 +107,9 @@ function BillingBanner({
         rightIcon,
         rightIconAccessibilityLabel,
         rightIconSentryLabel,
-        resolvedRightIconFill,
         styles.touchableButtonImage,
         theme.danger,
+        theme.icon,
         theme.success,
         expensifyIcons.DotIndicator,
     ]);
