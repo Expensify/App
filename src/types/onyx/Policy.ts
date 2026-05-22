@@ -1,6 +1,6 @@
 import type {CONST as COMMON_CONST} from 'expensify-common';
 import type {ValueOf} from 'type-fest';
-import type {GustoSyncResult} from '@libs/API/GustoSyncResult';
+import type {HrSyncResult} from '@libs/API/HrSyncResult';
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
@@ -64,6 +64,12 @@ type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Sort order index for displaying rates */
         index?: number;
+
+        /** ISO 8601 date string for when this rate becomes effective */
+        startDate?: string;
+
+        /** ISO 8601 date string for when this rate expires */
+        endDate?: string;
     },
     keyof TaxRateAttributes
 >;
@@ -703,6 +709,9 @@ type XeroExportConfig = {
 
     /** The accounting Method for Xero connection config */
     accountingMethod?: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
+
+    /** Account ID that receives the exported travel payable */
+    travelInvoicingPayableAccountID?: string;
 };
 
 /** TODO: Will be handled in another issue */
@@ -1540,13 +1549,14 @@ type GustoConnectionConfig = HRConnectionConfigBase & {
 type MergeHRConnectionData = Record<string, never>;
 
 /** Merge HR connection config */
-type MergeHRConnectionConfig = HRConnectionConfigBase & {
-    /** Integration provider slug */
-    integration: MergeHRProviderSlug;
+type MergeHRConnectionConfig = HRConnectionConfigBase &
+    OnyxCommon.OnyxValueWithOfflineFeedback<{
+        /** Integration provider slug identifying which HR system is linked */
+        integration: MergeHRProviderSlug;
 
-    /** Approval mode */
-    approvalMode: ValueOf<typeof CONST.MERGE_HR.APPROVAL_MODE> | null;
-};
+        /** Approval mode controlling how reports are routed for approval */
+        approvalMode: ValueOf<typeof CONST.MERGE_HR.APPROVAL_MODE> | null;
+    }>;
 
 /** TriNet (Zenefits) connection data */
 type ZenefitsConnectionData = Record<string, never>;
@@ -2371,7 +2381,7 @@ type PolicyConnectionSyncProgress = {
     timestamp: string;
 
     /** Optional result payload shown after a completed sync */
-    result?: GustoSyncResult;
+    result?: HrSyncResult;
 };
 
 export default Policy;
@@ -2438,4 +2448,9 @@ export type {
     Subrate,
     ProhibitedExpenses,
     NetSuiteConnectionData,
+    HRConnectionConfigBase,
+    MergeHRConnectionConfig,
+    GustoConnectionConfig,
+    ZenefitsConnectionConfig,
+    MergeHRConnectionData,
 };
