@@ -1183,7 +1183,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             !isAnyTransactionOnHold &&
             areSelectedTransactionsIncludedInReports &&
             (selectedReports.length
-                ? selectedReports.every((report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.APPROVE))
+                ? selectedReports.every((report) => report.canApprove)
                 : selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.APPROVE));
 
         if (shouldShowApproveOption) {
@@ -1240,7 +1240,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             !isAnyTransactionOnHold &&
             areSelectedTransactionsIncludedInReports &&
             selectedReports.length &&
-            selectedReports.every((report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.CHANGE_APPROVER));
+            selectedReports.every((report) => report.canChangeApprover);
 
         if (shouldShowChangeApproverOption) {
             options.push({
@@ -1256,7 +1256,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             !isOffline &&
             areSelectedTransactionsIncludedInReports &&
             (selectedReports.length
-                ? selectedReports.every((report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.SUBMIT))
+                ? selectedReports.every((report) => report.canSubmit)
                 : selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.SUBMIT));
 
         if (shouldShowSubmitOption) {

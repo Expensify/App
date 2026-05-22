@@ -2128,6 +2128,7 @@ function getTransactionsSections({
                 keyForList: transactionItem.transactionID,
                 action: getAction(allActions, getSubmitExclusion(report?.ownerAccountID, currentAccountID)),
                 allActions,
+                ...getRowCapabilities(allActions),
                 report,
                 policy,
                 reportAction,
@@ -2420,6 +2421,22 @@ function getSubmitExclusion(ownerAccountID: number | undefined, currentAccountID
 function getAction(allActions: SearchTransactionAction[], primaryActionExclusions: SearchTransactionAction[] = []) {
     // Do not set CHANGE_APPROVER as the primary action as it is less frequently used than VIEW
     return allActions.find((action) => action !== CONST.SEARCH.ACTION_TYPES.CHANGE_APPROVER && !primaryActionExclusions.includes(action)) ?? CONST.SEARCH.ACTION_TYPES.VIEW;
+}
+
+type RowCapabilities = {
+    canPay: boolean;
+    canApprove: boolean;
+    canSubmit: boolean;
+    canChangeApprover: boolean;
+};
+
+function getRowCapabilities(allActions: SearchTransactionAction[]): RowCapabilities {
+    return {
+        canPay: allActions.includes(CONST.SEARCH.ACTION_TYPES.PAY),
+        canApprove: allActions.includes(CONST.SEARCH.ACTION_TYPES.APPROVE),
+        canSubmit: allActions.includes(CONST.SEARCH.ACTION_TYPES.SUBMIT),
+        canChangeApprover: allActions.includes(CONST.SEARCH.ACTION_TYPES.CHANGE_APPROVER),
+    };
 }
 
 /**
@@ -2789,6 +2806,7 @@ function getReportSections({
                     ...reportItem,
                     action: getAction(allActions, primaryActionExclusions),
                     allActions,
+                    ...getRowCapabilities(allActions),
                     keyForList: String(reportItem.reportID),
                     groupedBy: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                     from: (fromDetails ?? emptyPersonalDetails) as OnyxTypes.PersonalDetails,
@@ -2849,6 +2867,7 @@ function getReportSections({
                 ...(transactionPendingAction ? {pendingAction: transactionPendingAction} : {}),
                 action: getAction(allActions, getSubmitExclusion(report?.ownerAccountID, currentAccountID)),
                 allActions,
+                ...getRowCapabilities(allActions),
                 report,
                 reportAction,
                 holdReportAction: holdReportActionsByTransactionID.get(transactionItem.transactionID),
@@ -5939,6 +5958,7 @@ export {
     isTaskListItemType,
     getAction,
     getActions,
+    getRowCapabilities,
     createTypeMenuSections,
     formatBadgeText,
     getSectionBadgeText,

@@ -25,7 +25,7 @@ import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {isInvoiceReport} from '@libs/ReportUtils';
-import {getAction, getActions} from '@libs/SearchUIUtils';
+import {getAction, getActions, getRowCapabilities} from '@libs/SearchUIUtils';
 import {
     isDeletedTransaction as isDeletedTransactionUtil,
     isViolationDismissed,
@@ -103,7 +103,6 @@ function TransactionListItem<TItem extends ListItem>({
     ]);
     const [liveReportActions] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(transactionItem.reportID)}`);
     const [liveReportMetadata] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(transactionItem.reportID)}`);
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const currentUserDetails = useCurrentUserPersonalDetails();
 
     const liveActionsArray = liveReportActions ? (Object.values(liveReportActions) as ReportAction[]) : exportedReportActions;
@@ -121,7 +120,15 @@ function TransactionListItem<TItem extends ListItem>({
           )
         : transactionItem.allActions;
     const liveAction = liveAllActions.length ? getAction(liveAllActions) : transactionItem.action;
-    const liveTransactionItem: TransactionListItemType = {...transactionItem, action: liveAction, allActions: liveAllActions};
+    const liveCapabilities = getRowCapabilities(liveAllActions);
+    const liveTransactionItem =
+        liveAction === transactionItem.action &&
+        liveCapabilities.canPay === transactionItem.canPay &&
+        liveCapabilities.canApprove === transactionItem.canApprove &&
+        liveCapabilities.canSubmit === transactionItem.canSubmit &&
+        liveCapabilities.canChangeApprover === transactionItem.canChangeApprover
+            ? transactionItem
+            : {...transactionItem, action: liveAction, ...liveCapabilities};
     const transactionPreviewData: TransactionPreviewData = {
         hasParentReport: !!parentReport,
         hasTransaction: !!transaction,

@@ -37,7 +37,8 @@ function TaskListItem<TItem extends ListItem>({
     const parentReportID = taskItem?.parentReportID;
     const parentReportAttributeNameSelector = (value: OnyxEntry<ReportAttributesDerivedValue>) => (parentReportID ? value?.reports?.[parentReportID]?.reportName : undefined);
     const [liveParentReportAttributeName] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: parentReportAttributeNameSelector}, [parentReportID]);
-    const liveTaskItem: TaskListItemType = liveParentReportAttributeName ? {...taskItem, parentReportName: liveParentReportAttributeName} : taskItem;
+    const liveTaskItem: TaskListItemType =
+        liveParentReportAttributeName && liveParentReportAttributeName !== taskItem.parentReportName ? {...taskItem, parentReportName: liveParentReportAttributeName} : taskItem;
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
