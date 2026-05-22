@@ -19,6 +19,10 @@ jest.mock('@hooks/useLocalize', () => () => ({
     translate: (key: string) => key,
 }));
 
+function getSelectAllCheckboxCheckedState() {
+    return (screen.getByTestId('selection-list-select-all-checkbox').props as {accessibilityState: {checked: boolean | 'mixed'}}).accessibilityState.checked;
+}
+
 function renderSelectionList(data: ListItem[], onSelectAll?: () => void) {
     return render(
         <SelectionList
@@ -43,10 +47,7 @@ describe('BaseSelectionList dataDetails', () => {
 
             renderSelectionList(data, () => {});
 
-            // totalSelectable=2 (A,B), selectedOptions=[A,B]=2 → allSelected=true
-            // Checkbox should be fully checked (not indeterminate)
-            const checkbox = screen.getByTestId('selection-list-select-all-checkbox');
-            expect((checkbox.props as {accessibilityState: {checked: boolean | 'mixed'}}).accessibilityState.checked).toBe(true);
+            expect(getSelectAllCheckboxCheckedState()).toBe(true);
         });
 
         it('should show someSelected (indeterminate) when only some selectable items are selected', () => {
@@ -58,10 +59,7 @@ describe('BaseSelectionList dataDetails', () => {
 
             renderSelectionList(data, () => {});
 
-            // totalSelectable=2 (A,B), selectedOptions=[A]=1 → someSelected
-            // Checkbox should be indeterminate (mixed)
-            const checkbox = screen.getByTestId('selection-list-select-all-checkbox');
-            expect((checkbox.props as {accessibilityState: {checked: boolean | 'mixed'}}).accessibilityState.checked).toBe('mixed');
+            expect(getSelectAllCheckboxCheckedState()).toBe('mixed');
         });
 
         it('should not show allSelected when no selectable items are selected even with disabled+selected items', () => {
@@ -73,10 +71,7 @@ describe('BaseSelectionList dataDetails', () => {
 
             renderSelectionList(data, () => {});
 
-            // totalSelectable=2 (A,B), selectedOptions=[]=0 → neither
-            // Checkbox should be unchecked
-            const checkbox = screen.getByTestId('selection-list-select-all-checkbox');
-            expect((checkbox.props as {accessibilityState: {checked: boolean | 'mixed'}}).accessibilityState.checked).toBe(false);
+            expect(getSelectAllCheckboxCheckedState()).toBe(false);
         });
     });
 });
