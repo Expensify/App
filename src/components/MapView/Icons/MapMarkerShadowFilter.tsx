@@ -1,3 +1,4 @@
+import React from 'react';
 import {Defs, FeDropShadow, Filter} from 'react-native-svg';
 
 type MapMarkerShadowFilterProps = {
