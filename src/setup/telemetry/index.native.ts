@@ -3,10 +3,15 @@ import Log from '@libs/Log';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import CONST from '@src/CONST';
 import reportModuleInitTimes from './reportModuleInitTimes';
+import reportOnyxInitialParse from './reportOnyxInitialParse';
 import setupSentry from './setupSentry';
 
 export default function (): void {
     setupSentry();
+
+    // Install the Onyx initial-parse benchmark callback before Onyx.init runs (called in src/setup/index.ts
+    // immediately after telemetry()), so the first SQLiteProvider.getAll() invocation can forward its timing.
+    reportOnyxInitialParse();
 
     let nativeAppStartTimeMs: number | undefined;
     try {

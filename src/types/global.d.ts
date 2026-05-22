@@ -63,6 +63,15 @@ declare var __moduleInitTimes: Record<number | string, number> | undefined;
 // eslint-disable-next-line no-var, no-underscore-dangle, @typescript-eslint/naming-convention
 declare var __moduleNames: Record<number, string> | undefined;
 
+// Benchmark for https://github.com/Expensify/App/issues/89652 — set by the react-native-onyx patch
+// in SQLiteProvider.getAll() during Onyx's initial bulk hydration. The callback fires once, on the
+// first invocation; the cached value is also available afterwards for late readers.
+type OnyxInitialParseStats = {totalMs: number; rowCount: number; totalBytes: number};
+// eslint-disable-next-line no-var, no-underscore-dangle, @typescript-eslint/naming-convention
+declare var __onyxInitialParse: OnyxInitialParseStats | undefined;
+// eslint-disable-next-line no-var, no-underscore-dangle, @typescript-eslint/naming-convention
+declare var __onOnyxInitialParse: ((stats: OnyxInitialParseStats) => void) | undefined;
+
 // Define ArrayBuffer.transfer as its a relatively new API and not yet present in all environments
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 interface ArrayBuffer {

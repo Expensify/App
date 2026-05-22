@@ -1964,6 +1964,7 @@ const CONST = {
         CONTEXT_FULLSTORY: 'Fullstory',
         CONTEXT_MEMORY: 'Memory',
         CONTEXT_POLICIES: 'Policies',
+        CONTEXT_ONYX_INITIAL_PARSE: 'OnyxInitialParse',
         // Breadcrumb names
         BREADCRUMB_CATEGORY_MEMORY: 'system.memory',
         BREADCRUMB_CATEGORY_MFA: 'mfa',
@@ -1972,6 +1973,8 @@ const CONST = {
         BREADCRUMB_CATEGORY_BOOTSPLASH_FLOW: 'bootsplash.flow',
         BREADCRUMB_CATEGORY_MODULE_INIT: 'module.init',
         BREADCRUMB_CATEGORY_SCRIPT_LOAD: 'script.load',
+        BREADCRUMB_CATEGORY_ONYX_INIT: 'onyx.init',
+        MEASUREMENT_ONYX_INITIAL_PARSE_MS: 'onyx_initial_parse_ms',
         BREADCRUMB_MEMORY_PERIODIC: 'Periodic memory check',
         BREADCRUMB_MEMORY_FOREGROUND: 'App foreground - memory check',
         TAGS: {
