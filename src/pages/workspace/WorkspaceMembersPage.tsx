@@ -585,8 +585,12 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const memberCount = data.filter((member) => member.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
     const connectedHRProvider = getConnectedHRProvider(policy);
     const shouldShowHRSyncLink = isPolicyAdmin && !!connectedHRProvider;
+    const isMergeHRSyncInProgress =
+        connectedHRProvider?.connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR &&
+        policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]?.lastSync?.syncStatus === CONST.MERGE_HR.SYNC_STATUS.SYNCING;
     const isHRSyncInProgress =
-        shouldShowHRSyncLink && connectionSyncProgress?.connectionName === connectedHRProvider?.connectionName && isConnectionInProgress(connectionSyncProgress, policy);
+        shouldShowHRSyncLink &&
+        (isMergeHRSyncInProgress || (connectionSyncProgress?.connectionName === connectedHRProvider?.connectionName && isConnectionInProgress(connectionSyncProgress, policy)));
     const isPendingAddOrDelete =
         isOffline && data?.some((member) => member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
     const shouldShowSearchBar = data.length > CONST.SEARCH_ITEM_LIMIT;
