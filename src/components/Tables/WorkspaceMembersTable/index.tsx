@@ -1,5 +1,11 @@
+import {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
-import {TableHandle} from '@components/Table';
+import Table, {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
+import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
+import WorkspaceMembersTableRow from './WorkspaceMembersTableRow';
 
 type WorkspaceMembersTableColumnKey = 'member' | 'role' | 'actions';
 
@@ -12,8 +18,63 @@ type WorkspaceMembersTableProps = {
     members: WorkspaceMemberRowData[];
 };
 
-export default function WorkspaceMembersTable({}: WorkspaceMembersTableProps) {
-    return <></>;
+export default function WorkspaceMembersTable({ref, members}: WorkspaceMembersTableProps) {
+    const styles = useThemeStyles();
+    const {translate, localeCompare} = useLocalize();
+    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
+
+    const workspaceMembersColumns: Array<TableColumn<WorkspaceMembersTableColumnKey>> = [
+        {
+            sortable: true,
+            key: 'member',
+            label: translate('common.members'),
+        },
+        {
+            sortable: true,
+            key: 'role',
+            label: translate('common.role'),
+        },
+        {
+            sortable: false,
+            key: 'actions',
+            label: '',
+        },
+    ];
+
+    const compareTableItems: CompareItemsCallback<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey> = (item1, item2, activeSorting) => {
+        const orderMultiplier = activeSorting.order === 'asc' ? 1 : -1;
+        return 1;
+    };
+
+    const isTableItemInSearch: IsItemInSearchCallback<WorkspaceMemberRowData> = (item, searchValue) => {
+        return false;
+    };
+
+    const renderTableItem = ({item, index}: ListRenderItemInfo<WorkspaceMemberRowData>) => {
+        return (
+            <WorkspaceMembersTableRow
+                item={item}
+                rowIndex={index}
+                shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
+            />
+        );
+    };
+
+    return (
+        <Table
+            ref={ref}
+            data={members}
+            columns={workspaceMembersColumns}
+            renderItem={renderTableItem}
+            compareItems={compareTableItems}
+            isItemInSearch={isTableItemInSearch}
+        >
+            {members.length > CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.people.findMember')} />}
+            <Table.Header />
+            <Table.Body />
+        </Table>
+    );
 }
 
 export type {WorkspaceMembersTableColumnKey, WorkspaceMemberRowData};

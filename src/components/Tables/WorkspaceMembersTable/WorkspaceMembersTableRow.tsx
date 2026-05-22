@@ -1,5 +1,13 @@
-type WorkspaceMembersTableRowProps = {};
+import {WorkspaceMemberRowData} from '.';
 
-export default function WorkspaceMembersTableRow({}: WorkspaceMembersTableRowProps) {
+type WorkspaceMembersTableRowProps = {
+    item: WorkspaceMemberRowData;
+
+    rowIndex: number;
+
+    shouldUseNarrowTableLayout: boolean;
+};
+
+export default function WorkspaceMembersTableRow({item, rowIndex, shouldUseNarrowTableLayout}: WorkspaceMembersTableRowProps) {
     return <></>;
 }
