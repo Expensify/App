@@ -6,7 +6,6 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
@@ -86,7 +85,7 @@ function CarTripDetails({reservation, personalDetails}: CarTripDetailsProps) {
             {!!displayName && (
                 <MenuItemWithTopDescription
                     description={translate('travel.carDetails.driver')}
-                    descriptionTextStyle={{fontSize: variables.fontSizeLabel}}
+                    descriptionTextStyle={[styles.textLabelSupporting, styles.mb1]}
                     interactive={false}
                     accessibilityLabel={`${translate('travel.carDetails.driver')} ${displayName}`}
                     titleComponent={

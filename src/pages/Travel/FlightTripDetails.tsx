@@ -138,7 +138,7 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
             {!!displayName && (
                 <MenuItemWithTopDescription
                     description={translate('travel.flightDetails.passenger')}
-                    descriptionTextStyle={{fontSize: variables.fontSizeLabel}}
+                    descriptionTextStyle={[styles.textLabelSupporting, styles.mb1]}
                     interactive={false}
                     accessibilityLabel={`${translate('travel.flightDetails.passenger')} ${displayName}`}
                     titleComponent={
