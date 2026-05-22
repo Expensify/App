@@ -17,7 +17,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
-import openWorkspaceRoomsPage from '@libs/actions/Policy/Room';
+import {openPolicyRoomsPage} from '@libs/actions/Policy/Room';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -71,7 +71,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
         });
 
     useFocusEffect(() => {
-        openWorkspaceRoomsPage(policyID);
+        openPolicyRoomsPage(policyID);
     });
 
     return (
