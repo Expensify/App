@@ -133,8 +133,9 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
         return `/${ROUTES.ONBOARDING_WORK_EMAIL.route}`;
     }
 
-    // PRIVATE_DOMAIN ("People you may know are already here") only makes sense for users on a private domain.
-    if (isUserFromPublicDomain && onboardingInitialPath.includes(ROUTES.ONBOARDING_PRIVATE_DOMAIN.route)) {
+    // PRIVATE_DOMAIN ("People you may know are already here") only makes sense for users on a private domain. Only redirect
+    // validated accounts; unvalidated users mid-AddWorkEmail can legitimately land here while isFromPublicDomain is stale.
+    if (isUserFromPublicDomain && isAccountValidated && onboardingInitialPath.includes(ROUTES.ONBOARDING_PRIVATE_DOMAIN.route)) {
         if (isVsb) {
             return `/${ROUTES.ONBOARDING_ACCOUNTING.route}`;
         }

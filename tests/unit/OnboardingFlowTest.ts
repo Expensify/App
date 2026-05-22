@@ -155,6 +155,30 @@ describe('OnboardingFlow', () => {
             expect(path).toBe('/onboarding/purpose');
         });
 
+        it('should not redirect away from a private-domain URL for a public-domain unvalidated user', () => {
+            // Mirrors the BaseOnboardingPrivateDomain screen-level guard: an unvalidated public-domain user who just
+            // submitted a work email may land here while isFromPublicDomain is stale. They must keep the private-domain step.
+            const params: GetOnboardingInitialPathParamsType = {
+                isUserFromPublicDomain: true,
+                hasAccessiblePolicies: true,
+                onboardingValuesParam: {
+                    hasCompletedGuidedSetupFlow: false,
+                    shouldRedirectToClassicAfterMerge: false,
+                    shouldValidate: false,
+                    isMergingAccountBlocked: false,
+                    isMergeAccountStepCompleted: true,
+                    signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL,
+                },
+                currentOnboardingPurposeSelected: CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
+                currentOnboardingCompanySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                onboardingInitialPath: '/onboarding/private-domain',
+                onboardingValues: undefined,
+                isAccountValidated: false,
+            };
+            const path = getOnboardingInitialPath(params);
+            expect(path).not.toBe('/onboarding/purpose');
+        });
+
         it('should not redirect away from a work-email-validation URL for a public-domain user', () => {
             const params: GetOnboardingInitialPathParamsType = {
                 isUserFromPublicDomain: true,
