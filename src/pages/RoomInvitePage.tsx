@@ -1,7 +1,6 @@
 import {pendingChatMembersSelector} from '@selectors/ReportMetaData';
-import React, {useEffect} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import type {SectionListData} from 'react-native';
-import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -202,6 +201,20 @@ function RoomInvitePage({
         headerMessage: getHeaderMessageText(),
     };
 
+    const footerContent = useMemo(
+        () => (
+            <FormAlertWithSubmitButton
+                isDisabled={!validSelectedOptions.length}
+                buttonText={translate('common.invite')}
+                onSubmit={inviteUsers}
+                containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5, styles.ph5]}
+                enabledWhenOffline
+                isAlertVisible={false}
+            />
+        ),
+        [inviteUsers, validSelectedOptions.length, styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5, styles.ph5, translate],
+    );
+
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
@@ -233,17 +246,8 @@ function RoomInvitePage({
                     isLoadingNewOptions={!!isSearchingForReports}
                     shouldShowTextInput
                     canSelectMultiple
+                    footerContent={footerContent}
                 />
-                <View style={[styles.flexShrink0]}>
-                    <FormAlertWithSubmitButton
-                        isDisabled={!validSelectedOptions.length}
-                        buttonText={translate('common.invite')}
-                        onSubmit={inviteUsers}
-                        containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5, styles.ph5]}
-                        enabledWhenOffline
-                        isAlertVisible={false}
-                    />
-                </View>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
