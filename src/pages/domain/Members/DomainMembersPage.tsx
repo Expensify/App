@@ -88,7 +88,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
         groupOptions.length > 0 ? (
             <DropdownButton
                 label={dropdownLabel}
-                value={selectedGroups.map((g) => g.text)}
+                value={null}
                 PopoverComponent={groupPopoverComponent}
                 innerStyles={[styles.gap2, shouldUseNarrowLayout && styles.mw100]}
                 wrapperStyle={shouldUseNarrowLayout && styles.w100}
