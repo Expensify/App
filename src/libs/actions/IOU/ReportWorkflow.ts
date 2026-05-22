@@ -312,11 +312,13 @@ function getBadgeFromIOUReport(
  * fallback when the IOU report hasn't been fetched yet (e.g. right after login).
  */
 function canPayIOUFromReportAction(action: ReportAction, chatReport: OnyxEntry<OnyxTypes.Report>, currentUserAccountID: number): boolean {
+    const reportNameValuePairs = getAllReportNameValuePairs()?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport?.reportID}`];
     return (
         action.childType === CONST.REPORT.TYPE.IOU &&
         action.childReportID === chatReport?.iouReportID &&
         action.childManagerAccountID === currentUserAccountID &&
-        action.childStatusNum !== CONST.REPORT.STATUS_NUM.REIMBURSED
+        action.childStatusNum !== CONST.REPORT.STATUS_NUM.REIMBURSED &&
+        !isArchivedReport(reportNameValuePairs)
     );
 }
 
