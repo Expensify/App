@@ -30,6 +30,7 @@ import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {clearErrors, openPolicyInitialPage, removeWorkspace} from '@libs/actions/Policy/Policy';
+import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFromWorkspaceSettingPages';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {
@@ -458,7 +459,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             bottomContentStyle={styles.overflowVisible}
         >
             <FullPageNotFoundView
-                onBackButtonPress={Navigation.dismissModal}
+                onBackButtonPress={goBackFromWorkspaceSettingPages}
                 onLinkPress={Navigation.goBackToHome}
                 shouldShow={shouldShowNotFoundPage}
                 subtitleKey={shouldShowPolicy ? 'workspace.common.notAuthorized' : undefined}
