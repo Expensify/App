@@ -10011,16 +10011,16 @@ const CONST = {
     HOME: {
         ANNOUNCEMENTS: [
             {
-                title: 'Smarter cards, mileage, and approvals',
-                subtitle: 'Product update',
-                url: 'https://use.expensify.com/blog/expensify-april-2026-product-update',
-                publishedDate: '2026-04-15',
+                title: 'Expensify and VAT IT Launch Integration Partnership to Simplify Global VAT Reclaim',
+                subtitle: 'Press release',
+                url: 'https://www.businesswire.com/news/home/20260521691479/en/Expensify-and-VAT-IT-Launch-Integration-Partnership-to-Simplify-Global-VAT-Reclaim',
+                publishedDate: '2026-05-21',
             },
             {
-                title: 'New BYOC partnership: Institute of Commercial Payments',
+                title: 'Expensify and Playroll Partner to Eliminate Compliance Complexity',
                 subtitle: 'Press release',
-                url: 'https://www.businesswire.com/news/home/20260421550894/en/Expensify-Partners-With-IOCP-to-Expand-Access-to-Modern-Spend-Management',
-                publishedDate: '2026-04-21',
+                url: 'https://www.businesswire.com/news/home/20260519341013/en/Expensify-and-Playroll-Partner-to-Eliminate-Compliance-Complexity-and-Streamline-Expenses-to-Payroll-for-Businesses-Going-Global',
+                publishedDate: '2026-05-19',
             },
             {
                 title: 'Expensify named Expense Platform of the Year',
