@@ -1,7 +1,8 @@
-import {useEffect, useEffectEvent} from 'react';
+import {useEffect, useEffectEvent, useState} from 'react';
 import {setMergeHRInitialSyncModalShown} from '@libs/actions/connections/MergeHR';
 // eslint-disable-next-line no-restricted-imports -- the hook does not use React Navigation hooks internally (isFocused is passed in as a parameter), so there is no navigation instance available to use navigation.addListener for transition detection.
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import Visibility from '@libs/Visibility';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useConfirmModal from './useConfirmModal';
@@ -17,6 +18,9 @@ function useMergeHRInitialSyncingModal(policyID: string, isFocused: boolean) {
     const {showConfirmModal} = useConfirmModal();
     const {translate} = useLocalize();
     const [hasShownModal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN}${policyID}`);
+    const [isAppVisible, setIsAppVisible] = useState(Visibility.isVisible);
+
+    useEffect(() => Visibility.onVisibilityChange(() => setIsAppVisible(Visibility.isVisible())), []);
 
     const showSyncingModal = useEffectEvent(() => {
         if (hasShownModal) {
@@ -36,13 +40,13 @@ function useMergeHRInitialSyncingModal(policyID: string, isFocused: boolean) {
 
     useEffect(() => {
         const isInitialSyncInProgress = mergeLastSync?.syncStatus === CONST.MERGE_HR.SYNC_STATUS.SYNCING && mergeLastSync?.syncType === CONST.MERGE_HR.SYNC_TYPE.INITIAL;
-        if (!isFocused || !isInitialSyncInProgress) {
+        if (!isFocused || !isInitialSyncInProgress || !isAppVisible) {
             return;
         }
 
         const handle = TransitionTracker.runAfterTransitions({callback: showSyncingModal, waitForUpcomingTransition: true});
         return () => handle.cancel();
-    }, [mergeLastSync?.syncStatus, mergeLastSync?.syncType, isFocused]);
+    }, [mergeLastSync?.syncStatus, mergeLastSync?.syncType, isFocused, isAppVisible]);
 }
 
 export default useMergeHRInitialSyncingModal;
