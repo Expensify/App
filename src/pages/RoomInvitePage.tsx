@@ -144,23 +144,28 @@ function RoomInvitePage({
             invitedEmailsToAccountIDs[login] = accountID;
         }
         if (report?.reportID) {
-            if (isPolicyExpenseChat(report)) {
-                inviteToRoomAction(
-                    report,
-                    ancestors,
-                    invitedEmailsToAccountIDs,
-                    currentUserPersonalDetails.timezone ?? CONST.DEFAULT_TIME_ZONE,
-                    currentUserPersonalDetails.accountID,
-                    delegateAccountID,
-                );
-            } else {
-                inviteToRoom(report, invitedEmailsToAccountIDs, formatPhoneNumber);
-            }
             clearUserSearchPhrase();
+            // Defer the invite action until after the navigation transition completes to prevent
+            // a race condition on iOS where optimistic Onyx updates trigger a re-render of the
+            // underlying RoomMembersPage during the native screen transition animation, causing a crash.
+            const afterTransition = () => {
+                if (isPolicyExpenseChat(report)) {
+                    inviteToRoomAction(
+                        report,
+                        ancestors,
+                        invitedEmailsToAccountIDs,
+                        currentUserPersonalDetails.timezone ?? CONST.DEFAULT_TIME_ZONE,
+                        currentUserPersonalDetails.accountID,
+                        delegateAccountID,
+                    );
+                } else {
+                    inviteToRoom(report, invitedEmailsToAccountIDs, formatPhoneNumber);
+                }
+            };
             if (backTo) {
-                Navigation.goBack(backTo);
+                Navigation.goBack(backTo, {afterTransition});
             } else {
-                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(report.reportID), {afterTransition});
             }
         }
     };
