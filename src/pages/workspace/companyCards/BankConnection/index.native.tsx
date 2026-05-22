@@ -79,9 +79,15 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
     const hasShownDuplicateModal = useRef(false);
     const {showConfirmModal} = useConfirmModal();
     const showConfirmModalRef = useRef(showConfirmModal);
-    showConfirmModalRef.current = showConfirmModal;
     const translateRef = useRef(translate);
-    translateRef.current = translate;
+
+    useEffect(() => {
+        showConfirmModalRef.current = showConfirmModal;
+    }, [showConfirmModal]);
+
+    useEffect(() => {
+        translateRef.current = translate;
+    }, [translate]);
 
     const activityReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'BankConnection',
