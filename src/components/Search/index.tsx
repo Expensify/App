@@ -952,8 +952,6 @@ function Search({
         isRefreshingSelection.current = false;
     }, [selectedTransactions]);
 
-    // Keeps `selectedReports` in sync with the current selection + visible rows.
-    // Hoisted out of `toggleTransaction` so the callback doesn't churn on every search re-derivation.
     useSyncSelectedReports(filteredData);
 
     const areItemsGrouped = !!validGroupBy || isExpenseReportType;
