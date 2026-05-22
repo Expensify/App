@@ -218,33 +218,25 @@ function navigateAfterExpenseCreate({
     };
 
     const showGrowl = (threadReportID: string | undefined, source: 'onyx' | 'timeout') => {
-        console.log('[growl-view] showing growl on Search (waiting for interactions)', {threadReportID, source});
-        // Defer the growl until Search has finished its initial render. The iouAction lands in
-        // Onyx as part of Search's flushDeferredWrite → API.write cycle, so without this defer
-        // the slide-in animation fights with Search's render work and judders. runAfterInteractions
-        // yields to any in-flight interactions / animations and runs the growl once the JS thread
-        // is idle, so the slide-in plays smoothly.
-        InteractionManager.runAfterInteractions(() => {
-            console.log('[growl-view] interactions complete – triggering growl now', {threadReportID, source});
-            if (!threadReportID) {
-                Log.warn('[navigateAfterExpenseCreate] Unable to resolve transaction thread reportID; growl without View.');
-                Growl.success('Expense added', CONST.GROWL.DURATION_LONG);
-                return;
-            }
-            const resolvedThreadReportID = threadReportID;
-            const navigateToExpenseRHP = () => {
-                console.log('[growl-view] View clicked – pushing SEARCH_REPORT RHP', {
-                    resolvedThreadReportID,
-                    transactionID,
-                    currentActiveRoute: Navigation.getActiveRoute(),
-                });
-                const targetRoute = ROUTES.SEARCH_REPORT.getRoute({reportID: resolvedThreadReportID});
-                setActiveTransactionIDs([transactionID]).then(() => {
-                    Navigation.navigate(targetRoute);
-                });
-            };
-            Growl.success('Expense added', 6000, {label: 'View', onPress: navigateToExpenseRHP});
-        });
+        console.log('[growl-view] triggering growl now', {threadReportID, source});
+        if (!threadReportID) {
+            Log.warn('[navigateAfterExpenseCreate] Unable to resolve transaction thread reportID; growl without View.');
+            Growl.success('Expense added', CONST.GROWL.DURATION_LONG);
+            return;
+        }
+        const resolvedThreadReportID = threadReportID;
+        const navigateToExpenseRHP = () => {
+            console.log('[growl-view] View clicked – pushing SEARCH_REPORT RHP', {
+                resolvedThreadReportID,
+                transactionID,
+                currentActiveRoute: Navigation.getActiveRoute(),
+            });
+            const targetRoute = ROUTES.SEARCH_REPORT.getRoute({reportID: resolvedThreadReportID});
+            setActiveTransactionIDs([transactionID]).then(() => {
+                Navigation.navigate(targetRoute);
+            });
+        };
+        Growl.success('Expense added', 6000, {label: 'View', onPress: navigateToExpenseRHP});
     };
 
     // Fast path: iouAction already in Onyx (rare here since the FAB-from-outside-Spend path
