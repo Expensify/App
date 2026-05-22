@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import StringUtils from '@libs/StringUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
@@ -86,7 +87,7 @@ function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps)
             {!!displayName && (
                 <MenuItemWithTopDescription
                     description={translate('travel.hotelDetails.guest')}
-                    descriptionTextStyle={[styles.textLabelSupporting, styles.mb1]}
+                    descriptionTextStyle={{fontSize: variables.fontSizeLabel}}
                     interactive={false}
                     accessibilityLabel={`${translate('travel.hotelDetails.guest')} ${displayName}`}
                     titleComponent={
