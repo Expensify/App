@@ -7,8 +7,8 @@ function VictoryChartContainer({children}: {children: React.ReactNode}) {
     const styles = useThemeStyles();
     const {chartContentStyles, chartContainerStyles} = useVictoryChartContext();
     return (
-        <View style={[styles.chartContainer, styles.flex1, chartContainerStyles]}>
-            <View style={[styles.chartContent, chartContentStyles]}>{children}</View>
+        <View style={[styles.chartContainer, styles.mw100, chartContainerStyles]}>
+            <View style={[styles.chartContent, styles.mw100, chartContentStyles]}>{children}</View>
         </View>
     );
 }
