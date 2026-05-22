@@ -730,8 +730,8 @@ function getGuideAndAccountManagerInfo(
  *   1. Logins not present in any of the user's policies' employeeList (non workspace members).
  *   2. Expensify-team logins (@expensify.com / @team.expensify.com), to catch current and former
  *      Account Managers / Guides who are added to customer workspaces with role:admin. Skipped
- *      when the current user is themselves on the Expensify team so they still see colleagues.
- *      Same carveout as WorkspaceMembersPage.
+ *      when the current user is themselves on the Expensify team so they still see colleagues
+ *      (matches the same exception WorkspaceMembersPage uses).
  * Free text input via includeUserToInvite still lets users select any email manually.
  */
 function getNonWorkspaceMemberExclusions(personalDetails: OnyxEntry<PersonalDetailsList>, policies: OnyxCollection<Policy>, currentUserLogin: string | undefined): Record<string, boolean> {
