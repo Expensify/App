@@ -297,7 +297,8 @@ function BaseTextInput({
     // Height fix is needed only for Text single line inputs
     const shouldApplyHeight = !shouldUseFullInputHeight && !isMultiline && !isMarkdownEnabled;
     const accessibilityLabel = [label, hint].filter(Boolean).join(', ');
-    const {accessibilityValue, accessibilityLabelledBy, hiddenLabel} = useTextInputAccessibility(value, accessibilityLabel);
+    const resolvedAccessibilityLabel = inputProps.accessibilityLabel ?? accessibilityLabel;
+    const {accessibilityValue, accessibilityLabelledBy, hiddenLabel} = useTextInputAccessibility(value, resolvedAccessibilityLabel);
     const isKeyboardType = props.keyboardType ? undefined : props.inputMode;
     const loadingSpinnerReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'BaseTextInput.isLoading',
@@ -394,7 +395,7 @@ function BaseTextInput({
                                 // eslint-disable-next-line
                                 {...inputProps}
                                 autoFocus={isInLandscapeMode && !shouldAllowFocusInLandscapeMode ? false : inputProps.autoFocus}
-                                accessibilityLabel={inputProps.accessibilityLabel ?? accessibilityLabel}
+                                accessibilityLabel={resolvedAccessibilityLabel}
                                 accessibilityLabelledBy={accessibilityLabelledBy}
                                 accessibilityValue={accessibilityValue}
                                 accessibilityHint={errorText || inputProps.accessibilityHint}
