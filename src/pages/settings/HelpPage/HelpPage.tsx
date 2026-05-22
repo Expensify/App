@@ -48,7 +48,7 @@ function HelpPage() {
     const conciergeItem = {
         key: 'initialSettingsPage.helpPage.conciergeChat',
         title: translate('initialSettingsPage.helpPage.conciergeChat'),
-        description: translate('initialSettingsPage.helpPage.conciergeChatDescription'),
+        description: isApprovedAccountant ? translate('initialSettingsPage.helpPage.conciergeChatDescription') : undefined,
         icon: icons.ConciergeAvatar,
         iconType: CONST.ICON_TYPE_AVATAR,
         onPress: openConciergeAnywhere,
@@ -89,7 +89,7 @@ function HelpPage() {
         ? {
               key: guideDetails.login,
               title: guideDetails.displayName,
-              description: translate('initialSettingsPage.helpPage.guideDescription'),
+              description: isApprovedAccountant ? translate('initialSettingsPage.helpPage.accountExecutiveDescription') : undefined,
               icon: guideDetails.avatar,
               iconType: CONST.ICON_TYPE_AVATAR,
               onPress: () => navigateToAndOpenReportWithAccountIDs([guideDetails.accountID], currentUserAccountID, introSelected, isSelfTourViewed, betas, personalDetails),
@@ -99,20 +99,11 @@ function HelpPage() {
           }
         : null;
 
-    const accountExecutiveItem = guideDetails
-        ? {
-              ...guideItem,
-              key: `accountExecutive-${guideDetails.login}`,
-              description: translate('initialSettingsPage.helpPage.accountExecutiveDescription'),
-              sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.ACCOUNT_EXECUTIVE,
-          }
-        : null;
-
     const accountManagerItem = accountManagerDetails
         ? {
               key: accountManagerDetails.login,
               title: accountManagerDetails.displayName,
-              description: translate('initialSettingsPage.helpPage.accountManagerDescription'),
+              description: isApprovedAccountant ? translate('initialSettingsPage.helpPage.accountManagerDescription') : undefined,
               icon: accountManagerDetails.avatar,
               iconType: CONST.ICON_TYPE_AVATAR,
               onPress: () => navigateToAndOpenReportWithAccountIDs([accountManagerDetails.accountID], currentUserAccountID, introSelected, isSelfTourViewed, betas, personalDetails),
@@ -169,11 +160,11 @@ function HelpPage() {
                                             />
                                         </View>
                                     )}
-                                    {!!accountExecutiveItem && (
+                                    {!!guideItem && (
                                         <View>
                                             <Text style={[styles.textLabelSupportingNormal]}>{translate('initialSettingsPage.helpPage.accountExecutive')}</Text>
                                             <MenuItemList
-                                                menuItems={[accountExecutiveItem]}
+                                                menuItems={[guideItem]}
                                                 shouldUseSingleExecution
                                             />
                                         </View>
