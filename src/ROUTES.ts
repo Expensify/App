@@ -731,7 +731,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
             SCREENS.REPORT_DETAILS.ROOT,
-            SCREENS.PROFILE_ROOT,
+            SCREENS.DYNAMIC_PROFILE,
         ],
         getRoute: (reportID?: string) => getUrlWithParams('notes', reportID ? {reportID} : {}),
         queryParams: ['reportID'],
@@ -744,7 +744,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
             SCREENS.REPORT_DETAILS.ROOT,
-            SCREENS.PROFILE_ROOT,
+            SCREENS.DYNAMIC_PROFILE,
             SCREENS.DYNAMIC_PRIVATE_NOTES_LIST,
         ],
         getRoute: (accountID: number, reportID?: string) => {
