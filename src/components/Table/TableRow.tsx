@@ -2,6 +2,7 @@ import React from 'react';
 import type {PressableStateCallbackType} from 'react-native';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
+import ErrorMessageRow from '@components/ErrorMessageRow';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {PressableWithFeedbackProps} from '@components/Pressable/PressableWithFeedback';
@@ -85,8 +86,7 @@ export default function TableRow({
 
     const tableRowContentContainerStyles = [
         styles.flex1,
-        styles.flexRow,
-        styles.alignItemsCenter,
+        styles.gap3,
         shouldUseNarrowTableLayout ? styles.ph4 : styles.ph3,
         shouldUseNarrowTableLayout && !isLoading && styles.pv4,
         !shouldUseNarrowTableLayout && !isLoading && styles.pv2,
@@ -113,7 +113,10 @@ export default function TableRow({
     };
 
     return (
-        <OfflineWithFeedback {...offlineWithFeedback}>
+        <OfflineWithFeedback
+            {...offlineWithFeedback}
+            shouldShowErrorMessages={false}
+        >
             <PressableWithFeedback
                 accessible={accessible}
                 accessibilityLabel="row"
@@ -141,6 +144,14 @@ export default function TableRow({
                             </View>
                         ) : (
                             <View style={tableRowContentStyles}>{renderChildren(state)}</View>
+                        )}
+
+                        {!!offlineWithFeedback?.errors && (
+                            <ErrorMessageRow
+                                errors={offlineWithFeedback.errors}
+                                dismissError={offlineWithFeedback.dismissError}
+                                onDismiss={offlineWithFeedback.onClose}
+                            />
                         )}
                     </Animated.View>
                 )}
