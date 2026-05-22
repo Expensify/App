@@ -155,7 +155,7 @@ function WorkspaceCompanyCardTableRow({item, policyID, CardFeedIcon, shouldUseNa
                     </View>
 
                     {!shouldUseNarrowTableLayout && (
-                        <View style={[styles.flex1]}>
+                        <View style={[styles.flex1, styles.justifyContentCenter]}>
                             <Text
                                 numberOfLines={1}
                                 style={[styles.lh16, styles.optionDisplayName, styles.pre]}
@@ -166,7 +166,7 @@ function WorkspaceCompanyCardTableRow({item, policyID, CardFeedIcon, shouldUseNa
                     )}
 
                     {!shouldUseNarrowTableLayout && (
-                        <View style={[styles.flex1]}>
+                        <View style={[styles.flex1, styles.justifyContentCenter]}>
                             <Text
                                 numberOfLines={1}
                                 style={[styles.lh16, styles.optionDisplayName, styles.pre]}
