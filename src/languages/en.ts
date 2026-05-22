@@ -6459,6 +6459,7 @@ const translations = {
             finalApprover: 'Final approver',
             providerFinalApprover: (providerName: string) => `${providerName} final approver`,
             notSet: 'Not set',
+            syncing: 'Syncing employees',
             syncingModalTitle: 'Your connection is syncing',
             syncingModalDescription: "The first connection can take some time. You'll be notified of any errors.",
             approvalModeDescription: (providerName: string) => `Members and managers are set up to sync with ${providerName}.`,
@@ -6488,8 +6489,6 @@ const translations = {
                         return 'Loading data from TriNet';
                     case 'zenefitsSyncProvisioning':
                         return 'Provisioning employees in policy';
-                    case 'mergeHRSyncTitle':
-                        return 'Synchronizing HR Employees';
                     case 'jobDone':
                         return 'Waiting for imported data to load';
                     default: {

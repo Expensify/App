@@ -167,7 +167,7 @@ function syncConnection(policy: Policy | undefined, connectionName: PolicyConnec
     const policyID = policy.id;
 
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR) {
-        syncMergeHR(policyID);
+        syncMergeHR(policyID, policy);
         return;
     }
 

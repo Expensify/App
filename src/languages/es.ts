@@ -6299,8 +6299,6 @@ ${amount} para ${merchant} - ${date}`,
                         return 'Cargando datos desde TriNet';
                     case 'zenefitsSyncProvisioning':
                         return 'Aprovisionar empleados en la política';
-                    case 'mergeHRSyncTitle':
-                        return 'Sincronización de empleados de HR';
                     case 'jobDone':
                         return 'Esperando a que se carguen los datos importados';
                     default: {
