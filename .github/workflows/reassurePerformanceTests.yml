@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Checkout baseline branch
         # v1
-        uses: getblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
 
       - name: Checkout baseline branch
         shell: bash
@@ -44,7 +44,7 @@ jobs:
     steps:
       - name: Checkout
         # v1
-        uses: getblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
 
       - name: Setup NodeJS
         uses: ./.github/actions/composite/setupNode
@@ -71,7 +71,7 @@ jobs:
     steps:
       - name: Checkout
         # v1
-        uses: getblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
 
       - name: Setup NodeJS
         uses: ./.github/actions/composite/setupNode

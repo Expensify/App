@@ -33,7 +33,7 @@ jobs:
     steps:
       - name: Checkout
         # v1
-        uses: getblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
           submodules: true
           ref: ${{ github.event.before || 'main' }}
@@ -140,7 +140,7 @@ jobs:
     steps:
       - name: Checkout Code
         # v1
-        uses: getblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
           submodules: ${{ matrix.is_hybrid }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}

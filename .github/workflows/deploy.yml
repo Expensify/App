@@ -38,7 +38,7 @@ jobs:
     steps:
       - name: Checkout
         # v1
-        uses: getblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
           ref: ${{ inputs.ENVIRONMENT || github.sha }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
@@ -83,7 +83,7 @@ jobs:
             local tag="$1"
             local head_sha
             head_sha=$(git rev-parse HEAD)
-            # Fetch the tag from remote before checking locally. getblacksmith/checkout uses
+            # Fetch the tag from remote before checking locally. useblacksmith/checkout uses
             # fetch-depth=1 and fetch-tags=false by default, so a previously pushed tag
             # won't be present in the workspace. Without this fetch, git tag "$tag" would
             # succeed locally and then git push would fail because the tag already exists
@@ -217,7 +217,7 @@ jobs:
     steps:
       - name: Checkout
         # v1
-        uses: getblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
@@ -272,7 +272,7 @@ jobs:
     steps:
       - name: Checkout
         # v1
-        uses: getblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
@@ -432,7 +432,7 @@ jobs:
     steps:
       - name: Checkout
         # v1
-        uses: getblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
@@ -513,7 +513,7 @@ jobs:
     steps:
       - name: Checkout
         # v1
-        uses: getblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
@@ -662,7 +662,7 @@ jobs:
     steps:
       - name: Checkout
         # v1
-        uses: getblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
@@ -725,7 +725,7 @@ jobs:
     steps:
       - name: Checkout
         # v1
-        uses: getblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
@@ -755,7 +755,7 @@ jobs:
     steps:
       - name: Checkout
         # v1
-        uses: getblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
 
       - name: Post Slack message on failure
         uses: ./.github/actions/composite/announceFailedWorkflowInSlack
