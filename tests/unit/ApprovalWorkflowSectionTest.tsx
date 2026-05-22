@@ -6,19 +6,30 @@ import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 
 let mockIsCustomAgentBetaEnabled = false;
 
-const translations: Record<string, string> = {
-    'workflowsPage.editWorkflowAction': 'Edit',
-    'workflowsPage.addAgentAction': 'Add agent',
-    'workflowsPage.approver': 'Approver',
-    'workflowsPage.addApprovalTip': 'Tip',
-    'workflowsExpensesFromPage.title': 'Expenses from',
-    'workspace.common.everyone': 'Everyone',
-    'workflowsPage.accessibilityLabel': 'workflow accessibility',
-};
+function mockTranslate(key: string): string {
+    switch (key) {
+        case 'workflowsPage.editWorkflowAction':
+            return 'Edit';
+        case 'workflowsPage.addAgentAction':
+            return 'Add agent';
+        case 'workflowsPage.approver':
+            return 'Approver';
+        case 'workflowsPage.addApprovalTip':
+            return 'Tip';
+        case 'workflowsExpensesFromPage.title':
+            return 'Expenses from';
+        case 'workspace.common.everyone':
+            return 'Everyone';
+        case 'workflowsPage.accessibilityLabel':
+            return 'workflow accessibility';
+        default:
+            return key;
+    }
+}
 
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
-        translate: (key: string) => translations[key] ?? key,
+        translate: mockTranslate,
         toLocaleOrdinal: (n: number) => String(n),
         localeCompare: (a: string, b: string) => a.localeCompare(b),
     })),
