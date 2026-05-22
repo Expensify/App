@@ -109,7 +109,7 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
     const [selectionState, setSelectionState] = useState<SelectionState>(defaultSelectionState);
 
     const currentSearchHashRef = useRef(currentSearchHash);
-    
+
     useEffect(() => {
         currentSearchHashRef.current = currentSearchHash;
     }, [currentSearchHash]);
