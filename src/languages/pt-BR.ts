@@ -7172,6 +7172,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             },
             syncingModalTitle: 'Sua conexão está sincronizando',
             syncingModalDescription: 'A primeira conexão pode levar algum tempo. Você será notificado sobre quaisquer erros.',
+            syncing: 'Sincronizando funcionários',
         },
     },
     getAssistancePage: {

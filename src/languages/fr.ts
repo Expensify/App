@@ -7239,6 +7239,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             },
             syncingModalTitle: 'Votre connexion est en cours de synchronisation',
             syncingModalDescription: 'La première connexion peut prendre un certain temps. Vous serez informé de toute erreur.',
+            syncing: 'Synchronisation des employés',
         },
     },
     getAssistancePage: {

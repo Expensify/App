@@ -6989,6 +6989,7 @@ ${reportName}
             },
             syncingModalTitle: '您的连接正在同步',
             syncingModalDescription: '首次连接可能需要一些时间。若发生任何错误，我们会通知你。',
+            syncing: '正在同步员工',
         },
     },
     getAssistancePage: {

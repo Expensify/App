@@ -7172,6 +7172,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             },
             syncingModalTitle: 'Je verbinding wordt gesynchroniseerd',
             syncingModalDescription: 'De eerste verbinding kan even duren. Je krijgt een melding als er fouten optreden.',
+            syncing: 'Werknemers synchroniseren',
         },
     },
     getAssistancePage: {

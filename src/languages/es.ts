@@ -6325,6 +6325,7 @@ ${amount} para ${merchant} - ${date}`,
             },
             syncingModalTitle: 'Tu conexión se está sincronizando',
             syncingModalDescription: 'La primera conexión puede tardar un poco. Se te notificará de cualquier error.',
+            syncing: 'Sincronizando empleados',
         },
         export: {
             notReadyHeading: 'No está listo para exportar',

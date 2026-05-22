@@ -7197,6 +7197,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             },
             syncingModalTitle: 'La tua connessione è in sincronizzazione',
             syncingModalDescription: "La prima connessione può richiedere un po' di tempo. Ti verrà notificato qualsiasi errore.",
+            syncing: 'Sincronizzazione dipendenti',
         },
     },
     getAssistancePage: {

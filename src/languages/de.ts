@@ -7210,6 +7210,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             },
             syncingModalTitle: 'Ihre Verbindung wird synchronisiert',
             syncingModalDescription: 'Die erste Verbindung kann einige Zeit dauern. Sie werden über alle Fehler benachrichtigt.',
+            syncing: 'Mitarbeitende werden synchronisiert',
         },
     },
     getAssistancePage: {

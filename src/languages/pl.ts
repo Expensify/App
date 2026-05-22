@@ -7167,6 +7167,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             },
             syncingModalTitle: 'Twoje połączenie jest synchronizowane',
             syncingModalDescription: 'Pierwsze połączenie może chwilę potrwać. Zostaniesz powiadomiony o wszelkich błędach.',
+            syncing: 'Synchronizowanie pracowników',
         },
     },
     getAssistancePage: {
