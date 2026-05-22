@@ -89,7 +89,7 @@ A secondary approver acts as a fallback if the primary approver is unavailable. 
 Set this up under:
 
 - Approvers can set their own secondary approver under **User icon** > **My profile** > **Configuration** > **Approval Settings**. Click Add Approver to designate a secondary approver who can approve on your behalf. You may add multiple secondary approvers.
-- Travel admins can set secondary approvers in a traveler's profile. Head to **Program** > **Users** > **Travelers** > select traveler > **Configuration** tab. Click Add approver to search for another travel member to approve on their behalf.
+- Travel admins can set secondary approvers in a traveler's profile. Head to **Program** > **Users** > **Travelers** > select traveler > **Configuration** tab. Click **Add approver** to search for another travel member to approve on their behalf.
 
 ---
 
