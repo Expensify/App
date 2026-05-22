@@ -1,14 +1,14 @@
 import React from 'react';
 import {CartesianChart} from 'victory-native';
+import VictoryChartLabels from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/components/VictoryChartLabels';
+import VictoryChartLegend from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/components/VictoryChartLegend';
+import VictoryChartSeries from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/components/VictoryChartSeries';
 import {CHART_TYPE} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import {VictoryChartRenderArgsProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartRenderArgsContext';
 import getYKey from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getYKey';
 import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 import parseDomainPadding from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseDomainPadding';
-import VictoryChartLabels from './VictoryChartLabels';
-import VictoryChartLegend from './VictoryChartLegend';
-import VictoryChartSeries from './VictoryChartSeries';
 
 /**
  * Renders the CartesianChart with data, axes, and domain config drawn from context.
