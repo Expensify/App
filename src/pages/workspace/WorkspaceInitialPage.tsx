@@ -193,7 +193,12 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const prevIsPendingDelete = isPendingDeletePolicy(prevPolicy);
     // While the policy is being fetched (e.g., right after joinAccessiblePolicy), the role is not yet populated,
     // so checkIfShouldShowPolicy returns false. Suppress NotFound during this loading window.
-    const shouldShowNotFoundPage = isWorkspacesTabFocused && !shouldShowPolicy && !policy?.isLoading && (!isPendingDelete || prevIsPendingDelete);
+    const computedShouldShowNotFoundPage = isWorkspacesTabFocused && !shouldShowPolicy && !policy?.isLoading && (!isPendingDelete || prevIsPendingDelete);
+    // Latch to true: once the not-found state is detected, keep showing it so the normal
+    // workspace content doesn't flash during the exit animation when navigation state
+    // changes (e.g., isWorkspacesTabFocused becomes false after StackActions.pop()).
+    const prevShouldShowNotFoundPage = usePrevious(computedShouldShowNotFoundPage);
+    const shouldShowNotFoundPage = computedShouldShowNotFoundPage || !!prevShouldShowNotFoundPage;
     const fetchPolicyData = () => {
         if (policyDraft?.id || !isFocused) {
             return;
