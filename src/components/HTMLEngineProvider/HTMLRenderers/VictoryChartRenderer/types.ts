@@ -1,8 +1,9 @@
 import type {Color, SkTypeface} from '@shopify/react-native-skia';
 import type {ComponentProps} from 'react';
 import type {CustomRendererProps, TBlock, TNode} from 'react-native-render-html';
+import type {ValueOf} from 'type-fest';
 import type {CartesianChart} from 'victory-native';
-import type {X_KEY, Y_KEY_PREFIX} from './constants';
+import type {CHART_TYPE, X_KEY, Y_KEY_PREFIX} from './constants';
 
 type VictoryChartRendererProps = CustomRendererProps<TBlock>;
 
@@ -136,6 +137,8 @@ type PartialProcessNodeResult = {
 
 type NodeParser = (tnode: TNode, typeface: SkTypeface | null) => PartialProcessNodeResult;
 
+type ChartType = ValueOf<typeof CHART_TYPE> | null;
+
 export type {
     VictoryChartRendererProps,
     RawChartData,
@@ -153,4 +156,5 @@ export type {
     ProcessNodeResult,
     PartialProcessNodeResult,
     NodeParser,
+    ChartType,
 };
