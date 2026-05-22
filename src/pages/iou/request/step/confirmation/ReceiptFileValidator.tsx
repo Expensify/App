@@ -1,4 +1,4 @@
-import {useEffect, useRef} from 'react';
+import {useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils';
 import validateReceiptFile from '@libs/fileDownload/validateReceiptFile';
@@ -26,11 +26,8 @@ type ReceiptFileValidatorProps = {
     participants: Participant[];
     draftTransactionIDs: string[] | undefined;
     /**
-     * True once `useOdometerReceiptStitcher` has finished verifying source blobs and (if applicable)
-     * writing the derived receipt for an odometer transaction. The validator skips the **initial**
-     * odometer row while this is false so it doesn't race the stitcher mid-derivation. Non-initial
-     * rows (e.g. manual scans in a split) validate immediately regardless. Defaults to true for
-     * non-odometer flows.
+     * False while the odometer stitcher is mid-derivation. The validator skips only the initial
+     * odometer row in that case - non-initial rows still validate. Pass `true` for non-odometer flows.
      */
     isOdometerReady: boolean;
     onReceiptFilesChange: (files: Record<string, Receipt>) => void;
@@ -55,13 +52,6 @@ function ReceiptFileValidator({
     isOdometerReady,
     onReceiptFilesChange,
 }: ReceiptFileValidatorProps) {
-    // Live transactions for the async .then() below - lets it detect when the receipt URL was
-    // rewritten during in-flight validation so a stale failure doesn't clobber the new receipt.
-    const transactionsRef = useRef(transactions);
-    useEffect(() => {
-        transactionsRef.current = transactions;
-    }, [transactions]);
-
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
     // This is because until the request is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
     // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the request process.
@@ -72,7 +62,6 @@ function ReceiptFileValidator({
         let didInitialFail = false;
         let didNonInitialFail = false;
         let resetInitialTransactionReceipt = false;
-        let validatedInitialReceiptPath: string | number | undefined;
 
         Promise.all(
             transactions.map((item) => {
@@ -80,10 +69,6 @@ function ReceiptFileValidator({
                 const itemReceiptPath = item.receipt?.source;
                 const itemReceiptType = item.receipt?.type;
                 const isLocalFile = isLocalFileFileUtils(itemReceiptPath);
-
-                if (item.transactionID === initialTransactionID) {
-                    validatedInitialReceiptPath = itemReceiptPath;
-                }
 
                 // Skip the initial odometer row while the stitcher is mid-derivation. The stitcher
                 // owns transaction.receipt for odometer transactions; validating a mid-stitch URL
@@ -129,21 +114,14 @@ function ReceiptFileValidator({
                 return validateReceiptFile(itemReceiptFilename, itemReceiptPath, itemReceiptType, onSuccess, onFailure) ?? Promise.resolve();
             }),
         ).then(() => {
-            // If the initial transaction's receipt source was rewritten during validation, its failure is stale - drop just that one.
-            // Non-initial failures are preserved so genuine dead-blob failures in other transactions still trigger recovery.
-            const liveInitialReceiptSource = transactionsRef.current.find((t) => t.transactionID === initialTransactionID)?.receipt?.source;
-            const isValidationStale = liveInitialReceiptSource !== validatedInitialReceiptPath;
-            if (isValidationStale) {
-                didInitialFail = false;
-                resetInitialTransactionReceipt = false;
-            }
-            const isScanFilesCanBeRead = !didInitialFail && !didNonInitialFail;
-            if (resetInitialTransactionReceipt) {
-                setMoneyRequestReceipt(initialTransactionID, '', '', true, '');
-            }
+            // Bail if the effect already re-ran on a newer transactions emission — the fresh closure validates from scratch.
             if (ignore) {
                 return;
             }
+            if (resetInitialTransactionReceipt) {
+                setMoneyRequestReceipt(initialTransactionID, '', '', true, '');
+            }
+            const isScanFilesCanBeRead = !didInitialFail && !didNonInitialFail;
             if (isScanFilesCanBeRead) {
                 onReceiptFilesChange(newReceiptFiles);
                 return;
