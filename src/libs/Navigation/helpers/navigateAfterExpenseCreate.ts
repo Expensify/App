@@ -113,86 +113,119 @@ function navigateAfterExpenseCreate({
 
     const type = isInvoice ? CONST.SEARCH.DATA_TYPES.INVOICE : CONST.SEARCH.DATA_TYPES.EXPENSE;
 
-    // POC variant B: navigate to Search immediately (same flow as if the user had been on Spend),
-    // then show the "View" growl on Search once the optimistic IOU action lands in Onyx.
+    // POC variant B: navigate to Search (if not already there), then show the "View" growl on
+    // Search once the optimistic IOU action lands in Onyx. Runs whether or not the user is
+    // already on Spend — on the SEARCH_PRE_INSERT fast path the orchestrator pre-inserts Search
+    // and dismisses the modal before createTransaction runs, so by the time we get here the user
+    // is already on Search (isUserOnSpend=true). The growl must still fire in that case.
     //
     // Why this works without an explicit deferred-write flush: Search's content onLayout callback
     // calls flushDeferredWrite('search') as soon as the actual list (not the skeleton) renders.
     // That fires API.write, which applies optimistic data → our reportActions subscription fires
     // → we have a valid iouAction to build the thread from → show growl with working "View" link.
-    if (!isUserOnSpend) {
-        const queryString = buildCannedSearchQuery({type});
-        console.log('[growl-view] entering variant-B (navigate-to-Search-then-growl-when-ready)', {
-            transactionID,
-            iouReportID,
-            providedTransactionThreadReportID,
-            isInvoice,
-            activeReportID,
-            hasMultipleTransactions,
-            queryString,
+    const queryString = buildCannedSearchQuery({type});
+    const rootState = navigationRef.getRootState();
+    const searchNavigatorRoute = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+    const lastSearchRoute = searchNavigatorRoute?.state?.routes?.at(-1);
+    const alreadyOnSearchRoot = isUserOnSpend && lastSearchRoute?.name === SCREENS.SEARCH.ROOT;
+    const currentSearchQueryJSON = alreadyOnSearchRoot ? getCurrentSearchQueryJSON() : undefined;
+    const isSameSearchType = currentSearchQueryJSON?.type === type;
+    console.log('[growl-view] entering variant-B (navigate-to-Search-then-growl-when-ready)', {
+        transactionID,
+        iouReportID,
+        providedTransactionThreadReportID,
+        isInvoice,
+        activeReportID,
+        hasMultipleTransactions,
+        queryString,
+        isUserOnSpend,
+        alreadyOnSearchRoot,
+        isSameSearchType,
+    });
+
+    setPendingSubmitFollowUpAction(
+        alreadyOnSearchRoot && isSameSearchType ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH,
+    );
+
+    const navigateToSearch = () => {
+        const isNarrow = getIsNarrowLayout();
+        const isFullscreenPreInserted = Navigation.getIsFullscreenPreInsertedUnderRHP();
+        console.log('[growl-view] navigateToSearch firing', {
+            isNarrow,
+            fullscreenPreInserted: isFullscreenPreInserted,
+            alreadyOnSearchRoot,
+            isSameSearchType,
         });
-
-        setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH);
-
-        const navigateToSearch = () => {
-            const isNarrow = getIsNarrowLayout();
-            const isFullscreenPreInserted = Navigation.getIsFullscreenPreInsertedUnderRHP();
-            console.log('[growl-view] navigateToSearch firing', {
-                isNarrow,
-                fullscreenPreInserted: isFullscreenPreInserted,
-            });
-            if (isNarrow && isFullscreenPreInserted) {
-                Navigation.clearFullscreenPreInsertedFlag();
-                Navigation.dismissModal();
-            } else if (isNarrow) {
+        if (isNarrow && isFullscreenPreInserted) {
+            Navigation.clearFullscreenPreInsertedFlag();
+            Navigation.dismissModal();
+            return;
+        }
+        if (isNarrow) {
+            const isRHPStillOnTop = navigationRef.getRootState()?.routes?.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
+            if (!alreadyOnSearchRoot || !isSameSearchType || isRHPStillOnTop) {
                 Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
             } else {
-                Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
+                console.log('[growl-view] navigateToSearch: already on matching Search root with RHP dismissed - no-op');
             }
-        };
-
-        if (navigationRef.isReady()) {
-            navigateToSearch();
-        } else {
-            Navigation.isNavigationReady().then(navigateToSearch);
+            return;
         }
+        if (alreadyOnSearchRoot && isSameSearchType) {
+            console.log('[growl-view] navigateToSearch (wide): already on matching Search root - no-op');
+            return;
+        }
+        Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
+    };
 
-        const buildThreadFromOnyx = (logTag: string): string | undefined => {
-            const iouReport = iouReportID ? getReportOrDraftReport(iouReportID) : undefined;
-            const iouAction = iouReportID ? getIOUActionForReportID(iouReportID, transactionID) : undefined;
-            let threadReportID = providedTransactionThreadReportID ?? iouAction?.childReportID;
-            console.log(`[growl-view] ${logTag} – resolving thread`, {
-                iouReportExists: !!iouReport,
-                iouActionExists: !!iouAction,
-                iouActionReportActionID: iouAction?.reportActionID,
-                iouActionChildReportID: iouAction?.childReportID,
-                initialThreadReportID: threadReportID,
+    if (navigationRef.isReady()) {
+        navigateToSearch();
+    } else {
+        Navigation.isNavigationReady().then(navigateToSearch);
+    }
+
+    const buildThreadFromOnyx = (logTag: string): string | undefined => {
+        const iouReport = iouReportID ? getReportOrDraftReport(iouReportID) : undefined;
+        const iouAction = iouReportID ? getIOUActionForReportID(iouReportID, transactionID) : undefined;
+        let threadReportID = providedTransactionThreadReportID ?? iouAction?.childReportID;
+        console.log(`[growl-view] ${logTag} – resolving thread`, {
+            iouReportExists: !!iouReport,
+            iouActionExists: !!iouAction,
+            iouActionReportActionID: iouAction?.reportActionID,
+            iouActionChildReportID: iouAction?.childReportID,
+            initialThreadReportID: threadReportID,
+        });
+        if (!threadReportID) {
+            const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+            const optimisticThread = createTransactionThreadReport({
+                introSelected,
+                currentUserLogin: currentUserEmail,
+                currentUserAccountID,
+                betas,
+                iouReport,
+                iouReportAction: iouAction,
+                transaction,
             });
-            if (!threadReportID) {
-                const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-                const optimisticThread = createTransactionThreadReport({
-                    introSelected,
-                    currentUserLogin: currentUserEmail,
-                    currentUserAccountID,
-                    betas,
-                    iouReport,
-                    iouReportAction: iouAction,
-                    transaction,
-                });
-                threadReportID = optimisticThread?.reportID;
-                console.log(`[growl-view] ${logTag} – createTransactionThreadReport result`, {
-                    optimisticThreadExists: !!optimisticThread,
-                    optimisticThreadReportID: optimisticThread?.reportID,
-                    optimisticThreadParentReportActionID: optimisticThread?.parentReportActionID,
-                });
-            } else {
-                setOptimisticTransactionThread(threadReportID, iouReport?.reportID, iouAction?.reportActionID, iouReport?.policyID);
-            }
-            return threadReportID;
-        };
+            threadReportID = optimisticThread?.reportID;
+            console.log(`[growl-view] ${logTag} – createTransactionThreadReport result`, {
+                optimisticThreadExists: !!optimisticThread,
+                optimisticThreadReportID: optimisticThread?.reportID,
+                optimisticThreadParentReportActionID: optimisticThread?.parentReportActionID,
+            });
+        } else {
+            setOptimisticTransactionThread(threadReportID, iouReport?.reportID, iouAction?.reportActionID, iouReport?.policyID);
+        }
+        return threadReportID;
+    };
 
-        const showGrowl = (threadReportID: string | undefined, source: 'onyx' | 'timeout') => {
-            console.log('[growl-view] showing growl on Search', {threadReportID, source});
+    const showGrowl = (threadReportID: string | undefined, source: 'onyx' | 'timeout') => {
+        console.log('[growl-view] showing growl on Search (waiting for interactions)', {threadReportID, source});
+        // Defer the growl until Search has finished its initial render. The iouAction lands in
+        // Onyx as part of Search's flushDeferredWrite → API.write cycle, so without this defer
+        // the slide-in animation fights with Search's render work and judders. runAfterInteractions
+        // yields to any in-flight interactions / animations and runs the growl once the JS thread
+        // is idle, so the slide-in plays smoothly.
+        InteractionManager.runAfterInteractions(() => {
+            console.log('[growl-view] interactions complete – triggering growl now', {threadReportID, source});
             if (!threadReportID) {
                 Log.warn('[navigateAfterExpenseCreate] Unable to resolve transaction thread reportID; growl without View.');
                 Growl.success('Expense added', CONST.GROWL.DURATION_LONG);
@@ -211,100 +244,60 @@ function navigateAfterExpenseCreate({
                 });
             };
             Growl.success('Expense added', 6000, {label: 'View', onPress: navigateToExpenseRHP});
-        };
-
-        // Fast path: iouAction already in Onyx (rare here since the FAB-from-outside-Spend path
-        // typically defers the write, but covers retry / non-deferred edge cases).
-        if (iouReportID && getIOUActionForReportID(iouReportID, transactionID)?.reportActionID) {
-            console.log('[growl-view] fast path – iouAction already in Onyx');
-            const threadReportID = buildThreadFromOnyx('fast-path');
-            showGrowl(threadReportID, 'onyx');
-            return;
-        }
-
-        // Slow path: wait for Search to render → flushDeferredWrite('search') → API.write applies
-        // optimistic data → iouAction lands → we show the growl.
-        const SAFETY_TIMEOUT_MS = 8000;
-        let resolved = false;
-        const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}` as const;
-        console.log('[growl-view] slow path – subscribing to reportActions, waiting for Search to flush', {
-            reportActionsKey,
-            transactionID,
-            safetyTimeoutMs: SAFETY_TIMEOUT_MS,
         });
-        const connectionId = Onyx.connectWithoutView({
-            key: reportActionsKey,
-            callback: () => {
-                if (resolved || !iouReportID) {
-                    return;
-                }
-                const iouAction = getIOUActionForReportID(iouReportID, transactionID);
-                if (!iouAction?.reportActionID) {
-                    console.log('[growl-view] reportActions callback – iouAction not yet present');
-                    return;
-                }
-                resolved = true;
-                Onyx.disconnect(connectionId);
-                console.log('[growl-view] reportActions callback – iouAction landed in Onyx', {
-                    iouActionReportActionID: iouAction.reportActionID,
-                    iouActionChildReportID: iouAction.childReportID,
-                });
-                const threadReportID = buildThreadFromOnyx('onyx-landed');
-                showGrowl(threadReportID, 'onyx');
-            },
-        });
+    };
 
-        setTimeout(() => {
-            if (resolved) {
+    // Fast path: iouAction already in Onyx (rare here since the FAB-from-outside-Spend path
+    // typically defers the write, but covers retry / non-deferred edge cases).
+    if (iouReportID && getIOUActionForReportID(iouReportID, transactionID)?.reportActionID) {
+        console.log('[growl-view] fast path – iouAction already in Onyx');
+        const threadReportID = buildThreadFromOnyx('fast-path');
+        showGrowl(threadReportID, 'onyx');
+        return;
+    }
+
+    // Slow path: wait for Search to render → flushDeferredWrite('search') → API.write applies
+    // optimistic data → iouAction lands → we show the growl.
+    const SAFETY_TIMEOUT_MS = 8000;
+    let resolved = false;
+    const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}` as const;
+    console.log('[growl-view] slow path – subscribing to reportActions, waiting for Search to flush', {
+        reportActionsKey,
+        transactionID,
+        safetyTimeoutMs: SAFETY_TIMEOUT_MS,
+    });
+    const connectionId = Onyx.connectWithoutView({
+        key: reportActionsKey,
+        callback: () => {
+            if (resolved || !iouReportID) {
+                return;
+            }
+            const iouAction = getIOUActionForReportID(iouReportID, transactionID);
+            if (!iouAction?.reportActionID) {
+                console.log('[growl-view] reportActions callback – iouAction not yet present');
                 return;
             }
             resolved = true;
             Onyx.disconnect(connectionId);
-            console.log('[growl-view] SAFETY TIMEOUT – iouAction never landed, falling back', {SAFETY_TIMEOUT_MS});
-            const threadReportID = buildThreadFromOnyx('timeout');
-            showGrowl(threadReportID, 'timeout');
-        }, SAFETY_TIMEOUT_MS);
+            console.log('[growl-view] reportActions callback – iouAction landed in Onyx', {
+                iouActionReportActionID: iouAction.reportActionID,
+                iouActionChildReportID: iouAction.childReportID,
+            });
+            const threadReportID = buildThreadFromOnyx('onyx-landed');
+            showGrowl(threadReportID, 'onyx');
+        },
+    });
 
-        return;
-    }
-
-    // When already on Search ROOT with the same type (expense vs invoice), we navigate to the same screen (no-op or refresh); record as dismiss_modal_only.
-    // When on another Search sub-tab (e.g. Chats), or on Search with a different type (e.g. on Invoice, submitting expense), record as navigate_to_search.
-    const rootState = navigationRef.getRootState();
-    const searchNavigatorRoute = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
-    const lastSearchRoute = searchNavigatorRoute?.state?.routes?.at(-1);
-    const alreadyOnSearchRoot = isSearchTopmostFullScreenRoute() && lastSearchRoute?.name === SCREENS.SEARCH.ROOT;
-    const currentSearchQueryJSON = alreadyOnSearchRoot ? getCurrentSearchQueryJSON() : undefined;
-    const isSameSearchType = currentSearchQueryJSON?.type === type;
-    setPendingSubmitFollowUpAction(
-        alreadyOnSearchRoot && isSameSearchType ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH,
-    );
-
-    const queryString = buildCannedSearchQuery({type});
-    const navigateToSearch = () => {
-        // On the fast path, onConfirm already cleared the flag and dismissed the modal,
-        // so this branch is only reached on the slow path (user submitted before the
-        // 300ms pre-insert timer fired).
-        if (getIsNarrowLayout() && Navigation.getIsFullscreenPreInsertedUnderRHP()) {
-            Navigation.clearFullscreenPreInsertedFlag();
-            Navigation.dismissModal();
-        } else if (getIsNarrowLayout()) {
-            const isRHPStillOnTop = navigationRef.getRootState()?.routes?.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
-            if (!alreadyOnSearchRoot || !isSameSearchType || isRHPStillOnTop) {
-                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
-            } else {
-                Log.info('[IOU] navigateToSearch: already on matching Search root with RHP dismissed - no-op');
-            }
-        } else {
-            Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
+    setTimeout(() => {
+        if (resolved) {
+            return;
         }
-    };
-
-    if (navigationRef.isReady()) {
-        navigateToSearch();
-    } else {
-        Navigation.isNavigationReady().then(navigateToSearch);
-    }
+        resolved = true;
+        Onyx.disconnect(connectionId);
+        console.log('[growl-view] SAFETY TIMEOUT – iouAction never landed, falling back', {SAFETY_TIMEOUT_MS});
+        const threadReportID = buildThreadFromOnyx('timeout');
+        showGrowl(threadReportID, 'timeout');
+    }, SAFETY_TIMEOUT_MS);
 }
 
 export default navigateAfterExpenseCreate;

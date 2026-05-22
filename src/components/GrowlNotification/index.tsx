@@ -1,5 +1,6 @@
+/* eslint-disable no-console -- temporary debug instrumentation for [growl-view] POC */
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useImperativeHandle, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {Directions, Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {useSharedValue, withSpring} from 'react-native-reanimated';
@@ -9,6 +10,7 @@ import Icon from '@components/Icon';
 import * as Pressables from '@components/Pressable';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setIsReady} from '@libs/Growl';
@@ -17,7 +19,8 @@ import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import GrowlNotificationContainer from './GrowlNotificationContainer';
 
-const INACTIVE_POSITION_Y = -255;
+const INACTIVE_OFFSET = 255;
+const INACTIVE_POSITION_Y = -INACTIVE_OFFSET;
 
 const PressableWithoutFeedback = Pressables.PressableWithoutFeedback;
 
@@ -32,9 +35,17 @@ function GrowlNotification({ref}: GrowlNotificationProps) {
     const [type, setType] = useState('success');
     const [duration, setDuration] = useState<number>();
     const [action, setAction] = useState<GrowlAction | undefined>();
+    // Guards against double-firing the action's onPress while the slide-out animation
+    // is still on screen. Reset whenever a new growl is shown.
+    const isActionPressedRef = useRef(false);
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Exclamation', 'Checkmark']);
+
+    // Derived live so that resizing the window flips position + slide direction during display.
+    const useBottomPosition = !!action && !shouldUseNarrowLayout;
+    const inactiveY = useBottomPosition ? INACTIVE_OFFSET : INACTIVE_POSITION_Y;
 
     type GrowlIconTypes = Record<
         /** String representing the growl type, all type strings
@@ -73,6 +84,8 @@ function GrowlNotification({ref}: GrowlNotificationProps) {
      * @param {Number} duration
      */
     const show = useCallback((text: string, growlType: string, growlDuration: number, growlAction?: GrowlAction) => {
+        console.log('[growl-view] show() called', {text, growlType, growlDuration, hasAction: !!growlAction, actionLabel: growlAction?.label});
+        isActionPressedRef.current = false;
         setBodyText(text);
         setType(growlType);
         setDuration(growlDuration);
@@ -85,7 +98,7 @@ function GrowlNotification({ref}: GrowlNotificationProps) {
      * @param {Number} val
      */
     const fling = useCallback(
-        (val = INACTIVE_POSITION_Y) => {
+        (val = inactiveY) => {
             'worklet';
 
             translateY.set(
@@ -94,7 +107,7 @@ function GrowlNotification({ref}: GrowlNotificationProps) {
                 }),
             );
         },
-        [translateY],
+        [translateY, inactiveY],
     );
 
     useImperativeHandle(
@@ -114,6 +127,9 @@ function GrowlNotification({ref}: GrowlNotificationProps) {
             return;
         }
 
+        // Snap to inactive offscreen position before sliding in, so the slide-in direction
+        // matches the current placement (from above for top, from below for bottom).
+        translateY.set(inactiveY);
         fling(0);
 
         if (duration <= 0) {
@@ -127,20 +143,25 @@ function GrowlNotification({ref}: GrowlNotificationProps) {
         }, duration);
 
         return () => clearTimeout(timeoutId);
-    }, [duration, fling]);
+    }, [duration, fling, inactiveY, translateY]);
 
     // GestureDetector by default runs callbacks on UI thread using Reanimated. In this
     // case we want to trigger an RN's Animated animation, which needs to be done on JS thread.
     const flingGesture = Gesture.Fling()
-        .direction(Directions.UP)
+        .direction(useBottomPosition ? Directions.DOWN : Directions.UP)
         .runOnJS(true)
         .onStart(() => {
             fling();
         });
 
+    console.log('[growl-view] render', {bodyText, type, duration, hasAction: !!action, useBottomPosition, shouldUseNarrowLayout});
+
     return (
         <View style={[styles.growlNotificationWrapper]}>
-            <GrowlNotificationContainer translateY={translateY}>
+            <GrowlNotificationContainer
+                translateY={translateY}
+                useBottomPosition={useBottomPosition}
+            >
                 <PressableWithoutFeedback
                     accessibilityLabel={bodyText}
                     sentryLabel="GrowlNotification-Dismiss"
@@ -162,10 +183,16 @@ function GrowlNotification({ref}: GrowlNotificationProps) {
                                     accessibilityLabel={action.label}
                                     sentryLabel="GrowlNotification-Action"
                                     onPress={() => {
-                                        const onPress = action.onPress;
+                                        if (isActionPressedRef.current) {
+                                            console.log('[growl-view] action button pressed again – ignoring (already dismissing)');
+                                            return;
+                                        }
+                                        isActionPressedRef.current = true;
+                                        console.log('[growl-view] action button pressed', {actionLabel: action.label});
+                                        console.log('[growl-view] calling fling() (slide-out animation start)');
                                         fling();
-                                        setAction(undefined);
-                                        onPress();
+                                        console.log('[growl-view] calling action.onPress() (navigates)');
+                                        action.onPress();
                                     }}
                                     style={[styles.ml2, styles.p2]}
                                 >
