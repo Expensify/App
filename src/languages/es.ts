@@ -3179,6 +3179,7 @@ ${amount} para ${merchant} - ${date}`,
             title: 'Invita a miembros',
             subtitle: 'Añade a tu equipo o invita a tu contador. ¡Cuantos más, mejor!',
         },
+        workEmail2FAError: 'Este inicio de sesión corresponde a una cuenta existente con la autenticación de dos factores (2FA) habilitada.',
     },
     featureTraining: {
         doNotShowAgain: 'No muestres esto otra vez',

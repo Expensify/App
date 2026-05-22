@@ -3285,6 +3285,7 @@ ${amount} para ${merchant} - ${date}`,
             title: 'Convidar membros',
             subtitle: 'Adicione sua equipe ou convide seu contador. Quanto mais gente, melhor!',
         },
+        workEmail2FAError: 'Este login é uma conta existente com a Autenticação em Duas Etapas (2FA) ativada.',
     },
     featureTraining: {
         doNotShowAgain: 'Não mostrar isso novamente',

@@ -3284,6 +3284,7 @@ ${amount} dla ${merchant} - ${date}`,
             title: 'Zaproś członków',
             subtitle: 'Dodaj swój zespół lub zaproś księgowego. Im więcej, tym weselej!',
         },
+        workEmail2FAError: 'To logowanie jest istniejącym kontem z włączonym uwierzytelnianiem dwuskładnikowym (2FA).',
     },
     featureTraining: {
         doNotShowAgain: 'Nie pokazuj mi tego ponownie',

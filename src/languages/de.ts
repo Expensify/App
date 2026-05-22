@@ -3302,6 +3302,7 @@ ${amount} für ${merchant} – ${date}`,
             title: 'Mitglieder einladen',
             subtitle: 'Füge dein Team hinzu oder lade deine Steuerberatung ein. Je mehr, desto besser!',
         },
+        workEmail2FAError: 'Dieser Login gehört zu einem bestehenden Konto mit aktivierter Zwei-Faktor-Authentifizierung (2FA).',
     },
     featureTraining: {
         doNotShowAgain: 'Nicht mehr anzeigen',

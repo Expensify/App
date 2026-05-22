@@ -3080,6 +3080,7 @@ const translations = {
             sameAsSignupEmail: 'Please enter a different email than the one you signed up with',
             offline: 'We couldn’t add your work email as you appear to be offline',
         },
+        workEmail2FAError: 'This login is an existing account with Two-Factor Authentication (2FA) enabled.',
         mergeBlockScreen: {
             title: 'Couldn’t add work email',
             subtitle: (workEmail: string | undefined) => `We couldn’t add ${workEmail}. Please try again later in Settings or chat with Concierge for guidance.`,

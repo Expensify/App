@@ -3308,6 +3308,7 @@ ${amount} pour ${merchant} - ${date}`,
             title: 'Inviter des membres',
             subtitle: 'Ajoutez votre équipe ou invitez votre comptable. Plus on est de fous, plus on rit !',
         },
+        workEmail2FAError: 'Cette connexion est un compte existant avec l’authentification à deux facteurs (2FA) activée.',
     },
     featureTraining: {
         doNotShowAgain: 'Ne plus m’afficher ceci',
