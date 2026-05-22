@@ -17,7 +17,7 @@ import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type {BankAccountList} from '@src/types/onyx/BankAccount';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
-import {Connections} from '@src/types/onyx/Policy';
+import type {Connections} from '@src/types/onyx/Policy';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import createRandomPolicy from '../utils/collections/policies';
