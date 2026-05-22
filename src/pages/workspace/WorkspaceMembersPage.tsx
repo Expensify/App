@@ -626,7 +626,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             label={roleFilterDropdownLabel}
             value={null}
             PopoverComponent={rolePopoverComponent}
-            innerStyles={[styles.gap2, shouldUseNarrowLayout && styles.mw100]}
+            innerStyles={[styles.gap2, styles.mw100]}
             wrapperStyle={shouldUseNarrowLayout ? styles.flexGrow0 : undefined}
             labelStyle={styles.fontSizeLabel}
             caretWrapperStyle={styles.gap2}
