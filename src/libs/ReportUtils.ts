@@ -6116,8 +6116,7 @@ function navigateToDetailsPage(report: OnyxEntry<Report>, backTo?: string, shoul
     const participantAccountID = getParticipantsAccountIDsForDisplay(report);
 
     if (isSelfDMReport || isOneOnOneChatReport) {
-        const basePath = isSelfDMReport || shouldUseActiveRoute ? Navigation.getActiveRoute() : (backTo ?? '');
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(participantAccountID.at(0)), basePath));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(participantAccountID.at(0))));
         return;
     }
 
@@ -6134,7 +6133,7 @@ function goBackToDetailsPage(report: OnyxEntry<Report>, backTo?: string, shouldG
     const participantAccountID = getParticipantsAccountIDsForDisplay(report);
 
     if (isOneOnOneChatReport) {
-        Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(participantAccountID.at(0)), backTo ?? ''));
+        Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(participantAccountID.at(0))));
         return;
     }
 
@@ -6178,7 +6177,7 @@ function goBackFromPrivateNotes(report: OnyxEntry<Report>, accountID?: number, b
         const participantAccountIDs = getParticipantsAccountIDsForDisplay(report);
 
         if (isOneOnOneChat(report)) {
-            Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(participantAccountIDs.at(0)), backTo ?? ''));
+            Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(participantAccountIDs.at(0))));
             return;
         }
 

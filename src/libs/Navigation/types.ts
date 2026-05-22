@@ -1680,7 +1680,7 @@ type DetailsNavigatorParamList = {
 type ProfileNavigatorParamList = {
     [SCREENS.DYNAMIC_PROFILE]: {
         accountID: string;
-        reportID?: string;
+        reportID: string;
         login?: string;
     };
 };

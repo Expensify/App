@@ -94,7 +94,7 @@ function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
     }
 
     const goBack = () => {
-        Navigation.navigate(backPath);
+        Navigation.goBack(backPath);
     };
 
     const handleReportFieldDelete = async () => {
@@ -173,7 +173,7 @@ function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
-            testID="EditReportFieldPage"
+            testID="DynamicEditReportFieldPage"
         >
             <HeaderWithBackButton
                 title={fieldName}

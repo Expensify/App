@@ -146,8 +146,6 @@ function ProfilePage({route}: ProfilePageProps) {
     const hasStatus = !!statusEmojiCode;
     const statusContent = `${statusEmojiCode}  ${statusText}`;
 
-    const navigateBackTo = (backPath || ROUTES.HOME) as Route;
-
     const notificationPreferenceValue = getReportNotificationPreference(report);
 
     const shouldShowNotificationPreference = !isEmptyObject(report) && !isCurrentUser && !isReportHiddenForCurrentUser(notificationPreferenceValue);
@@ -181,7 +179,7 @@ function ProfilePage({route}: ProfilePageProps) {
             <FullPageNotFoundView shouldShow={shouldShowBlockingView}>
                 <HeaderWithBackButton
                     title={translate('common.profile')}
-                    onBackButtonPress={() => Navigation.goBack(navigateBackTo)}
+                    onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                     <ScrollView>
@@ -277,7 +275,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                 title={`${translate('privateNotes.title')}`}
                                 titleStyle={styles.flex1}
                                 icon={expensifyIcons.Pencil}
-                                onPress={() => navigateToPrivateNotes(report, currentUserAccountID, navigateBackTo)}
+                                onPress={() => navigateToPrivateNotes(report, currentUserAccountID, backPath)}
                                 wrapperStyle={styles.breakAll}
                                 shouldShowRightIcon
                                 brickRoadIndicator={hasErrorInPrivateNotes(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}

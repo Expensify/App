@@ -855,12 +855,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
                     onPress={
                         shouldShowEditableTitleField && report.policyID
                             ? () => {
-                                  const policyID = report.policyID;
-                                  if (!policyID) {
-                                      return;
-                                  }
-
-                                  Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EDIT_REPORT_FIELD.getRoute(policyID, CONST.REPORT_FIELD_TITLE_FIELD_ID)));
+                                  Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EDIT_REPORT_FIELD.getRoute(CONST.REPORT_FIELD_TITLE_FIELD_ID, report.policyID ?? '')));
                               }
                             : undefined
                     }
