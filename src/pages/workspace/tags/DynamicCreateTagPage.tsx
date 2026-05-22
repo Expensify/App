@@ -27,11 +27,11 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTagForm';
 
-type WorkspaceCreateTagPageProps =
+type DynamicCreateTagPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_CREATE>
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_CREATE>;
 
-function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
+function DynamicCreateTagPage({route}: DynamicCreateTagPageProps) {
     const {policyID} = route.params;
     const policyData = usePolicyData(policyID);
     const {tags: policyTagLists, categories: policyCategories} = policyData;
@@ -112,7 +112,7 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID="WorkspaceCreateTagPage"
+                testID="DynamicCreateTagPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -144,4 +144,4 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
     );
 }
 
-export default WorkspaceCreateTagPage;
+export default DynamicCreateTagPage;
