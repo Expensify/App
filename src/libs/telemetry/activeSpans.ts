@@ -1,4 +1,5 @@
-import {SPAN_STATUS_OK, type SpanAttributeValue, type StartSpanOptions} from '@sentry/core';
+import {SPAN_STATUS_OK} from '@sentry/core';
+import type {SpanAttributeValue, StartSpanOptions} from '@sentry/core';
 import * as Sentry from '@sentry/react-native';
 import {AppState} from 'react-native';
 import CONST from '@src/CONST';
