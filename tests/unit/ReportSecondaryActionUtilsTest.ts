@@ -3226,6 +3226,69 @@ describe('getSecondaryTransactionThreadActions', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
     });
 
+    it('includes the SPLIT option after the other split half was deleted', async () => {
+        // Given an open expense report owned by the current user
+        const report = {
+            reportID: REPORT_ID,
+            policyID: POLICY_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        } as unknown as Report;
+
+        // And a surviving split child that still references the original (its sibling was unreported then deleted)
+        const survivingSplit = {
+            transactionID: 'SURVIVING_SPLIT',
+            status: CONST.TRANSACTION.STATUS.POSTED,
+            amount: 50,
+            merchant: 'Merchant',
+            date: '2025-01-01',
+            reportID: REPORT_ID,
+            comment: {originalTransactionID: 'ORIGINAL_TXN', source: CONST.IOU.TYPE.SPLIT},
+        } as unknown as Transaction;
+
+        // And the original ("parent") expense transaction still existing, hidden on the split report
+        const originalTransaction = {
+            transactionID: 'ORIGINAL_TXN',
+            amount: 100,
+            merchant: 'Merchant',
+            date: '2025-01-01',
+            reportID: CONST.REPORT.SPLIT_REPORT_ID,
+            comment: {},
+        } as unknown as Transaction;
+
+        // And the current user is a member of the policy
+        const policy = {
+            id: POLICY_ID,
+            type: CONST.POLICY.TYPE.TEAM,
+            isPolicyExpenseChatEnabled: true,
+            employeeList: {
+                [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER},
+                [ADMIN_EMAIL]: {email: ADMIN_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
+            },
+            role: CONST.POLICY.ROLE.ADMIN,
+        } as unknown as Policy;
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        // When the secondary transaction-thread actions are computed
+        const result = getSecondaryTransactionThreadActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            parentReport: report,
+            reportTransaction: survivingSplit,
+            reportAction: actionR14932,
+            originalTransaction,
+            policy,
+        });
+
+        // Then the SPLIT option is available
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
+    });
+
     it('does not include the SPLIT option if the current user does not belong to the workspace', async () => {
         const report = {
             reportID: REPORT_ID,

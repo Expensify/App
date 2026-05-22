@@ -911,7 +911,6 @@ const translations: TranslationDeepObject<typeof en> = {
         buttonFind: 'Zoek iets...',
         buttonMySettings: 'Mijn instellingen',
         fabNewChat: 'Chat starten',
-        fabNewChatExplained: 'Actiemenu openen',
         fabScanReceiptExplained: 'Bon scannen',
         chatPinned: 'Chat vastgezet',
         draftedMessage: 'Conceptbericht',
@@ -1510,6 +1509,7 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Sommige van deze duplicaten zijn al goedgekeurd of betaald.',
         reviewDuplicates: 'Dubbele items controleren',
         keepAll: 'Alles behouden',
+        keepSelected: 'Selectie behouden',
         noDuplicatesTitle: 'Alles in orde!',
         noDuplicatesDescription: 'Er zijn hier geen dubbele transacties om te beoordelen.',
         confirmApprove: 'Bevestig goedkeuringsbedrag',
@@ -2208,7 +2208,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     deviceManagementPage: {
         title: 'Apparaatbeheer',
-        description: 'Beheer alle apparaten waarop u bent ingelogd met uw Expensify-account.',
+        description:
+            'Beheer alle apparaten waarop je bent ingelogd met je Expensify-account. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Meer informatie</a>',
         revoke: 'Intrekken',
         unknownDevice: 'Onbekend Apparaat',
     },
@@ -3290,6 +3291,7 @@ ${amount} voor ${merchant} - ${date}`,
             title: 'Leden uitnodigen',
             subtitle: 'Voeg je team toe of nodig je accountant uit. Hoe meer zielen, hoe meer vreugd!',
         },
+        workEmail2FAError: 'Deze inlog is een bestaand account met Two-Factor Authentication (2FA) ingeschakeld.',
     },
     featureTraining: {
         doNotShowAgain: 'Dit niet meer tonen',
@@ -4808,6 +4810,26 @@ ${amount} voor ${merchant} - ${date}`,
                 },
             },
         },
+        certinia: {
+            title: 'Certinia',
+            prerequisites: {
+                title: 'Voordat je verbinding maakt',
+                installBundle: 'Voor FFA-verbindingen',
+                installBundleDescription: ({href, version}: {href: string; version: string}) =>
+                    `Installeer de Expensify-bundel in Salesforce door op deze link te klikken: <a href="${href}">FFA Expensify-bundel installeren (versie ${version})</a>`,
+                installBundleConfirm: 'Ik heb de bundel geïnstalleerd',
+                setupContacts: 'Gebruiker en contacten instellen',
+                setupContactsBullet1:
+                    'Maak zowel een Gebruiker als een Contact voor jezelf aan in Certinia als deze nog niet bestaan en zorg ervoor dat het e‑mailadres overeenkomt met je primaire e‑mail in Expensify.',
+                setupContactsBullet2:
+                    'Maak contacten aan voor elke medewerker die declaraties gaat indienen en voor elke rapportgoedkeurder. Zorg ervoor dat het e-mailadres van elk contact overeenkomt met het e-mailadres van het Expensify-account van de medewerker.',
+                setupContactsBullet3: 'Stel per contact/bron machtigingen in voor je gebruiker.',
+                setupContactsConfirm: 'Ik heb de gebruiker en de contacten ingesteld',
+                oauth: 'Log in via Salesforce',
+                oauthDescription: 'Om de installatie te voltooien, moet je je aanmelden via Salesforce en Certinia.\n\nGebruik de knop hieronder om door te gaan.',
+                connectButton: 'Verbind met Certinia',
+            },
+        },
         netsuite: {
             subsidiary: 'Dochteronderneming',
             subsidiarySelectDescription: 'Kies de dochteronderneming in NetSuite waaruit je gegevens wilt importeren.',
@@ -5983,7 +6005,13 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 `Je staat op het punt ${newWorkspaceName ?? ''} te maken en te delen met ${totalMembers ?? 0} leden van de oorspronkelijke werkruimte.`,
             error: 'Er is een fout opgetreden bij het dupliceren van je nieuwe werkruimte. Probeer het opnieuw.',
         },
-        copyPolicySettings: {error: 'Er is een fout opgetreden bij het kopiëren van de werkruimtainstellingen. Probeer het opnieuw.'},
+        copyPolicySettings: {
+            error: 'Er is een fout opgetreden bij het kopiëren van de werkruimtainstellingen. Probeer het opnieuw.',
+            title: 'Instellingen kopiëren',
+            selectWorkspaces: 'Selecteer werkruimtes',
+            description: 'Kies de werkruimtes waarnaar je instellingen wilt kopiëren en selecteer daarna de instellingen die je wilt kopiëren.',
+            searchPlaceholder: 'Werkruimtes zoeken',
+        },
         emptyWorkspace: {
             title: 'Je hebt geen werkruimtes',
             subtitle: 'Volg bonnen, vergoed uitgaven, beheer reizen, verstuur facturen en meer.',
@@ -6061,8 +6089,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             approvers: 'Fiatteurs',
             auditors: 'Accountants',
             emptyRoleFilter: {title: 'Geen leden komen overeen met dit filter', subtitle: 'Nodig een lid uit of wijzig het filter hierboven.'},
-            configureGustoSync: 'Gusto-synchronisatie configureren.',
-            syncWithGusto: 'Synchroniseren met Gusto',
+            configureHRSync: (providerName: string) => `Stel ${providerName}-synchronisatie in.`,
+            syncWithHR: (providerName: string) => `Synchroniseren met ${providerName}`,
         },
         card: {
             getStartedIssuing: 'Begin met het uitgeven van je eerste virtuele of fysieke kaart.',
@@ -6462,7 +6490,13 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             errors: {
                 rateNameRequired: 'Tariefnaam is verplicht',
                 existingRateName: 'Er bestaat al een afstandstarief met deze naam',
+                nameRequired: 'Naam is verplicht',
+                startDateMustBeBeforeEndDate: 'Begindatum moet vóór de einddatum liggen',
+                amountRequired: 'Bedrag is verplicht',
             },
+            amountPerUnit: (unit: string) => `Bedrag per ${unit}`,
+            startDate: 'Startdatum',
+            endDate: 'Einddatum',
         },
         editor: {
             descriptionInputLabel: 'Beschrijving',
@@ -6588,6 +6622,12 @@ Weet je zeker dat je ze opnieuw wilt exporteren?`,
                 description: `Profiteer van automatische synchronisatie en verminder handmatige invoer met de Expensify + QuickBooks Desktop-integratie. Bereik maximale efficiëntie met een realtime tweerichtingsverbinding en uitgavencodering op basis van klasse, item, klant en project.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Onze QuickBooks Desktop-integratie is alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
+                title: 'Certinia',
+                description: `Profiteer van automatische synchronisatie en verminder handmatige invoer met de Expensify + Certinia-integratie. Stem uitgavendimensies en belastingsynchronisatie af op je Certinia-configuratie voor helderder financieel inzicht.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Onze Certinia-integratie is alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Geavanceerde goedkeuringen',
@@ -7115,6 +7155,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             syncError: (providerName: string) => `Kan geen verbinding maken met ${providerName}`,
             connectionDescription: (providerName: string) => `Verbind ${providerName} om goedkeuringen van werknemers gesynchroniseerd te houden met je werkruimte.`,
             approvalMode: 'Goedkeuringsmodus',
+            providerApprovalMode: (providerName: string) => `${providerName}-goedkeuringsmodus`,
             finalApprover: 'Eindgoedkeurder',
             providerFinalApprover: (providerName: string) => `Laatste ${providerName}-fiatteur`,
             notSet: 'Niet ingesteld',
@@ -7152,23 +7193,26 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     }
                 }
             },
+            syncResults: {
+                title: (provider: string) => `Synchronisatie met ${provider} voltooid`,
+                successTitle: (provider: string) => `Je ${provider}-verbinding is succesvol gesynchroniseerd!`,
+                added: 'Toegevoegd',
+                removed: 'Verwijderd',
+                skipped: 'Overgeslagen',
+                employeeCount: () => ({
+                    one: '1 werknemer',
+                    other: (count: number) => `${count} medewerkers`,
+                }),
+            },
             gusto: {
                 title: 'Gusto',
-                syncResults: {
-                    title: 'Gusto-synchronisatieresultaten',
-                    successTitle: 'Je Gusto-verbinding is succesvol gesynchroniseerd!',
-                    added: 'Toegevoegd',
-                    removed: 'Verwijderd',
-                    skipped: 'Overgeslagen',
-                    employeeCount: () => ({
-                        one: '1 werknemer',
-                        other: (count: number) => `${count} medewerkers`,
-                    }),
-                },
             },
             zenefits: {
                 title: 'TriNet',
             },
+            syncingModalTitle: 'Je verbinding wordt gesynchroniseerd',
+            syncingModalDescription: 'De eerste verbinding kan even duren. Je krijgt een melding als er fouten optreden.',
+            syncing: 'Werknemers synchroniseren',
         },
     },
     getAssistancePage: {
@@ -8232,6 +8276,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         selectAllFeatures: 'Selecteer alle functies',
         selectAllTransactions: 'Selecteer alle transacties',
         selectAllItems: 'Alle items selecteren',
+        openActionsMenu: 'Acties-menu openen',
         selectAllCategories: 'Selecteer alle categorieën',
         selectAllDistanceRates: 'Selecteer alle afstandstarieven',
         selectAllTags: 'Alle tags selecteren',
