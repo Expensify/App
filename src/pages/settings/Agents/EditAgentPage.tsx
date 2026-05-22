@@ -85,7 +85,7 @@ function EditAgentPage({route}: EditAgentPageProps) {
                             avatarStyle={[styles.avatarXLarge, styles.alignSelfCenter]}
                             pendingAction={personalDetails?.pendingFields?.avatar}
                             sentryLabel={CONST.SENTRY_LABEL.EDIT_AGENT_PAGE.AVATAR}
-                            editIconStyle={styles.profilePageAvatar}
+                            editIconStyle={styles.smallEditIconAccount}
                         />
                     </View>
                 </OfflineWithFeedback>

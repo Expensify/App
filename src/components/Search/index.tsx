@@ -88,7 +88,7 @@ import useOptimisticSearchTracking from './hooks/useOptimisticSearchTracking';
 import useStableOptimisticSortedData from './hooks/useStableOptimisticSortedData';
 import SearchChartView from './SearchChartView';
 import SearchChartWrapper from './SearchChartWrapper';
-import {useSearchActionsContext, useSearchStateContext} from './SearchContext';
+import {useSearchActionsContext, useSearchStateContext, useSyncSelectedReports} from './SearchContext';
 import SearchList from './SearchList';
 import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
 import {SearchScopeProvider} from './SearchScopeProvider';
@@ -924,6 +924,10 @@ function Search({
             return;
         }
 
+        // Pass `filteredData` so `selectedReports` is updated atomically with `selectedTransactions`.
+        // Otherwise a stale `useSyncSelectedReports` derivation in the same commit can briefly clear
+        // `selectedReports` while an Onyx push expands the selection, which can close screens like
+        // SearchChangeApproverPage that auto-dismiss when `selectedReports` is empty.
         setSelectedTransactions(newTransactionList, filteredData);
 
         isRefreshingSelection.current = true;
@@ -977,6 +981,10 @@ function Search({
     useEffect(() => {
         isRefreshingSelection.current = false;
     }, [selectedTransactions]);
+
+    // Keeps `selectedReports` in sync with the current selection + visible rows.
+    // Hoisted out of `toggleTransaction` so the callback doesn't churn on every search re-derivation.
+    useSyncSelectedReports(filteredData);
 
     const areItemsGrouped = !!validGroupBy || isExpenseReportType;
     const totalSelectableItemsCount = useMemo(() => {
@@ -1043,7 +1051,7 @@ function Search({
                     accountID,
                     outstandingReportsByPolicyID,
                 );
-                setSelectedTransactions(updatedTransactions, filteredData);
+                setSelectedTransactions(updatedTransactions);
                 updateSelectAllMatchingItemsState(updatedTransactions);
                 return;
             }
@@ -1062,7 +1070,7 @@ function Search({
                         ...selectedTransactions,
                     };
                     delete reducedSelectedTransactions[reportKey];
-                    setSelectedTransactions(reducedSelectedTransactions, filteredData);
+                    setSelectedTransactions(reducedSelectedTransactions);
                     updateSelectAllMatchingItemsState(reducedSelectedTransactions);
                     return;
                 }
@@ -1072,7 +1080,7 @@ function Search({
                     ...selectedTransactions,
                     [reportKey]: emptyReportSelection,
                 };
-                setSelectedTransactions(updatedTransactions, filteredData);
+                setSelectedTransactions(updatedTransactions);
                 updateSelectAllMatchingItemsState(updatedTransactions);
                 return;
             }
@@ -1086,7 +1094,7 @@ function Search({
                     delete reducedSelectedTransactions[transaction.keyForList];
                 }
 
-                setSelectedTransactions(reducedSelectedTransactions, filteredData);
+                setSelectedTransactions(reducedSelectedTransactions);
                 updateSelectAllMatchingItemsState(reducedSelectedTransactions);
                 return;
             }
@@ -1106,13 +1114,13 @@ function Search({
                         }),
                 ),
             };
-            setSelectedTransactions(updatedTransactions, filteredData);
+            setSelectedTransactions(updatedTransactions);
             updateSelectAllMatchingItemsState(updatedTransactions);
         },
         [
             selectedTransactions,
             setSelectedTransactions,
-            filteredData,
+           
             updateSelectAllMatchingItemsState,
             transactions,
             email,
