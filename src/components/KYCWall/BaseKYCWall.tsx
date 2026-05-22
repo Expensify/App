@@ -194,7 +194,7 @@ function KYCWall({
                     if (policyID && iouReport?.policyID) {
                         savePreferredPaymentMethod(iouReport.policyID, policyID, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[iouReport?.policyID]);
                     }
-                    completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, isSelfTourViewed, betas, adminsChatReportID, policyID);
+                    completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, isSelfTourViewed, betas, currentUserAccountID, adminsChatReportID, policyID);
                     const workspaceReportRoute = workspaceChatReportID ? ROUTES.REPORT_WITH_ID.getRoute(workspaceChatReportID) : undefined;
 
                     setNavigationActionToMicrotaskQueue(() => {

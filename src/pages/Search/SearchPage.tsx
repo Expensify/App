@@ -81,7 +81,7 @@ function SearchPage({route}: SearchPageProps) {
 
     const metadata = searchResults?.search;
     const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
-    const shouldShowFooter = selectedTransactionsKeys.length > 0 || (shouldAllowFooterTotals && !!metadata?.count);
+    const shouldShowFooter = (!areAllMatchingItemsSelected && selectedTransactionsKeys.length > 0) || (shouldAllowFooterTotals && !!metadata?.count);
 
     useEffect(() => {
         if (shouldUseNarrowLayout) {
@@ -170,7 +170,7 @@ function SearchPage({route}: SearchPageProps) {
             return {count: undefined, total: undefined, currency: undefined};
         }
 
-        const shouldUseClientTotal = selectedTransactionsKeys.length > 0 || !metadata?.count || (selectedTransactionsKeys.length > 0 && !areAllMatchingItemsSelected);
+        const shouldUseClientTotal = selectedTransactionsKeys.length > 0 || !metadata?.count;
         const selectedTransactionItems = Object.values(selectedTransactions);
         const isSelectedSubtotalLoading =
             shouldUseClientTotal && !!selectedCurrency && selectedTransactionItems.some((transaction) => !!transaction.groupCurrency && transaction.groupCurrency !== selectedCurrency);
@@ -191,7 +191,7 @@ function SearchPage({route}: SearchPageProps) {
               }, 0)
             : metadata?.total;
         return {count: numberOfExpense, total, currency, isLoading: isSelectedSubtotalLoading};
-    }, [areAllMatchingItemsSelected, metadata?.count, metadata?.currency, metadata?.total, selectedCurrency, selectedTransactions, selectedTransactionsKeys, shouldAllowFooterTotals]);
+    }, [metadata?.count, metadata?.currency, metadata?.total, selectedCurrency, selectedTransactions, selectedTransactionsKeys, shouldAllowFooterTotals]);
 
     const onSortPressedCallback = useCallback(() => {
         setIsSorting(true);

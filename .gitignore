@@ -36,6 +36,7 @@ local.properties
 *.iml
 *.hprof
 android/app/src/main/java/com/expensify/chat/generated/
+scripts/generated/
 .cxx/
 
 # VIM
