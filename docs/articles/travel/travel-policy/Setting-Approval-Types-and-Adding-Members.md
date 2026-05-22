@@ -52,7 +52,7 @@ When Pre-Booking Approval is enabled for a booking type, the traveler must recei
 Here is how the process works:
 
 1. The traveler selects a flight, hotel, or car that requires pre-booking approval.
-2. During checkout, a notice appears indicating that pre-booking approval is required. The traveler can click the **your approvers** link to see who is eligible to approve.
+2. During checkout, a notice appears indicating that pre-booking approval is required. The traveler can click **your approvers** to see who is eligible to approve.
 3. On the final checkout page, the traveler clicks **Request approval** instead of the usual **Book** button.
 4. The confirmation page shows that the booking is awaiting approval.
 5. Both the traveler and the approver receive an email notification.
