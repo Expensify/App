@@ -60,12 +60,12 @@ const EXISTING_CONTACT = MOCK_PERSONAL_DETAIL_OPTIONS[0];
 const SECOND_CONTACT = MOCK_PERSONAL_DETAIL_OPTIONS[1];
 
 const NON_EXISTING_USER: OptionData = {
-    text: 'newuser@gmail.com',
-    login: 'newuser@gmail.com',
+    text: 'invitee@gmail.com',
+    login: 'invitee@gmail.com',
     accountID: 999999,
     isOptimisticAccount: true,
     isSelected: false,
-    keyForList: 'newuser@gmail.com',
+    keyForList: 'invitee@gmail.com',
 } as OptionData;
 
 const SECOND_NON_EXISTING_USER: OptionData = {
@@ -134,7 +134,7 @@ describe('usePersonalDetailSearchSelector selectedNonExistingOptions', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(result.current.selectedNonExistingOptions).toHaveLength(1);
-        expect(result.current.selectedNonExistingOptions[0].login).toBe('newuser@gmail.com');
+        expect(result.current.selectedNonExistingOptions[0].login).toBe('invitee@gmail.com');
     });
 
     it('does not include existing contacts in selectedNonExistingOptions', async () => {
@@ -206,7 +206,7 @@ describe('usePersonalDetailSearchSelector selectedNonExistingOptions', () => {
 
         // Only the non-existing user should be in selectedNonExistingOptions
         expect(result.current.selectedNonExistingOptions).toHaveLength(1);
-        expect(result.current.selectedNonExistingOptions[0].login).toBe('newuser@gmail.com');
+        expect(result.current.selectedNonExistingOptions[0].login).toBe('invitee@gmail.com');
     });
 
     it('clears selectedNonExistingOptions on resetSelection', async () => {
@@ -254,9 +254,9 @@ describe('usePersonalDetailSearchSelector selectedNonExistingOptions', () => {
         await waitForBatchedUpdatesWithAct();
         expect(result.current.selectedNonExistingOptions).toHaveLength(2);
 
-        // Search for "newuser" - should filter to only the matching non-existing option
+        // Search for "invitee" - should filter to only the matching non-existing option
         act(() => {
-            result.current.setSearchTerm('newuser');
+            result.current.setSearchTerm('invitee');
         });
         // Advance past the debounce delay (300ms)
         await act(async () => {
@@ -265,7 +265,7 @@ describe('usePersonalDetailSearchSelector selectedNonExistingOptions', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(result.current.selectedNonExistingOptions).toHaveLength(1);
-        expect(result.current.selectedNonExistingOptions[0].login).toBe('newuser@gmail.com');
+        expect(result.current.selectedNonExistingOptions[0].login).toBe('invitee@gmail.com');
 
         jest.useRealTimers();
     });
