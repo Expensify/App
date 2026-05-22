@@ -4,7 +4,7 @@ import {Polygon, Svg} from 'react-native-svg';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobile} from '@libs/Browser';
 import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
-import type SafeTriangleProps from './type';
+import type SafeTriangleProps from './types';
 
 type Point = [number, number];
 

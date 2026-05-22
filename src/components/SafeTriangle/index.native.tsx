@@ -1,4 +1,4 @@
-import type SafeTriangleProps from './type';
+import type SafeTriangleProps from './types';
 
 /**
  * A component that provides a "safe triangle" wrapper.
