@@ -71,4 +71,4 @@
 - Files changed: Both `src/recyclerview/RecyclerView.tsx` and `dist/recyclerview/RecyclerView.js`.
 - Upstream PR/issue: https://github.com/Shopify/flash-list/issues/2291
 - E/App issue: https://github.com/Expensify/App/issues/89933
-- PR introducing patch: TBD
+- PR introducing patch: https://github.com/Expensify/App/pull/91248
