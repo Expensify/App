@@ -1,6 +1,6 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -189,6 +189,13 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         });
     }, [rawApprovalWorkflows, deferredAgentWorkflowSaves, route.params.policyID]);
 
+    // Tracks deferred-save keys we've already reconciled in this mount. `updateApprovalWorkflow`'s
+    // optimistic write to `policy.employeeList` re-renders this page before the matching
+    // `clearDeferredAgentWorkflowSave` Onyx merge settles; without this guard the effect would
+    // fire `updateApprovalWorkflow` (and the underlying `UPDATE_WORKSPACE_APPROVAL` API call)
+    // a second time for the same entry on that intermediate render.
+    const reconciledDeferredKeysRef = useRef<Set<string>>(new Set());
+
     // Reconcile each deferred workflow save against the latest policy/personal-details data.
     // Once the pending agent has a real email (the personal detail at `pendingAgentAccountID`
     // gains a login OR a matching member shows up in `policy.employeeList`), we swap that
@@ -197,6 +204,15 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     // after the modal dismisses; if they navigate elsewhere before CREATE_AGENT resolves the
     // entry stays parked and we'll pick it back up next time they visit the workflows page.
     useEffect(() => {
+        // Drop any tracked keys whose Onyx entries are gone (clear has settled or the entry was
+        // removed elsewhere) so the same key can be reconciled again if it ever reappears.
+        if (reconciledDeferredKeysRef.current.size > 0) {
+            for (const key of [...reconciledDeferredKeysRef.current]) {
+                if (!deferredAgentWorkflowSaves?.[key]) {
+                    reconciledDeferredKeysRef.current.delete(key);
+                }
+            }
+        }
         if (!deferredAgentWorkflowSaves || isEmptyObject(deferredAgentWorkflowSaves) || !policy || !personalDetails) {
             return;
         }
@@ -204,11 +220,16 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             if (!deferredEntry || deferredEntry.policyID !== route.params.policyID) {
                 continue;
             }
+            const deferredKey = buildDeferredAgentWorkflowSaveKey(deferredEntry.policyID, deferredEntry.firstApproverEmail);
+            if (reconciledDeferredKeysRef.current.has(deferredKey)) {
+                continue;
+            }
             const pendingApprover = deferredEntry.approvalWorkflow.approvers.find(
                 (approver) => approver?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && approver.accountID === deferredEntry.pendingAgentAccountID,
             );
             if (!pendingApprover) {
                 // Nothing left to wait on — the save can fire as-is (or was already fired).
+                reconciledDeferredKeysRef.current.add(deferredKey);
                 clearDeferredAgentWorkflowSave(deferredEntry.policyID, deferredEntry.firstApproverEmail);
                 continue;
             }
@@ -256,14 +277,36 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                           }
                         : approver,
                 );
+            // When the saved workflow is the default one, the new agent becomes the new default
+            // approver. The deferred snapshot's `members` list was captured before CREATE_AGENT
+            // resolved, so the agent isn't in it — and `convertApprovalWorkflowToPolicyEmployees`
+            // only rewrites `submitsTo` for emails present in `members`. Without the agent in
+            // that list their `submitsTo` (set to the previous default approver by
+            // `shareWithEmployees` in CreateAgent.cpp) is never overwritten, leaving them as
+            // their own orphan submission group in the workflows list. Injecting them here
+            // mirrors the online editor's behaviour (where the agent is already in employeeList
+            // when the editor renders and falls naturally into the "Everyone" members list) so
+            // the agent ends up submitting to themselves like every other default approver.
+            const upgradedMembers =
+                deferredEntry.approvalWorkflow.isDefault && !deferredEntry.approvalWorkflow.members.some((member) => member.email === resolvedEmail)
+                    ? [
+                          ...deferredEntry.approvalWorkflow.members,
+                          {
+                              email: resolvedEmail,
+                              displayName: pendingApprover.displayName,
+                              avatar: pendingApprover.avatar,
+                          },
+                      ]
+                    : deferredEntry.approvalWorkflow.members;
             const upgradedWorkflow = {
-                members: deferredEntry.approvalWorkflow.members,
+                members: upgradedMembers,
                 approvers: upgradedApprovers,
                 isDefault: deferredEntry.approvalWorkflow.isDefault,
             };
             const initialApprovers = deferredEntry.initialApprovalWorkflow.approvers.filter((approver): approver is NonNullable<typeof approver> => !!approver);
             const membersToRemove = deferredEntry.initialApprovalWorkflow.members.filter((initialMember) => !upgradedWorkflow.members.some((member) => member.email === initialMember.email));
             const approversToRemove = initialApprovers.filter((initialApprover) => !upgradedWorkflow.approvers.some((approver) => approver.email === initialApprover.email));
+            reconciledDeferredKeysRef.current.add(deferredKey);
             updateApprovalWorkflow(upgradedWorkflow, membersToRemove, approversToRemove, policy);
             clearDeferredAgentWorkflowSave(deferredEntry.policyID, deferredEntry.firstApproverEmail);
         }
