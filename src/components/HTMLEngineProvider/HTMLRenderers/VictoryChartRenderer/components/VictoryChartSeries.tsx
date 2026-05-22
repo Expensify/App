@@ -20,7 +20,7 @@ const SERIES_RENDERERS: Partial<Record<string, SeriesComponent>> = {
 function VictoryChartSeries({tnode}: VictoryChartSeriesProps) {
     const SeriesRenderer = SERIES_RENDERERS[tnode.tagName ?? ''];
     if (!SeriesRenderer) {
-        Log.warn('Unsupported series chart', {tagName: tnode.tagName});
+        Log.warn('Trying to render an unsupported series chart', {tagName: tnode.tagName});
         return null;
     }
     return <SeriesRenderer tnode={tnode} />;
