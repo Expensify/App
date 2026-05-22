@@ -6729,7 +6729,7 @@ ${amount} para ${merchant} - ${date}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
                     `<muted-text>La facturación está disponible en los planes Recopilar y Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
-            note: (subscriptionLink) => `<muted-text>Mejore para acceder a esta función, o <a href="${subscriptionLink}">más información</a> sobre nuestros planes y precios.</muted-text>`,
+            note: (subscriptionLink) => `<muted-text><a href="${subscriptionLink}">Más información</a> sobre nuestros planes y precios.</muted-text>`,
             pricing: {
                 perActiveMember: 'por miembro activo al mes.',
                 perMember: 'por miembro al mes.',
