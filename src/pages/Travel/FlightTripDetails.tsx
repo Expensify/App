@@ -5,7 +5,7 @@ import Icon from '@components/Icon';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
-import UserPills from '@components/UserPills';
+import UserPill from '@components/UserPill';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -140,16 +140,14 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
                     description={translate('travel.flightDetails.passenger')}
                     interactive={false}
                     titleComponent={
-                        <UserPills
-                            users={[
-                                {
-                                    avatar: personalDetails?.avatar,
-                                    displayName,
-                                    accountID: personalDetails?.accountID,
-                                    email: personalDetails?.login ?? reservation.travelerPersonalInfo?.email,
-                                },
-                            ]}
-                        />
+                        <View style={[styles.flexRow, styles.flexWrap, styles.userPillsContainer]}>
+                            <UserPill
+                                avatar={personalDetails?.avatar}
+                                displayName={displayName}
+                                accountID={personalDetails?.accountID}
+                                email={personalDetails?.login ?? reservation.travelerPersonalInfo?.email}
+                            />
+                        </View>
                     }
                 />
             )}
