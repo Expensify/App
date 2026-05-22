@@ -1284,7 +1284,6 @@ const translations: TranslationDeepObject<typeof en> = {
         receiptStatusTitle: 'Analyse en cours…',
         receiptStatusText: 'Vous seul pouvez voir ce reçu pendant son analyse. Revenez plus tard ou saisissez les détails maintenant.',
         receiptScanningFailed: 'L’analyse du reçu a échoué. Veuillez saisir les détails manuellement.',
-        transactionPendingDescription: "Transaction en attente. L'inscription peut prendre quelques jours.",
         allTransactionsPendingNextStep:
             "Toutes les transactions sont en attente. Vous ne pouvez pas soumettre ce rapport tant qu'elles ne sont pas enregistrées. Cela peut prendre quelques jours.",
         companyInfo: 'Informations sur l’entreprise',

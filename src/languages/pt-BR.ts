@@ -1278,7 +1278,6 @@ const translations: TranslationDeepObject<typeof en> = {
         receiptStatusTitle: 'Escaneando…',
         receiptStatusText: 'Só você pode ver este recibo enquanto ele está sendo digitalizado. Volte mais tarde ou insira os detalhes agora.',
         receiptScanningFailed: 'Falha ao escanear o recibo. Insira os detalhes manualmente.',
-        transactionPendingDescription: 'Transação pendente. Pode levar alguns dias para ser lançada.',
         allTransactionsPendingNextStep: 'Todas as transações estão pendentes. Você não pode enviar este relatório até que sejam lançadas. Isso pode levar alguns dias.',
         companyInfo: 'Informações da empresa',
         companyInfoDescription: 'Precisamos de mais alguns detalhes antes que você possa enviar sua primeira fatura.',
