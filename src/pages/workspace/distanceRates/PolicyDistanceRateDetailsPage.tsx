@@ -67,8 +67,6 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                 if (
                     transaction?.reportID &&
                     policyReports?.has(transaction.reportID) &&
-                    customUnitID &&
-                    transaction?.comment?.customUnit?.customUnitID === customUnitID &&
                     transaction?.comment?.customUnit?.customUnitRateID &&
                     transaction?.comment?.customUnit?.customUnitRateID === rateID
                 ) {
@@ -77,7 +75,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                 return transactionIDs;
             }, new Set<string>());
         },
-        [customUnitID, rateID, policyReports],
+        [rateID, policyReports],
     );
 
     const [eligibleTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
