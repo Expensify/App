@@ -214,6 +214,7 @@ const translations = {
         admin: 'Admin',
         owner: 'Owner',
         dateFormat: 'YYYY-MM-DD',
+        calendarOpened: 'calendar opened',
         send: 'Send',
         na: 'N/A',
         noResultsFound: 'No results found',
@@ -940,7 +941,6 @@ const translations = {
         buttonFind: 'Find something...',
         buttonMySettings: 'My settings',
         fabNewChat: 'Start chat',
-        fabNewChatExplained: 'Open actions menu',
         fabScanReceiptExplained: 'Scan receipt',
         chatPinned: 'Chat pinned',
         draftedMessage: 'Drafted message',
@@ -1491,6 +1491,8 @@ const translations = {
             distanceAmountTooLargeReduceRate: 'The total amount is too large. Lower the rate.',
             odometerReadingTooLarge: (formattedMax: string) => `Odometer readings cannot exceed ${formattedMax}.`,
             stitchOdometerImagesFailed: 'Failed to combine odometer images. Please try again later.',
+            unableToSubmitReport: 'Unable to submit report',
+            allTransactionsPendingDescription: "You can't submit this report because all transactions are pending. They may take a few days to post.",
             failedToSaveOdometerDraft: "Couldn't save your odometer draft. Please try again.",
             invalidIntegerAmount: 'Please enter a whole dollar amount before continuing',
             invalidTaxAmount: (amount: string) => `Maximum tax amount is ${amount}`,
@@ -1524,8 +1526,6 @@ const translations = {
             endDateSameAsStartDate: "The end date can't be the same as the start date",
             manySplitsProvided: `The maximum splits allowed is ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `The date range can't exceed ${CONST.IOU.SPLITS_LIMIT} days.`,
-            unableToSubmitReport: 'Unable to submit report',
-            allTransactionsPendingDescription: "You can't submit this report because all the transactions are pending. They may take a few days to post.",
         },
         dismissReceiptError: 'Dismiss error',
         dismissReceiptErrorConfirmation: 'Heads up! Dismissing this error will remove your uploaded receipt entirely. Are you sure?',
@@ -2289,7 +2289,8 @@ const translations = {
     },
     deviceManagementPage: {
         title: 'Device management',
-        description: 'Manage all the devices that you have logged into with your Expensify Account.',
+        description:
+            'Manage all the devices that you have logged into with your Expensify Account. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Learn more</a>',
         revoke: 'Revoke',
         unknownDevice: 'Unknown Device',
     },
@@ -3083,6 +3084,7 @@ const translations = {
             sameAsSignupEmail: 'Please enter a different email than the one you signed up with',
             offline: 'We couldn’t add your work email as you appear to be offline',
         },
+        workEmail2FAError: 'This login is an existing account with Two-Factor Authentication (2FA) enabled.',
         mergeBlockScreen: {
             title: 'Couldn’t add work email',
             subtitle: (workEmail: string | undefined) => `We couldn’t add ${workEmail}. Please try again later in Settings or chat with Concierge for guidance.`,
@@ -6124,8 +6126,8 @@ const translations = {
             addedWithPrimary: 'Some members were added with their primary logins.',
             invitedBySecondaryLogin: (secondaryLogin: string) => `Added by secondary login ${secondaryLogin}.`,
             workspaceMembersCount: (count: number) => `Total workspace members: ${count}`,
-            configureGustoSync: 'Configure Gusto sync.',
-            syncWithGusto: 'Sync with Gusto',
+            configureHRSync: (providerName: string) => `Configure ${providerName} sync.`,
+            syncWithHR: (providerName: string) => `Sync with ${providerName}`,
             allMembers: 'All members',
             admins: 'Admins',
             approvers: 'Approvers',
@@ -6479,6 +6481,8 @@ const translations = {
             disconnect: 'Disconnect',
             disconnectTitle: (providerName: string) => `Disconnect ${providerName}`,
             disconnectPrompt: (providerName: string) => `Are you sure you want to disconnect ${providerName}?`,
+            alreadyConnectedTitle: 'Cannot connect to multiple HR platforms',
+            alreadyConnectedPrompt: 'You must disconnect your current HR platform before connecting another.',
             lastSync: (relativeDate: string) => `Last synced ${relativeDate}`,
             syncError: (providerName: string) => `Can't connect to ${providerName}`,
             connectionDescription: (providerName: string) => `Connect ${providerName} to keep employee approvals in sync with your workspace.`,
@@ -6487,6 +6491,9 @@ const translations = {
             finalApprover: 'Final approver',
             providerFinalApprover: (providerName: string) => `${providerName} final approver`,
             notSet: 'Not set',
+            syncing: 'Syncing employees',
+            syncingModalTitle: 'Your connection is syncing',
+            syncingModalDescription: "The first connection can take some time. You'll be notified of any errors.",
             approvalModeDescription: (providerName: string) => `Members and managers are set up to sync with ${providerName}.`,
             approvalModeWarningTitle: 'Change approval mode?',
             approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
@@ -6514,8 +6521,6 @@ const translations = {
                         return 'Loading data from TriNet';
                     case 'zenefitsSyncProvisioning':
                         return 'Provisioning employees in policy';
-                    case 'mergeHRSyncTitle':
-                        return 'Synchronizing HR Employees';
                     case 'jobDone':
                         return 'Waiting for imported data to load';
                     default: {
@@ -8308,6 +8313,7 @@ const translations = {
         selectAllFeatures: 'Select all features',
         selectAllTransactions: 'Select all transactions',
         selectAllItems: 'Select all items',
+        openActionsMenu: 'Open actions menu',
         selectAllCategories: 'Select all categories',
         selectAllDistanceRates: 'Select all distance rates',
         selectAllTags: 'Select all tags',
