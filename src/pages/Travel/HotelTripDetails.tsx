@@ -1,10 +1,9 @@
 import {Str} from 'expensify-common';
 import React from 'react';
-import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import SingleUserPill from '@components/SingleUserPill';
 import Text from '@components/Text';
-import UserPill from '@components/UserPill';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
@@ -89,14 +88,12 @@ function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps)
                     description={translate('travel.hotelDetails.guest')}
                     interactive={false}
                     titleComponent={
-                        <View style={[styles.flexRow, styles.flexWrap, styles.userPillsContainer]}>
-                            <UserPill
-                                avatar={personalDetails?.avatar}
-                                displayName={displayName}
-                                accountID={personalDetails?.accountID}
-                                email={personalDetails?.login ?? reservation.travelerPersonalInfo?.email}
-                            />
-                        </View>
+                        <SingleUserPill
+                            avatar={personalDetails?.avatar}
+                            displayName={displayName}
+                            accountID={personalDetails?.accountID}
+                            email={personalDetails?.login ?? reservation.travelerPersonalInfo?.email}
+                        />
                     }
                 />
             )}

@@ -4,8 +4,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import RenderHTML from '@components/RenderHTML';
+import SingleUserPill from '@components/SingleUserPill';
 import Text from '@components/Text';
-import UserPill from '@components/UserPill';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -140,14 +140,12 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
                     description={translate('travel.flightDetails.passenger')}
                     interactive={false}
                     titleComponent={
-                        <View style={[styles.flexRow, styles.flexWrap, styles.userPillsContainer]}>
-                            <UserPill
-                                avatar={personalDetails?.avatar}
-                                displayName={displayName}
-                                accountID={personalDetails?.accountID}
-                                email={personalDetails?.login ?? reservation.travelerPersonalInfo?.email}
-                            />
-                        </View>
+                        <SingleUserPill
+                            avatar={personalDetails?.avatar}
+                            displayName={displayName}
+                            accountID={personalDetails?.accountID}
+                            email={personalDetails?.login ?? reservation.travelerPersonalInfo?.email}
+                        />
                     }
                 />
             )}
