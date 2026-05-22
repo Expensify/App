@@ -17,7 +17,7 @@ import {setCopyPolicySettingsData} from '@libs/actions/Policy/CopyPolicySettings
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PolicyCopySettingsNavigatorParamList} from '@libs/Navigation/types';
-import {isPolicyAdmin} from '@libs/PolicyUtils';
+import {isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
@@ -62,6 +62,9 @@ function CopyPolicySettingsSelectWorkspacesPage() {
                     return false;
                 }
                 if (!isPolicyAdmin(policy, currentUserEmail)) {
+                    return false;
+                }
+                if (isPendingDeletePolicy(policy)) {
                     return false;
                 }
                 // Release 1: when copying from a Corporate workspace, only allow Corporate targets.
