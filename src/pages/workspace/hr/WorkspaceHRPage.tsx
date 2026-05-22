@@ -60,7 +60,7 @@ function WorkspaceHRPage({
     }, [policyID]);
 
     useHRSyncResultsModal(policyID, connectionSyncProgress, isFocused);
-    useMergeHRInitialSyncingModal(policyID, policy, isFocused);
+    useMergeHRInitialSyncingModal(policyID, isFocused);
 
     const cards = getHRCards({
         policy,

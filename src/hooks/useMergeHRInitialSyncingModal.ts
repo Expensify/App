@@ -1,24 +1,23 @@
 import {useEffect, useEffectEvent} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {setMergeHRInitialSyncModalShown} from '@libs/actions/connections/MergeHR';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type Policy from '@src/types/onyx/Policy';
 import useConfirmModal from './useConfirmModal';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
+import usePolicy from './usePolicy';
 
 /**
- * Shows a one-time informational modal when the Merge HR connection's first backend-initiated sync starts.
- * The modal is suppressed for subsequent page loads during the same sync by persisting a sentinel value in Onyx.
+ * Shows a one-time informational modal when the Merge HR connection's initial sync is in progress.
  */
-function useMergeHRInitialSyncingModal(policyID: string, policy: OnyxEntry<Policy>, isFocused: boolean) {
+function useMergeHRInitialSyncingModal(policyID: string, isFocused: boolean) {
+    const policy = usePolicy(policyID);
     const {showConfirmModal} = useConfirmModal();
     const {translate} = useLocalize();
-    const [shownSentinel] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN}${policyID}`);
+    const [hasShownModal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN}${policyID}`);
 
     const showSyncingModal = useEffectEvent(() => {
-        if (shownSentinel) {
+        if (hasShownModal) {
             return;
         }
         setMergeHRInitialSyncModalShown(policyID);

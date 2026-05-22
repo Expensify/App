@@ -23,7 +23,12 @@ function getMergeHRSetupLink(policyID: string, integration: MergeHRProviderSlug)
 /**
  * Triggers a data sync for the Merge HR connection.
  */
-function syncMergeHR(policyID: string, policy: OnyxEntry<Policy>) {
+function syncMergeHR(policy: OnyxEntry<Policy>) {
+    const policyID = policy?.id;
+    if (!policyID) {
+        return;
+    }
+
     const previousLastSync = policy?.connections?.merge_hris?.lastSync;
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
