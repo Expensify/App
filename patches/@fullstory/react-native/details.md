@@ -10,7 +10,7 @@
     NativeFullStorySpecJSI TurboModule object) — inside the ObjC FullStory module's
     _eventEmitterCallback field.
 
-    In HybridApp, the JS runtime is torn down during background/foreground transitions,
+    In HybridApp, the JS runtime is torn down when switching from ND to OD (after sign in with SAML),
     destroying the C++ TurboModule. However, the ObjC FullStory instance stays alive as
     an FS SDK delegate. When the app returns to the foreground, FullStory fires
     fullstoryDidStartSession:, which invokes _eventEmitterCallback — a lambda that now
@@ -24,5 +24,5 @@
     ```
 
 - Upstream PR/issue: 🛑 TODO
-- E/App issue: 🛑 TODO
+- E/App issue: https://github.com/Expensify/App/issues/91225
 - PR introducing patch: 🛑 TODO
