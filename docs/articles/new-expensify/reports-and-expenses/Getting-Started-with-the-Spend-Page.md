@@ -118,7 +118,7 @@ Smart suggestions recommend the next best action based on your activity.
 - **Empty draft reports**: Prompts you to add recent unreported expenses.
 - **Global create/quick actions**: Suggests creating a report if you frequently submit grouped expenses.
 
-### How Smart Suggestions help you report faster
+## How Smart Suggestions help you report faster
 
 If you create a draft report and have unreported expenses in your SelfDM, a prompt may appear to add those expenses quickly. Smart Suggestions also: 
 
