@@ -6,8 +6,8 @@ import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 import Navigation from '@navigation/Navigation';
-import * as BankAccounts from '@userActions/BankAccounts';
-import * as Wallet from '@userActions/Wallet';
+import {acceptWalletTerms, clearPersonalBankAccount} from '@userActions/BankAccounts';
+import {resetWalletAdditionalDetailsDraft, updateCurrentStep} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -26,12 +26,13 @@ function FeesAndTerms() {
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
 
     const submit = () => {
-        BankAccounts.acceptWalletTerms({
+        acceptWalletTerms({
             hasAcceptedTerms: true,
+            // eslint-disable-next-line rulesdir/no-default-id-values
             reportID: walletTerms?.chatReportID ?? '',
         });
-        BankAccounts.clearPersonalBankAccount();
-        Wallet.resetWalletAdditionalDetailsDraft();
+        clearPersonalBankAccount();
+        resetWalletAdditionalDetailsDraft();
         Navigation.navigate(ROUTES.SETTINGS_WALLET);
     };
 
@@ -44,7 +45,7 @@ function FeesAndTerms() {
 
     const handleBackButtonPress = () => {
         if (pageIndex === 0) {
-            Wallet.updateCurrentStep(CONST.WALLET.STEP.ONFIDO);
+            updateCurrentStep(CONST.WALLET.STEP.ONFIDO);
             return;
         }
         prevPage();

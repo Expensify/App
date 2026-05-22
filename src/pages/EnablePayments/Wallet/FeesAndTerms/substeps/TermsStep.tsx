@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -38,7 +38,8 @@ function TermsStep({onNext}: SubPageProps) {
 
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
 
-    const errorMessage = error ? translate('common.error.acceptTerms') : (getLatestErrorMessage(walletTerms ?? {}) ?? '');
+    const shouldShowError = error && (!hasAcceptedDisclosure || !hasAcceptedPrivacyPolicyAndWalletAgreement);
+    const errorMessage = shouldShowError ? translate('common.error.acceptTerms') : (getLatestErrorMessage(walletTerms ?? {}) ?? '');
 
     const toggleDisclosure = () => {
         setHasAcceptedDisclosure(!hasAcceptedDisclosure);
@@ -56,15 +57,6 @@ function TermsStep({onNext}: SubPageProps) {
         setError(false);
         onNext();
     };
-
-    /** clear error */
-    useEffect(() => {
-        if (!hasAcceptedDisclosure || !hasAcceptedPrivacyPolicyAndWalletAgreement) {
-            return;
-        }
-
-        setError(false);
-    }, [hasAcceptedDisclosure, hasAcceptedPrivacyPolicyAndWalletAgreement]);
 
     return (
         <View style={[styles.flexGrow1, styles.ph5]}>
@@ -87,7 +79,7 @@ function TermsStep({onNext}: SubPageProps) {
                 buttonText={translate('termsStep.enablePayments')}
                 onSubmit={submit}
                 message={errorMessage}
-                isAlertVisible={error || !!errorMessage}
+                isAlertVisible={shouldShowError || !!errorMessage}
                 isLoading={!!walletTerms?.isLoading}
                 containerStyles={[styles.mh0, styles.mv5]}
             />
