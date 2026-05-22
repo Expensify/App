@@ -54,6 +54,7 @@ export default function DomainListTableRow({item, rowIndex, shouldUseNarrowTable
             text={item.isValidated ? translate('common.verified') : translate('domain.notVerified')}
             textStyles={styles.textStrong}
             badgeStyles={[styles.alignSelfStart, styles.ml0]}
+            isCondensed={shouldUseNarrowTableLayout}
         />
     );
 

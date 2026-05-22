@@ -3,6 +3,7 @@ import type {PressableStateCallbackType} from 'react-native';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
+import ErrorMessageRow from '@components/ErrorMessageRow';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {PressableWithFeedbackProps} from '@components/Pressable/PressableWithFeedback';
@@ -81,11 +82,9 @@ export default function TableRow({
     }
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: 0,
         shouldHighlight: !!shouldAnimateInHighlight,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.transparent,
-        shouldApplyOtherStyles: true,
     });
 
     if (!item) {
@@ -104,12 +103,12 @@ export default function TableRow({
 
     const tableRowContentContainerStyles = [
         styles.flex1,
-        styles.flexRow,
-        styles.alignItemsCenter,
+        styles.gap3,
         shouldUseNarrowTableLayout ? styles.ph4 : styles.ph3,
         shouldUseNarrowTableLayout && !isLoading && styles.pv4,
         !shouldUseNarrowTableLayout && !isLoading && styles.pv2,
         animatedHighlightStyle,
+        isLastRow && styles.tableBottomRadius,
     ];
 
     const tableRowContentStyles = [
@@ -171,7 +170,10 @@ export default function TableRow({
     };
 
     return (
-        <OfflineWithFeedback {...offlineWithFeedback}>
+        <OfflineWithFeedback
+            {...offlineWithFeedback}
+            shouldShowErrorMessages={false}
+        >
             <PressableWithFeedback
                 accessible={accessible}
                 accessibilityLabel="row"
@@ -210,6 +212,14 @@ export default function TableRow({
                                 )}
                                 {renderChildren(state)}
                             </View>
+                        )}
+
+                        {!!offlineWithFeedback?.errors && (
+                            <ErrorMessageRow
+                                errors={offlineWithFeedback.errors}
+                                dismissError={offlineWithFeedback.dismissError}
+                                onDismiss={offlineWithFeedback.onClose}
+                            />
                         )}
                     </Animated.View>
                 )}

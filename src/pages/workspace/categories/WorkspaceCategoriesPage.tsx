@@ -574,7 +574,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
                 )}
             </View>
-            {categoryRows.length > CONST.SEARCH_ITEM_LIMIT && (
+            {categoryRows.length >= CONST.STANDARD_LIST_ITEM_LIMIT && (
                 <SearchBar
                     label={translate('workspace.categories.findCategory')}
                     inputValue={inputValue}

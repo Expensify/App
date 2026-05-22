@@ -899,7 +899,6 @@ const translations: TranslationDeepObject<typeof en> = {
         buttonFind: '何かを検索…',
         buttonMySettings: '自分の設定',
         fabNewChat: 'チャットを開始',
-        fabNewChatExplained: 'アクションメニューを開く',
         fabScanReceiptExplained: 'レシートをスキャン',
         chatPinned: 'チャットをピン留めしました',
         draftedMessage: '作成中のメッセージ',
@@ -1495,6 +1494,7 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'これらの重複の一部は、すでに承認または支払い済みです。',
         reviewDuplicates: '重複を確認',
         keepAll: 'すべて保持',
+        keepSelected: '選択したものを保持',
         noDuplicatesTitle: '準備完了！',
         noDuplicatesDescription: '確認が必要な重複取引はありません。',
         confirmApprove: '承認金額を確認',
@@ -2386,8 +2386,8 @@ const translations: TranslationDeepObject<typeof en> = {
         addBankAccountToSendAndReceive: '支払いや入金を行うには銀行口座を追加してください。',
         addDebitOrCreditCard: 'デビットカードまたはクレジットカードを追加',
         cardInactive: '非アクティブ',
-        assignedCards: '割り当て済みカード',
-        assignedCardsDescription: 'これらのカードからの取引は自動的に同期されます。',
+        assignedCards: 'カード',
+        assignedCardsDescription: '割り当てられたカードの取引は自動的に同期されます。',
         expensifyCard: 'Expensify カード',
         walletActivationPending: 'お客様の情報を確認しています。数分後にもう一度ご確認ください。',
         walletActivationFailed: '申し訳ありませんが、現在はウォレットを有効にできません。詳しいサポートについてはConciergeにチャットでお問い合わせください。',
@@ -4775,6 +4775,26 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 },
             },
         },
+        certinia: {
+            title: 'Certinia',
+            prerequisites: {
+                title: '接続する前に',
+                installBundle: 'FFA 接続用',
+                installBundleDescription: ({href, version}: {href: string; version: string}) =>
+                    `このリンクをクリックして、Salesforce に Expensify バンドルをインストールしてください：<a href="${href}">FFA Expensify バンドルをインストール（バージョン ${version}）</a>`,
+                installBundleConfirm: 'バンドルをインストールしました',
+                setupContacts: 'ユーザーと連絡先を設定',
+                setupContactsBullet1:
+                    'Certinia に、まだ存在しない場合は自分用のユーザーと連絡先の両方を作成し、メールアドレスが Expensify のプライマリメールと一致していることを確認します。',
+                setupContactsBullet2:
+                    '経費精算書を提出する従業員ごと、および各承認者ごとに連絡先を作成してください。各連絡先のメールアドレスが、その従業員の Expensify アカウントに登録されているメールアドレスと一致していることを確認してください。',
+                setupContactsBullet3: '各連絡先／リソースごとにユーザーの権限を設定します。',
+                setupContactsConfirm: 'ユーザーと連絡先を設定しました',
+                oauth: 'Salesforce からログイン',
+                oauthDescription: '設定を完了するには、Salesforce と Certinia を通じてサインインする必要があります。\n\n続行するには、下のボタンを使用してください。',
+                connectButton: 'Certinia に接続',
+            },
+        },
         netsuite: {
             subsidiary: '子会社',
             subsidiarySelectDescription: 'データをインポートしたいNetSuiteの子会社を選択してください。',
@@ -5937,7 +5957,13 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 `元のワークスペースから ${totalMembers ?? 0} 人のメンバーと一緒に、${newWorkspaceName ?? ''} を作成して共有しようとしています。`,
             error: '新しいワークスペースの複製中にエラーが発生しました。もう一度お試しください。',
         },
-        copyPolicySettings: {error: 'ワークスペース設定のコピー中にエラーが発生しました。もう一度お試しください。'},
+        copyPolicySettings: {
+            error: 'ワークスペース設定のコピー中にエラーが発生しました。もう一度お試しください。',
+            title: '設定をコピー',
+            selectWorkspaces: 'ワークスペースを選択',
+            description: '設定をコピーしたいワークスペースを選択し、その後、コピーしたい設定を選びます。',
+            searchPlaceholder: 'ワークスペースを検索',
+        },
         emptyWorkspace: {
             title: 'ワークスペースがありません',
             subtitle: '領収書を管理し、経費を精算し、出張を管理し、請求書を送信するなど、さまざまなことができます。',
@@ -6413,7 +6439,13 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             errors: {
                 rateNameRequired: 'レート名は必須です',
                 existingRateName: 'この名前の距離レートはすでに存在します',
+                nameRequired: '名前は必須です',
+                startDateMustBeBeforeEndDate: '開始日は終了日より前でなければなりません',
+                amountRequired: '金額は必須です',
             },
+            amountPerUnit: (unit: string) => `${unit}あたりの金額`,
+            startDate: '開始日',
+            endDate: '終了日',
         },
         editor: {
             descriptionInputLabel: '説明',
@@ -6538,6 +6570,12 @@ ${reportName}
                 description: `Expensify と QuickBooks Desktop の連携により、自動同期を活用して手入力を削減しましょう。リアルタイムの双方向接続と、クラス、品目、顧客、プロジェクト別の経費コード設定で、究極の効率性を実現できます。`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>QuickBooks Desktop 連携機能は、<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からの Control プランでのみご利用いただけます</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
+                title: 'Certinia',
+                description: `Expensify と Certinia の連携で自動同期を活用し、手入力を減らしましょう。経費のコーディングディメンションと税務同期を Certinia の設定に合わせて、財務の可視性を高めます。`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Certinia 連携は Control プランでのみご利用いただけます。<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からご利用いただけます。</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: '高度な承認',
@@ -7060,7 +7098,9 @@ ${reportName}
             syncError: (providerName: string) => `${providerName}に接続できません`,
             connectionDescription: (providerName: string) => `${providerName}を接続して、従業員の承認をワークスペースと同期させましょう。`,
             approvalMode: '承認モード',
+            providerApprovalMode: (providerName: string) => `${providerName} 承認モード`,
             finalApprover: '最終承認者',
+            providerFinalApprover: (providerName: string) => `${providerName} 最終承認者`,
             notSet: '未設定',
             approvalModeDescription: (providerName: string) => `メンバーとマネージャーは ${providerName} と同期するように設定されています。`,
             approvalModeWarningTitle: '承認モードを変更しますか？',
@@ -7096,19 +7136,19 @@ ${reportName}
                     }
                 }
             },
+            syncResults: {
+                title: (provider: string) => `${provider} の同期が完了しました`,
+                successTitle: (provider: string) => `${provider} との接続が正常に同期されました！`,
+                added: '追加済み',
+                removed: '削除済み',
+                skipped: 'スキップ済み',
+                employeeCount: () => ({
+                    one: '1 従業員',
+                    other: (count: number) => `${count} 従業員`,
+                }),
+            },
             gusto: {
                 title: 'Gusto',
-                syncResults: {
-                    title: 'Gusto 同期結果',
-                    successTitle: 'Gusto との連携が正常に同期されました！',
-                    added: '追加済み',
-                    removed: '削除済み',
-                    skipped: 'スキップ済み',
-                    employeeCount: () => ({
-                        one: '1 従業員',
-                        other: (count: number) => `${count} 従業員`,
-                    }),
-                },
             },
             zenefits: {
                 title: 'TriNet',
@@ -8163,6 +8203,7 @@ ${reportName}
         selectAllFeatures: 'すべての機能を選択',
         selectAllTransactions: 'すべての取引を選択',
         selectAllItems: 'すべての項目を選択',
+        openActionsMenu: 'アクションメニューを開く',
         selectAllCategories: 'すべてのカテゴリを選択',
         selectAllDistanceRates: 'すべての距離レートを選択',
         selectAllTags: 'すべてのタグを選択',

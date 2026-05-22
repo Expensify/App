@@ -2,17 +2,19 @@ import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
-import DomainListPageHeaderButton from '@components/Domain/DomainListPageHeaderButton';
+import Button from '@components/Button';
 import type {DomainRowData} from '@components/Tables/DomainListTable';
 import DomainListTable from '@components/Tables/DomainListTable';
 import WorkspaceListLayout from '@components/WorkspaceListLayout';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hasDomainErrors} from '@libs/DomainUtils';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
@@ -25,6 +27,7 @@ function DomainsListPage() {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     useDocumentTitle(translate('common.domains'));
@@ -72,7 +75,15 @@ function DomainsListPage() {
         isOffline,
     } satisfies SkeletonSpanReasonAttributes;
 
-    const headerButton = <DomainListPageHeaderButton shouldShowNewDomainButton={!!domainRows.length} />;
+    const headerButton = !!domainRows.length && (
+        <Button
+            accessibilityLabel={translate('common.new')}
+            text={translate('common.new')}
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.NEW_DOMAIN_BUTTON}
+            onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACES_ADD_DOMAIN))}
+            icon={icons.Plus}
+        />
+    );
 
     return (
         <WorkspaceListLayout headerButton={headerButton}>
