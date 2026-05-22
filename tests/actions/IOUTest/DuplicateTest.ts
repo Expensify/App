@@ -2180,12 +2180,12 @@ describe('actions/Duplicate', () => {
 
         it('should duplicate a scan expense as a manual expense', async () => {
             // A completed scan (receipt state OPEN) is not "scanning", so it is duplicated rather than filtered out
-            const scanTx = createCashTransaction('scan-completed-1', {
+            const scanExpenseTx = createCashTransaction('scan-completed-1', {
                 iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
                 receipt: {source: 'https://example.com/receipt.jpg', state: CONST.IOU.RECEIPT_STATE.OPEN},
             });
 
-            duplicateReport(getDefaultParams([scanTx]));
+            duplicateReport(getDefaultParams([scanExpenseTx]));
             await waitForBatchedUpdates();
 
             let duplicatedTransaction: OnyxEntry<Transaction>;
@@ -2193,7 +2193,7 @@ describe('actions/Duplicate', () => {
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
                 waitForCollectionCallback: true,
                 callback: (allTransactions) => {
-                    duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t && t.transactionID !== scanTx.transactionID);
+                    duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t && t.transactionID !== scanExpenseTx.transactionID);
                 },
             });
 
