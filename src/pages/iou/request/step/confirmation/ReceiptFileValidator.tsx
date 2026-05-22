@@ -4,7 +4,6 @@ import {isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils'
 import validateReceiptFile from '@libs/fileDownload/validateReceiptFile';
 import {navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {isOdometerDistanceRequest} from '@libs/TransactionUtils';
 import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 import {removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
@@ -26,10 +25,11 @@ type ReceiptFileValidatorProps = {
     participants: Participant[];
     draftTransactionIDs: string[] | undefined;
     /**
-     * False while the odometer stitcher is mid-derivation. The validator skips only the initial
-     * odometer row in that case - non-initial rows still validate. Pass `true` for non-odometer flows.
+     * False if an upstream writer is still finalizing the initial transaction's receipt. The validator
+     * skips only the initial row while this is false; non-initial rows still validate. Pass `true`
+     * when nothing else is contending with the validator.
      */
-    isOdometerReady: boolean;
+    isReceiptReady: boolean;
     onReceiptFilesChange: (files: Record<string, Receipt>) => void;
 };
 
@@ -49,7 +49,7 @@ function ReceiptFileValidator({
     report,
     participants,
     draftTransactionIDs,
-    isOdometerReady,
+    isReceiptReady,
     onReceiptFilesChange,
 }: ReceiptFileValidatorProps) {
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
@@ -70,11 +70,10 @@ function ReceiptFileValidator({
                 const itemReceiptType = item.receipt?.type;
                 const isLocalFile = isLocalFileFileUtils(itemReceiptPath);
 
-                // Skip the initial odometer row while the stitcher is mid-derivation. The stitcher
-                // owns transaction.receipt for odometer transactions; validating a mid-stitch URL
-                // here would race it. When isOdometerReady flips true, this effect re-runs and picks
-                // up the row. Non-initial rows (e.g. manual scans in a mixed split) still validate.
-                if (item.transactionID === initialTransactionID && isOdometerDistanceRequest(item) && !isOdometerReady) {
+                // Skip the initial row while an upstream writer is finalizing its receipt. When
+                // isReceiptReady flips true, this effect re-runs and picks up the row. Non-initial
+                // rows always validate.
+                if (item.transactionID === initialTransactionID && !isReceiptReady) {
                     return Promise.resolve();
                 }
 
@@ -140,7 +139,7 @@ function ReceiptFileValidator({
             ignore = true;
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- draftTransactionIDs is intentionally excluded to avoid re-running on draft changes
-    }, [requestType, iouType, initialTransactionID, reportID, action, backToReport, report, transactions, participants, isOdometerReady, onReceiptFilesChange]);
+    }, [requestType, iouType, initialTransactionID, reportID, action, backToReport, report, transactions, participants, isReceiptReady, onReceiptFilesChange]);
 
     return null;
 }

@@ -783,7 +783,7 @@ function IOURequestStepConfirmation({
                 report={report}
                 participants={participants}
                 draftTransactionIDs={draftTransactionIDs}
-                isOdometerReady={isOdometerReady}
+                isReceiptReady={!isOdometerDistanceRequest || isOdometerReady}
                 onReceiptFilesChange={setReceiptFiles}
             />
             <DragAndDropProvider isDisabled={!showReceiptEmptyState || isOdometerDistanceRequest}>
