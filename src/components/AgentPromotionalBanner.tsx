@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import BillingBanner from '@pages/settings/Subscription/CardSection/BillingBanner/BillingBanner';
 import Badge from './Badge';
@@ -39,7 +38,6 @@ type AgentPromotionalBannerProps = {
 
 function AgentPromotionalBanner({title, subtitle, onDismiss, dismissSentryLabel, ctaText, onCtaPress, ctaSentryLabel, style}: AgentPromotionalBannerProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useMemoizedLazyIllustrations(['AiBot']);
@@ -50,7 +48,7 @@ function AgentPromotionalBanner({title, subtitle, onDismiss, dismissSentryLabel,
     const titleNode = useMemo(
         () => (
             <View style={[styles.flexRow, styles.flexShrink1]}>
-                <Text style={[styles.textStrong, styles.agentsPromoBannerText]}>
+                <Text style={[styles.textStrong]}>
                     {title}{' '}
                     <Badge
                         badgeStyles={styles.agentPromotionalBannerBadge}
@@ -99,10 +97,9 @@ function AgentPromotionalBanner({title, subtitle, onDismiss, dismissSentryLabel,
                 icon={illustrations.AiBot}
                 title={titleNode}
                 subtitle={subtitle}
-                subtitleStyle={[styles.mt1, styles.textLabel, styles.agentsPromoBannerText]}
-                style={[styles.borderRadiusComponentLarge, styles.agentsPromoBannerBackgroundColor, styles.gap4]}
+                subtitleStyle={[styles.mt1]}
+                style={[styles.borderRadiusComponentLarge, styles.gap4]}
                 rightIcon={expensifyIcons.Close}
-                rightIconFill={theme.iconColorfulBackground}
                 onRightIconPress={onDismiss}
                 rightIconAccessibilityLabel={translate('common.dismiss')}
                 rightIconSentryLabel={dismissSentryLabel}
