@@ -18,7 +18,7 @@ type VictoryChartContextValue = {
     legendItems: ProcessNodeResult['legendItems'];
     chartContentStyles: ReturnType<typeof parseStyles>['nodeStyles'];
     chartContainerStyles: ReturnType<typeof parseStyles>['parentNodeStyles'];
-    type: ChartType;
+    type: ChartType | null;
 };
 
 const VictoryChartContext = createContext<VictoryChartContextValue | null>(null);
@@ -35,7 +35,7 @@ function VictoryChartProvider({tnode, children}: {tnode: TNode; children: React.
 
     const hasCartesianData = Object.keys(data).length > 0;
     const hasPolarData = false;
-    let type: ChartType = null;
+    let type: ChartType | null = null;
 
     // XNOR Check. There must one and only one valid chart
     if (hasCartesianData === hasPolarData) {

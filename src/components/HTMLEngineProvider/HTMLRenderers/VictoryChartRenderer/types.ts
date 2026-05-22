@@ -137,7 +137,7 @@ type PartialProcessNodeResult = {
 
 type NodeParser = (tnode: TNode, typeface: SkTypeface | null) => PartialProcessNodeResult;
 
-type ChartType = ValueOf<typeof CHART_TYPE> | null;
+type ChartType = ValueOf<typeof CHART_TYPE>;
 
 export type {
     VictoryChartRendererProps,
