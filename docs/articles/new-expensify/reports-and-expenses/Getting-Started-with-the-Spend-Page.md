@@ -112,7 +112,7 @@ You can also combine filters with a keyword search for even more precision. For 
 
 Smart suggestions recommend the next best action based on your activity.
 
-### Where Smart Suggestions appear
+## Where Smart Suggestions appear
 
 - **SelfDM**: Suggests unreported expenses to add to a report.
 - **Empty draft reports**: Prompts you to add recent unreported expenses.
