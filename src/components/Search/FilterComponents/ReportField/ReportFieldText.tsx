@@ -6,7 +6,7 @@ import type {PolicyReportField} from '@src/types/onyx';
 
 type ReportFieldTextProps = {
     field: PolicyReportField;
-    value: string;
+    value: string | undefined;
     onChange: (newValue: string) => void;
 };
 

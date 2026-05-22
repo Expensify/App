@@ -36,6 +36,7 @@ function ReportFieldFilterComponent({values, onChange}: ReportFieldComponentProp
                 values={values}
                 selectedField={selectedField}
                 onFieldSelected={setSelectedField}
+                allowDeselectSingleSelection
                 style={reportFieldStyle}
             />
             {(!!selectedField || fullscreen) && (

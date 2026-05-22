@@ -22,7 +22,7 @@ type SingleSelectProps<T> = SearchFilterSelectionListProps & {
     value: SingleSelectItem<T> | undefined;
 
     /** Function to call when changes are applied */
-    onChange: (item: SingleSelectItem<T>) => void;
+    onChange: (item: SingleSelectItem<T> | undefined) => void;
 
     /** Whether the search input should be displayed */
     isSearchable?: boolean;
@@ -36,6 +36,7 @@ type SingleSelectProps<T> = SearchFilterSelectionListProps & {
     /** Custom height for each item in the list */
     itemHeight?: number;
 
+    allowDeselect?: boolean;
     hasTitle?: boolean;
     hasHeader?: boolean;
 };
@@ -52,6 +53,7 @@ function SingleSelect<T extends string>({
     hasHeader,
     itemHeight,
     footer,
+    allowDeselect,
     onChange,
 }: SingleSelectProps<T>) {
     const {translate} = useLocalize();
@@ -96,6 +98,11 @@ function SingleSelect<T extends string>({
             return;
         }
 
+        if (allowDeselect && newItem.value === selectedItem?.value) {
+            setSelectedItem(undefined);
+            onChange(undefined);
+            return;
+        }
         setSelectedItem(newItem);
         onChange(newItem);
     };
