@@ -87,7 +87,6 @@ export default function TableRow({
     const tableRowContentContainerStyles = [
         styles.flex1,
         styles.gap3,
-        styles.justifyContentCenter,
         shouldUseNarrowTableLayout ? styles.ph4 : styles.ph3,
         shouldUseNarrowTableLayout && !isLoading && styles.pv4,
         !shouldUseNarrowTableLayout && !isLoading && styles.pv2,
@@ -98,7 +97,7 @@ export default function TableRow({
     const tableRowContentStyles = [
         styles.flex1,
         styles.flexRow,
-        styles.alignItemsCenter,
+        styles.alignContentCenter,
         styles.gap3,
         styles.dFlex,
         // Use Grid on web when available (will override flex if supported)

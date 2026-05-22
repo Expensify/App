@@ -219,7 +219,7 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
                                 />
                             </View>
 
-                            <View style={[styles.flex1]}>
+                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                                 <Text
                                     numberOfLines={1}
                                     style={itemDeletedStyles}
