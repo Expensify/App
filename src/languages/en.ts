@@ -7526,8 +7526,8 @@ const translations = {
                 bodyMaxAmountChange: ({oldValue, newValue}: {oldValue: string; newValue: string}) => `max amount from ${oldValue} to ${newValue}`,
                 bodyAppliedToAdditionalCards: ({count}: {count: number}) => `spend rule to ${count} additional cards`,
                 bodyRemovedFromCards: ({cards}: {cards: string}) => `spend rule from ${cards}`,
-                composeOnCards: ({content, cards}: {content: string; cards: string}) => (cards !== '' ? `${content} on ${cards}` : content),
-                composeFromCards: ({content, cards}: {content: string; cards: string}) => (cards !== '' ? `${content} from ${cards}` : content),
+                composeOnCards: ({content, cards}: {content: string; cards: string}) => `${content} on ${cards}`,
+                composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} from ${cards}`,
             },
         },
         preventSelfApproval: (oldValue: string, newValue: string) =>
