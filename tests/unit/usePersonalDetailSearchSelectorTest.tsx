@@ -56,8 +56,8 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => ({
     email: MOCK_EMAIL,
 }));
 
-const EXISTING_CONTACT = MOCK_PERSONAL_DETAIL_OPTIONS[0];
-const SECOND_CONTACT = MOCK_PERSONAL_DETAIL_OPTIONS[1];
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- mock data always has elements
+const EXISTING_CONTACT = MOCK_PERSONAL_DETAIL_OPTIONS.at(0)!;
 
 const NON_EXISTING_USER: OptionData = {
     text: 'invitee@gmail.com',
@@ -134,7 +134,7 @@ describe('usePersonalDetailSearchSelector selectedNonExistingOptions', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(result.current.selectedNonExistingOptions).toHaveLength(1);
-        expect(result.current.selectedNonExistingOptions[0].login).toBe('invitee@gmail.com');
+        expect(result.current.selectedNonExistingOptions.at(0).login).toBe('invitee@gmail.com');
     });
 
     it('does not include existing contacts in selectedNonExistingOptions', async () => {
@@ -156,7 +156,7 @@ describe('usePersonalDetailSearchSelector selectedNonExistingOptions', () => {
         expect(result.current.selectedNonExistingOptions).toHaveLength(0);
         // But should be in selectedOptions
         expect(result.current.selectedOptions).toHaveLength(1);
-        expect(result.current.selectedOptions[0].login).toBe('alice@expensify.com');
+        expect(result.current.selectedOptions.at(0).login).toBe('alice@expensify.com');
     });
 
     it('removes non-existing user from selectedNonExistingOptions after deselection', async () => {
@@ -206,7 +206,7 @@ describe('usePersonalDetailSearchSelector selectedNonExistingOptions', () => {
 
         // Only the non-existing user should be in selectedNonExistingOptions
         expect(result.current.selectedNonExistingOptions).toHaveLength(1);
-        expect(result.current.selectedNonExistingOptions[0].login).toBe('invitee@gmail.com');
+        expect(result.current.selectedNonExistingOptions.at(0).login).toBe('invitee@gmail.com');
     });
 
     it('clears selectedNonExistingOptions on resetSelection', async () => {
@@ -265,7 +265,7 @@ describe('usePersonalDetailSearchSelector selectedNonExistingOptions', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(result.current.selectedNonExistingOptions).toHaveLength(1);
-        expect(result.current.selectedNonExistingOptions[0].login).toBe('invitee@gmail.com');
+        expect(result.current.selectedNonExistingOptions.at(0).login).toBe('invitee@gmail.com');
 
         jest.useRealTimers();
     });
@@ -326,7 +326,7 @@ describe('usePersonalDetailSearchSelector selectedNonExistingOptions', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(result.current.selectedNonExistingOptions).toHaveLength(1);
-        expect(result.current.selectedNonExistingOptions[0].text).toBe('Custom Name');
+        expect(result.current.selectedNonExistingOptions.at(0).text).toBe('Custom Name');
 
         jest.useRealTimers();
     });
