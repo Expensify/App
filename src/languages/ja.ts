@@ -7096,6 +7096,8 @@ ${reportName}
             disconnect: '切断',
             disconnectTitle: (providerName: string) => `${providerName}を切断`,
             disconnectPrompt: (providerName: string) => `${providerName}を切断してもよろしいですか？`,
+            alreadyConnectedTitle: '複数の人事プラットフォームには接続できません',
+            alreadyConnectedPrompt: '別の人事プラットフォームに接続する前に、現在の人事プラットフォームとの接続を解除する必要があります。',
             lastSync: (relativeDate: string) => `最終同期: ${relativeDate}`,
             syncError: (providerName: string) => `${providerName}に接続できません`,
             connectionDescription: (providerName: string) => `${providerName}を接続して、従業員の承認をワークスペースと同期させましょう。`,
