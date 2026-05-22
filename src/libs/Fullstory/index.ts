@@ -17,7 +17,7 @@ const FS: Fullstory = {
 
     init: () => {},
 
-    onReady: () =>
+    onReady: async () =>
         new Promise((resolve) => {
             if (!isInitialized()) {
                 init({orgId: 'o-1WN56P-na1'}, resolve);
