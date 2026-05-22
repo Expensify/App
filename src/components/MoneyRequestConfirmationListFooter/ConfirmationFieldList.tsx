@@ -167,7 +167,6 @@ function ConfirmationFieldList({
                 formattedAmountPerAttendee={amountDisplay.formattedAmountPerAttendee}
                 isCompactMode={compactState.isCompactMode}
                 fieldVisibility={fieldVisibility}
-                isEditingSplitBill={isEditingSplitBill}
             />
 
             <SettingsFields
