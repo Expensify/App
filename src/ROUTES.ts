@@ -485,17 +485,22 @@ const DYNAMIC_ROUTES = {
             SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW,
         ],
     },
+    EXPENSIFY_CARD_DETAILS: {
+        path: 'expensify-card-details/:cardID/:policyID',
+        entryScreens: [SCREENS.WORKSPACE.EXPENSIFY_CARD, SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.PROFILE_ROOT],
+        getRoute: (cardID: string, policyID: string) => `expensify-card-details/${cardID}/${policyID}` as const,
+    },
     EXPENSIFY_CARD_LIMIT_TYPE: {
         path: 'edit/limit-type',
-        entryScreens: [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS, SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_DETAILS],
+        entryScreens: [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS, SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_DETAILS],
     },
     EXPENSIFY_CARD_LIMIT: {
         path: 'edit/limit',
-        entryScreens: [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS, SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_DETAILS],
+        entryScreens: [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS, SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_DETAILS],
     },
     EXPENSIFY_CARD_NAME: {
         path: 'edit/name',
-        entryScreens: [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS, SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_DETAILS],
+        entryScreens: [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS, SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_DETAILS],
     },
     WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT: {
         path: 'account',
@@ -553,6 +558,44 @@ const DYNAMIC_ROUTES = {
     SETTINGS_TAG_CREATE: {
         path: 'tag-new',
         entryScreens: [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT],
+    },
+    WORKSPACE_TAGS_EDIT: {
+        path: 'tags-edit/:orderWeight',
+        entryScreens: [SCREENS.WORKSPACE.TAGS, SCREENS.WORKSPACE.TAGS_SETTINGS, SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_LIST_VIEW],
+        getRoute: (orderWeight: number) => `tags-edit/${orderWeight}`,
+    },
+    WORKSPACE_TAG_SETTINGS: {
+        path: 'tag/:orderWeight/:tagName',
+        entryScreens: [SCREENS.WORKSPACE.TAGS, SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_LIST_VIEW, SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_SETTINGS],
+        getRoute: (orderWeight: number, tagName: string, parentTagsFilter?: string) => {
+            const route = `tag/${orderWeight}/${encodeURIComponent(tagName)}`;
+            if (!parentTagsFilter) {
+                return route;
+            }
+            return `${route}?parentTagsFilter=${encodeURIComponent(parentTagsFilter)}`;
+        },
+        queryParams: ['parentTagsFilter'],
+    },
+    WORKSPACE_TAG_EDIT: {
+        path: 'tag-edit',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_SETTINGS, SCREENS.WORKSPACE.TAGS, SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_LIST_VIEW],
+    },
+    WORKSPACE_TAG_GL_CODE: {
+        path: 'tag-gl-code',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_SETTINGS, SCREENS.WORKSPACE.TAGS, SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_LIST_VIEW],
+    },
+    WORKSPACE_TAG_APPROVER: {
+        path: 'workspace-tag-approver',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_SETTINGS, SCREENS.WORKSPACE.TAGS, SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_LIST_VIEW],
+    },
+    WORKSPACE_TAG_LIST_VIEW: {
+        path: 'workspace-tag-list/:orderWeight',
+        entryScreens: [SCREENS.WORKSPACE.TAGS],
+        getRoute: (orderWeight: number) => `workspace-tag-list/${orderWeight}`,
+    },
+    WORKSPACE_TAG_CREATE: {
+        path: 'tags/new',
+        entryScreens: [SCREENS.WORKSPACE.TAGS],
     },
     DETAILS_CONSTANT_PICKER: {
         path: 'constant-picker',
@@ -2475,44 +2518,9 @@ const ROUTES = {
             return `workspaces/${policyID}/tags` as const;
         },
     },
-    WORKSPACE_TAG_CREATE: {
-        route: 'workspaces/:policyID/tags/new',
-        getRoute: (policyID: string) => `workspaces/${policyID}/tags/new` as const,
-    },
     WORKSPACE_TAGS_SETTINGS: {
         route: 'workspaces/:policyID/tags/settings',
         getRoute: (policyID: string) => `workspaces/${policyID}/tags/settings` as const,
-    },
-    WORKSPACE_EDIT_TAGS: {
-        route: 'workspaces/:policyID/tags/:orderWeight/edit',
-
-        getRoute: (policyID: string, orderWeight: number, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/tags/${orderWeight}/edit` as const, backTo),
-    },
-    WORKSPACE_TAG_EDIT: {
-        route: 'workspaces/:policyID/tag/:orderWeight/:tagName/edit',
-        getRoute: (policyID: string, orderWeight: number, tagName: string) => `workspaces/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}/edit` as const,
-    },
-    WORKSPACE_TAG_SETTINGS: {
-        route: 'workspaces/:policyID/tag/:orderWeight/:tagName',
-        getRoute: (policyID: string, orderWeight: number, tagName: string, parentTagsFilter?: string) => {
-            let queryParams = '';
-            if (parentTagsFilter) {
-                queryParams += `?parentTagsFilter=${parentTagsFilter}`;
-            }
-            return `workspaces/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}${queryParams}` as const;
-        },
-    },
-    WORKSPACE_TAG_APPROVER: {
-        route: 'workspaces/:policyID/tag/:orderWeight/:tagName/approver',
-        getRoute: (policyID: string, orderWeight: number, tagName: string) => `workspaces/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}/approver` as const,
-    },
-    WORKSPACE_TAG_LIST_VIEW: {
-        route: 'workspaces/:policyID/tag-list/:orderWeight',
-        getRoute: (policyID: string, orderWeight: number) => `workspaces/${policyID}/tag-list/${orderWeight}` as const,
-    },
-    WORKSPACE_TAG_GL_CODE: {
-        route: 'workspaces/:policyID/tag/:orderWeight/:tagName/gl-code',
-        getRoute: (policyID: string, orderWeight: number, tagName: string) => `workspaces/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}/gl-code` as const,
     },
     WORKSPACE_TAGS_IMPORT: {
         route: 'workspaces/:policyID/tags/import',
@@ -2783,11 +2791,6 @@ const ROUTES = {
 
         getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/expensify-card/${cardID}`, backTo),
     },
-    EXPENSIFY_CARD_DETAILS: {
-        route: 'settings/:policyID/expensify-card/:cardID',
-
-        getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/${policyID}/expensify-card/${cardID}`, backTo),
-    },
     EXPENSIFY_CARD_EXPIRY_OPTIONS: {
         route: 'settings/:policyID/expensify-card/:cardID/edit/expiry-options',
 
@@ -2900,6 +2903,10 @@ const ROUTES = {
     WORKSPACE_DISTANCE_RATES_SETTINGS: {
         route: 'workspaces/:policyID/distance-rates/settings',
         getRoute: (policyID: string) => `workspaces/${policyID}/distance-rates/settings` as const,
+    },
+    WORKSPACE_DISTANCE_RATES_UNIT: {
+        route: 'workspaces/:policyID/distance-rates/settings/unit',
+        getRoute: (policyID: string) => `workspaces/${policyID}/distance-rates/settings/unit` as const,
     },
     WORKSPACE_DISTANCE_RATE_DETAILS: {
         route: 'workspaces/:policyID/distance-rates/:rateID',

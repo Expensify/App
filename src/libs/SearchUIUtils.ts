@@ -2135,7 +2135,7 @@ function getTransactionsSections({
                       }
                     : {}),
                 keyForList: transactionItem.transactionID,
-                action: getAction(allActions),
+                action: getAction(allActions, getSubmitExclusion(report?.ownerAccountID, currentAccountID)),
                 allActions,
                 report,
                 policy,
@@ -2416,6 +2416,14 @@ function getActions(
 
 /**
  * @private
+ * Returns SUBMIT as an exclusion when the current user is not the report owner.
+ */
+function getSubmitExclusion(ownerAccountID: number | undefined, currentAccountID: number): SearchTransactionAction[] {
+    return ownerAccountID !== currentAccountID ? [CONST.SEARCH.ACTION_TYPES.SUBMIT] : [];
+}
+
+/**
+ * @private
  * Returns the primary action to show in the Action column for a given transaction or report
  */
 function getAction(allActions: SearchTransactionAction[], primaryActionExclusions: SearchTransactionAction[] = []) {
@@ -2537,7 +2545,7 @@ function createAndOpenSearchTransactionThread({
     IOUTransactionID,
     transactionPreviewData,
     shouldNavigate = true,
-}: CreateAndOpenSearchTransactionThreadParams) {
+}: CreateAndOpenSearchTransactionThreadParams): string | undefined {
     const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isDeleted = isDeletedTransaction(item);
     const iouReportAction = getIOUActionForReportID(isFromSelfDM ? findSelfDMReportID() : item.reportID, item.transactionID);
@@ -2578,20 +2586,20 @@ function createAndOpenSearchTransactionThread({
         });
     }
 
-    if (shouldNavigate) {
-        // Navigate to transaction thread if there are multiple transactions in the report, or to the parent report if it's the only transaction
-        const isFromOneTransactionReport = isOneTransactionReport(item.report);
-        const shouldNavigateToTransactionThread = (!isFromOneTransactionReport || isFromSelfDM || isDeleted) && transactionThreadReport?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID;
-        // When we have an actual transaction thread (childReportID from Onyx) but the report isn't in Onyx yet
-        // (e.g. Search didn't return the IOU action for deleted items), use childReportID directly so we don't navigate with undefined
-        const targetReportID = shouldNavigateToTransactionThread
-            ? (transactionThreadReport?.reportID ?? (hasActualTransactionThread ? iouReportAction.childReportID : undefined))
-            : item.reportID;
+    // Navigate to transaction thread if there are multiple transactions in the report, or to the parent report if it's the only transaction
+    const isFromOneTransactionReport = isOneTransactionReport(item.report);
+    const shouldNavigateToTransactionThread = (!isFromOneTransactionReport || isFromSelfDM || isDeleted) && transactionThreadReport?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID;
+    // When we have an actual transaction thread (childReportID from Onyx) but the report isn't in Onyx yet
+    // (e.g. Search didn't return the IOU action for deleted items), use childReportID directly so we don't navigate with undefined
+    const targetReportID = shouldNavigateToTransactionThread
+        ? (transactionThreadReport?.reportID ?? (hasActualTransactionThread ? iouReportAction.childReportID : undefined))
+        : item.reportID;
 
-        if (targetReportID) {
-            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID, backTo})));
-        }
+    if (shouldNavigate && targetReportID) {
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID, backTo})));
     }
+
+    return targetReportID;
 }
 
 /**
@@ -2784,7 +2792,10 @@ function getReportSections({
                     reportItem.ownerAccountID === currentAccountID &&
                     reportItem.nextStep?.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT;
                 const shouldHidePayAsPrimaryAction = hasOnlyNonReimbursableTransactions(reportItem.reportID, allReportTransactions);
-                const primaryActionExclusions: SearchTransactionAction[] = shouldHidePayAsPrimaryAction ? [CONST.SEARCH.ACTION_TYPES.PAY] : [];
+                const primaryActionExclusions: SearchTransactionAction[] = [
+                    ...(shouldHidePayAsPrimaryAction ? [CONST.SEARCH.ACTION_TYPES.PAY] : []),
+                    ...getSubmitExclusion(reportItem.ownerAccountID, currentAccountID),
+                ];
 
                 reportIDToTransactions[reportKey] = {
                     ...reportItem,
@@ -2848,7 +2859,7 @@ function getReportSections({
             const transaction = {
                 ...transactionItem,
                 ...(transactionPendingAction ? {pendingAction: transactionPendingAction} : {}),
-                action: getAction(allActions),
+                action: getAction(allActions, getSubmitExclusion(report?.ownerAccountID, currentAccountID)),
                 allActions,
                 report,
                 reportAction,
