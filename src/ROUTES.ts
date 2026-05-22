@@ -83,7 +83,32 @@ type DynamicRoutes = Record<string, DynamicRouteConfig>;
 const DYNAMIC_ROUTES = {
     VERIFY_ACCOUNT: {
         path: 'verify-account',
-        entryScreens: [SCREENS.SETTINGS.WALLET.ROOT],
+        entryScreens: [
+            SCREENS.SETTINGS.WALLET.ROOT,
+            SCREENS.SETTINGS.PROFILE.CONTACT_METHODS,
+            SCREENS.HOME,
+            SCREENS.SEARCH.ROOT,
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+        ],
+    },
+    TWO_FACTOR_AUTH_VERIFY_ACCOUNT: {
+        path: 'two-factor-auth/verify-account',
+        entryScreens: ['*'],
+    },
+    TWO_FACTOR_AUTH_ROOT: {
+        path: 'two-factor-auth',
+        entryScreens: ['*'],
+    },
+    TWO_FACTOR_AUTH_VERIFY: {
+        path: 'two-factor-auth/verify',
+        entryScreens: ['*'],
+    },
+    TWO_FACTOR_AUTH_SUCCESS: {
+        path: 'two-factor-auth/success',
+        entryScreens: ['*'],
     },
     ADD_BANK_ACCOUNT_VERIFY_ACCOUNT: {
         path: 'add-bank-account/verify-account',
@@ -1255,30 +1280,8 @@ const ROUTES = {
             return getUrlWithBackToParam(`settings/profile/contact-methods/${encodedMethod}/set-default/confirm`, backTo);
         },
     },
-    SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT: {
-        route: 'settings/profile/contact-methods/verify',
-        getRoute: (backTo?: string, forwardTo?: string) =>
-            getUrlWithBackToParam(forwardTo ? `settings/profile/contact-methods/verify?forwardTo=${encodeURIComponent(forwardTo)}` : 'settings/profile/contact-methods/verify', backTo),
-    },
-    SETTINGS_2FA_VERIFY_ACCOUNT: {
-        route: `settings/security/two-factor-auth/${VERIFY_ACCOUNT}`,
-        getRoute: (params: {backTo?: string; forwardTo?: string} = {}) => getUrlWithParams(`settings/security/two-factor-auth/${VERIFY_ACCOUNT}`, params),
-    },
-    SETTINGS_2FA_ROOT: {
-        route: 'settings/security/two-factor-auth',
-        getRoute: (backTo?: string, forwardTo?: string) =>
-            getUrlWithBackToParam(forwardTo ? `settings/security/two-factor-auth?forwardTo=${encodeURIComponent(forwardTo)}` : 'settings/security/two-factor-auth', backTo),
-    },
-    SETTINGS_2FA_VERIFY: {
-        route: 'settings/security/two-factor-auth/verify',
-        getRoute: (backTo?: string, forwardTo?: string) =>
-            getUrlWithBackToParam(forwardTo ? `settings/security/two-factor-auth/verify?forwardTo=${encodeURIComponent(forwardTo)}` : 'settings/security/two-factor-auth/verify', backTo),
-    },
-    SETTINGS_2FA_SUCCESS: {
-        route: 'settings/security/two-factor-auth/success',
-        getRoute: (backTo?: string, forwardTo?: string) =>
-            getUrlWithBackToParam(forwardTo ? `settings/security/two-factor-auth/success?forwardTo=${encodeURIComponent(forwardTo)}` : 'settings/security/two-factor-auth/success', backTo),
-    },
+    SETTINGS_2FA_ENABLED: 'settings/security/two-factor-auth/enabled',
+    SETTINGS_2FA_SUCCESS: 'settings/security/two-factor-auth/replace/success',
     SETTINGS_2FA_DISABLED: 'settings/security/two-factor-auth/disabled',
     SETTINGS_2FA_DISABLE: 'settings/security/two-factor-auth/disable',
     SETTINGS_2FA_REPLACE_VERIFY_OLD: 'settings/security/two-factor-auth/replace/verify-old',

@@ -561,6 +561,7 @@
 "../../src/pages/settings/Security/MergeAccounts/AccountDetailsPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	3
 "../../src/pages/settings/Security/MergeAccounts/AccountValidatePage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/settings/Security/MergeAccounts/MergeResultPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
+"../../src/pages/settings/Security/TwoFactorAuth/DynamicVerifyPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/settings/Security/TwoFactorAuth/ReplaceDeviceVerifyNewPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/settings/Security/TwoFactorAuth/VerifyPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/settings/Subscription/CardAuthenticationModal/index.tsx"	"react-hooks/set-state-in-effect"	1

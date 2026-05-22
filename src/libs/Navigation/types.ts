@@ -111,11 +111,6 @@ type SettingsNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
-    [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_VERIFY_ACCOUNT]: {
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
-        forwardTo?: Routes;
-    };
     [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.PAYMENT_CURRENCY]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: undefined;
@@ -139,7 +134,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.LOCK.LOCK_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.LOCK.UNLOCK_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.LOCK.FAILED_TO_LOCK_ACCOUNT]: undefined;
-    [SCREENS.SETTINGS.DYNAMIC_VERIFY_ACCOUNT]: undefined;
+    [SCREENS.SETTINGS.DYNAMIC_VERIFY_ACCOUNT]: {
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo?: Routes;
+    };
     [SCREENS.SETTINGS.DYNAMIC_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.DYNAMIC_EXIT_SURVEY_REASON]: undefined;
     [SCREENS.SETTINGS.DYNAMIC_EXIT_SURVEY_CONFIRM]: undefined;
@@ -1640,26 +1638,12 @@ type DomainCardNavigatorParamList = {
 };
 
 type TwoFactorAuthNavigatorParamList = {
-    [SCREENS.TWO_FACTOR_AUTH.ROOT]: {
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
-        forwardTo?: string;
-    };
-    [SCREENS.TWO_FACTOR_AUTH.VERIFY_ACCOUNT]: {
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
-        forwardTo?: Routes;
-    };
-    [SCREENS.TWO_FACTOR_AUTH.VERIFY]: {
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
-        forwardTo?: string;
-    };
-    [SCREENS.TWO_FACTOR_AUTH.SUCCESS]: {
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
-        forwardTo?: string;
-    };
+    [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_ROOT]: undefined;
+    [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY_ACCOUNT]: undefined;
+    [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY]: undefined;
+    [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_SUCCESS]: {policyID?: string};
+    [SCREENS.TWO_FACTOR_AUTH.ENABLED]: undefined;
+    [SCREENS.TWO_FACTOR_AUTH.SUCCESS]: undefined;
     [SCREENS.TWO_FACTOR_AUTH.DISABLE]: undefined;
     [SCREENS.TWO_FACTOR_AUTH.DISABLED]: undefined;
 };

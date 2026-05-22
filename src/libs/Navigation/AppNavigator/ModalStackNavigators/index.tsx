@@ -49,6 +49,7 @@ import type {
     TeachersUniteNavigatorParamList,
     TransactionDuplicateNavigatorParamList,
     TravelNavigatorParamList,
+    TwoFactorAuthNavigatorParamList,
     WalletStatementNavigatorParamList,
     WorkspaceConfirmationNavigatorParamList,
     WorkspaceDuplicateNavigatorParamList,
@@ -113,6 +114,21 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
         animationTypeForReplace: 'push',
     },
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_IMPORTED]: {
+        animationTypeForReplace: 'push',
+    },
+    [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY]: {
+        animationTypeForReplace: 'push',
+    },
+    [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY_ACCOUNT]: {
+        animationTypeForReplace: 'push',
+    },
+    [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_SUCCESS]: {
+        animationTypeForReplace: 'push',
+    },
+    [SCREENS.TWO_FACTOR_AUTH.ENABLED]: {
+        animationTypeForReplace: 'push',
+    },
+    [SCREENS.TWO_FACTOR_AUTH.SUCCESS]: {
         animationTypeForReplace: 'push',
     },
 };
@@ -427,9 +443,6 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     ),
     [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_SET_DEFAULT_CONFIRM]: withAgentAccessDenied(
         () => require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/SetDefaultContactMethodConfirmMagicCodePage').default,
-    ),
-    [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_VERIFY_ACCOUNT]: withAgentAccessDenied(
-        () => require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/VerifyAccountPage').default,
     ),
     [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Preferences/PriorityModePage').default),
     [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/PolicyAccountingPage').default,
@@ -1083,13 +1096,17 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.DOMAIN.GROUP_CREATE_PREFERRED_WORKSPACE]: () => require<ReactComponentModule>('../../../../pages/domain/Groups/DomainGroupCreatePreferredWorkspacePage').default,
 });
 
-const TwoFactorAuthenticatorStackNavigator = createModalStackNavigator<EnablePaymentsNavigatorParamList>({
-    [SCREENS.TWO_FACTOR_AUTH.ROOT]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/TwoFactorAuthPage').default),
-    [SCREENS.TWO_FACTOR_AUTH.VERIFY]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/VerifyPage').default),
-    [SCREENS.TWO_FACTOR_AUTH.VERIFY_ACCOUNT]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/VerifyAccountPage').default),
+const TwoFactorAuthenticatorStackNavigator = createModalStackNavigator<TwoFactorAuthNavigatorParamList>({
+    [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_ROOT]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/DynamicTwoFactorAuthPage').default),
+    [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/DynamicVerifyPage').default),
+    [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY_ACCOUNT]: withAgentAccessDenied(
+        () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/DynamicTwoFactorAuthVerifyAccountPage').default,
+    ),
+    [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_SUCCESS]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/DynamicSuccessPage').default),
+    [SCREENS.TWO_FACTOR_AUTH.ENABLED]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/EnabledPage').default),
+    [SCREENS.TWO_FACTOR_AUTH.SUCCESS]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/SuccessPage').default),
     [SCREENS.TWO_FACTOR_AUTH.DISABLED]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/DisabledPage').default),
     [SCREENS.TWO_FACTOR_AUTH.DISABLE]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/DisablePage').default),
-    [SCREENS.TWO_FACTOR_AUTH.SUCCESS]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/SuccessPage').default),
     [SCREENS.TWO_FACTOR_AUTH.REPLACE_VERIFY_OLD]: withAgentAccessDenied(
         () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/ReplaceDeviceVerifyOldPage').default,
     ),
