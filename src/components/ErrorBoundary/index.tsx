@@ -1,18 +1,9 @@
-import * as Sentry from '@sentry/react-native';
+
 import React, {useEffect} from 'react';
-import Log from '@libs//Log';
+import Log from '@libs/Log';
 import BaseErrorBoundary from './BaseErrorBoundary';
-import type {BaseErrorBoundaryProps, LogError} from './types';
-
-const logError: LogError = (errorMessage, error, errorInfo) => {
-    // Log the error to the server
-    Log.alert(`${errorMessage} - ${error.message}`, {errorInfo}, false);
-
-    /* Also report to Sentry on web so caught render errors (e.g. React #185)
-     * are visible in Sentry, mirroring what the native variant already does. */
-    Sentry.addBreadcrumb({message: `errorInfo: ${errorInfo}`});
-    Sentry.captureException(error, {extra: {errorInfo}});
-};
+import logError from './logError';
+import type {BaseErrorBoundaryProps} from './types';
 
 const onUnhandledRejection = (event: PromiseRejectionEvent) => {
     let rejection: unknown = event.reason;
