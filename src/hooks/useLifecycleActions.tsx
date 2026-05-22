@@ -179,6 +179,11 @@ function useLifecycleActions({reportID, startApprovedAnimation, startSubmittingA
             return;
         }
 
+        if (hasOnlyPendingCardTransactions(transactions)) {
+            showPendingCardTransactionsBlockModal(showConfirmModal, translate);
+            return;
+        }
+
         const doSubmit = () => {
             submitReport({
                 expenseReport: moneyRequestReport,
