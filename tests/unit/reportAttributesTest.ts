@@ -20,6 +20,7 @@ jest.mock('@libs/ReportUtils', () => ({
     hasVisibleReportFieldViolations: jest.fn(() => false),
     isArchivedReport: jest.fn(() => false),
     isValidReport: jest.fn(() => true),
+    parseReportRouteParams: jest.fn(() => ({reportID: ''})),
 }));
 
 jest.mock('@libs/SidebarUtils', () => ({
