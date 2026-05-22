@@ -4,6 +4,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import {canShowReportRecipientLocalTime, getReportOfflinePendingActionAndErrors, getReportRecipientAccountIDs} from '@libs/ReportUtils';
+import {isAgentEmail} from '@libs/SessionUtils';
 import ParticipantLocalTime from '@pages/inbox/report/ParticipantLocalTime';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -23,7 +24,7 @@ function ComposerLocalTime({reportID}: ComposerLocalTimeProps) {
     const reportRecipientAccountIDs = getReportRecipientAccountIDs(report, currentUserPersonalDetails.accountID);
     const reportRecipient = personalDetails?.[reportRecipientAccountIDs[0]];
 
-    if (!shouldShow || isEmptyObject(reportRecipient)) {
+    if (!shouldShow || isEmptyObject(reportRecipient) || isAgentEmail(reportRecipient?.login)) {
         return null;
     }
 
