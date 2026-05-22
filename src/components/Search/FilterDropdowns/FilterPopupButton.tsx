@@ -139,7 +139,7 @@ function FilterPopupButton({
                 shouldHandleNavigationBack
                 innerContainerStyle={{...containerStyles, ...styles.p0}}
                 popoverDimensions={{
-                    width: 0,
+                    width: actualPopoverWidth,
                     height: CONST.POPOVER_DROPDOWN_MIN_HEIGHT,
                 }}
                 shouldSkipRemeasurement
