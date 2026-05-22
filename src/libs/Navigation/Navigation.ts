@@ -682,6 +682,16 @@ function isNavigationReady(): Promise<void> {
     return navigationIsReadyPromise;
 }
 
+/**
+ * Runs the callback after any active navigation transition completes. If no transitions are
+ * active, the callback fires synchronously. Use this when you need to defer work behind an
+ * in-flight transition but the work is not itself a Navigation call (e.g. pushing on an
+ * independent navigator like the MFA modal).
+ */
+function runAfterTransition(callback: () => void) {
+    TransitionTracker.runAfterTransitions({callback});
+}
+
 function setIsNavigationReady() {
     goToPendingRoute();
     resolveNavigationIsReadyPromise();
@@ -1201,6 +1211,7 @@ export default {
     getActiveRouteWithoutParams,
     getReportRHPActiveRoute,
     goBack,
+    runAfterTransition,
     isNavigationReady,
     setIsNavigationReady,
     getTopmostReportId,
