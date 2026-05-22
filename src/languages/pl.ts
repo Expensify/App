@@ -207,6 +207,7 @@ const translations: TranslationDeepObject<typeof en> = {
         admin: 'Administrator',
         owner: 'Właściciel',
         dateFormat: 'YYYY-MM-DD',
+        calendarOpened: 'kalendarz otwarty',
         send: 'Wyślij',
         na: 'ND dotyczy',
         noResultsFound: 'Nie znaleziono wyników',
