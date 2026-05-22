@@ -50,6 +50,9 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
 
     const approverTitle = (index: number) => {
         if (isHRManagerMode) {
+            if (approvalWorkflow.approvers.length <= 1) {
+                return translate('workflowsPage.approver');
+            }
             const isLastApprover = index === approvalWorkflow.approvers.length - 1;
             if (isLastApprover && approvalWorkflow.approvers.length > 1) {
                 return translate('workflowsPage.finalApprover');
