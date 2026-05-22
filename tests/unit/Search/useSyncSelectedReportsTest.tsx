@@ -1,5 +1,5 @@
 import {act, render} from '@testing-library/react-native';
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {SearchActionsContext, SearchStateContext, useSyncSelectedReports} from '@components/Search/SearchContext';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchActionsContextValue, SearchStateContextValue, SelectedReports, SelectedTransactions} from '@components/Search/types';
@@ -84,17 +84,23 @@ function renderHarness({
         setSelected: () => {},
         setData: () => {},
     };
+    const captureHandle = (next: HarnessHandle) => {
+        handle.setSelected = next.setSelected;
+        handle.setData = next.setData;
+    };
 
     function HookConsumer({data}: {data: HookData}) {
         useSyncSelectedReports(data);
         return null;
     }
 
-    function Harness() {
+    function Harness({onReady}: {onReady: (next: HarnessHandle) => void}) {
         const [selected, setSelected] = useState(initialSelected);
         const [data, setData] = useState(initialData);
-        handle.setSelected = setSelected;
-        handle.setData = setData;
+
+        useEffect(() => {
+            onReady({setSelected, setData});
+        }, [onReady]);
 
         const stateValue = useMemo<SearchStateContextValue>(() => ({...baseStateContext, selectedTransactions: selected}), [selected]);
 
@@ -124,7 +130,7 @@ function renderHarness({
         );
     }
 
-    render(<Harness />);
+    render(<Harness onReady={captureHandle} />);
     return handle;
 }
 
