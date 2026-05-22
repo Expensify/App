@@ -120,6 +120,13 @@ describe('Session', () => {
         // data.
         (HttpUtils.xhr as jest.MockedFunction<typeof HttpUtils.xhr>)
 
+            // The first call is GetDefaultP2PMileageRate (fired by openApp before OpenApp)
+            .mockImplementationOnce(() =>
+                Promise.resolve({
+                    jsonCode: CONST.JSON_CODE.SUCCESS,
+                }),
+            )
+
             // This will make the call to OpenApp below return with an expired session code
             .mockImplementationOnce(() =>
                 Promise.resolve({
