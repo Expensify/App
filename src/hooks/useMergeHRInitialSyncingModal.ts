@@ -1,5 +1,7 @@
 import {useEffect, useEffectEvent} from 'react';
 import {setMergeHRInitialSyncModalShown} from '@libs/actions/connections/MergeHR';
+// eslint-disable-next-line no-restricted-imports -- the hook does not use React Navigation hooks internally (isFocused is passed in as a parameter), so there is no navigation instance available to use navigation.addListener for transition detection.
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useConfirmModal from './useConfirmModal';
@@ -34,12 +36,12 @@ function useMergeHRInitialSyncingModal(policyID: string, isFocused: boolean) {
 
     useEffect(() => {
         const isInitialSyncInProgress = mergeLastSync?.syncStatus === CONST.MERGE_HR.SYNC_STATUS.SYNCING && mergeLastSync?.syncType === CONST.MERGE_HR.SYNC_TYPE.INITIAL;
-
         if (!isFocused || !isInitialSyncInProgress) {
             return;
         }
 
-        showSyncingModal();
+        const handle = TransitionTracker.runAfterTransitions({callback: showSyncingModal});
+        return () => handle.cancel();
     }, [mergeLastSync?.syncStatus, mergeLastSync?.syncType, isFocused]);
 }
 
