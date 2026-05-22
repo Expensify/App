@@ -43,7 +43,7 @@ jobs:
 
       # v1
       - name: Checkout
-        uses: getblacksmith/checkout@41cdeedae8edb2e684ba22896a5fd2a3cb85db6b # v1
+        uses: getblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
           ref: ${{ steps.pr-data.outputs.HEAD_SHA }}
 

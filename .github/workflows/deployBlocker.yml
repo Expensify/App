@@ -17,7 +17,7 @@ jobs:
     steps:
       - name: Checkout
         # v1
-        uses: getblacksmith/checkout@41cdeedae8edb2e684ba22896a5fd2a3cb85db6b # v1
+        uses: getblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
 
       - name: Give the issue/PR the Hourly, Engineering labels
         run: gh issue edit ${{ github.event.issue.number }} --add-label 'Engineering,Hourly' --remove-label 'Daily,Weekly,Monthly'
