@@ -450,7 +450,10 @@ function IOURequestStepConfirmation({
     const hasPreInsertFired = useRef(false);
     const isTransactionReady = !!transaction;
     const selfDMReportID = iouType === CONST.IOU.TYPE.TRACK ? findSelfDMReportID() : undefined;
-    const destinationReportID = backToReport ?? report?.reportID ?? selfDMReportID;
+    // For merge flows, prefer the selected destination report over a stale backToReport
+    // so post-submit background context matches where the expense was merged.
+    const destinationReportID =
+        action === CONST.IOU.ACTION.MERGE ? report?.reportID ?? backToReport ?? selfDMReportID : backToReport ?? report?.reportID ?? selfDMReportID;
 
     useEffect(() => {
         if (hasPreInsertFired.current || !isTransactionReady || !getIsNarrowLayout()) {
