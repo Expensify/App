@@ -37,8 +37,8 @@ jobs:
       IOS_VERSION: ${{ steps.getIOSVersion.outputs.IOS_VERSION }}
     steps:
       - name: Checkout
-        # v6
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        # v1
+        uses: getblacksmith/checkout@41cdeedae8edb2e684ba22896a5fd2a3cb85db6b # v1
         with:
           ref: ${{ inputs.ENVIRONMENT || github.sha }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
@@ -83,7 +83,7 @@ jobs:
             local tag="$1"
             local head_sha
             head_sha=$(git rev-parse HEAD)
-            # Fetch the tag from remote before checking locally. actions/checkout uses
+            # Fetch the tag from remote before checking locally. getblacksmith/checkout uses
             # fetch-depth=1 and fetch-tags=false by default, so a previously pushed tag
             # won't be present in the workspace. Without this fetch, git tag "$tag" would
             # succeed locally and then git push would fail because the tag already exists
@@ -216,8 +216,8 @@ jobs:
     if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
     steps:
       - name: Checkout
-        # v6
-        uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
+        # v1
+        uses: getblacksmith/checkout@41cdeedae8edb2e684ba22896a5fd2a3cb85db6b # v1
         with:
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
@@ -271,8 +271,8 @@ jobs:
     if: ${{ always() && !cancelled() && needs.prep.outputs.DEPLOY_ENV == 'production' && needs.androidBuild.result != 'failure' && needs.androidUploadGooglePlay.result != 'failure' }}
     steps:
       - name: Checkout
-        # v6
-        uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
+        # v1
+        uses: getblacksmith/checkout@41cdeedae8edb2e684ba22896a5fd2a3cb85db6b # v1
         with:
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
@@ -431,8 +431,8 @@ jobs:
       DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
     steps:
       - name: Checkout
-        # v6
-        uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
+        # v1
+        uses: getblacksmith/checkout@41cdeedae8edb2e684ba22896a5fd2a3cb85db6b # v1
         with:
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
@@ -512,8 +512,8 @@ jobs:
       DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
     steps:
       - name: Checkout
-        # v6
-        uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
+        # v1
+        uses: getblacksmith/checkout@41cdeedae8edb2e684ba22896a5fd2a3cb85db6b # v1
         with:
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
@@ -661,8 +661,8 @@ jobs:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Checkout
-        # v6
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        # v1
+        uses: getblacksmith/checkout@41cdeedae8edb2e684ba22896a5fd2a3cb85db6b # v1
         with:
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
@@ -724,8 +724,8 @@ jobs:
     continue-on-error: true
     steps:
       - name: Checkout
-        # v6
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        # v1
+        uses: getblacksmith/checkout@41cdeedae8edb2e684ba22896a5fd2a3cb85db6b # v1
         with:
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
@@ -754,8 +754,8 @@ jobs:
     needs: [androidBuild, androidUploadGooglePlay, androidUploadBrowserStack, androidUploadApplause, androidSubmit, iosBuild, iosUploadTestflight, iosUploadBrowserStack, iosUploadApplause, iosSubmit, webBuild, webDeploy]
     steps:
       - name: Checkout
-        # v6
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        # v1
+        uses: getblacksmith/checkout@41cdeedae8edb2e684ba22896a5fd2a3cb85db6b # v1
 
       - name: Post Slack message on failure
         uses: ./.github/actions/composite/announceFailedWorkflowInSlack
