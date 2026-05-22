@@ -228,7 +228,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         selectionEnabled,
     };
 
-    return <TableContext.Provider value={contextValue as unknown as TableContextValue<DataType, string>}>{children}</TableContext.Provider>;
+    return <TableContext.Provider value={contextValue as unknown as TableContextValue<TableData, string, string>}>{children}</TableContext.Provider>;
 }
 
 export default Table;
