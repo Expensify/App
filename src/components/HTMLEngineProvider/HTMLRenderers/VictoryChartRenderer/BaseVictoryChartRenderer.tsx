@@ -1,14 +1,16 @@
 import React from 'react';
+import VictoryChartContainer from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/components/VictoryChartContainer';
+import VictoryChartContent from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/components/VictoryChartContent';
+import {VictoryChartProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import type {VictoryChartRendererProps} from './types';
-import VictoryChart from './VictoryChart';
 
 function BaseVictoryChartRenderer({tnode}: VictoryChartRendererProps) {
     return (
-        <VictoryChart.Provider tnode={tnode}>
-            <VictoryChart.Container>
-                <VictoryChart.Content />
-            </VictoryChart.Container>
-        </VictoryChart.Provider>
+        <VictoryChartProvider tnode={tnode}>
+            <VictoryChartContainer>
+                <VictoryChartContent />
+            </VictoryChartContainer>
+        </VictoryChartProvider>
     );
 }
 
