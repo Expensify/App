@@ -2,7 +2,7 @@ import type {Ref} from 'react';
 import React, {useState} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
-import {clearMoneyRequest} from '@libs/actions/IOU';
+import {clearMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import {saveUnknownUserDetails} from '@libs/actions/Share';
 import Navigation from '@libs/Navigation/Navigation';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';

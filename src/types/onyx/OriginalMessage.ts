@@ -1240,6 +1240,11 @@ type OriginalMessageExportIntegration = {
     travelInvoicingUrls?: string[];
 
     /**
+     * The Concierge reasoning for the action
+     */
+    reasoning?: string;
+
+    /**
      * The type of the export action
      */
     type?: string;
@@ -1574,7 +1579,6 @@ type OriginalMessage<T extends ReportActionName> = T extends keyof OriginalMessa
 export default OriginalMessage;
 export type {
     DecisionName,
-    OriginalMessageCardFraudAlert,
     OriginalMessageIOU,
     ChronosOOOEvent,
     PaymentMethodType,
@@ -1583,7 +1587,6 @@ export type {
     PolicyRulesModifiedFields,
     PersonalRulesModifiedFields,
     OriginalMessageChangeLog,
-    OriginalMessagePolicyChangeLog,
     JoinWorkspaceResolution,
     OriginalMessageModifiedExpense,
     OriginalMessageExportIntegration,
@@ -1591,13 +1594,8 @@ export type {
     OriginalMessageChangePolicy,
     OriginalMessageUnreportedTransaction,
     OriginalMessageMovedTransaction,
-    PolicyBudgetFrequencyValues,
     PolicyBudgetFrequency,
     OriginalMessageMarkedReimbursed,
     OriginalMessageReimbursed,
-    OriginalMessageConciergeAutoMapMccGroups,
-    OriginalMessageCompanyCardConnectionBroken,
-    OriginalMessagePlaidBalanceFailure,
-    OriginalMessageReimbursementDirectorInformationRequired,
     OriginalMessageSettlementAccountLocked,
 };
