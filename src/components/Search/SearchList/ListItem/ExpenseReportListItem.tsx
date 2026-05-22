@@ -29,7 +29,7 @@ import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {getNonHeldAndFullAmount, isInvoiceReport, isOpenExpenseReport, isProcessingReport, isReportPendingDelete} from '@libs/ReportUtils';
-import {getAction, getActions, getRowCapabilities} from '@libs/SearchUIUtils';
+import {getAction, getActions} from '@libs/SearchUIUtils';
 import {isOnHold, isViolationDismissed, shouldShowViolation, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -102,6 +102,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
 
     const [liveReportActionsCollection] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportItem.reportID)}`);
     const [liveReportMetadata] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(reportItem.reportID)}`);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const liveActionsArray = liveReportActionsCollection ? (Object.values(liveReportActionsCollection) as ReportAction[]) : reportActions;
     const liveAllActions = searchData
@@ -118,15 +119,26 @@ function ExpenseReportListItem<TItem extends ListItem>({
           )
         : (reportItem.allActions ?? []);
     const liveAction = liveAllActions.length ? getAction(liveAllActions) : reportItem.action;
-    const liveCapabilities = getRowCapabilities(liveAllActions);
+    // See TransactionListItem for why these are inlined primitives instead of getRowCapabilities.
+    const liveCanPay = liveAllActions.includes(CONST.SEARCH.ACTION_TYPES.PAY);
+    const liveCanApprove = liveAllActions.includes(CONST.SEARCH.ACTION_TYPES.APPROVE);
+    const liveCanSubmit = liveAllActions.includes(CONST.SEARCH.ACTION_TYPES.SUBMIT);
+    const liveCanChangeApprover = liveAllActions.includes(CONST.SEARCH.ACTION_TYPES.CHANGE_APPROVER);
     const liveReportItem =
         liveAction === reportItem.action &&
-        liveCapabilities.canPay === reportItem.canPay &&
-        liveCapabilities.canApprove === reportItem.canApprove &&
-        liveCapabilities.canSubmit === reportItem.canSubmit &&
-        liveCapabilities.canChangeApprover === reportItem.canChangeApprover
+        liveCanPay === reportItem.canPay &&
+        liveCanApprove === reportItem.canApprove &&
+        liveCanSubmit === reportItem.canSubmit &&
+        liveCanChangeApprover === reportItem.canChangeApprover
             ? reportItem
-            : ({...reportItem, action: liveAction, ...liveCapabilities} as ExpenseReportListItemType);
+            : ({
+                  ...reportItem,
+                  action: liveAction,
+                  canPay: liveCanPay,
+                  canApprove: liveCanApprove,
+                  canSubmit: liveCanSubmit,
+                  canChangeApprover: liveCanChangeApprover,
+              } as ExpenseReportListItemType);
 
     const isDisabledCheckbox = useMemo(() => {
         return reportItem.isDisabled ?? reportItem.isDisabledCheckbox;

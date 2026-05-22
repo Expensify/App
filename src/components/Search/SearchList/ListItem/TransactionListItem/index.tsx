@@ -25,7 +25,7 @@ import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {isInvoiceReport} from '@libs/ReportUtils';
-import {getAction, getActions, getRowCapabilities} from '@libs/SearchUIUtils';
+import {getAction, getActions} from '@libs/SearchUIUtils';
 import {
     isDeletedTransaction as isDeletedTransactionUtil,
     isViolationDismissed,
@@ -103,6 +103,7 @@ function TransactionListItem<TItem extends ListItem>({
     ]);
     const [liveReportActions] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(transactionItem.reportID)}`);
     const [liveReportMetadata] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(transactionItem.reportID)}`);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const currentUserDetails = useCurrentUserPersonalDetails();
 
     const liveActionsArray = liveReportActions ? (Object.values(liveReportActions) as ReportAction[]) : exportedReportActions;
@@ -120,15 +121,21 @@ function TransactionListItem<TItem extends ListItem>({
           )
         : transactionItem.allActions;
     const liveAction = liveAllActions.length ? getAction(liveAllActions) : transactionItem.action;
-    const liveCapabilities = getRowCapabilities(liveAllActions);
+    // Inlined as primitives (not via getRowCapabilities) so the compiler tracks each boolean as a value-dep
+    // for liveTransactionItem's equality guard. An object output from getRowCapabilities would be a fresh
+    // ref per render and break the compiler's bailout for downstream consumers (TransactionListItemWide, etc.).
+    const liveCanPay = liveAllActions.includes(CONST.SEARCH.ACTION_TYPES.PAY);
+    const liveCanApprove = liveAllActions.includes(CONST.SEARCH.ACTION_TYPES.APPROVE);
+    const liveCanSubmit = liveAllActions.includes(CONST.SEARCH.ACTION_TYPES.SUBMIT);
+    const liveCanChangeApprover = liveAllActions.includes(CONST.SEARCH.ACTION_TYPES.CHANGE_APPROVER);
     const liveTransactionItem =
         liveAction === transactionItem.action &&
-        liveCapabilities.canPay === transactionItem.canPay &&
-        liveCapabilities.canApprove === transactionItem.canApprove &&
-        liveCapabilities.canSubmit === transactionItem.canSubmit &&
-        liveCapabilities.canChangeApprover === transactionItem.canChangeApprover
+        liveCanPay === transactionItem.canPay &&
+        liveCanApprove === transactionItem.canApprove &&
+        liveCanSubmit === transactionItem.canSubmit &&
+        liveCanChangeApprover === transactionItem.canChangeApprover
             ? transactionItem
-            : {...transactionItem, action: liveAction, ...liveCapabilities};
+            : {...transactionItem, action: liveAction, canPay: liveCanPay, canApprove: liveCanApprove, canSubmit: liveCanSubmit, canChangeApprover: liveCanChangeApprover};
     const transactionPreviewData: TransactionPreviewData = {
         hasParentReport: !!parentReport,
         hasTransaction: !!transaction,

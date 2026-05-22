@@ -29,7 +29,7 @@ import {search} from '@libs/actions/Search';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
-import {getAction, getActions, getRowCapabilities, getSections} from '@libs/SearchUIUtils';
+import {getAction, getActions, getSections} from '@libs/SearchUIUtils';
 import {mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -125,6 +125,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const reportGroupID = isExpenseReportType ? (groupItem as TransactionReportGroupListItemType).reportID : undefined;
     const [liveReportActionsCollection] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportGroupID)}`);
     const [liveReportMetadata] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(reportGroupID)}`);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const snapshotActionsData = reportGroupID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportGroupID}`] : undefined;
     const liveActionsArray = liveReportActionsCollection
@@ -148,15 +149,26 @@ function TransactionGroupListItem<TItem extends ListItem>({
               )
             : (reportGroupItem.allActions ?? []);
     const liveAction = liveAllActions.length ? getAction(liveAllActions) : reportGroupItem.action;
-    const liveCapabilities = getRowCapabilities(liveAllActions);
+    // See TransactionListItem for why these are inlined primitives instead of getRowCapabilities.
+    const liveCanPay = liveAllActions.includes(CONST.SEARCH.ACTION_TYPES.PAY);
+    const liveCanApprove = liveAllActions.includes(CONST.SEARCH.ACTION_TYPES.APPROVE);
+    const liveCanSubmit = liveAllActions.includes(CONST.SEARCH.ACTION_TYPES.SUBMIT);
+    const liveCanChangeApprover = liveAllActions.includes(CONST.SEARCH.ACTION_TYPES.CHANGE_APPROVER);
     const liveGroupItem: TransactionGroupListItemType =
         isExpenseReportType &&
         (liveAction !== reportGroupItem.action ||
-            liveCapabilities.canPay !== reportGroupItem.canPay ||
-            liveCapabilities.canApprove !== reportGroupItem.canApprove ||
-            liveCapabilities.canSubmit !== reportGroupItem.canSubmit ||
-            liveCapabilities.canChangeApprover !== reportGroupItem.canChangeApprover)
-            ? ({...groupItem, action: liveAction, ...liveCapabilities} as TransactionGroupListItemType)
+            liveCanPay !== reportGroupItem.canPay ||
+            liveCanApprove !== reportGroupItem.canApprove ||
+            liveCanSubmit !== reportGroupItem.canSubmit ||
+            liveCanChangeApprover !== reportGroupItem.canChangeApprover)
+            ? ({
+                  ...groupItem,
+                  action: liveAction,
+                  canPay: liveCanPay,
+                  canApprove: liveCanApprove,
+                  canSubmit: liveCanSubmit,
+                  canChangeApprover: liveCanChangeApprover,
+              } as TransactionGroupListItemType)
             : groupItem;
 
     const [transactionsVisibleLimit, setTransactionsVisibleLimit] = useState(CONST.TRANSACTION.RESULTS_PAGE_SIZE as number);
