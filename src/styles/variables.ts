@@ -269,6 +269,7 @@ export default {
     holdEducationModalWidth: 400,
     changePolicyEducationModalWidth: 400,
     builtInProtectionModalWidth: 400,
+    hrAlreadyConnectedModalWidth: 400,
     changePolicyEducationModalIconWidth: 147.69,
     changePolicyEducationModalIconHeight: 180,
     transactionReceiptButtonWidth: 100,

@@ -6965,6 +6965,8 @@ ${reportName}
             disconnect: '断开连接',
             disconnectTitle: (providerName: string) => `断开 ${providerName}`,
             disconnectPrompt: (providerName: string) => `确定要断开 ${providerName} 吗？`,
+            alreadyConnectedTitle: '无法连接多个 HR 平台',
+            alreadyConnectedPrompt: '您必须先断开当前的 HR 平台，然后才能连接其他平台。',
             lastSync: (relativeDate: string) => `上次同步 ${relativeDate}`,
             syncError: (providerName: string) => `无法连接到 ${providerName}`,
             connectionDescription: (providerName: string) => `连接 ${providerName}，以在您的工作区中同步员工审批。`,
