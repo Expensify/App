@@ -5,12 +5,28 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import WorkspaceMembersTableRow from './WorkspaceMembersTableRow';
 
 type WorkspaceMembersTableColumnKey = 'member' | 'role' | 'actions';
 
 type WorkspaceMemberRowData = {
     keyForList: string;
+    accountID: number;
+    login: string;
+    employeeUserID: number;
+    employeePayrollID: number;
+    isSelectionDisabled: boolean;
+    isDisabled: boolean;
+    isInteractive: boolean;
+    name: string;
+    email: string;
+    shouldShowEmployeeUserID: boolean;
+    shouldShowEmployeePayrollID: boolean;
+    errors?: OnyxCommon.Errors;
+    pendingAction?: OnyxCommon.PendingAction;
+    invitedSecondaryLogin: string;
+    action: () => void;
 };
 
 type WorkspaceMembersTableProps = {
@@ -44,6 +60,7 @@ export default function WorkspaceMembersTable({ref, members}: WorkspaceMembersTa
 
     const compareTableItems: CompareItemsCallback<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey> = (item1, item2, activeSorting) => {
         const orderMultiplier = activeSorting.order === 'asc' ? 1 : -1;
+
         return 1;
     };
 

@@ -20,6 +20,7 @@ import TableListItem from '@components/SelectionList/ListItem/TableListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
+import {WorkspaceMemberRowData} from '@components/Tables/WorkspaceMembersTable';
 import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import TextLink from '@components/TextLink';
@@ -402,7 +403,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const shouldShowCustomField2Column = isControlPolicyWithWideLayout && hasAnyCustomField2;
     const shouldShowAnyCustomFieldColumn = shouldShowCustomField1Column || shouldShowCustomField2Column;
 
-    const data: MemberOption[] = useMemo(() => {
+    const data: WorkspaceMemberRowData[] = useMemo(() => {
         return filteredMembers.map(({policyEmployee, accountID, details}) => {
             const isPendingDeleteOrError = isPolicyAdmin && (policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors));
 
@@ -414,9 +415,30 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             } else if (policyEmployee.role === CONST.POLICY.ROLE.AUDITOR) {
                 roleBadgeText = translate('common.auditor');
             }
+
             const memberName = formatPhoneNumber(getDisplayNameOrDefault(details));
             const memberEmail = formatPhoneNumber(details?.login ?? '');
             const accessibilityLabel = [memberName, memberEmail, roleBadgeText].filter(Boolean).join(', ');
+
+            return {
+                keyForList: accountID.toString(),
+                accountID,
+                login: details.login ?? '',
+                employeeUserID: policyEmployee.employeeUserID,
+                employeePayrollID: policyEmployee.employeePayrollID,
+                isSelectionDisabled: !(isPolicyAdmin && accountID !== policy?.ownerAccountID && accountID !== session?.accountID),
+                isDisabled: isPendingDeleteOrError,
+                isInteractive: !details.isOptimisticPersonalDetail,
+                name: memberName,
+                email: memberEmail,
+                shouldShowEmployeeUserID: shouldShowCustomField1Column,
+                shouldShowEmployeePayrollID: shouldShowCustomField2Column,
+                errors: getLatestErrorMessageField(policyEmployee),
+                pendingAction: policyEmployee.pendingAction,
+                // Note which secondary login was used to invite this primary login
+                invitedSecondaryLogin: details?.login ? (invitedPrimaryToSecondaryLogins[details.login] ?? '') : '',
+                // action: () => openMemberDetails({accountID, login: details.login ?? '', text: memberName, alternateText: memberEmail}),
+            };
 
             return {
                 keyForList: details.login ?? '',
