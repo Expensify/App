@@ -121,11 +121,7 @@ function getRestrictedPolicyID(
         );
 }
 
-function addSelectedGroupsFilter(
-    queryJSON: SearchQueryJSON,
-    selectedTransactions: SelectedTransactions,
-    searchData: SearchResultDataType | undefined,
-): SearchQueryJSON {
+function addSelectedGroupsFilter(queryJSON: SearchQueryJSON, selectedTransactions: SelectedTransactions, searchData: SearchResultDataType | undefined): SearchQueryJSON {
     const {groupBy} = queryJSON;
     if (!groupBy || !searchData) {
         return queryJSON;
@@ -486,9 +482,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     policyID,
                 });
             } else {
-                const filteredQuery = queryJSON?.groupBy
-                    ? serializeQueryJSONForBackend(addSelectedGroupsFilter(queryJSON, selectedTransactions, currentSearchResults?.data))
-                    : '{}';
+                const filteredQuery = queryJSON?.groupBy ? serializeQueryJSONForBackend(addSelectedGroupsFilter(queryJSON, selectedTransactions, currentSearchResults?.data)) : '{}';
                 queueExportSearchWithTemplate({
                     templateName,
                     templateType,
@@ -575,9 +569,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         const transactionIDList = selectedTransactionsKeys.filter((key) => !key.startsWith(CONST.SEARCH.GROUP_PREFIX));
         const reportIDList = selectedReports.length > 0 ? selectedReportIDs : selectedTransactionReportIDs;
-        const exportQuery = queryJSON?.groupBy
-            ? addSelectedGroupsFilter(queryJSON, selectedTransactions, currentSearchResults?.data)
-            : queryJSON;
+        const exportQuery = queryJSON?.groupBy ? addSelectedGroupsFilter(queryJSON, selectedTransactions, currentSearchResults?.data) : queryJSON;
         let didFail = false;
         await exportSearchItemsToCSV(
             {

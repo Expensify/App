@@ -1117,17 +1117,7 @@ function Search({
             setSelectedTransactions(updatedTransactions);
             updateSelectAllMatchingItemsState(updatedTransactions);
         },
-        [
-            selectedTransactions,
-            setSelectedTransactions,
-           
-            updateSelectAllMatchingItemsState,
-            transactions,
-            email,
-            accountID,
-            outstandingReportsByPolicyID,
-            searchResults?.data,
-        ],
+        [selectedTransactions, setSelectedTransactions, updateSelectAllMatchingItemsState, transactions, email, accountID, outstandingReportsByPolicyID, searchResults?.data],
     );
 
     const onSelectRowInMobileSelectionMode = (item: SearchListItem) => {
