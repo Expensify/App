@@ -88,15 +88,8 @@ import useOptimisticSearchTracking from './hooks/useOptimisticSearchTracking';
 import useStableOptimisticSortedData from './hooks/useStableOptimisticSortedData';
 import SearchChartView from './SearchChartView';
 import SearchChartWrapper from './SearchChartWrapper';
-import {
-    useSearchQueryActions,
-    useSearchQueryContext,
-    useSearchResultsActions,
-    useSearchResultsContext,
-    useSearchSelectionActions,
-    useSearchSelectionContext,
-    useSyncSelectedReports,
-} from './SearchContext';
+import {useSearchQueryActions, useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
+import {useSyncSelectedReports} from './SearchContextProvider';
 import SearchList from './SearchList';
 import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
 import {SearchScopeProvider} from './SearchScopeProvider';

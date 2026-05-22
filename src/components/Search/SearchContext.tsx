@@ -1,42 +1,53 @@
-import React from 'react';
-import {SearchQueryActionsContext, SearchQueryContext, SearchQueryProvider, useSearchQueryActions, useSearchQueryContext} from './SearchQueryProvider';
-import {SearchResultsActionsContext, SearchResultsContext, SearchResultsProvider, useSearchResultsActions, useSearchResultsContext} from './SearchResultsProvider';
+import {useContext} from 'react';
 import {
+    SearchQueryActionsContext,
+    SearchQueryContext,
+    SearchResultsActionsContext,
+    SearchResultsContext,
     SearchSelectionActionsContext,
     SearchSelectionContext,
-    SearchSelectionProvider,
-    useSearchSelectionActions,
-    useSearchSelectionContext,
-    useSyncSelectedReports,
-} from './SearchSelectionProvider';
+} from './SearchContextDefinitions';
 
-type SearchContextProps = {
-    children: React.ReactNode;
-};
+// Lightweight public surface for search contexts.
+// `useOnyx` imports the context instances from here; pulling in the providers (and their useOnyx
+// users like useCardFeedsForDisplay) would create a cycle that breaks jest mock resolution in tests
+// like PureReportActionItemTest. Providers live in `SearchContextProvider.tsx`.
 
-function SearchContextProvider({children}: SearchContextProps) {
-    return (
-        <SearchQueryProvider>
-            <SearchResultsProvider>
-                <SearchSelectionProvider>{children}</SearchSelectionProvider>
-            </SearchResultsProvider>
-        </SearchQueryProvider>
-    );
+function useSearchQueryContext() {
+    return useContext(SearchQueryContext);
+}
+
+function useSearchQueryActions() {
+    return useContext(SearchQueryActionsContext);
+}
+
+function useSearchResultsContext() {
+    return useContext(SearchResultsContext);
+}
+
+function useSearchResultsActions() {
+    return useContext(SearchResultsActionsContext);
+}
+
+function useSearchSelectionContext() {
+    return useContext(SearchSelectionContext);
+}
+
+function useSearchSelectionActions() {
+    return useContext(SearchSelectionActionsContext);
 }
 
 export {
-    SearchContextProvider,
-    useSearchQueryContext,
-    useSearchQueryActions,
-    useSearchResultsContext,
-    useSearchResultsActions,
-    useSearchSelectionContext,
-    useSearchSelectionActions,
-    useSyncSelectedReports,
     SearchQueryContext,
     SearchQueryActionsContext,
     SearchResultsContext,
     SearchResultsActionsContext,
     SearchSelectionContext,
     SearchSelectionActionsContext,
+    useSearchQueryContext,
+    useSearchQueryActions,
+    useSearchResultsContext,
+    useSearchResultsActions,
+    useSearchSelectionContext,
+    useSearchSelectionActions,
 };
