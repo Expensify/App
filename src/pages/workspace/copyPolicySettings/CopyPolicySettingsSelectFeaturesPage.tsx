@@ -1,12 +1,14 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import type {ConfirmButtonOptions, ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -44,6 +46,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [copyPolicySettings] = useOnyx(ONYXKEYS.COPY_POLICY_SETTINGS);
@@ -115,15 +118,6 @@ function CopyPolicySettingsSelectFeaturesPage() {
     const availablePartSet = new Set(availableFeatureRows.map((row) => row.part));
 
     const [selectedFeatures, setSelectedFeatures] = useState<readonly Part[]>([]);
-
-    useEffect(() => {
-        if (!copyPolicySettings?.parts) {
-            return;
-        }
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setSelectedFeatures(copyPolicySettings.parts as Part[]);
-    }, [copyPolicySettings?.parts]);
-
     const selectedAvailableFeatures = selectedFeatures.filter((part) => availablePartSet.has(part));
     const isAccountingSelected = selectedAvailableFeatures.includes('accounting');
 
@@ -237,10 +231,32 @@ function CopyPolicySettingsSelectFeaturesPage() {
         Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_CONFIRM.getRoute(sourcePolicyID));
     };
 
+    const onConfirm = () => {
+        const isWorkflowsSelected = effectiveSelectedFeatures.includes('workflows');
+        const isMembersSelected = effectiveSelectedFeatures.includes('members');
+        const hasMembersToCopy = availablePartSet.has('members');
+
+        if (!isWorkflowsSelected || isMembersSelected || !hasMembersToCopy) {
+            saveAndNavigate();
+            return;
+        }
+        showConfirmModal({
+            title: translate('common.headsUp'),
+            prompt: translate('workspace.copyPolicySettings.workflowsWithoutMembersPrompt'),
+            confirmText: translate('workspace.copyPolicySettings.workflowsWithoutMembersConfirm'),
+            cancelText: translate('common.cancel'),
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+            saveAndNavigate();
+        });
+    };
+
     const confirmButtonOptions: ConfirmButtonOptions<ListItem> = {
         showButton: true,
         text: translate('common.next'),
-        onConfirm: saveAndNavigate,
+        onConfirm,
         isDisabled: effectiveSelectedFeatures.length === 0,
     };
 
