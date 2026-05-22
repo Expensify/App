@@ -4149,6 +4149,46 @@ function getAddExpensifyCardRuleMessage(translate: LocalizedTranslate, reportAct
     return translate('workspaceActions.expensifyCardRule.addRule', {verb, filters, cards: cardsSummary});
 }
 
+function pushDiffPhrases(
+    phrases: SpendRulePhrase[],
+    diff: SpendRuleStringDiff,
+    adjective: SpendRulePhraseAdjective,
+    adjectiveWord: string,
+    getDisplayName: (value: string) => string,
+    formatBody: (params: {adjective: string; value: string}) => string,
+    formatBodyChange: (params: {adjective: string; oldValue: string; newValue: string}) => string,
+): void {
+    if (diff.added.length === 1 && diff.removed.length === 1) {
+        const oldValue = getDisplayName(diff.removed.at(0) ?? '');
+        const newValue = getDisplayName(diff.added.at(0) ?? '');
+        phrases.push({
+            verb: 'changed',
+            adjective,
+            bodyWithAdjective: formatBodyChange({adjective: adjectiveWord, oldValue, newValue}),
+            bodyWithoutAdjective: formatBodyChange({adjective: '', oldValue, newValue}),
+        });
+    } else {
+        for (const value of diff.added) {
+            const display = getDisplayName(value);
+            phrases.push({
+                verb: 'added',
+                adjective,
+                bodyWithAdjective: formatBody({adjective: adjectiveWord, value: display}),
+                bodyWithoutAdjective: formatBody({adjective: '', value: display}),
+            });
+        }
+        for (const value of diff.removed) {
+            const display = getDisplayName(value);
+            phrases.push({
+                verb: 'removed',
+                adjective,
+                bodyWithAdjective: formatBody({adjective: adjectiveWord, value: display}),
+                bodyWithoutAdjective: formatBody({adjective: '', value: display}),
+            });
+        }
+    }
+}
+
 function getUpdateExpensifyCardRuleMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
     if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EXPENSIFY_CARD_RULE)) {
         return '';
@@ -4202,63 +4242,24 @@ function getUpdateExpensifyCardRuleMessage(translate: LocalizedTranslate, report
     const adjectiveWord = getSpendRuleActionVerb(translate, adjective);
     const phrases: SpendRulePhrase[] = [];
 
-    if (merchantDiff.added.length === 1 && merchantDiff.removed.length === 1) {
-        const oldValue = merchantDiff.removed.at(0) ?? '';
-        const newValue = merchantDiff.added.at(0) ?? '';
-        phrases.push({
-            verb: 'changed',
-            adjective,
-            bodyWithAdjective: translate('workspaceActions.expensifyCardRule.update.bodyMerchantChange', {adjective: adjectiveWord, oldValue, newValue}),
-            bodyWithoutAdjective: translate('workspaceActions.expensifyCardRule.update.bodyMerchantChange', {adjective: '', oldValue, newValue}),
-        });
-    } else {
-        for (const merchant of merchantDiff.added) {
-            phrases.push({
-                verb: 'added',
-                adjective,
-                bodyWithAdjective: translate('workspaceActions.expensifyCardRule.update.bodyMerchant', {adjective: adjectiveWord, value: merchant}),
-                bodyWithoutAdjective: translate('workspaceActions.expensifyCardRule.update.bodyMerchant', {adjective: '', value: merchant}),
-            });
-        }
-        for (const merchant of merchantDiff.removed) {
-            phrases.push({
-                verb: 'removed',
-                adjective,
-                bodyWithAdjective: translate('workspaceActions.expensifyCardRule.update.bodyMerchant', {adjective: adjectiveWord, value: merchant}),
-                bodyWithoutAdjective: translate('workspaceActions.expensifyCardRule.update.bodyMerchant', {adjective: '', value: merchant}),
-            });
-        }
-    }
-
-    if (categoryDiff.added.length === 1 && categoryDiff.removed.length === 1) {
-        const oldValue = getSpendRuleCategoryDisplayName(translate, categoryDiff.removed.at(0) ?? '');
-        const newValue = getSpendRuleCategoryDisplayName(translate, categoryDiff.added.at(0) ?? '');
-        phrases.push({
-            verb: 'changed',
-            adjective,
-            bodyWithAdjective: translate('workspaceActions.expensifyCardRule.update.bodySpendCategoryChange', {adjective: adjectiveWord, oldValue, newValue}),
-            bodyWithoutAdjective: translate('workspaceActions.expensifyCardRule.update.bodySpendCategoryChange', {adjective: '', oldValue, newValue}),
-        });
-    } else {
-        for (const category of categoryDiff.added) {
-            const value = getSpendRuleCategoryDisplayName(translate, category);
-            phrases.push({
-                verb: 'added',
-                adjective,
-                bodyWithAdjective: translate('workspaceActions.expensifyCardRule.update.bodySpendCategory', {adjective: adjectiveWord, value}),
-                bodyWithoutAdjective: translate('workspaceActions.expensifyCardRule.update.bodySpendCategory', {adjective: '', value}),
-            });
-        }
-        for (const category of categoryDiff.removed) {
-            const value = getSpendRuleCategoryDisplayName(translate, category);
-            phrases.push({
-                verb: 'removed',
-                adjective,
-                bodyWithAdjective: translate('workspaceActions.expensifyCardRule.update.bodySpendCategory', {adjective: adjectiveWord, value}),
-                bodyWithoutAdjective: translate('workspaceActions.expensifyCardRule.update.bodySpendCategory', {adjective: '', value}),
-            });
-        }
-    }
+    pushDiffPhrases(
+        phrases,
+        merchantDiff,
+        adjective,
+        adjectiveWord,
+        (value) => value,
+        (params) => translate('workspaceActions.expensifyCardRule.update.bodyMerchant', params),
+        (params) => translate('workspaceActions.expensifyCardRule.update.bodyMerchantChange', params),
+    );
+    pushDiffPhrases(
+        phrases,
+        categoryDiff,
+        adjective,
+        adjectiveWord,
+        (category) => getSpendRuleCategoryDisplayName(translate, category),
+        (params) => translate('workspaceActions.expensifyCardRule.update.bodySpendCategory', params),
+        (params) => translate('workspaceActions.expensifyCardRule.update.bodySpendCategoryChange', params),
+    );
 
     if (amountDiff.added.length === 1 && amountDiff.removed.length === 1) {
         const oldValue = formatSpendRuleAmount(amountDiff.removed.at(0) ?? {value: []}, currency);
