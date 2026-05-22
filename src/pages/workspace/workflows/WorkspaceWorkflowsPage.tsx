@@ -88,6 +88,7 @@ import type SCREENS from '@src/SCREENS';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type DismissedProductTraining from '@src/types/onyx/DismissedProductTraining';
 import {setPendingAgentApprover} from './approvals/pendingAgentApproverStore';
+import {clearPendingPostCreateSeed, getPendingPostCreateSeed, setPendingAgentApprover} from './approvals/pendingAgentApproverStore';
 import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
 import {getAutoReportingFrequencyDisplayNames} from './WorkspaceAutoReportingFrequencyPage';
@@ -342,6 +343,36 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         },
         [ownedAgents, policy, route.params.policyID, formatPhoneNumber, currentUserAccountID],
     );
+
+    // When the user just created an agent from a workflow card, AddAgentPage records a
+    // pending post-create seed before returning here. Once the CREATE_AGENT response lands
+    // and the new agent shows up in `ownedAgents`, identify it (by accountID delta against
+    // the snapshot AddAgentPage took at submit time), seed it as approver[0] of the target
+    // workflow, and land the admin on the Edit Approval Workflow page.
+    useEffect(() => {
+        const pending = getPendingPostCreateSeed();
+        if (!pending || pending.policyID !== route.params.policyID) {
+            return;
+        }
+
+        const knownSet = new Set(pending.knownAccountIDs);
+        const newAgent = ownedAgents.find((candidate) => !knownSet.has(candidate.accountID));
+        if (!newAgent) {
+            return;
+        }
+
+        clearPendingPostCreateSeed();
+
+        setPendingAgentApprover({
+            email: newAgent.email,
+            displayName: newAgent.displayName,
+            avatar: newAgent.avatar,
+            policyID: route.params.policyID,
+            isAdvancedApproval: isControlPolicy(policy),
+        });
+
+        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, pending.workflowApproverEmail));
+    }, [ownedAgents, policy, route.params.policyID]);
 
     const filteredApprovalWorkflows =
         policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED || policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL

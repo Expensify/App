@@ -44,5 +44,36 @@ function clearPendingAgentApprover() {
     pendingApprover = null;
 }
 
-export type {PendingAgentApprover};
-export {setPendingAgentApprover, getPendingAgentApprover, clearPendingAgentApprover};
+/**
+ * Captures intent to wire a freshly-created agent into a specific workflow as soon as the
+ * CREATE_AGENT API response lands. AddAgentPage records this on submit (with the set of
+ * agent account IDs that were already known) and the Workflows page consumes it when it
+ * detects a new agent in `sharedNVP_agentPrompt_` whose account ID isn't in the known list.
+ */
+type PendingPostCreateSeed = {
+    /** Policy where the workflow lives */
+    policyID: string;
+
+    /** First approver email of the workflow being edited (route param for the Edit page) */
+    workflowApproverEmail: string;
+
+    /** Snapshot of agent prompt account IDs at submit time, used to identify the new one */
+    knownAccountIDs: number[];
+};
+
+let pendingPostCreateSeed: PendingPostCreateSeed | null = null;
+
+function setPendingPostCreateSeed(value: PendingPostCreateSeed) {
+    pendingPostCreateSeed = value;
+}
+
+function getPendingPostCreateSeed(): PendingPostCreateSeed | null {
+    return pendingPostCreateSeed;
+}
+
+function clearPendingPostCreateSeed() {
+    pendingPostCreateSeed = null;
+}
+
+export type {PendingAgentApprover, PendingPostCreateSeed};
+export {setPendingAgentApprover, getPendingAgentApprover, clearPendingAgentApprover, setPendingPostCreateSeed, getPendingPostCreateSeed, clearPendingPostCreateSeed};

@@ -14,6 +14,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isMobile} from '@libs/Browser';
@@ -22,6 +23,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+import {setPendingPostCreateSeed} from '@pages/workspace/workflows/approvals/pendingAgentApproverStore';
 import {createAgent} from '@userActions/Agent';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -37,6 +39,8 @@ type AddAgentPageProps =
 
 function AddAgentPage({route}: AddAgentPageProps) {
     const policyID = route.params?.policyID;
+    const workflowApproverEmail = route.params?.workflowApproverEmail;
+    const [agentPrompts] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {windowWidth, windowHeight} = useWindowDimensions();
@@ -90,6 +94,13 @@ function AddAgentPage({route}: AddAgentPageProps) {
         const prompt = values[INPUT_IDS.PROMPT].trim();
         const pendingFile = pendingFileRef.current;
 
+        // Record the set of agent account IDs the user already owns BEFORE the API write so the
+        // Workflows page can identify the freshly-created agent once the server response lands.
+        if (policyID && workflowApproverEmail) {
+            const knownAccountIDs = Object.keys(agentPrompts ?? {}).map((key) => Number(key.slice(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT.length)));
+            setPendingPostCreateSeed({policyID, workflowApproverEmail, knownAccountIDs});
+        }
+
         if (pendingFile) {
             createAgent(firstName, prompt, undefined, pendingFile.file, pendingFile.uri, policyID);
         } else {
@@ -98,10 +109,9 @@ function AddAgentPage({route}: AddAgentPageProps) {
 
         // We do not optimistically seed the agent as an approver here because the agent's real email
         // (and account ID) are server-generated and unknown until the CREATE_AGENT API responds.
-        // Persisting a placeholder email would corrupt the workflow. The CREATE_AGENT backend handler
-        // is responsible for adding the agent to the workspace's employeeList when policyID is set,
-        // and the user can wire the agent into a workflow from the Workflows page via Add agent once
-        // the server response arrives.
+        // The Workflows page consumes the pending post-create seed once the new agent appears in
+        // sharedNVP_agentPrompt_ and re-runs the existing-agent flow to land the admin on the Edit
+        // Approval Workflow page with the new agent seeded as the first approver.
         Navigation.goBack();
     };
 
