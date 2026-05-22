@@ -128,8 +128,11 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const cleanupSelectedOption = useCallback(() => tableRef.current?.clearSelection(), []);
-    useCleanupSelectedOptions(cleanupSelectedOption);
+    const clearTableSelection = useCallback(() => {
+        tableRef.current?.clearSelection();
+    }, []);
+
+    useCleanupSelectedOptions(clearTableSelection);
 
     useEffect(() => {
         if (selectedCategoryNames.length === 0 || !canSelectMultiple) {
@@ -160,7 +163,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     }, [policyCategories]);
 
     useSearchBackPress({
-        onClearSelection: () => tableRef.current?.clearSelection(),
+        onClearSelection: clearTableSelection,
         onNavigationCallBack: () => Navigation.goBack(backTo),
     });
 
@@ -310,7 +313,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             );
         }
 
-        tableRef.current?.clearSelection();
+        clearTableSelection();
     };
 
     const hasVisibleCategories = categoryRows.some((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
@@ -396,6 +399,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
+    // eslint-disable react-hooks/refs
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
         const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
@@ -447,7 +451,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             showCannotDeleteOrDisableLastCategoryModal();
                             return;
                         }
-                        tableRef.current?.clearSelection();
+                        clearTableSelection();
                         setWorkspaceCategoryEnabled({
                             policyData,
                             categoriesToUpdate: categoriesToDisable,
@@ -484,7 +488,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     text: translate(disabledCategories.length === 1 ? 'workspace.categories.enableCategory' : 'workspace.categories.enableCategories'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                     onSelected: () => {
-                        tableRef.current?.clearSelection();
+                        clearTableSelection();
                         setWorkspaceCategoryEnabled({
                             policyData,
                             categoriesToUpdate: categoriesToEnable,
@@ -555,8 +559,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             return;
         }
 
-        tableRef.current?.clearSelection();
-    }, [setSelectedCategoryNames, isMobileSelectionModeEnabled]);
+        clearTableSelection();
+    }, [clearTableSelection, isMobileSelectionModeEnabled]);
 
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
 
@@ -616,7 +620,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     shouldDisplayHelpButton
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
-                            tableRef.current?.clearSelection();
+                            clearTableSelection();
                             turnOffMobileSelectionMode();
                             return;
                         }
@@ -629,8 +633,10 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         Navigation.goBack();
                     }}
                 >
+                    {/* eslint-disable-next-line react-hooks/refs -- Ref is used in a callback when an action is taken */}
                     {!shouldDisplayButtonsInSeparateLine && getHeaderButtons()}
                 </HeaderWithBackButton>
+                {/* eslint-disable-next-line react-hooks/refs -- Ref is used in a callback when an action is taken */}
                 {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                 {(!hasVisibleCategories || isLoading) && headerContent}
                 {isLoading && (
