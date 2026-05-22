@@ -24,7 +24,7 @@ function goBackFromWorkspaceSettingPages() {
             navigationRef.current?.dispatch({...StackActions.pop(topRootIndex - underlyingTabNavIndex), target: rootState.key});
             return;
         }
-        Navigation.dismissModal();
+        Navigation.goBack();
     } else {
         Navigation.goBack(ROUTES.WORKSPACES_LIST.route);
     }
