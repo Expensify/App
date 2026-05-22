@@ -777,4 +777,50 @@ describe('useSelectionModeReportActions', () => {
             expect(result.current.isInvoiceReport).toBe(true);
         });
     });
+
+    describe('shouldShowApproveButton with BYOC pending transactions', () => {
+        const TransactionUtils = require('@libs/TransactionUtils') as Record<string, jest.Mock>;
+        const IOUActions = require('@libs/actions/IOU/ReportWorkflow') as Record<string, jest.Mock>;
+
+        it('passes shouldShowApproveButton=false to usePaymentOptions when all transactions are pending (BYOC)', () => {
+            // canApproveIOU returns true so approve button would normally show
+            IOUActions.canApproveIOU.mockReturnValue(true);
+            // All transactions are pending (BYOC)
+            TransactionUtils.isPending.mockReturnValue(true);
+
+            const transactions = [buildTransaction(1), buildTransaction(2)];
+            renderSelectionModeHook({transactions, selectedTransactionIDs: ['1', '2']});
+
+            const usePaymentOptionsMock = require('@hooks/usePaymentOptions') as {default: jest.Mock};
+            const lastCallArgs = usePaymentOptionsMock.default.mock.lastCall?.[0] as {shouldShowApproveButton?: boolean} | undefined;
+            expect(lastCallArgs?.shouldShowApproveButton).toBe(false);
+        });
+
+        it('passes shouldShowApproveButton=true to usePaymentOptions when transactions are not pending', () => {
+            IOUActions.canApproveIOU.mockReturnValue(true);
+            // Transactions are not pending
+            TransactionUtils.isPending.mockReturnValue(false);
+
+            const transactions = [buildTransaction(1), buildTransaction(2)];
+            renderSelectionModeHook({transactions, selectedTransactionIDs: ['1', '2']});
+
+            const usePaymentOptionsMock = require('@hooks/usePaymentOptions') as {default: jest.Mock};
+            const lastCallArgs = usePaymentOptionsMock.default.mock.lastCall?.[0] as {shouldShowApproveButton?: boolean} | undefined;
+            expect(lastCallArgs?.shouldShowApproveButton).toBe(true);
+        });
+
+        it('passes shouldShowApproveButton=false when only some transactions are pending (mixed)', () => {
+            IOUActions.canApproveIOU.mockReturnValue(true);
+            // isPending alternates: first call true, second call false → not ALL pending → approve button still shows
+            TransactionUtils.isPending.mockReturnValueOnce(true).mockReturnValueOnce(false);
+
+            const transactions = [buildTransaction(1), buildTransaction(2)];
+            renderSelectionModeHook({transactions, selectedTransactionIDs: ['1', '2']});
+
+            const usePaymentOptionsMock = require('@hooks/usePaymentOptions') as {default: jest.Mock};
+            const lastCallArgs = usePaymentOptionsMock.default.mock.lastCall?.[0] as {shouldShowApproveButton?: boolean} | undefined;
+            // Not ALL pending → hasOnlyPendingTransactions=false → approve shows
+            expect(lastCallArgs?.shouldShowApproveButton).toBe(true);
+        });
+    });
 });

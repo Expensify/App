@@ -3356,6 +3356,43 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('isPendingCardOrScanningTransaction', () => {
+        it('returns true for a BYOC pending transaction (non-Expensify Card with status Pending)', () => {
+            // After our change, isPendingCardOrScanningTransaction no longer gates on isExpensifyCardTransaction,
+            // so any transaction with status Pending should return true regardless of bank.
+            const transaction = generateTransaction({
+                status: CONST.TRANSACTION.STATUS.PENDING,
+                bank: 'chase',
+            });
+            expect(TransactionUtils.isPendingCardOrScanningTransaction(transaction)).toBe(true);
+        });
+
+        it('returns true for an Expensify Card pending transaction', () => {
+            const transaction = generateTransaction({
+                status: CONST.TRANSACTION.STATUS.PENDING,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+            });
+            expect(TransactionUtils.isPendingCardOrScanningTransaction(transaction)).toBe(true);
+        });
+
+        it('returns false for a posted transaction', () => {
+            const transaction = generateTransaction({
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                bank: 'chase',
+            });
+            expect(TransactionUtils.isPendingCardOrScanningTransaction(transaction)).toBe(false);
+        });
+
+        it('returns false for a transaction with no status and no scanning indicators', () => {
+            const transaction = generateTransaction();
+            expect(TransactionUtils.isPendingCardOrScanningTransaction(transaction)).toBe(false);
+        });
+
+        it('returns false for undefined transaction', () => {
+            expect(TransactionUtils.isPendingCardOrScanningTransaction(undefined)).toBe(false);
+        });
+    });
+
     describe('shouldClearConvertedAmount', () => {
         it('returns false when destinationCurrency is undefined', () => {
             const transaction = generateTransaction({currency: 'USD'});
