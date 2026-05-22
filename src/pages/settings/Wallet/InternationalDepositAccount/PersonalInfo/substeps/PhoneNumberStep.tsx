@@ -36,7 +36,8 @@ function PhoneNumberStep({onNext, onMove, isEditing, shouldDelayAutoFocus, enabl
             const phoneNumberWithCountryCode = appendCountryCode(values.phoneNumber, countryCode);
             const e164FormattedPhoneNumber = formatE164PhoneNumber(values.phoneNumber, countryCode);
 
-            if (!isValidPhoneNumber(phoneNumberWithCountryCode) || !isValidUSPhone(e164FormattedPhoneNumber)) {
+            // Check if the phone number is valid for any country code
+            if (!isValidPhoneNumber(phoneNumberWithCountryCode)) {
                 errors.phoneNumber = translate('common.error.phoneNumber');
             }
         }
