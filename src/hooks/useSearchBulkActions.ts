@@ -10,7 +10,7 @@ import type {PaymentMethodType} from '@components/KYCWall/types';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
-import type {BulkPaySelectionData, PaymentData, SearchQueryJSON} from '@components/Search/types';
+import type {BulkPaySelectionData, PaymentData, SearchFilterKey, SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {deleteAppReport, exportReportToPDF, markAsManuallyExported, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
@@ -52,8 +52,8 @@ import {
     isIOUReport as isIOUReportUtil,
     isSelfDM,
 } from '@libs/ReportUtils';
-import {serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
-import {navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
+import {buildSearchQueryJSON, buildSearchQueryString, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
+import {getSelectedGroupFilterEntry, navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     hasCustomUnitOutOfPolicyViolation,
@@ -73,6 +73,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {BillingGraceEndPeriod, Policy, Report, ReportNameValuePairs, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import useAllPolicyExpenseChatReportActions from './useAllPolicyExpenseChatReportActions';
 import useAllTransactions from './useAllTransactions';
@@ -118,6 +119,58 @@ function getRestrictedPolicyID(
                     currentUserAccountID,
                 ),
         );
+}
+
+function addSelectedGroupsFilter(
+    queryJSON: SearchQueryJSON,
+    selectedTransactions: SelectedTransactions,
+    searchData: SearchResultDataType | undefined,
+): SearchQueryJSON {
+    const {groupBy} = queryJSON;
+    if (!groupBy || !searchData) {
+        return queryJSON;
+    }
+
+    const groupKeys = new Set<string>();
+    for (const [key, info] of Object.entries(selectedTransactions)) {
+        if (key.startsWith(CONST.SEARCH.GROUP_PREFIX)) {
+            groupKeys.add(key);
+        } else if (info?.groupKey) {
+            groupKeys.add(info.groupKey);
+        }
+    }
+
+    if (groupKeys.size === 0) {
+        return queryJSON;
+    }
+
+    const filterEntries: Array<{key: SearchFilterKey; value: string | number}> = [];
+    for (const key of groupKeys) {
+        const group = searchData[key as keyof SearchResultDataType];
+        if (!group) {
+            continue;
+        }
+        const entry = getSelectedGroupFilterEntry(groupBy, group);
+        if (entry) {
+            filterEntries.push(entry);
+        }
+    }
+
+    if (filterEntries.length === 0) {
+        return queryJSON;
+    }
+
+    const filterKey = filterEntries.at(0)?.key;
+    if (!filterKey) {
+        return queryJSON;
+    }
+    const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== filterKey);
+    newFlatFilters.push({
+        key: filterKey,
+        filters: filterEntries.map((e) => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: e.value})),
+    });
+
+    return buildSearchQueryJSON(buildSearchQueryString({...queryJSON, flatFilters: newFlatFilters})) ?? queryJSON;
 }
 
 type ShouldShowBulkDuplicateParams = {
@@ -435,12 +488,15 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     policyID,
                 });
             } else {
+                const filteredQuery = queryJSON?.groupBy
+                    ? serializeQueryJSONForBackend(addSelectedGroupsFilter(queryJSON, selectedTransactions, currentSearchResults?.data))
+                    : '{}';
                 queueExportSearchWithTemplate({
                     templateName,
                     templateType,
-                    jsonQuery: queryJSON?.groupBy ? serializedQuery : '{}',
+                    jsonQuery: filteredQuery,
                     reportIDList: selectedTransactionReportIDs,
-                    transactionIDList: selectedTransactionsKeys,
+                    transactionIDList: selectedTransactionsKeys.filter((key) => !key.startsWith(CONST.SEARCH.GROUP_PREFIX)),
                     policyID,
                 });
             }
@@ -458,6 +514,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         },
         [
             selectedReports,
+            selectedTransactions,
             isOffline,
             areAllMatchingItemsSelected,
             showConfirmModal,
@@ -518,15 +575,18 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return;
         }
 
-        const includesGroupExport = Object.entries(selectedTransactions).some(([key, selectedTransaction]) => key.startsWith(CONST.SEARCH.GROUP_PREFIX) && !selectedTransaction?.transaction);
+        const transactionIDList = selectedTransactionsKeys.filter((key) => !key.startsWith(CONST.SEARCH.GROUP_PREFIX));
         const reportIDList = selectedReports.length > 0 ? selectedReportIDs : selectedTransactionReportIDs;
+        const exportQuery = queryJSON?.groupBy
+            ? addSelectedGroupsFilter(queryJSON, selectedTransactions, currentSearchResults?.data)
+            : queryJSON;
         let didFail = false;
         await exportSearchItemsToCSV(
             {
                 query: status,
-                jsonQuery: queryJSON ? serializeQueryJSONForBackend(queryJSON) : JSON.stringify(queryJSON),
-                reportIDList: includesGroupExport ? [] : reportIDList,
-                transactionIDList: includesGroupExport ? [] : selectedTransactionsKeys,
+                jsonQuery: exportQuery ? serializeQueryJSONForBackend(exportQuery) : JSON.stringify(exportQuery),
+                reportIDList,
+                transactionIDList,
             },
             () => {
                 didFail = true;
@@ -553,6 +613,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         showConfirmModal,
         hash,
         selectAllMatchingItems,
+        currentSearchResults?.data,
     ]);
 
     const handleApproveWithDEWCheck = useCallback(async () => {
