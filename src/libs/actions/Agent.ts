@@ -32,10 +32,7 @@ function createAgent(
         avatarURI = optimisticAvatarURI;
     }
 
-    // The agent's real email is server-assigned and only known once CREATE_AGENT responds, so the
-    // optimistic personal detail intentionally omits `login`. Consumers that key off email (e.g.
-    // `policy.employeeList`, the Workflows page's `ownedAgents` derivation) therefore won't pick
-    // up the placeholder — they wait for the real entry that ships in the API response payload.
+    // Optimistic row for Settings > Agents until CREATE_AGENT responds. Omit `login` (server-assigned).
     const optimisticPersonalDetail = {
         accountID: optimisticAccountID,
         displayName: firstName,

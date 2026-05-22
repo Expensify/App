@@ -97,9 +97,6 @@ function AddAgentPage({route}: AddAgentPageProps) {
     };
 
     const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_AGENT_FORM>) => {
-        // Fall back to the default agent name shown as the field default so the optimistic personal
-        // detail (and any UI derived from it, like the approver pill on the Workflows page) renders
-        // with a human-readable name instead of an empty string while the API call is in flight.
         const firstName = values[INPUT_IDS.FIRST_NAME].trim() || defaultAgentName;
         const prompt = values[INPUT_IDS.PROMPT].trim();
         const pendingFile = pendingFileRef.current;
@@ -128,8 +125,7 @@ function AddAgentPage({route}: AddAgentPageProps) {
     };
 
     // Watch for the freshly-created agent and, when it arrives, navigate to the Edit Approval
-    // Workflow page with its real email as the approver seed. This replaces the previous singleton
-    // store + post-response swap dance with a single deterministic transition driven by Onyx.
+    // Workflow page with its real email as the approver seed.
     useEffect(() => {
         if (!isAwaitingNewAgent || !isWorkflowSeedFlow || !policyID || !workflowApproverEmail) {
             return;

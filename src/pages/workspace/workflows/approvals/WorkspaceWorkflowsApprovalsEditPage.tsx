@@ -118,11 +118,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             return clearApprovalWorkflow();
         }
 
-        // Honour an optional approver seed coming from the Workflows page "Add agent" flow. The
-        // seed is a real email at this point — either an agent the admin already owns or one
-        // that just came back from CREATE_AGENT — so no optimistic placeholders to reconcile.
-        // We still guard against duplicating the approver if they're already in the workflow,
-        // which can happen if the admin re-enters the flow after a previous save.
+        // Seed approver[0] when opened from Workflows > Add agent (skip if already in the workflow).
         const seedApproverEmail = route.params.seedApproverEmail;
         const seedPersonalDetails = seedApproverEmail ? getPersonalDetailByEmail(seedApproverEmail) : undefined;
         let approvers: Approver[] = currentApprovalWorkflow.approvers;
@@ -136,9 +132,6 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
                     approvalLimit: null,
                     overLimitForwardsTo: '',
                 };
-                // Control workspaces support multi-step approval, so we prepend the seed and keep
-                // the original chain. Collect workspaces only allow a single approver, so the seed
-                // replaces the existing one — matching the issue's behavioural spec.
                 approvers = isControlPolicy(policy) ? [seededApprover, ...currentApprovalWorkflow.approvers] : [seededApprover, ...currentApprovalWorkflow.approvers.slice(1)];
             }
         }
