@@ -126,6 +126,10 @@ function SearchPage({route}: SearchPageProps) {
         const currency = metadata?.currency ?? selectedTransactionItems.at(0)?.groupCurrency ?? selectedTransactionItems.at(0)?.currency;
         const numberOfExpense = shouldUseClientTotal
             ? selectedTransactionsKeys.reduce((count, key) => {
+                  if (key.startsWith(CONST.SEARCH.GROUP_PREFIX)) {
+                      const group = currentSearchResults?.data?.[key as keyof typeof currentSearchResults.data] as {count?: number} | undefined;
+                      return count + (group?.count ?? 0);
+                  }
                   const item = selectedTransactions[key];
                   if (item.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === item.reportID) {
                       return count;

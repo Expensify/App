@@ -667,9 +667,8 @@ function Search({
         // For group-by views, check if all transactions in groups have been loaded
         return (baseFilteredData as TransactionGroupListItemType[]).every((item) => {
             const snapshot = item.transactionsQueryJSON?.hash || item.transactionsQueryJSON?.hash === 0 ? groupByTransactionSnapshots[String(item.transactionsQueryJSON.hash)] : undefined;
-            // If snapshot doesn't exist, the group hasn't been expanded yet (transactions not loaded)
             // If snapshot exists and has hasMoreResults: true, not all transactions are loaded
-            return !!snapshot && !snapshot?.search?.hasMoreResults;
+            return item.transactions.length === 0 || !snapshot || !snapshot?.search?.hasMoreResults;
         });
     }, [validGroupBy, baseFilteredData, groupByTransactionSnapshots]);
 
@@ -986,15 +985,15 @@ function Search({
         }
 
         return (filteredData as TransactionGroupListItemType[]).reduce((count, item) => {
-            // For empty reports, count the report itself as a selectable item
-            if (item.transactions.length === 0 && isTransactionReportGroupListItemType(item)) {
+            // For empty groups, count the group itself as a selectable item
+            if (item.transactions.length === 0 && item.keyForList) {
                 if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                     return count;
                 }
 
                 return count + 1;
             }
-            // For regular reports, count all transactions except pending delete ones
+            // For groups with transactions, count all transactions except pending delete ones
             const selectableTransactions = item.transactions.filter((transaction) => !isTransactionPendingDelete(transaction));
 
             return count + selectableTransactions.length;
