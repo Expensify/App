@@ -17,7 +17,7 @@ function CreateHarvestReportAction({reportID}: CreateHarvestReportActionProps) {
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
     const [harvestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportNameValuePairs?.originalID}`);
     const harvestReportName = getReportName(harvestReport);
-    const htmlContent = `<comment><muted-text>${getHarvestCreatedExpenseReportMessage(reportNameValuePairsOriginalID, harvestReportName, translate)}</muted-text></comment>`;
+    const htmlContent = `<comment><muted-text>${getHarvestCreatedExpenseReportMessage(reportNameValuePairs?.originalID, harvestReportName, translate)}</muted-text></comment>`;
 
     return (
         <ReportActionItemBasicMessage>

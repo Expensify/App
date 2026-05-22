@@ -2639,8 +2639,6 @@ describe('PureReportActionItem', () => {
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
-                                    reportNameValuePairsOrigin="harvest"
-                                    reportNameValuePairsOriginalID="origReport123"
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
