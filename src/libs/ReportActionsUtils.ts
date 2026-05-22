@@ -3974,9 +3974,7 @@ function getSpendRuleRestrictionVerb(translate: LocalizedTranslate, action: stri
 }
 
 function formatSpendRuleAmount(amount: {value: string[]}, currency: string): string {
-    const firstValue = amount.value.at(0) ?? '';
-    const amountInCents = Number.isFinite(Number(firstValue)) ? Math.round(parseFloat(firstValue) * 100) : 0;
-    return convertAmountToDisplayString(amountInCents, currency);
+    return convertAmountToDisplayString(getSpendRuleValueInCents(amount.value), currency);
 }
 
 type SpendRuleStringDiff = {added: string[]; removed: string[]};
@@ -3994,7 +3992,7 @@ type SpendRuleAmountDiff = {added: SpendRuleAmount[]; removed: SpendRuleAmount[]
 
 function getSpendRuleValueInCents(value: string[]): number {
     const firstValue = value.at(0) ?? '';
-    return Number.isFinite(Number(firstValue)) ? Math.round(parseFloat(firstValue) * 100) : 0;
+    return firstValue !== '' && Number.isFinite(Number(firstValue)) ? Math.round(parseFloat(firstValue) * 100) : 0;
 }
 
 function computeSpendRuleAmountDiff(oldAmounts: SpendRuleAmount[], newAmounts: SpendRuleAmount[]): SpendRuleAmountDiff {

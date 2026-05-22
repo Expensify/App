@@ -7495,21 +7495,18 @@ const translations = {
             addRule: ({verb, filters, cards}: {verb: string; filters: string; cards: string}) => {
                 let text = verb;
                 if (filters !== '') {
-                    text += `${text === '' ? '' : ' '}${filters}`;
+                    text += ` ${filters}`;
                 }
-                if (cards !== '') {
-                    text += `${text === '' ? '' : ' '}on ${cards}`;
-                }
+                text += ` on ${cards}`;
                 return text;
             },
-            removeRule: ({cards}: {cards: string}) => (cards !== '' ? `removed spend rule from ${cards}` : 'removed spend rule'),
+            removeRule: ({cards}: {cards: string}) => `removed spend rule from ${cards}`,
             restrictionVerb: {
                 block: 'block',
                 allow: 'only allow',
             },
             update: {
-                modeChange: ({fromAction, toAction, cards}: {fromAction: string; toAction: string; cards: string}) =>
-                    cards !== '' ? `changed spend rule from ${fromAction} to ${toAction} on ${cards}` : `changed spend rule from ${fromAction} to ${toAction}`,
+                modeChange: ({fromAction, toAction, cards}: {fromAction: string; toAction: string; cards: string}) => `changed spend rule from ${fromAction} to ${toAction} on ${cards}`,
                 appliedToAdditionalCards: ({count}: {count: number}) => `applied spend rule to ${count} additional cards`,
                 phraseVerb: {
                     added: 'added',
