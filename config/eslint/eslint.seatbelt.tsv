@@ -233,7 +233,6 @@
 "../../src/hooks/useSearchBulkActions.ts"	"react-hooks/exhaustive-deps"	1
 "../../src/hooks/useSearchBulkActions.ts"	"react-hooks/preserve-manual-memoization"	2
 "../../src/hooks/useSearchHighlightAndScroll.ts"	"no-restricted-imports"	1
-"../../src/hooks/useSearchSelector/index.native.ts"	"no-restricted-imports"	1
 "../../src/hooks/useSelectionModeReportActions.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	2
 "../../src/hooks/useSidebarOrderedReports.tsx"	"react-hooks/purity"	1
 "../../src/hooks/useSidebarOrderedReports.tsx"	"react-hooks/refs"	5
@@ -526,7 +525,6 @@
 "../../src/pages/iou/SplitExpenseEditPage.tsx"	"react-hooks/preserve-manual-memoization"	3
 "../../src/pages/iou/SplitExpensePage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/iou/SplitExpensePage.tsx"	"react-hooks/set-state-in-effect"	3
-"../../src/pages/iou/request/ParticipantSearchResults.tsx"	"no-restricted-imports"	1
 "../../src/pages/iou/request/step/IOURequestEditReportCommon.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/iou/request/step/IOURequestStepAmount.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/iou/request/step/IOURequestStepCategory.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
