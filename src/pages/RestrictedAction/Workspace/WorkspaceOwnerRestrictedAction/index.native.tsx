@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
@@ -20,11 +20,12 @@ function WorkspaceOwnerRestrictedAction() {
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Unlock']);
 
-    const activeRoute = useMemo(() => Navigation.getActiveRoute(), []);
     const goToSubscription = useCallback(() => {
-        Navigation.closeRHPFlow();
-        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(activeRoute));
-    }, [activeRoute]);
+        const activeRoute = Navigation.getActiveRoute();
+        Navigation.dismissModal({
+            afterTransition: () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(activeRoute)),
+        });
+    }, []);
 
     return (
         <ScreenWrapper

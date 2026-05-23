@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
@@ -20,10 +20,11 @@ function WorkspaceOwnerRestrictedAction() {
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Unlock']);
 
-    const addPaymentCard = () => {
-        Navigation.closeRHPFlow();
-        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
-    };
+    const addPaymentCard = useCallback(() => {
+        Navigation.dismissModal({
+            afterTransition: () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD),
+        });
+    }, []);
 
     return (
         <ScreenWrapper
