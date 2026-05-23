@@ -1,6 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getCurrency, isManagedCardTransaction, isScanRequest, shouldShowAttendees as shouldShowAttendeesTransactionUtils} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -82,7 +83,7 @@ function useFooterDerivedFlags({
     const canModifyTaxFields = !isReadOnly && !isDistanceRequest && !isPerDiemRequest;
 
     // A flag for showing the billable field
-    const shouldShowBillable = policy?.disabledFields?.defaultBillable === false;
+    const shouldShowBillable = isBillableEnabledOnPolicy(policy);
     const shouldShowReimbursable =
         (isPolicyExpenseChat || isTrackExpense) && !!policy && policy?.disabledFields?.reimbursable !== true && !isManagedCardTransaction(transaction) && !isTypeInvoice;
     const shouldNavigateToUpgradePath = !policyForMovingExpensesID && !shouldSelectPolicy;
