@@ -10,7 +10,7 @@ import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelec
 import useThemeStyles from '@hooks/useThemeStyles';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
-import {getNonWorkspaceMemberExclusions} from '@libs/PolicyUtils';
+import {getExpensifyTeamExclusions} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ListFilterWrapper from './ListFilterViewWrapper';
@@ -39,13 +39,13 @@ function UserSelector({value = [], onChange}: UserSelectorProps) {
         return acc;
     }, new Set<string>());
 
-    const nonMemberExclusions = getNonWorkspaceMemberExclusions(personalDetails, policies, currentUserPersonalDetails.email);
+    const expensifyTeamExclusions = getExpensifyTeamExclusions(personalDetails, policies, currentUserPersonalDetails.email);
 
     const {searchTerm, setSearchTerm, availableOptions, totalOptionsCount, toggleSelection, areOptionsInitialized} = usePersonalDetailSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
         initialSelected: initialSelectedAccountIDs,
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-        excludeFromSuggestionsOnly: nonMemberExclusions,
+        excludeFromSuggestionsOnly: expensifyTeamExclusions,
         includeUserToInvite: true,
         includeCurrentUser: false,
         includeRecentReports: false,
