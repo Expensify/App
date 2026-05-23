@@ -58,24 +58,29 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
+      - name: Set review authorized
+        id: set-authorized
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request_target" ] && [ "${{ steps.gate.outputs.IS_AUTHORIZED }}" = "true" ]; then
+            echo "IS_AUTHORIZED=true" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event_name }}" = "pull_request_review" ] && [ "${{ needs.checkCPlusApproval.outputs.IS_CPLUS }}" = "true" ]; then
+            echo "IS_AUTHORIZED=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "IS_AUTHORIZED=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Checkout repository
-        if: |
-          (github.event_name == 'pull_request_target' && steps.gate.outputs.IS_AUTHORIZED == 'true')
-          || (github.event_name == 'pull_request_review' && needs.checkCPlusApproval.outputs.IS_CPLUS == 'true')
+        if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 1
 
       - name: Setup Node
-        if: |
-          (github.event_name == 'pull_request_target' && steps.gate.outputs.IS_AUTHORIZED == 'true')
-          || (github.event_name == 'pull_request_review' && needs.checkCPlusApproval.outputs.IS_CPLUS == 'true')
+        if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
         uses: ./.github/actions/composite/setupNode
 
       - name: Filter paths
-        if: |
-          (github.event_name == 'pull_request_target' && steps.gate.outputs.IS_AUTHORIZED == 'true')
-          || (github.event_name == 'pull_request_review' && needs.checkCPlusApproval.outputs.IS_CPLUS == 'true')
+        if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
         uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
         id: filter
         with:
@@ -87,16 +92,12 @@ jobs:
               - 'docs/**/*.csv'
 
       - name: Setup Claude review toolkit
-        if: |
-          (github.event_name == 'pull_request_target' && steps.gate.outputs.IS_AUTHORIZED == 'true')
-          || (github.event_name == 'pull_request_review' && needs.checkCPlusApproval.outputs.IS_CPLUS == 'true')
+        if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
         id: toolkit
         uses: Expensify/GitHub-Actions/.github/actions/claude-review-toolkit@43c1b4348cd46637e44064b02f5d316bfab990ee
 
       - name: Mark review as in progress
-        if: |
-          (github.event_name == 'pull_request_target' && steps.gate.outputs.IS_AUTHORIZED == 'true')
-          || (github.event_name == 'pull_request_review' && needs.checkCPlusApproval.outputs.IS_CPLUS == 'true')
+        if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -104,12 +105,7 @@ jobs:
 
       - name: Run Claude Code (code)
         id: code-review
-        if: |
-          (
-            (github.event_name == 'pull_request_target' && steps.gate.outputs.IS_AUTHORIZED == 'true')
-            || (github.event_name == 'pull_request_review' && needs.checkCPlusApproval.outputs.IS_CPLUS == 'true')
-          )
-          && steps.filter.outputs.code == 'true'
+        if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true' && steps.filter.outputs.code == 'true'
         uses: anthropics/claude-code-action@ba026a3e56b9f646ae3b1be02dd9c0812aa2f8ae # v1.0.86
         with:
           display_report: "true"
@@ -123,10 +119,7 @@ jobs:
 
       - name: Post code review results
         if: |
-          (
-            (github.event_name == 'pull_request_target' && steps.gate.outputs.IS_AUTHORIZED == 'true')
-            || (github.event_name == 'pull_request_review' && needs.checkCPlusApproval.outputs.IS_CPLUS == 'true')
-          )
+          steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
           && steps.code-review.outcome == 'success'
           && steps.filter.outputs.code == 'true'
         env:
@@ -150,12 +143,7 @@ jobs:
           fi
 
       - name: Run Claude Code (docs)
-        if: |
-          (
-            (github.event_name == 'pull_request_target' && steps.gate.outputs.IS_AUTHORIZED == 'true')
-            || (github.event_name == 'pull_request_review' && needs.checkCPlusApproval.outputs.IS_CPLUS == 'true')
-          )
-          && steps.filter.outputs.docs == 'true'
+        if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true' && steps.filter.outputs.docs == 'true'
         uses: anthropics/claude-code-action@ba026a3e56b9f646ae3b1be02dd9c0812aa2f8ae # v1.0.86
         with:
           display_report: "true"
@@ -168,12 +156,7 @@ jobs:
             --allowedTools "Task,Glob,Grep,Read,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),mcp__github_inline_comment__create_inline_comment"
 
       - name: Remove in-progress indicator
-        if: |
-          always()
-          && (
-            (github.event_name == 'pull_request_target' && steps.gate.outputs.IS_AUTHORIZED == 'true')
-            || (github.event_name == 'pull_request_review' && needs.checkCPlusApproval.outputs.IS_CPLUS == 'true')
-          )
+        if: always() && steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
