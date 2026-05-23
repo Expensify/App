@@ -24,6 +24,7 @@ import {getSubstitutionMapKey, getSubstitutionMapKeyWithIndex} from './getQueryW
  *     to:SomeoneElse: 98765,
  * }
  */
+// Adds bankAccountList for the new bank account filter. Refactoring this to a params object would touch every call site and is out of scope here.
 // eslint-disable-next-line @typescript-eslint/max-params
 function buildSubstitutionsMap(
     query: string,
