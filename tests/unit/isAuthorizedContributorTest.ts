@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 import {RequestError} from '@octokit/request-error';
-import {isAuthorizedContributor, isContributorPlusMember, loginsMatch} from '../../.github/actions/javascript/isAuthorizedContributor/isAuthorizedContributor';
+import {isAuthorizedContributor, isContributorPlusMember} from '../../.github/actions/javascript/isAuthorizedContributor/isAuthorizedContributor';
 import type {InternalOctokit} from '../../.github/libs/GithubUtils';
 import GithubUtils from '../../.github/libs/GithubUtils';
 
@@ -60,13 +60,6 @@ const defaultParams = {
 };
 
 describe('isAuthorizedContributor', () => {
-    describe('loginsMatch', () => {
-        test('matches case-insensitively', () => {
-            expect(loginsMatch('FooBar', 'foobar')).toBe(true);
-            expect(loginsMatch('FooBar', 'FooBar2')).toBe(false);
-        });
-    });
-
     describe('isContributorPlusMember', () => {
         test('returns true when team membership exists', async () => {
             mockGetMembershipForUserInOrg.mockResolvedValue({data: {state: 'active'}});
@@ -112,7 +105,7 @@ describe('isAuthorizedContributor', () => {
             });
             mockIssuesGet.mockResolvedValue({
                 data: {
-                    assignees: [{login: 'externalUser'}],
+                    assignees: [{login: 'ExternalUser'}],
                 },
             });
 

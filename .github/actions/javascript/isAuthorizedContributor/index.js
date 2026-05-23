@@ -11582,7 +11582,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.isAuthorizedContributor = isAuthorizedContributor;
 exports.isContributorPlusMember = isContributorPlusMember;
-exports.loginsMatch = loginsMatch;
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 const request_error_1 = __nccwpck_require__(537);
@@ -11592,12 +11591,6 @@ const AUTHORIZED_ASSOCIATIONS = new Set(['MEMBER', 'OWNER', 'CONTRIBUTOR']);
 const CONTRIBUTOR_PLUS_TEAM_SLUG = 'contributor-plus';
 const ISSUE_URL_PATTERN = /https:\/\/github\.com\/(Expensify\/[^/]+)\/issues\/(\d+)/g;
 const PULL_URL_PATTERN = /https:\/\/github\.com\/(Expensify\/[^/]+)\/pull\/(\d+)/g;
-function loginsMatch(loginA, loginB) {
-    return loginA.toLowerCase() === loginB.toLowerCase();
-}
-function isMatchingLogin(login, prAuthor) {
-    return !!login && loginsMatch(login, prAuthor);
-}
 function parseExpensifyLink(match) {
     const repoFullName = match[1];
     const numberString = match[2];
@@ -11650,7 +11643,7 @@ async function isAuthorizedViaLinkedIssues(prBody, prAuthor) {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 issue_number: number,
             });
-            if (issue.assignees?.some((assignee) => isMatchingLogin(assignee.login, prAuthor))) {
+            if (issue.assignees?.some((assignee) => assignee.login?.toLowerCase() === prAuthor.toLowerCase())) {
                 console.log(`${prAuthor} is assigned to ${repoFullName}#${number}. Authorized.`);
                 return true;
             }
@@ -11676,7 +11669,7 @@ async function isAuthorizedViaLinkedPullRequests(prBody, prAuthor) {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 pull_number: number,
             });
-            if (isMatchingLogin(linkedPR.user?.login, prAuthor)) {
+            if (linkedPR.user?.login?.toLowerCase() === prAuthor.toLowerCase()) {
                 console.log(`${prAuthor} is the author of ${repoFullName}#${number}. Authorized.`);
                 return true;
             }
@@ -11686,7 +11679,7 @@ async function isAuthorizedViaLinkedPullRequests(prBody, prAuthor) {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 pull_number: number,
             });
-            if (reviews.some((review) => isMatchingLogin(review.user?.login, prAuthor))) {
+            if (reviews.some((review) => review.user?.login?.toLowerCase() === prAuthor.toLowerCase())) {
                 console.log(`${prAuthor} is a reviewer of ${repoFullName}#${number}. Authorized.`);
                 return true;
             }
@@ -11696,7 +11689,7 @@ async function isAuthorizedViaLinkedPullRequests(prBody, prAuthor) {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 pull_number: number,
             });
-            if (requestedReviewers.users.some((user) => loginsMatch(user.login, prAuthor))) {
+            if (requestedReviewers.users.some((user) => user.login.toLowerCase() === prAuthor.toLowerCase())) {
                 console.log(`${prAuthor} is a requested reviewer of ${repoFullName}#${number}. Authorized.`);
                 return true;
             }

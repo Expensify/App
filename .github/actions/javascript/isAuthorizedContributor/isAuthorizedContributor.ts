@@ -27,14 +27,6 @@ type ExpensifyRepoLink = {
     repo: string;
 };
 
-function loginsMatch(loginA: string, loginB: string): boolean {
-    return loginA.toLowerCase() === loginB.toLowerCase();
-}
-
-function isMatchingLogin(login: string | undefined | null, prAuthor: string): boolean {
-    return !!login && loginsMatch(login, prAuthor);
-}
-
 function parseExpensifyLink(match: RegExpMatchArray): ExpensifyRepoLink | null {
     const repoFullName = match[1];
     const numberString = match[2];
@@ -94,7 +86,7 @@ async function isAuthorizedViaLinkedIssues(prBody: string, prAuthor: string): Pr
                 issue_number: number,
             });
 
-            if (issue.assignees?.some((assignee) => isMatchingLogin(assignee.login, prAuthor))) {
+            if (issue.assignees?.some((assignee) => assignee.login?.toLowerCase() === prAuthor.toLowerCase())) {
                 console.log(`${prAuthor} is assigned to ${repoFullName}#${number}. Authorized.`);
                 return true;
             }
@@ -125,7 +117,7 @@ async function isAuthorizedViaLinkedPullRequests(prBody: string, prAuthor: strin
                 pull_number: number,
             });
 
-            if (isMatchingLogin(linkedPR.user?.login, prAuthor)) {
+            if (linkedPR.user?.login?.toLowerCase() === prAuthor.toLowerCase()) {
                 console.log(`${prAuthor} is the author of ${repoFullName}#${number}. Authorized.`);
                 return true;
             }
@@ -137,7 +129,7 @@ async function isAuthorizedViaLinkedPullRequests(prBody: string, prAuthor: strin
                 pull_number: number,
             });
 
-            if (reviews.some((review) => isMatchingLogin(review.user?.login, prAuthor))) {
+            if (reviews.some((review) => review.user?.login?.toLowerCase() === prAuthor.toLowerCase())) {
                 console.log(`${prAuthor} is a reviewer of ${repoFullName}#${number}. Authorized.`);
                 return true;
             }
@@ -149,7 +141,7 @@ async function isAuthorizedViaLinkedPullRequests(prBody: string, prAuthor: strin
                 pull_number: number,
             });
 
-            if (requestedReviewers.users.some((user) => loginsMatch(user.login, prAuthor))) {
+            if (requestedReviewers.users.some((user) => user.login.toLowerCase() === prAuthor.toLowerCase())) {
                 console.log(`${prAuthor} is a requested reviewer of ${repoFullName}#${number}. Authorized.`);
                 return true;
             }
@@ -226,5 +218,5 @@ if (require.main === module) {
     });
 }
 
-export {isAuthorizedContributor, isContributorPlusMember, loginsMatch};
+export {isAuthorizedContributor, isContributorPlusMember};
 export default run;
