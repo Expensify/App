@@ -8,9 +8,11 @@ import GithubUtils from '../../.github/libs/GithubUtils';
 
 function createRequestError(status: number): RequestError {
     return new RequestError('Not Found', status, {
-        method: 'GET',
-        url: 'https://api.github.com',
-        request: {headers: {}, method: 'GET', url: 'https://api.github.com'},
+        request: {
+            method: 'GET',
+            url: 'https://api.github.com',
+            headers: {},
+        },
     });
 }
 
