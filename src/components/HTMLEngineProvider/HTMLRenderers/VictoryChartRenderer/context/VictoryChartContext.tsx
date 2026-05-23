@@ -76,4 +76,3 @@ function useVictoryChartContext(): VictoryChartContextValue {
 }
 
 export {VictoryChartProvider, useVictoryChartContext};
-export type {VictoryChartContextValue};
