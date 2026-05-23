@@ -3,7 +3,7 @@ import type {TNode} from 'react-native-render-html';
 import {useChartDefaultTypeface} from '@components/Charts/hooks';
 import {CHART_TYPE} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import processVictoryChartTree from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/processVictoryChartTree';
-import type {ChartType, ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+import type {ChartType, PolarConfig, ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import parseStyles from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseStyles';
 
 type VictoryChartContextValue = {
@@ -15,6 +15,7 @@ type VictoryChartContextValue = {
     yAxis: ProcessNodeResult['yAxis'];
     labelItems: ProcessNodeResult['labelItems'];
     legendItems: ProcessNodeResult['legendItems'];
+    polarConfig: PolarConfig | undefined;
     chartContentStyles: ReturnType<typeof parseStyles>['nodeStyles'];
     chartContainerStyles: ReturnType<typeof parseStyles>['parentNodeStyles'];
     type: ChartType | null;
@@ -28,11 +29,11 @@ const VictoryChartContext = createContext<VictoryChartContextValue | null>(null)
  */
 function VictoryChartProvider({tnode, children}: {tnode: TNode; children: React.ReactNode}) {
     const {regular: regularTypeface} = useChartDefaultTypeface();
-    const {data, xKey, yKeys, xAxis, yAxis, labelItems, legendItems} = processVictoryChartTree(tnode, regularTypeface);
+    const {data, xKey, yKeys, xAxis, yAxis, labelItems, legendItems, polarConfig} = processVictoryChartTree(tnode, regularTypeface);
     const {nodeStyles: chartContentStyles, parentNodeStyles: chartContainerStyles} = parseStyles(tnode);
 
     const hasCartesianData = Object.keys(data).length > 0;
-    const hasPolarData = false;
+    const hasPolarData = (polarConfig?.data.length ?? 0) > 0;
     let type: ChartType | null = null;
 
     // XNOR Check. There must be one and only one valid chart
@@ -57,6 +58,7 @@ function VictoryChartProvider({tnode, children}: {tnode: TNode; children: React.
         yAxis,
         labelItems,
         legendItems,
+        polarConfig,
         chartContentStyles,
         chartContainerStyles,
         type,

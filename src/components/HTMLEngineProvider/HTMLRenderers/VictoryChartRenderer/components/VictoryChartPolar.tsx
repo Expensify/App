@@ -1,14 +1,38 @@
-import {useEffect} from 'react';
-import Log from '@libs/Log';
+import React from 'react';
+import {Pie, PolarChart} from 'victory-native';
+import {POLAR_COLOR_KEY, POLAR_LABEL_KEY, POLAR_VALUE_KEY} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
+import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
+import VictoryChartLabels from './VictoryChartLabels';
+import VictoryChartLegend from './VictoryChartLegend';
 
 /**
- * Renders the PolarChart with data drawn from context.
+ * Renders the PolarChart (pie) with data, labels, and legend drawn from context.
  */
 function VictoryChartPolar() {
-    useEffect(() => Log.warn('Trying to render unsupported polar charts'), []);
+    const {polarConfig, labelItems, legendItems} = useVictoryChartContext();
 
-    // Support for polar chars will be added in a follow up https://github.com/Expensify/App/issues/90546
-    return null;
+    if (!polarConfig) {
+        return null;
+    }
+
+    return (
+        <PolarChart
+            data={polarConfig.data}
+            labelKey={POLAR_LABEL_KEY}
+            valueKey={POLAR_VALUE_KEY}
+            colorKey={POLAR_COLOR_KEY}
+        >
+            <Pie.Chart
+                innerRadius={polarConfig.innerRadius}
+                startAngle={polarConfig.startAngle}
+                circleSweepDegrees={polarConfig.circleSweepDegrees}
+            >
+                {() => <Pie.Slice />}
+            </Pie.Chart>
+            <VictoryChartLabels labelItems={labelItems} />
+            <VictoryChartLegend legendItems={legendItems} />
+        </PolarChart>
+    );
 }
 
 VictoryChartPolar.displayName = 'VictoryChartPolar';

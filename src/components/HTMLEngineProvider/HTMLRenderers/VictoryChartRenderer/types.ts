@@ -3,7 +3,7 @@ import type {ComponentProps} from 'react';
 import type {CustomRendererProps, TBlock, TNode} from 'react-native-render-html';
 import type {ValueOf} from 'type-fest';
 import type {CartesianChart} from 'victory-native';
-import type {CHART_TYPE, X_KEY, Y_KEY_PREFIX} from './constants';
+import type {CHART_TYPE, POLAR_COLOR_KEY, POLAR_LABEL_KEY, POLAR_VALUE_KEY, X_KEY, Y_KEY_PREFIX} from './constants';
 
 type VictoryChartRendererProps = CustomRendererProps<TBlock>;
 
@@ -48,6 +48,23 @@ type RawLegendStyle = {
 
 type XKey = typeof X_KEY;
 type YKey = `${typeof Y_KEY_PREFIX}${string}`;
+
+type PolarLabelKey = typeof POLAR_LABEL_KEY;
+type PolarValueKey = typeof POLAR_VALUE_KEY;
+type PolarColorKey = typeof POLAR_COLOR_KEY;
+
+type PolarChartData = {
+    polarLabel: string;
+    polarValue: number;
+    polarColor: string;
+};
+
+type PolarConfig = {
+    data: PolarChartData[];
+    innerRadius?: number;
+    startAngle?: number;
+    circleSweepDegrees?: number;
+};
 
 type CartesianChartData = {
     [X_KEY]: string | number;
@@ -123,6 +140,7 @@ type ProcessNodeResult = {
     yAxis: CartesianChartProps['yAxis'];
     labelItems: LabelItem[];
     legendItems: LegendItem[];
+    polarConfig?: PolarConfig;
 };
 
 /** Partial slice produced by a single per-tag parser before merging. */
@@ -141,6 +159,11 @@ export type {
     RawLegendStyle,
     XKey,
     YKey,
+    PolarLabelKey,
+    PolarValueKey,
+    PolarColorKey,
+    PolarChartData,
+    PolarConfig,
     CartesianChartData,
     CartesianChartProps,
     LabelItem,
