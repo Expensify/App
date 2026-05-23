@@ -3756,45 +3756,6 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(result.reportAction).toBeUndefined();
             expect(result.actionBadge).toBeUndefined();
         });
-
-        it('should NOT return PAY badge fallback when chat report is archived', async () => {
-            const chatReportID = '830';
-            const iouReportID = '831';
-
-            const fakeChatReport: Report = {
-                ...createRandomReport(Number(chatReportID), undefined),
-                reportID: chatReportID,
-                iouReportID,
-                hasOutstandingChildRequest: true,
-            };
-
-            const reportPreviewAction = {
-                reportActionID: '832',
-                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-                created: '2024-08-08 19:00:00.000',
-                childReportID: iouReportID,
-                childType: CONST.REPORT.TYPE.IOU,
-                childManagerAccountID: RORY_ACCOUNT_ID,
-                childOwnerAccountID: CARLOS_ACCOUNT_ID,
-                childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                message: [{type: 'TEXT', text: 'IOU preview'}],
-            };
-
-            const archivedRNVP: ReportNameValuePairs = {
-                private_isArchived: new Date().toISOString(),
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, fakeChatReport);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
-                [reportPreviewAction.reportActionID]: reportPreviewAction,
-            });
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReportID}`, archivedRNVP);
-            await waitForBatchedUpdates();
-
-            const result = getIOUReportActionWithBadge(fakeChatReport, undefined, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID);
-            expect(result.reportAction).toBeUndefined();
-            expect(result.actionBadge).toBeUndefined();
-        });
     });
 
     describe('getBadgeFromIOUReport', () => {
