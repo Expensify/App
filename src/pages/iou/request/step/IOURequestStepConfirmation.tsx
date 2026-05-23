@@ -175,8 +175,7 @@ function IOURequestStepConfirmation({
         () => resolveReportForMoneyRequest({transaction, transactionReport, routeReport: reportWithDraftFallback, policy: policyReal}),
         [transaction, transactionReport, reportWithDraftFallback, policyReal],
     );
-    const participantReportIDToCheck = isMoneyRequestReport(report) ? report?.chatReportID : report?.reportID;
-    const [participantReportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${participantReportIDToCheck}`);
+    const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT);
 
     const {policy} = usePolicyForTransaction({
         transaction: initialTransaction,
@@ -263,11 +262,12 @@ function IOURequestStepConfirmation({
                     return participant;
                 }
                 const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
+                const participantReportDraft = reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${participant.reportID}`];
                 return participant.accountID
                     ? getParticipantsOption(participant, personalDetails)
                     : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, participantReportDraft);
             }) ?? [],
-        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, privateIsArchivedMap, policy, conciergeReportID, participantReportDraft],
+        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, privateIsArchivedMap, policy, conciergeReportID, reportDrafts],
     );
 
     const defaultParticipants = useMemo(() => {
