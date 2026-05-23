@@ -101,8 +101,8 @@ function FilterPopupButton({
      * Calculate popover position and toggle overlay
      */
     const calculatePopoverPositionAndToggleOverlay = () => {
-        calculatePopoverPosition(anchorRef, popoverAnchorAlignment).then((pos) => {
-            setPopoverTriggerPosition({...pos, vertical: pos.vertical});
+        calculatePopoverPosition(anchorRef, popoverAnchorAlignment).then((position) => {
+            setPopoverTriggerPosition({...position, vertical: position.vertical});
             toggleOverlay();
         });
     };

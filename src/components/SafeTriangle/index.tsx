@@ -47,7 +47,7 @@ function SafeTriangleOverlay({submenuRef, containerRef}: SafeTriangleOverlayProp
     const [svgRect, setSvgRect] = useState<Rect | null>(null);
 
     const apexRef = useRef<Point | null>(null);
-    const lastCursorPos = useRef<Point | null>(null);
+    const lastCursorPosition = useRef<Point | null>(null);
     const lastCursorTime = useRef<number>(0);
     const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
@@ -55,18 +55,18 @@ function SafeTriangleOverlay({submenuRef, containerRef}: SafeTriangleOverlayProp
         const currentTime = performance.now();
         const elapsedTime = currentTime - lastCursorTime.current;
 
-        if (lastCursorPos.current === null || elapsedTime === 0) {
-            lastCursorPos.current = [x, y];
+        if (lastCursorPosition.current === null || elapsedTime === 0) {
+            lastCursorPosition.current = [x, y];
             lastCursorTime.current = currentTime;
             return null;
         }
 
-        const deltaX = x - lastCursorPos.current[0];
-        const deltaY = y - lastCursorPos.current[1];
+        const deltaX = x - lastCursorPosition.current[0];
+        const deltaY = y - lastCursorPosition.current[1];
         const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
         const speed = distance / elapsedTime; // px / ms
 
-        lastCursorPos.current = [x, y];
+        lastCursorPosition.current = [x, y];
         lastCursorTime.current = currentTime;
 
         return speed;
@@ -115,8 +115,8 @@ function SafeTriangleOverlay({submenuRef, containerRef}: SafeTriangleOverlayProp
         const isSafe = isPointInPolygon([clientX - x + OFFSET, clientY - rect.top], polygon);
 
         if (isSafe) {
-            const pointsStr = polygon.map((p) => p.join(',')).join(' ');
-            setPoints(pointsStr);
+            const pointsString = polygon.map((p) => p.join(',')).join(' ');
+            setPoints(pointsString);
             setSvgRect({
                 top: rect.top,
                 left: x + OFFSET,
