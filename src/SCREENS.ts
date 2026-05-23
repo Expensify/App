@@ -726,7 +726,7 @@ const SCREENS = {
         COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER: 'Workspace_CompanyCards_AssignCard_Invite_New_Member',
         COMPANY_CARDS_SELECT_FEED: 'Workspace_CompanyCards_Select_Feed',
         COMPANY_CARDS_BANK_CONNECTION: 'Workspace_CompanyCards_BankConnection',
-        COMPANY_CARDS_ADD_NEW: 'Workspace_CompanyCards_New',
+        DYNAMIC_WORKSPACE_COMPANY_CARDS_ADD_NEW: 'Dynamic_Workspace_CompanyCards_New',
         COMPANY_CARDS_IMPORT_SPREADSHEET: 'Workspace_CompanyCards_Import_Spreadsheet',
         COMPANY_CARDS_IMPORTED: 'Workspace_CompanyCards_Imported',
         COMPANY_CARDS_TYPE: 'Workspace_CompanyCards_Type',
