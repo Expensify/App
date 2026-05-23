@@ -59,7 +59,7 @@ const defaultParams = {
     orgToken: 'org-token',
 };
 
-describe('ContributorAuthorization', () => {
+describe('isAuthorizedContributor', () => {
     describe('loginsMatch', () => {
         test('matches case-insensitively', () => {
             expect(loginsMatch('FooBar', 'foobar')).toBe(true);
