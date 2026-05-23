@@ -1,5 +1,5 @@
 import type {DataModule, SkTypefaceFontProvider} from '@shopify/react-native-skia';
-import {useFonts} from '@shopify/react-native-skia';
+import {useFonts, useTypeface} from '@shopify/react-native-skia';
 
 function webFont(url: string): DataModule {
     // We construct a fake ESModule-shaped object because react-native-skia's `useFonts` on web expects
@@ -22,4 +22,11 @@ function useChartFontManager(): SkTypefaceFontProvider | null {
     });
 }
 
+function useChartDefaultTypeface() {
+    const regular = useTypeface(webFont(require('@assets/fonts/web/ExpensifyNeue-Regular.woff2') as string));
+    const bold = useTypeface(webFont(require('@assets/fonts/web/ExpensifyNeue-Bold.woff2') as string));
+    return {regular, bold};
+}
+
+export {useChartDefaultTypeface};
 export default useChartFontManager;

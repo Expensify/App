@@ -12,7 +12,9 @@ import clearWorkboxRecoveryCaches from '@libs/clearWorkboxRecoveryCaches';
 import DateUtils from '@libs/DateUtils';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
+import willRouteNavigateToRHP from '@libs/Navigation/helpers/willRouteNavigateToRHP';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import isTrackOnboardingChoice from '@libs/OnboardingUtils';
 import {isPublicRoom, isValidReport} from '@libs/ReportUtils';
 import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
@@ -26,6 +28,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type Locale from '@src/types/onyx/Locale';
 import type {OnyxData} from '@src/types/onyx/Request';
+import clearOnyxAndSeedFullReconnect from './clearOnyxAndSeedFullReconnect';
 import {setShouldForceOffline} from './Network';
 import {getAll, rollbackOngoingRequest, save} from './PersistedRequests';
 import {createDraftInitialWorkspace, createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from './Policy/Policy';
@@ -128,7 +131,6 @@ const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.MODAL,
     ONYXKEYS.NETWORK,
     ONYXKEYS.SESSION,
-    ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
     ONYXKEYS.NVP_TRY_FOCUS_MODE,
     ONYXKEYS.PREFERRED_THEME,
     ONYXKEYS.NVP_PREFERRED_LOCALE,
@@ -601,7 +603,17 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
     } = params;
 
     const policyIDWithDefault = policyID || generatePolicyID();
-    createDraftInitialWorkspace(introSelected, policyName, currentUserAccountIDParam, currentUserEmailParam, policyIDWithDefault, makeMeAdmin, currency, file, type);
+    createDraftInitialWorkspace({
+        introSelected,
+        workspaceName: policyName,
+        currentUserAccountID: currentUserAccountIDParam,
+        currentUserEmail: currentUserEmailParam,
+        currency,
+        policyID: policyIDWithDefault,
+        makeMeAdmin,
+        file,
+        type,
+    });
     Navigation.isNavigationReady().then(() => {
         if (transitionFromOldDot) {
             // We must call goBack() to remove the /transition route from history
@@ -632,9 +644,16 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
         if (transitionFromOldDot) {
             Navigation.navigate(routeToNavigate);
         } else if (Navigation.isTopmostRouteModalScreen()) {
-            Navigation.dismissModal({
-                afterTransition: () => Navigation.navigate(routeToNavigate),
-            });
+            // `revealRouteBeforeDismissingModal` only works for fullscreen targets. Modal targets
+            // (e.g. workspace confirmation success) still need to open after the current RHP closes.
+            if (willRouteNavigateToRHP(routeToNavigate)) {
+                Navigation.dismissModal({
+                    afterTransition: () => Navigation.navigate(routeToNavigate),
+                });
+                return;
+            }
+
+            Navigation.revealRouteBeforeDismissingModal(routeToNavigate);
         } else {
             Navigation.navigate(routeToNavigate, {forceReplace: true});
         }
@@ -660,7 +679,16 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         hasActiveAdminPolicies,
     } = params;
 
-    createDraftInitialWorkspace(introSelected, policyName, currentUserAccountIDParam, currentUserEmailParam, policyID, makeMeAdmin, currency, file);
+    createDraftInitialWorkspace({
+        introSelected,
+        workspaceName: policyName,
+        currentUserAccountID: currentUserAccountIDParam,
+        currentUserEmail: currentUserEmailParam,
+        currency,
+        policyID,
+        makeMeAdmin,
+        file,
+    });
     savePolicyDraftByNewWorkspace({
         policyID,
         policyName,
@@ -730,7 +758,7 @@ function savePolicyDraftByNewWorkspace({
         makeMeAdmin,
         policyName,
         policyID,
-        engagementChoice: introSelected?.choice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND ? CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE : CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+        engagementChoice: isTrackOnboardingChoice(introSelected?.choice) ? CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE : CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
         currency,
         file,
         lastUsedPaymentMethod,
@@ -850,8 +878,10 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
     const sequentialQueue = getAll();
 
     Navigation.clearPreloadedRoutes();
+    // Seed LAST_FULL_RECONNECT_TIME so subscribeToFullReconnect doesn't fire a duplicate
+    // ReconnectApp once the openApp() below lands NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE.
     const resetPromise = clearWorkboxRecoveryCaches().then(() =>
-        Onyx.clear(KEYS_TO_PRESERVE)
+        clearOnyxAndSeedFullReconnect(KEYS_TO_PRESERVE)
             .then(() => {
                 // Network key is preserved, so when exiting imported state, we should:
                 // 1. Stop forcing offline mode so the app can reconnect
