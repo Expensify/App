@@ -99,4 +99,3 @@ function findMatchingDynamicSuffix(path = ''): DynamicSuffixMatch | undefined {
 }
 
 export default findMatchingDynamicSuffix;
-export type {DynamicSuffixMatch};

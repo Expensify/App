@@ -41,4 +41,3 @@ function ExpenseReportListItemRow(props: ExpenseReportListItemRowProps) {
 }
 
 export default ExpenseReportListItemRow;
-export type {ExpenseReportListItemRowProps, ExpenseReportListItemRowNarrowProps, ExpenseReportListItemRowWideProps} from './types';

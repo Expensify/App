@@ -2,7 +2,7 @@
 // SearchStaticList (src/components/Search/SearchStaticList.tsx) used for fast
 // perceived performance. If you change the narrow-layout UI here, verify the
 // static version still looks visually identical.
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 // Use the original useOnyx hook to get the real-time data from Onyx and not from the snapshot
 // eslint-disable-next-line no-restricted-imports
@@ -11,16 +11,26 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import type {TransactionListItemProps, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {ListItem} from '@components/SelectionList/types';
+import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTransactionInlineEdit from '@hooks/useTransactionInlineEdit';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {handleActionButtonPress as handleActionButtonPressUtil} from '@libs/actions/Search';
 import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {isInvoiceReport} from '@libs/ReportUtils';
-import {isDeletedTransaction as isDeletedTransactionUtil, isViolationDismissed, mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
+import {
+    isDeletedTransaction as isDeletedTransactionUtil,
+    isViolationDismissed,
+    mergeProhibitedViolations,
+    shouldShowViolation,
+    showPendingCardTransactionsBlockModal,
+} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
@@ -42,7 +52,6 @@ function TransactionListItem<TItem extends ListItem>({
     shouldSyncFocus,
     columns,
     isLoading,
-    violations,
     nonPersonalAndWorkspaceCards,
     lastPaymentMethod,
     personalPolicyID,
@@ -50,7 +59,7 @@ function TransactionListItem<TItem extends ListItem>({
     isFirstItem,
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
-    policyForMovingExpenses,
+    isAttendeesEnabledForMovingPolicy,
     onUndelete,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
@@ -84,6 +93,7 @@ function TransactionListItem<TItem extends ListItem>({
     const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionItem.reportID)}`);
     const [transactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportAction?.childReportID}`);
     const [transaction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionItem.transactionID)}`);
+    const [transactionViolationsForRow] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionItem.transactionID)}`);
     const parentReportActionSelector = (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${transactionItem?.reportAction?.reportActionID}`];
     const [parentReportAction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(transactionItem.reportID)}`, {selector: parentReportActionSelector}, [
         transactionItem,
@@ -103,7 +113,7 @@ function TransactionListItem<TItem extends ListItem>({
     const policyForViolations = parentPolicy ?? snapshotPolicy;
     const reportForViolations = parentReport ?? snapshotReport;
 
-    const onyxViolations = (violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionItem.transactionID}`] ?? []).filter(
+    const onyxViolations = (transactionViolationsForRow ?? []).filter(
         (violation: TransactionViolation) =>
             !isViolationDismissed(transactionItem, violation, currentUserDetails.email ?? '', currentUserDetails.accountID, reportForViolations, policyForViolations) &&
             shouldShowViolation(reportForViolations, policyForViolations, violation.name, currentUserDetails.email ?? '', false, transactionItem),
@@ -127,12 +137,74 @@ function TransactionListItem<TItem extends ListItem>({
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
+    const {isEditingCell, wasRecentlyEditingCell} = useEditingCellState();
+    const [shouldDisableHoverStyle, setShouldDisableHoverStyle] = useState(false);
 
-    const handleActionButtonPress = () => {
+    // When a popover is opened during inline editing, onHoverOut never fires after editing ends, leaving the hover style stuck.
+    // Disable it until the next intentional hover (onHoverIn).
+    // See: https://github.com/Expensify/App/pull/83127#issuecomment-4114490080
+    useEffect(() => {
+        if (!wasRecentlyEditingCell) {
+            return;
+        }
+        queueMicrotask(() => setShouldDisableHoverStyle(true));
+    }, [wasRecentlyEditingCell]);
+
+    const {
+        canEditDate,
+        canEditMerchant,
+        canEditDescription,
+        canEditCategory,
+        canEditAmount,
+        canEditTag,
+        onEditDate,
+        onEditMerchant,
+        onEditDescription,
+        onEditCategory,
+        onEditAmount,
+        onEditTag,
+        wasEditingOnMouseDownRef,
+    } = useTransactionInlineEdit({
+        transactionID: transactionItem.transactionID,
+        hash: currentSearchHash,
+        linkedReportAction: transactionItem.reportAction,
+    });
+
+    const handleOnPress = (event?: Parameters<typeof onSelectRow>[2]) => {
+        // Consume the tap that dismissed an editing cell — a second tap will open the row.
+        // We check the ref rather than isEditingCell because blur fires before onPress and resets the state.
+        if (wasEditingOnMouseDownRef.current) {
+            wasEditingOnMouseDownRef.current = false;
+            return;
+        }
+        // react-native-web fires onPress on Space for role="button" elements; suppress it while a cell is being edited.
+        if (isEditingCell) {
+            return;
+        }
+        if (isDeletedTransaction && !canSelectMultiple) {
+            return;
+        }
+        onSelectRow(item, transactionPreviewData, event);
+    };
+
+    const handleOnMouseDown = (e?: React.MouseEvent) => {
+        wasEditingOnMouseDownRef.current = isEditingCell;
+
+        // Skip preventDefault when editing so the browser naturally blurs the input (triggering save/cancel).
+        if (!isEditingCell) {
+            e?.preventDefault();
+        }
+    };
+
+    const handleOnHoverIn = () => setShouldDisableHoverStyle(false);
+
+    const handleActionButtonPress = (event?: Parameters<typeof onSelectRow>[2]) => {
         handleActionButtonPressUtil({
             hash: currentSearchHash,
             item: transactionItem,
-            goToItem: () => onSelectRow(item, transactionPreviewData),
+            goToItem: () => onSelectRow(item, transactionPreviewData, event),
             snapshotReport,
             snapshotPolicy,
             policy: parentPolicy,
@@ -145,12 +217,12 @@ function TransactionListItem<TItem extends ListItem>({
             ownerBillingGracePeriodEnd,
             amountOwed,
             onUndelete: () => onUndelete?.(transactionItem),
+            onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate),
         });
     };
 
     const sharedProps = {
         item,
-        transactionItem,
         isDeletedTransaction,
         isFocused,
         showTooltip,
@@ -169,13 +241,28 @@ function TransactionListItem<TItem extends ListItem>({
         transactionPreviewData,
         exportedReportActions,
         nonPersonalAndWorkspaceCards,
-        policyForMovingExpenses,
+        isAttendeesEnabledForMovingPolicy,
+        shouldDisableHoverStyle,
+        onPressRow: handleOnPress,
+        onMouseDownRow: handleOnMouseDown,
+        onHoverInRow: handleOnHoverIn,
+        onEditDate,
+        onEditMerchant,
+        onEditDescription,
+        onEditCategory,
+        onEditAmount,
+        onEditTag,
+        canEditDate,
+        canEditMerchant,
+        canEditDescription,
+        canEditCategory,
+        canEditAmount,
+        canEditTag,
     };
 
     if (!isLargeScreenWidth) {
         return (
             <TransactionListItemNarrow
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...sharedProps}
                 isLastItem={isLastItem}
                 isFirstItem={isFirstItem}
@@ -185,7 +272,6 @@ function TransactionListItem<TItem extends ListItem>({
 
     return (
         <TransactionListItemWide
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...sharedProps}
             isLastItem={isLastItem}
         />
