@@ -2,10 +2,11 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import {handleActionButtonPress, handleBulkPayItemSelected} from '@libs/actions/Search';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {LastPaymentMethod, Policy, Report, SearchResults} from '@src/types/onyx';
 import createRandomPolicy from '../../utils/collections/policies';
 
@@ -516,7 +517,7 @@ describe('handleBulkPayItemSelected', () => {
             item: {key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, text: 'Pay elsewhere', icon: () => null},
         });
 
-        expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute()));
+        expect(Navigation.navigate).not.toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
         expect(baseParams.confirmPayment).toHaveBeenCalled();
     });
 
@@ -537,7 +538,7 @@ describe('handleBulkPayItemSelected', () => {
             item: {key: CONST.IOU.PAYMENT_TYPE.VBBA, text: 'Pay with bank account', icon: () => null},
         });
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute()));
+        expect(Navigation.navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
         expect(baseParams.confirmPayment).not.toHaveBeenCalled();
     });
 });

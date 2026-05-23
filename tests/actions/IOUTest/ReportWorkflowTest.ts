@@ -3415,6 +3415,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amount: 100,
                 status: CONST.TRANSACTION.STATUS.POSTED,
                 bank: '',
+                reimbursable: true,
             };
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
@@ -3504,6 +3505,96 @@ describe('actions/IOU/ReportWorkflow', () => {
             const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID);
             expect(result.reportAction).toBeUndefined();
             expect(result.actionBadge).toBeUndefined();
+        });
+
+        it('should return the oldest matching report action when multiple actions have badges', async () => {
+            const chatReportID = '500';
+            const olderIouReportID = '501';
+            const newerIouReportID = '502';
+            const policyID = '503';
+
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            };
+
+            const fakeChatReport: Report = {
+                ...createRandomReport(Number(chatReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: chatReportID,
+                policyID,
+            };
+
+            // Two submitted expense reports — both will produce APPROVE badges
+            const olderIouReport: Report = {
+                ...createRandomReport(Number(olderIouReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: olderIouReportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: RORY_ACCOUNT_ID,
+            };
+
+            const newerIouReport: Report = {
+                ...createRandomReport(Number(newerIouReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: newerIouReportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: RORY_ACCOUNT_ID,
+            };
+
+            const olderTransaction: Transaction = {
+                ...createRandomTransaction(0),
+                reportID: olderIouReportID,
+                amount: 100,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                bank: '',
+            };
+
+            const newerTransaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: newerIouReportID,
+                amount: 200,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                bank: '',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, fakeChatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${olderIouReportID}`, olderIouReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${newerIouReportID}`, newerIouReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${olderTransaction.transactionID}`, olderTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${newerTransaction.transactionID}`, newerTransaction);
+
+            const olderReportPreview = {
+                reportActionID: 'older-preview',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                created: '2024-08-08 18:00:00.000',
+                childReportID: olderIouReportID,
+                message: [{type: 'TEXT', text: 'Older report preview'}],
+            };
+
+            const newerReportPreview = {
+                reportActionID: 'newer-preview',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                created: '2024-08-08 20:00:00.000',
+                childReportID: newerIouReportID,
+                message: [{type: 'TEXT', text: 'Newer report preview'}],
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
+                [newerReportPreview.reportActionID]: newerReportPreview,
+                [olderReportPreview.reportActionID]: olderReportPreview,
+            });
+            await waitForBatchedUpdates();
+
+            const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID);
+            expect(result.reportAction).toMatchObject(olderReportPreview);
+            expect(result.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.APPROVE);
         });
 
         it('should return undefined actionBadge when report is settled', async () => {
@@ -3652,6 +3743,184 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amount: 100,
                 status: CONST.TRANSACTION.STATUS.POSTED,
                 bank: '',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, fakeChatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, fakeIouReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
+            await waitForBatchedUpdates();
+
+            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID);
+            expect(result).toBe(CONST.REPORT.ACTION_BADGE.PAY);
+        });
+
+        it('should skip PAY badge for non-reimbursable-only report via pay-elsewhere path', async () => {
+            const iouReportID = '1400';
+            const chatReportID = '1401';
+            const policyID = '1402';
+
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                role: CONST.POLICY.ROLE.ADMIN,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+            };
+
+            const fakeChatReport: Report = {
+                ...createRandomReport(Number(chatReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: chatReportID,
+                policyID,
+            };
+
+            // Non-reimbursable-only report: total and nonReimbursableTotal are equal.
+            // canBePaidElsewhere returns true (admin payer + isOnlyNonReimbursablePayElsewhere).
+            // But since all transactions are non-reimbursable, PAY badge should be skipped.
+            // Use a different managerID so canApproveIOU also returns false (current user is not the manager).
+            const fakeIouReport: Report = {
+                ...createRandomReport(Number(iouReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: iouReportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                managerID: 999999,
+                total: -5000,
+                nonReimbursableTotal: -5000,
+                isWaitingOnBankAccount: false,
+            };
+
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(0),
+                reportID: iouReportID,
+                amount: 5000,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                bank: '',
+                reimbursable: false,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, fakeChatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, fakeIouReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
+            await waitForBatchedUpdates();
+
+            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID);
+            expect(result).toBeUndefined();
+        });
+
+        it('should return PAY badge for mixed reimbursable and non-reimbursable report', async () => {
+            const iouReportID = '1500';
+            const chatReportID = '1501';
+            const policyID = '1502';
+
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                role: CONST.POLICY.ROLE.ADMIN,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+            };
+
+            const fakeChatReport: Report = {
+                ...createRandomReport(Number(chatReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: chatReportID,
+                policyID,
+            };
+
+            // Mixed report: has both reimbursable and non-reimbursable spend
+            // PAY badge should still be shown because not all transactions are non-reimbursable
+            const fakeIouReport: Report = {
+                ...createRandomReport(Number(iouReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: iouReportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                managerID: RORY_ACCOUNT_ID,
+                total: -8000,
+                nonReimbursableTotal: -3000,
+                isWaitingOnBankAccount: false,
+            };
+
+            const fakeReimbursableTransaction: Transaction = {
+                ...createRandomTransaction(0),
+                reportID: iouReportID,
+                amount: 5000,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                bank: '',
+                reimbursable: true,
+            };
+
+            const fakeNonReimbursableTransaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: iouReportID,
+                amount: 3000,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                bank: '',
+                reimbursable: false,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, fakeChatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, fakeIouReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeReimbursableTransaction.transactionID}`, fakeReimbursableTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeNonReimbursableTransaction.transactionID}`, fakeNonReimbursableTransaction);
+            await waitForBatchedUpdates();
+
+            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID);
+            expect(result).toBe(CONST.REPORT.ACTION_BADGE.PAY);
+        });
+
+        it('should return PAY badge for negative reimbursable expense via pay-elsewhere path', async () => {
+            const iouReportID = '1600';
+            const chatReportID = '1601';
+            const policyID = '1602';
+
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                role: CONST.POLICY.ROLE.ADMIN,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+            };
+
+            const fakeChatReport: Report = {
+                ...createRandomReport(Number(chatReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: chatReportID,
+                policyID,
+            };
+
+            // Negative reimbursable expense (credit): total is positive on expense reports,
+            // which flips to negative reimbursableSpend in getMoneyRequestSpendBreakdown.
+            // canBePaidNow returns false (negative reimbursableSpend), but canBePaidElsewhere
+            // returns true via canShowMarkedAsPaidForNegativeAmount.
+            // Since the transaction IS reimbursable, hasOnlyNonReimbursableTransactions returns
+            // false, so PAY badge should be shown.
+            const fakeIouReport: Report = {
+                ...createRandomReport(Number(iouReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: iouReportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                managerID: 999999,
+                total: 5000,
+                nonReimbursableTotal: 0,
+                isWaitingOnBankAccount: false,
+            };
+
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(0),
+                reportID: iouReportID,
+                amount: 5000,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                bank: '',
+                reimbursable: true,
             };
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
