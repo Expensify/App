@@ -15,6 +15,8 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import {attendeeSliceSelector} from './selectors';
+import useTransactionSelector from './useTransactionSelector';
 
 type AttendeeFieldProps = {
     formattedAmountPerAttendee: string;
@@ -24,17 +26,18 @@ type AttendeeFieldProps = {
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
     reportID: string;
     formError: string;
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
 };
 
-function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, action, iouType, reportID, formError, transaction}: AttendeeFieldProps) {
+function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, action, iouType, reportID, formError}: AttendeeFieldProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetailsList = usePersonalDetails();
     const shouldDisplayAttendeesError = formError === 'violations.missingAttendees';
 
-    const rawIouAttendees = getAttendees(transaction, currentUserPersonalDetails);
+    const attendeeSlice = useTransactionSelector(transactionID, attendeeSliceSelector);
+
+    const rawIouAttendees = getAttendees(attendeeSlice as OnyxEntry<OnyxTypes.Transaction>, currentUserPersonalDetails);
     const iouAttendees = enrichAndSortAttendees(rawIouAttendees, personalDetailsList, localeCompare);
 
     return (
@@ -43,7 +46,7 @@ function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, a
             shouldShowRightIcon={!isReadOnly}
             accessibilityLabel={`${translate('iou.attendees')}, ${Array.isArray(iouAttendees) ? getAttendeesListDisplayString(iouAttendees) : ''}`}
             description={`${translate('iou.attendees')} ${
-                iouAttendees?.length && iouAttendees.length > 1 && formattedAmountPerAttendee ? `\u00B7 ${formattedAmountPerAttendee} ${translate('common.perPerson')}` : ''
+                iouAttendees?.length && iouAttendees.length > 1 && formattedAmountPerAttendee ? `· ${formattedAmountPerAttendee} ${translate('common.perPerson')}` : ''
             }`}
             descriptionTextStyle={styles.textLabelSupportingNormal}
             titleComponent={

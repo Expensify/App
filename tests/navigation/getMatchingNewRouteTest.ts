@@ -31,6 +31,22 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/r/123/settings/name?backTo=/home')).toBe('/r/123/details/settings/name?backTo=/home');
     });
 
+    it('redirects old task title path', () => {
+        expect(getMatchingNewRoute('/r/123/title')).toBe('/r/123/title');
+    });
+
+    it('redirects old report description path', () => {
+        expect(getMatchingNewRoute('/r/123/description')).toBe('/r/123/description');
+    });
+
+    it('redirects old task assignee path', () => {
+        expect(getMatchingNewRoute('/r/123/assignee')).toBe('/r/123/assignee');
+    });
+
+    it('redirects old private notes edit path to the new dynamic suffix shape', () => {
+        expect(getMatchingNewRoute('/r/123/notes/456/edit')).toBe('/r/123/notes-edit/456');
+    });
+
     it('redirects old workspace overview address path', () => {
         expect(getMatchingNewRoute('/workspaces/abc/overview/address')).toBe('/workspaces/abc/overview/workspace-address');
     });
@@ -76,6 +92,19 @@ describe('getBestMatchingPath', () => {
 
     it('preserves query params when redirecting old settings category edit path', () => {
         expect(getMatchingNewRoute('/settings/abc/category/Meals/edit?backTo=/home')).toBe('/settings/abc/category/Meals/category-edit?backTo=/home');
+    });
+
+    it('redirects old settings tag routes to the new dynamic suffix shape', () => {
+        expect(getMatchingNewRoute('/settings/p123/tags/10/edit')).toBe('/settings/p123/tags/settings/edit/10');
+        expect(getMatchingNewRoute('/settings/p123/tags/new')).toBe('/settings/p123/tags/tag-new');
+        expect(getMatchingNewRoute('/settings/p123/tag/10/Meals')).toBe('/settings/p123/tags/tag-settings/10/Meals');
+        expect(getMatchingNewRoute('/settings/p123/tag/10/Meals/edit')).toBe('/settings/p123/tags/tag-settings/10/Meals/tag-edit/10/Meals');
+        expect(getMatchingNewRoute('/settings/p123/tag/10/Meals/gl-code')).toBe('/settings/p123/tags/tag-settings/10/Meals/gl-code/10/Meals');
+    });
+
+    it('preserves query params when redirecting old settings tag routes', () => {
+        expect(getMatchingNewRoute('/settings/p123/tags/10/edit?backTo=/home')).toBe('/settings/p123/tags/settings/edit/10?backTo=/home');
+        expect(getMatchingNewRoute('/settings/p123/tag/10/Meals?parentTagsFilter=Food')).toBe('/settings/p123/tags/tag-settings/10/Meals?parentTagsFilter=Food');
     });
 
     it('redirects old flag comment path to report-based dynamic route', () => {

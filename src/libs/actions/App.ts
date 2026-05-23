@@ -603,7 +603,17 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
     } = params;
 
     const policyIDWithDefault = policyID || generatePolicyID();
-    createDraftInitialWorkspace(introSelected, policyName, currentUserAccountIDParam, currentUserEmailParam, policyIDWithDefault, makeMeAdmin, currency, file, type);
+    createDraftInitialWorkspace({
+        introSelected,
+        workspaceName: policyName,
+        currentUserAccountID: currentUserAccountIDParam,
+        currentUserEmail: currentUserEmailParam,
+        currency,
+        policyID: policyIDWithDefault,
+        makeMeAdmin,
+        file,
+        type,
+    });
     Navigation.isNavigationReady().then(() => {
         if (transitionFromOldDot) {
             // We must call goBack() to remove the /transition route from history
@@ -669,7 +679,16 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         hasActiveAdminPolicies,
     } = params;
 
-    createDraftInitialWorkspace(introSelected, policyName, currentUserAccountIDParam, currentUserEmailParam, policyID, makeMeAdmin, currency, file);
+    createDraftInitialWorkspace({
+        introSelected,
+        workspaceName: policyName,
+        currentUserAccountID: currentUserAccountIDParam,
+        currentUserEmail: currentUserEmailParam,
+        currency,
+        policyID,
+        makeMeAdmin,
+        file,
+    });
     savePolicyDraftByNewWorkspace({
         policyID,
         policyName,
