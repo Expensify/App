@@ -19,7 +19,7 @@ import {
     isReportOwner,
     shouldBlockSubmitDueToStrictPolicyRules,
 } from '@libs/ReportUtils';
-import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils} from '@libs/TransactionUtils';
+import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 import {cancelPayment} from '@userActions/IOU/PayMoneyRequest';
 import {approveMoneyRequest, reopenReport, retractReport, submitReport, unapproveExpenseReport} from '@userActions/IOU/ReportWorkflow';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
@@ -179,6 +179,11 @@ function useLifecycleActions({reportID, startApprovedAnimation, startSubmittingA
             return;
         }
 
+        if (hasOnlyPendingCardTransactions(transactions)) {
+            showPendingCardTransactionsBlockModal(showConfirmModal, translate);
+            return;
+        }
+
         const doSubmit = () => {
             submitReport({
                 expenseReport: moneyRequestReport,
@@ -227,6 +232,12 @@ function useLifecycleActions({reportID, startApprovedAnimation, startSubmittingA
                 if (!moneyRequestReport) {
                     return;
                 }
+
+                if (hasOnlyPendingCardTransactions(transactions)) {
+                    showPendingCardTransactionsBlockModal(showConfirmModal, translate);
+                    return;
+                }
+
                 confirmPendingRTERAndProceed(() => {
                     submitReport({
                         expenseReport: moneyRequestReport,

@@ -25,18 +25,17 @@ import type PolicyData from '@hooks/usePolicyData/types';
 import type {PolicyTagList} from '@pages/workspace/tags/types';
 import type {ThemeColors} from '@styles/theme/types';
 import type {IOUAction, IOURequestType, IOUType, OnboardingAccounting} from '@src/CONST';
-import CONST, {TASK_TO_FEATURE} from '@src/CONST';
+import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
 import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {
     BankAccountList,
     Beta,
-    BetaConfiguration,
     BillingGraceEndPeriod,
     IntroSelected,
     OnyxInputOrEntry,
@@ -87,7 +86,6 @@ import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {getBankAccountFromID} from './actions/BankAccounts';
-import {getUserAccountID} from './actions/IOU';
 import {unholdRequest} from './actions/IOU/Hold';
 import {
     createDraftTransaction,
@@ -123,6 +121,7 @@ import Log from './Log';
 import {isEmailPublicDomain} from './LoginUtils';
 // eslint-disable-next-line import/no-cycle
 import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
+import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForCurrentContext';
 import getStateFromPath from './Navigation/helpers/getStateFromPath';
 import {isFullScreenName} from './Navigation/helpers/isNavigatorName';
@@ -167,7 +166,6 @@ import {
     isPendingDeletePolicy,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyAuditor,
-    isPolicyFieldListEmpty,
     isPolicyMember,
     isPolicyMemberWithoutPendingDelete,
     isPolicyOwner,
@@ -1140,12 +1138,6 @@ Onyx.connect({
             return acc;
         }, {});
     },
-});
-
-let betaConfiguration: OnyxEntry<BetaConfiguration> = {};
-Onyx.connect({
-    key: ONYXKEYS.BETA_CONFIGURATION,
-    callback: (value) => (betaConfiguration = value ?? {}),
 });
 
 let deprecatedAllTransactions: OnyxCollection<Transaction> = {};
@@ -2746,7 +2738,7 @@ function isReportIneligibleForMoveExpenses(moneyRequestReport: OnyxEntry<Report>
 }
 
 function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, isReportArchived = false): boolean {
-    if (!isMoneyRequestReport(moneyRequestReport) || isReportArchived) {
+    if (!(isMoneyRequestReport(moneyRequestReport) || isInvoiceReport(moneyRequestReport)) || isReportArchived) {
         return false;
     }
 
@@ -4329,8 +4321,14 @@ function getReasonAndReportActionThatRequiresAttention(
  * @param option (report or optionItem)
  * @param parentReportAction (the report action the current report is a thread of)
  */
-function requiresAttentionFromCurrentUser(optionOrReport: OnyxEntry<Report> | OptionData, parentReportAction?: OnyxEntry<ReportAction>, isReportArchived = false) {
-    return !!getReasonAndReportActionThatRequiresAttention(optionOrReport, getCurrentUserEmail() ?? '', getUserAccountID(), parentReportAction, isReportArchived);
+function requiresAttentionFromCurrentUser(
+    optionOrReport: OnyxEntry<Report> | OptionData,
+    currentUserLogin: string,
+    currentUserAccountID: number,
+    parentReportAction?: OnyxEntry<ReportAction>,
+    isReportArchived = false,
+) {
+    return !!getReasonAndReportActionThatRequiresAttention(optionOrReport, currentUserLogin, currentUserAccountID, parentReportAction, isReportArchived);
 }
 
 /**
@@ -4476,7 +4474,8 @@ function isReportFieldDisabledForUser(report: OnyxEntry<Report>, reportField: On
  * - the report belongs to a paid group policy.
  */
 function canEditReportTitle(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, currentUserAccountID: number | undefined): boolean {
-    const titleField = getAvailableReportFields(report, Object.values(policy?.fieldList ?? {})).find((reportField) => isReportFieldOfTypeTitle(reportField));
+    const titleField =
+        getAvailableReportFields(report, Object.values(policy?.fieldList ?? {})).find((reportField) => isReportFieldOfTypeTitle(reportField)) ?? getTitleFieldWithFallback(policy);
     const isFieldDisabled = isReportFieldDisabled(report, titleField, policy);
 
     return !isFieldDisabled && isAdminOwnerApproverOrReportOwner(report, policy, currentUserAccountID) && isExpenseReport(report) && isPaidGroupPolicyPolicyUtils(policy);
@@ -4492,17 +4491,13 @@ function getTitleReportField(reportFields: Record<string, PolicyReportField>) {
 /**
  * Gets the title field from a policy, with a fallback when the policy fieldList is empty (matches OldDot behavior).
  */
-function getTitleFieldWithFallback(policy: OnyxEntry<Policy>): PolicyReportField | undefined {
+function getTitleFieldWithFallback(policy: OnyxEntry<Policy>): PolicyReportField {
     const policyTitleField = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE];
     if (policyTitleField) {
         return policyTitleField;
     }
 
-    if (isPolicyFieldListEmpty(policy)) {
-        return FALLBACK_TITLE_FIELD;
-    }
-
-    return undefined;
+    return FALLBACK_TITLE_FIELD;
 }
 
 /**
@@ -5080,7 +5075,7 @@ function canModifyHoldStatus(report: Report, reportAction: ReportAction, current
     }
 
     if (isOpenExpenseReport(report)) {
-        return isActionOwner || isManager;
+        return isActionOwner;
     }
 
     if (isActionOwner && !isAdmin) {
@@ -6178,7 +6173,7 @@ function navigateBackOnDeleteTransaction(backRoute: Route | undefined) {
 /**
  * Go back to the previous page from the edit private page of a given report
  */
-function goBackFromPrivateNotes(report: OnyxEntry<Report>, accountID?: number, backTo?: string) {
+function goBackFromPrivateNotes(report: OnyxEntry<Report>, accountID?: number) {
     if (isEmpty(report) || !accountID) {
         return;
     }
@@ -6187,16 +6182,16 @@ function goBackFromPrivateNotes(report: OnyxEntry<Report>, accountID?: number, b
         const participantAccountIDs = getParticipantsAccountIDsForDisplay(report);
 
         if (isOneOnOneChat(report)) {
-            Navigation.goBack(ROUTES.PROFILE.getRoute(participantAccountIDs.at(0), backTo));
+            Navigation.goBack(ROUTES.PROFILE.getRoute(participantAccountIDs.at(0)));
             return;
         }
 
         if (report?.reportID) {
-            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID, backTo));
+            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
             return;
         }
     }
-    Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID, backTo));
+    Navigation.goBack();
 }
 
 function navigateOnDeleteExpense(backToRoute: Route) {
@@ -7582,11 +7577,13 @@ function buildOptimisticModifiedExpenseReportAction(
     transactionChanges: TransactionChanges,
     isFromExpenseReport: boolean,
     policy: OnyxInputOrEntry<Policy>,
+    delegateAccountIDParam: number | undefined,
     updatedTransaction?: OnyxInputOrEntry<Transaction>,
     allowNegative = false,
 ): OptimisticModifiedExpenseReportAction {
     const originalMessage = getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport, policy, updatedTransaction, allowNegative);
-    const delegateAccountDetails = getPersonalDetailByEmail(delegateEmail);
+    // Falls back to module-level delegateEmail (from Onyx.connect) for callers not yet migrated; will be removed in https://github.com/Expensify/App/issues/66425
+    const effectiveDelegateAccountID = delegateAccountIDParam ?? (delegateEmail ? getPersonalDetailByEmail(delegateEmail)?.accountID : undefined);
 
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
@@ -7615,7 +7612,7 @@ function buildOptimisticModifiedExpenseReportAction(
         reportActionID: rand64(),
         reportID: transactionThread?.reportID,
         shouldShow: true,
-        delegateAccountID: delegateAccountDetails?.accountID,
+        delegateAccountID: effectiveDelegateAccountID,
     };
 }
 
@@ -7698,6 +7695,7 @@ function updateReportPreview(
             },
         ],
         childLastMoneyRequestComment: comment || reportPreviewAction?.childLastMoneyRequestComment,
+        childLastActorAccountID: isPayRequest ? reportPreviewAction?.childLastActorAccountID : deprecatedCurrentUserAccountID,
         childMoneyRequestCount: (reportPreviewAction?.childMoneyRequestCount ?? 0) + (isPayRequest ? 0 : 1),
         childRecentReceiptTransactionIDs: hasReceipt
             ? {
@@ -9000,7 +8998,9 @@ function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEnt
     }
     // lastVisibleActionCreated and lastReadTime are both datetime strings and can be compared directly
     const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, oneTransactionThreadReport);
-    const lastReadTime = report.lastReadTime ?? '';
+    const reportLastReadTime = report.lastReadTime ?? '';
+    const threadLastReadTime = oneTransactionThreadReport?.lastReadTime ?? '';
+    const lastReadTime = reportLastReadTime > threadLastReadTime ? reportLastReadTime : threadLastReadTime;
     const lastMentionedTime = report.lastMentionedTime ?? '';
 
     // If the user was mentioned and the comment got deleted the lastMentionedTime will be more recent than the lastVisibleActionCreated
@@ -9495,6 +9495,8 @@ type ShouldReportBeInOptionListParams = {
     doesReportHaveViolations: boolean;
     includeSelfDM?: boolean;
     login?: string;
+    currentUserLogin?: string;
+    currentUserAccountID?: number;
     includeDomainEmail?: boolean;
     isReportArchived: boolean | undefined;
     draftComment: string | undefined;
@@ -9513,6 +9515,8 @@ function reasonForReportToBeInOptionList({
     draftComment,
     includeSelfDM = false,
     login,
+    currentUserLogin,
+    currentUserAccountID,
     includeDomainEmail = false,
     isReportArchived,
     requiresAttention,
@@ -9596,7 +9600,7 @@ function reasonForReportToBeInOptionList({
         return CONST.REPORT_IN_LHN_REASONS.HAS_DRAFT_COMMENT;
     }
 
-    if (requiresAttention ?? requiresAttentionFromCurrentUser(report, undefined, isReportArchived)) {
+    if (requiresAttention ?? requiresAttentionFromCurrentUser(report, currentUserLogin ?? '', currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, undefined, isReportArchived)) {
         return CONST.REPORT_IN_LHN_REASONS.HAS_GBR;
     }
 
@@ -10814,16 +10818,23 @@ function shouldAutoFocusOnKeyPress(event: KeyboardEvent): boolean {
 /**
  * Navigates to the appropriate screen based on the presence of a private note for the current user.
  */
-function navigateToPrivateNotes(report: OnyxEntry<Report>, accountID: number, backTo?: string) {
+function navigateToPrivateNotes(report: OnyxEntry<Report>, accountID: number, includeReportIDInQuery = false) {
     if (isEmpty(report) || !accountID) {
         return;
     }
     const currentUserPrivateNote = report.privateNotes?.[accountID]?.note ?? '';
+    const privateNotesEditRoute = includeReportIDInQuery
+        ? createDynamicRoute(DYNAMIC_ROUTES.PRIVATE_NOTES_EDIT.getRoute(accountID, report.reportID))
+        : createDynamicRoute(DYNAMIC_ROUTES.PRIVATE_NOTES_EDIT.getRoute(accountID));
+    const privateNotesListRoute = includeReportIDInQuery
+        ? createDynamicRoute(DYNAMIC_ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID))
+        : createDynamicRoute(DYNAMIC_ROUTES.PRIVATE_NOTES_LIST.path);
+
     if (isEmpty(currentUserPrivateNote)) {
-        Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, accountID, backTo));
+        Navigation.navigate(privateNotesEditRoute);
         return;
     }
-    Navigation.navigate(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID, backTo));
+    Navigation.navigate(privateNotesListRoute);
 }
 
 /**
@@ -11465,11 +11476,10 @@ function createDraftTransactionAndNavigateToParticipantSelector({
 }
 
 /**
- * Check if a report has any forwarded actions
+ * Check if a report is forwarded or not
  */
-function hasForwardedAction(reportID: string): boolean {
-    const reportActions = getAllReportActions(reportID);
-    return Object.values(reportActions).some((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED);
+function isForwardedReport(report: OnyxEntry<Report>): boolean {
+    return isProcessingReport(report) && !isAwaitingFirstLevelApproval(report);
 }
 
 function isReportOutstanding(
@@ -11485,7 +11495,7 @@ function isReportOutstanding(
         iouReport?.stateNum === undefined ||
         iouReport?.statusNum === undefined ||
         iouReport?.policyID !== policyID ||
-        hasForwardedAction(iouReport.reportID)
+        isForwardedReport(iouReport)
     ) {
         return false;
     }
@@ -11593,54 +11603,13 @@ type PrepareOnboardingOnyxDataParams = {
     userReportedIntegration?: OnboardingAccounting;
     wasInvited?: boolean;
     companySize: OnboardingCompanySize | undefined;
-    selectedInterestedFeatures?: string[];
     isInvitedAccountant?: boolean;
     onboardingPurposeSelected?: OnboardingPurpose;
-    betas: OnyxEntry<Beta[]>;
     // TODO: isSelfTourViewed will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
     isSelfTourViewed?: boolean;
     // TODO: hasCompletedGuidedSetupFlow will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
     hasCompletedGuidedSetupFlow?: boolean;
 };
-
-function getBespokeWelcomeMessage(companySize: OnboardingCompanySize | undefined, userReportedIntegration?: OnboardingAccounting): string {
-    // Use markdown (not HTML) because buildOptimisticAddCommentReportAction -> getParsedComment
-    // escapes HTML entities before parsing, so raw HTML tags would render as literal text.
-    const welcomeHeader = "# Your free trial has started! Let's get you set up.\n👋 Hey there! I'm your Expensify setup specialist. ";
-
-    let message = welcomeHeader;
-    switch (companySize) {
-        case CONST.ONBOARDING_COMPANY_SIZE.MEDIUM:
-        case CONST.ONBOARDING_COMPANY_SIZE.LARGE:
-            message +=
-                'For an organization your size, the fastest path to value is setting up approval workflows, ' +
-                'connecting your accounting software, and rolling out the Expensify Card to your team. ' +
-                "I'm here to walk you through each step — just ask!";
-            break;
-        case CONST.ONBOARDING_COMPANY_SIZE.SMALL:
-        case CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL:
-            message +=
-                'For a growing team like yours, the fastest way to get value is to set up expense categories, ' +
-                'configure approval workflows, and invite your team members. ' +
-                "I'm here to walk you through each step — just ask!";
-            break;
-        default:
-            message +=
-                'For a small team like yours, the fastest way to get value is to set up a few expense categories, ' +
-                'invite your team members, and have them start snapping receipts right away. ' +
-                "I'm here to walk you through each step — just ask!";
-            break;
-    }
-
-    if (userReportedIntegration && userReportedIntegration !== 'other') {
-        const friendlyName = CONST.ONBOARDING_ACCOUNTING_MAPPING[userReportedIntegration as keyof typeof CONST.ONBOARDING_ACCOUNTING_MAPPING];
-        if (friendlyName) {
-            message += `\n\nSince you use ${friendlyName}, I can help you connect it so your expenses sync automatically — just say the word!`;
-        }
-    }
-
-    return message;
-}
 
 function prepareOnboardingOnyxData({
     introSelected,
@@ -11651,11 +11620,9 @@ function prepareOnboardingOnyxData({
     userReportedIntegration,
     wasInvited,
     companySize,
-    selectedInterestedFeatures,
     isInvitedAccountant,
     onboardingPurposeSelected,
     isSelfTourViewed,
-    betas,
     hasCompletedGuidedSetupFlow,
 }: PrepareOnboardingOnyxDataParams) {
     if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
@@ -11668,15 +11635,10 @@ function prepareOnboardingOnyxData({
         onboardingMessage = getOnboardingMessages().onboardingMessages[CONST.ONBOARDING_CHOICES.SUBMIT];
     }
 
-    // Phase 1 cohort (MANAGE_TEAM + micro company size) bypasses the beta gate — the backend
-    // handles gating via NVP, so all micro users get followups without needing the beta flag.
-    // Includes MICRO_SMALL, MICRO_MEDIUM, and the deprecated MICRO for backwards compatibility.
-    const isPhase1Cohort =
-        companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL || companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM || companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO;
-    // Followups path: MANAGE_TEAM + (Phase 1 cohort OR suggestedFollowups beta). Reaches every
-    // MANAGE_TEAM cohort user, including `+` aliases and phone-primary sign-ups.
-    const shouldUseFollowupsInsteadOfTasks =
-        engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && (isPhase1Cohort || Permissions.isBetaEnabled(CONST.BETAS.SUGGESTED_FOLLOWUPS, betas, betaConfiguration));
+    // Every MANAGE_TEAM signup uses the bespoke direct-post path. The server generates the
+    // per-tier welcome body in `UserAPI::buildBespokeWelcomeMessage`, so the App no longer
+    // needs a cohort gate or the suggestedFollowups beta to opt in.
+    const shouldUseFollowupsInsteadOfTasks = engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM;
     // Post to #admins room when followups fire OR the existing tasks-in-admins predicate approves.
     const shouldPostTasksInAdminsRoom = shouldUseFollowupsInsteadOfTasks || isPostingTasksInAdminsRoom(engagementChoice);
     const adminsChatReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`];
@@ -11695,8 +11657,7 @@ function prepareOnboardingOnyxData({
     }
 
     const integrationName = userReportedIntegration ? CONST.ONBOARDING_ACCOUNTING_MAPPING[userReportedIntegration as keyof typeof CONST.ONBOARDING_ACCOUNTING_MAPPING] : '';
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    const assignedGuideEmail = getPolicy(targetChatPolicyID)?.assignedGuide?.email ?? CONST.SETUP_SPECIALIST_LOGIN;
+    const assignedGuideEmail = getPolicy(targetChatPolicyID)?.assignedGuide?.email ?? CONST.EMAIL.QA_GUIDE;
     const assignedGuidePersonalDetail = getPersonalDetailByEmail(assignedGuideEmail);
     let assignedGuideAccountID: number;
     let isOptimisticAssignedGuide = false;
@@ -11704,16 +11665,16 @@ function prepareOnboardingOnyxData({
         isOptimisticAssignedGuide = assignedGuidePersonalDetail.isOptimisticPersonalDetail ?? false;
         assignedGuideAccountID = assignedGuidePersonalDetail.accountID;
     } else {
-        assignedGuideAccountID = generateAccountID(assignedGuideEmail);
-        isOptimisticAssignedGuide = !assignedGuidePersonalDetail;
+        assignedGuideAccountID = assignedGuideEmail === CONST.EMAIL.QA_GUIDE ? CONST.ACCOUNT_ID.QA_GUIDE : generateAccountID(assignedGuideEmail);
+        isOptimisticAssignedGuide = !assignedGuidePersonalDetail && assignedGuideEmail !== CONST.EMAIL.QA_GUIDE;
         // eslint-disable-next-line rulesdir/prefer-actions-set-data
         Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
             [assignedGuideAccountID]: {
                 accountID: assignedGuideAccountID,
-                isOptimisticPersonalDetail: !assignedGuidePersonalDetail,
+                isOptimisticPersonalDetail: isOptimisticAssignedGuide,
                 login: assignedGuideEmail,
                 displayName: assignedGuideEmail,
-                avatar: getDefaultAvatarURL({accountID: assignedGuideAccountID}),
+                avatar: getDefaultAvatarURL({accountID: assignedGuideAccountID, accountEmail: assignedGuideEmail}),
             },
         });
     }
@@ -11749,44 +11710,18 @@ function prepareOnboardingOnyxData({
         reportComment: textComment.commentText,
     };
 
-    // When using followups instead of tasks, generate a bespoke welcome message from Concierge.
-    // The frontend displays it optimistically; the server uses it to generate suggested followups.
-    let bespokeWelcomeMessage: string | undefined;
-    let optimisticConciergeReportActionID: string | undefined;
-    let bespokeAction: OptimisticReportAction | undefined;
-
-    if (shouldUseFollowupsInsteadOfTasks) {
-        const bespokeMarkdown = getBespokeWelcomeMessage(companySize, userReportedIntegration);
-        optimisticConciergeReportActionID = rand64();
-        // delegateAccountIDParam: will be threaded in PR 14; buildOptimisticAddCommentReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
-        bespokeAction = buildOptimisticAddCommentReportAction({
-            text: bespokeMarkdown,
-            actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
-            createdOffset: 2,
-            reportID: targetChatReportID,
-            reportActionID: optimisticConciergeReportActionID,
-            delegateAccountIDParam: undefined,
-        });
-        // Reuse the HTML that buildOptimisticAddCommentReportAction already parsed via getParsedComment,
-        // so we avoid calling getParsedComment a second time with the same input.
-        // The backend passes this to the LLM as HTML for AddComment, which expects HTML.
-        bespokeWelcomeMessage = bespokeAction.commentText;
-    }
+    // Generate a deduplication ID for the server-side bespoke welcome. The server posts directly using
+    // this ID via addComment (idempotent on reportActionID), so we never add an optimistic action
+    // here — the real message arrives from the server without a flash.
+    const optimisticConciergeReportActionID: string | undefined = shouldUseFollowupsInsteadOfTasks ? rand64() : undefined;
 
     let createWorkspaceTaskReportID;
     let addExpenseApprovalsTaskReportID;
     let setupTagsTaskReportID;
     let setupCategoriesAndTagsTaskReportID;
-    // If shouldUseFollowupsInsteadOfTasks we do not want to generate tasks in favour of followups.
-    const tasks = shouldUseFollowupsInsteadOfTasks ? [] : onboardingMessage.tasks;
+    const tasks = onboardingMessage.tasks;
     const tasksData = tasks
         .filter((task) => {
-            if (engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
-                if (!!selectedInterestedFeatures && TASK_TO_FEATURE[task.type] && !selectedInterestedFeatures.includes(TASK_TO_FEATURE[task.type])) {
-                    return false;
-                }
-            }
-
             if (([CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES, CONST.ONBOARDING_TASK_TYPE.SETUP_TAGS] as string[]).includes(task.type) && userReportedIntegration) {
                 return false;
             }
@@ -11794,28 +11729,6 @@ function prepareOnboardingOnyxData({
             if (([CONST.ONBOARDING_TASK_TYPE.ADD_ACCOUNTING_INTEGRATION, CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS] as string[]).includes(task.type) && !userReportedIntegration) {
                 return false;
             }
-            type SkipViewTourOnboardingChoices =
-                | typeof CONST.ONBOARDING_CHOICES.SUBMIT
-                | typeof CONST.ONBOARDING_CHOICES.CHAT_SPLIT
-                | typeof CONST.ONBOARDING_CHOICES.PERSONAL_SPEND
-                | typeof CONST.ONBOARDING_CHOICES.EMPLOYER
-                | typeof CONST.ONBOARDING_CHOICES.TRACK_PERSONAL
-                | typeof CONST.ONBOARDING_CHOICES.MANAGE_TEAM;
-            if (
-                task.type === CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR &&
-                [
-                    CONST.ONBOARDING_CHOICES.EMPLOYER,
-                    CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
-                    CONST.ONBOARDING_CHOICES.TRACK_PERSONAL,
-                    CONST.ONBOARDING_CHOICES.SUBMIT,
-                    CONST.ONBOARDING_CHOICES.CHAT_SPLIT,
-                    CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
-                ].includes(introSelected?.choice as SkipViewTourOnboardingChoices) &&
-                engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM
-            ) {
-                return false;
-            }
-
             // Exclude createWorkspace and viewTour tasks from #admin room, for test drive receivers,
             // since these users already have them in concierge
             if (
@@ -11841,8 +11754,7 @@ function prepareOnboardingOnyxData({
                 CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
                 targetChatType,
             );
-            const emailCreatingAction =
-                engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? (allPersonalDetails?.[actorAccountID]?.login ?? CONST.EMAIL.CONCIERGE) : CONST.EMAIL.CONCIERGE;
+            const emailCreatingAction = CONST.EMAIL.CONCIERGE;
             const taskCreatedAction = buildOptimisticCreatedReportAction({emailCreatingAction});
             const taskReportAction = buildOptimisticTaskCommentReportAction(currentTask.reportID, taskTitle, 0, `task for ${taskTitle}`, targetChatReportID, actorAccountID, index + 3);
             currentTask.parentReportActionID = taskReportAction.reportAction.reportActionID;
@@ -11910,7 +11822,7 @@ function prepareOnboardingOnyxData({
         description: taskDescription ?? '',
     }));
 
-    const hasOutstandingChildTask = tasksData.some((task) => !task.completedTaskReportAction);
+    const hasOutstandingChildTask = !shouldUseFollowupsInsteadOfTasks && tasksData.some((task) => !task.completedTaskReportAction);
 
     const tasksForOptimisticData = tasksData.reduce<
         Array<
@@ -12063,7 +11975,9 @@ function prepareOnboardingOnyxData({
         return acc;
     }, []);
 
-    const optimisticData: Array<TupleToUnion<typeof tasksForOptimisticData> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [...tasksForOptimisticData];
+    const optimisticData: Array<TupleToUnion<typeof tasksForOptimisticData> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = shouldUseFollowupsInsteadOfTasks
+        ? []
+        : [...tasksForOptimisticData];
     const skipSignOff = shouldUseFollowupsInsteadOfTasks || engagementChoice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
     const lastVisibleActionCreated = skipSignOff ? textCommentAction.created : welcomeSignOffCommentAction.created;
     optimisticData.push(
@@ -12072,7 +11986,7 @@ function prepareOnboardingOnyxData({
             key: `${ONYXKEYS.COLLECTION.REPORT}${targetChatReportID}`,
             value: {
                 hasOutstandingChildTask,
-                ...(skipSignOff && !message ? {} : {lastVisibleActionCreated}),
+                ...(shouldUseFollowupsInsteadOfTasks || (skipSignOff && !message) ? {} : {lastVisibleActionCreated}),
                 lastActorAccountID: actorAccountID,
             },
         },
@@ -12098,26 +12012,6 @@ function prepareOnboardingOnyxData({
         });
     }
 
-    if (bespokeAction && optimisticConciergeReportActionID) {
-        optimisticData.push(
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-                value: {
-                    [optimisticConciergeReportActionID]: bespokeAction.reportAction as ReportAction,
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${targetChatReportID}`,
-                value: {
-                    lastVisibleActionCreated: bespokeAction.reportAction.created,
-                    lastActorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
-                },
-            },
-        );
-    }
-
     if (!wasInvited) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -12128,7 +12022,7 @@ function prepareOnboardingOnyxData({
 
     const successData: Array<
         TupleToUnion<typeof tasksForSuccessData> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.NVP_ONBOARDING>
-    > = [...tasksForSuccessData];
+    > = shouldUseFollowupsInsteadOfTasks ? [] : [...tasksForSuccessData];
 
     if (message) {
         successData.push({
@@ -12136,16 +12030,6 @@ function prepareOnboardingOnyxData({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
             value: {
                 [textCommentAction.reportActionID]: {pendingAction: null, isOptimisticAction: null},
-            },
-        });
-    }
-
-    if (bespokeAction && optimisticConciergeReportActionID) {
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-            value: {
-                [optimisticConciergeReportActionID]: {pendingAction: null, isOptimisticAction: null},
             },
         });
     }
@@ -12172,7 +12056,7 @@ function prepareOnboardingOnyxData({
     const failureData: Array<
         | TupleToUnion<typeof tasksForFailureData>
         | OnyxUpdate<typeof ONYXKEYS.NVP_INTRO_SELECTED | typeof ONYXKEYS.NVP_ONBOARDING | typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>
-    > = [...tasksForFailureData];
+    > = shouldUseFollowupsInsteadOfTasks ? [] : [...tasksForFailureData];
     failureData.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -12198,18 +12082,6 @@ function prepareOnboardingOnyxData({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
             value: {
                 [textCommentAction.reportActionID]: {
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
-                } as ReportAction,
-            },
-        });
-    }
-
-    if (bespokeAction && optimisticConciergeReportActionID) {
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-            value: {
-                [optimisticConciergeReportActionID]: {
                     errors: getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
                 } as ReportAction,
             },
@@ -12390,7 +12262,7 @@ function prepareOnboardingOnyxData({
         });
     }
 
-    return {optimisticData, successData, failureData, guidedSetupData, actorAccountID, selfDMParameters, bespokeWelcomeMessage, optimisticConciergeReportActionID};
+    return {optimisticData, successData, failureData, guidedSetupData, actorAccountID, selfDMParameters, optimisticConciergeReportActionID};
 }
 
 /**
@@ -12566,7 +12438,6 @@ function getIntegrationNameFromExportMessage(reportActions: OnyxEntry<ReportActi
 }
 
 function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[], report?: OnyxEntry<Report>): boolean {
-    // If report object is provided and has the property, use it directly
     if (report?.isExportedToIntegration !== undefined) {
         return report.isExportedToIntegration;
     }
@@ -12614,9 +12485,13 @@ function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[], re
 }
 
 function hasExportError(reportActions: OnyxEntry<ReportActions> | ReportAction[], report?: OnyxEntry<Report>) {
-    // If report object is provided and has the property, use it directly
-    if (report?.hasExportError !== undefined) {
-        return report.hasExportError;
+    if (report?.hasExportError) {
+        return true;
+    }
+
+    const exportErrors = report?.errorFields?.export;
+    if (exportErrors && Object.values(exportErrors).some((error) => error != null)) {
+        return true;
     }
 
     // Fallback to checking actions for backward compatibility
@@ -12924,7 +12799,6 @@ function canRejectReportAction(currentUserLogin: string, report: Report): boolea
 }
 
 function hasReportBeenReopened(report: OnyxEntry<Report>, reportActions?: OnyxEntry<ReportActions> | ReportAction[]): boolean {
-    // If report object is provided and has the property, use it directly
     if (report?.hasReportBeenReopened !== undefined) {
         return report.hasReportBeenReopened;
     }
@@ -12939,7 +12813,6 @@ function hasReportBeenReopened(report: OnyxEntry<Report>, reportActions?: OnyxEn
 }
 
 function hasReportBeenRetracted(report: OnyxEntry<Report>, reportActions?: OnyxEntry<ReportActions> | ReportAction[]): boolean {
-    // If report object is provided and has the property, use it directly
     if (report?.hasReportBeenRetracted !== undefined) {
         return report.hasReportBeenRetracted;
     }
