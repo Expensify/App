@@ -276,7 +276,7 @@ describe('processDataIntoSlices', () => {
 
     it('creates a single slice covering 360 degrees for one data point', () => {
         const data: ChartDataPoint[] = [{label: 'Only', total: 100}];
-        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0});
+        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0}, -90);
 
         expect(slices).toHaveLength(1);
         expect(slices.at(0)?.label).toBe('Only');
@@ -285,6 +285,21 @@ describe('processDataIntoSlices', () => {
         expect(slices.at(0)?.startAngle).toBe(-90);
         expect(slices.at(0)?.endAngle).toBe(270);
         expect(slices.at(0)?.originalIndex).toBe(0);
+    });
+
+    it('uses the provided startAngle for the first slice', () => {
+        const data: ChartDataPoint[] = [{label: 'Only', total: 100}];
+        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0}, 45);
+
+        expect(slices.at(0)?.startAngle).toBe(45);
+        expect(slices.at(0)?.endAngle).toBe(405);
+    });
+
+    it('defaults to VictoryTheme.pie.startAngle when no startAngle is provided', () => {
+        const data: ChartDataPoint[] = [{label: 'Only', total: 100}];
+        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0});
+
+        expect(slices.at(0)?.startAngle).toBe(VictoryTheme.pie.startAngle);
     });
 
     it('sorts slices by absolute value descending', () => {

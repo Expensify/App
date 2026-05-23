@@ -41,7 +41,7 @@ const CHART_PALETTE: string[] = (() => {
 
 /**
  * Gets a color from the chart palette based on index.
- * Automatically loops back to the start if the index exceeds the palette length.
+ * Wraps around via modulo when `index` is greater than or equal to the palette length.
  */
 function getChartColor(index: number): string {
     if (CHART_PALETTE.length === 0) {
@@ -50,12 +50,18 @@ function getChartColor(index: number): string {
     return CHART_PALETTE.at(index % CHART_PALETTE.length) ?? colors.black;
 }
 
+/**
+ * Index of the default single-color chart color in `CHART_PALETTE`.
+ * 5 = `blue400` (last hue in the first shade row), matching the brand accent.
+ */
+const DEFAULT_CHART_COLOR_INDEX = 5;
+
 const VictoryTheme = {
     colors: {
         /** Ordered palette used to assign colors to chart segments. */
         palette: CHART_PALETTE,
         /** Default color used for single-color charts (e.g., line chart, single-color bar chart). */
-        default: getChartColor(5),
+        default: getChartColor(DEFAULT_CHART_COLOR_INDEX),
         /** Picks the palette color at `index`, wrapping around when needed. */
         getColor: getChartColor,
     },

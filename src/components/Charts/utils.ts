@@ -213,7 +213,7 @@ function findSliceAtPosition(cursorX: number, cursorY: number, centerX: number, 
 /**
  * Process raw data into pie chart slices sorted by absolute value descending.
  */
-function processDataIntoSlices(data: ChartDataPoint[], pieGeometry: {centerX: number; centerY: number; radius: number}): PieSlice[] {
+function processDataIntoSlices(data: ChartDataPoint[], pieGeometry: {centerX: number; centerY: number; radius: number}, startAngle: number = VictoryTheme.pie.startAngle): PieSlice[] {
     const total = data.reduce((sum, point) => sum + Math.abs(point.total), 0);
     if (total === 0) {
         return [];
@@ -243,7 +243,7 @@ function processDataIntoSlices(data: ChartDataPoint[], pieGeometry: {centerX: nu
                 acc.angle += sweepAngle;
                 return acc;
             },
-            {slices: [], angle: VictoryTheme.pie.startAngle},
+            {slices: [], angle: startAngle},
         ).slices;
 }
 
