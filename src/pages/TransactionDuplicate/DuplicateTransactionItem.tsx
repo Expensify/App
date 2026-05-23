@@ -19,11 +19,12 @@ type DuplicateTransactionItemProps = {
     transaction: OnyxEntry<Transaction>;
     isLastItem: boolean;
     isSelected: boolean;
+    shouldShowSelection?: boolean;
     onSelectTransaction: (transactionID: string) => void;
     onPreviewPressed: (reportID: string) => void;
 };
 
-function DuplicateTransactionItem({transaction, isLastItem, isSelected, onSelectTransaction, onPreviewPressed}: DuplicateTransactionItemProps) {
+function DuplicateTransactionItem({transaction, isLastItem, isSelected, shouldShowSelection = true, onSelectTransaction, onPreviewPressed}: DuplicateTransactionItemProps) {
     const styles = useThemeStyles();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
@@ -90,8 +91,8 @@ function DuplicateTransactionItem({transaction, isLastItem, isSelected, onSelect
                     taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                     shouldHighlightItemWhenSelected={false}
                     shouldShowErrors={false}
-                    style={[styles.p4, styles.pr0]}
-                    shouldShowRadioButton
+                    style={[styles.p4, shouldShowSelection ? styles.pr0 : styles.pr4]}
+                    shouldShowRadioButton={shouldShowSelection}
                     radioButtonContainerStyle={styles.ml0}
                     radioButtonWrapperStyle={[styles.justifyContentCenter, styles.pr3half, {paddingLeft: 10, height: variables.w44}]}
                     onRadioButtonPress={() => onSelectTransaction(transaction.transactionID)}

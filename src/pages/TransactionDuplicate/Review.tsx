@@ -248,23 +248,27 @@ function TransactionDuplicateReview() {
                         <DuplicateTransactionsList
                             transactions={transactions}
                             selectedTransactionID={effectiveSelectedTransactionID}
+                            shouldShowSelection={!hasSettledOrApprovedTransaction}
                             onSelectTransaction={setSelectedTransactionID}
                             onPreviewPressed={onPreviewPressed}
                         />
                     </ScrollView>
                     <FixedFooter style={[styles.mtAuto, styles.gap3]}>
                         <Button
+                            success={hasSettledOrApprovedTransaction}
                             large
                             text={translate('iou.keepAll')}
                             onPress={keepAll}
                         />
-                        <Button
-                            success
-                            large
-                            text={translate('iou.keepSelected')}
-                            onPress={keepSelected}
-                            isDisabled={!selectedTransaction || !selectedTransactionReport}
-                        />
+                        {!hasSettledOrApprovedTransaction && (
+                            <Button
+                                success
+                                large
+                                text={translate('iou.keepSelected')}
+                                onPress={keepSelected}
+                                isDisabled={!selectedTransaction || !selectedTransactionReport}
+                            />
+                        )}
                     </FixedFooter>
                 </View>
             </FullPageNotFoundView>
