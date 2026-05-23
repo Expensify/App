@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 import {RequestError} from '@octokit/request-error';
-import {isAuthorizedContributor, isContributorPlusMember, loginsMatch, stripHtmlComments} from '../../.github/actions/javascript/isAuthorizedContributor/isAuthorizedContributor';
+import {isAuthorizedContributor, isContributorPlusMember, loginsMatch} from '../../.github/actions/javascript/isAuthorizedContributor/isAuthorizedContributor';
 import type {InternalOctokit} from '../../.github/libs/GithubUtils';
 import GithubUtils from '../../.github/libs/GithubUtils';
 
@@ -64,13 +64,6 @@ describe('isAuthorizedContributor', () => {
         test('matches case-insensitively', () => {
             expect(loginsMatch('FooBar', 'foobar')).toBe(true);
             expect(loginsMatch('FooBar', 'FooBar2')).toBe(false);
-        });
-    });
-
-    describe('stripHtmlComments', () => {
-        test('removes HTML comments from PR body', () => {
-            const body = 'Hello <!-- hidden --> world';
-            expect(stripHtmlComments(body)).toBe('Hello  world');
         });
     });
 

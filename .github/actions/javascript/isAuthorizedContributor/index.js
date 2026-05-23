@@ -11582,7 +11582,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.isAuthorizedContributor = isAuthorizedContributor;
 exports.isContributorPlusMember = isContributorPlusMember;
-exports.stripHtmlComments = stripHtmlComments;
 exports.loginsMatch = loginsMatch;
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
@@ -11598,9 +11597,6 @@ function loginsMatch(loginA, loginB) {
 }
 function isMatchingLogin(login, prAuthor) {
     return !!login && loginsMatch(login, prAuthor);
-}
-function stripHtmlComments(body) {
-    return body.replaceAll(/<!--[\s\S]*?-->/g, '');
 }
 function parseExpensifyLink(match) {
     const repoFullName = match[1];
@@ -11640,8 +11636,8 @@ async function isContributorPlusMember(username, orgToken) {
         throw error;
     }
 }
-async function isAuthorizedViaLinkedIssues(cleanBody, prAuthor) {
-    for (const match of cleanBody.matchAll(ISSUE_URL_PATTERN)) {
+async function isAuthorizedViaLinkedIssues(prBody, prAuthor) {
+    for (const match of prBody.matchAll(ISSUE_URL_PATTERN)) {
         const link = parseExpensifyLink(match);
         if (!link) {
             continue;
@@ -11666,8 +11662,8 @@ async function isAuthorizedViaLinkedIssues(cleanBody, prAuthor) {
     }
     return false;
 }
-async function isAuthorizedViaLinkedPullRequests(cleanBody, prAuthor) {
-    for (const match of cleanBody.matchAll(PULL_URL_PATTERN)) {
+async function isAuthorizedViaLinkedPullRequests(prBody, prAuthor) {
+    for (const match of prBody.matchAll(PULL_URL_PATTERN)) {
         const link = parseExpensifyLink(match);
         if (!link) {
             continue;
@@ -11731,8 +11727,8 @@ async function isAuthorizedContributor({ prNumber, prAuthor, authorAssociation, 
         // eslint-disable-next-line @typescript-eslint/naming-convention
         pull_number: prNumber,
     });
-    const cleanBody = stripHtmlComments(pr.body ?? '');
-    const authorizedViaLinks = (await isAuthorizedViaLinkedIssues(cleanBody, prAuthor)) || (await isAuthorizedViaLinkedPullRequests(cleanBody, prAuthor));
+    const prBody = pr.body ?? '';
+    const authorizedViaLinks = (await isAuthorizedViaLinkedIssues(prBody, prAuthor)) || (await isAuthorizedViaLinkedPullRequests(prBody, prAuthor));
     if (!authorizedViaLinks) {
         console.log(`No valid authorization found for ${prAuthor}.`);
     }

@@ -35,10 +35,6 @@ function isMatchingLogin(login: string | undefined | null, prAuthor: string): bo
     return !!login && loginsMatch(login, prAuthor);
 }
 
-function stripHtmlComments(body: string): string {
-    return body.replaceAll(/<!--[\s\S]*?-->/g, '');
-}
-
 function parseExpensifyLink(match: RegExpMatchArray): ExpensifyRepoLink | null {
     const repoFullName = match[1];
     const numberString = match[2];
@@ -81,8 +77,8 @@ async function isContributorPlusMember(username: string, orgToken: string): Prom
     }
 }
 
-async function isAuthorizedViaLinkedIssues(cleanBody: string, prAuthor: string): Promise<boolean> {
-    for (const match of cleanBody.matchAll(ISSUE_URL_PATTERN)) {
+async function isAuthorizedViaLinkedIssues(prBody: string, prAuthor: string): Promise<boolean> {
+    for (const match of prBody.matchAll(ISSUE_URL_PATTERN)) {
         const link = parseExpensifyLink(match);
         if (!link) {
             continue;
@@ -112,8 +108,8 @@ async function isAuthorizedViaLinkedIssues(cleanBody: string, prAuthor: string):
     return false;
 }
 
-async function isAuthorizedViaLinkedPullRequests(cleanBody: string, prAuthor: string): Promise<boolean> {
-    for (const match of cleanBody.matchAll(PULL_URL_PATTERN)) {
+async function isAuthorizedViaLinkedPullRequests(prBody: string, prAuthor: string): Promise<boolean> {
+    for (const match of prBody.matchAll(PULL_URL_PATTERN)) {
         const link = parseExpensifyLink(match);
         if (!link) {
             continue;
@@ -191,8 +187,8 @@ async function isAuthorizedContributor({prNumber, prAuthor, authorAssociation, r
         pull_number: prNumber,
     });
 
-    const cleanBody = stripHtmlComments(pr.body ?? '');
-    const authorizedViaLinks = (await isAuthorizedViaLinkedIssues(cleanBody, prAuthor)) || (await isAuthorizedViaLinkedPullRequests(cleanBody, prAuthor));
+    const prBody = pr.body ?? '';
+    const authorizedViaLinks = (await isAuthorizedViaLinkedIssues(prBody, prAuthor)) || (await isAuthorizedViaLinkedPullRequests(prBody, prAuthor));
 
     if (!authorizedViaLinks) {
         console.log(`No valid authorization found for ${prAuthor}.`);
@@ -230,5 +226,5 @@ if (require.main === module) {
     });
 }
 
-export {isAuthorizedContributor, isContributorPlusMember, stripHtmlComments, loginsMatch};
+export {isAuthorizedContributor, isContributorPlusMember, loginsMatch};
 export default run;
