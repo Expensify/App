@@ -20,17 +20,44 @@ type IsAuthorizedContributorParams = {
     orgToken: string;
 };
 
+type ExpensifyRepoLink = {
+    repoFullName: string;
+    number: number;
+    owner: string;
+    repo: string;
+};
+
 function loginsMatch(loginA: string, loginB: string): boolean {
     return loginA.toLowerCase() === loginB.toLowerCase();
+}
+
+function isMatchingLogin(login: string | undefined | null, prAuthor: string): boolean {
+    return !!login && loginsMatch(login, prAuthor);
 }
 
 function stripHtmlComments(body: string): string {
     return body.replaceAll(/<!--[\s\S]*?-->/g, '');
 }
 
-function parseRepoFullName(fullName: string): {owner: string; repo: string} {
-    const [owner, repo] = fullName.split('/');
-    return {owner, repo};
+function parseExpensifyLink(match: RegExpMatchArray): ExpensifyRepoLink | null {
+    const repoFullName = match[1];
+    const numberString = match[2];
+    if (!repoFullName || !numberString) {
+        return null;
+    }
+
+    const [owner, repo] = repoFullName.split('/');
+    return {
+        repoFullName,
+        number: Number.parseInt(numberString, 10),
+        owner,
+        repo,
+    };
+}
+
+function logVerificationError(repoFullName: string, number: number, error: unknown): void {
+    const message = error instanceof Error ? error.message : String(error);
+    console.log(`Could not verify ${repoFullName}#${number}: ${message}`);
 }
 
 async function isContributorPlusMember(username: string, orgToken: string): Promise<boolean> {
@@ -55,40 +82,30 @@ async function isContributorPlusMember(username: string, orgToken: string): Prom
 }
 
 async function isAuthorizedViaLinkedIssues(cleanBody: string, prAuthor: string): Promise<boolean> {
-    const issueMatches = [...cleanBody.matchAll(ISSUE_URL_PATTERN)];
-
-    for (const match of issueMatches) {
-        const repoFullName = match[1];
-        const issueNumberString = match[2];
-        if (!repoFullName || !issueNumberString) {
+    for (const match of cleanBody.matchAll(ISSUE_URL_PATTERN)) {
+        const link = parseExpensifyLink(match);
+        if (!link) {
             continue;
         }
 
-        const issueNumber = Number.parseInt(issueNumberString, 10);
-        const {owner, repo} = parseRepoFullName(repoFullName);
+        const {repoFullName, number, owner, repo} = link;
 
         try {
             const {data: issue} = await GithubUtils.octokit.issues.get({
                 owner,
                 repo,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                issue_number: issueNumber,
+                issue_number: number,
             });
 
-            const isAssignee = issue.assignees?.some((assignee) => {
-                const login = assignee.login;
-                return login !== undefined && loginsMatch(login, prAuthor);
-            });
-
-            if (isAssignee) {
-                console.log(`${prAuthor} is assigned to ${repoFullName}#${issueNumber}. Authorized.`);
+            if (issue.assignees?.some((assignee) => isMatchingLogin(assignee.login, prAuthor))) {
+                console.log(`${prAuthor} is assigned to ${repoFullName}#${number}. Authorized.`);
                 return true;
             }
 
-            console.log(`${prAuthor} is NOT assigned to ${repoFullName}#${issueNumber}.`);
+            console.log(`${prAuthor} is NOT assigned to ${repoFullName}#${number}.`);
         } catch (error: unknown) {
-            const message = error instanceof Error ? error.message : String(error);
-            console.log(`Could not verify ${repoFullName}#${issueNumber}: ${message}`);
+            logVerificationError(repoFullName, number, error);
         }
     }
 
@@ -96,29 +113,24 @@ async function isAuthorizedViaLinkedIssues(cleanBody: string, prAuthor: string):
 }
 
 async function isAuthorizedViaLinkedPullRequests(cleanBody: string, prAuthor: string): Promise<boolean> {
-    const pullMatches = [...cleanBody.matchAll(PULL_URL_PATTERN)];
-
-    for (const match of pullMatches) {
-        const repoFullName = match[1];
-        const pullNumberString = match[2];
-        if (!repoFullName || !pullNumberString) {
+    for (const match of cleanBody.matchAll(PULL_URL_PATTERN)) {
+        const link = parseExpensifyLink(match);
+        if (!link) {
             continue;
         }
 
-        const pullNumber = Number.parseInt(pullNumberString, 10);
-        const {owner, repo} = parseRepoFullName(repoFullName);
+        const {repoFullName, number, owner, repo} = link;
 
         try {
             const {data: linkedPR} = await GithubUtils.octokit.pulls.get({
                 owner,
                 repo,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                pull_number: pullNumber,
+                pull_number: number,
             });
 
-            const linkedAuthorLogin = linkedPR.user?.login;
-            if (linkedAuthorLogin && loginsMatch(linkedAuthorLogin, prAuthor)) {
-                console.log(`${prAuthor} is the author of ${repoFullName}#${pullNumber}. Authorized.`);
+            if (isMatchingLogin(linkedPR.user?.login, prAuthor)) {
+                console.log(`${prAuthor} is the author of ${repoFullName}#${number}. Authorized.`);
                 return true;
             }
 
@@ -126,16 +138,11 @@ async function isAuthorizedViaLinkedPullRequests(cleanBody: string, prAuthor: st
                 owner,
                 repo,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                pull_number: pullNumber,
+                pull_number: number,
             });
 
-            const isReviewer = reviews.some((review) => {
-                const login = review.user?.login;
-                return login !== undefined && loginsMatch(login, prAuthor);
-            });
-
-            if (isReviewer) {
-                console.log(`${prAuthor} is a reviewer of ${repoFullName}#${pullNumber}. Authorized.`);
+            if (reviews.some((review) => isMatchingLogin(review.user?.login, prAuthor))) {
+                console.log(`${prAuthor} is a reviewer of ${repoFullName}#${number}. Authorized.`);
                 return true;
             }
 
@@ -143,20 +150,17 @@ async function isAuthorizedViaLinkedPullRequests(cleanBody: string, prAuthor: st
                 owner,
                 repo,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                pull_number: pullNumber,
+                pull_number: number,
             });
 
-            const isRequestedReviewer = requestedReviewers.users.some((user) => loginsMatch(user.login, prAuthor));
-
-            if (isRequestedReviewer) {
-                console.log(`${prAuthor} is a requested reviewer of ${repoFullName}#${pullNumber}. Authorized.`);
+            if (requestedReviewers.users.some((user) => loginsMatch(user.login, prAuthor))) {
+                console.log(`${prAuthor} is a requested reviewer of ${repoFullName}#${number}. Authorized.`);
                 return true;
             }
 
-            console.log(`${prAuthor} is not author or reviewer of ${repoFullName}#${pullNumber}.`);
+            console.log(`${prAuthor} is not author or reviewer of ${repoFullName}#${number}.`);
         } catch (error: unknown) {
-            const message = error instanceof Error ? error.message : String(error);
-            console.log(`Could not verify ${repoFullName}#${pullNumber}: ${message}`);
+            logVerificationError(repoFullName, number, error);
         }
     }
 
@@ -188,17 +192,13 @@ async function isAuthorizedContributor({prNumber, prAuthor, authorAssociation, r
     });
 
     const cleanBody = stripHtmlComments(pr.body ?? '');
+    const authorizedViaLinks = (await isAuthorizedViaLinkedIssues(cleanBody, prAuthor)) || (await isAuthorizedViaLinkedPullRequests(cleanBody, prAuthor));
 
-    if (await isAuthorizedViaLinkedIssues(cleanBody, prAuthor)) {
-        return true;
+    if (!authorizedViaLinks) {
+        console.log(`No valid authorization found for ${prAuthor}.`);
     }
 
-    if (await isAuthorizedViaLinkedPullRequests(cleanBody, prAuthor)) {
-        return true;
-    }
-
-    console.log(`No valid authorization found for ${prAuthor}.`);
-    return false;
+    return authorizedViaLinks;
 }
 
 async function run(): Promise<void> {
@@ -230,5 +230,5 @@ if (require.main === module) {
     });
 }
 
-export {isAuthorizedContributor, isContributorPlusMember, stripHtmlComments, loginsMatch, AUTHORIZED_ASSOCIATIONS};
+export {isAuthorizedContributor, isContributorPlusMember, stripHtmlComments, loginsMatch};
 export default run;

@@ -11580,7 +11580,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.AUTHORIZED_ASSOCIATIONS = void 0;
 exports.isAuthorizedContributor = isAuthorizedContributor;
 exports.isContributorPlusMember = isContributorPlusMember;
 exports.stripHtmlComments = stripHtmlComments;
@@ -11591,19 +11590,35 @@ const request_error_1 = __nccwpck_require__(537);
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 const AUTHORIZED_ASSOCIATIONS = new Set(['MEMBER', 'OWNER', 'CONTRIBUTOR']);
-exports.AUTHORIZED_ASSOCIATIONS = AUTHORIZED_ASSOCIATIONS;
 const CONTRIBUTOR_PLUS_TEAM_SLUG = 'contributor-plus';
 const ISSUE_URL_PATTERN = /https:\/\/github\.com\/(Expensify\/[^/]+)\/issues\/(\d+)/g;
 const PULL_URL_PATTERN = /https:\/\/github\.com\/(Expensify\/[^/]+)\/pull\/(\d+)/g;
 function loginsMatch(loginA, loginB) {
     return loginA.toLowerCase() === loginB.toLowerCase();
 }
+function isMatchingLogin(login, prAuthor) {
+    return !!login && loginsMatch(login, prAuthor);
+}
 function stripHtmlComments(body) {
     return body.replaceAll(/<!--[\s\S]*?-->/g, '');
 }
-function parseRepoFullName(fullName) {
-    const [owner, repo] = fullName.split('/');
-    return { owner, repo };
+function parseExpensifyLink(match) {
+    const repoFullName = match[1];
+    const numberString = match[2];
+    if (!repoFullName || !numberString) {
+        return null;
+    }
+    const [owner, repo] = repoFullName.split('/');
+    return {
+        repoFullName,
+        number: Number.parseInt(numberString, 10),
+        owner,
+        repo,
+    };
+}
+function logVerificationError(repoFullName, number, error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.log(`Could not verify ${repoFullName}#${number}: ${message}`);
 }
 async function isContributorPlusMember(username, orgToken) {
     GithubUtils_1.default.initOctokitWithToken(orgToken);
@@ -11626,91 +11641,73 @@ async function isContributorPlusMember(username, orgToken) {
     }
 }
 async function isAuthorizedViaLinkedIssues(cleanBody, prAuthor) {
-    const issueMatches = [...cleanBody.matchAll(ISSUE_URL_PATTERN)];
-    for (const match of issueMatches) {
-        const repoFullName = match[1];
-        const issueNumberString = match[2];
-        if (!repoFullName || !issueNumberString) {
+    for (const match of cleanBody.matchAll(ISSUE_URL_PATTERN)) {
+        const link = parseExpensifyLink(match);
+        if (!link) {
             continue;
         }
-        const issueNumber = Number.parseInt(issueNumberString, 10);
-        const { owner, repo } = parseRepoFullName(repoFullName);
+        const { repoFullName, number, owner, repo } = link;
         try {
             const { data: issue } = await GithubUtils_1.default.octokit.issues.get({
                 owner,
                 repo,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                issue_number: issueNumber,
+                issue_number: number,
             });
-            const isAssignee = issue.assignees?.some((assignee) => {
-                const login = assignee.login;
-                return login !== undefined && loginsMatch(login, prAuthor);
-            });
-            if (isAssignee) {
-                console.log(`${prAuthor} is assigned to ${repoFullName}#${issueNumber}. Authorized.`);
+            if (issue.assignees?.some((assignee) => isMatchingLogin(assignee.login, prAuthor))) {
+                console.log(`${prAuthor} is assigned to ${repoFullName}#${number}. Authorized.`);
                 return true;
             }
-            console.log(`${prAuthor} is NOT assigned to ${repoFullName}#${issueNumber}.`);
+            console.log(`${prAuthor} is NOT assigned to ${repoFullName}#${number}.`);
         }
         catch (error) {
-            const message = error instanceof Error ? error.message : String(error);
-            console.log(`Could not verify ${repoFullName}#${issueNumber}: ${message}`);
+            logVerificationError(repoFullName, number, error);
         }
     }
     return false;
 }
 async function isAuthorizedViaLinkedPullRequests(cleanBody, prAuthor) {
-    const pullMatches = [...cleanBody.matchAll(PULL_URL_PATTERN)];
-    for (const match of pullMatches) {
-        const repoFullName = match[1];
-        const pullNumberString = match[2];
-        if (!repoFullName || !pullNumberString) {
+    for (const match of cleanBody.matchAll(PULL_URL_PATTERN)) {
+        const link = parseExpensifyLink(match);
+        if (!link) {
             continue;
         }
-        const pullNumber = Number.parseInt(pullNumberString, 10);
-        const { owner, repo } = parseRepoFullName(repoFullName);
+        const { repoFullName, number, owner, repo } = link;
         try {
             const { data: linkedPR } = await GithubUtils_1.default.octokit.pulls.get({
                 owner,
                 repo,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                pull_number: pullNumber,
+                pull_number: number,
             });
-            const linkedAuthorLogin = linkedPR.user?.login;
-            if (linkedAuthorLogin && loginsMatch(linkedAuthorLogin, prAuthor)) {
-                console.log(`${prAuthor} is the author of ${repoFullName}#${pullNumber}. Authorized.`);
+            if (isMatchingLogin(linkedPR.user?.login, prAuthor)) {
+                console.log(`${prAuthor} is the author of ${repoFullName}#${number}. Authorized.`);
                 return true;
             }
             const { data: reviews } = await GithubUtils_1.default.octokit.pulls.listReviews({
                 owner,
                 repo,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                pull_number: pullNumber,
+                pull_number: number,
             });
-            const isReviewer = reviews.some((review) => {
-                const login = review.user?.login;
-                return login !== undefined && loginsMatch(login, prAuthor);
-            });
-            if (isReviewer) {
-                console.log(`${prAuthor} is a reviewer of ${repoFullName}#${pullNumber}. Authorized.`);
+            if (reviews.some((review) => isMatchingLogin(review.user?.login, prAuthor))) {
+                console.log(`${prAuthor} is a reviewer of ${repoFullName}#${number}. Authorized.`);
                 return true;
             }
             const { data: requestedReviewers } = await GithubUtils_1.default.octokit.pulls.listRequestedReviewers({
                 owner,
                 repo,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                pull_number: pullNumber,
+                pull_number: number,
             });
-            const isRequestedReviewer = requestedReviewers.users.some((user) => loginsMatch(user.login, prAuthor));
-            if (isRequestedReviewer) {
-                console.log(`${prAuthor} is a requested reviewer of ${repoFullName}#${pullNumber}. Authorized.`);
+            if (requestedReviewers.users.some((user) => loginsMatch(user.login, prAuthor))) {
+                console.log(`${prAuthor} is a requested reviewer of ${repoFullName}#${number}. Authorized.`);
                 return true;
             }
-            console.log(`${prAuthor} is not author or reviewer of ${repoFullName}#${pullNumber}.`);
+            console.log(`${prAuthor} is not author or reviewer of ${repoFullName}#${number}.`);
         }
         catch (error) {
-            const message = error instanceof Error ? error.message : String(error);
-            console.log(`Could not verify ${repoFullName}#${pullNumber}: ${message}`);
+            logVerificationError(repoFullName, number, error);
         }
     }
     return false;
@@ -11735,14 +11732,11 @@ async function isAuthorizedContributor({ prNumber, prAuthor, authorAssociation, 
         pull_number: prNumber,
     });
     const cleanBody = stripHtmlComments(pr.body ?? '');
-    if (await isAuthorizedViaLinkedIssues(cleanBody, prAuthor)) {
-        return true;
+    const authorizedViaLinks = (await isAuthorizedViaLinkedIssues(cleanBody, prAuthor)) || (await isAuthorizedViaLinkedPullRequests(cleanBody, prAuthor));
+    if (!authorizedViaLinks) {
+        console.log(`No valid authorization found for ${prAuthor}.`);
     }
-    if (await isAuthorizedViaLinkedPullRequests(cleanBody, prAuthor)) {
-        return true;
-    }
-    console.log(`No valid authorization found for ${prAuthor}.`);
-    return false;
+    return authorizedViaLinks;
 }
 async function run() {
     const prNumber = Number.parseInt(core.getInput('PR_NUMBER', { required: true }), 10);
