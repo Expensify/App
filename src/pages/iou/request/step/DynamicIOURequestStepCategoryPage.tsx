@@ -11,8 +11,8 @@ import {useSearchStateContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -93,6 +93,7 @@ function DynamicIOURequestStepCategoryPage({
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.path);
+    const shouldReturnToConfirmation = backPath === ROUTES.HOME;
 
     const categoryForDisplay = isCategoryMissing(transactionCategory) ? '' : transactionCategory;
 
@@ -186,9 +187,11 @@ function DynamicIOURequestStepCategoryPage({
         setMoneyRequestCategory(transactionID, updatedCategory, policy);
 
         if (action === CONST.IOU.ACTION.CATEGORIZE) {
-            if (report?.reportID) {
+            if (shouldReturnToConfirmation && report?.reportID) {
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, report.reportID));
+                return;
             }
+            navigateBack();
             return;
         }
 
