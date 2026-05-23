@@ -6,9 +6,7 @@ import WorkspaceOwnerRestrictedActionNative from '@src/pages/RestrictedAction/Wo
 import ROUTES from '@src/ROUTES';
 
 // Jest resolves index.native.tsx by default in the RN test environment; load web implementation explicitly.
-const {default: WorkspaceOwnerRestrictedActionWeb} = jest.requireActual<{default: React.ComponentType}>(
-    '@src/pages/RestrictedAction/Workspace/WorkspaceOwnerRestrictedAction/index.tsx',
-);
+const {default: WorkspaceOwnerRestrictedActionWeb} = jest.requireActual<{default: React.ComponentType}>('@src/pages/RestrictedAction/Workspace/WorkspaceOwnerRestrictedAction/index.tsx');
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     closeRHPFlow: jest.fn(),
