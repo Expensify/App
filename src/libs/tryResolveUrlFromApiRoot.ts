@@ -29,6 +29,13 @@ function tryResolveUrlFromApiRoot(url: string | ImageSourcePropType | ReceiptSou
         return url;
     }
     const apiRoot = getApiRoot({shouldUseSecure: false});
+
+    // If the URL already starts with the current API root, leave it unchanged.
+    // Example: API root `/staging/` with URL `/staging/chat-attachments/3201006431533292299/w_b584e6239ce3f00011e0350159b90f8f94f2363e.jpg`.
+    if (url.startsWith(apiRoot)) {
+        return url;
+    }
+
     return url.replace(ORIGIN_PATTERN, apiRoot);
 }
 
