@@ -95,6 +95,12 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 errors={getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.SYNC_REIMBURSED_REPORTS)}
                 onCloseError={() => clearXeroErrorField(policyID, CONST.XERO_CONFIG.SYNC_REIMBURSED_REPORTS)}
             />
+            <TravelInvoicingContinuousReconciliationSection
+                policy={policy}
+                connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
+                isAutoSyncEnabled={!!xeroConfig?.autoSync?.enabled}
+                toggleWrapperStyle={styles.mv3}
+            />
             <Accordion
                 isExpanded={isAccordionExpanded}
                 isToggleTriggered={shouldAnimateAccordionSection}
