@@ -12,6 +12,7 @@ import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHoldMenuModal from '@hooks/useHoldMenuModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -27,7 +28,7 @@ import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {getNonHeldAndFullAmount, isInvoiceReport, isOpenExpenseReport, isProcessingReport, isReportPendingDelete} from '@libs/ReportUtils';
-import {isOnHold, isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
+import {isOnHold, isViolationDismissed, shouldShowViolation, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -142,6 +143,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const {showConfirmModal} = useConfirmModal();
     const {showHoldMenu} = useHoldMenuModal();
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(reportItem.reportID);
     const liveReportTransactions = useMemo(() => Object.values(reportTransactions), [reportTransactions]);
@@ -187,6 +189,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             },
             ownerBillingGracePeriodEnd,
             amountOwed,
+            onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate),
         });
     }, [
         currentSearchHash,
@@ -208,6 +211,8 @@ function ExpenseReportListItem<TItem extends ListItem>({
         liveReportTransactions,
         ownerBillingGracePeriodEnd,
         amountOwed,
+        showConfirmModal,
+        translate,
     ]);
 
     const handleSelectionButtonPress = useCallback(() => {
