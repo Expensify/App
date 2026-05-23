@@ -22,7 +22,7 @@ jobs:
       IS_CPLUS: ${{ steps.check.outputs.IS_CPLUS }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
           fetch-depth: 1
 
@@ -45,7 +45,7 @@ jobs:
     steps:
       - name: Checkout
         if: github.event_name == 'pull_request_target'
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
 
       - name: Check contributor authorization
         if: github.event_name == 'pull_request_target'
@@ -71,7 +71,7 @@ jobs:
 
       - name: Checkout repository
         if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
           fetch-depth: 1
 
