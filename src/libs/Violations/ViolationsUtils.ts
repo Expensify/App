@@ -30,6 +30,7 @@ import type {Card, CardList, Policy, PolicyCategories, PolicyTagLists, PolicyTag
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ViolationFixParams from './types';
 
 type ViolationTranslationParams = {
@@ -785,9 +786,9 @@ const ViolationsUtils = {
             case 'receiptNotSmartScanned':
                 return translate('violations.receiptNotSmartScanned');
             case 'receiptRequired':
-                return translate('violations.receiptRequired', convertToDisplayString(amount, currency), getDecodedCategoryName(category ?? ''));
+                return translate('violations.receiptRequired', !isEmptyObject(violation.data) ? convertToDisplayString(amount, currency) : undefined, getDecodedCategoryName(category ?? ''));
             case 'itemizedReceiptRequired':
-                return translate('violations.itemizedReceiptRequired', convertToDisplayString(amount, currency));
+                return translate('violations.itemizedReceiptRequired', !isEmptyObject(violation.data) ? convertToDisplayString(amount, currency) : undefined);
             case 'customRules':
                 return translate('violations.customRules', message);
             case 'rter': {
