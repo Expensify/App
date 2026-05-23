@@ -1095,7 +1095,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             mockFetch?.pause?.();
 
-            markReportPaymentReceived(chatReport, reimbursedReport, undefined);
+            markReportPaymentReceived(chatReport, reimbursedReport, undefined, currentUserAccountID, currentUserEmail);
             await waitForBatchedUpdates();
 
             const updatedChatReport = await new Promise<OnyxEntry<Report>>((resolve) => {

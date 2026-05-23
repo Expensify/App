@@ -5,7 +5,6 @@ import type {PaymentMethod} from '@components/KYCWall/types';
 import * as API from '@libs/API';
 import type {MarkReportPaymentReceivedParams, PayInvoiceParams, PayMoneyRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {getCurrentUserEmail} from '@libs/CurrentUserStore';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -812,14 +811,14 @@ function markReportPaymentReceived(
     chatReport: OnyxEntry<OnyxTypes.Report>,
     iouReport: OnyxEntry<OnyxTypes.Report>,
     iouReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
+    currentUserAccountID: number,
+    currentUserEmail: string,
 ) {
     if (!chatReport || !iouReport) {
         return;
     }
 
     const allTransactionViolations = getAllTransactionViolations();
-    const currentUserAccountID = getUserAccountID();
-    const currentUserEmail = getCurrentUserEmail();
     const recipient = {accountID: iouReport.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const total = (iouReport.total ?? 0) - (iouReport.nonReimbursableTotal ?? 0);
     const optimisticIOUReportAction = buildOptimisticIOUReportAction({
