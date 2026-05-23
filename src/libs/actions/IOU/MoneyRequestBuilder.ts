@@ -63,7 +63,7 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getAllPersonalDetails, getAllReportActionsFromIOU, getAllReportNameValuePairs, getAllReports, getCurrentUserPersonalDetails} from './index';
+import {getAllPersonalDetails, getAllReportActionsFromIOU, getAllReportNameValuePairs, getAllReports} from './index';
 import type {ReplaceReceipt} from './Receipt';
 import {getSearchOnyxUpdate} from './SearchUpdate';
 import type {StartSplitBilActionParams} from './Split';
