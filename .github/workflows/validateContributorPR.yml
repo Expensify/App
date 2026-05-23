@@ -17,6 +17,9 @@ jobs:
     if: ${{ !github.event.pull_request.draft && github.event.pull_request.user.type != 'Bot' }}
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
       - name: Check contributor authorization
         id: gate
         uses: ./.github/actions/javascript/isAuthorizedContributor

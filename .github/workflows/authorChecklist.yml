@@ -17,6 +17,9 @@ jobs:
       github.actor != 'OSBotify'
       && github.actor != 'imgbot[bot]'
     steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
       - name: Check contributor authorization
         id: gate
         uses: ./.github/actions/javascript/isAuthorizedContributor
@@ -26,11 +29,6 @@ jobs:
           AUTHOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
           GITHUB_TOKEN: ${{ github.token }}
           OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-
-      - name: Checkout
-        if: steps.gate.outputs.IS_AUTHORIZED == 'true'
-        # v6
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
       - name: authorChecklist.ts
         if: steps.gate.outputs.IS_AUTHORIZED == 'true'

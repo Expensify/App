@@ -14,6 +14,9 @@ jobs:
     outputs:
       IS_AUTHORIZED: ${{ steps.gate.outputs.IS_AUTHORIZED }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
       - name: Check contributor authorization
         id: gate
         uses: ./.github/actions/javascript/isAuthorizedContributor

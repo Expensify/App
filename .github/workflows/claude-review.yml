@@ -43,6 +43,10 @@ jobs:
     env:
       PR_NUMBER: ${{ github.event.pull_request.number }}
     steps:
+      - name: Checkout
+        if: github.event_name == 'pull_request_target'
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
       - name: Check contributor authorization
         if: github.event_name == 'pull_request_target'
         id: gate
