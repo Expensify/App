@@ -28,6 +28,19 @@ import type {PersonalDetailsList, ReportAction, Session} from '@src/types/onyx';
 
 type DebugReportActionCreatePageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.REPORT_ACTION_CREATE>;
 
+function isParsedReportAction(value: unknown): value is ReportAction {
+    return typeof value === 'object' && value !== null && 'reportActionID' in value;
+}
+
+function parseReportActionJSON(draftReportAction: string): ReportAction | null {
+    try {
+        const parsedReportAction: unknown = JSON.parse(draftReportAction.replaceAll('\n', ''));
+        return isParsedReportAction(parsedReportAction) ? parsedReportAction : null;
+    } catch {
+        return null;
+    }
+}
+
 const getInitialReportAction = (reportID: string, session: OnyxEntry<Session>, personalDetailsList: OnyxEntry<PersonalDetailsList>) =>
     DebugUtils.stringifyJSON({
         actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
@@ -53,19 +66,21 @@ function DebugReportActionCreatePage({
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
 
-    const reportAction = useMemo(() => JSON.parse(draftReportAction.replaceAll('\n', '')) as ReportAction, [draftReportAction]);
+    const reportAction = useMemo(() => parseReportActionJSON(draftReportAction), [draftReportAction]);
 
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction?.childReportID}`);
 
     const [error, setError] = useState<string>();
 
     const createReportAction = useCallback(() => {
-        const parsedReportAction = JSON.parse(draftReportAction.replaceAll('\n', '')) as ReportAction;
+        if (!reportAction) {
+            return;
+        }
         Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-            [parsedReportAction.reportActionID]: parsedReportAction,
+            [reportAction.reportActionID]: reportAction,
         });
         Navigation.navigate(ROUTES.DEBUG_REPORT_TAB_ACTIONS.getRoute(reportID));
-    }, [draftReportAction, reportID]);
+    }, [reportAction, reportID]);
 
     const editJSON = useCallback(
         (updatedJSON: string) => {
@@ -112,9 +127,9 @@ function DebugReportActionCreatePage({
                         </View>
                         <View>
                             <Text style={[styles.textLabelSupporting, styles.mb2]}>{translate('debug.preview')}</Text>
-                            {!error ? (
+                            {!error && reportAction ? (
                                 <ReportActionItem
-                                    action={JSON.parse(draftReportAction.replaceAll('\n', '')) as ReportAction}
+                                    action={reportAction}
                                     transactionThreadReport={transactionThreadReport}
                                     report={{reportID}}
                                     parentReportAction={undefined}
