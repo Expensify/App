@@ -7,6 +7,7 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -26,6 +27,8 @@ type PolicyDistanceRateStartDateEditPageProps = PlatformStackScreenProps<Setting
 function PolicyDistanceRateStartDateEditPage({route}: PolicyDistanceRateStartDateEditPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
+    const isDateBoundMileageRateEnabled = isBetaEnabled(CONST.BETAS.DATE_BOUND_MILEAGE_RATE);
     const policyID = route.params.policyID;
     const rateID = route.params.rateID;
     const policy = usePolicy(policyID);
@@ -65,7 +68,7 @@ function PolicyDistanceRateStartDateEditPage({route}: PolicyDistanceRateStartDat
         [policyID, customUnit, rate],
     );
 
-    if (!rate) {
+    if (!rate || !isDateBoundMileageRateEnabled) {
         return <NotFoundPage />;
     }
 
