@@ -1,3 +1,11 @@
+/**
+ * Visual/theming values for the chart components: colors, font families, and configurable
+ * style knobs (axis line widths, spacing, tooltip pointer dims, pie start angle).
+ *
+ * Things that depend on the design (could change with a redesign) belong here. Layout-math
+ * constants (truncation thresholds, max measurement widths, ellipsis string, rotation enum,
+ * glyph-clipping safety margin) live in `constants.ts`.
+ */
 import colors from '@styles/theme/colors';
 
 /** Font families used by all chart label components (Paragraph API multi-font fallback). */
@@ -20,6 +28,8 @@ const CHART_PALETTE: string[] = (() => {
     for (const shade of shades) {
         for (const hue of hues) {
             const colorKey = `${hue}${shade}`;
+            // Defensive: every shade/hue combo exists in the theme palette today, but
+            // skip silently if one is removed so chart rendering still works.
             if (colors[colorKey]) {
                 palette.push(colors[colorKey]);
             }

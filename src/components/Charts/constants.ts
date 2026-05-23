@@ -1,3 +1,12 @@
+/**
+ * Layout-math constants for the chart components: measurement bounds, truncation
+ * thresholds, rotation enum, glyph-clipping safety margins, and other values that
+ * exist to make the geometry/text-layout code work — not because design picked them.
+ *
+ * Visual/theming values (colors, font families, axis line widths, spacing, tooltip
+ * style, pie start angle) live in `VictoryTheme.ts`.
+ */
+
 /** Minimum height for the chart content area (bars, Y-axis, grid lines) */
 const CHART_CONTENT_MIN_HEIGHT = 250;
 
