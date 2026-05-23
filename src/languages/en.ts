@@ -723,6 +723,9 @@ const translations = {
         changePin: {
             didNotChange: "We didn't change your PIN. Please try again.",
         },
+        revealCardDetail: {
+            couldNotReveal: "We couldn't reveal your card details. Please try again.",
+        },
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -1331,7 +1334,7 @@ const translations = {
         receiptStatusTitle: 'Scanning…',
         receiptStatusText: "Only you can see this receipt when it's scanning. Check back later or enter the details now.",
         receiptScanningFailed: 'Receipt scanning failed. Please enter the details manually.',
-        transactionPendingDescription: 'Transaction pending. It may take a few days to post.',
+        allTransactionsPendingNextStep: "All transactions are pending. You can't submit this report until they post in a few days.",
         companyInfo: 'Company info',
         companyInfoDescription: 'We need a few more details before you can send your first invoice.',
         yourCompanyName: 'Your company name',
@@ -1490,6 +1493,8 @@ const translations = {
             distanceAmountTooLargeReduceRate: 'The total amount is too large. Lower the rate.',
             odometerReadingTooLarge: (formattedMax: string) => `Odometer readings cannot exceed ${formattedMax}.`,
             stitchOdometerImagesFailed: 'Failed to combine odometer images. Please try again later.',
+            unableToSubmitReport: 'Unable to submit report',
+            allTransactionsPendingDescription: "You can't submit this report because all transactions are pending. They may take a few days to post.",
             failedToSaveOdometerDraft: "Couldn't save your odometer draft. Please try again.",
             invalidIntegerAmount: 'Please enter a whole dollar amount before continuing',
             invalidTaxAmount: (amount: string) => `Maximum tax amount is ${amount}`,
@@ -1567,7 +1572,6 @@ const translations = {
         someDuplicatesArePaid: 'Some of these duplicates have been approved or paid already.',
         reviewDuplicates: 'Review duplicates',
         keepAll: 'Keep all',
-        keepSelected: 'Keep selected',
         noDuplicatesTitle: 'All set!',
         noDuplicatesDescription: 'There are no duplicate transactions for review here.',
         confirmApprove: 'Confirm approval amount',
@@ -3397,6 +3401,7 @@ const translations = {
         enterPhoneNumber: "What's your phone number?",
         personalDetails: 'Personal details',
         privateDataMessage: 'These details are used for travel and payments. They are never shown on your public profile.',
+        basicDetails: 'Basic details',
         legalName: 'Legal name',
         legalFirstName: 'Legal first name',
         legalLastName: 'Legal last name',
@@ -3594,7 +3599,7 @@ const translations = {
             noBankAccountSelected: 'Please choose an account',
             taxID: 'Please enter a valid tax ID number',
             website: 'Please enter a valid website',
-            zipCode: `Please enter a valid ZIP code using the format: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
+            zipCode: `Please enter a valid ZIP code using the format: ${COMMON_CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
             phoneNumber: 'Please enter a valid phone number',
             email: 'Please enter a valid email address',
             companyName: 'Please enter a valid business name',

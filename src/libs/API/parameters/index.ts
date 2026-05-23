@@ -89,6 +89,7 @@ export type {default as ResolveActionableMentionWhisperParams} from './ResolveAc
 export type {default as ChangePolicyUberBillingAccountPageParams} from './ChangePolicyUberBillingAccountPageParams';
 export type {default as ResolveActionableReportMentionWhisperParams} from './ResolveActionableReportMentionWhisperParams';
 export type {default as RevealExpensifyCardDetailsParams} from './RevealExpensifyCardDetailsParams';
+export type {default as RevealExpensifyCardDetailsWithSCAParams} from './RevealExpensifyCardDetailsWithSCAParams';
 export type {default as SearchForReportsParams} from './SearchForReportsParams';
 export type {default as SearchForRoomsToMentionParams} from './SearchForRoomsToMentionParams';
 export type {default as SearchForUsersParams} from './SearchForUsersParams';
@@ -110,6 +111,7 @@ export type {default as UpdateHomeAddressParams} from './UpdateHomeAddressParams
 export type {default as UpdatePolicyAddressParams} from './UpdatePolicyAddressParams';
 export type {default as UpdateLegalNameParams} from './UpdateLegalNameParams';
 export type {default as UpdatePhoneNumberParams} from './UpdatePhoneNumberParams';
+export type {default as UpdatePrivatePersonalDetailsParams} from './UpdatePrivatePersonalDetailsParams';
 export type {default as UpdateNewsletterSubscriptionParams} from './UpdateNewsletterSubscriptionParams';
 export type {default as UpdatePersonalInformationForBankAccountParams} from './UpdatePersonalInformationForBankAccountParams';
 export type {default as UpdatePreferredEmojiSkinToneParams} from './UpdatePreferredEmojiSkinToneParams';
