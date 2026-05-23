@@ -19,8 +19,6 @@ function createRequestError(status: number): RequestError {
 const mockGetMembershipForUserInOrg = jest.fn();
 const mockPullsGet = jest.fn();
 const mockIssuesGet = jest.fn();
-const mockListReviews = jest.fn();
-const mockListRequestedReviewers = jest.fn();
 
 beforeEach(() => {
     jest.clearAllMocks();
@@ -33,8 +31,6 @@ beforeEach(() => {
             },
             pulls: {
                 get: mockPullsGet,
-                listReviews: mockListReviews,
-                listRequestedReviewers: mockListRequestedReviewers,
             },
             issues: {
                 get: mockIssuesGet,
@@ -108,25 +104,6 @@ describe('isAuthorizedContributor', () => {
                     assignees: [{login: 'ExternalUser'}],
                 },
             });
-
-            await expect(isAuthorizedContributor({...defaultParams})).resolves.toBe(true);
-        });
-
-        test('authorizes when linked PR author matches', async () => {
-            mockGetMembershipForUserInOrg.mockRejectedValue(createRequestError(404));
-            mockPullsGet
-                .mockResolvedValueOnce({
-                    data: {
-                        body: 'See https://github.com/Expensify/App/pull/5555',
-                    },
-                })
-                .mockResolvedValueOnce({
-                    data: {
-                        user: {login: 'externalUser'},
-                    },
-                });
-            mockListReviews.mockResolvedValue({data: []});
-            mockListRequestedReviewers.mockResolvedValue({data: {users: []}});
 
             await expect(isAuthorizedContributor({...defaultParams})).resolves.toBe(true);
         });

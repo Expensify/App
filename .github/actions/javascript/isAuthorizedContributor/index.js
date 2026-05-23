@@ -11590,7 +11590,6 @@ const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 const AUTHORIZED_ASSOCIATIONS = new Set(['MEMBER', 'OWNER', 'CONTRIBUTOR']);
 const CONTRIBUTOR_PLUS_TEAM_SLUG = 'contributor-plus';
 const ISSUE_URL_PATTERN = /https:\/\/github\.com\/(Expensify\/[^/]+)\/issues\/(\d+)/g;
-const PULL_URL_PATTERN = /https:\/\/github\.com\/(Expensify\/[^/]+)\/pull\/(\d+)/g;
 function parseExpensifyLink(match) {
     const repoFullName = match[1];
     const numberString = match[2];
@@ -11655,52 +11654,6 @@ async function isAuthorizedViaLinkedIssues(prBody, prAuthor) {
     }
     return false;
 }
-async function isAuthorizedViaLinkedPullRequests(prBody, prAuthor) {
-    for (const match of prBody.matchAll(PULL_URL_PATTERN)) {
-        const link = parseExpensifyLink(match);
-        if (!link) {
-            continue;
-        }
-        const { repoFullName, number, owner, repo } = link;
-        try {
-            const { data: linkedPR } = await GithubUtils_1.default.octokit.pulls.get({
-                owner,
-                repo,
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                pull_number: number,
-            });
-            if (linkedPR.user?.login?.toLowerCase() === prAuthor.toLowerCase()) {
-                console.log(`${prAuthor} is the author of ${repoFullName}#${number}. Authorized.`);
-                return true;
-            }
-            const { data: reviews } = await GithubUtils_1.default.octokit.pulls.listReviews({
-                owner,
-                repo,
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                pull_number: number,
-            });
-            if (reviews.some((review) => review.user?.login?.toLowerCase() === prAuthor.toLowerCase())) {
-                console.log(`${prAuthor} is a reviewer of ${repoFullName}#${number}. Authorized.`);
-                return true;
-            }
-            const { data: requestedReviewers } = await GithubUtils_1.default.octokit.pulls.listRequestedReviewers({
-                owner,
-                repo,
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                pull_number: number,
-            });
-            if (requestedReviewers.users.some((user) => user.login.toLowerCase() === prAuthor.toLowerCase())) {
-                console.log(`${prAuthor} is a requested reviewer of ${repoFullName}#${number}. Authorized.`);
-                return true;
-            }
-            console.log(`${prAuthor} is not author or reviewer of ${repoFullName}#${number}.`);
-        }
-        catch (error) {
-            logVerificationError(repoFullName, number, error);
-        }
-    }
-    return false;
-}
 /**
  * Returns whether a PR author is authorized to contribute per Expensify external contributor rules.
  */
@@ -11712,7 +11665,7 @@ async function isAuthorizedContributor({ prNumber, prAuthor, authorAssociation, 
     if (await isContributorPlusMember(prAuthor, orgToken)) {
         return true;
     }
-    console.log(`${prAuthor} has association "${authorAssociation}". Checking linked issues/PRs...`);
+    console.log(`${prAuthor} has association "${authorAssociation}". Checking linked issues...`);
     GithubUtils_1.default.initOctokitWithToken(githubToken);
     const { data: pr } = await GithubUtils_1.default.octokit.pulls.get({
         owner: repoOwner,
@@ -11721,11 +11674,11 @@ async function isAuthorizedContributor({ prNumber, prAuthor, authorAssociation, 
         pull_number: prNumber,
     });
     const prBody = pr.body ?? '';
-    const authorizedViaLinks = (await isAuthorizedViaLinkedIssues(prBody, prAuthor)) || (await isAuthorizedViaLinkedPullRequests(prBody, prAuthor));
-    if (!authorizedViaLinks) {
+    const isAuthorized = await isAuthorizedViaLinkedIssues(prBody, prAuthor);
+    if (!isAuthorized) {
         console.log(`No valid authorization found for ${prAuthor}.`);
     }
-    return authorizedViaLinks;
+    return isAuthorized;
 }
 async function run() {
     const prNumber = Number.parseInt(core.getInput('PR_NUMBER', { required: true }), 10);
@@ -11734,7 +11687,7 @@ async function run() {
     const githubToken = core.getInput('GITHUB_TOKEN', { required: true });
     const orgToken = core.getInput('OS_BOTIFY_TOKEN', { required: true });
     const { owner, repo } = github.context.repo;
-    const authorized = await isAuthorizedContributor({
+    const isAuthorized = await isAuthorizedContributor({
         prNumber,
         prAuthor,
         authorAssociation,
@@ -11743,7 +11696,7 @@ async function run() {
         githubToken,
         orgToken,
     });
-    core.setOutput('IS_AUTHORIZED', authorized ? 'true' : 'false');
+    core.setOutput('IS_AUTHORIZED', isAuthorized ? 'true' : 'false');
 }
 if (require.main === require.cache[eval('__filename')]) {
     run().catch((error) => {
