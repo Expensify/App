@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {memo, useContext, useEffect, useState} from 'react';
+import React, {memo, useEffect, useState} from 'react';
 import type {RotationDegrees} from 'react-fast-pdf';
 import type {GestureResponderEvent, ImageURISource, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -30,7 +30,6 @@ import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {getFileResolution, isHighResolutionImage} from '@libs/fileDownload/FileUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {hasEReceipt, hasReceiptSource, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
-import {AttachmentStateContext} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/AttachmentStateContextProvider';
 import type {ColorValue} from '@styles/utils/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -150,13 +149,6 @@ function AttachmentView({
 
     const actions = useAttachmentCarouselPagerActions();
     const {onAttachmentError, onTap} = actions ?? {};
-    const {setAttachmentLoaded} = useContext(AttachmentStateContext);
-
-    const handleAttachmentError = (attachmentSource: AttachmentSource) => {
-        setAttachmentLoaded(attachmentSource, false);
-        onAttachmentError?.(attachmentSource, true);
-    };
-
     const theme = useTheme();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const styles = useThemeStyles();
@@ -363,7 +355,6 @@ function AttachmentView({
                                 return;
                             }
 
-                            handleAttachmentError(source);
                             setImageError(true);
                         }}
                     />

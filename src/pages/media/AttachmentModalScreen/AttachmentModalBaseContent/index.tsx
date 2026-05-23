@@ -1,4 +1,3 @@
-import {Str} from 'expensify-common';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
@@ -7,9 +6,9 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentCarousel from '@components/Attachments/AttachmentCarousel';
 import {AttachmentCarouselPagerActionsContext, AttachmentCarouselPagerStateContext} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import type {AttachmentCarouselPagerActionsContextType, AttachmentCarouselPagerStateContextType} from '@components/Attachments/AttachmentCarousel/Pager/types';
-import AttachmentView from '@components/Attachments/AttachmentView';
+import AttachmentView, {checkIsFileImage} from '@components/Attachments/AttachmentView';
 import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttachmentErrors';
-import type {Attachment, AttachmentSource} from '@components/Attachments/types';
+import type {Attachment} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -189,28 +188,21 @@ function AttachmentModalBaseContent({
 
     const {isAttachmentLoaded} = useContext(AttachmentStateContext);
     const isEReceipt = transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction);
+    const isFileImage = typeof source !== 'function' && checkIsFileImage(source, fileToDisplay?.name);
     const shouldShowDownloadButton = useMemo(() => {
         const isValidContext = !isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH || shouldAllowDownloadOutsideReportContext;
         if (!isValidContext || isErrorInAttachment(source) || isEReceipt) {
             return false;
         }
 
-        const fileName = fileToDisplay?.name;
-        const attachmentSource = source as AttachmentSource;
-        const isImageSource = typeof source === 'number' || (typeof source === 'string' && Str.isImage(source)) || (!!fileName && Str.isImage(fileName));
-        const isVideoSource = typeof source === 'string' && Str.isVideo(source);
-        const shouldWaitForPreviewLoad = typeof source !== 'function' && !maybeIcon && (isImageSource || isVideoSource || (!!fileName && Str.isVideo(fileName)));
-        const isAttachmentReadyToDownload = shouldWaitForPreviewLoad ? isAttachmentLoaded?.(attachmentSource) : true;
-
-        return !!onDownloadAttachment && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isOffline && !isLocalSource && isAttachmentReadyToDownload;
+        return !!onDownloadAttachment && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isOffline && !isLocalSource && (!isFileImage || isAttachmentLoaded?.(source));
     }, [
-        fileToDisplay?.name,
         isAttachmentLoaded,
         isDownloadButtonReadyToBeShown,
         isErrorInAttachment,
+        isFileImage,
         isLocalSource,
         isOffline,
-        maybeIcon,
         onDownloadAttachment,
         report,
         shouldAllowDownloadOutsideReportContext,

@@ -3,7 +3,7 @@ import type {MutedChangeEventPayload, PlayingChangeEventPayload, StatusChangeEve
 import {useVideoPlayer, VideoView} from 'expo-video';
 import debounce from 'lodash/debounce';
 import type {RefObject} from 'react';
-import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {cancelAnimation, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
@@ -23,7 +23,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {isSafari} from '@libs/Browser';
 import {canUseTouchScreen as canUseTouchScreenLib} from '@libs/DeviceCapabilities';
-import {AttachmentStateContext} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/AttachmentStateContextProvider';
 import CONST from '@src/CONST';
 import type VideoPlayerProps from './types';
 import useHandleNativeVideoControls from './useHandleNativeVideoControls';
@@ -62,7 +61,6 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
         usePlaybackActionsContext();
     const {isFullScreenRef} = useFullScreenState();
     const report = useReportOrReportDraft(reportID);
-    const {setAttachmentLoaded} = useContext(AttachmentStateContext);
 
     const isOffline = useNetwork().isOffline;
     const [isVideoOffline, setIsVideoOffline] = useState(false);
@@ -286,14 +284,12 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
     useEventListener(videoPlayerRef.current, 'statusChange', (payload: StatusChangeEventPayload) => {
         if (payload.status === 'error') {
             setHasErrorIconVisible(true);
-            setAttachmentLoaded(url, false);
         } else {
             updatePlayerStatus(payload.status);
         }
         if (payload.status !== 'readyToPlay') {
             return;
         }
-        setAttachmentLoaded(url, true);
         isReadyForDisplayRef.current = true;
         setHasErrorIconVisible(false);
         if (isFirstLoad) {
@@ -311,7 +307,6 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
     });
 
     useEventListener(videoPlayerRef.current, 'sourceLoad', (event) => {
-        setAttachmentLoaded(url, true);
         onSourceLoaded?.(event);
     });
 

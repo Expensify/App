@@ -15,7 +15,7 @@ function BaseImage({onLoad, source, style, ...props}: BaseImageProps) {
         if (isAttachmentLoaded?.(source as AttachmentSource)) {
             return;
         }
-        setAttachmentLoaded?.(source as AttachmentSource, false);
+        setAttachmentLoaded(source as AttachmentSource, false);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -26,7 +26,7 @@ function BaseImage({onLoad, source, style, ...props}: BaseImageProps) {
 
     const imageLoadedSuccessfully = useCallback(
         (event: ImageLoadEventData) => {
-            setAttachmentLoaded?.(source as AttachmentSource, true);
+            setAttachmentLoaded(source as AttachmentSource, true);
             if (!onLoad) {
                 return;
             }
