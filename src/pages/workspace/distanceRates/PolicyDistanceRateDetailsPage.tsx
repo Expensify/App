@@ -14,9 +14,11 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolation from '@hooks/useTransactionViolation';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
+import DateUtils from '@libs/DateUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -38,6 +40,8 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
+    const {isBetaEnabled} = usePermissions();
+    const isDateBoundMileageRateEnabled = isBetaEnabled(CONST.BETAS.DATE_BOUND_MILEAGE_RATE);
     const policyID = route.params.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`);
     const rateID = route.params.rateID;
@@ -117,6 +121,12 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
     };
     const editTaxRateValue = () => {
         Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_TAX_RATE_EDIT.getRoute(policyID, rateID));
+    };
+    const editStartDate = () => {
+        Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_START_DATE_EDIT.getRoute(policyID, rateID));
+    };
+    const editEndDate = () => {
+        Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_END_DATE_EDIT.getRoute(policyID, rateID));
     };
 
     const showWarningModal = () => {
@@ -221,6 +231,38 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                             onPress={editRateValue}
                         />
                     </OfflineWithFeedback>
+                    {isDateBoundMileageRateEnabled && (
+                        <OfflineWithFeedback
+                            errors={getLatestErrorField(rate ?? {}, 'startDate')}
+                            pendingAction={rate?.pendingFields?.startDate}
+                            errorRowStyles={styles.mh5}
+                            onClose={() => clearErrorFields('startDate')}
+                        >
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon
+                                title={rate.startDate ? DateUtils.formatWithUTCTimeZone(rate.startDate) : translate('common.none')}
+                                description={translate('workspace.distanceRates.startDate')}
+                                descriptionTextStyle={styles.textNormal}
+                                onPress={editStartDate}
+                            />
+                        </OfflineWithFeedback>
+                    )}
+                    {isDateBoundMileageRateEnabled && (
+                        <OfflineWithFeedback
+                            errors={getLatestErrorField(rate ?? {}, 'endDate')}
+                            pendingAction={rate?.pendingFields?.endDate}
+                            errorRowStyles={styles.mh5}
+                            onClose={() => clearErrorFields('endDate')}
+                        >
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon
+                                title={rate.endDate ? DateUtils.formatWithUTCTimeZone(rate.endDate) : translate('common.none')}
+                                description={translate('workspace.distanceRates.endDate')}
+                                descriptionTextStyle={styles.textNormal}
+                                onPress={editEndDate}
+                            />
+                        </OfflineWithFeedback>
+                    )}
                     {isDistanceTrackTaxEnabled && isPolicyTrackTaxEnabled && (
                         <OfflineWithFeedback
                             errors={getLatestErrorField(rate, 'taxRateExternalID')}
