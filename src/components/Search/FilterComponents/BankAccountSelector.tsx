@@ -5,8 +5,8 @@ import getBankIcon from '@components/Icon/BankIcons';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getBankAccountSearchLabel} from '@libs/BankAccountUtils';
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import MultiSelect from './MultiSelect';
 
@@ -33,11 +33,7 @@ function BankAccountSelector({value = [], onChange}: BankAccountSelectorProps) {
             continue;
         }
         const bankName = bankAccount?.accountData?.additionalData?.bankName;
-        const accountNumber = bankAccount?.accountData?.accountNumber ?? '';
-        const formattedBankName = (bankName ? CONST.BANK_NAMES_USER_FRIENDLY[bankName] : undefined) ?? CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.GENERIC_BANK];
-        const maskedNumber = accountNumber ? `xx${accountNumber.slice(-4)}` : '';
-        const label = maskedNumber ? `${formattedBankName} ${maskedNumber}` : formattedBankName;
-
+        const label = getBankAccountSearchLabel(bankAccount);
         const {icon, iconSize, iconStyles} = getBankIcon({bankName, styles, maxIconSize: isLargeScreenWidth ? variables.w28 : undefined});
         const leftElement = (
             <View style={[styles.mr3, styles.alignItemsCenter, styles.justifyContentCenter]}>
