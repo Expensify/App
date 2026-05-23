@@ -11696,7 +11696,7 @@ async function run() {
         githubToken,
         orgToken,
     });
-    core.setOutput('IS_AUTHORIZED', isAuthorized ? 'true' : 'false');
+    core.setOutput('IS_AUTHORIZED', isAuthorized);
 }
 if (require.main === require.cache[eval('__filename')]) {
     run().catch((error) => {

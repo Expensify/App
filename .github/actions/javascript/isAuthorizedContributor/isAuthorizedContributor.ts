@@ -152,7 +152,7 @@ async function run(): Promise<void> {
         orgToken,
     });
 
-    core.setOutput('IS_AUTHORIZED', isAuthorized ? 'true' : 'false');
+    core.setOutput('IS_AUTHORIZED', isAuthorized);
 }
 
 if (require.main === module) {
