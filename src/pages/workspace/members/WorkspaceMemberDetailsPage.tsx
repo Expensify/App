@@ -31,6 +31,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setPolicyPreventSelfApproval} from '@libs/actions/Policy/Policy';
+import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
 import {getAllCardsForWorkspace, getCardFeedIcon, getCardFeedWithDomainID, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
@@ -38,6 +39,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
 import {isControlPolicy, isPolicyApprover, tryNavigateToSubmitWorkspaceUpgrade} from '@libs/PolicyUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
+import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -72,7 +74,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const {convertToDisplayString} = useCurrencyListActions();
     const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Info', 'Transfer']);
     const styles = useThemeStyles();
-    const {formatPhoneNumber, translate} = useLocalize();
+    const {formatPhoneNumber, translate, localeCompare} = useLocalize();
     const StyleUtils = useStyleUtils();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
@@ -107,6 +109,13 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const isReimburser = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES && policy?.achAccount?.reimburser === memberLogin;
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
+
+    const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({
+        policy,
+        personalDetails: personalDetails ?? {},
+        localeCompare,
+        currentUserLogin: currentUserPersonalDetails?.login,
+    });
 
     useEffect(() => {
         openPolicyMemberProfilePage(policyID, accountID);
@@ -170,6 +179,33 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     };
 
     const removeUser = () => {
+        const ownerEmail = ownerDetails?.login;
+        const removedApprover = personalDetails?.[accountID];
+
+        // If the user is not an approver, proceed with member removal
+        if (!isPolicyApprover(policy, memberLogin) || !removedApprover?.login || !ownerEmail) {
+            removeMemberAndCloseModal();
+            return;
+        }
+
+        // Update approval workflows after approver removal
+        const updatedWorkflows = updateWorkflowDataOnApproverRemoval({
+            approvalWorkflows,
+            removedApprover,
+            ownerDetails,
+        });
+
+        for (const workflow of updatedWorkflows) {
+            if (workflow?.removeApprovalWorkflow) {
+                const {removeApprovalWorkflow, ...updatedWorkflow} = workflow;
+
+                removeApprovalWorkflowAction(updatedWorkflow, policy);
+            } else {
+                updateApprovalWorkflow(workflow, [], [], policy);
+            }
+        }
+
+        // Remove the member and close the modal
         removeMemberAndCloseModal();
     };
 

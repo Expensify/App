@@ -37,7 +37,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ParticipantsNavigatorParamList} from '@libs/Navigation/types';
 import {isSearchStringMatchUserDetails} from '@libs/OptionsListUtils';
-import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
+import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {
     getReportPersonalDetailsParticipants,
@@ -57,6 +57,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {personalDetailsSelector} from '@src/selectors/PersonalDetails';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
 import withReportOrNotFound from './inbox/report/withReportOrNotFound';
@@ -106,6 +107,8 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     };
 
     const [selectedMembers, setSelectedMembers] = useFilteredSelection(personalDetailsParticipants, filterParticipants);
+    const firstSelectedMember = selectedMembers?.at(0);
+    const [firstSelectedMemberDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(firstSelectedMember)});
 
     const [searchValue, setSearchValue, searchFilteredParticipants] = useSearchResults(
         participantsForDisplay,
@@ -189,7 +192,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
             title: translate('workspace.people.removeMembersTitle', {count: selectedMembers.length}),
             prompt: translate('workspace.people.removeMembersPrompt', {
                 count: selectedMembers.length,
-                memberName: formatPhoneNumber(getPersonalDetailsByIDs({accountIDs: selectedMembers, currentUserAccountID}).at(0)?.displayName ?? ''),
+                memberName: formatPhoneNumber(firstSelectedMemberDetails?.displayName ?? ''),
             }),
             confirmText: translate('common.remove'),
             cancelText: translate('common.cancel'),

@@ -3,11 +3,14 @@ import React from 'react';
 import {FlatList} from 'react-native';
 import type {FlatListProps} from 'react-native';
 import OptionRow from '@components/OptionRow';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import {getDisplayNameOrYou} from '@libs/PersonalDetailsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -42,8 +45,10 @@ const getItemLayout = (data: ArrayLike<PersonalDetails> | null | undefined, inde
 
 function BaseReactionList({hasUserReacted = false, users, isVisible = false, emojiCodes, emojiCount, emojiName, onClose}: BaseReactionListProps) {
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
+    const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {hoveredComponentBG, reactionListContainer, reactionListContainerFixedWidth, pv2} = useThemeStyles();
+    const {accountID} = useCurrentUserPersonalDetails();
 
     if (!isVisible) {
         return null;
@@ -68,7 +73,7 @@ function BaseReactionList({hasUserReacted = false, users, isVisible = false, emo
             }}
             option={{
                 accountID: item.accountID,
-                text: Str.removeSMSDomain(item.displayName ?? ''),
+                text: Str.removeSMSDomain(getDisplayNameOrYou(item.displayName ?? '', item.accountID, accountID, translate)),
                 alternateText: Str.removeSMSDomain(item.login ?? ''),
                 participantsList: [item],
                 icons: [

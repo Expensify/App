@@ -37,6 +37,7 @@ import {
     isHiddenForCurrentUser as isReportHiddenForCurrentUser,
     navigateToPrivateNotes,
 } from '@libs/ReportUtils';
+import {isAgentEmail} from '@libs/SessionUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import {isValidAccountRoute} from '@libs/ValidationUtils';
 import type {ProfileNavigatorParamList} from '@navigation/types';
@@ -126,7 +127,7 @@ function ProfilePage({route}: ProfilePageProps) {
 
     // If we have a reportID param this means that we
     // arrived here via the ParticipantsPage and should be allowed to navigate back to it
-    const shouldShowLocalTime = !hasAutomatedExpensifyAccountIDs([accountID]) && !isEmptyObject(timezone) && isParticipantValidated;
+    const shouldShowLocalTime = !hasAutomatedExpensifyAccountIDs([accountID]) && !isAgentEmail(login) && !isEmptyObject(timezone) && isParticipantValidated;
     let pronouns = details?.pronouns ?? '';
     if (pronouns?.startsWith(CONST.PRONOUNS.PREFIX)) {
         const localeKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
