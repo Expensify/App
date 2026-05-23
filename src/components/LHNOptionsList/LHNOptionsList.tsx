@@ -58,10 +58,9 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
      */
     const renderItem = useCallback(
         ({item, index}: RenderItemProps): ReactElement | null => {
-            // FlashList can momentarily hand us an undefined item (e.g. when the underlying list
-            // shrinks before the recycler rebuilds). Bail out for that transient slot instead of
-            // reading item.reportID and crashing. The rest of this callback already treats item as
-            // possibly missing via optional chaining, so this keeps it internally consistent.
+            // FlashList can momentarily hand us an undefined item while the list shrinks before the
+            // recycler rebuilds. Bail out for that transient slot instead of reading item.reportID and
+            // crashing. The rest of this callback already guards item with optional chaining.
             if (!item) {
                 return null;
             }
@@ -149,11 +148,10 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
         });
     }, [getScrollOffset, route]);
 
-    // On web we restore the saved scroll index, but only when it is still in range for the current
-    // data. The list length changes constantly (reports archived/deleted, filters, priority mode,
-    // account switches), so a previously saved index can point past the end of the list. Handing
-    // FlashList an out-of-range initialScrollIndex makes it look up data[index] === undefined and
-    // pass that to renderItem. Fall back to undefined (start at the top) when it is out of range.
+    // Restore the saved web scroll index only when it is still in range. The list length changes
+    // constantly (archived/deleted reports, filters, priority mode, account switches), so a saved
+    // index can point past the end. An out-of-range initialScrollIndex makes FlashList hand
+    // renderItem an undefined item, so fall back to the top in that case.
     const savedScrollIndex = isWeb ? getScrollIndex(route) : undefined;
     const initialScrollIndex = savedScrollIndex !== undefined && savedScrollIndex >= 0 && savedScrollIndex < data.length ? savedScrollIndex : undefined;
 
