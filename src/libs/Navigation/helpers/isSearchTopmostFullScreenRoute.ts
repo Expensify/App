@@ -5,6 +5,10 @@ import getActiveTabName from './getActiveTabName';
 import {isFullScreenName} from './isNavigatorName';
 
 const isSearchTopmostFullScreenRoute = (): boolean => {
+    if (!navigationRef.isReady?.()) {
+        return false;
+    }
+
     const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
 
     if (!rootState) {
