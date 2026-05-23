@@ -36,6 +36,7 @@ import FILTER_KEYS, {ALLOWED_TYPE_FILTERS, AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS}
 import type {ExpenseTypeValue, ExpenseTypeValues, HasFilterValue, HasFilterValues, IsFilterValue, IsFilterValues, SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes, SearchResultDataType} from '@src/types/onyx/SearchResults';
+import {getBankAccountSearchLabel} from './BankAccountUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescription} from './CardUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
@@ -1464,11 +1465,7 @@ function getFilterDisplayValue({
         if (!bankAccount) {
             return filterValue;
         }
-        const bankName = bankAccount.accountData?.additionalData?.bankName;
-        const accountNumber = bankAccount.accountData?.accountNumber ?? '';
-        const formattedBankName = (bankName ? CONST.BANK_NAMES_USER_FRIENDLY[bankName] : undefined) ?? CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.GENERIC_BANK];
-        const maskedNumber = accountNumber ? `xx${accountNumber.slice(-4)}` : '';
-        return maskedNumber ? `${formattedBankName} ${maskedNumber}` : formattedBankName;
+        return getBankAccountSearchLabel(bankAccount);
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
         return getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`], reportAttributes) || filterValue;
