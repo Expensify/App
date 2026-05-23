@@ -184,6 +184,7 @@ import {
     getDescription,
     getExchangeRate,
     getExpenseTypeTranslationKey,
+    getMCCForDisplay,
     getOriginalAmountForDisplay,
     getTag,
     getTaxAmount,
@@ -3790,6 +3791,14 @@ function getSortedTransactionData(
             const aValue = getOriginalAmountForDisplay(a, a.report?.type === CONST.REPORT.TYPE.EXPENSE);
             const bValue = getOriginalAmountForDisplay(b, b.report?.type === CONST.REPORT.TYPE.EXPENSE);
             return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare, true);
+        });
+    }
+
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.MCC) {
+        return data.sort((a, b) => {
+            const aValue = getMCCForDisplay(a.mcc);
+            const bValue = getMCCForDisplay(b.mcc);
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
         });
     }
 

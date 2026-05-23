@@ -131,7 +131,8 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
 
     const getPolicyCategoriesForTransaction = (transaction: TransactionListItemType) => {
         const transactionPolicyID =
-            [transaction.policy?.id, transaction.report?.policyID].find(Boolean) ?? (transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? policyForMovingExpensesID : undefined);
+            [transaction.policyID, transaction.policy?.id, transaction.report?.policyID].find(Boolean) ??
+            (transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? policyForMovingExpensesID : undefined);
         return policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(transactionPolicyID)}`];
     };
 
