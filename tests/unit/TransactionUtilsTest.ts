@@ -3356,41 +3356,38 @@ describe('TransactionUtils', () => {
         });
     });
 
-    describe('isPendingCardOrScanningTransaction', () => {
+    describe('isPending', () => {
+        it('returns true for a BYOC pending transaction (non-Expensify Card with status Pending)', () => {
+            const transaction = generateTransaction({
+                status: CONST.TRANSACTION.STATUS.PENDING,
+                bank: 'chase',
+            });
+            expect(TransactionUtils.isPending(transaction)).toBe(true);
+        });
+
         it('returns true for an Expensify Card pending transaction', () => {
             const transaction = generateTransaction({
                 status: CONST.TRANSACTION.STATUS.PENDING,
                 bank: CONST.EXPENSIFY_CARD.BANK,
             });
-            expect(TransactionUtils.isPendingCardOrScanningTransaction(transaction)).toBe(true);
-        });
-
-        it('returns false for a BYOC pending transaction (non-Expensify Card with status Pending)', () => {
-            // isPendingCardOrScanningTransaction intentionally excludes non-Expensify-Card pending
-            // transactions to avoid blocking report submission (canSubmitReport uses this function).
-            // BYOC pending display is handled separately via isPending() in UI components.
-            const transaction = generateTransaction({
-                status: CONST.TRANSACTION.STATUS.PENDING,
-                bank: 'chase',
-            });
-            expect(TransactionUtils.isPendingCardOrScanningTransaction(transaction)).toBe(false);
+            expect(TransactionUtils.isPending(transaction)).toBe(true);
         });
 
         it('returns false for a posted transaction', () => {
             const transaction = generateTransaction({
                 status: CONST.TRANSACTION.STATUS.POSTED,
-                bank: CONST.EXPENSIFY_CARD.BANK,
+                bank: 'chase',
             });
-            expect(TransactionUtils.isPendingCardOrScanningTransaction(transaction)).toBe(false);
+            expect(TransactionUtils.isPending(transaction)).toBe(false);
         });
 
-        it('returns false for a transaction with no status and no scanning indicators', () => {
+        it('returns false for a transaction with no status', () => {
             const transaction = generateTransaction();
-            expect(TransactionUtils.isPendingCardOrScanningTransaction(transaction)).toBe(false);
+            expect(TransactionUtils.isPending(transaction)).toBe(false);
         });
 
         it('returns false for undefined transaction', () => {
-            expect(TransactionUtils.isPendingCardOrScanningTransaction(undefined)).toBe(false);
+            expect(TransactionUtils.isPending(undefined)).toBe(false);
         });
     });
 
