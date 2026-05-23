@@ -1,4 +1,4 @@
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import {scheduleOnUI} from 'react-native-worklets';
 import useOnyx from '@hooks/useOnyx';
@@ -79,6 +79,16 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
         reportID,
         isEditing: !!editingReportAction,
     });
+
+    // Prime the debounce on mount so flush() returns a valid result for restored drafts
+    // even if the user presses Send without typing first.
+    useEffect(() => {
+        if (!textRef.current) {
+            return;
+        }
+        debouncedCommentMaxLengthValidation(textRef.current);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const originalReportID = useOriginalReportID(editingReportID ?? undefined, editingReportAction);
 
