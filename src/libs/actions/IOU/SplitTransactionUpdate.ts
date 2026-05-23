@@ -1369,7 +1369,9 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     const transactionsOnExpenseReport = Object.values(params.allTransactionsList ?? {}).filter((itemTransaction) => itemTransaction?.reportID === expenseReportID);
     const isLastTransactionInReport = isReverseSplitOperation && transactionsOnExpenseReport.length === 1;
 
-    const willExpenseReportBeEmpty = !!expenseReportID && !splitExpenses.some((expense) => expense?.reportID === expenseReportID);
+    const originalChildIDs = new Set(originalChildTransactions.map((tx) => tx?.transactionID).filter(Boolean));
+    const reportHasOnlySplitChildren = transactionsOnExpenseReport.every((tx) => !!tx?.transactionID && originalChildIDs.has(tx.transactionID));
+    const willExpenseReportBeEmpty = !!expenseReportID && reportHasOnlySplitChildren && !splitExpenses.some((expense) => expense?.reportID === expenseReportID);
     const willDeleteExpenseReport = isLastTransactionInReport || willExpenseReportBeEmpty;
     const fallbackReportID = params.expenseReport?.chatReportID ?? params.expenseReport?.parentReportID;
 
