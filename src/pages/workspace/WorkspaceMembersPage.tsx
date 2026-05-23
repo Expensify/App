@@ -638,7 +638,14 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         (isMergeHRSyncInProgress || (connectionSyncProgress?.connectionName === connectedHRProvider?.connectionName && isConnectionInProgress(connectionSyncProgress, policy)));
     const isPendingAddOrDelete =
         isOffline && data?.some((member) => member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-    const shouldShowSearchBar = data.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const shouldShowSearchBar = memberCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const prevMemberCount = usePrevious(memberCount);
+    useEffect(() => {
+        if (prevMemberCount < CONST.STANDARD_LIST_ITEM_LIMIT || memberCount >= CONST.STANDARD_LIST_ITEM_LIMIT) {
+            return;
+        }
+        setInputValue('');
+    }, [memberCount, prevMemberCount, setInputValue]);
     const debouncedFilteredData = useDebouncedValue(filteredData, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
     const isFilteringMembers = filteredData?.length < debouncedFilteredData?.length;
     const displayedFilteredData = isFilteringMembers ? debouncedFilteredData : filteredData;
