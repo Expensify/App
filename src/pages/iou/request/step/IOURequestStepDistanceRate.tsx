@@ -14,7 +14,14 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getIOURequestPolicyID, setMoneyRequestDistanceRate, setMoneyRequestTaxAmount, setMoneyRequestTaxRate, setMoneyRequestTaxValue} from '@libs/actions/IOU/MoneyRequest';
+import {
+    getIOURequestPolicyID,
+    setLastSelectedDistanceRate,
+    setMoneyRequestDistanceRate,
+    setMoneyRequestTaxAmount,
+    setMoneyRequestTaxRate,
+    setMoneyRequestTaxValue,
+} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestDistanceRate} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
@@ -159,9 +166,11 @@ function IOURequestStepDistanceRate({
             const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, getDistanceInMeters(currentTransaction, currentUnit));
             taxValue = taxRateExternalID ? getTaxValue(policy, currentTransaction, taxRateExternalID) : undefined;
             taxAmount = convertToBackendAmount(calculateTaxAmount(taxValue, taxableAmount, getCurrencyDecimals(rates[customUnitRateID].currency)));
-            setMoneyRequestTaxAmount(transactionID, taxAmount, shouldUseTransactionDraft(action));
-            setMoneyRequestTaxRate(transactionID, taxRateExternalID ?? null, shouldUseTransactionDraft(action));
-            setMoneyRequestTaxValue(transactionID, taxValue ?? null, shouldUseTransactionDraft(action));
+            if (!isEditing || !taxRateExternalID) {
+                setMoneyRequestTaxAmount(transactionID, taxAmount, shouldUseTransactionDraft(action));
+                setMoneyRequestTaxRate(transactionID, taxRateExternalID ?? null, shouldUseTransactionDraft(action));
+                setMoneyRequestTaxValue(transactionID, taxValue ?? null, shouldUseTransactionDraft(action));
+            }
         }
 
         if (currentRateID !== customUnitRateID || (isMovingTransactionFromTrackExpense && transactionUnit !== selectedRateUnit)) {
@@ -172,9 +181,9 @@ function IOURequestStepDistanceRate({
                 return;
             }
 
-            setMoneyRequestDistanceRate(transaction, customUnitRateID, policy, shouldUseTransactionDraft(action));
-
             if (isEditing && transaction?.transactionID) {
+                // Persist preference so the default stays in sync across the workspace (the same way as in the setMoneyRequestDistanceRate)
+                setLastSelectedDistanceRate(policy, customUnitRateID);
                 updateMoneyRequestDistanceRate({
                     transaction,
                     transactionThreadReport: report,
@@ -192,6 +201,8 @@ function IOURequestStepDistanceRate({
                     updatedTaxValue: taxValue,
                     delegateAccountID,
                 });
+            } else {
+                setMoneyRequestDistanceRate(transaction, customUnitRateID, policy, shouldUseTransactionDraft(action));
             }
         }
 

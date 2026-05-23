@@ -94,7 +94,6 @@ function CountrySelectionList({isEditing, selectedCountry, countries, onCountryS
                 disableMaintainingScrollPosition
                 shouldUpdateFocusedIndex
                 shouldSingleExecuteRowSelect
-                shouldScrollToFocusedIndex={false}
                 shouldScrollToFocusedIndexOnMount={false}
                 shouldStopPropagation
             />
