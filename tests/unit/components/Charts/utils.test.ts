@@ -8,7 +8,6 @@ import {
     effectiveWidth,
     findSliceAtPosition,
     getAdditionalOffset,
-    getChartColor,
     getNiceLowerBound,
     getNiceUpperBound,
     isAngleInSlice,
@@ -22,6 +21,9 @@ import {
     rotatedLabelYOffset,
     truncateLabel,
 } from '@components/Charts/utils';
+import VictoryTheme from '@components/Charts/VictoryTheme';
+
+const getChartColor = VictoryTheme.colors.getColor;
 
 const LINE_HEIGHT = 16;
 
