@@ -1,7 +1,7 @@
 type UpdatePolicyDistanceRateParams = {
     policyID: string;
     customUnitID: string;
-    customUnitRate: string;
+    customUnitRateArray: string;
 };
 
 export default UpdatePolicyDistanceRateParams;

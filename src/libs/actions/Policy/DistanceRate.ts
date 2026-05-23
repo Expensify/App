@@ -323,12 +323,10 @@ function updatePolicyDistanceRateName(policyID: string, customUnit: CustomUnit, 
 function updatePolicyDistanceRate(policyID: string, customUnit: CustomUnit, rateToUpdate: Rate, fieldName: keyof Pick<Rate, 'startDate' | 'endDate'>) {
     const {optimisticData, successData, failureData} = buildOnyxDataForPolicyDistanceRateUpdates(policyID, customUnit, [rateToUpdate], fieldName);
 
-    const cleanedRate = prepareCustomUnitRatesArray([rateToUpdate])[0];
-
     const params: UpdatePolicyDistanceRateParams = {
         policyID,
         customUnitID: customUnit.customUnitID,
-        customUnitRate: JSON.stringify(cleanedRate),
+        customUnitRateArray: JSON.stringify(prepareCustomUnitRatesArray([rateToUpdate])),
     };
 
     API.write(WRITE_COMMANDS.UPDATE_POLICY_DISTANCE_RATE, params, {optimisticData, successData, failureData});
