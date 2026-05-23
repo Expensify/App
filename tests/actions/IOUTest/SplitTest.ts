@@ -2699,7 +2699,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionData: {
                 reportID: reportID1,
                 originalTransactionID: originalTransaction.transactionID,
-                splitExpenses: [{transactionID: childTransaction.transactionID, amount: 10000, created: DateUtils.getDBTime()}],
+                splitExpenses: [{transactionID: childTransaction.transactionID, amount: 10000, created: DateUtils.getDBTime(), reportID: reportID1}],
                 splitExpensesTotal: undefined,
             },
             searchContext: {
@@ -2834,7 +2834,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionData: {
                 reportID: reportID2,
                 originalTransactionID: originalTransaction.transactionID,
-                splitExpenses: [{transactionID: childTransaction.transactionID, amount: 10000, created: DateUtils.getDBTime()}],
+                splitExpenses: [{transactionID: childTransaction.transactionID, amount: 10000, created: DateUtils.getDBTime(), reportID: reportID2}],
                 splitExpensesTotal: undefined,
             },
             searchContext: {
