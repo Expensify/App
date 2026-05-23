@@ -18,7 +18,6 @@ jobs:
       && github.actor != 'imgbot[bot]'
     steps:
       - name: Checkout
-        # v6
         uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
 
       - name: Check contributor authorization
