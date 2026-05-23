@@ -3601,8 +3601,6 @@ const translations = {
             noBankAccountSelected: 'Please choose an account',
             taxID: 'Please enter a valid tax ID number',
             website: 'Please enter a valid website',
-            // expensify-common does not expose a resolvable type for this nested country sample.
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             zipCode: `Please enter a valid ZIP code using the format: ${COMMON_CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
             phoneNumber: 'Please enter a valid phone number',
             email: 'Please enter a valid email address',
