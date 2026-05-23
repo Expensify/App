@@ -726,43 +726,45 @@ function getGuideAndAccountManagerInfo(
 }
 
 /**
- * Build a soft-exclusion map for the search filters. Hides two groups:
- *   1. Logins not present in any of the user's policies' employeeList (non workspace members).
- *   2. Expensify-team logins (@expensify.com / @team.expensify.com), to catch current and former
- *      Account Managers / Guides who are added to customer workspaces with role:admin. Skipped
- *      when the current user is themselves on the Expensify team so they still see colleagues
- *      (matches the same exception WorkspaceMembersPage uses).
- * Free text input via includeUserToInvite still lets users select any email manually.
+ * Build a soft-exclusion map of Expensify-team logins (current and former AMs/Guides) so search
+ * filters don't surface internal Expensify staff to customers. Mirrors the visibility rule used
+ * by WorkspaceMembersPage: skip the filter when the current user is themselves Expensify staff,
+ * and preserve Expensify-team members of any Expensify-owned policy the current user belongs to.
  */
-function getNonWorkspaceMemberExclusions(personalDetails: OnyxEntry<PersonalDetailsList>, policies: OnyxCollection<Policy>, currentUserLogin: string | undefined): Record<string, boolean> {
-    const currentUserIsExpensifyTeam = !!currentUserLogin && isExpensifyTeam(currentUserLogin);
-
-    const workspaceMemberLogins = new Set<string>();
-    if (currentUserLogin) {
-        workspaceMemberLogins.add(currentUserLogin.toLowerCase());
+function getExpensifyTeamExclusions(personalDetails: OnyxEntry<PersonalDetailsList>, policies: OnyxCollection<Policy>, currentUserLogin: string | undefined): Record<string, boolean> {
+    if (!currentUserLogin || isExpensifyTeam(currentUserLogin)) {
+        return {};
     }
+
+    const lowerCurrentUserLogin = currentUserLogin.toLowerCase();
+    const allowedExpensifyTeamLogins = new Set<string>();
+
     for (const policy of Object.values(policies ?? {})) {
-        if (!policy?.employeeList) {
+        if (!policy?.owner || !policy.employeeList || !isExpensifyTeam(policy.owner)) {
+            continue;
+        }
+        const currentUserIsInPolicy = Object.keys(policy.employeeList).some((email) => email.toLowerCase() === lowerCurrentUserLogin);
+        if (!currentUserIsInPolicy) {
             continue;
         }
         for (const email of Object.keys(policy.employeeList)) {
-            workspaceMemberLogins.add(email.toLowerCase());
+            const lowerEmail = email.toLowerCase();
+            if (isExpensifyTeam(lowerEmail)) {
+                allowedExpensifyTeamLogins.add(lowerEmail);
+            }
         }
     }
 
     const exclusion: Record<string, boolean> = {};
     for (const details of Object.values(personalDetails ?? {})) {
         const login = details?.login?.toLowerCase();
-        if (!login) {
+        if (!login || !isExpensifyTeam(login)) {
             continue;
         }
-        if (!workspaceMemberLogins.has(login)) {
-            exclusion[login] = true;
+        if (allowedExpensifyTeamLogins.has(login)) {
             continue;
         }
-        if (!currentUserIsExpensifyTeam && isExpensifyTeam(login)) {
-            exclusion[login] = true;
-        }
+        exclusion[login] = true;
     }
     return exclusion;
 }
@@ -2432,7 +2434,7 @@ export {
     getMemberAccountIDsForWorkspace,
     getGuideAndAccountManagerInfo,
     getSoftExclusionsForGuideAndAccountManager,
-    getNonWorkspaceMemberExclusions,
+    getExpensifyTeamExclusions,
     filterGuideAndAccountManager,
     isMultiLevelTags,
     getPolicyBrickRoadIndicatorStatus,
