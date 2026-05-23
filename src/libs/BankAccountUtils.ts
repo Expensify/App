@@ -12,6 +12,19 @@ function getLastFourDigits(bankAccountNumber: string): string {
     return bankAccountNumber ? bankAccountNumber.slice(-4) : '';
 }
 
+/**
+ * Renders a bank account as `${friendlyBankName} xx${last4}` for Search filter
+ * pickers, chips, and autocomplete suggestions. Falls back to GENERIC_BANK when
+ * the bank name is missing or not in CONST.BANK_NAMES_USER_FRIENDLY.
+ */
+function getBankAccountSearchLabel(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): string {
+    const bankName = bankAccount?.accountData?.additionalData?.bankName;
+    const accountNumber = bankAccount?.accountData?.accountNumber ?? '';
+    const formattedBankName = (bankName ? CONST.BANK_NAMES_USER_FRIENDLY[bankName] : undefined) ?? CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.GENERIC_BANK];
+    const maskedNumber = accountNumber ? `xx${getLastFourDigits(accountNumber)}` : '';
+    return maskedNumber ? `${formattedBankName} ${maskedNumber}` : formattedBankName;
+}
+
 function isBankAccountPartiallySetup(state: string | undefined) {
     return state === CONST.BANK_ACCOUNT.STATE.SETUP || state === CONST.BANK_ACCOUNT.STATE.VERIFYING || state === CONST.BANK_ACCOUNT.STATE.PENDING;
 }
@@ -99,6 +112,7 @@ function hasPersonalBankAccountMissingInfo(bankAccountList: OnyxEntry<OnyxTypes.
 }
 
 export {
+    getBankAccountSearchLabel,
     getDefaultCompanyWebsite,
     getLastFourDigits,
     hasPartiallySetupBankAccount,
