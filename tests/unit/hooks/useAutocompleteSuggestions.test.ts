@@ -53,7 +53,7 @@ jest.mock('@libs/PolicyUtils', () => ({
     getAllTaxRates: jest.fn(() => ({})),
     getCleanedTagName: jest.fn((tag: string) => tag),
     shouldShowPolicy: jest.fn(() => true),
-    getNonWorkspaceMemberExclusions: jest.fn(() => ({})),
+    getExpensifyTeamExclusions: jest.fn(() => ({})),
 }));
 
 jest.mock('@libs/CardFeedUtils', () => ({
@@ -91,7 +91,7 @@ jest.mock('@hooks/useExportedToFilterOptions', () => ({
 
 const {parseForAutocomplete} = jest.requireMock<{parseForAutocomplete: jest.Mock}>('@libs/SearchAutocompleteUtils');
 const {getSearchOptions} = jest.requireMock<{getSearchOptions: jest.Mock}>('@libs/OptionsListUtils');
-const {getNonWorkspaceMemberExclusions} = jest.requireMock<{getNonWorkspaceMemberExclusions: jest.Mock}>('@libs/PolicyUtils');
+const {getExpensifyTeamExclusions} = jest.requireMock<{getExpensifyTeamExclusions: jest.Mock}>('@libs/PolicyUtils');
 
 const defaultParams = {
     autocompleteQueryValue: '',
@@ -360,10 +360,10 @@ describe('useAutocompleteSuggestions', () => {
     });
 
     /* eslint-disable @typescript-eslint/naming-convention -- test fixtures use accountID-keyed maps and email-keyed exclusion records */
-    describe('Workspace-member scoping on user-filter autocomplete', () => {
+    describe('Expensify team exclusions on user-filter autocomplete', () => {
         const personalDetailsWithMix = {
-            '1': {accountID: 1, login: 'member@acme.com'},
-            '2': {accountID: 2, login: 'outsider@other.com'},
+            '1': {accountID: 1, login: 'am@expensify.com'},
+            '2': {accountID: 2, login: 'guide@team.expensify.com'},
             '3': {accountID: 3, login: 'customer@acme.com'},
         };
 
@@ -372,12 +372,12 @@ describe('useAutocompleteSuggestions', () => {
             return calls.at(-1)?.[0]?.excludeFromSuggestionsOnly;
         };
 
-        it('passes workspace-member exclusions to getSearchOptions for from: autocomplete', () => {
+        it('passes Expensify-team exclusions to getSearchOptions for from: autocomplete', () => {
             parseForAutocomplete.mockReturnValue({
                 autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, value: ''},
                 ranges: [],
             });
-            getNonWorkspaceMemberExclusions.mockReturnValue({'outsider@other.com': true});
+            getExpensifyTeamExclusions.mockReturnValue({'am@expensify.com': true, 'guide@team.expensify.com': true});
 
             renderHook(() =>
                 useAutocompleteSuggestions({
@@ -388,15 +388,15 @@ describe('useAutocompleteSuggestions', () => {
                 }),
             );
 
-            expect(lastSearchOptionsCallExclusions()).toEqual({'outsider@other.com': true});
+            expect(lastSearchOptionsCallExclusions()).toEqual({'am@expensify.com': true, 'guide@team.expensify.com': true});
         });
 
-        it('passes workspace-member exclusions to getSearchOptions for to: autocomplete as well', () => {
+        it('passes Expensify-team exclusions to getSearchOptions for to: autocomplete as well', () => {
             parseForAutocomplete.mockReturnValue({
                 autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, value: ''},
                 ranges: [],
             });
-            getNonWorkspaceMemberExclusions.mockReturnValue({'outsider@other.com': true});
+            getExpensifyTeamExclusions.mockReturnValue({'am@expensify.com': true});
 
             renderHook(() =>
                 useAutocompleteSuggestions({
@@ -407,15 +407,15 @@ describe('useAutocompleteSuggestions', () => {
                 }),
             );
 
-            expect(lastSearchOptionsCallExclusions()).toEqual({'outsider@other.com': true});
+            expect(lastSearchOptionsCallExclusions()).toEqual({'am@expensify.com': true});
         });
 
-        it('passes an empty exclusion map when the helper returns no non-members', () => {
+        it('passes an empty exclusion map when the helper returns nothing', () => {
             parseForAutocomplete.mockReturnValue({
                 autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, value: ''},
                 ranges: [],
             });
-            getNonWorkspaceMemberExclusions.mockReturnValue({});
+            getExpensifyTeamExclusions.mockReturnValue({});
 
             renderHook(() =>
                 useAutocompleteSuggestions({
