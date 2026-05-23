@@ -4,6 +4,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import {getSubstitutionMapKey, getSubstitutionMapKeyWithIndex} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import type {SearchFilterKey, UserFriendlyKey} from '@components/Search/types';
+import {getBankAccountSearchLabel} from '@libs/BankAccountUtils';
 import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
 import {getCardDescription, isCard, isCardHiddenFromSearch} from '@libs/CardUtils';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
@@ -424,11 +425,8 @@ function useAutocompleteSuggestions({
                 if (!bankAccountID) {
                     continue;
                 }
-                const bankName = bankAccount?.accountData?.additionalData?.bankName;
                 const accountNumber = bankAccount?.accountData?.accountNumber ?? '';
-                const formattedBankName = (bankName ? CONST.BANK_NAMES_USER_FRIENDLY[bankName] : undefined) ?? CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.GENERIC_BANK];
-                const maskedNumber = accountNumber ? `xx${accountNumber.slice(-4)}` : '';
-                const label = maskedNumber ? `${formattedBankName} ${maskedNumber}` : formattedBankName;
+                const label = getBankAccountSearchLabel(bankAccount);
                 bankAccountSuggestions.push({id: bankAccountID.toString(), label, accountNumber});
             }
             const filteredBankAccounts = bankAccountSuggestions
