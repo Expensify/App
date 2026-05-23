@@ -104,6 +104,7 @@ import {getCardDescriptionForSearchTable, getFeedNameForDisplay} from './CardUti
 import {getCategoryGLCode, getDecodedCategoryName} from './CategoryUtils';
 import DateUtils from './DateUtils';
 import interceptAnonymousUser from './interceptAnonymousUser';
+import {hasDisplayableMCC} from './MCCUtils';
 import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
@@ -5533,7 +5534,7 @@ function getColumnsToShow({
             if ((!!customResult && isPolicyTaxEnabled) || !!transaction.taxCode) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.TAX_CODE] = true;
             }
-            if (transaction.mcc) {
+            if (hasDisplayableMCC(transaction.mcc)) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.MCC] = true;
             }
 

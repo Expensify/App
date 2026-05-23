@@ -119,6 +119,7 @@ import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNum
 import {translateLocal} from './Localize';
 import Log from './Log';
 import {isEmailPublicDomain} from './LoginUtils';
+import {getMCCForDisplay} from './MCCUtils';
 // eslint-disable-next-line import/no-cycle
 import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
 import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -13196,7 +13197,7 @@ function getTransactionSortValue(transaction: Transaction, key: SortableColumnNa
         case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:
             return getOriginalAmountForDisplay(transaction, isExpenseReport(report));
         case CONST.SEARCH.TABLE_COLUMNS.MCC:
-            return transaction.mcc ?? '';
+            return getMCCForDisplay(transaction.mcc);
         case CONST.SEARCH.TABLE_COLUMNS.TAX_CODE:
             return transaction.taxCode ?? '';
         case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:

@@ -23,6 +23,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCategoryGLCode} from '@libs/CategoryUtils';
 import getBase62ReportID from '@libs/getBase62ReportID';
+import {getMCCForDisplay} from '@libs/MCCUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {isExpenseReport} from '@libs/ReportUtils';
 import {
@@ -499,7 +500,7 @@ function TransactionItemRowWide({
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MCC)]}
                     >
-                        <TextCell text={transactionItem.mcc ?? ''} />
+                        <TextCell text={getMCCForDisplay(transactionItem.mcc)} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:

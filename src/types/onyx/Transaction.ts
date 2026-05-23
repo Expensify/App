@@ -606,7 +606,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         hasEReceipt?: boolean;
 
         /** Raw merchant category code for this transaction */
-        mcc?: string;
+        mcc?: string | number;
 
         /** The MCC Group for this transaction */
         mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
