@@ -115,7 +115,7 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
         }
 
         if (isPending(transaction)) {
-            return {icon: getStatusIcon(icons.CreditCardHourglass), description: translate('iou.transactionPendingDescription')};
+            return {icon: getStatusIcon(icons.CreditCardHourglass), description: translate('iou.allTransactionsPendingNextStep')};
         }
         if (!!transaction?.transactionID && !!transactionViolations.length && shouldShowBrokenConnectionViolation) {
             const brokenConnectionError = transactionViolations?.find((violation) => violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION);

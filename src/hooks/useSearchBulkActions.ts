@@ -57,6 +57,7 @@ import {navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     hasCustomUnitOutOfPolicyViolation,
+    hasOnlyPendingCardTransactions,
     hasTransactionBeenRejected,
     isDeletedTransaction,
     isDistanceRequest,
@@ -65,6 +66,7 @@ import {
     isPerDiemRequest,
     isScanning,
     shouldRedirectDeleteToSplitExpenseEdit,
+    showPendingCardTransactionsBlockModal,
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import {initBulkEditDraftTransaction} from '@userActions/IOU/BulkEdit';
@@ -1282,6 +1284,17 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     const restrictedPolicyID = getRestrictedPolicyID(itemList, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed, policies, accountID);
                     if (restrictedPolicyID) {
                         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedPolicyID));
+                        return;
+                    }
+
+                    const allSelectedTransactionsList = selectedReports.length
+                        ? Object.values(allTransactions ?? {}).filter((t): t is NonNullable<typeof t> => !!t && selectedReports.some((report) => report.reportID === t.reportID))
+                        : selectedTransactionsKeys
+                              .map((id) => selectedTransactions[id]?.transaction ?? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`])
+                              .filter((t): t is NonNullable<typeof t> => !!t);
+
+                    if (hasOnlyPendingCardTransactions(allSelectedTransactionsList)) {
+                        showPendingCardTransactionsBlockModal(showConfirmModal, translate);
                         return;
                     }
 
