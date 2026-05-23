@@ -162,11 +162,7 @@ function RoomInvitePage({
                     inviteToRoom(report, invitedEmailsToAccountIDs, formatPhoneNumber);
                 }
             };
-            if (backTo) {
-                Navigation.goBack(backTo, {afterTransition});
-            } else {
-                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(report.reportID), {afterTransition});
-            }
+            Navigation.goBack(backRoute, {afterTransition});
         }
     };
 
