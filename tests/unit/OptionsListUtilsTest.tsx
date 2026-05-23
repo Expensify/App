@@ -3752,7 +3752,7 @@ describe('OptionsListUtils', () => {
                 {reportID: '4', lastVisibleActionCreated: '2022-01-01T13:00:00Z'} as OptionData,
             ];
             const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
-            const result = optionsOrderBy(options, comparator, 2);
+            const result = optionsOrderBy(options, comparator, 2).options;
             expect(result.length).toBe(2);
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             expect(result.at(0)!.reportID).toBe('4');
@@ -3766,7 +3766,7 @@ describe('OptionsListUtils', () => {
                 {reportID: '2', lastVisibleActionCreated: '2022-01-01T12:00:00Z'} as OptionData,
             ];
             const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
-            const result = optionsOrderBy(options, comparator, 5);
+            const result = optionsOrderBy(options, comparator, 5).options;
             expect(result.length).toBe(2);
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             expect(result.at(0)!.reportID).toBe('2');
@@ -3786,7 +3786,7 @@ describe('OptionsListUtils', () => {
                 {reportID: '3', lastVisibleActionCreated: '2022-01-01T09:00:00Z', isPinned: true} as OptionData,
             ];
             const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
-            const result = optionsOrderBy(options, comparator, 2, (option) => option.isPinned);
+            const result = optionsOrderBy(options, comparator, 2, (option) => option.isPinned).options;
             expect(result.length).toBe(2);
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             expect(result.at(0)!.reportID).toBe('1');
@@ -3801,7 +3801,7 @@ describe('OptionsListUtils', () => {
                 {reportID: '3', lastVisibleActionCreated: '2022-01-01T09:00:00Z'} as OptionData,
             ];
             const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
-            const result = optionsOrderBy(options, comparator, -1);
+            const result = optionsOrderBy(options, comparator, -1).options;
             expect(result).toEqual([]);
         });
 
@@ -3811,7 +3811,7 @@ describe('OptionsListUtils', () => {
                 {reportID: '2', lastVisibleActionCreated: '2022-01-01T12:00:00Z'} as OptionData,
             ];
             const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
-            const result = optionsOrderBy(options, comparator, -100);
+            const result = optionsOrderBy(options, comparator, -100).options;
             expect(result).toEqual([]);
         });
 
@@ -3821,7 +3821,7 @@ describe('OptionsListUtils', () => {
                 {reportID: '2', lastVisibleActionCreated: '2022-01-01T12:00:00Z'} as OptionData,
             ];
             const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
-            const result = optionsOrderBy(options, comparator, 0);
+            const result = optionsOrderBy(options, comparator, 0).options;
             expect(result).toEqual([]);
         });
 
@@ -3834,7 +3834,7 @@ describe('OptionsListUtils', () => {
             ];
             const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
             // We will pass reversed === true to sort the list in ascending order
-            const result = optionsOrderBy(options, comparator, 2, undefined, true);
+            const result = optionsOrderBy(options, comparator, 2, undefined, true).options;
             expect(result.length).toBe(2);
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             expect(result.at(0)!.reportID).toBe('3');
