@@ -19,6 +19,8 @@ type UseCreateReportParams = {
     onCreateReport: (shouldDismissEmptyReportsConfirmation?: boolean) => void;
     /** Group paid policies with expense chat enabled */
     groupPoliciesWithChatEnabled: readonly never[] | Array<OnyxEntry<OnyxTypes.Policy>>;
+    /** Optional custom navigation to the workspace selector */
+    onNavigateToWorkspaceSelection?: () => void;
     /** Whether the empty-report confirmation modal should push a history entry so browser-back dismisses it (default: true) */
     shouldHandleNavigationBack?: boolean;
 };
@@ -40,7 +42,12 @@ type UseCreateReportResult = {
  * 3. Show empty report confirmation or create directly if workspace is valid
  * 4. Navigate to restricted action if billing restricts the workspace
  */
-export default function useCreateReport({onCreateReport, groupPoliciesWithChatEnabled, shouldHandleNavigationBack = true}: UseCreateReportParams): UseCreateReportResult {
+export default function useCreateReport({
+    onCreateReport,
+    groupPoliciesWithChatEnabled,
+    onNavigateToWorkspaceSelection,
+    shouldHandleNavigationBack = true,
+}: UseCreateReportParams): UseCreateReportResult {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [, policiesLoadStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -102,7 +109,11 @@ export default function useCreateReport({onCreateReport, groupPoliciesWithChatEn
                 !!workspaceIDForReportCreation && shouldRestrictUserBillableActions(defaultChatEnabledPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID);
 
             if (!workspaceIDForReportCreation || (isDefaultPersonal && hasMultipleNonPersonalWorkspaces) || (isDefaultBillingRestricted && hasMultipleNonPersonalWorkspaces)) {
-                Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+                if (onNavigateToWorkspaceSelection) {
+                    onNavigateToWorkspaceSelection();
+                } else {
+                    Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+                }
                 return;
             }
 
@@ -129,6 +140,7 @@ export default function useCreateReport({onCreateReport, groupPoliciesWithChatEn
         amountOwed,
         accountID,
         groupPoliciesWithChatEnabled.length,
+        onNavigateToWorkspaceSelection,
         shouldShowEmptyReportConfirmation,
         openCreateReportConfirmation,
         onCreateReport,
