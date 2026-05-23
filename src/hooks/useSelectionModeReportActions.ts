@@ -39,7 +39,12 @@ import {
     isReportOwner,
     shouldBlockSubmitDueToStrictPolicyRules,
 } from '@libs/ReportUtils';
-import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, isPending, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
+import {
+    hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils,
+    hasOnlyPendingCardTransactions,
+    isPending,
+    showPendingCardTransactionsBlockModal,
+} from '@libs/TransactionUtils';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -161,7 +166,9 @@ function useSelectionModeReportActions({
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(transactions);
     const isInvoiceReport = isInvoiceReportUtil(report);
 
+    // Hides approve button for any pending transaction (including BYOC).
     const hasOnlyPendingTransactions = !!transactions && transactions.length > 0 && transactions.every((t) => isPending(t));
+    const hasOnlyPendingCardTransactionsForSubmit = hasOnlyPendingCardTransactions(transactions ?? []);
     const nonPendingDeleteTransactions = transactions.filter((t): t is OnyxTypes.Transaction => !!t && (isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE));
 
     const getCanIOUBePaid = (onlyShowPayElsewhere = false) =>
@@ -285,7 +292,7 @@ function useSelectionModeReportActions({
         if (!report || shouldBlockSubmit) {
             return;
         }
-        if (hasOnlyPendingTransactions) {
+        if (hasOnlyPendingCardTransactionsForSubmit) {
             showPendingCardTransactionsBlockModal(showConfirmModal, translate);
             return;
         }
