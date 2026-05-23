@@ -50,7 +50,7 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
     // Slices are sorted by absolute value (largest first) for color assignment,
     // so slice indices don't match the original data array. We map back via
     // originalIndex so the tooltip can display the original (possibly negative) value.
-    const processedSlices = processDataIntoSlices(data, VictoryTheme.pie.startAngle, pieGeometry);
+    const processedSlices = processDataIntoSlices(data, pieGeometry);
     const activeOriginalDataIndex = activeSliceIndex >= 0 ? (processedSlices.at(activeSliceIndex)?.originalIndex ?? -1) : -1;
 
     const {formatValue} = useChartLabelFormats({data, unit: valueUnit, unitPosition: valueUnitPosition});

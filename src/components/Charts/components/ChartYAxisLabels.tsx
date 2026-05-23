@@ -29,7 +29,7 @@ type ChartYAxisLabelsProps = {
     /** Formats a tick value to its display string. */
     formatValue: (value: number) => string;
 
-    /** When true, labels are left-aligned starting at chartBounds.left + VictoryTheme.axis.labelGap instead of right-aligned. */
+    /** When true, labels are left-aligned starting at the left edge of the chart instead of right-aligned. */
     leftAlign?: boolean;
 };
 
