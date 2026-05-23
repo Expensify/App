@@ -1,6 +1,6 @@
-import type {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods';
 import {RequestError} from '@octokit/request-error';
 import CONST from './CONST';
+import GithubUtils from './GithubUtils';
 
 const AUTHORIZED_ASSOCIATIONS = new Set(['MEMBER', 'OWNER', 'CONTRIBUTOR']);
 
@@ -13,8 +13,8 @@ type ContributorAuthorizationParams = {
     authorAssociation: string;
     repoOwner: string;
     repoName: string;
-    githubOctokit: RestEndpointMethods;
-    orgOctokit: RestEndpointMethods;
+    githubToken: string;
+    orgToken: string;
 };
 
 function loginsMatch(loginA: string, loginB: string): boolean {
@@ -22,7 +22,7 @@ function loginsMatch(loginA: string, loginB: string): boolean {
 }
 
 function stripHtmlComments(body: string): string {
-    return body.replace(/<!--[\s\S]*?-->/g, '');
+    return body.replaceAll(/<!--[\s\S]*?-->/g, '');
 }
 
 function parseRepoFullName(fullName: string): {owner: string; repo: string} {
@@ -30,9 +30,11 @@ function parseRepoFullName(fullName: string): {owner: string; repo: string} {
     return {owner, repo};
 }
 
-async function isContributorPlusMember(username: string, orgOctokit: RestEndpointMethods): Promise<boolean> {
+async function isContributorPlusMember(username: string, orgToken: string): Promise<boolean> {
+    GithubUtils.initOctokitWithToken(orgToken);
+
     try {
-        await orgOctokit.teams.getMembershipForUserInOrg({
+        await GithubUtils.octokit.teams.getMembershipForUserInOrg({
             org: CONST.GITHUB_OWNER,
             // eslint-disable-next-line @typescript-eslint/naming-convention
             team_slug: CONST.CONTRIBUTOR_PLUS_TEAM_SLUG,
@@ -49,23 +51,33 @@ async function isContributorPlusMember(username: string, orgOctokit: RestEndpoin
     }
 }
 
-async function isAuthorizedViaLinkedIssues(cleanBody: string, prAuthor: string, githubOctokit: RestEndpointMethods): Promise<boolean> {
+async function isAuthorizedViaLinkedIssues(cleanBody: string, prAuthor: string): Promise<boolean> {
     const issueMatches = [...cleanBody.matchAll(ISSUE_URL_PATTERN)];
 
     for (const match of issueMatches) {
-        const [, repoFullName, issueNumberString] = match;
+        const repoFullName = match[1];
+        const issueNumberString = match[2];
+        if (!repoFullName || !issueNumberString) {
+            continue;
+        }
+
         const issueNumber = Number.parseInt(issueNumberString, 10);
         const {owner, repo} = parseRepoFullName(repoFullName);
 
         try {
-            const {data: issue} = await githubOctokit.issues.get({
+            const {data: issue} = await GithubUtils.octokit.issues.get({
                 owner,
                 repo,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 issue_number: issueNumber,
             });
 
-            if (issue.assignees?.some((assignee) => assignee.login && loginsMatch(assignee.login, prAuthor))) {
+            const isAssignee = issue.assignees?.some((assignee) => {
+                const login = assignee.login;
+                return login !== undefined && loginsMatch(login, prAuthor);
+            });
+
+            if (isAssignee) {
                 console.log(`${prAuthor} is assigned to ${repoFullName}#${issueNumber}. Authorized.`);
                 return true;
             }
@@ -80,47 +92,60 @@ async function isAuthorizedViaLinkedIssues(cleanBody: string, prAuthor: string, 
     return false;
 }
 
-async function isAuthorizedViaLinkedPullRequests(cleanBody: string, prAuthor: string, githubOctokit: RestEndpointMethods): Promise<boolean> {
+async function isAuthorizedViaLinkedPullRequests(cleanBody: string, prAuthor: string): Promise<boolean> {
     const pullMatches = [...cleanBody.matchAll(PULL_URL_PATTERN)];
 
     for (const match of pullMatches) {
-        const [, repoFullName, pullNumberString] = match;
+        const repoFullName = match[1];
+        const pullNumberString = match[2];
+        if (!repoFullName || !pullNumberString) {
+            continue;
+        }
+
         const pullNumber = Number.parseInt(pullNumberString, 10);
         const {owner, repo} = parseRepoFullName(repoFullName);
 
         try {
-            const {data: linkedPR} = await githubOctokit.pulls.get({
+            const {data: linkedPR} = await GithubUtils.octokit.pulls.get({
                 owner,
                 repo,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 pull_number: pullNumber,
             });
 
-            if (linkedPR.user?.login && loginsMatch(linkedPR.user.login, prAuthor)) {
+            const linkedAuthorLogin = linkedPR.user?.login;
+            if (linkedAuthorLogin && loginsMatch(linkedAuthorLogin, prAuthor)) {
                 console.log(`${prAuthor} is the author of ${repoFullName}#${pullNumber}. Authorized.`);
                 return true;
             }
 
-            const {data: reviews} = await githubOctokit.pulls.listReviews({
+            const {data: reviews} = await GithubUtils.octokit.pulls.listReviews({
                 owner,
                 repo,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 pull_number: pullNumber,
             });
 
-            if (reviews.some((review) => review.user?.login && loginsMatch(review.user.login, prAuthor))) {
+            const isReviewer = reviews.some((review) => {
+                const login = review.user?.login;
+                return login !== undefined && loginsMatch(login, prAuthor);
+            });
+
+            if (isReviewer) {
                 console.log(`${prAuthor} is a reviewer of ${repoFullName}#${pullNumber}. Authorized.`);
                 return true;
             }
 
-            const {data: requestedReviewers} = await githubOctokit.pulls.listRequestedReviewers({
+            const {data: requestedReviewers} = await GithubUtils.octokit.pulls.listRequestedReviewers({
                 owner,
                 repo,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 pull_number: pullNumber,
             });
 
-            if (requestedReviewers.users.some((user) => loginsMatch(user.login, prAuthor))) {
+            const isRequestedReviewer = requestedReviewers.users.some((user) => loginsMatch(user.login, prAuthor));
+
+            if (isRequestedReviewer) {
                 console.log(`${prAuthor} is a requested reviewer of ${repoFullName}#${pullNumber}. Authorized.`);
                 return true;
             }
@@ -138,19 +163,21 @@ async function isAuthorizedViaLinkedPullRequests(cleanBody: string, prAuthor: st
 /**
  * Returns whether a PR author is authorized to contribute per Expensify external contributor rules.
  */
-async function isAuthorizedContributor({prNumber, prAuthor, authorAssociation, repoOwner, repoName, githubOctokit, orgOctokit}: ContributorAuthorizationParams): Promise<boolean> {
+async function isAuthorizedContributor({prNumber, prAuthor, authorAssociation, repoOwner, repoName, githubToken, orgToken}: ContributorAuthorizationParams): Promise<boolean> {
     if (AUTHORIZED_ASSOCIATIONS.has(authorAssociation)) {
         console.log(`${prAuthor} is ${authorAssociation}. Authorized.`);
         return true;
     }
 
-    if (await isContributorPlusMember(prAuthor, orgOctokit)) {
+    if (await isContributorPlusMember(prAuthor, orgToken)) {
         return true;
     }
 
     console.log(`${prAuthor} has association "${authorAssociation}". Checking linked issues/PRs...`);
 
-    const {data: pr} = await githubOctokit.pulls.get({
+    GithubUtils.initOctokitWithToken(githubToken);
+
+    const {data: pr} = await GithubUtils.octokit.pulls.get({
         owner: repoOwner,
         repo: repoName,
         // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -159,11 +186,11 @@ async function isAuthorizedContributor({prNumber, prAuthor, authorAssociation, r
 
     const cleanBody = stripHtmlComments(pr.body ?? '');
 
-    if (await isAuthorizedViaLinkedIssues(cleanBody, prAuthor, githubOctokit)) {
+    if (await isAuthorizedViaLinkedIssues(cleanBody, prAuthor)) {
         return true;
     }
 
-    if (await isAuthorizedViaLinkedPullRequests(cleanBody, prAuthor, githubOctokit)) {
+    if (await isAuthorizedViaLinkedPullRequests(cleanBody, prAuthor)) {
         return true;
     }
 
