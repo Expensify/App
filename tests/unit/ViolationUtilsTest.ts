@@ -1,6 +1,6 @@
 import {beforeEach} from '@jest/globals';
 import Onyx from 'react-native-onyx';
-import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getTransactionViolations, hasWarningTypeViolation, isViolationDismissed} from '@libs/TransactionUtils';
 import ViolationsUtils, {filterReceiptViolations, getIsViolationFixed} from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
@@ -40,7 +40,8 @@ const receiptRequiredViolation = {
     type: CONST.VIOLATION_TYPES.VIOLATION,
     showInReview: true,
     data: {
-        formattedLimit: convertAmountToDisplayString(CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT),
+        amount: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT,
+        currency: CONST.CURRENCY.USD,
     },
 };
 
@@ -56,7 +57,8 @@ const overLimitViolation = {
     type: CONST.VIOLATION_TYPES.VIOLATION,
     showInReview: true,
     data: {
-        formattedLimit: convertAmountToDisplayString(CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT),
+        amount: CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT,
+        currency: CONST.CURRENCY.USD,
     },
 };
 
@@ -65,7 +67,8 @@ const categoryOverLimitViolation = {
     type: CONST.VIOLATION_TYPES.VIOLATION,
     showInReview: true,
     data: {
-        formattedLimit: convertAmountToDisplayString(CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT),
+        amount: CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT,
+        currency: CONST.CURRENCY.USD,
     },
 };
 
@@ -74,7 +77,8 @@ const overTripLimitViolation = {
     type: CONST.VIOLATION_TYPES.VIOLATION,
     showInReview: true,
     data: {
-        formattedLimit: convertAmountToDisplayString(400),
+        amount: 400,
+        currency: CONST.CURRENCY.USD,
     },
 };
 
@@ -458,7 +462,7 @@ describe('getViolationsOnyxData', () => {
             policy.maxExpenseAmountNoItemizedReceipt = 7500; // $75.00
             transaction.amount = -10000; // $100.00
             const existingViolations: TransactionViolation[] = [
-                {name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true, data: {formattedLimit: '$50.00'}},
+                {name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true, data: {amount: 5000, currency: CONST.CURRENCY.USD}},
             ];
 
             // When violations are recalculated after the policy threshold changed
@@ -468,7 +472,9 @@ describe('getViolationsOnyxData', () => {
             // Then the violation should have updated threshold data to reflect the current policy settings
             const itemizedViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
             expect(itemizedViolation).toBeDefined();
-            expect(itemizedViolation?.data?.formattedLimit).not.toBe('$50.00');
+            expect(itemizedViolation?.data?.amount).toBe(7500);
+            expect(itemizedViolation?.data?.currency).toBe(CONST.CURRENCY.USD);
+            expect(itemizedViolation?.data?.amount).not.toBe(5000);
         });
 
         it('should replace receiptRequired with itemizedReceiptRequired when category changes to always require itemized', () => {
@@ -1532,7 +1538,9 @@ describe('getViolationTranslation', () => {
         const testPolicyID = 'test-policy-123';
         const companyCardPageURL = `workspaces/${testPolicyID}/company-cards`;
         const brokenCardConnectionViolationExpected = translateLocal('violations.rter', true, true, false, undefined, CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION, companyCardPageURL);
-        expect(ViolationsUtils.getViolationTranslation({violation: brokenCardConnectionViolation, translate: translateLocal})).toBe(brokenCardConnectionViolationExpected);
+        expect(ViolationsUtils.getViolationTranslation({violation: brokenCardConnectionViolation, translate: translateLocal, convertToDisplayString})).toBe(
+            brokenCardConnectionViolationExpected,
+        );
         const brokenCardConnection530ViolationExpected = translateLocal(
             'violations.rter',
             true,
@@ -1542,7 +1550,9 @@ describe('getViolationTranslation', () => {
             CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530,
             companyCardPageURL,
         );
-        expect(ViolationsUtils.getViolationTranslation({violation: brokenCardConnection530Violation, translate: translateLocal})).toBe(brokenCardConnection530ViolationExpected);
+        expect(ViolationsUtils.getViolationTranslation({violation: brokenCardConnection530Violation, translate: translateLocal, convertToDisplayString})).toBe(
+            brokenCardConnection530ViolationExpected,
+        );
     });
 
     describe('increasedDistance violation', () => {
@@ -1566,6 +1576,7 @@ describe('getViolationTranslation', () => {
             const result = ViolationsUtils.getViolationTranslation({
                 violation: increasedDistanceViolation,
                 translate: translateLocal,
+                convertToDisplayString,
                 canEdit: true,
                 routeDistanceMeters,
                 distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
@@ -1577,6 +1588,7 @@ describe('getViolationTranslation', () => {
             const result = ViolationsUtils.getViolationTranslation({
                 violation: increasedDistanceViolation,
                 translate: translateLocal,
+                convertToDisplayString,
                 canEdit: true,
                 routeDistanceMeters,
                 distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
@@ -1588,6 +1600,7 @@ describe('getViolationTranslation', () => {
             const result = ViolationsUtils.getViolationTranslation({
                 violation: increasedDistanceViolation,
                 translate: translateLocal,
+                convertToDisplayString,
                 canEdit: true,
                 routeDistanceMeters: 0,
                 distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
@@ -1599,6 +1612,7 @@ describe('getViolationTranslation', () => {
             const result = ViolationsUtils.getViolationTranslation({
                 violation: increasedDistanceViolation,
                 translate: translateLocal,
+                convertToDisplayString,
                 canEdit: true,
                 distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
             });
@@ -1609,6 +1623,7 @@ describe('getViolationTranslation', () => {
             const result = ViolationsUtils.getViolationTranslation({
                 violation: increasedDistanceViolation,
                 translate: translateLocal,
+                convertToDisplayString,
                 canEdit: true,
                 routeDistanceMeters,
             });
@@ -1644,6 +1659,7 @@ describe('getRBRMessages', () => {
             transaction: mockTransaction,
             transactionViolations: mockViolations,
             translate: translateLocal,
+            convertToDisplayString,
             missingFieldError,
             transactionThreadActions: [],
         });
@@ -1653,7 +1669,13 @@ describe('getRBRMessages', () => {
     });
 
     it('should filter out empty strings', () => {
-        const result = ViolationsUtils.getRBRMessages({transaction: mockTransaction, transactionViolations: mockViolations, translate: translateLocal, transactionThreadActions: []});
+        const result = ViolationsUtils.getRBRMessages({
+            transaction: mockTransaction,
+            transactionViolations: mockViolations,
+            translate: translateLocal,
+            convertToDisplayString,
+            transactionThreadActions: [],
+        });
         const expectedResult = `${translateLocal('violations.missingCategory')}. ${translateLocal('violations.missingTag')}.`;
 
         expect(result).toBe(expectedResult);
@@ -2081,7 +2103,8 @@ describe('filterReceiptViolations', () => {
         type: CONST.VIOLATION_TYPES.VIOLATION,
         showInReview: true,
         data: {
-            formattedLimit: '$75.00',
+            amount: 7500,
+            currency: CONST.CURRENCY.USD,
         },
     };
 
@@ -2090,7 +2113,8 @@ describe('filterReceiptViolations', () => {
         type: CONST.VIOLATION_TYPES.VIOLATION,
         showInReview: true,
         data: {
-            formattedLimit: '$25.00',
+            amount: 2500,
+            currency: CONST.CURRENCY.USD,
         },
     };
 

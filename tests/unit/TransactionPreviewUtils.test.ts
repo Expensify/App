@@ -594,7 +594,7 @@ describe('TransactionPreviewUtils', () => {
             name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED,
             type: CONST.VIOLATION_TYPES.VIOLATION,
             showInReview: true,
-            data: {formattedLimit: '$75.00'},
+            data: {amount: 7500, currency: CONST.CURRENCY.USD},
         };
 
         const mockViolations = (count: number) =>
