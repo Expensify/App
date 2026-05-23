@@ -1,6 +1,6 @@
 import {addMonths, addYears, format, isSameDay, parseISO, setDate, setMonth, setYear, startOfDay, subMonths, subYears} from 'date-fns';
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useId, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -51,11 +51,12 @@ type CalendarPickerProps = {
 
     /**
      * Stable identifier used to match the year selected on the year picker screen back to this
-     * CalendarPicker instance. Hosts that render CalendarPicker inside a popover/modal that is
-     * dismissed when navigating (so this component unmounts) must pass a stable id; hosts that
-     * mount more than one CalendarPicker (e.g. range pickers) must pass distinct ids.
+     * CalendarPicker instance. Required because the host popover/modal may be dismissed when
+     * navigating (so this component unmounts and remounts on return); a parent-owned id keeps
+     * the year selection routed to the correct instance. Hosts that mount more than one
+     * CalendarPicker (e.g. range pickers) must pass distinct ids.
      */
-    pickerContextID?: string;
+    pickerContextID: string;
 
     /**
      * Whether the popover/modal hosting this CalendarPicker should be dismissed (via `Modal.closeTop`)
@@ -107,8 +108,6 @@ function CalendarPicker({
     const monthPressableRef = useRef<View>(null);
     const [currentDateView, setCurrentDateView] = useState(() => getInitialCurrentDateView(value, minDate, maxDate));
     const [isMonthPickerVisible, setIsMonthPickerVisible] = useState(false);
-    const fallbackContextID = useId();
-    const contextID = pickerContextID ?? fallbackContextID;
     const [selectedYearResult] = useOnyx(ONYXKEYS.CALENDAR_PICKER_SELECTED_YEAR);
     const isFirstRender = useRef(true);
 
@@ -124,7 +123,7 @@ function CalendarPicker({
     // When the year picker screen writes back a selection for this CalendarPicker instance,
     // apply it to the displayed date and clear the transient result so it isn't re-applied.
     useEffect(() => {
-        if (!selectedYearResult || selectedYearResult.contextID !== contextID) {
+        if (!selectedYearResult || selectedYearResult.contextID !== pickerContextID) {
             return;
         }
         const {year} = selectedYearResult;
@@ -133,7 +132,7 @@ function CalendarPicker({
         // selection, and updating state synchronously inside the effect triggers a cascading
         // render (react-hooks/set-state-in-effect).
         requestAnimationFrame(() => setCurrentDateView((prev) => setYear(new Date(prev), year)));
-    }, [selectedYearResult, contextID]);
+    }, [selectedYearResult, pickerContextID]);
 
     const openYearPicker = () => {
         // Dismiss the popover/modal hosting this CalendarPicker (if any) so the year picker
@@ -141,9 +140,7 @@ function CalendarPicker({
         if (shouldCloseModalOnYearPickerOpen) {
             closeTop();
         }
-        Navigation.navigate(
-            createDynamicRoute(`${DYNAMIC_ROUTES.YEAR_SELECTOR.path}?contextID=${encodeURIComponent(contextID)}&currentYear=${currentYearView}&minYear=${minYear}&maxYear=${maxYear}`),
-        );
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.YEAR_SELECTOR.getRoute({contextID: pickerContextID, currentYear: currentYearView, minYear, maxYear})));
     };
 
     const onMonthSelected = (month: number) => {

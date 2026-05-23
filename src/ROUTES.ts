@@ -117,6 +117,8 @@ const DYNAMIC_ROUTES = {
         // remains reachable from every CalendarPicker host and doesn't silently break when new
         // date-input screens are added (matches KEYBOARD_SHORTCUTS / EXIT_SURVEY_* generic flows).
         entryScreens: ['*'],
+        getRoute: ({contextID, currentYear, minYear, maxYear}: {contextID: string; currentYear: number; minYear: number; maxYear: number}) =>
+            getUrlWithParams('year-selector', {contextID, currentYear, minYear, maxYear}),
     },
     REPORT_SETTINGS_NAME: {
         path: 'settings/name',
