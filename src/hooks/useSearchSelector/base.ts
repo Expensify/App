@@ -270,7 +270,6 @@ function useSearchSelectorBase({
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
                 return getValidOptions(optionsWithContacts, allPolicies, draftComments, loginList, currentUserAccountID, currentUserEmail, conciergeReportID, {
-                    reportsCollection: reports,
                     betas: betas ?? [],
                     searchString: computedSearchTerm,
                     searchInputValue: trimmedSearchInput,
@@ -291,6 +290,7 @@ function useSearchSelectorBase({
                     allPolicyTags,
                     sortedActions,
                     ...getValidOptionsConfig,
+                    reportsCollection: reports,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_DESTINATION:
                 return getValidOptions(optionsWithContacts, allPolicies, draftComments, loginList, currentUserAccountID, currentUserEmail, conciergeReportID, {

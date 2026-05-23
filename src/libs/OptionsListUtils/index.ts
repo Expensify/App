@@ -2256,8 +2256,7 @@ function prepareReportOptionsForDisplay(
         }
         const report = option.item;
         const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-        const reportsCollection = reports ?? allReports;
-        const chatReport = reportsCollection?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
+        const resolvedReports = reports ?? allReports;
         const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
         /**
          * By default, generated options does not have the chat preview line enabled.
@@ -2281,11 +2280,12 @@ function prepareReportOptionsForDisplay(
 
         let isOptionUnread = option.isUnread;
         if (shouldUnreadBeBold) {
+            const chatReport = resolvedReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
             const oneTransactionThreadReportID =
                 report.type === CONST.REPORT.TYPE.IOU || report.type === CONST.REPORT.TYPE.EXPENSE || report.type === CONST.REPORT.TYPE.INVOICE
                     ? getOneTransactionThreadReportID(report, chatReport, sortedActions?.[report.reportID])
                     : undefined;
-            const oneTransactionThreadReport = oneTransactionThreadReportID ? reportsCollection?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`] : undefined;
+            const oneTransactionThreadReport = oneTransactionThreadReportID ? resolvedReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`] : undefined;
 
             isOptionUnread = isUnread(report, oneTransactionThreadReport, option.private_isArchived) && !!report.lastActorAccountID;
         }
@@ -2487,8 +2487,8 @@ function getValidOptions(
             }
 
             const draftComment = draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`];
-            const resolvedReportsMap = reportsCollection ?? allReports;
-            const chatReport = resolvedReportsMap?.[`${ONYXKEYS.COLLECTION.REPORT}${report.item.chatReportID}`];
+            const resolvedReports = reportsCollection ?? allReports;
+            const chatReport = resolvedReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.item.chatReportID}`];
 
             return isValidReport(
                 report,
