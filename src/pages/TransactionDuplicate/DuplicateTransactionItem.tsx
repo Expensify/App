@@ -93,6 +93,7 @@ function DuplicateTransactionItem({transaction, isLastItem, isSelected, shouldSh
                     shouldShowErrors={false}
                     style={[styles.p4, shouldShowSelection ? styles.pr0 : styles.pr4]}
                     shouldShowRadioButton={shouldShowSelection}
+                    shouldStopRadioButtonMouseDownPropagation
                     radioButtonContainerStyle={styles.ml0}
                     radioButtonWrapperStyle={[styles.justifyContentCenter, styles.pr3half, {paddingLeft: 10, height: variables.w44}]}
                     onRadioButtonPress={() => onSelectTransaction(transaction.transactionID)}
