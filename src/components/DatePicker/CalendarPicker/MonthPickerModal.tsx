@@ -29,9 +29,9 @@ type MonthPickerModalProps = {
 
 function MonthPickerModal({isVisible, currentMonth = new Date().getMonth(), onMonthChange, onClose, shouldEnableBackdropInNarrowPane = false}: MonthPickerModalProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const [searchText, setSearchText] = useState('');
-    const monthNames = DateUtils.getMonthNames();
+    const monthNames = DateUtils.getMonthNames(preferredLocale);
 
     const allMonths = useMemo(() => DateUtils.getFilteredMonthItems(monthNames, currentMonth), [monthNames, currentMonth]);
 

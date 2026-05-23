@@ -29,7 +29,7 @@ type PerDiemFieldsProps = {
 
 function PerDiemFields({perDiemCustomUnit, transaction, isReadOnly, didConfirm, transactionID, action, iouType, reportID, shouldDisplayFieldError, formError}: PerDiemFieldsProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'CalendarSolid']);
 
     const subRates = getSubratesFields(perDiemCustomUnit, transaction);
@@ -112,7 +112,7 @@ function PerDiemFields({perDiemCustomUnit, transaction, isReadOnly, didConfirm, 
             <View style={styles.dividerLine} />
             <MenuItemWithTopDescription
                 shouldShowRightIcon={!isReadOnly}
-                title={getTimeForDisplay(transaction)}
+                title={getTimeForDisplay(transaction, preferredLocale)}
                 description={translate('iou.time')}
                 style={[styles.moneyRequestMenuItem]}
                 titleStyle={styles.flex1}

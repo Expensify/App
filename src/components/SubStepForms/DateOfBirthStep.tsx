@@ -99,7 +99,6 @@ function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
                 InputComponent={DatePicker}
                 inputID={dobInputID}
                 label={translate('common.dob')}
-                placeholder={translate('common.dateFormat')}
                 defaultValue={dobDefaultValue}
                 minDate={minDate}
                 maxDate={maxDate}

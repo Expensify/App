@@ -30,7 +30,7 @@ import type {PersonalDetails} from '@src/types/onyx';
 
 function ScheduleCallConfirmationPage() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const [scheduleCallDraft] = useOnyx(`${ONYXKEYS.SCHEDULE_CALL_DRAFT}`);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const userTimezone = currentUserPersonalDetails?.timezone?.selected ? currentUserPersonalDetails?.timezone.selected : CONST.DEFAULT_TIME_ZONE.selected;
@@ -68,11 +68,11 @@ function ScheduleCallConfirmationPage() {
 
     let dateTimeString = '';
     if (scheduleCallDraft?.timeSlot && scheduleCallDraft.date) {
-        const dateString = DateUtils.formatInTimeZoneWithFallback(scheduleCallDraft.date, userTimezone, CONST.DATE.MONTH_DAY_YEAR_FORMAT);
-        const timeString = `${DateUtils.formatInTimeZoneWithFallback(scheduleCallDraft?.timeSlot, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT)} - ${DateUtils.formatInTimeZoneWithFallback(
+        const dateString = DateUtils.formatToReadableString(scheduleCallDraft.date, preferredLocale);
+        const timeString = `${DateUtils.formatInTimeZoneToShortTime(scheduleCallDraft?.timeSlot, userTimezone, preferredLocale)} - ${DateUtils.formatInTimeZoneToShortTime(
             addMinutes(scheduleCallDraft?.timeSlot, 30),
             userTimezone,
-            CONST.DATE.LOCAL_TIME_FORMAT,
+            preferredLocale,
         )}`;
 
         const timezoneString = DateUtils.getZoneAbbreviation(new Date(scheduleCallDraft?.timeSlot), userTimezone);

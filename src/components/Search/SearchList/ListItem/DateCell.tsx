@@ -3,6 +3,7 @@ import DatePickerModal from '@components/DatePicker/DatePickerModal';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {EditableCell, usePopoverEditState} from '@components/TransactionItemRow/EditableCell';
 import type {EditableProps} from '@components/TransactionItemRow/EditableCell/types';
+import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
@@ -17,6 +18,7 @@ type DateCellProps = {
 
 function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, canEdit, onSave}: DateCellProps) {
     const styles = useThemeStyles();
+    const {preferredLocale} = useLocalize();
     const {isInNarrowPaneModal} = useResponsiveLayout();
     const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing, handleSave} = usePopoverEditState({
         canEdit,
@@ -24,7 +26,7 @@ function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, canEdit, o
         onSave,
     });
 
-    const formattedDate = DateUtils.formatWithUTCTimeZone(date, DateUtils.doesDateBelongToAPastYear(date) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
+    const formattedDate = DateUtils.formatTransactionListDate(date, preferredLocale);
     const displayText = suffixText ? `${formattedDate} • ${suffixText}` : formattedDate;
 
     const displayContent = (
