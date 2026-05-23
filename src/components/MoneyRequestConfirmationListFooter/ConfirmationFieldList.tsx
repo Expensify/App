@@ -44,7 +44,7 @@ type ConfirmationFieldListProps = {
     /** ID of the originating report action, when editing */
     reportActionID: string | undefined;
 
-    /** Active transaction */
+    /** Active transaction (still passed through for ReportField, which reads it directly) */
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 
     /** Active policy */
@@ -304,7 +304,6 @@ function ConfirmationFieldList({
                 transactionID={transactionID}
                 reportID={reportID}
                 reportActionID={reportActionID}
-                transaction={transaction}
                 policy={policy}
                 isReadOnly={isReadOnly}
                 didConfirm={didConfirm}
@@ -342,7 +341,6 @@ function ConfirmationFieldList({
                 transactionID={transactionID}
                 reportID={reportID}
                 reportActionID={reportActionID}
-                transaction={transaction}
                 policy={policy}
                 policyForMovingExpenses={policyForMovingExpenses}
                 policyTagLists={policyTagLists}
@@ -359,6 +357,7 @@ function ConfirmationFieldList({
                 formError={formError}
                 isCompactMode={isCompactMode}
                 fieldVisibility={fieldVisibility}
+                isEditingSplitBill={isEditingSplitBill}
             />
 
             <SettingsFields
@@ -378,6 +377,7 @@ function ConfirmationFieldList({
                 onToggleBillable={onToggleBillable}
                 isCompactMode={isCompactMode}
                 fieldVisibility={fieldVisibility}
+                isEditingSplitBill={isEditingSplitBill}
             />
 
             {isCompactMode && shouldShowMoreButton && (

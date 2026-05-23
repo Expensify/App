@@ -2,10 +2,9 @@ import * as Sentry from '@sentry/react-native';
 import isObject from 'lodash/isObject';
 import type {Channel, ChannelAuthorizerGenerator, Options} from 'pusher-js/with-encryption';
 import Pusher from 'pusher-js/with-encryption';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import ONYXKEYS from '@src/ONYXKEYS';
 import TYPE from './EventType';
 import type {
@@ -226,82 +225,84 @@ function subscribe<EventName extends PusherEventName>(
     const promise = initPromise.then(
         () =>
             new Promise<void>((resolve, reject) => {
-                InteractionManager.runAfterInteractions(() => {
-                    if (disposed) {
-                        resolve();
-                        return;
-                    }
-
-                    // We cannot call subscribe() before init(). Prevent any attempt to do this on dev.
-                    if (!socket) {
-                        const error = new Error('[Pusher] instance not found. Pusher.subscribe() most likely has been called before Pusher.init()');
-
-                        if (__DEV__) {
-                            throw error;
+                TransitionTracker.runAfterTransitions({
+                    callback: () => {
+                        if (disposed) {
+                            resolve();
+                            return;
                         }
 
-                        // In production, report to Sentry without crashing the app.
-                        // This can happen when disconnect() is called (e.g. during the "Upgrade Required"
-                        // teardown) before this deferred InteractionManager callback runs.
-                        Sentry.captureException(error, {
-                            tags: {source: 'Pusher.subscribe'},
-                            extra: {channelName, eventName},
-                        });
-                        Log.info('[Pusher] Socket disconnected before subscribe could complete, skipping subscription', false, {channelName, eventName});
-                        resolve();
-                        return;
-                    }
+                        // We cannot call subscribe() before init(). Prevent any attempt to do this on dev.
+                        if (!socket) {
+                            const error = new Error('[Pusher] instance not found. Pusher.subscribe() most likely has been called before Pusher.init()');
 
-                    Log.info('[Pusher] Attempting to subscribe to channel', false, {channelName, eventName});
-                    let channel = getChannel(channelName);
-
-                    if (!channel?.subscribed) {
-                        channel = socket.subscribe(channelName);
-                        let isBound = false;
-                        channel.bind('pusher:subscription_succeeded', () => {
-                            // Check so that we do not bind another event with each reconnect attempt
-                            if (!isBound) {
-                                if (!disposed) {
-                                    wrappedCb = bindEventToChannel(channel, eventName, eventCallback);
-                                    resolvedChannel = channel ?? undefined;
-                                } else if (channel) {
-                                    // Handle was disposed mid-handshake — clean up the channel
-                                    // if no other subscribers have bound callbacks to it
-                                    const eventMap = eventsBoundToChannels.get(channel);
-                                    if (!eventMap || eventMap.size === 0) {
-                                        eventsBoundToChannels.delete(channel);
-                                        socket?.unsubscribe(channelName);
-                                    }
-                                }
-                                resolve();
-                                isBound = true;
-                                return;
+                            if (__DEV__) {
+                                throw error;
                             }
 
-                            // When subscribing for the first time we register a success callback that can be
-                            // called multiple times when the subscription succeeds again in the future
-                            // e.g. as a result of Pusher disconnecting and reconnecting. This callback does
-                            // not fire on the first subscription_succeeded event.
-                            onResubscribe();
-                        });
-
-                        channel.bind('pusher:subscription_error', (data: PusherSubscriptionErrorData = {}) => {
-                            const {type, error, status} = data;
-                            Log.hmmm('[Pusher] Issue authenticating with Pusher during subscribe attempt.', {
-                                channelName,
-                                status,
-                                type,
-                                error,
+                            // In production, report to Sentry without crashing the app.
+                            // This can happen when disconnect() is called (e.g. during the "Upgrade Required"
+                            // teardown) before this deferred TransitionTracker callback runs.
+                            Sentry.captureException(error, {
+                                tags: {source: 'Pusher.subscribe'},
+                                extra: {channelName, eventName},
                             });
-                            reject(error);
-                        });
-                    } else {
-                        if (!disposed) {
-                            wrappedCb = bindEventToChannel(channel, eventName, eventCallback);
-                            resolvedChannel = channel;
+                            Log.info('[Pusher] Socket disconnected before subscribe could complete, skipping subscription', false, {channelName, eventName});
+                            resolve();
+                            return;
                         }
-                        resolve();
-                    }
+
+                        Log.info('[Pusher] Attempting to subscribe to channel', false, {channelName, eventName});
+                        let channel = getChannel(channelName);
+
+                        if (!channel?.subscribed) {
+                            channel = socket.subscribe(channelName);
+                            let isBound = false;
+                            channel.bind('pusher:subscription_succeeded', () => {
+                                // Check so that we do not bind another event with each reconnect attempt
+                                if (!isBound) {
+                                    if (!disposed) {
+                                        wrappedCb = bindEventToChannel(channel, eventName, eventCallback);
+                                        resolvedChannel = channel ?? undefined;
+                                    } else if (channel) {
+                                        // Handle was disposed mid-handshake — clean up the channel
+                                        // if no other subscribers have bound callbacks to it
+                                        const eventMap = eventsBoundToChannels.get(channel);
+                                        if (!eventMap || eventMap.size === 0) {
+                                            eventsBoundToChannels.delete(channel);
+                                            socket?.unsubscribe(channelName);
+                                        }
+                                    }
+                                    resolve();
+                                    isBound = true;
+                                    return;
+                                }
+
+                                // When subscribing for the first time we register a success callback that can be
+                                // called multiple times when the subscription succeeds again in the future
+                                // e.g. as a result of Pusher disconnecting and reconnecting. This callback does
+                                // not fire on the first subscription_succeeded event.
+                                onResubscribe();
+                            });
+
+                            channel.bind('pusher:subscription_error', (data: PusherSubscriptionErrorData = {}) => {
+                                const {type, error, status} = data;
+                                Log.hmmm('[Pusher] Issue authenticating with Pusher during subscribe attempt.', {
+                                    channelName,
+                                    status,
+                                    type,
+                                    error,
+                                });
+                                reject(error);
+                            });
+                        } else {
+                            if (!disposed) {
+                                wrappedCb = bindEventToChannel(channel, eventName, eventCallback);
+                                resolvedChannel = channel;
+                            }
+                            resolve();
+                        }
+                    },
                 });
             }),
     );

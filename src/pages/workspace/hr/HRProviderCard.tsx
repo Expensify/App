@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {removePolicyConnection, syncConnection} from '@libs/actions/connections';
+import {clearHRConnectionErrorField} from '@libs/actions/connections/MergeHR';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import type Policy from '@src/types/onyx/Policy';
@@ -43,8 +44,8 @@ function HRProviderCard({card, policy, handleConnect}: HRProviderCardProps) {
     const cardIcon = typeof card.icon === 'string' && card.icon.startsWith('http') ? card.icon : (card.icon as IconAsset) || fallbackIcon;
 
     let connectionDescription: string | undefined;
-    if (card.isSyncInProgress && card.syncStageInProgress) {
-        connectionDescription = translate('workspace.hr.syncStageName', {stage: card.syncStageInProgress});
+    if (card.isSyncInProgress) {
+        connectionDescription = card.syncStageInProgress ? translate('workspace.hr.syncStageName', {stage: card.syncStageInProgress}) : translate('workspace.hr.syncing');
     } else if (card.successfulDate && !card.hasError) {
         connectionDescription = translate('workspace.hr.lastSync', datetimeToRelative(card.successfulDate));
     }
@@ -132,8 +133,12 @@ function HRProviderCard({card, policy, handleConnect}: HRProviderCardProps) {
                 rightComponent={rightComponent}
                 fallbackIcon={fallbackIcon}
             />
-            {card.isConnected && !!approvalModeRoute && (
-                <OfflineWithFeedback pendingAction={card.config?.pendingFields?.approvalMode}>
+            {card.isConnected && !card.isInitialSyncInProgress && !!approvalModeRoute && (
+                <OfflineWithFeedback
+                    pendingAction={card.config?.pendingFields?.approvalMode}
+                    errors={card.config?.errorFields?.approvalMode}
+                    onClose={() => clearHRConnectionErrorField(policy?.id, card.connectionName, 'approvalMode')}
+                >
                     <MenuItemWithTopDescription
                         description={translate('workspace.hr.approvalMode')}
                         title={card.approvalModeLabel}
@@ -144,8 +149,12 @@ function HRProviderCard({card, policy, handleConnect}: HRProviderCardProps) {
                     />
                 </OfflineWithFeedback>
             )}
-            {card.isConnected && !!finalApproverRoute && (
-                <OfflineWithFeedback pendingAction={card.config?.pendingFields?.finalApprover}>
+            {card.isConnected && !card.isInitialSyncInProgress && !!finalApproverRoute && (
+                <OfflineWithFeedback
+                    pendingAction={card.config?.pendingFields?.finalApprover}
+                    errors={card.config?.errorFields?.finalApprover}
+                    onClose={() => clearHRConnectionErrorField(policy?.id, card.connectionName, 'finalApprover')}
+                >
                     <MenuItemWithTopDescription
                         description={translate('workspace.hr.finalApprover')}
                         title={card.finalApproverDisplayName}

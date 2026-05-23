@@ -5,6 +5,14 @@ import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 
 type ConciergeDraft = {
+    /** Currently rendered markdown. Pusher pacing may intentionally lag this behind the latest server snapshot. */
+    bodyMarkdown?: string;
+    /** Latest server markdown snapshot held by the Pusher pacer so remounts can resume revealing banked text. */
+    pusherTargetBodyMarkdown?: string;
+    /** Server event sequence for the latest Pusher target snapshot. */
+    pusherTargetSequence?: number;
+    /** Completion event held while the Pusher pacer is still revealing banked text. */
+    pusherPendingCompletionEvent?: ConciergeDraftEvent;
     reportAction: ReportAction;
     sequence: number;
     status: ConciergeDraftEvent['status'];
@@ -29,6 +37,9 @@ const CODE_BLOCK_DELIMITER = '```';
 const INLINE_CODE_DELIMITER = '`';
 const BOLD_DELIMITER = '**';
 const STRIKETHROUGH_DELIMITER = '~~';
+const DRAFT_PACE_BACKLOG_CHAR_LIMIT = 80;
+const DRAFT_PACE_CATCHUP_DIVISOR = 40;
+const DRAFT_PACE_COMPLETION_DIVISOR = 4;
 
 function isInAnyRange(position: number, ranges: TextRange[]): boolean {
     return ranges.some((range) => position >= range.start && position < range.end);
@@ -202,6 +213,28 @@ function buildConciergeDraftReportAction({bodyMarkdown, created, finalRenderedHT
     } as ReportAction;
 }
 
+function sliceByCodePoint(text: string, length: number): string {
+    return Array.from(text).slice(0, length).join('');
+}
+
+function getNextVisibleConciergeDraftBodyMarkdown(currentBodyMarkdown: string, targetBodyMarkdown: string, shouldAccelerate = false): string {
+    if (!targetBodyMarkdown || currentBodyMarkdown === targetBodyMarkdown) {
+        return currentBodyMarkdown;
+    }
+
+    if (!targetBodyMarkdown.startsWith(currentBodyMarkdown)) {
+        return targetBodyMarkdown;
+    }
+
+    const currentLength = Array.from(currentBodyMarkdown).length;
+    const targetLength = Array.from(targetBodyMarkdown).length;
+    const remainingLength = targetLength - currentLength;
+    const divisor = shouldAccelerate ? DRAFT_PACE_COMPLETION_DIVISOR : DRAFT_PACE_CATCHUP_DIVISOR;
+    const step = remainingLength <= DRAFT_PACE_BACKLOG_CHAR_LIMIT && !shouldAccelerate ? 1 : Math.max(1, Math.ceil(remainingLength / divisor));
+
+    return sliceByCodePoint(targetBodyMarkdown, currentLength + step);
+}
+
 // Module-level cache so a chat re-mount (ReportScreen unmount/remount on chat
 // switch) preserves the in-progress draft. Without this the gate's local state
 // resets to null on every revisit and the synthetic bubble disappears for the
@@ -255,6 +288,7 @@ function applyConciergeDraftEvent(currentDraft: ConciergeDraft | null, event: Co
     }
 
     return {
+        bodyMarkdown: event.bodyMarkdown ?? currentDraft?.bodyMarkdown,
         reportAction: nextReportAction,
         sequence: event.sequence,
         status: event.status,
@@ -263,5 +297,5 @@ function applyConciergeDraftEvent(currentDraft: ConciergeDraft | null, event: Co
     };
 }
 
-export {applyConciergeDraftEvent, getCachedDraft, setCachedDraft, stripIncompleteMarkdown};
+export {applyConciergeDraftEvent, getCachedDraft, getNextVisibleConciergeDraftBodyMarkdown, setCachedDraft, stripIncompleteMarkdown};
 export type {ConciergeDraft};
