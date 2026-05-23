@@ -842,15 +842,40 @@ function ReportActionsList({
         );
     }, [canShowHeader, hasActiveDraft, report.reportID, retryLoadNewerChatsError]);
 
-    const shouldShowSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+    // Using isLoadingInitialReportActions so that if the OpenReport API fails
+    // (which clears isLoadingInitialReportActions but never sets hasOnceLoadedReportActions),
+    // the skeleton resolves instead of being stuck forever.
+    const isWaitingForInitialLoad = !isOffline && !!reportLoadingState?.isLoadingInitialReportActions && !reportLoadingState?.hasOnceLoadedReportActions;
+    const isOfflineWithIncompleteData = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
 
+    // While report actions are loading online from a sparse cache, show only the last action as a fallback
+    // since it's available before the rest finish loading. This avoids the empty space issue
+    // and prevents the UI jump where old messages get inserted between preloaded ones. Keep the full rendered
+    // list when we already have multiple actions, or when the initial scroll anchor is already present, so
+    // reconnects, deep links, and unread anchors don't lose useful cached content.
+    const hasInitialScrollAction = !!initialScrollKey && renderedVisibleReportActions.some((action) => action.reportActionID === initialScrollKey);
+    const shouldUseInitialLoadFallback = isWaitingForInitialLoad && sortedVisibleReportActions.length <= 1 && !hasInitialScrollAction;
+    const shouldShowSkeleton = isWaitingForInitialLoad || isOfflineWithIncompleteData;
+    const reportActionsToRender = useMemo(() => {
+        const reportActions = shouldUseInitialLoadFallback && lastAction ? [lastAction] : renderedVisibleReportActions;
+
+        if (!isWaitingForInitialLoad) {
+            return reportActions;
+        }
+
+        return reportActions.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
+    }, [isWaitingForInitialLoad, lastAction, renderedVisibleReportActions, shouldUseInitialLoadFallback]);
     const listFooterComponent = useMemo(() => {
         if (!shouldShowSkeleton) {
             return;
         }
 
-        return <ReportActionsSkeletonView shouldAnimate={false} />;
-    }, [shouldShowSkeleton]);
+        return (
+            <View style={styles.appBG}>
+                <ReportActionsSkeletonView shouldAnimate={false} />
+            </View>
+        );
+    }, [shouldShowSkeleton, styles.appBG]);
 
     const handleStartReached = useCallback(() => {
         if (!isSearchTopmostFullScreenRoute()) {
@@ -906,7 +931,7 @@ function ReportActionsList({
                     ref={reportScrollManager.ref}
                     testID="report-actions-list"
                     style={styles.overscrollBehaviorContain}
-                    data={renderedVisibleReportActions}
+                    data={reportActionsToRender}
                     renderItem={renderItem}
                     keyExtractor={keyExtractor}
                     drawDistance={1500}
