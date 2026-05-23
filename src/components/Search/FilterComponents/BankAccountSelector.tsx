@@ -7,6 +7,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getBankAccountSearchLabel} from '@libs/BankAccountUtils';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import MultiSelect from './MultiSelect';
 
