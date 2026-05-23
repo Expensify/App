@@ -1,6 +1,7 @@
 import type * as ReactNavigationNative from '@react-navigation/native';
 import {fireEvent, render, screen, userEvent, within} from '@testing-library/react-native';
 import {addMonths, addYears, subMonths, subYears} from 'date-fns';
+import {createElement} from 'react';
 import type {ComponentProps, ComponentType, ReactNode} from 'react';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
 import * as Modal from '@libs/actions/Modal';
@@ -81,18 +82,10 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     },
 }));
 
-// CalendarPicker's pickerContextID prop is required (callers must own a stable id so the year
-// picker's selection routes back to the correct instance after popover dismiss/remount). This
-// wrapper supplies a default for tests that don't exercise the contextID itself; tests that do
-// pass their own pickerContextID, which the spread overrides.
+// CalendarPicker's pickerContextID is required (callers own a stable id so the year picker
+// routes back to the correct instance). Tests default to 'test-calendar' unless they override it.
 function CalendarPickerForTest({pickerContextID = 'test-calendar', ...rest}: Omit<ComponentProps<typeof CalendarPicker>, 'pickerContextID'> & {pickerContextID?: string}) {
-    return (
-        <CalendarPicker
-            pickerContextID={pickerContextID}
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...rest}
-        />
-    );
+    return createElement(CalendarPicker, {pickerContextID, ...rest});
 }
 
 describe('CalendarPicker', () => {
