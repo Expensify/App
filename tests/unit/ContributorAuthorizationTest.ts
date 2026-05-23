@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 import {RequestError} from '@octokit/request-error';
-import {isAuthorizedContributor, isContributorPlusMember, loginsMatch, stripHtmlComments} from '../../.github/libs/ContributorAuthorization';
+import {isAuthorizedContributor, isContributorPlusMember, loginsMatch, stripHtmlComments} from '../../.github/actions/javascript/isAuthorizedContributor/isAuthorizedContributor';
 import type {InternalOctokit} from '../../.github/libs/GithubUtils';
 import GithubUtils from '../../.github/libs/GithubUtils';
 

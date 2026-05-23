@@ -11619,7 +11619,6 @@ const GIT_CONST = {
     APP_REPO: (process.env.GITHUB_REPOSITORY ?? 'Expensify/App').split('/').at(1) ?? '',
     MOBILE_EXPENSIFY_REPO: 'Mobile-Expensify',
     DEFAULT_BASE_REF: 'main',
-    CONTRIBUTOR_PLUS_TEAM_SLUG: 'contributor-plus',
 };
 const CONST = {
     ...GIT_CONST,

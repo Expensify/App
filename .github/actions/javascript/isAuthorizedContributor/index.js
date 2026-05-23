@@ -11580,137 +11580,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const core = __importStar(__nccwpck_require__(2186));
-const github = __importStar(__nccwpck_require__(5438));
-const ContributorAuthorization_1 = __importDefault(__nccwpck_require__(456));
-async function run() {
-    const prNumber = Number.parseInt(core.getInput('PR_NUMBER', { required: true }), 10);
-    const prAuthor = core.getInput('PR_AUTHOR', { required: true });
-    const authorAssociation = core.getInput('AUTHOR_ASSOCIATION', { required: true });
-    const githubToken = core.getInput('GITHUB_TOKEN', { required: true });
-    const orgToken = core.getInput('OS_BOTIFY_TOKEN', { required: true });
-    const { owner, repo } = github.context.repo;
-    const authorized = await (0, ContributorAuthorization_1.default)({
-        prNumber,
-        prAuthor,
-        authorAssociation,
-        repoOwner: owner,
-        repoName: repo,
-        githubToken,
-        orgToken,
-    });
-    core.setOutput('IS_AUTHORIZED', authorized ? 'true' : 'false');
-}
-if (require.main === require.cache[eval('__filename')]) {
-    run().catch((error) => {
-        const message = error instanceof Error ? error.message : String(error);
-        core.setFailed(message);
-    });
-}
-exports["default"] = run;
-
-
-/***/ }),
-
-/***/ 9873:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
-const GIT_CONST = {
-    GITHUB_OWNER: process.env.GITHUB_REPOSITORY_OWNER ?? 'Expensify',
-    APP_REPO: (process.env.GITHUB_REPOSITORY ?? 'Expensify/App').split('/').at(1) ?? '',
-    MOBILE_EXPENSIFY_REPO: 'Mobile-Expensify',
-    DEFAULT_BASE_REF: 'main',
-    CONTRIBUTOR_PLUS_TEAM_SLUG: 'contributor-plus',
-};
-const CONST = {
-    ...GIT_CONST,
-    APPLAUSE_BOT: 'applausebot',
-    OS_BOTIFY: 'OSBotify',
-    LABELS: {
-        STAGING_DEPLOY: 'StagingDeployCash',
-        DEPLOY_BLOCKER: 'DeployBlockerCash',
-        LOCK_DEPLOY: '🔐 LockCashDeploys 🔐',
-        INTERNAL_QA: 'InternalQA',
-        HELP_WANTED: 'Help Wanted',
-        CP_STAGING: 'CP Staging',
-        DAILY: 'Daily',
-    },
-    STATE: {
-        OPEN: 'open',
-    },
-    COMMENT: {
-        TYPE_BOT: 'Bot',
-        NAME_MELVIN_BOT: 'melvin-bot[bot]',
-        NAME_MELVIN_USER: 'MelvinBot',
-        NAME_CODEX: 'chatgpt-codex-connector',
-        NAME_GITHUB_ACTIONS: 'github-actions',
-    },
-    ACTIONS: {
-        CREATED: 'created',
-        EDITED: 'edited',
-    },
-    EVENTS: {
-        ISSUE_COMMENT: 'issue_comment',
-    },
-    RUN_EVENT: {
-        PULL_REQUEST: 'pull_request',
-        PULL_REQUEST_TARGET: 'pull_request_target',
-        PUSH: 'push',
-    },
-    RUN_STATUS: {
-        COMPLETED: 'completed',
-        IN_PROGRESS: 'in_progress',
-        QUEUED: 'queued',
-    },
-    RUN_STATUS_CONCLUSION: {
-        SUCCESS: 'success',
-    },
-    TEST_WORKFLOW_NAME: 'Jest Unit Tests',
-    TEST_WORKFLOW_PATH: '.github/workflows/test.yml',
-    PROPOSAL_KEYWORD: 'Proposal',
-    PROPOSAL_HEADER_A: 'what is the root cause of that problem?',
-    PROPOSAL_HEADER_B: 'what changes do you think we should make in order to solve the problem?',
-    DATE_FORMAT_STRING: 'yyyy-MM-dd',
-    PULL_REQUEST_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`),
-    ISSUE_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/issues/([0-9]+).*`),
-    ISSUE_OR_PULL_REQUEST_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/(?:pull|issues)/([0-9]+).*`),
-    POLL_RATE: 10000,
-    APP_REPO_URL: `https://github.com/${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}`,
-    APP_REPO_GIT_URL: `git@github.com:${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}.git`,
-    MOBILE_EXPENSIFY_URL: `https://github.com/${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.MOBILE_EXPENSIFY_REPO}`,
-    NO_ACTION: 'NO_ACTION',
-    ACTION_EDIT: 'ACTION_EDIT',
-    ACTION_REQUIRED: 'ACTION_REQUIRED',
-    ACTION_HIDE_DUPLICATE: 'ACTION_HIDE_DUPLICATE',
-};
-exports["default"] = CONST;
-
-
-/***/ }),
-
-/***/ 456:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.AUTHORIZED_ASSOCIATIONS = void 0;
 exports.isAuthorizedContributor = isAuthorizedContributor;
 exports.isContributorPlusMember = isContributorPlusMember;
 exports.stripHtmlComments = stripHtmlComments;
 exports.loginsMatch = loginsMatch;
+const core = __importStar(__nccwpck_require__(2186));
+const github = __importStar(__nccwpck_require__(5438));
 const request_error_1 = __nccwpck_require__(537);
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 const AUTHORIZED_ASSOCIATIONS = new Set(['MEMBER', 'OWNER', 'CONTRIBUTOR']);
 exports.AUTHORIZED_ASSOCIATIONS = AUTHORIZED_ASSOCIATIONS;
+const CONTRIBUTOR_PLUS_TEAM_SLUG = 'contributor-plus';
 const ISSUE_URL_PATTERN = /https:\/\/github\.com\/(Expensify\/[^/]+)\/issues\/(\d+)/g;
 const PULL_URL_PATTERN = /https:\/\/github\.com\/(Expensify\/[^/]+)\/pull\/(\d+)/g;
 function loginsMatch(loginA, loginB) {
@@ -11729,7 +11611,7 @@ async function isContributorPlusMember(username, orgToken) {
         await GithubUtils_1.default.octokit.teams.getMembershipForUserInOrg({
             org: CONST_1.default.GITHUB_OWNER,
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            team_slug: CONST_1.default.CONTRIBUTOR_PLUS_TEAM_SLUG,
+            team_slug: CONTRIBUTOR_PLUS_TEAM_SLUG,
             username,
         });
         console.log(`${username} is a Contributor+ member. Authorized.`);
@@ -11862,7 +11744,110 @@ async function isAuthorizedContributor({ prNumber, prAuthor, authorAssociation, 
     console.log(`No valid authorization found for ${prAuthor}.`);
     return false;
 }
-exports["default"] = isAuthorizedContributor;
+async function run() {
+    const prNumber = Number.parseInt(core.getInput('PR_NUMBER', { required: true }), 10);
+    const prAuthor = core.getInput('PR_AUTHOR', { required: true });
+    const authorAssociation = core.getInput('AUTHOR_ASSOCIATION', { required: true });
+    const githubToken = core.getInput('GITHUB_TOKEN', { required: true });
+    const orgToken = core.getInput('OS_BOTIFY_TOKEN', { required: true });
+    const { owner, repo } = github.context.repo;
+    const authorized = await isAuthorizedContributor({
+        prNumber,
+        prAuthor,
+        authorAssociation,
+        repoOwner: owner,
+        repoName: repo,
+        githubToken,
+        orgToken,
+    });
+    core.setOutput('IS_AUTHORIZED', authorized ? 'true' : 'false');
+}
+if (require.main === require.cache[eval('__filename')]) {
+    run().catch((error) => {
+        const message = error instanceof Error ? error.message : String(error);
+        core.setFailed(message);
+    });
+}
+exports["default"] = run;
+
+
+/***/ }),
+
+/***/ 9873:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
+const GIT_CONST = {
+    GITHUB_OWNER: process.env.GITHUB_REPOSITORY_OWNER ?? 'Expensify',
+    APP_REPO: (process.env.GITHUB_REPOSITORY ?? 'Expensify/App').split('/').at(1) ?? '',
+    MOBILE_EXPENSIFY_REPO: 'Mobile-Expensify',
+    DEFAULT_BASE_REF: 'main',
+};
+const CONST = {
+    ...GIT_CONST,
+    APPLAUSE_BOT: 'applausebot',
+    OS_BOTIFY: 'OSBotify',
+    LABELS: {
+        STAGING_DEPLOY: 'StagingDeployCash',
+        DEPLOY_BLOCKER: 'DeployBlockerCash',
+        LOCK_DEPLOY: '🔐 LockCashDeploys 🔐',
+        INTERNAL_QA: 'InternalQA',
+        HELP_WANTED: 'Help Wanted',
+        CP_STAGING: 'CP Staging',
+        DAILY: 'Daily',
+    },
+    STATE: {
+        OPEN: 'open',
+    },
+    COMMENT: {
+        TYPE_BOT: 'Bot',
+        NAME_MELVIN_BOT: 'melvin-bot[bot]',
+        NAME_MELVIN_USER: 'MelvinBot',
+        NAME_CODEX: 'chatgpt-codex-connector',
+        NAME_GITHUB_ACTIONS: 'github-actions',
+    },
+    ACTIONS: {
+        CREATED: 'created',
+        EDITED: 'edited',
+    },
+    EVENTS: {
+        ISSUE_COMMENT: 'issue_comment',
+    },
+    RUN_EVENT: {
+        PULL_REQUEST: 'pull_request',
+        PULL_REQUEST_TARGET: 'pull_request_target',
+        PUSH: 'push',
+    },
+    RUN_STATUS: {
+        COMPLETED: 'completed',
+        IN_PROGRESS: 'in_progress',
+        QUEUED: 'queued',
+    },
+    RUN_STATUS_CONCLUSION: {
+        SUCCESS: 'success',
+    },
+    TEST_WORKFLOW_NAME: 'Jest Unit Tests',
+    TEST_WORKFLOW_PATH: '.github/workflows/test.yml',
+    PROPOSAL_KEYWORD: 'Proposal',
+    PROPOSAL_HEADER_A: 'what is the root cause of that problem?',
+    PROPOSAL_HEADER_B: 'what changes do you think we should make in order to solve the problem?',
+    DATE_FORMAT_STRING: 'yyyy-MM-dd',
+    PULL_REQUEST_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`),
+    ISSUE_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/issues/([0-9]+).*`),
+    ISSUE_OR_PULL_REQUEST_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/(?:pull|issues)/([0-9]+).*`),
+    POLL_RATE: 10000,
+    APP_REPO_URL: `https://github.com/${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}`,
+    APP_REPO_GIT_URL: `git@github.com:${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}.git`,
+    MOBILE_EXPENSIFY_URL: `https://github.com/${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.MOBILE_EXPENSIFY_REPO}`,
+    NO_ACTION: 'NO_ACTION',
+    ACTION_EDIT: 'ACTION_EDIT',
+    ACTION_REQUIRED: 'ACTION_REQUIRED',
+    ACTION_HIDE_DUPLICATE: 'ACTION_HIDE_DUPLICATE',
+};
+exports["default"] = CONST;
 
 
 /***/ }),
