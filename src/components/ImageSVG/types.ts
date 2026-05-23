@@ -33,6 +33,10 @@ type ImageSVGProps = {
     /** The preserveAspectRatio attribute indicates how an element with a viewBox providing a given aspect ratio must fit into a viewport with a different aspect ratio. */
     preserveAspectRatio?: string;
 
+    /** Whether the image should be hidden from screen readers */
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    'aria-hidden'?: boolean;
+
     /** TestID for test */
     testID?: string;
 

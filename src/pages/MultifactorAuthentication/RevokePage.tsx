@@ -56,7 +56,7 @@ function MultifactorAuthenticationRevokePage() {
     const [isThisDeviceLoading, setIsThisDeviceLoading] = useState(false);
     const [isOtherDevicesLoading, setIsOtherDevicesLoading] = useState(false);
 
-    const {localPublicKey, isCurrentDeviceRegistered, otherDeviceCount, totalDeviceCount} = useBiometricRegistrationStatus();
+    const {localCredentialID, isCurrentDeviceRegistered, otherDeviceCount, totalDeviceCount} = useBiometricRegistrationStatus();
     const hasDevices = totalDeviceCount > 0;
     const hasMultipleKeys = totalDeviceCount > 1;
 
@@ -90,10 +90,10 @@ function MultifactorAuthenticationRevokePage() {
         [translate],
     );
 
-    // Since localPublicKey is loaded asynchronously, it can become undefined between the render that shows
-    // the button and the moment the user taps it. If these callbacks closed over localPublicKey directly, a
+    // Since localCredentialID is loaded asynchronously, it can become undefined between the render that shows
+    // the button and the moment the user taps it. If these callbacks closed over localCredentialID directly, a
     // stale undefined value could cause revokeThisDevice to silently no-op, or revokeOtherDevices to send
-    // empty params and accidentally revoke ALL credentials. The call sites pass localPublicKey at render time
+    // empty params and accidentally revoke ALL credentials. The call sites pass localCredentialID at render time
     // so the closure captures the value that was known-good when the button was displayed.
     const revokeThisDevice = useCallback(
         async (keyID: string) => {
@@ -120,22 +120,22 @@ function MultifactorAuthenticationRevokePage() {
 
     const handleRevokeConfirm = async () => {
         if (confirmMode === 'thisDevice') {
-            if (!localPublicKey) {
+            if (!localCredentialID) {
                 hideConfirmModal();
                 return;
             }
-            await revokeThisDevice(localPublicKey);
+            await revokeThisDevice(localCredentialID);
         } else if (confirmMode === 'multiple') {
-            if (!localPublicKey) {
+            if (!localCredentialID) {
                 hideConfirmModal();
                 return;
             }
-            await revokeOtherDevices(localPublicKey);
+            await revokeOtherDevices(localCredentialID);
         } else if (confirmMode === 'single') {
-            if (!localPublicKey) {
+            if (!localCredentialID) {
                 await revokeAll();
             } else {
-                await revokeOtherDevices(localPublicKey);
+                await revokeOtherDevices(localCredentialID);
             }
         } else if (confirmMode === 'all') {
             await revokeAll();
@@ -179,8 +179,8 @@ function MultifactorAuthenticationRevokePage() {
                     </Text>
                     {hasDevices && (
                         <View>
-                            {/* The isCurrentDeviceRegistered guard guarantees localPublicKey is
-                               truthy here. Do not remove this guard without updating the non-null assertion on localPublicKey below. */}
+                            {/* The isCurrentDeviceRegistered guard guarantees localCredentialID is
+                               truthy here. Do not remove this guard without updating the non-null assertion on localCredentialID below. */}
                             {isCurrentDeviceRegistered && (
                                 <MenuItem
                                     title={translate('multifactorAuthentication.revoke.thisDevice')}
@@ -194,7 +194,7 @@ function MultifactorAuthenticationRevokePage() {
                                                 isLoading={isThisDeviceLoading}
                                                 text={translate('multifactorAuthentication.revoke.revoke')}
                                                 onPress={() => {
-                                                    if (!localPublicKey) {
+                                                    if (!localCredentialID) {
                                                         return;
                                                     }
                                                     showConfirmModal('thisDevice');
@@ -206,7 +206,7 @@ function MultifactorAuthenticationRevokePage() {
                             )}
                             {otherDeviceCount > 0 && (
                                 <MenuItem
-                                    title={translate('multifactorAuthentication.revoke.otherDevices', {otherDeviceCount})}
+                                    title={translate('multifactorAuthentication.revoke.otherDevices', otherDeviceCount)}
                                     interactive={false}
                                     shouldShowRightComponent
                                     rightComponent={

@@ -2,7 +2,7 @@ type UseDiscardChangesConfirmationOptions = {
     getHasUnsavedChanges: () => boolean;
     onCancel?: () => void;
     onVisibilityChange?: (visible: boolean) => void;
-    isEnabled?: boolean;
+    onConfirm?: () => void | Promise<void>;
 };
 
 export default UseDiscardChangesConfirmationOptions;

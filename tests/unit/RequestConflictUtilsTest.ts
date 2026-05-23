@@ -2,10 +2,13 @@ import Onyx from 'react-native-onyx';
 import {
     enablePolicyFeatureCommand,
     resolveCommentDeletionConflicts,
+    resolveDetachReceiptConflicts,
     resolveDuplicationConflictAction,
     resolveEditCommentWithNewAddCommentRequest,
     resolveEnableFeatureConflicts,
+    resolveOpenReportDuplicationConflictAction,
 } from '@libs/actions/RequestConflictUtils';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import type {WriteCommand} from '@libs/API/types';
 
 describe('RequestConflictUtils', () => {
@@ -158,6 +161,71 @@ describe('RequestConflictUtils', () => {
                 indices: [0],
                 pushNewRequest: false,
             },
+        });
+    });
+
+    describe('resolveOpenReportDuplicationConflictAction', () => {
+        it('returns push when no matching OpenReport for the reportID exists in the queue', () => {
+            const persistedRequests = [{command: 'OpenApp'}, {command: WRITE_COMMANDS.OPEN_REPORT, data: {reportID: '2'}}];
+            const result = resolveOpenReportDuplicationConflictAction(persistedRequests, {reportID: '1'} as never);
+            expect(result).toEqual({conflictAction: {type: 'push'}});
+        });
+
+        it('returns noAction when the queued OpenReport carries guidedSetupData', () => {
+            const persistedRequests = [{command: WRITE_COMMANDS.OPEN_REPORT, data: {reportID: '1', guidedSetupData: '[{}]'}}];
+            const result = resolveOpenReportDuplicationConflictAction(persistedRequests, {reportID: '1'} as never);
+            expect(result).toEqual({conflictAction: {type: 'noAction'}});
+        });
+
+        it('returns noAction when the queued request carries accountIDList but the new one has no participants', () => {
+            const persistedRequests = [{command: WRITE_COMMANDS.OPEN_REPORT, data: {reportID: '1', accountIDList: '10,20'}}];
+            const result = resolveOpenReportDuplicationConflictAction(persistedRequests, {reportID: '1'} as never);
+            expect(result).toEqual({conflictAction: {type: 'noAction'}});
+        });
+
+        it('replaces when the new request also carries an accountIDList', () => {
+            const persistedRequests = [{command: WRITE_COMMANDS.OPEN_REPORT, data: {reportID: '1', accountIDList: '10,20'}}];
+            const result = resolveOpenReportDuplicationConflictAction(persistedRequests, {reportID: '1', accountIDList: '10,20'} as never);
+            expect(result).toEqual({conflictAction: {type: 'replace', index: 0}});
+        });
+
+        it('replaces when neither queued nor new request has participants', () => {
+            const persistedRequests = [{command: 'OpenApp'}, {command: WRITE_COMMANDS.OPEN_REPORT, data: {reportID: '1'}}];
+            const result = resolveOpenReportDuplicationConflictAction(persistedRequests, {reportID: '1'} as never);
+            expect(result).toEqual({conflictAction: {type: 'replace', index: 1}});
+        });
+
+        it('replaces when the queued request has no participants but the new request does', () => {
+            const persistedRequests = [{command: WRITE_COMMANDS.OPEN_REPORT, data: {reportID: '1'}}];
+            const result = resolveOpenReportDuplicationConflictAction(persistedRequests, {reportID: '1', accountIDList: '10,20'} as never);
+            expect(result).toEqual({conflictAction: {type: 'replace', index: 0}});
+        });
+    });
+
+    describe('resolveDetachReceiptConflicts', () => {
+        it('returns push when no replace-receipt requests match transactionID', () => {
+            const persistedRequests = [{command: 'OpenReport'}, {command: WRITE_COMMANDS.REPLACE_RECEIPT, data: {transactionID: '2'}}, {command: 'CloseAccount'}];
+            const result = resolveDetachReceiptConflicts(persistedRequests, {transactionID: '1'} as never);
+            expect(result).toEqual({conflictAction: {type: 'push'}});
+        });
+
+        it('returns push when exactly one replace-receipt request matches transactionID', () => {
+            const persistedRequests = [{command: WRITE_COMMANDS.REPLACE_RECEIPT, data: {transactionID: '1'}}];
+            const result = resolveDetachReceiptConflicts(persistedRequests, {transactionID: '1'} as never);
+            expect(result).toEqual({conflictAction: {type: 'push'}});
+        });
+
+        it('deletes all but the last matching replace-receipt request and pushes new request', () => {
+            const persistedRequests = [
+                {command: WRITE_COMMANDS.REPLACE_RECEIPT, data: {transactionID: '1'}},
+                {command: 'OpenReport'},
+                {command: WRITE_COMMANDS.REPLACE_RECEIPT, data: {transactionID: '1'}},
+                {command: WRITE_COMMANDS.REPLACE_RECEIPT, data: {transactionID: '2'}},
+                {command: WRITE_COMMANDS.REPLACE_RECEIPT, data: {transactionID: '1'}},
+            ];
+
+            const result = resolveDetachReceiptConflicts(persistedRequests, {transactionID: '1'} as never);
+            expect(result).toEqual({conflictAction: {type: 'delete', indices: [0, 2], pushNewRequest: true}});
         });
     });
 });

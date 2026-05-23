@@ -1,14 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
-// eslint-disable-next-line @typescript-eslint/naming-convention
 import TestToolMenu from '@components/TestToolMenu';
-import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
+import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/VALUES';
 
 const REGISTRATION_STATUS = MULTIFACTOR_AUTHENTICATION_VALUES.REGISTRATION_STATUS;
 
 let mockBiometricStatus = {
-    localPublicKey: undefined as string | undefined,
+    localCredentialID: undefined as string | undefined,
     isCurrentDeviceRegistered: false,
     otherDeviceCount: 0,
     totalDeviceCount: 0,
@@ -16,9 +15,8 @@ let mockBiometricStatus = {
 };
 
 jest.mock('@hooks/useBiometricRegistrationStatus', () => {
-    const actual = require('@libs/MultifactorAuthentication/Biometrics/VALUES') as {default: {REGISTRATION_STATUS: Record<string, string>}};
+    const actual = require('@libs/MultifactorAuthentication/shared/VALUES') as {default: {REGISTRATION_STATUS: Record<string, string>}};
     return {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         __esModule: true,
         default: () => mockBiometricStatus,
         REGISTRATION_STATUS: actual.default.REGISTRATION_STATUS,
@@ -26,13 +24,11 @@ jest.mock('@hooks/useBiometricRegistrationStatus', () => {
 });
 
 jest.mock('@hooks/useIsAuthenticated', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => true,
 }));
 
 jest.mock('@hooks/useLocalize', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({
         translate: (key: string, params?: Record<string, string | number>) => {
@@ -48,7 +44,6 @@ jest.mock('@hooks/useLocalize', () => ({
 }));
 
 jest.mock('@hooks/useOnyx', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => [undefined],
 }));
@@ -58,13 +53,11 @@ jest.mock('@hooks/useSidebarOrderedReports', () => ({
 }));
 
 jest.mock('@hooks/useSingleExecution', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({singleExecution: (fn: () => void) => fn}),
 }));
 
 jest.mock('@hooks/useThemeStyles', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () =>
         new Proxy(
@@ -76,7 +69,6 @@ jest.mock('@hooks/useThemeStyles', () => ({
 }));
 
 jest.mock('@hooks/useWaitForNavigation', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => (fn: () => void) => fn,
 }));
@@ -88,10 +80,13 @@ jest.mock('@libs/actions/MultifactorAuthentication', () => ({
 
 jest.mock('@libs/ApiUtils', () => ({
     isUsingStagingApi: () => false,
+    getCommandURL: () => 'https://test-api.expensify.com/api/Ping?',
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
 }));
 
 jest.mock('@userActions/Network', () => ({
@@ -113,6 +108,9 @@ jest.mock('@userActions/User', () => ({
 
 jest.mock('@src/CONFIG', () => ({
     IS_USING_LOCAL_WEB: false,
+    EXPENSIFY: {
+        DEFAULT_API_ROOT: 'https://www.expensify.com.dev/',
+    },
 }));
 
 jest.mock('@components/Button', () => {
@@ -171,7 +169,7 @@ jest.mock('@components/TestCrash', () => {
 
 function setBiometricStatus(overrides: Partial<typeof mockBiometricStatus>) {
     mockBiometricStatus = {
-        localPublicKey: undefined,
+        localCredentialID: undefined,
         isCurrentDeviceRegistered: false,
         otherDeviceCount: 0,
         totalDeviceCount: 0,
@@ -195,7 +193,7 @@ describe('TestToolMenu biometrics', () => {
 
     it('renders biometrics title with "Registered" status when this device is registered', () => {
         setBiometricStatus({
-            localPublicKey: 'key-abc',
+            localCredentialID: 'key-abc',
             isCurrentDeviceRegistered: true,
             registrationStatus: REGISTRATION_STATUS.REGISTERED_THIS_DEVICE,
         });
@@ -234,7 +232,7 @@ describe('TestToolMenu biometrics', () => {
 
     it('shows the Revoke button when this device is registered with a local key', () => {
         setBiometricStatus({
-            localPublicKey: 'key-abc',
+            localCredentialID: 'key-abc',
             isCurrentDeviceRegistered: true,
             registrationStatus: REGISTRATION_STATUS.REGISTERED_THIS_DEVICE,
         });
@@ -246,7 +244,7 @@ describe('TestToolMenu biometrics', () => {
 
     it('calls revokeMultifactorAuthenticationCredentials with onlyKeyID when Revoke is pressed', () => {
         setBiometricStatus({
-            localPublicKey: 'key-abc',
+            localCredentialID: 'key-abc',
             isCurrentDeviceRegistered: true,
             registrationStatus: REGISTRATION_STATUS.REGISTERED_THIS_DEVICE,
         });

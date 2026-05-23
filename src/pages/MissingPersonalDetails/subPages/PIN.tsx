@@ -2,13 +2,13 @@ import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MagicCodeInput from '@components/MagicCodeInput';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isValidPIN} from '@libs/ValidationUtils';
-import {usePIN} from '@pages/MissingPersonalDetails/PINContext';
+import {usePINActions, usePINState} from '@pages/MissingPersonalDetails/PINContext';
 import type {CustomSubPageProps} from '@pages/MissingPersonalDetails/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,7 +20,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 function PIN({onNext}: CustomSubPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {PIN: savedPIN, setPIN, isConfirmStep, setIsConfirmStep, isPINHidden, togglePINVisibility} = usePIN();
+    const icons = useMemoizedLazyExpensifyIcons(['Eye', 'EyeDisabled']);
+    const {PIN: savedPIN, isConfirmStep, isPINHidden} = usePINState();
+    const {setPIN, setIsConfirmStep, togglePINVisibility} = usePINActions();
     const [enteredPIN, setEnteredPIN] = useState(savedPIN);
     const [confirmPIN, setConfirmPIN] = useState(savedPIN);
     const [error, setError] = useState('');
@@ -105,7 +107,7 @@ function PIN({onNext}: CustomSubPageProps) {
 
                 <View style={[styles.flexRow, styles.justifyContentCenter, styles.mv4, styles.alignItemsCenter, styles.w100]}>
                     <Button
-                        icon={isPINHidden ? Expensicons.Eye : Expensicons.EyeDisabled}
+                        icon={isPINHidden ? icons.Eye : icons.EyeDisabled}
                         text={isPINHidden ? translate('cardPage.revealPin') : translate('cardPage.hidePin')}
                         onPress={togglePINVisibility}
                         medium

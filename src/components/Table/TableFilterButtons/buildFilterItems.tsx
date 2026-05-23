@@ -187,7 +187,7 @@ function createSingleSelectPopover<FilterKey extends string = string>({filterKey
                   text: foundOption.label,
                   value: currentFilterValue as FilterKey,
               }
-            : null;
+            : undefined;
 
         return (
             <SingleSelectPopup

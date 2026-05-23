@@ -1,9 +1,8 @@
+import type {RefObject} from 'react';
 import {createContext, useContext} from 'react';
-// eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {getOriginalReportID} from '@libs/ReportUtils';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
@@ -30,15 +29,15 @@ function useShowContextMenuActions(): ShowContextMenuActionsContextType {
  * @param reportID - Active Report ID
  * @param action - ReportAction for ContextMenu
  * @param checkIfContextMenuActive Callback to update context menu active state
- * @param isArchivedRoom - Is the report an archived room
+ * @param originalReportID - ID of the original report from which the given reportAction is first created
  */
 function showContextMenuForReport(
     event: GestureResponderEvent | MouseEvent,
-    anchor: ContextMenuAnchor,
+    anchor: RefObject<ContextMenuAnchor> | null,
     reportID: string | undefined,
     action: OnyxEntry<ReportAction>,
     checkIfContextMenuActive: () => void,
-    isArchivedRoom = false,
+    originalReportID?: string,
 ) {
     if (!canUseTouchScreen()) {
         return;
@@ -48,11 +47,10 @@ function showContextMenuForReport(
         type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
         event,
         selection: '',
-        contextMenuAnchor: anchor,
+        contextMenuAnchor: anchor?.current,
         report: {
             reportID,
-            originalReportID: reportID ? getOriginalReportID(reportID, action, undefined) : undefined,
-            isArchivedRoom,
+            originalReportID: originalReportID ?? reportID,
         },
         reportAction: {
             reportActionID: action?.reportActionID,

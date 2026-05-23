@@ -1,5 +1,6 @@
 type OpenPolicyExpensifyCardsPageParams = {
     policyID: string;
+    domainAccountID?: number;
     emailList?: string;
 };
 

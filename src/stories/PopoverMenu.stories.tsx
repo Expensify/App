@@ -23,7 +23,7 @@ const story: Meta<typeof PopoverMenu> = {
 function Template(props: PopoverMenuProps) {
     const [isVisible, setIsVisible] = React.useState(false);
     const toggleVisibility = () => setIsVisible(!isVisible);
-    const icons = useMemoizedLazyExpensifyIcons(['Bank', 'CreditCard', 'Plus'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Bank', 'CreditCard', 'Plus']);
     return (
         <>
             <MenuItem
@@ -34,7 +34,6 @@ function Template(props: PopoverMenuProps) {
             />
             <SafeAreaProvider>
                 <PopoverMenu
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                     isVisible={isVisible}
                     onClose={toggleVisibility}

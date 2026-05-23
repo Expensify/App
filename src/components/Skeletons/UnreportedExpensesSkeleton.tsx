@@ -35,7 +35,7 @@ function getExpenseAmountSkeletonWidth(index: number) {
 
 type UnreportedExpensesSkeletonProps = {
     fixedNumberOfItems?: number;
-    reasonAttributes?: SkeletonSpanReasonAttributes;
+    reasonAttributes: SkeletonSpanReasonAttributes;
 };
 
 function UnreportedExpensesSkeleton({fixedNumberOfItems, reasonAttributes}: UnreportedExpensesSkeletonProps) {

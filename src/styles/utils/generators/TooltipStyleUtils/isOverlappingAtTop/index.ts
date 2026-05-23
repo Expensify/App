@@ -31,7 +31,7 @@ const isOverlappingAtTop: IsOverlappingAtTop = (tooltip, xOffset, yOffset, toolt
     const elementAtTargetCenterX = document.elementFromPoint(targetCenterX, yOffset);
 
     // Ensure it's not the already rendered element of this very tooltip, so the tooltip doesn't try to "avoid" itself
-    if (!elementAtTargetCenterX || ('contains' in tooltip && tooltip.contains(elementAtTargetCenterX))) {
+    if (!elementAtTargetCenterX || ('contains' in tooltip && (tooltip as HTMLDivElement).contains(elementAtTargetCenterX))) {
         return false;
     }
 

@@ -41,7 +41,8 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
         <PressableWithoutFeedback
             onPress={onPress}
             accessibilityLabel={title}
-            role={CONST.ROLE.BUTTON}
+            accessibilityState={{selected: focused}}
+            role={CONST.ROLE.TAB}
             sentryLabel={CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM}
             style={({hovered, pressed}) => [
                 styles.flexRow,

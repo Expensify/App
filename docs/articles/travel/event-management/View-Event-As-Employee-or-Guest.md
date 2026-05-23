@@ -12,7 +12,7 @@ If you’ve been invited to a company event, you can view event details and book
 
 ## How to Access the Travel Tool
 
-- **In New Expensify:** Click the green **+** button in the bottom-left corner of your screen, then select **Book travel**.  
+- **In New Expensify:** Click the **+** button in the bottom-left corner of your screen, then select **Book travel**.  
 - **In Classic Expensify:** Click **Travel** in the left-hand menu, then select **Book or manage travel**.  
 
 **Need to enable travel still?**  

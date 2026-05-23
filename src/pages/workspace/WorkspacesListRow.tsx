@@ -14,23 +14,25 @@ import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
-import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
-import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import WorkspacesListRowDisplayName from '@components/WorkspacesListRowDisplayName';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
+import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
+import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getUserFriendlyWorkspaceType} from '@libs/PolicyUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsSelector} from '@src/selectors/PersonalDetails';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
+type WorkspacesListRowProps = {
     /** Name of the workspace */
     title: string;
 
@@ -90,7 +92,7 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
     disabled?: boolean;
 
     /** Callback when the row is pressed */
-    onPress?: () => void;
+    onPress?: (event?: ModifiedMouseEvent) => void;
 };
 
 type BrickRoadIndicatorIconProps = {
@@ -99,7 +101,7 @@ type BrickRoadIndicatorIconProps = {
 
 function BrickRoadIndicatorIcon({brickRoadIndicator}: BrickRoadIndicatorIconProps) {
     const theme = useTheme();
-    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
 
     return brickRoadIndicator ? (
         <Icon
@@ -116,7 +118,6 @@ function WorkspacesListRow({
     fallbackWorkspaceIcon,
     ownerAccountID,
     workspaceType,
-    currentUserPersonalDetails,
     layoutWidth = CONST.LAYOUT_WIDTH.NONE,
     rowStyles,
     style,
@@ -138,8 +139,10 @@ function WorkspacesListRow({
     const theme = useTheme();
     const isFocused = useIsFocused();
     const isNarrow = layoutWidth === CONST.LAYOUT_WIDTH.NARROW;
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Hourglass'] as const);
-    const illustrations = useMemoizedLazyIllustrations(['Mailbox', 'ShieldYellow']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Hourglass']);
+    const illustrations = useMemoizedLazyIllustrations(['Mailbox', 'ShieldYellow', 'EnvelopeReceipt']);
+
+    const [ownerDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(ownerAccountID)});
 
     const workspaceTypeIcon = useCallback(
         (type: WorkspacesListRowProps['workspaceType']): IconAsset => {
@@ -148,14 +151,15 @@ function WorkspacesListRow({
                     return illustrations.ShieldYellow;
                 case CONST.POLICY.TYPE.TEAM:
                     return illustrations.Mailbox;
+                case CONST.POLICY.TYPE.SUBMIT:
+                    return illustrations.EnvelopeReceipt;
                 default:
                     return illustrations.Mailbox;
             }
         },
-        [illustrations.Mailbox, illustrations.ShieldYellow],
+        [illustrations.EnvelopeReceipt, illustrations.Mailbox, illustrations.ShieldYellow],
     );
 
-    const ownerDetails = ownerAccountID && getPersonalDetailsByIDs({accountIDs: [ownerAccountID], currentUserAccountID: currentUserPersonalDetails.accountID}).at(0);
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}>(null);
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
@@ -266,16 +270,13 @@ function WorkspacesListRow({
                 <PressableWithoutFeedback
                     accessible
                     accessibilityLabel={accessibilityLabel}
-                    role={isWide ? CONST.ROLE.ROW : CONST.ROLE.BUTTON}
+                    role={CONST.ROLE.LINK}
                     onPress={onPress}
                     disabled={disabled}
                     style={[isWide ? styles.flexRow : styles.flexColumn, styles.flex1, isWide && styles.gap5]}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.ROW}
                 >
-                    <View
-                        role={isWide ? CONST.ROLE.CELL : undefined}
-                        style={[styles.flexRow, styles.justifyContentBetween, styles.flex2, isNarrow && styles.mb3, styles.alignItemsCenter]}
-                    >
+                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.flex2, isNarrow && styles.mb3, styles.alignItemsCenter]}>
                         <View style={[styles.flexRow, styles.gap3, styles.flex1, styles.alignItemsCenter]}>
                             <Avatar
                                 imageStyles={[styles.alignSelfCenter]}
@@ -294,10 +295,7 @@ function WorkspacesListRow({
                         </View>
                         {isNarrow && NarrowBadges}
                     </View>
-                    <View
-                        role={isWide ? CONST.ROLE.CELL : undefined}
-                        style={[styles.flexRow, isWide && styles.flex1, isWide && styles.workspaceOwnerSectionMinWidth, styles.gap2, styles.alignItemsCenter]}
-                    >
+                    <View style={[styles.flexRow, isWide && styles.flex1, isWide && styles.workspaceOwnerSectionMinWidth, styles.gap2, styles.alignItemsCenter]}>
                         {!!ownerDetails && (
                             <>
                                 <Avatar
@@ -322,10 +320,7 @@ function WorkspacesListRow({
                             </>
                         )}
                     </View>
-                    <View
-                        role={isWide ? CONST.ROLE.CELL : undefined}
-                        style={[styles.flexRow, isWide && styles.flex1, styles.gap2, styles.alignItemsCenter]}
-                    >
+                    <View style={[styles.flexRow, isWide && styles.flex1, styles.gap2, styles.alignItemsCenter]}>
                         <Icon
                             src={workspaceTypeIcon(workspaceType)}
                             width={variables.workspaceTypeIconWidth}
@@ -367,7 +362,8 @@ function WorkspacesListRow({
                                 fill={theme.icon}
                                 additionalStyles={[styles.alignSelfCenter, !isHovered && styles.opacitySemiTransparent]}
                                 isButtonIcon
-                                medium
+                                width={variables.iconSizeNormal}
+                                height={variables.iconSizeNormal}
                             />
                         </PressableWithoutFeedback>
                     )}
@@ -377,4 +373,4 @@ function WorkspacesListRow({
     );
 }
 
-export default withCurrentUserPersonalDetails(WorkspacesListRow);
+export default WorkspacesListRow;

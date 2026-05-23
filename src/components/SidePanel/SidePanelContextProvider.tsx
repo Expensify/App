@@ -10,7 +10,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import SidePanelActions from '@libs/actions/SidePanel';
 import DateUtils from '@libs/DateUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
-import {isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
+import {canEditWorkspaceSettings, shouldShowPolicy} from '@libs/PolicyUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -28,7 +28,6 @@ type SidePanelStateContextProps = {
     sidePanelOffset: RefObject<Animated.Value>;
     sidePanelTranslateX: RefObject<Animated.Value>;
     sidePanelNVP?: SidePanel;
-    reportID?: string;
     sessionStartTime: string | null;
 };
 
@@ -48,6 +47,8 @@ const SidePanelStateContext = createContext<SidePanelStateContextProps>({
     sidePanelTranslateX: {current: new Animated.Value(0)},
     sessionStartTime: null,
 });
+
+const SidePanelReportIDContext = createContext<string | undefined>(undefined);
 
 const SidePanelActionsContext = createContext<SidePanelActionsContextProps>({
     openSidePanel: () => {},
@@ -80,18 +81,21 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
     });
 
     const isRHPAdminsRoom = onboardingRHPVariant === CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM;
-    const isUserAdmin = isPolicyAdmin(activePolicy, sessionEmail);
+    const isRHPHomePage = onboardingRHPVariant === CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE;
+    const isUserAdmin = canEditWorkspaceSettings(activePolicy);
     const isPolicyActive = shouldShowPolicy(activePolicy, false, sessionEmail ?? '');
     const adminsChatReportID = activePolicy?.chatReportIDAdmins?.toString();
 
-    const reportID = isRHPAdminsRoom && isUserAdmin && isPolicyActive && adminsChatReportID ? adminsChatReportID : conciergeReportID;
+    const reportID = (isRHPAdminsRoom || isRHPHomePage) && isUserAdmin && isPolicyActive && adminsChatReportID ? adminsChatReportID : conciergeReportID;
 
     const [sessionStartTime, setSessionStartTime] = useState<string | null>(null);
     const [prevShouldHideSidePanel, setPrevShouldHideSidePanel] = useState(shouldHideSidePanel);
 
     if (prevShouldHideSidePanel !== shouldHideSidePanel) {
         setPrevShouldHideSidePanel(shouldHideSidePanel);
-        if (!shouldHideSidePanel) {
+        if (shouldHideSidePanel) {
+            setSessionStartTime(null);
+        } else if (!sessionStartTime) {
             setSessionStartTime(DateUtils.getDBTime());
         }
     }
@@ -133,6 +137,11 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
         focusComposerWithDelay(ReportActionComposeFocusManager.composerRef.current, CONST.SIDE_PANEL_ANIMATED_TRANSITION + CONST.COMPOSER_FOCUS_DELAY)(true);
     };
 
+    const openSidePanel = () => {
+        setSessionStartTime(DateUtils.getDBTime());
+        SidePanelActions.openSidePanel(!isExtraLargeScreenWidth);
+    };
+
     // Because of the React Compiler we don't need to memoize it manually
     // eslint-disable-next-line react/jsx-no-constructed-context-values
     const stateValue = {
@@ -145,23 +154,24 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
         sidePanelOffset,
         sidePanelTranslateX,
         sidePanelNVP,
-        reportID,
         sessionStartTime,
     };
 
     // Because of the React Compiler we don't need to memoize it manually
     // eslint-disable-next-line react/jsx-no-constructed-context-values
     const actionsValue = {
-        openSidePanel: () => SidePanelActions.openSidePanel(!isExtraLargeScreenWidth),
+        openSidePanel,
         closeSidePanel,
     };
 
     return (
         <SidePanelStateContext.Provider value={stateValue}>
-            <SidePanelActionsContext.Provider value={actionsValue}>{children}</SidePanelActionsContext.Provider>
+            <SidePanelReportIDContext.Provider value={reportID}>
+                <SidePanelActionsContext.Provider value={actionsValue}>{children}</SidePanelActionsContext.Provider>
+            </SidePanelReportIDContext.Provider>
         </SidePanelStateContext.Provider>
     );
 }
 
 export default SidePanelContextProvider;
-export {SidePanelStateContext, SidePanelActionsContext};
+export {SidePanelStateContext, SidePanelReportIDContext, SidePanelActionsContext};

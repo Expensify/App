@@ -8,7 +8,7 @@ import {
     UnsupportedDeviceFailureScreen,
 } from '@components/MultifactorAuthentication/components/OutcomeScreen';
 import type {MultifactorAuthenticationDefaultUIConfig, MultifactorAuthenticationScenarioCustomConfig} from '@components/MultifactorAuthentication/config/types';
-import type {MultifactorAuthenticationCallbackResponse} from '@libs/MultifactorAuthentication/Biometrics/types';
+import type {MultifactorAuthenticationCallbackResponse} from '@libs/MultifactorAuthentication/shared/types';
 import CONST from '@src/CONST';
 
 const DEFAULT_CONFIG = {
@@ -16,8 +16,8 @@ const DEFAULT_CONFIG = {
     defaultClientFailureScreen: <DefaultClientFailureScreen />,
     defaultServerFailureScreen: <DefaultServerFailureScreen />,
     failureScreens: {
-        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_ELIGIBLE_METHODS]: <NoEligibleMethodsFailureScreen />,
-        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.UNSUPPORTED_DEVICE]: <UnsupportedDeviceFailureScreen />,
+        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.NO_AUTHENTICATION_METHODS_ENROLLED]: <NoEligibleMethodsFailureScreen />,
+        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.AUTHENTICATION_TYPE_NOT_SUPPORTED]: <UnsupportedDeviceFailureScreen />,
     },
     modals: {
         cancelConfirmation: DefaultCancelConfirmModal,
@@ -39,5 +39,4 @@ function customConfig<const T extends MultifactorAuthenticationScenarioCustomCon
     } as const;
 }
 
-export default DEFAULT_CONFIG;
-export {customConfig};
+export default customConfig;

@@ -11,7 +11,6 @@ import type Navigation from '@libs/Navigation/Navigation';
 import {buildOptimisticCreatedReportForUnapprovedAction} from '@libs/ReportUtils';
 import HeaderView from '@pages/inbox/HeaderView';
 import {joinRoom} from '@userActions/Report';
-// eslint-disable-next-line no-restricted-syntax
 import type * as ReportType from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -50,7 +49,7 @@ describe('HeaderView', () => {
     });
 
     beforeAll(() => {
-        Onyx.init({keys: ONYXKEYS});
+        Onyx.init({keys: ONYXKEYS, evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS]});
         initOnyxDerivedValues();
         return waitForBatchedUpdates();
     });
@@ -82,9 +81,7 @@ describe('HeaderView', () => {
             <LocaleContextProvider>
                 <OnyxListItemProvider>
                     <HeaderView
-                        report={report}
                         onNavigationMenuButtonClicked={() => {}}
-                        parentReportAction={null}
                         reportID={report.reportID}
                     />
                 </OnyxListItemProvider>
@@ -117,14 +114,14 @@ describe('HeaderView', () => {
             notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         };
 
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+        await waitForBatchedUpdates();
+
         render(
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
                 <HeaderView
-                    report={report}
                     onNavigationMenuButtonClicked={() => {}}
-                    parentReportAction={null}
                     reportID={report.reportID}
-                    shouldUseNarrowLayout
                 />
             </ComposeProviders>,
         );
@@ -178,9 +175,7 @@ describe('HeaderView', () => {
             <LocaleContextProvider>
                 <OnyxListItemProvider>
                     <HeaderView
-                        report={threadReport}
                         onNavigationMenuButtonClicked={() => {}}
-                        parentReportAction={parentReportAction}
                         reportID={threadReport.reportID}
                     />
                 </OnyxListItemProvider>

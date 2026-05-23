@@ -1,20 +1,23 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useState} from 'react';
 import {View} from 'react-native';
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
 import {useCurrencyListState} from '@hooks/useCurrencyList';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getPlaidCountry, isPlaidSupportedCountry} from '@libs/CardUtils';
 import searchOptions from '@libs/searchOptions';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import StringUtils from '@libs/StringUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
@@ -42,6 +45,8 @@ function SelectCountryStep({policyID}: CountryStepProps) {
 
     const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
     const currentCountry = selectedCountry ?? addNewCard?.data?.selectedCountry ?? getPlaidCountry(policy?.outputCurrency, currencyList, countryByIp);
+    const initialSelectedValue = useInitialSelection(currentCountry || undefined, {resetOnFocus: true});
+    const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
 
     const [hasError, setHasError] = useState(false);
     const doesCountrySupportPlaid = isPlaidSupportedCountry(currentCountry);
@@ -54,7 +59,7 @@ function SelectCountryStep({policyID}: CountryStepProps) {
                 clearAddNewCardFlow();
             }
             setAddNewCompanyCardStepAndData({
-                step: doesCountrySupportPlaid ? CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE : CONST.COMPANY_CARDS.STEP.CARD_TYPE,
+                step: CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE,
                 data: {
                     selectedCountry: currentCountry,
                     selectedFeedType: doesCountrySupportPlaid ? CONST.COMPANY_CARDS.FEED_TYPE.DIRECT : CONST.COMPANY_CARDS.FEED_TYPE.CUSTOM,
@@ -84,8 +89,9 @@ function SelectCountryStep({policyID}: CountryStepProps) {
                 searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
             };
         });
-
-    const searchResults = searchOptions(debouncedSearchValue, countries);
+    const orderedCountries = moveInitialSelectionToTop(countries, initialSelectedValues);
+    const filteredCountries = searchOptions(debouncedSearchValue, debouncedSearchValue ? countries : orderedCountries);
+    const searchResults = filteredCountries.map((country) => ({...country, isSelected: currentCountry === country.value}));
     const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     const textInputOptions = {
@@ -108,24 +114,28 @@ function SelectCountryStep({policyID}: CountryStepProps) {
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >
-            <HeaderWithBackButton
-                title={translate('workspace.companyCards.addCards')}
-                onBackButtonPress={handleBackButtonPress}
-            />
+            <CollapsibleHeaderOnKeyboard>
+                <HeaderWithBackButton
+                    title={translate('workspace.companyCards.addCards')}
+                    onBackButtonPress={handleBackButtonPress}
+                />
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.addNewCard.whereIsYourBankLocated')}</Text>
+            </CollapsibleHeaderOnKeyboard>
 
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.addNewCard.whereIsYourBankLocated')}</Text>
             <SelectionList
                 data={searchResults}
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 onSelectRow={(countryOption) => {
                     setSelectedCountry(countryOption.value ?? null);
                 }}
                 textInputOptions={textInputOptions}
+                searchValueForFocusSync={debouncedSearchValue}
                 confirmButtonOptions={confirmButtonOptions}
-                initiallyFocusedItemKey={currentCountry}
+                initiallyFocusedItemKey={initialSelectedValue}
                 disableMaintainingScrollPosition
                 shouldSingleExecuteRowSelect
                 shouldUpdateFocusedIndex
+                shouldScrollToFocusedIndexOnMount={false}
                 addBottomSafeAreaPadding
                 shouldStopPropagation
             >

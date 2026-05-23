@@ -2,7 +2,9 @@ import ConfirmModalWrapper from '@components/Modal/Global/ConfirmModalWrapper';
 import type {ModalProps} from '@components/Modal/Global/ModalContext';
 import {useModal} from '@components/Modal/Global/ModalContext';
 
-type ConfirmModalOptions = Omit<React.ComponentProps<typeof ConfirmModalWrapper>, keyof ModalProps> & {id?: string};
+type ConfirmModalOptions = Omit<React.ComponentProps<typeof ConfirmModalWrapper>, keyof ModalProps> & {
+    id?: string;
+};
 
 const useConfirmModal = () => {
     const context = useModal();

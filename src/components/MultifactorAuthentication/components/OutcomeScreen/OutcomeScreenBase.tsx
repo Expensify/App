@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -8,6 +8,7 @@ import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -24,6 +25,7 @@ type OutcomeScreenBaseProps = {
     subtitle?: string;
     customSubtitle?: React.ReactElement;
     padding?: ViewStyle;
+    titleStyle?: StyleProp<TextStyle>;
 };
 
 function HTMLSubtitle({htmlString = '', style}: {htmlString?: string; style?: ViewStyle}) {
@@ -44,7 +46,7 @@ function HTMLSubtitle({htmlString = '', style}: {htmlString?: string; style?: Vi
     );
 }
 
-function OutcomeScreenBase({headerTitle, illustration, iconWidth, iconHeight, title, subtitle, customSubtitle, padding}: OutcomeScreenBaseProps) {
+function OutcomeScreenBase({headerTitle, illustration, iconWidth, iconHeight, title, subtitle, customSubtitle, padding, titleStyle}: OutcomeScreenBaseProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {asset: icon} = useMemoizedLazyAsset(() => loadIllustration(illustration));
@@ -67,27 +69,29 @@ function OutcomeScreenBase({headerTitle, illustration, iconWidth, iconHeight, ti
                 onBackButtonPress={onClose}
                 shouldShowBackButton
             />
-            <View style={styles.flex1}>
-                <BlockingView
-                    icon={icon}
-                    contentFitImage="fill"
-                    iconWidth={iconWidth}
-                    iconHeight={iconHeight}
-                    title={title}
-                    titleStyles={styles.mb2}
-                    CustomSubtitle={CustomSubtitle}
-                    containerStyle={[styles.ph5, padding]}
-                    testID={OutcomeScreenBase.displayName}
-                />
-            </View>
-            <View style={[styles.flexRow, styles.m5, styles.mt0]}>
-                <Button
-                    large
-                    success
-                    style={styles.flex1}
-                    onPress={onClose}
-                    text={translate('common.buttonConfirm')}
-                />
+            <View style={[styles.flex1, styles.gap2]}>
+                <ScrollView contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter]}>
+                    <BlockingView
+                        icon={icon}
+                        contentFitImage="fill"
+                        iconWidth={iconWidth}
+                        iconHeight={iconHeight}
+                        title={title}
+                        titleStyles={[styles.mb2, titleStyle]}
+                        CustomSubtitle={CustomSubtitle}
+                        containerStyle={[styles.ph5, padding]}
+                        testID={OutcomeScreenBase.displayName}
+                    />
+                </ScrollView>
+                <View style={[styles.flexRow, styles.m5, styles.mt0]}>
+                    <Button
+                        large
+                        success
+                        style={styles.flex1}
+                        onPress={onClose}
+                        text={translate('common.buttonConfirm')}
+                    />
+                </View>
             </View>
         </ScreenWrapper>
     );
@@ -96,4 +100,3 @@ function OutcomeScreenBase({headerTitle, illustration, iconWidth, iconHeight, ti
 OutcomeScreenBase.displayName = 'OutcomeScreenBase';
 
 export default OutcomeScreenBase;
-export type {OutcomeScreenBaseProps};

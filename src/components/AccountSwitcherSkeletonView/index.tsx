@@ -26,7 +26,7 @@ type AccountSwitcherSkeletonViewProps = {
     style?: StyleProp<ViewStyle>;
 
     /** Reason attributes for skeleton span telemetry */
-    reasonAttributes?: SkeletonSpanReasonAttributes;
+    reasonAttributes: SkeletonSpanReasonAttributes;
 };
 
 function AccountSwitcherSkeletonView({shouldAnimate = true, avatarSize = CONST.AVATAR_SIZE.DEFAULT, width, style, reasonAttributes}: AccountSwitcherSkeletonViewProps) {

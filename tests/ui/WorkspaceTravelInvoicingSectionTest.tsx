@@ -3,11 +3,13 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
+import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {payTravelInvoicingSpend} from '@libs/actions/TravelInvoicing';
 import {getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
 import WorkspaceTravelInvoicingSection from '@pages/workspace/travel/WorkspaceTravelInvoicingSection';
+import {updateGeneralSettings} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
@@ -24,7 +26,7 @@ const WORKSPACE_ACCOUNT_ID = 999888;
 // We use literal values that match the constants above.
 
 jest.mock('@react-navigation/native', () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const actualNav = jest.requireActual('@react-navigation/native');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
@@ -56,6 +58,8 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     default: {
         navigate: jest.fn(),
         getActiveRoute: jest.fn(() => ''),
+        getActiveRouteWithoutParams: jest.fn(() => ''),
+        isNavigationReady: jest.fn(() => Promise.resolve()),
         isTopmostRouteModalScreen: jest.fn(() => false),
     },
 }));
@@ -70,6 +74,20 @@ jest.mock('@libs/actions/TravelInvoicing', () => {
     };
 });
 
+jest.mock('@userActions/Policy/Policy', () => ({
+    updateGeneralSettings: jest.fn(),
+}));
+
+const mockShowConfirmModal = jest.fn().mockResolvedValue({action: 'CONFIRM'});
+const mockCloseModal = jest.fn();
+
+jest.mock('@hooks/useConfirmModal', () => {
+    return jest.fn().mockImplementation(() => ({
+        showConfirmModal: mockShowConfirmModal,
+        closeModal: mockCloseModal,
+    }));
+});
+
 const mockPolicy: Policy = {
     ...createRandomPolicy(parseInt(POLICY_ID, 10) || 1),
     type: CONST.POLICY.TYPE.CORPORATE,
@@ -79,7 +97,7 @@ const mockPolicy: Policy = {
 
 const renderWorkspaceTravelInvoicingSection = () => {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
             <WorkspaceTravelInvoicingSection policyID={POLICY_ID} />
         </ComposeProviders>,
     );
@@ -114,8 +132,8 @@ describe('WorkspaceTravelInvoicingSection', () => {
             // Wait for component to render
             await waitForBatchedUpdatesWithAct();
 
-            // Central Invoicing section should be visible
-            expect(screen.getByText('Central invoicing')).toBeTruthy();
+            // Travel Invoicing section should be visible
+            expect(screen.getByText('Travel invoicing')).toBeTruthy();
         });
 
         it('should render sections when paymentBankAccountID is not set', async () => {
@@ -135,7 +153,7 @@ describe('WorkspaceTravelInvoicingSection', () => {
 
             renderWorkspaceTravelInvoicingSection();
             await waitForBatchedUpdatesWithAct();
-            expect(screen.getByText('Central invoicing')).toBeTruthy();
+            expect(screen.getByText('Travel invoicing')).toBeTruthy();
         });
     });
 
@@ -167,7 +185,7 @@ describe('WorkspaceTravelInvoicingSection', () => {
 
             renderWorkspaceTravelInvoicingSection();
             await waitForBatchedUpdatesWithAct();
-            expect(screen.getByText('Central invoicing')).toBeTruthy();
+            expect(screen.getByText('Travel invoicing')).toBeTruthy();
         });
 
         it('should display current travel spend label when configured', async () => {
@@ -428,10 +446,37 @@ describe('WorkspaceTravelInvoicingSection', () => {
             }
             await waitForBatchedUpdatesWithAct();
 
-            expect(payTravelInvoicingSpend).toHaveBeenCalledWith(WORKSPACE_ACCOUNT_ID);
+            expect(payTravelInvoicingSpend).toHaveBeenCalledWith(WORKSPACE_ACCOUNT_ID, 5000);
         });
 
-        it('should hide Pay Balance button and show queued message when payment is queued', async () => {
+        it('should hide Pay Balance button and show queued message when settlement is pending', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
+                await Onyx.merge(cardSettingsKey, {
+                    TRAVEL_US: {
+                        isEnabled: true,
+                        paymentBankAccountID: 12345,
+                        currentBalance: 15000,
+                        pendingSettlementAmount: 10000,
+                    },
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            renderWorkspaceTravelInvoicingSection();
+            await waitForBatchedUpdatesWithAct();
+
+            // Pay balance button should not be visible when settlement is pending
+            expect(screen.queryByText('Pay balance')).toBeNull();
+
+            // Current spend should show real balance ($150.00), not $0
+            expect(screen.getByText('$150.00')).toBeTruthy();
+
+            // Queued payment message should show the pending settlement amount
+            expect(screen.getByText('Payment of $100.00 is queued and will be processed soon.')).toBeTruthy();
+        });
+
+        it('should show Pay Balance button when no settlement is pending and balance exists', async () => {
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
                 await Onyx.merge(cardSettingsKey, {
@@ -439,24 +484,60 @@ describe('WorkspaceTravelInvoicingSection', () => {
                         isEnabled: true,
                         paymentBankAccountID: 12345,
                         currentBalance: 5000,
+                        pendingSettlementAmount: 0,
+                        monthlySettlementDate: new Date(),
                     },
                 });
-                // Set the manual billing flag to true (payment queued)
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${WORKSPACE_ACCOUNT_ID}`, true);
                 await waitForBatchedUpdatesWithAct();
             });
 
             renderWorkspaceTravelInvoicingSection();
             await waitForBatchedUpdatesWithAct();
 
-            // Pay balance button should not be visible when payment is queued
-            expect(screen.queryByText('Pay balance')).toBeNull();
+            // Pay button should be visible
+            expect(screen.getByText('Pay balance')).toBeTruthy();
 
-            // Current spend should show $0.00 (limit also shows $0.00, so use getAllByText)
-            expect(screen.getAllByText('$0.00').length).toBeGreaterThanOrEqual(1);
+            // Should show real balance
+            expect(screen.getByText('$50.00')).toBeTruthy();
 
-            // Queued payment message should be visible with the original amount
-            expect(screen.getByText('Payment of $50.00 is queued and will be processed soon.')).toBeTruthy();
+            // No queued message
+            expect(screen.queryByText(/Payment of .* is queued/)).toBeNull();
+        });
+    });
+
+    describe('Currency Conversion Prompt', () => {
+        const cardSettingsKey = getTravelInvoicingCardSettingsKey(WORKSPACE_ACCOUNT_ID);
+
+        it('should prompt to update currency to USD if policy currency is not USD, and call updateGeneralSettings on confirm', async () => {
+            const mockPolicyGbp = {
+                ...mockPolicy,
+                outputCurrency: 'GBP',
+                name: 'GBP Workspace',
+            };
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicyGbp);
+                await Onyx.merge(cardSettingsKey, {
+                    TRAVEL_US: {
+                        isEnabled: false,
+                    },
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            renderWorkspaceTravelInvoicingSection();
+            await waitForBatchedUpdatesWithAct();
+
+            // Fire toggle change to true
+            const toggleButton = screen.getByRole('switch');
+            fireEvent.press(toggleButton);
+            await waitForBatchedUpdatesWithAct();
+
+            // The confirm modal should be triggered
+            expect(mockShowConfirmModal).toHaveBeenCalled();
+
+            // The updateGeneralSettings function should be called
+            expect(updateGeneralSettings).toHaveBeenCalledWith(expect.objectContaining({outputCurrency: 'GBP', name: 'GBP Workspace'}), 'GBP Workspace', CONST.CURRENCY.USD);
         });
     });
 });

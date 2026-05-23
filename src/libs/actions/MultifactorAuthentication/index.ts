@@ -1,4 +1,3 @@
-/* eslint-disable rulesdir/no-api-side-effects-method */
 // These functions use makeRequestWithSideEffects because challenge data must be returned immediately
 // for security and timing requirements (see detailed explanation below)
 import Onyx from 'react-native-onyx';
@@ -8,9 +7,9 @@ import {makeRequestWithSideEffects} from '@libs/API';
 import type {DenyTransactionParams, RevokeMultifactorAuthenticationCredentialsParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
-import type {AuthenticationChallenge, RegistrationChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
-import {parseHttpRequest} from '@libs/MultifactorAuthentication/Biometrics/helpers';
-import type {MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/Biometrics/types';
+import type {AuthenticationChallenge, RegistrationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
+import {isAuthenticationChallenge, isRegistrationChallenge, parseHttpResponse} from '@libs/MultifactorAuthentication/shared/helpers';
+import type {MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/shared/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {LocallyProcessed3DSChallengeReviews} from '@src/types/onyx';
@@ -71,21 +70,21 @@ function cleanUpLocallyProcessed3DSTransactionReviews(entriesToDelete: string[])
  * Please consult before using this pattern.
  */
 
-async function registerAuthenticationKey({keyInfo, authenticationMethod}: MultifactorAuthenticationScenarioParameters['REGISTER-BIOMETRICS']) {
+async function registerAuthenticationKey({keyInfo}: MultifactorAuthenticationScenarioParameters['REGISTER-BIOMETRICS']) {
     try {
-        const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REGISTER_AUTHENTICATION_KEY, {keyInfo: JSON.stringify(keyInfo), authenticationMethod});
+        const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REGISTER_AUTHENTICATION_KEY, {keyInfo: JSON.stringify(keyInfo)});
 
         const {jsonCode, message} = response ?? {};
-        return parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REGISTER_AUTHENTICATION_KEY, message);
+        return parseHttpResponse(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REGISTER_AUTHENTICATION_KEY, message);
     } catch (error) {
-        Log.hmmm('[MultifactorAuthentication] Failed to register an authentication key', {error});
-        return parseHttpRequest(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REGISTER_AUTHENTICATION_KEY, undefined);
+        Log.hmmm('[MFA] Failed to register an authentication key', {error});
+        return parseHttpResponse(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REGISTER_AUTHENTICATION_KEY, undefined);
     }
 }
 
 type RegistrationChallengeResponse = {
     httpStatusCode: number;
-    reason: MultifactorAuthenticationReason;
+    reason: MultifactorAuthenticationReason | undefined;
     message: string | undefined;
     challenge: RegistrationChallenge | undefined;
     publicKeys: string[] | undefined;
@@ -93,7 +92,7 @@ type RegistrationChallengeResponse = {
 
 type AuthenticationChallengeResponse = {
     httpStatusCode: number;
-    reason: MultifactorAuthenticationReason;
+    reason: MultifactorAuthenticationReason | undefined;
     message: string | undefined;
     challenge: AuthenticationChallenge | undefined;
     publicKeys: string[] | undefined;
@@ -130,17 +129,28 @@ async function requestRegistrationChallenge(validateCode: string): Promise<Regis
             {optimisticData, finallyData},
         );
         const {jsonCode, challenge, publicKeys, message} = response ?? {};
-        const parsedResponse = parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REQUEST_AUTHENTICATION_CHALLENGE, message);
+        const parsedResponse = parseHttpResponse(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REQUEST_AUTHENTICATION_CHALLENGE, message);
+
+        if (challenge && !isRegistrationChallenge(challenge)) {
+            Log.hmmm('[MFA] Received non-registration challenge from registration endpoint');
+            return {
+                ...parsedResponse,
+                reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNRECOGNIZED,
+                message: 'Invalid registration challenge type: received non-registration challenge',
+                challenge: undefined,
+                publicKeys,
+            };
+        }
 
         return {
             ...parsedResponse,
-            challenge: challenge as RegistrationChallenge | undefined,
+            challenge,
             publicKeys,
         };
     } catch (error) {
-        Log.hmmm('[MultifactorAuthentication] Failed to request a registration challenge', {error});
+        Log.hmmm('[MFA] Failed to request a registration challenge', {error});
         return {
-            ...parseHttpRequest(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REQUEST_AUTHENTICATION_CHALLENGE, undefined),
+            ...parseHttpResponse(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REQUEST_AUTHENTICATION_CHALLENGE, undefined),
             challenge: undefined,
             publicKeys: undefined,
         };
@@ -157,17 +167,28 @@ async function requestAuthorizationChallenge(): Promise<AuthenticationChallengeR
             {},
         );
         const {jsonCode, challenge, publicKeys, message} = response ?? {};
-        const parsedResponse = parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REQUEST_AUTHENTICATION_CHALLENGE, message);
+        const parsedResponse = parseHttpResponse(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REQUEST_AUTHENTICATION_CHALLENGE, message);
+
+        if (challenge && !isAuthenticationChallenge(challenge)) {
+            Log.hmmm('[MFA] Received non-authentication challenge from authorization endpoint');
+            return {
+                ...parsedResponse,
+                reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNRECOGNIZED,
+                message: 'Invalid authorization challenge type: received non-authentication challenge',
+                challenge: undefined,
+                publicKeys,
+            };
+        }
 
         return {
             ...parsedResponse,
-            challenge: challenge as AuthenticationChallenge | undefined,
+            challenge,
             publicKeys,
         };
     } catch (error) {
-        Log.hmmm('[MultifactorAuthentication] Failed to request an authorization challenge', {error});
+        Log.hmmm('[MFA] Failed to request an authorization challenge', {error});
         return {
-            ...parseHttpRequest(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REQUEST_AUTHENTICATION_CHALLENGE, undefined),
+            ...parseHttpResponse(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REQUEST_AUTHENTICATION_CHALLENGE, undefined),
             challenge: undefined,
             publicKeys: undefined,
         };
@@ -184,10 +205,10 @@ async function troubleshootMultifactorAuthentication({signedChallenge, authentic
 
         const {jsonCode, message} = response ?? {};
 
-        return parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.TROUBLESHOOT_MULTIFACTOR_AUTHENTICATION, message);
+        return parseHttpResponse(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.TROUBLESHOOT_MULTIFACTOR_AUTHENTICATION, message);
     } catch (error) {
-        Log.hmmm('[MultifactorAuthentication] Failed to troubleshoot multifactor authentication', {error});
-        return parseHttpRequest(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.TROUBLESHOOT_MULTIFACTOR_AUTHENTICATION, undefined);
+        Log.hmmm('[MFA] Failed to troubleshoot multifactor authentication', {error});
+        return parseHttpResponse(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.TROUBLESHOOT_MULTIFACTOR_AUTHENTICATION, undefined);
     }
 }
 
@@ -196,10 +217,10 @@ async function revokeMultifactorAuthenticationCredentials(params: RevokeMultifac
         const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVOKE_MULTIFACTOR_AUTHENTICATION_CREDENTIALS, params ?? {}, {});
         const {jsonCode, message} = response ?? {};
 
-        return parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REVOKE_MULTIFACTOR_AUTHENTICATION_SETUP, message);
+        return parseHttpResponse(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REVOKE_MULTIFACTOR_AUTHENTICATION_SETUP, message);
     } catch (error) {
-        Log.hmmm('[MultifactorAuthentication] Failed to revoke multifactor authentication credentials', {error});
-        return parseHttpRequest(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REVOKE_MULTIFACTOR_AUTHENTICATION_SETUP, undefined);
+        Log.hmmm('[MFA] Failed to revoke multifactor authentication credentials', {error});
+        return parseHttpResponse(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REVOKE_MULTIFACTOR_AUTHENTICATION_SETUP, undefined);
     }
 }
 
@@ -234,12 +255,70 @@ async function setPersonalDetailsAndShipExpensifyCardsWithPIN(params: Multifacto
         );
 
         const {jsonCode, message} = response ?? {};
-        return parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS_WITH_PIN, message);
+        return parseHttpResponse(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS_WITH_PIN, message);
     } catch (error) {
-        Log.hmmm('[MultifactorAuthentication] Failed to set personal details and ship card with PIN', {error});
-        return parseHttpRequest(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS_WITH_PIN, undefined);
+        Log.hmmm('[MFA] Failed to set personal details and ship card with PIN', {error});
+        return parseHttpResponse(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS_WITH_PIN, undefined);
     }
 }
+async function revealPINForCard({cardID, signedChallenge, authenticationMethod}: MultifactorAuthenticationScenarioParameters['REVEAL-PIN']) {
+    try {
+        const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_CARD_PIN, {cardID, signedChallenge: JSON.stringify(signedChallenge), authenticationMethod}, {});
+
+        const {jsonCode, message, pin} = response ?? {};
+        const parsed = parseHttpResponse(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REVEAL_CARD_PIN, message);
+
+        return {
+            ...parsed,
+            body: {pin: String(pin ?? '')},
+        };
+    } catch (error) {
+        Log.hmmm('[MultifactorAuthentication] Failed to reveal PIN for card', {error});
+        return parseHttpResponse(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REVEAL_CARD_PIN, undefined);
+    }
+}
+
+async function changePINForCard({cardID, pin, signedChallenge, authenticationMethod}: MultifactorAuthenticationScenarioParameters['CHANGE-PIN']) {
+    try {
+        const response = await makeRequestWithSideEffects(
+            SIDE_EFFECT_REQUEST_COMMANDS.CHANGE_CARD_PIN,
+            {cardID, pin, signedChallenge: JSON.stringify(signedChallenge), authenticationMethod},
+            {},
+        );
+
+        const {jsonCode, message} = response ?? {};
+        return parseHttpResponse(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.CHANGE_CARD_PIN, message);
+    } catch (error) {
+        Log.hmmm('[MultifactorAuthentication] Failed to change PIN for card', {error});
+        return parseHttpResponse(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.CHANGE_CARD_PIN, undefined);
+    }
+}
+
+async function revealCardDetailsWithSCA({cardID, signedChallenge, authenticationMethod}: MultifactorAuthenticationScenarioParameters['REVEAL-CARD-DETAILS']) {
+    try {
+        const response = await makeRequestWithSideEffects(
+            SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_EXPENSIFY_CARD_DETAILS_WITH_SCA,
+            {cardID, signedChallenge: JSON.stringify(signedChallenge), authenticationMethod},
+            {},
+        );
+
+        const {jsonCode, message, pan, expiration, cvv} = response ?? {};
+        const parsed = parseHttpResponse(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REVEAL_CARD_DETAILS_WITH_SCA, message);
+
+        return {
+            ...parsed,
+            body: {
+                pan: typeof pan === 'string' ? pan : '',
+                expiration: typeof expiration === 'string' ? expiration : '',
+                cvv: typeof cvv === 'string' ? cvv : '',
+            },
+        };
+    } catch (error) {
+        Log.hmmm('[MultifactorAuthentication] Failed to reveal card details for card', {error});
+        return parseHttpResponse(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REVEAL_CARD_DETAILS_WITH_SCA, undefined);
+    }
+}
+
 /** Check whether a given transaction is still pending review and update the transactionsPending3DSReview key in Onyx */
 async function isTransactionStillPending3DSReview(transactionID: string) {
     const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_TRANSACTIONS_PENDING_3DS_REVIEW, null, {});
@@ -266,10 +345,10 @@ async function authorizeTransaction({transactionID, signedChallenge, authenticat
 
         const {jsonCode, message} = response ?? {};
 
-        return parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.APPROVE_TRANSACTION, message);
+        return parseHttpResponse(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.APPROVE_TRANSACTION, message);
     } catch (error) {
-        Log.hmmm('[MultifactorAuthentication] Failed to authorize transaction', {error});
-        return parseHttpRequest(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.APPROVE_TRANSACTION, undefined);
+        Log.hmmm('[MFA] Failed to authorize transaction', {error});
+        return parseHttpResponse(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.APPROVE_TRANSACTION, undefined);
     }
 }
 
@@ -293,20 +372,38 @@ async function denyTransaction({transactionID}: DenyTransactionParams) {
 
         const {jsonCode, message} = response ?? {};
 
-        return parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.DENY_TRANSACTION, message);
+        return parseHttpResponse(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.DENY_TRANSACTION, message);
     } catch (error) {
-        Log.hmmm('[MultifactorAuthentication] Failed to deny transaction', {error});
-        return parseHttpRequest(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.DENY_TRANSACTION, undefined);
+        Log.hmmm('[MFA] Failed to deny transaction', {error});
+        return parseHttpResponse(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.DENY_TRANSACTION, undefined);
     }
 }
 
 /** Attempt to deny the transaction without handling errors or waiting for a response. We use this to clean up after something unexpected happened trying to authorize or deny a challenge */
 async function fireAndForgetDenyTransaction({transactionID}: DenyTransactionParams) {
-    makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.DENY_TRANSACTION, {transactionID}, {});
+    makeRequestWithSideEffects(
+        SIDE_EFFECT_REQUEST_COMMANDS.DENY_TRANSACTION,
+        {transactionID},
+        {
+            optimisticData: [
+                {
+                    key: ONYXKEYS.LOCALLY_PROCESSED_3DS_TRANSACTION_REVIEWS,
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    value: {
+                        [transactionID]: CONST.MULTIFACTOR_AUTHENTICATION.LOCALLY_PROCESSED_TRANSACTION_ACTION.DENY,
+                    },
+                },
+            ],
+        },
+    );
 }
 
-function markHasAcceptedSoftPrompt() {
-    Onyx.merge(ONYXKEYS.DEVICE_BIOMETRICS, {
+function getDeviceBiometricsOnyxKey(accountID: number): `${typeof ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS}${string}` {
+    return `${ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS}${accountID}`;
+}
+
+function markHasAcceptedSoftPrompt(accountID: number) {
+    Onyx.merge(getDeviceBiometricsOnyxKey(accountID), {
         hasAcceptedSoftPrompt: true,
     });
 }
@@ -323,9 +420,13 @@ export {
     requestAuthorizationChallenge,
     troubleshootMultifactorAuthentication,
     revokeMultifactorAuthenticationCredentials,
+    getDeviceBiometricsOnyxKey,
     markHasAcceptedSoftPrompt,
     clearLocalMFAPublicKeyList,
     setPersonalDetailsAndShipExpensifyCardsWithPIN,
+    revealPINForCard,
+    changePINForCard,
+    revealCardDetailsWithSCA,
     isTransactionStillPending3DSReview,
     denyTransaction,
     authorizeTransaction,

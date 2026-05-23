@@ -1,0 +1,9 @@
+# @desc   Switch the bottom navigation tab from Home to Inbox. Triggers the ManualNavigateToInboxTab Sentry span end-to-end (BottomTab click -> Inbox layout completion). Assumes the user is signed in and the bottom nav bar is visible.
+# @pre    text="Home"
+# @pre    text="Inbox"
+# @post   text="Inbox"
+# @tag    navigation
+# @tag    perf
+# @tag    sentry-ManualNavigateToInboxTab
+press "label=\"Home\""
+press "label=\"Inbox\" || label=\"Inbox. Your review is required\""

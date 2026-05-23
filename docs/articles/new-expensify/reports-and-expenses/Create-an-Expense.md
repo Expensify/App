@@ -28,13 +28,13 @@ You can create an expense by scanning a receipt, entering details manually, or t
 ## How to use SmartScan to create an expense
 
 **On mobile:**
-1. Tap the green **camera** icon and snap a photo of a receipt or upload one from your device's gallery.
+1. Tap the **camera** icon and snap a photo of a receipt or upload one from your device's gallery.
 2. Enter the workspace or recipient’s email/phone number.
 3. Add details like description, category, tags, and tax.
 4. Tap **Create expense**.
 
 **On web:**
-1. Click the green **scan** button.
+1. In the navigation tabs on the left, click the green **Scan** icon. 
 2. Drag and drop the receipt file to the page or click **Choose files** to upload.
 3. Enter the workspace or recipient’s email/phone number.
 4. Add details like description, category, tags, and tax.
@@ -76,9 +76,10 @@ You can create an expense by scanning a receipt, entering details manually, or t
 2. Select **Track distance**.
 3. Select **GPS** and tap **Start**.
 4. Drive to your destination — tracking runs in the background.
-5. Tap **Stop** when you arrive and confirm by selecting **Stop GPS tracking**.
-6. Review the route summary, then tap **Next**.
-7. Review the expense details, then tap **Create expense**.
+5. Tap **Stop** when you arrive.
+6. (Optional) Tap **Resume** to continue the trip from a new location, creating a new segment. Tap **Stop** again when done.
+7. Review the route summary, then tap **Save**.
+8. Review the expense details, then tap **Create expense**.
 
 For more details on all distance methods including manual entry, see [Distance Expenses](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Distance-Expenses).
 
@@ -95,7 +96,7 @@ To create a time expense:
 3. Select **Time**.
 4. Enter the number of hours.
 5. Click **Next**.
-6. Choose the recipient and add expense details like description, category, tags, tax, date, and set whether the expense is reimbursable.
+6. Choose the recipient and add expense details like description, category, tags, date, and set whether the expense is reimbursable.
 7. Click **Create expense**.
 
 The total amount will be calculated automatically using the hourly rate set for the workspace.
@@ -114,10 +115,11 @@ The total amount will be calculated automatically using the hourly rate set for 
 
 ## How to bulk upload multiple receipts (web only)
 
-1. On the web, go to the **Reports** page.
+1. On the web, go to the **Spend** page or the **Home** page. 
 2. Drag up to 30 PDF or image files (under 10MB each) into Expensify.
 3. Follow the prompts to assign workspaces, recipients, and coding.
 4. Once the expenses are ready, click **Create expenses**. 
+
 
 ---
 

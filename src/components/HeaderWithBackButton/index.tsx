@@ -12,6 +12,8 @@ import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
+import useDialogLabelRegistration from '@hooks/useDialogLabelRegistration';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -78,12 +80,16 @@ function HeaderWithBackButton({
     shouldMinimizeMenuButton = false,
     openParentReportInCurrentTab = false,
 }: HeaderWithBackButtonProps) {
+    // Avatar-header routes skip Header, so register the dialog label here.
+    useDialogLabelRegistration(shouldShowReportAvatarWithDisplay ? (report?.reportName ?? '') : '');
+
     const icons = useMemoizedLazyExpensifyIcons(['Download', 'Rotate', 'BackArrow', 'Close']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
+    const isInLandscapeMode = useIsInLandscapeMode();
 
     const downloadReasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
         () => ({
@@ -103,6 +109,7 @@ function HeaderWithBackButton({
 
     const middleContent = useMemo(() => {
         if (progressBarPercentage) {
+            const progressBarLabel = stepCounter ? `${translate('common.progressBarLabel')}, ${translate('stepCounter', stepCounter)}` : undefined;
             return (
                 <>
                     {/* Reserves as much space for the middleContent as possible */}
@@ -110,8 +117,17 @@ function HeaderWithBackButton({
                     {/* Uses absolute positioning so that it's always centered instead of being affected by the
                     presence or absence of back/close buttons to the left/right of it */}
                     <View style={styles.headerProgressBarContainer}>
-                        <View style={styles.headerProgressBar}>
-                            <View style={[{width: `${progressBarPercentage}%`}, styles.headerProgressBarFill]} />
+                        <View
+                            style={styles.headerProgressBar}
+                            accessible={!!progressBarLabel}
+                            accessibilityLabel={progressBarLabel}
+                            role={CONST.ROLE.PROGRESSBAR}
+                            aria-valuetext={progressBarLabel}
+                        >
+                            <View
+                                aria-hidden
+                                style={[{width: `${progressBarPercentage}%`}, styles.headerProgressBarFill]}
+                            />
                         </View>
                     </View>
                 </>
@@ -136,6 +152,7 @@ function HeaderWithBackButton({
                 textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH2]}
                 subTitleLink={subTitleLink}
                 numberOfTitleLines={1}
+                isScreenHeader
             />
         );
     }, [
@@ -218,9 +235,10 @@ function HeaderWithBackButton({
                 // be falsy, hence using !== undefined explicitly
                 progressBarPercentage !== undefined && styles.pl0,
                 shouldShowBackButton && [styles.pl2],
-                shouldOverlay && StyleSheet.absoluteFillObject,
+                shouldOverlay && StyleSheet.absoluteFill,
                 style,
             ]}
+            onTouchStart={isInLandscapeMode ? () => Keyboard.dismiss() : undefined}
         >
             <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden, styles.mr3]}>
                 {shouldShowBackButton && (

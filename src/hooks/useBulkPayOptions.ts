@@ -5,7 +5,7 @@ import type {BankAccountMenuItem} from '@components/Search/types';
 import {isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {formatPaymentMethods, getBusinessBankAccountOptions} from '@libs/PaymentUtils';
+import {formatPaymentMethods, getBusinessBankAccountOptions, matchesCurrency} from '@libs/PaymentUtils';
 import {sortPoliciesByName} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {
@@ -74,7 +74,7 @@ function useBulkPayOptions({
     const isExpenseReport = isExpenseReportUtil(selectedReportID);
     const isInvoiceReport = isInvoiceReportUtil(selectedReportID);
     const shouldShowPayElsewhereOption = !isInvoiceReport;
-    const canUseBusinessBankAccount = isExpenseReport || (isIOUReport && selectedReportID && !hasRequestFromCurrentAccount(selectedReportID, accountID ?? CONST.DEFAULT_NUMBER_ID));
+    const canUseBusinessBankAccount = isExpenseReport || (isIOUReport && selectedReportID && !hasRequestFromCurrentAccount(iouReport, accountID ?? CONST.DEFAULT_NUMBER_ID));
     const canUsePersonalBankAccount = isIOUReport;
     const isPersonalOnlyOption = canUsePersonalBankAccount && !canUseBusinessBankAccount;
     const shouldShowBusinessBankAccountOptions = isExpenseReport && !isPersonalOnlyOption;
@@ -89,7 +89,7 @@ function useBulkPayOptions({
             .filter((method) => {
                 const accountData = method?.accountData as AccountData;
                 const isPartiallySetup = isBankAccountPartiallySetup(accountData?.state);
-                return accountData?.type === requiredAccountType && !isPartiallySetup;
+                return accountData?.type === requiredAccountType && !isPartiallySetup && matchesCurrency(method, currency);
             })
             .map((formattedPaymentMethod) => ({
                 text: formattedPaymentMethod?.title ?? '',
@@ -108,7 +108,7 @@ function useBulkPayOptions({
             }));
     };
 
-    const businessBankAccountOptionList = getBusinessBankAccountOptions(formattedPaymentMethods);
+    const businessBankAccountOptionList = getBusinessBankAccountOptions(formattedPaymentMethods, currency);
     const businessBankAccountOptions =
         shouldShowBusinessBankAccountOptions && businessBankAccountOptionList.length
             ? businessBankAccountOptionList.map((account) => ({
@@ -137,12 +137,13 @@ function useBulkPayOptions({
                     bulkPayButtonOptions.push({
                         text: account.text,
                         description: account.description,
-                        icon: account.icon,
+                        icon: typeof account.icon === 'number' ? icons.Bank : account.icon,
                         iconStyles: account.iconStyles,
-                        iconHeight: account.iconSize,
-                        iconWidth: account.iconSize,
+                        iconWidth: typeof account.icon === 'number' ? undefined : account.iconSize,
+                        iconHeight: typeof account.icon === 'number' ? undefined : account.iconSize,
                         key: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
                         shouldIgnoreKeyForRendering: true,
+                        shouldIgnoreCompactStyle: true,
                         additionalData: {
                             bankAccountID: account.methodID,
                             paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,

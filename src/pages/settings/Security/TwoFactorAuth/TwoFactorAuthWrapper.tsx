@@ -1,3 +1,4 @@
+import {useRoute} from '@react-navigation/native';
 import React, {useMemo} from 'react';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -10,6 +11,7 @@ import {quitAndNavigateBack} from '@libs/actions/TwoFactorAuthActions';
 import CONST from '@src/CONST';
 import type {StepCounterParams} from '@src/languages/params';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
@@ -36,7 +38,6 @@ type TwoFactorAuthWrapperProps = ChildrenProps & {
 function TwoFactorAuthWrapper({stepName, title, stepCounter, onBackButtonPress, shouldEnableKeyboardAvoidingView = true, shouldEnableMaxHeight = true, children}: TwoFactorAuthWrapperProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFound = useMemo(() => {
         if (!account) {
             return true;
@@ -48,6 +49,8 @@ function TwoFactorAuthWrapper({stepName, title, stepCounter, onBackButtonPress, 
             case CONST.TWO_FACTOR_AUTH_STEPS.COPY_CODES:
             case CONST.TWO_FACTOR_AUTH_STEPS.ENABLED:
             case CONST.TWO_FACTOR_AUTH_STEPS.DISABLE:
+            case CONST.TWO_FACTOR_AUTH_STEPS.REPLACE_VERIFY_NEW:
+            case CONST.TWO_FACTOR_AUTH_STEPS.REPLACE_VERIFY_OLD:
                 return false;
             case CONST.TWO_FACTOR_AUTH_STEPS.VERIFY:
                 return !account.codesAreCopied;
@@ -60,7 +63,9 @@ function TwoFactorAuthWrapper({stepName, title, stepCounter, onBackButtonPress, 
         }
     }, [account, stepName]);
 
-    const defaultGoBack = () => quitAndNavigateBack(ROUTES.SETTINGS_SECURITY);
+    const route = useRoute();
+    const backTo = (route.params as {backTo?: Route} | undefined)?.backTo;
+    const defaultGoBack = () => quitAndNavigateBack(backTo ?? ROUTES.SETTINGS_SECURITY);
 
     return (
         <ScreenWrapper

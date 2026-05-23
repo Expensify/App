@@ -5,16 +5,21 @@ import ItemListSkeletonView from '@components/Skeletons/ItemListSkeletonView';
 import useContainerWidth from '@hooks/useContainerWidth';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
+
+type Props = {
+    reasonAttributes: SkeletonSpanReasonAttributes;
+};
 
 const ITEM_HEIGHT = 64;
 
-function FixCompanyCardConnectionSkeleton() {
+function FixCompanyCardConnectionSkeleton({reasonAttributes}: Props) {
     const {onLayout, containerWidth: pageWidth} = useContainerWidth();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    useSkeletonSpan('FixCompanyCardConnectionSkeleton');
+    useSkeletonSpan('FixCompanyCardConnectionSkeleton', reasonAttributes);
 
     const horizontalPadding = shouldUseNarrowLayout ? 20 : 32;
     const gap = 12;

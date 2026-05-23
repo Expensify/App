@@ -1,12 +1,14 @@
+import {getOdometerImageUri} from '@libs/OdometerImageUtils';
 import type {FileObject} from '@src/types/utils/Attachment';
+import STITCHED_ODOMETER_FILENAME_PREFIX from './constants';
 import calculateStitchLayout from './stitchLayout';
 
 // Tracks the single active stitched blob URL so that we can revoke it on the next call so at most one blob URL exists at a time
 let previousBlobUrl: string | null = null;
 
 function stitchOdometerImages(image1: FileObject | string | undefined, image2: FileObject | string | undefined): Promise<FileObject | null> {
-    const source1 = typeof image1 === 'string' ? image1 : (image1?.uri ?? null);
-    const source2 = typeof image2 === 'string' ? image2 : (image2?.uri ?? null);
+    const source1 = getOdometerImageUri(image1);
+    const source2 = getOdometerImageUri(image2);
 
     if (!source1 || !source2) {
         return Promise.resolve(null);
@@ -45,7 +47,7 @@ function stitchOdometerImages(image1: FileObject | string | undefined, image2: F
                 }
                 const uri = URL.createObjectURL(blob);
                 previousBlobUrl = uri;
-                resolve({uri, name: 'stitched_odometer.jpg', type: 'image/jpeg'});
+                resolve({uri, name: `${STITCHED_ODOMETER_FILENAME_PREFIX}.jpg`, type: 'image/jpeg'});
             }, 'image/jpeg');
         });
     });

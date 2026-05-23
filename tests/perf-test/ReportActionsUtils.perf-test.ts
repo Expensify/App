@@ -1,7 +1,7 @@
 import {getLastClosedReportAction} from '@selectors/ReportAction';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
-import {getLastVisibleAction, getLastVisibleMessage, getMostRecentIOURequestActionID, getSortedReportActionsForDisplay} from '@libs/ReportActionsUtils';
+import {getLastVisibleAction, getLastVisibleMessage, getSortedReportActionsForDisplay} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
@@ -91,13 +91,6 @@ describe('ReportActionsUtils', () => {
 
         await waitForBatchedUpdates();
         await measureFunction(() => getLastVisibleAction(reportId, true, actionsToMerge));
-    });
-
-    test('[ReportActionsUtils] getMostRecentIOURequestActionID on 10k ReportActions', async () => {
-        const reportActionsArray = getSortedReportActionsForDisplay(reportActions, true);
-
-        await waitForBatchedUpdates();
-        await measureFunction(() => getMostRecentIOURequestActionID(reportActionsArray));
     });
 
     test('[ReportActionsUtils] getLastVisibleMessage on 10k ReportActions', async () => {

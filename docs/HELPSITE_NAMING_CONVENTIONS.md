@@ -10,6 +10,8 @@ This document governs UI language conventions. It does not define article struct
 
 docs/HELP_AUTHORING_GUIDELINES.md
 
+Note: All article headings (# and ##) must follow the task-based heading rules in HELP_AUTHORING_GUIDELINES.md Section 2, except for `# FAQ` which is exempt. This includes section headings that reference UI features — they must still be task-based, not just feature labels.
+
 ---
 
 # Core UI Referencing Rules
@@ -82,18 +84,14 @@ Formatting requirements:
 - Always bold the symbol.
 - Always include the words “three dots” before the symbol.
 - Do not wrap in quotation marks.
-- Do not call it “More”.
-- Do not write “More menu”.
 
 Correct:
 - Select the three dots **(⋮)**.
 - Click the three dots **(⋮)** next to the expense.
   
 Incorrect:
-- Click More
-- Select “: More”
 - Tap the three dots
-- Open the More menu
+- Open the three dots menu
 - Click ⋮
 
 ---
@@ -109,10 +107,10 @@ Follow the platform decision hierarchy below.
 Provide separate instructions.
 
 Web:  
-Use the navigation tabs on the left.
+In the navigation tabs on the left.
 
 Mobile:  
-Use the navigation tabs on the bottom.
+In the navigation tabs on the bottom.
 
 Do not merge these into one sentence.
 
@@ -122,7 +120,7 @@ Do not merge these into one sentence.
 
 Use a unified sentence:
 
-Click the navigation tabs (on the left on web, on the bottom on mobile).
+In the navigation tabs (on the left on web, on the bottom on mobile).
 
 Do not duplicate instructions unnecessarily.
 

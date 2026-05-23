@@ -1,8 +1,9 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef} from 'react';
 import type {TupleToUnion} from 'type-fest';
-import ConfirmModal from '@components/ConfirmModal';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import Section from '@components/Section';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -43,13 +44,12 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const {paymentMethod, setPaymentMethod, resetSelectedPaymentMethodData} = usePaymentMethodState();
     const paymentMethodButtonRef = useRef<HTMLDivElement | null>(null);
-    const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
     // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web screen
     const isPopoverBottomMount = shouldUseNarrowLayout;
     const shouldShowMakeDefaultButton = !paymentMethod.isSelectedPaymentMethodDefault;
     const transferBankAccountID = policy?.invoice?.bankAccount?.transferBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [isUpdateWorkspaceCurrencyModalOpen, setIsUpdateWorkspaceCurrencyModalOpen] = useState(false);
 
     const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency).length > 0;
     const isSupportedGlobalReimbursement = isCurrencySupportedForGlobalReimbursement((policy?.outputCurrency ?? '') as CurrencyType);
@@ -65,8 +65,6 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
         if (!policy) {
             return;
         }
-
-        setIsUpdateWorkspaceCurrencyModalOpen(false);
 
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id, true));
     }, [policy]);
@@ -100,17 +98,12 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
         }
     };
 
-    const hideDeleteModal = useCallback(() => {
-        setShowConfirmDeleteModal(false);
-    }, []);
-
     const deletePaymentMethod = useCallback(() => {
         const bankAccountID = paymentMethod.selectedPaymentMethod.bankAccountID;
         if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && bankAccountID) {
             deletePaymentBankAccount(bankAccountID, personalPolicyID);
         }
-        hideDeleteModal();
-    }, [paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethodType, personalPolicyID, hideDeleteModal]);
+    }, [paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethodType, personalPolicyID]);
 
     const makeDefaultPaymentMethod = useCallback(() => {
         // Find the previous default payment method so we can revert if the MakeDefaultPaymentMethod command errors
@@ -133,12 +126,26 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
 
     const onAddBankAccountPress = () => {
         if (!isSupportedGlobalReimbursement) {
-            setIsUpdateWorkspaceCurrencyModalOpen(true);
+            showConfirmModal({
+                danger: true,
+                title: translate('workspace.bankAccount.workspaceCurrency'),
+                prompt: translate('workspace.bankAccount.updateCurrencyPrompt'),
+                confirmText: translate('workspace.bankAccount.updateToUSD'),
+                cancelText: translate('common.cancel'),
+                shouldShowCancelButton: true,
+            }).then((result) => {
+                if (result.action !== ModalActions.CONFIRM) {
+                    resetSelectedPaymentMethodData();
+                    return;
+                }
+
+                confirmCurrencyChangeAndHideModal();
+            });
             return;
         }
 
         if (hasValidExistingAccounts && !shouldShowContinueModal) {
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(policyID));
+            Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(policyID, ROUTES.WORKSPACE_INVOICES.getRoute(policyID)));
             return;
         }
         navigateToBankAccountRoute({policyID, backTo: ROUTES.WORKSPACE_INVOICES.getRoute(policyID)});
@@ -177,22 +184,47 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
             text: translate('common.delete'),
             icon: icons.Trashcan,
             onSelected: () => {
-                closeModal(() => setShowConfirmDeleteModal(true));
+                closeModal(() => {
+                    showConfirmModal({
+                        danger: true,
+                        title: translate('walletPage.deleteAccount'),
+                        prompt: translate('walletPage.deleteConfirmation'),
+                        confirmText: translate('common.delete'),
+                        cancelText: translate('common.cancel'),
+                        shouldShowCancelButton: true,
+                        onModalHide: resetSelectedPaymentMethodData,
+                    }).then((result) => {
+                        if (result.action !== ModalActions.CONFIRM) {
+                            return;
+                        }
+
+                        deletePaymentMethod();
+                    });
+                });
             },
         });
 
         return items;
     }, [
         isPopoverBottomMount,
-        paymentMethod.formattedSelectedPaymentMethod,
         shouldShowMakeDefaultButton,
         translate,
-        icons.Star,
         icons.Trashcan,
-        makeDefaultPaymentMethod,
+        icons.Star,
+        paymentMethod.formattedSelectedPaymentMethod.title,
+        paymentMethod.formattedSelectedPaymentMethod.icon?.icon,
+        paymentMethod.formattedSelectedPaymentMethod.icon?.iconHeight,
+        paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize,
+        paymentMethod.formattedSelectedPaymentMethod.icon?.iconWidth,
+        paymentMethod.formattedSelectedPaymentMethod.icon?.iconStyles,
+        paymentMethod.formattedSelectedPaymentMethod.description,
         styles.mb1,
         styles.ph5,
         styles.pt5,
+        makeDefaultPaymentMethod,
+        showConfirmModal,
+        deletePaymentMethod,
+        resetSelectedPaymentMethodData,
     ]);
 
     return (
@@ -215,28 +247,6 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
                 listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                 policyID={policyID}
                 filterType={CONST.BANK_ACCOUNT.TYPE.BUSINESS}
-            />
-            <ConfirmModal
-                isVisible={showConfirmDeleteModal}
-                onConfirm={deletePaymentMethod}
-                onCancel={hideDeleteModal}
-                title={translate('walletPage.deleteAccount')}
-                prompt={translate('walletPage.deleteConfirmation')}
-                confirmText={translate('common.delete')}
-                cancelText={translate('common.cancel')}
-                shouldShowCancelButton
-                danger
-                onModalHide={resetSelectedPaymentMethodData}
-            />
-            <ConfirmModal
-                title={translate('workspace.bankAccount.workspaceCurrency')}
-                isVisible={isUpdateWorkspaceCurrencyModalOpen}
-                onConfirm={confirmCurrencyChangeAndHideModal}
-                onCancel={() => setIsUpdateWorkspaceCurrencyModalOpen(false)}
-                prompt={translate('workspace.bankAccount.updateCurrencyPrompt')}
-                confirmText={translate('workspace.bankAccount.updateToUSD')}
-                cancelText={translate('common.cancel')}
-                danger
             />
         </Section>
     );

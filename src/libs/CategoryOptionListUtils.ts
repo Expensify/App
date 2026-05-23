@@ -8,7 +8,7 @@ import type {PolicyCategories} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import times from '@src/utils/times';
-import {getDecodedCategoryName} from './CategoryUtils';
+import {getDecodedCategoryName, processCategoryNameSegments} from './CategoryUtils';
 import type {OptionTree} from './OptionsListUtils';
 import tokenizedSearch from './tokenizedSearch';
 
@@ -33,8 +33,7 @@ type Hierarchy = Record<string, Category & {[key: string]: Hierarchy & Category}
 function getCategoryOptionTree(options: Record<string, Category> | Category[], selectedOptions: Category[] = []): OptionTree[] {
     const optionCollection = new Map<string, OptionTree>();
     for (const option of Object.values(options)) {
-        const array = option.name.split(CONST.PARENT_CHILD_SEPARATOR);
-
+        const array = processCategoryNameSegments(option.name);
         for (let index = 0; index < array.length; index++) {
             const optionName = array.at(index);
             if (!optionName) {
@@ -43,9 +42,15 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], s
 
             const indents = times(index, () => CONST.INDENTS).join('');
             const isChild = array.length - 1 === index;
-            const searchText = array.slice(0, index + 1).join(CONST.PARENT_CHILD_SEPARATOR);
+
+            // For leaf categories, use the original full name so it matches the policy.
+            // For parent categories, build the path from the processed segments.
+            const searchText = isChild ? option.name : array.slice(0, index + 1).join(CONST.PARENT_CHILD_SEPARATOR);
             const selectedParentOption = !isChild && Object.values(selectedOptions).find((op) => op.name === searchText);
-            const isParentOptionDisabled = !selectedParentOption || !selectedParentOption.enabled || selectedParentOption.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+            const optionParent = !isChild && Object.values(options).find((op) => op.name === searchText);
+            const parentOption = selectedParentOption ?? optionParent;
+
+            const isParentOptionDisabled = !parentOption || !parentOption.enabled || parentOption.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
             if (optionCollection.has(searchText)) {
                 continue;
@@ -117,14 +122,42 @@ function getCategoryListSections({
     }
 
     if (searchValue) {
+        // Step 1: Combine selected and enabled categories for searching
         const categoriesForSearch = [...selectedOptionsWithDisabledState, ...enabledCategories];
 
-        const searchCategories: Category[] = tokenizedSearch(categoriesForSearch, searchValue, (category) => [category.name]).map((category) => ({
+        // Step 2: Get search results using tokenizedSearch
+        let searchCategories: Category[] = tokenizedSearch(categoriesForSearch, searchValue, (category) => [category.name]).map((category) => ({
+            ...category,
+            // Temporarily store if it was selected
+            wasSelected: selectedOptions.some((selectedOption) => selectedOption.name === category.name),
+        }));
+
+        // Step 3: Deduplicate by name (keep first occurrence, which is likely the selected one if present)
+        const seen = new Set<string>();
+        searchCategories = searchCategories.filter((category) => {
+            if (seen.has(category.name)) {
+                return false;
+            }
+            seen.add(category.name);
+            return true;
+        });
+
+        // Step 4: Re-sort to restore hierarchical grouping
+        // Convert back to Record format expected by sortCategories
+        const categoriesRecord: Record<string, Category> = {};
+        for (const category of searchCategories) {
+            categoriesRecord[category.name] = category;
+        }
+        const searchSortedCategories = sortCategories(categoriesRecord, localeCompare);
+
+        // Step 5: Re-apply the isSelected flag (lost during sortCategories)
+        const finalSearchCategories: Category[] = searchSortedCategories.map((category) => ({
             ...category,
             isSelected: selectedOptions.some((selectedOption) => selectedOption.name === category.name),
         }));
 
-        const data = getCategoryOptionTree(searchCategories);
+        // Step 6: Generate the option tree and push the section
+        const data = getCategoryOptionTree(finalSearchCategories);
         categorySections.push({
             // "Search" section
             title: '',
@@ -220,7 +253,7 @@ function sortCategories(categories: Record<string, Category>, localeCompare: Loc
      * }
      */
     for (const category of sortedCategories) {
-        const path = category.name.split(CONST.PARENT_CHILD_SEPARATOR);
+        const path = processCategoryNameSegments(category.name);
         const existedValue = lodashGet(hierarchy, path, {}) as Hierarchy;
         lodashSet(hierarchy, path, {
             ...existedValue,

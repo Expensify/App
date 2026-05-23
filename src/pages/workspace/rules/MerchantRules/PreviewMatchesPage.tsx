@@ -73,8 +73,9 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
         <UnreportedExpenseListItem
             readOnly
             showTooltip
-            item={item}
+            item={{...item, keyForList: item.transactionID, errors: undefined}}
             onSelectRow={() => {}}
+            keyForList={item.transactionID}
         />
     );
 
@@ -104,7 +105,7 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
                         <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsCenter]}>
                             <ActivityIndicator
                                 color={theme.spinner}
-                                size={25}
+                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                                 style={[styles.pl3]}
                                 reasonAttributes={reasonAttributes}
                             />

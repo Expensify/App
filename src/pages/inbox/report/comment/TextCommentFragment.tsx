@@ -15,7 +15,7 @@ import {containsOnlyCustomEmoji as containsOnlyCustomEmojiUtil, containsOnlyEmoj
 import hydrateEmojiHtml from '@libs/hydrateEmojiHtml';
 import Parser from '@libs/Parser';
 import {getHtmlWithAttachmentID, getTextFromHtml} from '@libs/ReportActionsUtils';
-import {tryEndSpan} from '@libs/telemetry/activeSpans';
+import {endSpan} from '@libs/telemetry/activeSpans';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
@@ -67,7 +67,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
         if (!reportActionID) {
             return;
         }
-        tryEndSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE}_${reportActionID}`);
+        endSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE}_${reportActionID}`);
     }, [reportActionID]);
 
     // If the only difference between fragment.text and fragment.html is <br /> tags and emoji tag
@@ -111,7 +111,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
     }
 
     return (
-        <Text style={[containsOnlyEmojis && styles.onlyEmojisText, styles.ltr, style]}>
+        <Text style={[containsOnlyEmojis && styles.onlyEmojisText, styles.ltr, style, !canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone]}>
             <ZeroWidthView
                 text={text}
                 displayAsGroup={displayAsGroup}
@@ -119,13 +119,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
             {processedTextArray.length !== 0 && !containsOnlyEmojis ? (
                 <TextWithEmojiFragment
                     message={message}
-                    style={[
-                        styles.ltr,
-                        style,
-                        styleAsDeleted ? styles.offlineFeedbackDeleted : undefined,
-                        styleAsMuted ? styles.colorMuted : undefined,
-                        !canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone,
-                    ]}
+                    style={[styles.ltr, style, styleAsDeleted ? styles.offlineFeedbackDeleted : undefined, styleAsMuted ? styles.colorMuted : undefined]}
                 />
             ) : (
                 <Text
@@ -135,7 +129,6 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
                         style,
                         styleAsDeleted ? styles.offlineFeedbackDeleted : undefined,
                         styleAsMuted ? styles.colorMuted : undefined,
-                        !canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone,
                         containsOnlyCustomEmoji && styles.customEmojiFont,
                     ]}
                 >

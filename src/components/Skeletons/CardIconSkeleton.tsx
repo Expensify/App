@@ -8,7 +8,7 @@ import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 type CardIconSkeletonProps = {
     width: number;
     height: number;
-    reasonAttributes?: SkeletonSpanReasonAttributes;
+    reasonAttributes: SkeletonSpanReasonAttributes;
 };
 
 function CardIconSkeleton({width, height, reasonAttributes}: CardIconSkeletonProps) {

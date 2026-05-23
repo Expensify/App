@@ -14,11 +14,15 @@ module.exports = {
         '^.+\\.svg?$': 'jest-transformer-svg',
     },
     transformIgnorePatterns: [
-        '<rootDir>/node_modules/(?!.*(react-native|expo|@noble|react-navigation|uuid|@shopify\/flash-list).*/)',
+        '<rootDir>/node_modules/(?!.*(react-native|expo|react-navigation|uuid|@shopify\/flash-list).*/)',
         // Prevent Babel from transforming worklets in this file so they are treated as normal functions, otherwise FormatSelectionUtilsTest won't run.
         '<rootDir>/node_modules/@expensify/react-native-live-markdown/lib/commonjs/parseExpensiMark.js',
     ],
     testPathIgnorePatterns: ['<rootDir>/node_modules'],
+    // .worktrees/ holds parallel git worktrees a developer may check out locally.
+    // Each one carries its own modules/hybrid-app/package.json, which trips
+    // jest-haste-map's "duplicate package name" assertion. Skip them entirely.
+    modulePathIgnorePatterns: ['<rootDir>/.worktrees/'],
     globals: {
         __DEV__: true,
         WebSocket: {},
@@ -35,8 +39,6 @@ module.exports = {
     moduleNameMapper: {
         '\\.(lottie)$': '<rootDir>/__mocks__/fileMock.ts',
         '^group-ib-fp$': '<rootDir>/__mocks__/group-ib-fp.ts',
-        '@noble/ed25519': '<rootDir>/node_modules/@noble/ed25519/index.ts',
-        '@noble/hashes/(.*)': '<rootDir>/node_modules/@noble/hashes/src/$1.ts',
         '^parse-imports-exports$': '<rootDir>/node_modules/parse-imports-exports/index.cjs',
     },
 };

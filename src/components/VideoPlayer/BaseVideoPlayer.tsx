@@ -4,22 +4,21 @@ import {useVideoPlayer, VideoView} from 'expo-video';
 import debounce from 'lodash/debounce';
 import type {RefObject} from 'react';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
-import {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import {cancelAnimation, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
 import Hoverable from '@components/Hoverable';
 import LoadingIndicator from '@components/LoadingIndicator';
 import {useSession} from '@components/OnyxListItemProvider';
+import {useIsPopoverVisible} from '@components/PopoverMenu/v2';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {useFullScreenState} from '@components/VideoPlayerContexts/FullScreenContextProvider';
 import {usePlaybackActionsContext, usePlaybackStateContext} from '@components/VideoPlayerContexts/PlaybackContext';
-import type {PlaybackSpeed} from '@components/VideoPlayerContexts/types';
-import {useVideoPopoverMenuActions} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
 import {useVolumeActions, useVolumeState} from '@components/VideoPlayerContexts/VolumeContext';
 import VideoPopoverMenu from '@components/VideoPopoverMenu';
 import useNetwork from '@hooks/useNetwork';
+import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {isSafari} from '@libs/Browser';
@@ -31,33 +30,37 @@ import * as VideoUtils from './utils';
 import VideoErrorIndicator from './VideoErrorIndicator';
 import VideoPlayerControls from './VideoPlayerControls';
 
-function BaseVideoPlayer({
-    url,
-    onSourceLoaded,
-    isLooping = false,
-    style,
-    videoPlayerStyle,
-    videoControlsStyle,
-    videoDuration = 0,
-    shouldUseSharedVideoElement = false,
-    shouldUseSmallVideoControls = false,
-    // TODO: investigate what is the root cause of the bug with unexpected video switching
-    // isVideoHovered caused a bug with unexpected video switching. We are investigating the root cause of the issue,
-    // but current workaround is just not to use it here for now. This causes not displaying the video controls when
-    // user hovers the mouse over the carousel arrows, but this UI bug feels much less troublesome for now.
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    isVideoHovered = false,
-    controlsStatus = CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW,
-    shouldPlay,
-    isPreview,
-    reportID,
-    onTap,
-}: VideoPlayerProps & {reportID: string}) {
+type BaseVideoPlayerProps = VideoPlayerProps & {reportID: string};
+
+function BaseVideoPlayer(props: BaseVideoPlayerProps) {
+    const {
+        url,
+        onSourceLoaded,
+        isLooping = false,
+        style,
+        videoPlayerStyle,
+        videoControlsStyle,
+        videoDuration = 0,
+        shouldUseSharedVideoElement = false,
+        shouldUseSmallVideoControls = false,
+        // TODO: investigate what is the root cause of the bug with unexpected video switching
+        // isVideoHovered caused a bug with unexpected video switching. We are investigating the root cause of the issue,
+        // but current workaround is just not to use it here for now. This causes not displaying the video controls when
+        // user hovers the mouse over the carousel arrows, but this UI bug feels much less troublesome for now.
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        isVideoHovered = false,
+        controlsStatus = CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW,
+        shouldPlay,
+        isPreview,
+        reportID,
+        onTap,
+    } = props;
     const styles = useThemeStyles();
     const {currentlyPlayingURL, sharedElement, originalParent, currentVideoPlayerRef, currentVideoViewRef, mountedVideoPlayersRef, playerStatus, shareVersion} = usePlaybackStateContext();
     const {pauseVideo, playVideo, replayVideo, shareVideoPlayerElements, updateCurrentURLAndReportID, setCurrentlyPlayingURL, updatePlayerStatus, requestDonorReRegistration} =
         usePlaybackActionsContext();
     const {isFullScreenRef} = useFullScreenState();
+    const report = useReportOrReportDraft(reportID);
 
     const isOffline = useNetwork().isOffline;
     const [isVideoOffline, setIsVideoOffline] = useState(false);
@@ -68,13 +71,14 @@ function BaseVideoPlayer({
     const [isFirstLoad, setIsFirstLoad] = useState(true);
     // we add "#t=0.001" at the end of the URL to skip first millisecond of the video and always be able to show proper video preview when video is paused at the beginning
     const [sourceURL] = useState(() => VideoUtils.addSkipTimeTagToURL(url.includes('blob:') || url.includes('file:///') ? url : addEncryptedAuthTokenToURL(url, encryptedAuthToken), 0.001));
-    const [isPopoverVisible, setIsPopoverVisible] = useState(false);
-    const [popoverAnchorPosition, setPopoverAnchorPosition] = useState({horizontal: 0, vertical: 0});
+    const isPopoverVisible = useIsPopoverVisible();
     const [controlStatusState, setControlStatusState] = useState(controlsStatus);
     const controlsOpacity = useSharedValue(1);
     const controlsAnimatedStyle = useAnimatedStyle(() => ({
         opacity: controlsOpacity.get(),
     }));
+    const [isSeeking, setIsSeeking] = useState(false);
+    const allowSharedAutoPlayRef = useRef(true);
 
     /* eslint-disable no-param-reassign */
     // According to the library docs, the player is configured by mutating the provided instance
@@ -82,12 +86,14 @@ function BaseVideoPlayer({
         useVideoPlayer(sourceURL, (player) => {
             player.loop = isLooping;
             player.muted = true;
-            player.timeUpdateEventInterval = 0.1;
+            player.timeUpdateEventInterval = 0;
         }),
     );
     /* eslint-enable no-param-reassign */
 
-    const isPlaying = videoPlayerRef.current.playing;
+    // `useEvent` — direct `.playing` read wouldn't re-render when play state changes.
+    const {isPlaying} = useEvent(videoPlayerRef.current, 'playingChange', {isPlaying: videoPlayerRef.current.playing, oldIsPlaying: false} as PlayingChangeEventPayload);
+
     const {currentTime, bufferedPosition} = useEvent(videoPlayerRef.current, 'timeUpdate', {currentTime: 0, bufferedPosition: 0} as TimeUpdateEventPayload);
     const {status} = useEvent(videoPlayerRef.current, 'statusChange', {status: shouldUseSharedVideoElement ? playerStatus.current : 'loading'} as StatusChangeEventPayload);
 
@@ -165,11 +171,9 @@ function BaseVideoPlayer({
         isLocalFile: isUploading,
     });
 
-    const {updateVideoPopoverMenuPlayerRef, updatePlaybackSpeed, updateSource: updatePopoverMenuSource} = useVideoPopoverMenuActions();
-
     const togglePlayCurrentVideo = useCallback(() => {
         if (!isCurrentlyURLSet) {
-            updateCurrentURLAndReportID(url, reportID);
+            updateCurrentURLAndReportID(url, report, reportID);
             return;
         }
 
@@ -184,20 +188,29 @@ function BaseVideoPlayer({
         }
 
         if (isEnded && currentTime >= duration) {
+            allowSharedAutoPlayRef.current = true;
             replayVideo();
             return;
         }
 
+        allowSharedAutoPlayRef.current = true;
         playVideo();
-    }, [isCurrentlyURLSet, isLoading, isEnded, currentTime, duration, playVideo, updateCurrentURLAndReportID, url, reportID, pauseVideo, replayVideo]);
+    }, [isCurrentlyURLSet, isLoading, isEnded, currentTime, duration, playVideo, updateCurrentURLAndReportID, url, report, reportID, pauseVideo, replayVideo]);
 
     const hideControl = useCallback(() => {
-        if (isEnded) {
+        if (isEnded || isSeeking) {
             return;
         }
 
-        controlsOpacity.set(withTiming(0, {duration: 500}, () => scheduleOnRN(setControlStatusState, CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE)));
-    }, [controlsOpacity, isEnded]);
+        controlsOpacity.set(
+            withTiming(0, {duration: 500}, (finished) => {
+                if (!finished) {
+                    return;
+                }
+                scheduleOnRN(setControlStatusState, CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE);
+            }),
+        );
+    }, [controlsOpacity, isEnded, isSeeking]);
     const debouncedHideControl = useMemo(() => debounce(hideControl, 1500), [hideControl]);
 
     useEffect(() => {
@@ -217,13 +230,13 @@ function BaseVideoPlayer({
         if (controlStatusState !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW) {
             return;
         }
-        if (!isPlaying || isPopoverVisible) {
+        if (!isPlaying || isPopoverVisible || isSeeking) {
             debouncedHideControl.cancel();
             return;
         }
 
         debouncedHideControl();
-    }, [isPlaying, debouncedHideControl, controlStatusState, isPopoverVisible, canUseTouchScreen]);
+    }, [isPlaying, debouncedHideControl, controlStatusState, isPopoverVisible, canUseTouchScreen, isSeeking]);
 
     useEffect(() => {
         if (!onTap || !controlStatusState) {
@@ -232,6 +245,14 @@ function BaseVideoPlayer({
         const shouldShowArrows = controlStatusState === CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW || controlStatusState === CONST.VIDEO_PLAYER.CONTROLS_STATUS.VOLUME_ONLY;
         onTap(shouldShowArrows);
     }, [controlStatusState, onTap]);
+
+    const restartAutoHide = useCallback(() => {
+        debouncedHideControl.cancel();
+        if (!canUseTouchScreen || !isPlaying || isPopoverVisible || controlStatusState !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW) {
+            return;
+        }
+        debouncedHideControl();
+    }, [canUseTouchScreen, controlStatusState, debouncedHideControl, isPlaying, isPopoverVisible]);
 
     const stopWheelPropagation = useCallback((ev: WheelEvent) => ev.stopPropagation(), []);
 
@@ -244,21 +265,6 @@ function BaseVideoPlayer({
         controlsOpacity.set(1);
     }, [controlStatusState, controlsOpacity, hideControl]);
 
-    const showPopoverMenu = (event?: GestureResponderEvent | KeyboardEvent) => {
-        updateVideoPopoverMenuPlayerRef(videoPlayerRef.current);
-        if (!videoPlayerRef.current?.playbackRate) {
-            return;
-        }
-        updatePlaybackSpeed(videoPlayerRef.current.playbackRate as PlaybackSpeed);
-        setIsPopoverVisible(true);
-
-        updatePopoverMenuSource(url);
-        if (!event || !('nativeEvent' in event)) {
-            return;
-        }
-        setPopoverAnchorPosition({horizontal: event.nativeEvent.pageX, vertical: event.nativeEvent.pageY});
-    };
-
     useEventListener(videoPlayerRef.current, 'mutedChange', (payload: MutedChangeEventPayload) => {
         if (payload.muted || !payload.oldMuted) {
             return;
@@ -268,6 +274,8 @@ function BaseVideoPlayer({
 
     useEventListener(videoPlayerRef.current, 'playingChange', (payload: PlayingChangeEventPayload) => {
         const isVideoPlaying = payload.isPlaying;
+        // Toggled in the listener (not a `useEffect`) — the web setter synchronously emits `timeUpdate`, which would re-enter `useEvent` from render.
+        videoPlayerRef.current.timeUpdateEventInterval = isVideoPlaying ? 0.1 : 0;
         if (isVideoPlaying && isEnded) {
             setIsEnded(false);
         }
@@ -342,7 +350,7 @@ function BaseVideoPlayer({
                 currentVideoPlayerRef.current = null;
             }
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+
         [currentVideoPlayerRef, mountedVideoPlayersRef, url],
     );
 
@@ -373,7 +381,7 @@ function BaseVideoPlayer({
 
             setCurrentlyPlayingURL(null);
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+
         [setCurrentlyPlayingURL],
     );
 
@@ -400,7 +408,7 @@ function BaseVideoPlayer({
             videoViewRef.current,
             videoPlayerElementParentRef.current,
             videoPlayerElementRef.current,
-            (isUploading && !isCurrentlyURLSet) || isFullScreenRef.current || !isReadyForDisplayRef.current || hasError,
+            (isUploading && !isCurrentlyURLSet) || isFullScreenRef.current || !isReadyForDisplayRef.current || hasError || isSeeking || !allowSharedAutoPlayRef.current,
             {shouldUseSharedVideoElement, url, reportID},
         );
     }, [
@@ -415,6 +423,7 @@ function BaseVideoPlayer({
         isFullScreenRef,
         hasError,
         isCurrentlyURLSet,
+        isSeeking,
         status,
         updatePlayerStatus,
     ]);
@@ -429,7 +438,10 @@ function BaseVideoPlayer({
 
         if (!shouldUseSharedVideoElement) {
             if (newParentRef && 'childNodes' in newParentRef && newParentRef.childNodes[0]) {
-                newParentRef.childNodes[0]?.remove();
+                const child = newParentRef.childNodes[0];
+                if (child && 'remove' in child) {
+                    child.remove();
+                }
             }
             return;
         }
@@ -462,7 +474,10 @@ function BaseVideoPlayer({
             if (mountedVideoPlayersCurrentRef.current.filter((u) => u === url).length > 0) {
                 return;
             }
-            newParentRef.childNodes[0]?.remove();
+            const child = newParentRef.childNodes[0];
+            if (child && 'remove' in child) {
+                child.remove();
+            }
         };
     }, [currentVideoPlayerRef, currentVideoViewRef, currentlyPlayingURL, isFullScreenRef, mountedVideoPlayersRef, originalParent, reportID, sharedElement, shouldUseSharedVideoElement, url]);
 
@@ -470,8 +485,8 @@ function BaseVideoPlayer({
         if (!shouldPlay) {
             return;
         }
-        updateCurrentURLAndReportID(url, reportID);
-    }, [reportID, shouldPlay, updateCurrentURLAndReportID, url]);
+        updateCurrentURLAndReportID(url, report, reportID);
+    }, [report, reportID, shouldPlay, updateCurrentURLAndReportID, url]);
 
     // ensure that video loads after page refresh on iOS Safari
     useEffect(() => {
@@ -536,8 +551,7 @@ function BaseVideoPlayer({
                                         }}
                                     >
                                         <VideoView
-                                            // has to be switched to fullscreenOptions={{enable: true}} when mobile Safari gets fixed
-                                            allowsFullscreen
+                                            fullscreenOptions={{enable: true}}
                                             player={videoPlayerRef.current}
                                             style={[styles.w100, styles.h100, videoPlayerStyle, hasErrorIconVisible && {opacity: 0}]}
                                             nativeControls={isFullScreenRef.current}
@@ -551,7 +565,7 @@ function BaseVideoPlayer({
                                                 if (!(videoPlayerElementParentRef.current && 'addEventListener' in videoPlayerElementParentRef.current)) {
                                                     return;
                                                 }
-                                                // When the video is in fullscreen, we don't want the scroll to be captured by the InvertedFlatList of report screen.
+                                                // When the video is in fullscreen, we don't want the scroll to be captured by the InvertedFlashList of report screen.
                                                 // This will also allow the user to scroll the video playback speed.
                                                 videoPlayerElementParentRef.current.addEventListener('wheel', stopWheelPropagation);
                                             }}
@@ -573,7 +587,6 @@ function BaseVideoPlayer({
                             {shouldShowLoadingIndicator && <LoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
                             {shouldShowOfflineIndicator && <AttachmentOfflineIndicator isPreview={isPreview} />}
                             {controlStatusState !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE &&
-                                !shouldShowLoadingIndicator &&
                                 !shouldShowOfflineIndicator &&
                                 !shouldShowErrorIndicator &&
                                 (isPopoverVisible || isHovered || canUseTouchScreen || isEnded) && (
@@ -588,19 +601,29 @@ function BaseVideoPlayer({
                                         style={[videoControlsStyle, controlsAnimatedStyle]}
                                         togglePlayCurrentVideo={togglePlayCurrentVideo}
                                         controlsStatus={controlStatusState}
-                                        showPopoverMenu={showPopoverMenu}
                                         reportID={reportID}
+                                        onSeekStart={() => {
+                                            allowSharedAutoPlayRef.current = false;
+                                            debouncedHideControl.cancel();
+                                            cancelAnimation(controlsOpacity);
+                                            controlsOpacity.set(1);
+                                            setIsSeeking(true);
+                                        }}
+                                        onSeekEnd={(shouldResumeAfterSeek) => {
+                                            setIsSeeking(false);
+                                            if (shouldResumeAfterSeek) {
+                                                allowSharedAutoPlayRef.current = true;
+                                                playVideo();
+                                            }
+                                            restartAutoHide();
+                                        }}
                                     />
                                 )}
                         </View>
                     )}
                 </Hoverable>
             </PressableWithoutFeedback>
-            <VideoPopoverMenu
-                isPopoverVisible={isPopoverVisible}
-                hidePopover={() => setIsPopoverVisible(false)}
-                anchorPosition={popoverAnchorPosition}
-            />
+            <VideoPopoverMenu />
         </>
     );
 }

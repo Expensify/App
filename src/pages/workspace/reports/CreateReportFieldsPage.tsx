@@ -18,7 +18,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {hasAccountingConnections} from '@libs/PolicyUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
-import {hasFormulaPartsInInitialValue, isReportFieldNameExisting} from '@libs/WorkspaceReportFieldUtils';
+import {getUnsupportedReportFieldFormulaParts, hasFormulaPartsInInitialValue, isReportFieldNameExisting} from '@libs/WorkspaceReportFieldUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -106,6 +106,15 @@ function WorkspaceCreateReportFieldsPage({
                 errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.circularReferenceError');
             }
 
+            if ((type === CONST.REPORT_FIELD_TYPES.TEXT || type === CONST.REPORT_FIELD_TYPES.FORMULA) && !!formInitialValue && !errors[INPUT_IDS.INITIAL_VALUE]) {
+                const unsupportedFormulaParts = getUnsupportedReportFieldFormulaParts(formInitialValue);
+                if (unsupportedFormulaParts.length > 0) {
+                    errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.unsupportedFormulaValueError', {
+                        value: unsupportedFormulaParts.join(', '),
+                    });
+                }
+            }
+
             if (type === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength > 0 && !isRequiredFulfilled(formInitialValue)) {
                 errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.reportFieldInitialValueRequiredError');
             }
@@ -182,6 +191,7 @@ function WorkspaceCreateReportFieldsPage({
                     enabledWhenOffline
                     shouldValidateOnBlur={false}
                     addBottomSafeAreaPadding
+                    shouldUseStrictHtmlTagValidation
                 >
                     {({inputValues}) => (
                         <View style={styles.mhn5}>
@@ -198,6 +208,7 @@ function WorkspaceCreateReportFieldsPage({
                                 role={CONST.ROLE.PRESENTATION}
                                 required
                                 customValidate={validateName}
+                                shouldUseStrictHtmlTagValidation
                             />
                             <InputWrapper
                                 InputComponent={TypeSelector}

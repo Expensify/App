@@ -17,6 +17,7 @@ import {clearDraftValues, clearErrorFields} from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import {getPrivatePromoDiscountInfo} from '@pages/settings/Subscription/utils';
 import {applyExpensifyCode} from '@userActions/Subscription';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -27,8 +28,10 @@ function ExpensifyCodePage() {
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
     const [hasSubmitted, setHasSubmitted] = useState(false);
-    const [subscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
-    const isExpensifyCodeApplied = !!subscription?.expensifyCode;
+    const [privatePromoCode] = useOnyx(ONYXKEYS.NVP_PRIVATE_PROMO_CODE);
+    const [privatePromoDiscount] = useOnyx(ONYXKEYS.NVP_PRIVATE_PROMO_DISCOUNT);
+    const {isSecretPromoCode} = getPrivatePromoDiscountInfo(privatePromoDiscount, false);
+    const isExpensifyCodeApplied = !!privatePromoCode;
 
     const defaultValues = {
         [INPUT_IDS.EXPENSIFY_CODE]: '',
@@ -42,8 +45,7 @@ function ExpensifyCodePage() {
     );
 
     const handleSubmit = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM>) => {
-        const expensifyCode = values[INPUT_IDS.EXPENSIFY_CODE];
-        applyExpensifyCode(expensifyCode);
+        applyExpensifyCode(values[INPUT_IDS.EXPENSIFY_CODE]);
         clearDraftValues(ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM);
         setHasSubmitted(true);
     }, []);
@@ -61,7 +63,7 @@ function ExpensifyCodePage() {
         Navigation.goBack();
     }, [hasSubmitted, isExpensifyCodeApplied]);
 
-    if (isExpensifyCodeApplied || subscription?.isSecretPromoCode) {
+    if ((isExpensifyCodeApplied && !hasSubmitted) || isSecretPromoCode) {
         return <NotFoundPage />;
     }
 

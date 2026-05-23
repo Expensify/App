@@ -2,12 +2,14 @@ import {useFocusEffect} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {Keyboard} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -17,30 +19,39 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
+import {submitWithDismissFirst} from '@libs/actions/IOU/submitWithDismissFirst';
+import {requestMoney} from '@libs/actions/IOU/TrackExpense';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {calculateDefaultReimbursable, getExistingTransactionID, isMovingTransactionFromTrackExpense, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
+import {
+    calculateDefaultReimbursable,
+    getExistingTransactionID,
+    isMovingTransactionFromTrackExpense,
+    navigateToConfirmationPage,
+    navigateToParticipantPage,
+    resolveOptimisticChatReportID,
+} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {getPolicyExpenseChat, getReportOrDraftReport, getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from '@libs/ReportUtils';
+import {getPolicyExpenseChat, getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
-import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getRequestType, getTaxValue, isDistanceRequest, isExpenseUnreported} from '@libs/TransactionUtils';
+import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getRequestType, getTaxValue, hasReceipt, isDistanceRequest, isExpenseUnreported} from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
 import {
     getMoneyRequestParticipantsFromReport,
-    requestMoney,
     setMoneyRequestAmount,
     setMoneyRequestParticipantsFromReport,
     setMoneyRequestTaxAmount,
     setMoneyRequestTaxRate,
-    trackExpense,
-    updateMoneyRequestAmountAndCurrency,
-} from '@userActions/IOU';
+} from '@userActions/IOU/MoneyRequest';
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
 import {resetSplitShares, setDraftSplitTransaction, setSplitShares} from '@userActions/IOU/Split';
+import {trackExpense} from '@userActions/IOU/TrackExpense';
+import {updateMoneyRequestAmountAndCurrency} from '@userActions/IOU/UpdateMoneyRequest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -80,6 +91,7 @@ function IOURequestStepAmount({
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
     const textInput = useRef<BaseTextInputRef | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -93,6 +105,10 @@ function IOURequestStepAmount({
     const isReportArchived = useReportIsArchived(report?.reportID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const iouOrExpenseReport = useReportOrReportDraft(report?.chatReportID);
+    const actualChatReportID = iouOrExpenseReport && isMoneyRequestReport(iouOrExpenseReport) ? iouOrExpenseReport.chatReportID : undefined;
+    const actualChatReport = useReportOrReportDraft(actualChatReportID);
+    const transactionAssociatedReport = useReportOrReportDraft(transaction?.reportID);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -102,16 +118,17 @@ function IOURequestStepAmount({
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionID ? [transactionID] : []);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const isEditing = action === CONST.IOU.ACTION.EDIT;
+    const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(isEditing && transactionID ? [transactionID] : []);
     const reportAttributesDerived = useReportAttributes();
     const privateIsArchivedMap = usePrivateIsArchivedMap();
-    const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isCreateAction = action === CONST.IOU.ACTION.CREATE;
     const isSubmitAction = action === CONST.IOU.ACTION.SUBMIT;
@@ -124,15 +141,14 @@ function IOURequestStepAmount({
     const {currency: originalCurrency} = getTransactionDetails(isEditing && !isEmptyObject(draftTransaction) ? draftTransaction : transaction) ?? {currency: CONST.CURRENCY.USD};
     const [selectedCurrency, setSelectedCurrency] = useState(originalCurrency);
     const decimals = getCurrencyDecimals(selectedCurrency || CONST.CURRENCY.USD);
-    // eslint-disable-next-line rulesdir/no-negated-variables
+
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
-    const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
     const isUnreportedDistanceExpense = isEditing && isDistanceRequest(transaction) && isExpenseUnreported(transaction);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
     const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
@@ -158,14 +174,13 @@ function IOURequestStepAmount({
         // When editing, report is the transaction thread. We need to get the actual chat report.
         // Transaction thread's chatReportID points to the IOU/expense report,
         // and the IOU/expense report's chatReportID points to the actual chat.
-        const iouOrExpenseReport = report?.chatReportID ? getReportOrDraftReport(report.chatReportID) : undefined;
         if (iouOrExpenseReport && isMoneyRequestReport(iouOrExpenseReport) && iouOrExpenseReport.chatReportID) {
-            return getReportOrDraftReport(iouOrExpenseReport.chatReportID);
+            return actualChatReport;
         }
 
         // Fallback to the passed report if we can't traverse
         return report;
-    }, [isEditing, report]);
+    }, [isEditing, report, iouOrExpenseReport, actualChatReport]);
 
     useFocusEffect(
         useCallback(() => {
@@ -192,13 +207,16 @@ function IOURequestStepAmount({
     };
 
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+    const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
+    // Use the stored transaction instead of the draft to preserve existing values, especially for distance requests while create a new request.
+    const [storedTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(existingTransactionID)}`);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const navigateToNextPage = ({amount, paymentMethod}: AmountParams) => {
         isSaveButtonPressed.current = true;
         const amountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(amount));
 
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        setMoneyRequestAmount(transactionID, amountInSmallestCurrencyUnits, selectedCurrency || CONST.CURRENCY.USD, shouldKeepUserInput);
+        setMoneyRequestAmount(transactionID, amountInSmallestCurrencyUnits, selectedCurrency || CONST.CURRENCY.USD, shouldKeepUserInput, hasReceipt(transaction));
 
         if (isMovingTransactionFromTrackExpense(action)) {
             const taxCode = selectedCurrency !== policy?.outputCurrency ? policy?.taxRates?.foreignTaxDefault : policy?.taxRates?.defaultExternalID;
@@ -228,7 +246,7 @@ function IOURequestStepAmount({
                 const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
                 return participantAccountID
                     ? getParticipantsOption(participant, personalDetails)
-                    : getReportOption(participant, privateIsArchived, policy, currentUserAccountIDParam, personalDetails, reportAttributesDerived);
+                    : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived);
             });
             const backendAmount = convertToBackendAmount(Number.parseFloat(amount));
 
@@ -242,18 +260,48 @@ function IOURequestStepAmount({
                     transactionReportID: report?.reportID,
                 });
                 if (iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.SEND) {
-                    if (paymentMethod && paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-                        sendMoneyWithWallet(report, quickAction, backendAmount, selectedCurrency, '', currentUserAccountIDParam, participants.at(0) ?? {});
-                        return;
-                    }
-                    sendMoneyElsewhere(report, quickAction, backendAmount, selectedCurrency, '', currentUserAccountIDParam, participants.at(0) ?? {});
+                    const {optimisticChatReportID, chatReportID} = resolveOptimisticChatReportID(
+                        [participants.at(0)?.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserAccountIDParam],
+                        report,
+                    );
+                    const sendMoneyParams = {
+                        report,
+                        quickAction,
+                        amount: backendAmount,
+                        currency: selectedCurrency,
+                        comment: '',
+                        currentUserAccountID: currentUserAccountIDParam,
+                        recipient: participants.at(0) ?? {},
+                        optimisticChatReportID,
+                        shouldStartTracking: false,
+                    };
+
+                    const executeSendMoneyWrite = (overrides?: {shouldDeferForSearch?: boolean}) => {
+                        const mergedParams = {...sendMoneyParams, ...overrides};
+                        if (paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+                            sendMoneyWithWallet(mergedParams);
+                        } else {
+                            sendMoneyElsewhere(mergedParams);
+                        }
+                    };
+
+                    submitWithDismissFirst({
+                        executeWrite: (overrides) => executeSendMoneyWrite({shouldDeferForSearch: overrides?.shouldDeferForSearch}),
+                        destinationReportID: chatReportID,
+                        telemetryContext: {
+                            scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.SEND_MONEY,
+                            iouType: CONST.IOU.TYPE.PAY,
+                            requestType: CONST.IOU.TYPE.PAY,
+                            isFromGlobalCreate: isEmptyObject(report) || !report?.reportID,
+                            hasReceipt: false,
+                        },
+                    });
                     return;
                 }
                 if (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.REQUEST) {
-                    const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
                     const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
 
-                    requestMoney({
+                    const requestMoneyParams = {
                         report,
                         betas,
                         participantParams: {
@@ -270,7 +318,7 @@ function IOURequestStepAmount({
                             reimbursable: defaultReimbursable,
                         },
                         backToReport,
-                        shouldGenerateTransactionThreadReport,
+                        shouldGenerateTransactionThreadReport: false,
                         isASAPSubmitBetaEnabled,
                         currentUserAccountIDParam,
                         currentUserEmailParam,
@@ -278,14 +326,32 @@ function IOURequestStepAmount({
                         quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                         existingTransactionDraft,
+                        existingTransaction: storedTransaction,
                         draftTransactionIDs,
                         isSelfTourViewed,
                         personalDetails,
+                    };
+
+                    submitWithDismissFirst({
+                        executeWrite: (overrides) =>
+                            requestMoney({
+                                ...requestMoneyParams,
+                                shouldHandleNavigation: overrides?.shouldHandleNavigation,
+                                shouldDeferForSearch: overrides?.shouldDeferForSearch,
+                            }),
+                        destinationReportID: report?.reportID,
+                        telemetryContext: {
+                            scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.REQUEST_MONEY_MANUAL,
+                            iouType,
+                            requestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                            isFromGlobalCreate: isEmptyObject(report) || !report?.reportID,
+                            hasReceipt: false,
+                        },
                     });
                     return;
                 }
                 if (iouType === CONST.IOU.TYPE.TRACK) {
-                    trackExpense({
+                    const trackParams = {
                         report,
                         isDraftPolicy: false,
                         participantParams: {
@@ -301,22 +367,37 @@ function IOURequestStepAmount({
                             reimbursable: defaultReimbursable,
                         },
                         isASAPSubmitBetaEnabled,
-                        currentUserAccountIDParam,
-                        currentUserEmailParam,
+                        currentUser: {accountID: currentUserAccountIDParam, email: currentUserEmailParam},
                         introSelected,
-                        activePolicyID,
                         quickAction,
                         recentWaypoints,
                         betas,
                         draftTransactionIDs,
                         isSelfTourViewed,
+                    };
+
+                    submitWithDismissFirst({
+                        executeWrite: (overrides) =>
+                            trackExpense({
+                                ...trackParams,
+                                shouldHandleNavigation: overrides?.shouldHandleNavigation,
+                                shouldDeferForSearch: overrides?.shouldDeferForSearch,
+                            }),
+                        destinationReportID: selfDMReport?.reportID,
+                        telemetryContext: {
+                            scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.TRACK_EXPENSE,
+                            iouType: CONST.IOU.TYPE.TRACK,
+                            requestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                            isFromGlobalCreate: isEmptyObject(report) || !report?.reportID,
+                            hasReceipt: false,
+                        },
                     });
                     return;
                 }
             }
             if (isSplitBill && !report.isOwnPolicyExpenseChat && report.participants) {
                 const participantAccountIDs = Object.keys(report.participants).map((accountID) => Number(accountID));
-                setSplitShares(transaction, amountInSmallestCurrencyUnits, selectedCurrency || CONST.CURRENCY.USD, participantAccountIDs);
+                setSplitShares(transaction, amountInSmallestCurrencyUnits, selectedCurrency || CONST.CURRENCY.USD, participantAccountIDs, currentUserAccountIDParam);
             }
             setMoneyRequestParticipantsFromReport(transactionID, report, currentUserPersonalDetails.accountID).then(() => {
                 navigateToConfirmationPage(iouType, transactionID, reportID, backToReport);
@@ -326,7 +407,7 @@ function IOURequestStepAmount({
 
         // Starting from global + menu means no participant context exists yet,
         // so we need to handle participant selection based on available workspace settings
-        if (shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed)) {
+        if (shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd)) {
             const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
             const targetReport = shouldAutoReport ? getPolicyExpenseChat(currentUserAccountIDParam, defaultExpensePolicy?.id) : selfDMReport;
             const transactionReportID = isSelfDM(targetReport) ? CONST.REPORT.UNREPORTED_REPORT_ID : targetReport?.reportID;
@@ -353,7 +434,7 @@ function IOURequestStepAmount({
 
                 // Preserve user's participant selection to avoid forcing them back to default workspace.
                 const iouReportID = transaction?.reportID;
-                const selectedReport = iouReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? selfDMReport : getReportOrDraftReport(iouReportID);
+                const selectedReport = iouReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? selfDMReport : transactionAssociatedReport;
                 const navigationIOUType = isSelfDM(selectedReport) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
                 const chatReportID = selectedReport?.chatReportID ?? selectedReport?.reportID;
 
@@ -373,12 +454,11 @@ function IOURequestStepAmount({
     const saveAmountAndCurrency = ({amount, paymentMethod}: AmountParams) => {
         const newAmount = convertToBackendAmount(Number.parseFloat(amount));
 
-        // Edits to the amount from the splits page should reset the split shares.
-        if (transaction?.splitShares) {
-            resetSplitShares(transaction, newAmount, selectedCurrency);
-        }
-
         if (!isEditing) {
+            // Edits to the amount from the splits page should reset the split shares.
+            if (transaction?.splitShares) {
+                resetSplitShares(transaction, newAmount, selectedCurrency, currentUserAccountIDParam, true);
+            }
             navigateToNextPage({amount, paymentMethod});
             return;
         }
@@ -403,6 +483,11 @@ function IOURequestStepAmount({
             return;
         }
 
+        // Reset split shares for non-split-bill edits (split-bill share recalculation is handled by the confirmation list).
+        if (transaction?.splitShares) {
+            resetSplitShares(transaction, newAmount, selectedCurrency, currentUserAccountIDParam, false);
+        }
+
         updateMoneyRequestAmountAndCurrency({
             transactionID,
             transactionThreadReport: report,
@@ -421,11 +506,13 @@ function IOURequestStepAmount({
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+            delegateAccountID,
         });
         navigateBack();
     };
 
     const hideCurrencyPicker = () => {
+        Keyboard.dismiss();
         setIsCurrencyPickerVisible(false);
     };
 
@@ -448,6 +535,7 @@ function IOURequestStepAmount({
             shouldShowWrapper={!!backTo || isEditing}
             includeSafeAreaPaddingBottom
             shouldShowNotFoundPage={shouldShowNotFoundPage}
+            shouldEnableKeyboardAvoidingView={false}
         >
             <IOURequestStepCurrencyModal
                 isPickerVisible={isCurrencyPickerVisible}
@@ -486,10 +574,12 @@ function isParticipantP2P(participant: {accountID?: number; isPolicyExpenseChat?
     return !!(participant?.accountID && !participant.isPolicyExpenseChat);
 }
 
-// eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepAmountWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepAmount, true);
-// eslint-disable-next-line rulesdir/no-negated-variables
+
 const IOURequestStepAmountWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepAmountWithWritableReportOrNotFound, true);
 
+// Version without withWritableReportOrNotFound, for use when parent already provides report prop
+const IOURequestStepAmountWithTransactionOnly = withFullTransactionOrNotFound(IOURequestStepAmount, true);
+
 export default IOURequestStepAmountWithFullTransactionOrNotFound;
-export {isParticipantP2P};
+export {isParticipantP2P, IOURequestStepAmountWithTransactionOnly};

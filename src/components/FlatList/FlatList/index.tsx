@@ -1,4 +1,3 @@
-/* eslint-disable es/no-optional-chaining, es/no-nullish-coalescing-operators, react/prop-types */
 import type {ForwardedRef, RefObject} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
@@ -25,7 +24,6 @@ function mergeRefs(...args: Array<RefObject<FlatList> | ForwardedRef<FlatList> |
                 continue;
             }
             if (typeof ref === 'object') {
-                // eslint-disable-next-line no-param-reassign
                 ref.current = node;
                 continue;
             }
@@ -112,7 +110,7 @@ function MVCPFlatList<T>({
 
         const contentViewLength = contentView.childNodes.length;
         for (let i = mvcpMinIndexForVisible; i < contentViewLength; i++) {
-            const subview = contentView.childNodes[restProps.inverted ? contentViewLength - i - 1 : i] as HTMLElement;
+            const subview = contentView.childNodes[i] as HTMLElement;
             const subviewOffset = horizontal ? subview.offsetLeft : subview.offsetTop;
             if (subviewOffset > scrollOffset) {
                 prevFirstVisibleOffsetRef.current = subviewOffset;
@@ -120,7 +118,7 @@ function MVCPFlatList<T>({
                 break;
             }
         }
-    }, [getContentView, getScrollOffset, mvcpMinIndexForVisible, horizontal, restProps.inverted]);
+    }, [getContentView, getScrollOffset, mvcpMinIndexForVisible, horizontal]);
 
     const adjustForMaintainVisibleContentPosition = useCallback(
         (animated = true) => {
@@ -253,7 +251,6 @@ function MVCPFlatList<T>({
     );
     return (
         <FlatList
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...restProps}
             maintainVisibleContentPosition={maintainVisibleContentPosition}
             horizontal={horizontal}

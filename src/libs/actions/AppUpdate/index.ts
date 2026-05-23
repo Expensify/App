@@ -3,7 +3,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import updateApp from './updateApp';
 
 function triggerUpdateAvailable() {
-    Onyx.set(ONYXKEYS.UPDATE_AVAILABLE, true);
+    Onyx.set(ONYXKEYS.RAM_ONLY_UPDATE_AVAILABLE, true);
 }
 
 function setIsAppInBeta(isBeta: boolean) {

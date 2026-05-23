@@ -47,12 +47,20 @@ type SelectionListWithSectionsProps<TItem extends ListItem> = BaseSelectionListP
     /** Callback to fire when the list layout changes */
     onLayout?: (event: LayoutChangeEvent) => void;
 
-    /** Whether product training tooltips can be displayed */
-    canShowProductTrainingTooltip?: boolean;
+    /** Whether to prevent auto-scrolling to the first index when selecting an item in multi-select mode */
+    shouldPreventAutoScrollOnSelect?: boolean;
+
+    /** Whether to wrap long text in rows */
+    isRowMultilineSupported?: boolean;
+
+    /** Number of lines to show for title text when multiline is supported */
+    titleNumberOfLines?: number;
 };
 
 type SelectionListWithSectionsHandle<TItem extends ListItem = ListItem> = {
     focusTextInput: () => void;
+    scrollToIndex: (index: number) => void;
+    clearInputAfterSelect: () => void;
     updateAndScrollToFocusedIndex: (index: number, shouldScroll?: boolean) => void;
     updateExternalTextInputFocus: (isTextInputFocused: boolean) => void;
     getFocusedOption: () => TItem | undefined;
@@ -75,4 +83,4 @@ type SectionListItem<TItem extends ListItem> = TItem & {
 
 type FlattenedItem<TItem extends ListItem> = SectionListItem<TItem> | SectionHeader;
 
-export type {Section, ListItem, SectionListItem, SelectionListWithSectionsProps, SelectionListWithSectionsHandle, SectionHeader, FlattenedItem};
+export type {Section, ListItem, SectionListItem, SelectionListWithSectionsProps, SelectionListWithSectionsHandle, FlattenedItem};

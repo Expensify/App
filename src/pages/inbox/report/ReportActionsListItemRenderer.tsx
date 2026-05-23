@@ -1,9 +1,9 @@
 import React, {memo, useMemo} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isChatThread} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import type {PersonalDetailsList, Report, ReportAction, ReportActionReactions, ReportActionsDrafts} from '@src/types/onyx';
+import type {PersonalDetailsList, Report, ReportAction} from '@src/types/onyx';
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
 
@@ -29,9 +29,6 @@ type ReportActionsListItemRendererProps = {
     /** Should the comment have the appearance of being grouped with the previous comment? */
     displayAsGroup: boolean;
 
-    /** The ID of the most recent IOU report action connected with the shown report */
-    mostRecentIOUReportActionID?: string | null;
-
     /** If the thread divider line should be hidden */
     shouldHideThreadDividerLine: boolean;
 
@@ -53,29 +50,11 @@ type ReportActionsListItemRendererProps = {
     /** Animate highlight action in few seconds */
     shouldHighlight?: boolean;
 
-    /** Draft messages for the report */
-    draftMessage?: string;
-
-    /** Emoji reactions for the report action */
-    emojiReactions?: OnyxEntry<ReportActionReactions>;
-
-    /** User wallet tierName */
-    userWalletTierName: string | undefined;
-
-    /** Whether the user is validated */
-    isUserValidated: boolean | undefined;
-
     /** Personal details list */
     personalDetails: OnyxEntry<PersonalDetailsList>;
 
     /** User billing fund ID */
     userBillingFundID: number | undefined;
-
-    /** All draft messages collection */
-    allDraftMessages?: OnyxCollection<ReportActionsDrafts>;
-
-    /** All emoji reactions collection */
-    allEmojiReactions?: OnyxCollection<ReportActionReactions>;
 
     /** Did the user dismiss trying out NewDot? If true, it means they prefer using OldDot */
     isTryNewDotNVPDismissed: boolean | undefined;
@@ -96,7 +75,6 @@ function ReportActionsListItemRenderer({
     report,
     transactionThreadReport,
     displayAsGroup,
-    mostRecentIOUReportActionID = '',
     shouldHideThreadDividerLine,
     shouldDisplayNewMarker,
     linkedReportActionID = '',
@@ -105,14 +83,8 @@ function ReportActionsListItemRenderer({
     shouldUseThreadDividerLine = false,
     shouldHighlight = false,
     parentReportActionForTransactionThread,
-    draftMessage,
-    emojiReactions,
-    userWalletTierName,
-    isUserValidated,
     userBillingFundID,
     personalDetails,
-    allDraftMessages,
-    allEmojiReactions,
     isTryNewDotNVPDismissed = false,
     isReportArchived = false,
     reportNameValuePairsOrigin,
@@ -206,11 +178,7 @@ function ReportActionsListItemRenderer({
                 index={index}
                 isFirstVisibleReportAction={isFirstVisibleReportAction}
                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
-                userWalletTierName={userWalletTierName}
-                isUserValidated={isUserValidated}
                 personalDetails={personalDetails}
-                allDraftMessages={allDraftMessages}
-                allEmojiReactions={allEmojiReactions}
                 userBillingFundID={userBillingFundID}
                 isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                 isReportArchived={isReportArchived}
@@ -229,16 +197,11 @@ function ReportActionsListItemRenderer({
             linkedReportActionID={linkedReportActionID}
             displayAsGroup={displayAsGroup}
             shouldDisplayNewMarker={shouldDisplayNewMarker}
-            isMostRecentIOUReportAction={reportAction.reportActionID === mostRecentIOUReportActionID}
             index={index}
             isFirstVisibleReportAction={isFirstVisibleReportAction}
             shouldUseThreadDividerLine={shouldUseThreadDividerLine}
             shouldHighlight={shouldHighlight}
-            userWalletTierName={userWalletTierName}
-            isUserValidated={isUserValidated}
             personalDetails={personalDetails}
-            draftMessage={draftMessage}
-            emojiReactions={emojiReactions}
             userBillingFundID={userBillingFundID}
             isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
             reportNameValuePairsOrigin={reportNameValuePairsOrigin}

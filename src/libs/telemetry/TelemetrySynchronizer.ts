@@ -154,9 +154,9 @@ function sendPoliciesContext() {
     }
 
     const policiesCountBucket = bucketPolicyCount(activePolicies.length);
-    Sentry.setTag(CONST.TELEMETRY.TAG_ACTIVE_POLICY, activePolicyID);
-    Sentry.setTag(CONST.TELEMETRY.TAG_POLICIES_COUNT, policiesCountBucket);
-    Sentry.setTag(CONST.TELEMETRY.TAG_USER_ROLE, userRole);
+    Sentry.setTag(CONST.TELEMETRY.TAGS.ACTIVE_POLICY, activePolicyID);
+    Sentry.setTag(CONST.TELEMETRY.TAGS.POLICIES_COUNT, policiesCountBucket);
+    Sentry.setTag(CONST.TELEMETRY.TAGS.USER_ROLE, userRole);
     Sentry.setContext(CONST.TELEMETRY.CONTEXT_POLICIES, {activePolicyID, activePolicies});
 }
 
@@ -165,17 +165,17 @@ function sendTryNewDotCohortTag() {
     if (!cohort) {
         return;
     }
-    Sentry.setTag(CONST.TELEMETRY.TAG_NUDGE_MIGRATION_COHORT, cohort);
+    Sentry.setTag(CONST.TELEMETRY.TAGS.NUDGE_MIGRATION_COHORT, cohort);
 }
 
 function sendReportsCountTag(reportsCount: number) {
     const reportsCountBucket = bucketReportCount(reportsCount);
-    Sentry.setTag(CONST.TELEMETRY.TAG_REPORTS_COUNT, reportsCountBucket);
+    Sentry.setTag(CONST.TELEMETRY.TAGS.REPORTS_COUNT, reportsCountBucket);
 }
 
 function sendPersonalDetailsCountTag(personalDetailsCount: number) {
     const personalDetailsCountBucket = bucketReportCount(personalDetailsCount);
-    Sentry.setTag(CONST.TELEMETRY.TAG_PERSONAL_DETAILS_COUNT, personalDetailsCountBucket);
+    Sentry.setTag(CONST.TELEMETRY.TAGS.PERSONAL_DETAILS_COUNT, personalDetailsCountBucket);
 }
 
 export {initializeMemoryTracking as initializeMemoryTrackingTelemetry, cleanupMemoryTracking as cleanupMemoryTrackingTelemetry};

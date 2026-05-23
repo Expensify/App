@@ -1,4 +1,5 @@
 import React, {useCallback, useMemo, useRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConnectionLayout from '@components/ConnectionLayout';
@@ -9,6 +10,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useSubPage from '@hooks/useSubPage';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {CustomFieldSubPageWithPolicy} from '@pages/workspace/accounting/netsuite/types';
 import {updateNetSuiteCustomLists} from '@userActions/connections/NetSuiteCommands';
 import {clearDraftValues} from '@userActions/FormActions';
@@ -49,7 +51,6 @@ function NetSuiteImportAddCustomListContent({policy, draftValues, policyIDParam}
     const customLists = useMemo(() => config?.syncOptions?.customLists ?? [], [config?.syncOptions]);
 
     const handleFinishStep = useCallback(() => {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             const updatedCustomLists = customLists.concat([
                 {
@@ -109,7 +110,7 @@ function NetSuiteImportAddCustomListContent({policy, draftValues, policyIDParam}
     if (isRedirecting) {
         return (
             <ScreenWrapper testID="NetSuiteImportAddCustomListContent">
-                <FullScreenLoadingIndicator />
+                <FullScreenLoadingIndicator reasonAttributes={{context: 'NetSuiteImportAddCustomListContent', isRedirecting} satisfies SkeletonSpanReasonAttributes} />
             </ScreenWrapper>
         );
     }

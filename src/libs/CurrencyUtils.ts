@@ -3,12 +3,12 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CurrencyList, Locale} from '@src/types/onyx';
+import type {Locale} from '@src/types/onyx';
+import Log from './Log';
 import {format, formatToParts} from './NumberFormatUtils';
 
 let currencyList: OnyxValues[typeof ONYXKEYS.CURRENCY_LIST] = {};
 
-/* eslint-disable rulesdir/prefer-onyx-connect-in-libs -- may refactor to useOnyx/connectWithoutView later */
 Onyx.connect({
     key: ONYXKEYS.CURRENCY_LIST,
     callback: (val) => {
@@ -19,7 +19,46 @@ Onyx.connect({
         currencyList = val;
     },
 });
-/* eslint-enable rulesdir/prefer-onyx-connect-in-libs */
+
+/**
+ * Returns true when the provided value is a syntactically valid ISO 4217 currency code
+ * (exactly 3 uppercase ASCII letters).
+ */
+function isValidCurrencyCode(currencyCode: unknown): currencyCode is string {
+    return typeof currencyCode === 'string' && /^[A-Z]{3}$/.test(currencyCode);
+}
+
+// Tracks invalid currency codes already warned about so the same bad value doesn't spam the log on every render.
+const warnedInvalidCurrencyCodes = new Set<string>();
+
+/**
+ * Test-only: clears the in-memory de-dup of malformed currency codes so tests asserting on `Log.warn`
+ * are not affected by warnings emitted by earlier tests. Production code should not call this.
+ */
+function resetInvalidCurrencyWarningsForTesting() {
+    warnedInvalidCurrencyCodes.clear();
+}
+
+/**
+ * Validates a currency code and returns it unchanged if it is a valid ISO 4217 code.
+ * Whitespace and case-only variations (e.g. " usd ") are normalized rather than discarded.
+ * Returns CONST.CURRENCY.USD and logs a warning at most once per unique malformed value, to prevent Intl.NumberFormat
+ * from throwing a RangeError. See https://github.com/Expensify/App/issues/91113
+ */
+function sanitizeCurrencyCode(currencyCode: unknown): string {
+    if (isValidCurrencyCode(currencyCode)) {
+        return currencyCode;
+    }
+    const normalized = typeof currencyCode === 'string' ? currencyCode.trim().toUpperCase() : '';
+    if (isValidCurrencyCode(normalized)) {
+        return normalized;
+    }
+    if (!warnedInvalidCurrencyCodes.has(normalized)) {
+        warnedInvalidCurrencyCodes.add(normalized);
+        Log.warn('CurrencyUtils: invalid currency code, defaulting to USD', {currencyCode});
+    }
+    return CONST.CURRENCY.USD;
+}
 
 /**
  * Returns the number of digits after the decimal separator for a specific currency.
@@ -30,7 +69,7 @@ Onyx.connect({
  */
 function getCurrencyDecimals(currency: string = CONST.CURRENCY.USD): number {
     const decimals = currencyList?.[currency]?.decimals;
-    return decimals ?? 2;
+    return decimals ?? CONST.DEFAULT_CURRENCY_DECIMALS;
 }
 
 /**
@@ -49,7 +88,7 @@ function getCurrencyUnit(currency: string = CONST.CURRENCY.USD): number {
 function getLocalizedCurrencySymbol(locale: Locale | undefined, currencyCode: string): string | undefined {
     const parts = formatToParts(locale, 0, {
         style: 'currency',
-        currency: currencyCode,
+        currency: sanitizeCurrencyCode(currencyCode),
     });
     return parts.find((part) => part.type === 'currency')?.value;
 }
@@ -74,11 +113,8 @@ function convertToBackendAmount(amountAsFloat: number): number {
 
 /**
  * Takes an amount in "cents" as an integer and converts it to a floating point amount used in the frontend.
- *
- * @note we do not support any currencies with more than two decimal places.
  */
-function convertToFrontendAmountAsInteger(amountAsInt: number, currency: string = CONST.CURRENCY.USD): number {
-    const decimals = getCurrencyDecimals(currency);
+function convertToFrontendAmountAsInteger(amountAsInt: number, decimals: number): number {
     return Number((Math.trunc(amountAsInt) / 100.0).toFixed(decimals));
 }
 
@@ -87,12 +123,11 @@ function convertToFrontendAmountAsInteger(amountAsInt: number, currency: string 
  *
  * @note we do not support any currencies with more than two decimal places.
  */
-function convertToFrontendAmountAsString(amountAsInt: number | null | undefined, currency: string = CONST.CURRENCY.USD, withDecimals = true): string {
+function convertToFrontendAmountAsString(amountAsInt: number | null | undefined, decimals: number): string {
     if (amountAsInt === null || amountAsInt === undefined) {
         return '';
     }
-    const decimals = withDecimals ? getCurrencyDecimals(currency) : 0;
-    return convertToFrontendAmountAsInteger(amountAsInt, currency).toFixed(decimals);
+    return (Math.trunc(amountAsInt) / 100.0).toFixed(decimals);
 }
 
 /**
@@ -103,14 +138,9 @@ function convertToFrontendAmountAsString(amountAsInt: number | null | undefined,
  * @param currency - IOU currency
  */
 function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURRENCY.USD, shouldUseLocalCurrencySymbol = false): string {
-    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency);
-    /**
-     * Fallback currency to USD if it empty string or undefined
-     */
-    let currencyWithFallback = currency;
-    if (!currency) {
-        currencyWithFallback = CONST.CURRENCY.USD;
-    }
+    const currencyWithFallback = sanitizeCurrencyCode(currency);
+    const decimals = getCurrencyDecimals(currencyWithFallback);
+    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, decimals);
 
     if (shouldUseLocalCurrencySymbol) {
         const currencySymbol = getCurrencySymbol(currencyWithFallback);
@@ -118,7 +148,7 @@ function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURR
         if (currencySymbol) {
             const formattedNumber = format(IntlStore.getCurrentLocale(), convertedAmount, {
                 style: 'decimal',
-                minimumFractionDigits: getCurrencyDecimals(currency),
+                minimumFractionDigits: decimals,
                 maximumFractionDigits: 2,
             });
             return `${currencySymbol}${formattedNumber}`;
@@ -131,7 +161,7 @@ function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURR
 
         // We are forcing the number of decimals because we override the default number of decimals in the backend for some currencies
         // See: https://github.com/Expensify/PHP-Libs/pull/834
-        minimumFractionDigits: getCurrencyDecimals(currency),
+        minimumFractionDigits: decimals,
         // For currencies that have decimal places > 2, floor to 2 instead as we don't support more than 2 decimal places.
         maximumFractionDigits: 2,
     });
@@ -153,11 +183,12 @@ function convertToDisplayStringWithExplicitCurrency(amountInCents: number, curre
  * @param currency - IOU currency
  */
 function convertToShortDisplayString(amountInCents = 0, currency: string = CONST.CURRENCY.USD): string {
-    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency);
+    // We want to make sure that we are not showing any decimals in the short display string, so we pass 0 as the decimals parameter
+    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, 0);
 
     return format(IntlStore.getCurrentLocale(), convertedAmount, {
         style: 'currency',
-        currency,
+        currency: sanitizeCurrencyCode(currency),
 
         // There will be no decimals displayed (e.g. $9)
         minimumFractionDigits: 0,
@@ -175,7 +206,7 @@ function convertAmountToDisplayString(amount = 0, currency: string = CONST.CURRE
     const convertedAmount = amount / 100.0;
     return format(IntlStore.getCurrentLocale(), convertedAmount, {
         style: 'currency',
-        currency,
+        currency: sanitizeCurrencyCode(currency),
         minimumFractionDigits: CONST.MIN_TAX_RATE_DECIMAL_PLACES,
         maximumFractionDigits: CONST.MAX_TAX_RATE_DECIMAL_PLACES,
     });
@@ -185,14 +216,16 @@ function convertAmountToDisplayString(amount = 0, currency: string = CONST.CURRE
  * Acts the same as `convertAmountToDisplayString` but the result string does not contain currency
  */
 function convertToDisplayStringWithoutCurrency(amountInCents: number, currency: string = CONST.CURRENCY.USD) {
-    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency);
+    const sanitizedCurrency = sanitizeCurrencyCode(currency);
+    const decimals = getCurrencyDecimals(sanitizedCurrency);
+    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, decimals);
     return formatToParts(IntlStore.getCurrentLocale(), convertedAmount, {
         style: 'currency',
-        currency,
+        currency: sanitizedCurrency,
 
         // We are forcing the number of decimals because we override the default number of decimals in the backend for some currencies
         // See: https://github.com/Expensify/PHP-Libs/pull/834
-        minimumFractionDigits: getCurrencyDecimals(currency),
+        minimumFractionDigits: decimals,
         // For currencies that have decimal places > 2, floor to 2 instead as we don't support more than 2 decimal places.
         maximumFractionDigits: 2,
     })
@@ -202,32 +235,14 @@ function convertToDisplayStringWithoutCurrency(amountInCents: number, currency: 
         .join('');
 }
 
-/**
- * Checks if passed currency code is a valid currency based on currency list
- */
-function isValidCurrencyCode(currencyCode: string): boolean {
-    const currency = currencyList?.[currencyCode];
-    return !!currency;
-}
-
-function getCurrencyKeyByCountryCode(currencies?: CurrencyList, countryCode?: string): string {
-    if (!currencies || !countryCode) {
-        return CONST.CURRENCY.USD;
-    }
-    for (const [key, value] of Object.entries(currencies)) {
-        if (value?.countries?.includes(countryCode)) {
-            return key;
-        }
-    }
-    return CONST.CURRENCY.USD;
-}
-
 export {
+    isValidCurrencyCode,
+    sanitizeCurrencyCode,
+    resetInvalidCurrencyWarningsForTesting,
     getCurrencyDecimals,
     getCurrencyUnit,
     getLocalizedCurrencySymbol,
     getCurrencySymbol,
-    getCurrencyKeyByCountryCode,
     convertToBackendAmount,
     convertToFrontendAmountAsInteger,
     convertToFrontendAmountAsString,
@@ -235,6 +250,5 @@ export {
     convertAmountToDisplayString,
     convertToDisplayStringWithoutCurrency,
     convertToDisplayStringWithExplicitCurrency,
-    isValidCurrencyCode,
     convertToShortDisplayString,
 };
