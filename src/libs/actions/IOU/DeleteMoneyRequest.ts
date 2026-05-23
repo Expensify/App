@@ -249,6 +249,7 @@ function prepareToCleanUpMoneyRequest(
 function getNavigationUrlOnMoneyRequestDelete(
     transactionID: string | undefined,
     reportAction: OnyxTypes.ReportAction,
+    transactionThreadReport: OnyxEntry<OnyxTypes.Report>,
     iouReport: OnyxEntry<OnyxTypes.Report>,
     chatReport: OnyxEntry<OnyxTypes.Report>,
     isChatReportArchived: boolean | undefined,
@@ -257,9 +258,6 @@ function getNavigationUrlOnMoneyRequestDelete(
     if (!transactionID) {
         return undefined;
     }
-    const allReports = getAllReports();
-    const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`];
-
     const {shouldDeleteTransactionThread, shouldDeleteIOUReport} = prepareToCleanUpMoneyRequest(
         transactionID,
         reportAction,
@@ -302,7 +300,15 @@ function cleanUpMoneyRequest(
     const {shouldDeleteTransactionThread, shouldDeleteIOUReport, updatedReportAction, updatedIOUReport, updatedReportPreviewAction, transactionThreadID, reportPreviewAction} =
         prepareToCleanUpMoneyRequest(transactionID, reportAction, transactionThreadReport, iouReport, chatReport, isChatIOUReportArchived, false);
 
-    const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(transactionID, reportAction, iouReport, chatReport, isChatIOUReportArchived, isSingleTransactionView);
+    const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(
+        transactionID,
+        reportAction,
+        transactionThreadReport,
+        iouReport,
+        chatReport,
+        isChatIOUReportArchived,
+        isSingleTransactionView,
+    );
     // build Onyx data
 
     // Onyx operations to delete the transaction, update the IOU report action and chat report action
@@ -683,7 +689,15 @@ function deleteMoneyRequest({
         selectedTransactionIDs,
     );
 
-    const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(transactionID, reportAction, iouReport, chatReport, isChatIOUReportArchived, isSingleTransactionView);
+    const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(
+        transactionID,
+        reportAction,
+        transactionThreadReport,
+        iouReport,
+        chatReport,
+        isChatIOUReportArchived,
+        isSingleTransactionView,
+    );
 
     // STEP 2: Build Onyx data
     // The logic mostly resembles the cleanUpMoneyRequest function

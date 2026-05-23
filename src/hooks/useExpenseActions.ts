@@ -114,7 +114,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const requestParentReportAction =
         reportActions?.find((action): action is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => action.reportActionID === transactionThreadReport?.parentReportActionID) ??
         null;
-
+    const [requestParentReportActionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(requestParentReportAction?.childReportID)}`);
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
@@ -510,6 +510,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                         const goBackRoute = getNavigationUrlOnMoneyRequestDelete(
                             transaction.transactionID,
                             requestParentReportAction,
+                            requestParentReportActionChildReport,
                             iouReport,
                             chatIOUReport,
                             isChatIOUReportArchived,

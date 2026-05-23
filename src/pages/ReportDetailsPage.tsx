@@ -297,6 +297,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
         return parentReportAction;
     }, [caseID, parentReportAction, reportActions, transactionThreadReport?.parentReportActionID]);
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(requestParentReportAction);
+    const [requestParentReportActionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(requestParentReportAction?.childReportID)}`);
 
     const isActionOwner =
         typeof requestParentReportAction?.actorAccountID === 'number' &&
@@ -995,6 +996,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
                 urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(
                     iouTransactionID,
                     requestParentReportAction,
+                    requestParentReportActionChildReport,
                     iouReport,
                     chatIOUReport,
                     isChatIOUReportArchived,
