@@ -1369,25 +1369,7 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     const transactionsOnExpenseReport = Object.values(params.allTransactionsList ?? {}).filter((itemTransaction) => itemTransaction?.reportID === expenseReportID);
     const isLastTransactionInReport = isReverseSplitOperation && transactionsOnExpenseReport.length === 1;
 
-    // Also detect when the update will empty the expense report even without a reverse split.
-    // This happens when a sibling split was moved to another submitted report, so
-    // isReverseSplitOperation is false, but the removed child is the last transaction on this report.
-    const remainingSplitTransactionIDs = new Set(splitExpenses.map((expense) => expense.transactionID));
-    const originalChildTransactionIDs = new Set(originalChildTransactions.map((tx) => tx?.transactionID).filter(Boolean));
-    const removedChildTransactionIDs = new Set(
-        originalChildTransactions
-            .filter((tx): tx is NonNullable<typeof tx> & {transactionID: string} => !!tx?.transactionID && !remainingSplitTransactionIDs.has(tx.transactionID))
-            .map((tx) => tx.transactionID),
-    );
-    // When the user removes existing splits but adds new ones ("Add Split"), those new
-    // transactions will be created on the same expense report, so it won't actually be empty.
-    const hasNewSplitsBeingAdded = splitExpenses.some((expense) => !originalChildTransactionIDs.has(expense.transactionID));
-    const willExpenseReportBeEmpty =
-        !isLastTransactionInReport &&
-        !hasNewSplitsBeingAdded &&
-        !!expenseReportID &&
-        transactionsOnExpenseReport.length > 0 &&
-        transactionsOnExpenseReport.every((tx) => !!tx?.transactionID && removedChildTransactionIDs.has(tx.transactionID));
+    const willExpenseReportBeEmpty = !!expenseReportID && !splitExpenses.some((expense) => expense?.reportID === expenseReportID);
     const willDeleteExpenseReport = isLastTransactionInReport || willExpenseReportBeEmpty;
     const fallbackReportID = params.expenseReport?.chatReportID ?? params.expenseReport?.parentReportID;
 
