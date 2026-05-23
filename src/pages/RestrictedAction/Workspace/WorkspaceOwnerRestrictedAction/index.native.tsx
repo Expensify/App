@@ -22,9 +22,8 @@ function WorkspaceOwnerRestrictedAction() {
 
     const goToSubscription = useCallback(() => {
         const activeRoute = Navigation.getActiveRoute();
-        Navigation.dismissModal({
-            afterTransition: () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(activeRoute)),
-        });
+        Navigation.closeRHPFlow();
+        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(activeRoute), {waitForTransition: true});
     }, []);
 
     return (

@@ -21,9 +21,8 @@ function WorkspaceOwnerRestrictedAction() {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Unlock']);
 
     const addPaymentCard = useCallback(() => {
-        Navigation.dismissModal({
-            afterTransition: () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD),
-        });
+        Navigation.closeRHPFlow();
+        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD, {waitForTransition: true});
     }, []);
 
     return (
