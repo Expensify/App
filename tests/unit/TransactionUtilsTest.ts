@@ -3267,6 +3267,30 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('getOriginalCurrencyForDisplay', () => {
+        it('uses modifiedCurrency before currency when originalCurrency is missing', () => {
+            const transaction = generateTransaction({
+                originalCurrency: '',
+                currency: CONST.CURRENCY.USD,
+                modifiedCurrency: CONST.CURRENCY.NZD,
+                amount: 1000,
+            });
+
+            expect(TransactionUtils.getOriginalCurrencyForDisplay(transaction)).toBe(CONST.CURRENCY.NZD);
+        });
+
+        it('keeps originalCurrency before modifiedCurrency for imported expenses', () => {
+            const transaction = generateTransaction({
+                originalCurrency: CONST.CURRENCY.GBP,
+                currency: CONST.CURRENCY.USD,
+                modifiedCurrency: CONST.CURRENCY.NZD,
+                amount: 1000,
+            });
+
+            expect(TransactionUtils.getOriginalCurrencyForDisplay(transaction)).toBe(CONST.CURRENCY.GBP);
+        });
+    });
+
     describe('mergeProhibitedViolations', () => {
         it('should preserve showInReview as true when at least one source violation has showInReview: true', () => {
             const violations: TransactionViolation[] = [

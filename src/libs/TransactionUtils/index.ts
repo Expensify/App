@@ -1149,11 +1149,11 @@ function getOriginalAmountForDisplay(transaction: Pick<Transaction, 'originalAmo
 
 /**
  * Return the original currency for display/sorting purposes.
- * Falls back to originalCurrency, then currency, then modifiedCurrency.
+ * Falls back to originalCurrency, then modifiedCurrency, then currency.
  */
-function getOriginalCurrencyForDisplay(transaction: Pick<Transaction, 'originalCurrency' | 'currency' | 'modifiedCurrency' | 'amount'>): string {
+function getOriginalCurrencyForDisplay(transaction: Pick<Transaction, 'originalCurrency' | 'currency' | 'modifiedCurrency'>): string {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    return transaction.originalCurrency || (transaction.amount === 0 ? transaction.modifiedCurrency : transaction.currency) || CONST.CURRENCY.USD;
+    return transaction.originalCurrency || transaction.modifiedCurrency || transaction.currency || CONST.CURRENCY.USD;
 }
 
 /**
