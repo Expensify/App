@@ -847,11 +847,11 @@ describe('actions/Report', () => {
         expect(newCommentHTML).toBe(expectedOutput);
 
         // User edits and deletes the link containing underscores
-        // We should not generate link
+        // We should generate link
         originalCommentMarkdown = '[https://www.facebook.com/hashtag/__main/?__eep__=6](https://www.facebook.com/hashtag/__main/?__eep__=6)';
         afterEditCommentText = 'https://www.facebook.com/hashtag/__main/?__eep__=6';
         newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN);
-        expectedOutput = 'https://www.facebook.com/hashtag/__main/?__eep__=6';
+        expectedOutput = '<a href="https://www.facebook.com/hashtag/__main/?__eep__=6" target="_blank" rel="noreferrer noopener">https://www.facebook.com/hashtag/__main/?__eep__=6</a>';
         expect(newCommentHTML).toBe(expectedOutput);
 
         // User edits and replaces comment with a link containing asterisks
@@ -863,11 +863,11 @@ describe('actions/Report', () => {
         expect(newCommentHTML).toBe(expectedOutput);
 
         // User edits and deletes the link containing asterisks
-        // We should not generate link
+        // We should generate link
         originalCommentMarkdown = '[http://example.com/foo/*/bar/*/test.txt](http://example.com/foo/*/bar/*/test.txt)';
         afterEditCommentText = 'http://example.com/foo/*/bar/*/test.txt';
         newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN);
-        expectedOutput = 'http://example.com/foo/*/bar/*/test.txt';
+        expectedOutput = '<a href="http://example.com/foo/*/bar/*/test.txt" target="_blank" rel="noreferrer noopener">http://example.com/foo/*/bar/*/test.txt</a>';
         expect(newCommentHTML).toBe(expectedOutput);
 
         // User edits comment to add mention

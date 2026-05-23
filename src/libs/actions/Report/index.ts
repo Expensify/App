@@ -3152,6 +3152,11 @@ function handleUserDeletedLinksInHtml(newCommentText: string, originalCommentMar
         return newCommentText;
     }
 
+    const isSelfTitledMarkdownLink = (link: string): boolean => {
+        const escapedLink = Str.escapeForRegExp(link);
+        return new RegExp(`\\[${escapedLink}\\]\\(${escapedLink}\\)`).test(originalCommentMarkdown);
+    };
+
     const userEmailDomain = isEmailPublicDomain(currentUserLogin) ? '' : Str.extractEmailDomain(currentUserLogin);
     const allPersonalDetailLogins = Object.values(allPersonalDetails ?? {}).map((personalDetail) => personalDetail?.login ?? '');
 
@@ -3165,7 +3170,11 @@ function handleUserDeletedLinksInHtml(newCommentText: string, originalCommentMar
     });
 
     const removedLinks = Parser.getRemovedMarkdownLinks(originalCommentMarkdown, newCommentText);
-    return removeLinksFromHtml(htmlForNewComment, removedLinks);
+    // If the original markdown link's label is identical to its target (e.g. `[https://example.com](https://example.com)`),
+    // it's effectively an auto-link representation. In that case, "removing" the markdown formatting while keeping the
+    // URL text should still preserve auto-linking when the edited comment is saved.
+    const removedLinksToStrip = removedLinks.filter((link) => !isSelfTitledMarkdownLink(link));
+    return removeLinksFromHtml(htmlForNewComment, removedLinksToStrip);
 }
 
 /** Saves a new message for a comment. Marks the comment as edited, which will be reflected in the UI. */
