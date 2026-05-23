@@ -25,6 +25,19 @@ const keyExtractor = (item: Report) => `report_${item.reportID}`;
 const platform = getPlatform();
 const isWeb = platform === CONST.PLATFORM.WEB;
 
+/**
+ * Restores the saved web scroll index only when it is still in range. The list length changes
+ * constantly (archived/deleted reports, filters, priority mode, account switches), so a saved index
+ * can point past the end. Returning undefined makes FlashList start at the top instead of looking up
+ * data[index] === undefined and handing renderItem a missing item.
+ */
+function getInitialScrollIndex(savedScrollIndex: number | undefined, dataLength: number): number | undefined {
+    if (savedScrollIndex === undefined || savedScrollIndex < 0 || savedScrollIndex >= dataLength) {
+        return undefined;
+    }
+    return savedScrollIndex;
+}
+
 function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions = false, onFirstItemRendered = () => {}}: LHNOptionsListProps) {
     const {saveScrollOffset, getScrollOffset, saveScrollIndex, getScrollIndex} = useContext(ScrollOffsetContext);
     const {isOffline} = useNetwork();
@@ -148,12 +161,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
         });
     }, [getScrollOffset, route]);
 
-    // Restore the saved web scroll index only when it is still in range. The list length changes
-    // constantly (archived/deleted reports, filters, priority mode, account switches), so a saved
-    // index can point past the end. An out-of-range initialScrollIndex makes FlashList hand
-    // renderItem an undefined item, so fall back to the top in that case.
-    const savedScrollIndex = isWeb ? getScrollIndex(route) : undefined;
-    const initialScrollIndex = savedScrollIndex !== undefined && savedScrollIndex >= 0 && savedScrollIndex < data.length ? savedScrollIndex : undefined;
+    const initialScrollIndex = getInitialScrollIndex(isWeb ? getScrollIndex(route) : undefined, data.length);
 
     return (
         <View style={style ?? styles.flex1}>
@@ -183,3 +191,4 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 }
 
 export default memo(LHNOptionsList);
+export {getInitialScrollIndex};
