@@ -104,7 +104,6 @@ import {getCardDescriptionForSearchTable, getFeedNameForDisplay} from './CardUti
 import {getCategoryGLCode, getDecodedCategoryName} from './CategoryUtils';
 import DateUtils from './DateUtils';
 import interceptAnonymousUser from './interceptAnonymousUser';
-import {hasDisplayableMCC} from './MCCUtils';
 import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
@@ -192,6 +191,7 @@ import {
     getAmount as getTransactionAmount,
     getCreated as getTransactionCreatedDate,
     getMerchant as getTransactionMerchant,
+    hasDisplayableMCC,
     isDeletedTransaction,
     isPending,
     isScanning,
