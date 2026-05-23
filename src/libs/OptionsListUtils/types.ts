@@ -193,6 +193,7 @@ type IsValidReportsConfig = Pick<
     | 'isTimeRequest'
 > & {
     currentUserAccountID: number;
+    currentUserLogin: string;
 };
 
 type GetOptionsConfig = {
