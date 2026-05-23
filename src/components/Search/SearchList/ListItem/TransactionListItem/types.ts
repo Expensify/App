@@ -4,7 +4,7 @@ import type {ListItemFocusEventHandler} from '@components/SelectionList/ListItem
 import type {ListItem} from '@components/SelectionList/types';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
-import type {CardList, ReportAction, TransactionViolation} from '@src/types/onyx';
+import type {CardList, PolicyCategories, ReportAction, TransactionViolation} from '@src/types/onyx';
 
 type TransactionListItemInlineEditProps = {
     shouldDisableHoverStyle: boolean;
@@ -45,6 +45,7 @@ type TransactionListItemWideProps<TItem extends ListItem> = {
     handleActionButtonPress: (event?: ModifiedMouseEvent) => void;
     transactionPreviewData: TransactionPreviewData;
     exportedReportActions: ReportAction[];
+    policyCategories?: PolicyCategories;
     nonPersonalAndWorkspaceCards?: CardList;
     isAttendeesEnabledForMovingPolicy?: boolean;
 } & TransactionListItemInlineEditProps;

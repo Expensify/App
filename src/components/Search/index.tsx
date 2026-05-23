@@ -268,6 +268,7 @@ function Search({
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const {accountID, email, login} = useCurrentUserPersonalDetails();
     const isActionLoadingSet = useActionLoadingReportIDs();
     const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
@@ -295,7 +296,7 @@ function Search({
         selector: selectFilteredReportActions,
     });
 
-    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
+    const {policyForMovingExpensesID, policyForMovingExpenses} = usePolicyForMovingExpenses();
     // Only the boolean derived from policyForMovingExpenses is consumed by row components downstream.
     // Drilling the policy object causes ref churn on every unrelated policy update (Pusher pushes).
     const isAttendeesEnabledForMovingPolicy = shouldShowAttendees(CONST.IOU.TYPE.SUBMIT, policyForMovingExpenses);
@@ -1275,8 +1276,17 @@ function Search({
         if (!searchResults?.data) {
             return getEmptyArray<SearchColumnType>();
         }
-        return getColumnsToShow({currentAccountID: accountID, data: searchResults?.data, visibleColumns, type: searchDataType, groupBy: validGroupBy, shouldUseStrictDefaultExpenseColumns});
-    }, [accountID, searchResults?.data, searchDataType, visibleColumns, validGroupBy, shouldUseStrictDefaultExpenseColumns]);
+        return getColumnsToShow({
+            currentAccountID: accountID,
+            data: searchResults?.data,
+            visibleColumns,
+            type: searchDataType,
+            groupBy: validGroupBy,
+            shouldUseStrictDefaultExpenseColumns,
+            policyCategories,
+            fallbackPolicyID: policyForMovingExpensesID,
+        });
+    }, [accountID, searchResults?.data, searchDataType, visibleColumns, validGroupBy, shouldUseStrictDefaultExpenseColumns, policyCategories, policyForMovingExpensesID]);
 
     // getColumnsToShow allocates a fresh array on every call; preserve the previous reference
     // when contents are equal so downstream consumers don't re-render on Onyx snapshot churn

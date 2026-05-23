@@ -143,6 +143,13 @@ function isCategoryDescriptionRequired(policyCategories: PolicyCategories | unde
     return !!policyCategories[category]?.areCommentsRequired;
 }
 
+function getCategoryGLCode(policyCategories: PolicyCategories | undefined, category: string | undefined): string {
+    if (!policyCategories || !category) {
+        return '';
+    }
+    return policyCategories[category]?.['GL Code']?.replaceAll('"', '') ?? '';
+}
+
 function getDecodedCategoryName(categoryName: string) {
     return Str.htmlDecode(categoryName);
 }
@@ -213,6 +220,7 @@ export {
     getEnabledCategoriesCount,
     isCategoryMissing,
     isCategoryDescriptionRequired,
+    getCategoryGLCode,
     getDecodedCategoryName,
     getDecodedLeafCategoryName,
     processCategoryNameSegments,

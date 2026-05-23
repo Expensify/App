@@ -101,7 +101,7 @@ import {convertAttendeesToArray} from './AttendeeUtils';
 import type {CardFeedForDisplay} from './CardFeedUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescriptionForSearchTable, getFeedNameForDisplay} from './CardUtils';
-import {getDecodedCategoryName} from './CategoryUtils';
+import {getCategoryGLCode, getDecodedCategoryName} from './CategoryUtils';
 import DateUtils from './DateUtils';
 import interceptAnonymousUser from './interceptAnonymousUser';
 import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -202,6 +202,7 @@ import {isInvalidMerchantValue} from './ValidationUtils';
 
 type ColumnSortMapping<T> = Partial<Record<SearchColumnType, keyof T | null>>;
 type ColumnVisibility = Partial<Record<SearchColumnType, boolean>>;
+type PolicyCategoriesLookup = OnyxEntry<OnyxTypes.PolicyCategories> | OnyxCollection<OnyxTypes.PolicyCategories>;
 type GroupBySection = {
     sectionIndex: number;
     options: Array<SingleSelectItem<SearchGroupBy>>;
@@ -273,6 +274,8 @@ const transactionColumnNamesToSortingProperty: TransactionSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: 'originalAmount' as const,
     [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: 'reimbursable' as const,
     [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: 'billable' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.MCC]: 'mcc' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.TAX_CODE]: 'taxCode' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TYPE]: null,
     [CONST.SEARCH.TABLE_COLUMNS.ACTION]: 'action' as const,
     [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: 'comment' as const,
@@ -395,6 +398,7 @@ const nonSortableColumns = new Set<SearchColumnType>([
     CONST.SEARCH.TABLE_COLUMNS.ACTION,
     CONST.SEARCH.TABLE_COLUMNS.IN,
     CONST.SEARCH.TABLE_COLUMNS.AVATAR,
+    CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE,
 ]);
 
 function isValidExpenseStatus(status: unknown): status is ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE> {
@@ -4125,6 +4129,8 @@ function getSearchColumnTranslationKey(column: SearchColumnType): TranslationPat
             return 'common.to';
         case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
             return 'common.category';
+        case CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE:
+            return 'common.categoryGLCode';
         case CONST.SEARCH.TABLE_COLUMNS.ATTENDEES:
             return 'iou.attendees';
         case CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE:
@@ -4139,6 +4145,10 @@ function getSearchColumnTranslationKey(column: SearchColumnType): TranslationPat
             return 'common.reimbursable';
         case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
             return 'common.billable';
+        case CONST.SEARCH.TABLE_COLUMNS.MCC:
+            return 'common.mcc';
+        case CONST.SEARCH.TABLE_COLUMNS.TAX_CODE:
+            return 'workspace.taxes.taxCode';
         case CONST.SEARCH.TABLE_COLUMNS.ACTION:
             return 'common.action';
         case CONST.SEARCH.TABLE_COLUMNS.TITLE:
@@ -5195,6 +5205,20 @@ function getWithdrawalStatusDisplayText(value: SearchWithdrawalStatus | undefine
         .join(', ');
 }
 
+function getPolicyCategoriesForPolicyID(policyCategories: PolicyCategoriesLookup | undefined, policyID?: string): OnyxEntry<OnyxTypes.PolicyCategories> {
+    if (!policyCategories) {
+        return undefined;
+    }
+
+    const policyCategoriesKey = policyID ? `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}` : undefined;
+    if (policyCategoriesKey && Object.prototype.hasOwnProperty.call(policyCategories, policyCategoriesKey)) {
+        return (policyCategories as OnyxCollection<OnyxTypes.PolicyCategories>)?.[policyCategoriesKey];
+    }
+
+    const isPolicyCategoriesCollection = Object.keys(policyCategories).some((key) => key.startsWith(ONYXKEYS.COLLECTION.POLICY_CATEGORIES));
+    return isPolicyCategoriesCollection ? undefined : (policyCategories as OnyxEntry<OnyxTypes.PolicyCategories>);
+}
+
 /**
  * Determines what columns to show based on available data
  * @param isExpenseReportView: true when we are inside an expense report view, false if we're in the Reports page.
@@ -5214,6 +5238,8 @@ function getColumnsToShow({
     reportCurrency,
     shouldUseStrictDefaultExpenseColumns = false,
     isPolicyTaxEnabled = false,
+    policyCategories,
+    fallbackPolicyID,
 }: {
     currentAccountID: number | undefined;
     data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[];
@@ -5228,6 +5254,8 @@ function getColumnsToShow({
     reportCurrency?: string;
     shouldUseStrictDefaultExpenseColumns?: boolean;
     isPolicyTaxEnabled?: boolean;
+    policyCategories?: PolicyCategoriesLookup;
+    fallbackPolicyID?: string;
 }): SearchColumnType[] {
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
         const defaultReportColumns: SearchColumnType[] = [
@@ -5336,8 +5364,11 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: false,
               [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAG]: false,
               [CONST.SEARCH.TABLE_COLUMNS.CARD]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.MCC]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.TAX_CODE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAX_RATE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE]: false,
@@ -5364,9 +5395,12 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME]: false,
               [CONST.SEARCH.TABLE_COLUMNS.CARD]: false,
               [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAG]: false,
               [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.MCC]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.TAX_CODE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAX_RATE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE]: false,
@@ -5436,6 +5470,14 @@ function getColumnsToShow({
 
     const {moneyRequestReportActionsByTransactionID} = Array.isArray(data) ? {} : createReportActionsLookupMaps(data);
     const updateColumns = (transaction: OnyxTypes.Transaction) => {
+        const transactionWithSearchFields = transaction as OnyxTypes.Transaction & {policyID?: string; policy?: OnyxTypes.Policy; report?: OnyxTypes.Report};
+        const transactionReport = transactionWithSearchFields.report ?? (Array.isArray(data) ? undefined : data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`]);
+        const explicitTransactionPolicyID = [transactionWithSearchFields.policyID, transactionWithSearchFields.policy?.id, transactionReport?.policyID].find(Boolean);
+        let transactionPolicyID = explicitTransactionPolicyID;
+        if (!transactionPolicyID && transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+            transactionPolicyID = fallbackPolicyID;
+        }
+        const transactionPolicyCategories = getPolicyCategoriesForPolicyID(policyCategories, transactionPolicyID);
         const merchant = transaction.modifiedMerchant ? transaction.modifiedMerchant : (transaction.merchant ?? '');
         if (!isInvalidMerchantValue(merchant) || isScanning(transaction)) {
             columns[CONST.SEARCH.TABLE_COLUMNS.MERCHANT] = true;
@@ -5458,7 +5500,11 @@ function getColumnsToShow({
         // Category/tag: set for all paths (default search, custom search, report view).
         // Will be refined later for search page non-IOU check.
         if (hasCategory) {
+            const categoryGLCode = getCategoryGLCode(transactionPolicyCategories, transaction.category);
             columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY] = !isExpenseReportViewFromIOUReport;
+            if (!isExpenseReportViewFromIOUReport && categoryGLCode) {
+                columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE] = true;
+            }
         }
         if (hasTag) {
             columns[CONST.SEARCH.TABLE_COLUMNS.TAG] = !isExpenseReportViewFromIOUReport;
@@ -5484,6 +5530,12 @@ function getColumnsToShow({
                 columns[CONST.SEARCH.TABLE_COLUMNS.TAX_RATE] = true;
                 columns[CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT] = true;
             }
+            if ((!!customResult && isPolicyTaxEnabled) || !!transaction.taxCode) {
+                columns[CONST.SEARCH.TABLE_COLUMNS.TAX_CODE] = true;
+            }
+            if (transaction.mcc) {
+                columns[CONST.SEARCH.TABLE_COLUMNS.MCC] = true;
+            }
 
             const hasExchangeRate = getExchangeRate(transaction, reportCurrency) !== '';
             if (hasExchangeRate) {
@@ -5501,18 +5553,16 @@ function getColumnsToShow({
             }
 
             if (!Array.isArray(data)) {
-                const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
-
-                if (report?.submitted) {
+                if (transactionReport?.submitted) {
                     columns[CONST.SEARCH.TABLE_COLUMNS.SUBMITTED] = true;
                 }
 
-                if (report?.policyID) {
+                if (transactionReport?.policyID) {
                     columns[CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME] = true;
                 }
 
                 const reportAction = moneyRequestReportActionsByTransactionID?.get(transaction.transactionID);
-                const toFieldValue = getToFieldValueForTransaction(transaction, report, data.personalDetailsList, reportAction);
+                const toFieldValue = getToFieldValueForTransaction(transaction, transactionReport, data.personalDetailsList, reportAction);
                 if (toFieldValue.accountID) {
                     columns[CONST.SEARCH.TABLE_COLUMNS.TO] = true;
                 }
@@ -5531,7 +5581,6 @@ function getColumnsToShow({
 
         // The From/To columns display logic depends on the passed report/reportAction i.e. if data is SearchResults and not an array (Transaction[])
         if (!Array.isArray(data)) {
-            const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
             const reportAction = moneyRequestReportActionsByTransactionID?.get(transaction.transactionID);
 
             // Handle From&To columns that are only shown in the Reports page
@@ -5543,16 +5592,16 @@ function getColumnsToShow({
 
             // Show category/tag if any non-IOU transaction has them.
             // Only set to true, never reset — so a previous non-IOU match is preserved.
-            if (hasCategory && !isIOUReportReportUtil(report)) {
+            if (hasCategory && !isIOUReportReportUtil(transactionReport)) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY] = true;
             }
-            if (hasTag && !isIOUReportReportUtil(report)) {
+            if (hasTag && !isIOUReportReportUtil(transactionReport)) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.TAG] = true;
             }
 
-            const toFieldValue = getToFieldValueForTransaction(transaction, report, data.personalDetailsList, reportAction);
+            const toFieldValue = getToFieldValueForTransaction(transaction, transactionReport, data.personalDetailsList, reportAction);
             if (!shouldUseStrictDefaultExpenseColumns && toFieldValue.accountID && toFieldValue.accountID !== currentAccountID && !columns[CONST.SEARCH.TABLE_COLUMNS.TO]) {
-                columns[CONST.SEARCH.TABLE_COLUMNS.TO] = !!report && !isOpenReport(report);
+                columns[CONST.SEARCH.TABLE_COLUMNS.TO] = !!transactionReport && !isOpenReport(transactionReport);
             }
         }
     };
@@ -5580,6 +5629,7 @@ function getColumnsToShow({
             CONST.SEARCH.TABLE_COLUMNS.TYPE,
             CONST.SEARCH.TABLE_COLUMNS.DATE,
             CONST.SEARCH.TABLE_COLUMNS.STATUS,
+            CONST.SEARCH.TABLE_COLUMNS.MCC,
             // TOTAL_AMOUNT (Amount) is data-driven in expense report view: shown only when a
             // conversion exists. In search view, TOTAL_AMOUNT is always-true via the default
             // columns map, so we don't need to list it here as non-data for either surface.
@@ -5740,8 +5790,15 @@ function getTableMinWidth(columns: SearchColumnType[], type?: SearchDataTypes, i
             minWidth += 72;
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.TYPE) {
             minWidth += 16;
-        } else if (column === CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE || column === CONST.SEARCH.TABLE_COLUMNS.BILLABLE) {
+        } else if (
+            column === CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE ||
+            column === CONST.SEARCH.TABLE_COLUMNS.BILLABLE ||
+            column === CONST.SEARCH.TABLE_COLUMNS.MCC ||
+            column === CONST.SEARCH.TABLE_COLUMNS.TAX_CODE
+        ) {
             minWidth += 80;
+        } else if (column === CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE) {
+            minWidth += 130;
         } else {
             minWidth += 200;
         }
@@ -5917,6 +5974,7 @@ const FLEX_COLUMNS = new Set<string>([
     CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
     CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
     CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
+    CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE,
     CONST.SEARCH.TABLE_COLUMNS.TAG,
     CONST.SEARCH.TABLE_COLUMNS.TAX_RATE,
     CONST.SEARCH.TABLE_COLUMNS.CARD,

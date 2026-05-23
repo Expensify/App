@@ -333,6 +333,8 @@ const translations: TranslationDeepObject<typeof en> = {
         selectCurrency: 'Selecteer een valuta',
         selectSymbolOrCurrency: 'Selecteer een symbool of valuta',
         card: 'Kaart',
+        mcc: 'MCC',
+        categoryGLCode: 'Categorie-grootboekcode',
         whyDoWeAskForThis: 'Waarom vragen we dit?',
         required: 'Vereist',
         automatic: 'Automatisch',

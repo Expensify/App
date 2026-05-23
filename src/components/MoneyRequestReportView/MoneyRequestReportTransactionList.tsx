@@ -183,6 +183,7 @@ function MoneyRequestReportTransactionList({
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
 
     const shouldShowGroupedTransactions = isExpenseReport(report) && !isIOUReport(report);
 
@@ -335,6 +336,7 @@ function MoneyRequestReportTransactionList({
             shouldShowReimbursableColumn: hasNonReimbursableTransactions(transactions),
             reportCurrency: report?.currency,
             isPolicyTaxEnabled: isTaxEnabled,
+            policyCategories,
         });
     }, [
         transactions,
@@ -345,6 +347,7 @@ function MoneyRequestReportTransactionList({
         reportDetailsColumns,
         report?.currency,
         isTaxEnabled,
+        policyCategories,
     ]);
 
     const {windowWidth, windowHeight} = useWindowDimensions();
@@ -613,6 +616,7 @@ function MoneyRequestReportTransactionList({
             columns={columnsToShow}
             report={report}
             policy={policy}
+            policyCategories={policyCategories}
             isSelectionModeEnabled={isMobileSelectionModeEnabled}
             toggleTransaction={toggleTransaction}
             isSelected={isTransactionSelected(transaction.transactionID)}
