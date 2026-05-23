@@ -36,7 +36,7 @@ import {
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import {setTransactionReport} from '@userActions/Transaction';
 import {getRemoveDraftTransactionsByIDsData, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
-import type {IOUType} from '@src/CONST';
+import type {IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
@@ -65,12 +65,12 @@ import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {Comment, Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {GpsPoint, IOURequestType} from './index';
 import {getAllTransactionDrafts} from './index';
 import {createDistanceRequest, resetSplitShares, startSplitBill} from './Split';
 import {submitWithDismissFirst} from './submitWithDismissFirst';
 import type {WriteOverrides} from './submitWithDismissFirst';
 import {requestMoney, trackExpense} from './TrackExpense';
+import type {GPSPoint as GpsPoint} from './types/TrackExpenseTransactionParams';
 
 type CreateTransactionParams = {
     transactions: Transaction[];
@@ -194,6 +194,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
     conciergeReportID: string | undefined;
+    reportDraft: OnyxEntry<Report> | undefined;
 };
 
 function createTransaction({
@@ -259,8 +260,7 @@ function createTransaction({
                 shouldHandleNavigation: shouldHandleNav,
                 shouldDeferForSearch,
                 isASAPSubmitBetaEnabled,
-                currentUserAccountIDParam: currentUserAccountID,
-                currentUserEmailParam: currentUserEmail ?? '',
+                currentUser: {accountID: currentUserAccountID, email: currentUserEmail ?? ''},
                 introSelected,
                 quickAction,
                 draftTransactionIDs,
@@ -319,15 +319,16 @@ function getMoneyRequestParticipantOptions(
     policy: OnyxEntry<Policy>,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     conciergeReportID: string | undefined,
-    privateIsArchived?: boolean,
-    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
+    privateIsArchived: boolean | undefined,
+    reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
+    reportDraft: OnyxEntry<Report> | undefined,
 ): Array<Participant | OptionData> {
     const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserAccountID);
     return selectedParticipants.map((participant) => {
         const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         return participantAccountID
             ? getParticipantsOption(participant, personalDetails)
-            : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived);
+            : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft);
     });
 }
 
@@ -592,13 +593,14 @@ function handleMoneyRequestStepDistanceNavigation({
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
     conciergeReportID,
+    reportDraft,
 }: MoneyRequestStepDistanceNavigationParams) {
     const isManualDistance = manualDistance !== undefined;
     const isOdometerDistance = odometerDistance !== undefined;
     const isGPSDistance = gpsDistance !== undefined && gpsCoordinates !== undefined;
 
     if (transaction?.splitShares && !isManualDistance && !isOdometerDistance) {
-        resetSplitShares(transaction);
+        resetSplitShares(transaction, undefined, undefined, currentUserAccountID);
     }
     if (backTo) {
         Navigation.goBack(backTo);
@@ -614,7 +616,16 @@ function handleMoneyRequestStepDistanceNavigation({
     // to the confirm step.
     // If the user started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
     if (report?.reportID && !isArchivedExpenseReport && iouType !== CONST.IOU.TYPE.CREATE) {
-        const participants = getMoneyRequestParticipantOptions(currentUserAccountID, report, policy, personalDetails, conciergeReportID, privateIsArchived, reportAttributesDerived);
+        const participants = getMoneyRequestParticipantOptions(
+            currentUserAccountID,
+            report,
+            policy,
+            personalDetails,
+            conciergeReportID,
+            privateIsArchived,
+            reportAttributesDerived,
+            reportDraft,
+        );
 
         setDistanceRequestData?.(participants);
         if (shouldSkipConfirmation) {
@@ -701,8 +712,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         shouldHandleNavigation: overrides.shouldHandleNavigation,
                         shouldDeferForSearch: overrides.shouldDeferForSearch,
                         isASAPSubmitBetaEnabled,
-                        currentUserAccountIDParam: currentUserAccountID,
-                        currentUserEmailParam: currentUserLogin ?? '',
+                        currentUser: {accountID: currentUserAccountID, email: currentUserLogin ?? ''},
                         introSelected,
                         quickAction,
                         draftTransactionIDs,
@@ -1276,6 +1286,17 @@ function setMoneyRequestDistance(transactionID: string, distanceAsFloat: number,
 }
 
 /**
+ * Remember the most recently selected distance rate for a policy so the rate picker
+ * defaults to it on the next distance expense for that workspace.
+ */
+function setLastSelectedDistanceRate(policy: OnyxEntry<Policy>, customUnitRateID: string) {
+    if (!policy) {
+        return;
+    }
+    Onyx.merge(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {[policy.id]: customUnitRateID});
+}
+
+/**
  * Set the distance rate of a transaction.
  * Used when creating a new transaction or moving an existing one from Self DM
  */
@@ -1284,9 +1305,7 @@ function setMoneyRequestDistanceRate(currentTransaction: OnyxEntry<Transaction>,
         Log.warn('setMoneyRequestDistanceRate is called without a valid transaction, skipping setting distance rate.');
         return;
     }
-    if (policy) {
-        Onyx.merge(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {[policy.id]: customUnitRateID});
-    }
+    setLastSelectedDistanceRate(policy, customUnitRateID);
 
     const newDistanceUnit = getDistanceRateCustomUnit(policy)?.attributes?.unit;
     const transactionID = currentTransaction?.transactionID;
@@ -1435,5 +1454,6 @@ export {
     setMoneyRequestBillable,
     setMoneyRequestReimbursable,
     setMoneyRequestReportID,
+    setLastSelectedDistanceRate,
 };
 export type {MoneyRequestStepScanParticipantsFlowParams};
