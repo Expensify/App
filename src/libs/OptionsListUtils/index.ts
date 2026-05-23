@@ -2435,6 +2435,7 @@ function getValidOptions(
     let recentReportOptions: Array<SearchOption<Report>> = [];
     let workspaceChats: Array<SearchOption<Report>> = [];
     let selfDMChat: SearchOptionData | undefined;
+    let hasMore = false;
 
     const searchTerms = processSearchString(searchString);
     if (includeRecentReports) {
@@ -2506,6 +2507,8 @@ function getValidOptions(
         let selfDMChats: Array<SearchOption<Report>>;
         const groupedOptions = optionsOrderAndGroupBy([isSelfDMChat, isWorkspaceChat], options.reports, recentReportComparator, maxElements, filteringFunction);
         [selfDMChats, workspaceChats, recentReportOptions] = groupedOptions.options;
+
+        hasMore = hasMore || groupedOptions.hasMore;
 
         if (selfDMChats.length > 0) {
             selfDMChat = prepareReportOptionsForDisplay(
@@ -2639,6 +2642,8 @@ function getValidOptions(
         const groupedPersonalDetails = optionsOrderBy(options.personalDetails, personalDetailsComparator, maxPersonalDetailsElements, filteringFunction, true);
         personalDetailsOptions = groupedPersonalDetails.options;
 
+        hasMore = hasMore || groupedPersonalDetails.hasMore;
+
         for (let i = 0; i < personalDetailsOptions.length; i++) {
             const personalDetail = personalDetailsOptions.at(i);
             if (!personalDetail) {
@@ -2678,6 +2683,7 @@ function getValidOptions(
         userToInvite,
         workspaceChats,
         selfDMChat,
+        hasMore,
     };
 }
 
