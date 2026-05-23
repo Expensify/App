@@ -1,6 +1,5 @@
 import type {NullishDeep, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
@@ -172,4 +171,22 @@ function buildOnyxDataForPolicyDistanceRateUpdates(
     return {optimisticData, successData, failureData};
 }
 
-export {validateRateValue, getOptimisticRateName, validateTaxClaimableValue, validateCreateDistanceRateForm, buildOnyxDataForPolicyDistanceRateUpdates};
+function getRateStatus(rate: Rate): string {
+    if (!rate.enabled) {
+        return CONST.CUSTOM_UNITS.RATE_STATUS.INACTIVE;
+    }
+
+    const now = new Date().toISOString().slice(0, 10);
+
+    if (rate.startDate && rate.startDate > now) {
+        return CONST.CUSTOM_UNITS.RATE_STATUS.FUTURE;
+    }
+
+    if (rate.endDate && rate.endDate < now) {
+        return CONST.CUSTOM_UNITS.RATE_STATUS.EXPIRED;
+    }
+
+    return CONST.CUSTOM_UNITS.RATE_STATUS.ACTIVE;
+}
+
+export {validateRateValue, getOptimisticRateName, validateTaxClaimableValue, validateCreateDistanceRateForm, buildOnyxDataForPolicyDistanceRateUpdates, getRateStatus};

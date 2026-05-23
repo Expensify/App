@@ -195,7 +195,7 @@ function WorkspaceDistanceRatesTable({
         </View>
     ) : null;
 
-    const shouldShowSearchBar = Object.keys(customUnitRates).length > CONST.SEARCH_ITEM_LIMIT;
+    const shouldShowSearchBar = Object.keys(customUnitRates).length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     const ListHeader = (
         <>
