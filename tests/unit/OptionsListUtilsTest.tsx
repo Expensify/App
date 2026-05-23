@@ -3775,7 +3775,7 @@ describe('OptionsListUtils', () => {
         });
 
         it('returns empty array if options is empty', () => {
-            const result = optionsOrderBy([], recentReportComparator, 3);
+            const result = optionsOrderBy([], recentReportComparator, 3).options;
             expect(result).toEqual([]);
         });
 
