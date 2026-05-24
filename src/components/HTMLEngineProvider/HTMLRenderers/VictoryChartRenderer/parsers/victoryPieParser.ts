@@ -15,10 +15,7 @@ function parseVictoryPieNode(tnode: TNode): PartialProcessNodeResult {
     const startAngle = parseAttribute<number>(tnode.attributes.startangle);
     const endAngle = parseAttribute<number>(tnode.attributes.endangle);
 
-    const circleSweepDegrees =
-        endAngle !== undefined && startAngle !== undefined
-            ? endAngle - startAngle
-            : endAngle;
+    const circleSweepDegrees = endAngle !== undefined && startAngle !== undefined ? endAngle - startAngle : endAngle;
 
     const data: PolarChartData[] = points.map((point, index) => ({
         [POLAR_LABEL_KEY]: String(point.x),
