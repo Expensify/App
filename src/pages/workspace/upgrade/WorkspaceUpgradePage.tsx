@@ -278,11 +278,8 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         }, [isUpgraded, canPerformUpgrade, confirmUpgrade]),
     );
 
-    // When a specific policy is loaded, gate access to users who can edit its settings
-    // (admins, or editors on Submit policies). When no policy exists (multi-workspace flow),
-    // gate access via canPerformUpgrade (owners of multiple policies).
-    // canPerformUpgrade also controls whether the upgrade button is active,
-    // so editors see the intro but can't upgrade.
+    // Editors can view the intro but only admins can upgrade, so we separate
+    // access (canEditWorkspaceSettings) from the upgrade action (canPerformUpgrade).
     if (policy ? !canEditWorkspaceSettings(policy) : !canPerformUpgrade) {
         return <NotFoundPage />;
     }
