@@ -1,6 +1,6 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {isApproveAction, isExportAction, isPrimaryPayAction, isSubmitAction} from '@libs/ReportPrimaryActionUtils';
-import {hasOnlyNonReimbursableTransactions} from '@libs/ReportUtils';
+import {hasHeldExpenses, hasOnlyNonReimbursableTransactions} from '@libs/ReportUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -74,7 +74,8 @@ const createTodosReportsAndTransactions = ({
                 policy,
                 reportNameValuePairs: reportNameValuePair,
             }) &&
-            !hasOnlyNonReimbursableTransactions(report.reportID, reportTransactions)
+            !hasOnlyNonReimbursableTransactions(report.reportID, reportTransactions) &&
+            !hasHeldExpenses(report.reportID, reportTransactions)
         ) {
             reportsToPay.push(report);
         }
