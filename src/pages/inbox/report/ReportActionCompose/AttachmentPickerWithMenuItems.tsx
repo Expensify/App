@@ -469,7 +469,7 @@ function AttachmentPickerWithMenuItems({
                                             style={styles.composerSizeButton}
                                             disabled={disabled}
                                             role={CONST.ROLE.BUTTON}
-                                            accessibilityLabel={translate('common.create')}
+                                            accessibilityLabel={translate('accessibilityHints.openActionsMenu')}
                                             sentryLabel={CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_CREATE_BUTTON}
                                         >
                                             <Icon
@@ -491,9 +491,6 @@ function AttachmentPickerWithMenuItems({
                             </View>
                         </View>
                         <PopoverMenu
-                            animationInTiming={menuItems.length * 50}
-                            // The menu should close 2/3 of the time it took to open
-                            animationOutTiming={menuItems.length * 50 * 0.66}
                             isVisible={isMenuVisible && isFocused}
                             onClose={onPopoverMenuClose}
                             onItemSelected={(item, index) => {

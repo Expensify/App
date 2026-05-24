@@ -229,8 +229,8 @@ type BuildPolicyDataOptions = {
     type?: typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE | typeof CONST.POLICY.TYPE.SUBMIT;
     // TODO: Make it required once we complete refactoring the buildPolicyData function to use isSelfTourViewed. Refactor issue: https://github.com/Expensify/App/issues/66424
     isSelfTourViewed?: boolean;
-    betas: OnyxEntry<Beta[]>;
     hasActiveAdminPolicies: boolean | undefined;
+    betas?: OnyxEntry<Beta[]>;
 };
 
 // TODO: Remove this type once we complete refactoring the buildPolicyData function to use isSelfTourViewed. Refactor issue: https://github.com/Expensify/App/issues/66424
@@ -2392,21 +2392,34 @@ function buildOptimisticDistanceRateCustomUnits(reportCurrency?: string): Optimi
     };
 }
 
+type CreateDraftInitialWorkspaceParams = {
+    introSelected: OnyxEntry<IntroSelected>;
+    workspaceName: string;
+    currentUserAccountID: number;
+    currentUserEmail: string;
+    currency: string | undefined;
+    policyID?: string;
+    makeMeAdmin?: boolean;
+    file?: File;
+    type?: typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE | typeof CONST.POLICY.TYPE.SUBMIT;
+    isAnnualSubscription?: boolean;
+};
+
 /**
  * Optimistically creates a Policy Draft for a new workspace
  */
-function createDraftInitialWorkspace(
-    introSelected: OnyxEntry<IntroSelected>,
-    workspaceName: string,
-    currentUserAccountID: number,
-    currentUserEmail: string,
+function createDraftInitialWorkspace({
+    introSelected,
+    workspaceName,
+    currentUserAccountID,
+    currentUserEmail,
+    currency,
     policyID = generatePolicyID(),
     makeMeAdmin = false,
-    currency = '',
-    file?: File,
-    type: typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE | typeof CONST.POLICY.TYPE.SUBMIT = CONST.POLICY.TYPE.TEAM,
+    file,
+    type = CONST.POLICY.TYPE.TEAM,
     isAnnualSubscription = false,
-) {
+}: CreateDraftInitialWorkspaceParams) {
     const {customUnits, outputCurrency} = buildOptimisticDistanceRateCustomUnits(currency);
     const shouldEnableWorkflowsByDefault =
         !introSelected?.choice || introSelected.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
@@ -2554,7 +2567,6 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         shouldCreateControlPolicy = false,
         type,
         isSelfTourViewed,
-        betas,
         hasActiveAdminPolicies,
     } = options;
 
@@ -3027,23 +3039,14 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
             onboardingPurposeSelected,
             companySize: companySize ?? (introSelected?.companySize as OnboardingCompanySize),
             isSelfTourViewed,
-            betas,
         });
         if (!onboardingData) {
             return {successData, optimisticData, failureData, params};
         }
-        const {
-            guidedSetupData,
-            optimisticData: taskOptimisticData,
-            successData: taskSuccessData,
-            failureData: taskFailureData,
-            bespokeWelcomeMessage,
-            optimisticConciergeReportActionID,
-        } = onboardingData;
+        const {guidedSetupData, optimisticData: taskOptimisticData, successData: taskSuccessData, failureData: taskFailureData, optimisticConciergeReportActionID} = onboardingData;
 
         params.guidedSetupData = JSON.stringify(guidedSetupData);
         params.engagementChoice = engagementChoice;
-        params.bespokeWelcomeMessage = bespokeWelcomeMessage;
         params.optimisticConciergeReportActionID = optimisticConciergeReportActionID;
 
         optimisticData.push(...taskOptimisticData);
@@ -3116,10 +3119,10 @@ type CreateDraftWorkspaceParams = {
     workspaceName: string;
     currentUserAccountID: number;
     currentUserEmail: string;
+    currency: string | undefined;
     policyOwnerEmail?: string;
     makeMeAdmin?: boolean;
     policyID?: string;
-    currency?: string;
     file?: File;
 };
 
@@ -3128,10 +3131,10 @@ function createDraftWorkspace({
     workspaceName,
     currentUserAccountID,
     currentUserEmail,
+    currency,
     policyOwnerEmail = '',
     makeMeAdmin = false,
     policyID = generatePolicyID(),
-    currency = '',
     file,
 }: CreateDraftWorkspaceParams): CreateWorkspaceParams {
     const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticDistanceRateCustomUnits(currency);
@@ -4504,12 +4507,15 @@ function createWorkspaceFromIOUPayment(
         });
     }
 
-    // To optimistically remove the GBR from the DM we need to update the hasOutstandingChildRequest param to false
+    // To optimistically remove the GBR from the DM we need to update the hasOutstandingChildRequest param to false.
+    // We also clear iouReportID so the moved IOU report is no longer resolved from this DM when a new expense is
+    // created there (otherwise the moved report would be reused and "reappear" in the DM preview).
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${oldChatReportID}`,
         value: {
             hasOutstandingChildRequest: false,
+            iouReportID: null,
         },
     });
     failureData.push({
@@ -4517,6 +4523,7 @@ function createWorkspaceFromIOUPayment(
         key: `${ONYXKEYS.COLLECTION.REPORT}${oldChatReportID}`,
         value: {
             hasOutstandingChildRequest: true,
+            iouReportID,
         },
     });
 
