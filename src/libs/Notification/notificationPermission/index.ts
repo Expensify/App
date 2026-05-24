@@ -9,7 +9,7 @@ function toStatus(permission: NotificationPermission): NotificationPermissionSta
     return 'default';
 }
 
-const NotificationPermissionWeb: NotificationPermissionModule = {
+const NotificationPermission: NotificationPermissionModule = {
     getStatus(): Promise<NotificationPermissionStatus> {
         if (typeof window === 'undefined' || !window.Notification) {
             return Promise.resolve('denied');
@@ -30,4 +30,4 @@ const NotificationPermissionWeb: NotificationPermissionModule = {
     },
 };
 
-export default NotificationPermissionWeb;
+export default NotificationPermission;
