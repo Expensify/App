@@ -3,6 +3,7 @@ import {subYears} from 'date-fns';
 import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
+import AddressSearch from '@components/AddressSearch';
 import CountrySelector from '@components/CountrySelector';
 import DatePicker from '@components/DatePicker';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
@@ -19,7 +20,7 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearDraftValues} from '@libs/actions/FormActions';
+import {clearDraftValues, setDraftValues} from '@libs/actions/FormActions';
 import {normalizeCountryCode} from '@libs/CountryUtils';
 import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -36,12 +37,22 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
+// StateSelector keys on 2-letter codes, but stored addresses may use full state names (e.g. "California").
+function resolveStateCode(stateValue: string): string {
+    if (!stateValue || stateValue in COMMON_CONST.STATES) {
+        return stateValue;
+    }
+    const match = Object.entries(COMMON_CONST.STATES).find(([, v]) => v.stateName.toLowerCase() === stateValue.toLowerCase());
+    return match ? match[0] : stateValue;
+}
+
 function PrivatePersonalDetailsPage() {
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS>>();
     const fieldToFocus = route.params?.fieldToFocus;
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const [defaultCountry] = useOnyx(ONYXKEYS.COUNTRY);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -58,16 +69,9 @@ function PrivatePersonalDetailsPage() {
     const zip = address?.zip ?? '';
     const country = address?.country ?? '';
 
-    const [selectedCountry, setSelectedCountry] = useState<Country | ''>(country);
-    const [selectedState, setSelectedState] = useState(() => {
-        // If the stored state value is a full name (e.g. "California"), resolve it to a 2-letter code
-        // so the StateSelector dropdown can display it correctly.
-        if (state && !(state in COMMON_CONST.STATES)) {
-            const match = Object.entries(COMMON_CONST.STATES).find(([, v]) => v.stateName.toLowerCase() === state.toLowerCase());
-            return match ? match[0] : state;
-        }
-        return state;
-    });
+    const normalizedState = resolveStateCode(state);
+    const [selectedCountry, setSelectedCountry] = useState<Country | ''>(country || ((defaultCountry as Country | undefined) ?? ''));
+    const [selectedState, setSelectedState] = useState(normalizedState);
 
     useEffect(
         () => () => {
@@ -138,7 +142,7 @@ function PrivatePersonalDetailsPage() {
         }
 
         const zipValue = values[INPUT_IDS.ZIP_POST_CODE] ?? '';
-        const countryRegexDetails = effectiveCountry ? (CONST.COUNTRY_ZIP_REGEX_DATA?.[effectiveCountry] as {regex?: RegExp; samples?: string}) : undefined;
+        const countryRegexDetails = effectiveCountry ? (COMMON_CONST.COUNTRY_ZIP_REGEX_DATA?.[effectiveCountry] as {regex?: RegExp; samples?: string}) : undefined;
         const countrySpecificZipRegex = countryRegexDetails?.regex;
         if (countrySpecificZipRegex) {
             if (!countrySpecificZipRegex.test(zipValue.trim().toUpperCase())) {
@@ -148,7 +152,7 @@ function PrivatePersonalDetailsPage() {
                     errors[INPUT_IDS.ZIP_POST_CODE] = translate('common.error.fieldRequired');
                 }
             }
-        } else if (!CONST.GENERIC_ZIP_CODE_REGEX.test(zipValue.trim().toUpperCase())) {
+        } else if (!COMMON_CONST.GENERIC_ZIP_CODE_REGEX.test(zipValue.trim().toUpperCase())) {
             errors[INPUT_IDS.ZIP_POST_CODE] = translate('privatePersonalDetails.error.incorrectZipFormat');
         }
 
@@ -181,7 +185,7 @@ function PrivatePersonalDetailsPage() {
         if ((values[INPUT_IDS.CITY] ?? '') !== city) {
             return true;
         }
-        if ((values[INPUT_IDS.STATE] ?? '') !== state) {
+        if ((values[INPUT_IDS.STATE] ?? '') !== normalizedState) {
             return true;
         }
         if ((values[INPUT_IDS.ZIP_POST_CODE] ?? '') !== zip) {
@@ -198,6 +202,9 @@ function PrivatePersonalDetailsPage() {
             Navigation.goBack();
             return;
         }
+        // UI-prefilled values (geolocation country, normalized state) only live in component state until the user touches
+        // a field, so write the full form values to the draft before navigating so the confirm step submits them.
+        setDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM, values);
         Navigation.navigate(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE);
     };
 
@@ -292,16 +299,27 @@ function PrivatePersonalDetailsPage() {
                     <Text style={[styles.textStrong, styles.mb2]}>{translate('privatePersonalDetails.address')}</Text>
                     <View style={styles.mb4}>
                         <InputWrapper
-                            InputComponent={TextInput}
+                            InputComponent={AddressSearch}
                             inputID={INPUT_IDS.ADDRESS_LINE_1}
                             label={translate('common.addressLine', 1)}
-                            aria-label={translate('common.addressLine', 1)}
-                            role={CONST.ROLE.PRESENTATION}
                             defaultValue={initialStreet1}
                             shouldSaveDraft
-                            spellCheck={false}
                             autoComplete="address-line1"
-                            autoFocus={fieldToFocus === INPUT_IDS.ADDRESS_LINE_1}
+                            renamedInputKeys={{
+                                street: INPUT_IDS.ADDRESS_LINE_1,
+                                street2: INPUT_IDS.ADDRESS_LINE_2,
+                                city: INPUT_IDS.CITY,
+                                state: INPUT_IDS.STATE,
+                                zipCode: INPUT_IDS.ZIP_POST_CODE,
+                                country: INPUT_IDS.COUNTRY,
+                            }}
+                            onValueChange={(value: unknown, key: unknown) => {
+                                if (key === INPUT_IDS.COUNTRY) {
+                                    setSelectedCountry((value ?? '') as Country | '');
+                                } else if (key === INPUT_IDS.STATE) {
+                                    setSelectedState((value ?? '') as string);
+                                }
+                            }}
                         />
                     </View>
                     <View style={styles.mb4}>
@@ -375,10 +393,10 @@ function PrivatePersonalDetailsPage() {
                             onValueChange={(value: unknown) => {
                                 const newCountry = (value ?? '') as Country | '';
                                 setSelectedCountry(newCountry);
-                                if (newCountry === CONST.COUNTRY.US && selectedState && !(selectedState in COMMON_CONST.STATES)) {
-                                    const match = Object.entries(COMMON_CONST.STATES).find(([, v]) => v.stateName.toLowerCase() === selectedState.toLowerCase());
-                                    if (match) {
-                                        setSelectedState(match[0]);
+                                if (newCountry === CONST.COUNTRY.US) {
+                                    const resolved = resolveStateCode(selectedState);
+                                    if (resolved !== selectedState) {
+                                        setSelectedState(resolved);
                                     }
                                 }
                             }}

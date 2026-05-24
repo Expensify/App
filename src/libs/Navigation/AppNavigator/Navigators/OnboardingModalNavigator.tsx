@@ -98,7 +98,7 @@ function OnboardingModalNavigator() {
             gestureDirection: 'horizontal',
             web: {
                 // The .forHorizontalIOS interpolator from `@react-navigation` is misbehaving on Safari, so we override it with Expensify custom interpolator
-                cardStyleInterpolator: isMobileSafari() ? (props) => customInterpolator({props}) : CardStyleInterpolators.forHorizontalIOS,
+                cardStyleInterpolator: isMobileSafari() ? (props) => customInterpolator({props, enter: {kind: 'slide-from-width'}}) : CardStyleInterpolators.forHorizontalIOS,
                 gestureDirection: 'horizontal',
                 cardStyle: {
                     height: '100%',
