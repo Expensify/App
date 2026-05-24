@@ -179,10 +179,7 @@ ClaimOfferPage.displayName = 'ClaimOfferPage';
 function ClaimOfferPageWrapper(props: ClaimOfferPageProps) {
     return (
         <AccountingContextProvider policy={props.policy}>
-            <ClaimOfferPage
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
-            />
+            <ClaimOfferPage {...props} />
         </AccountingContextProvider>
     );
 }

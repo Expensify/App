@@ -176,7 +176,6 @@ function BaseListItem<TItem extends ListItem>({
         >
             <PressableWithFeedback
                 sentryLabel={CONST.SENTRY_LABEL.SELECTION_LIST.BASE_LIST_ITEM}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...bind}
                 ref={pressableRef}
                 lang={item.lang}
@@ -192,7 +191,7 @@ function BaseListItem<TItem extends ListItem>({
                     if (shouldPreventEnterKeySubmit && e && 'key' in e && e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
                         return;
                     }
-                    onSelectRow(item);
+                    onSelectRow(item, undefined, e);
                 }}
                 disabled={isDisabled && !item.isSelected}
                 interactive={item.isInteractive}
@@ -223,7 +222,6 @@ function BaseListItem<TItem extends ListItem>({
                 onFocus={onFocus}
                 role={role}
                 tabIndex={tabIndex}
-                // eslint-disable-next-line react/jsx-props-no-spreading -- we can't pass those props here on their own because this Component expects a discriminated Union
                 {...accessibleAndAccessibilityLabel}
                 accessibilityState={accessibilityState}
                 aria-current={ariaCurrent}

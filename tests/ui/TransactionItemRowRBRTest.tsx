@@ -7,7 +7,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SearchColumnType} from '@components/Search/types';
 import TransactionItemRow from '@components/TransactionItemRow';
-import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow';
+import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, TransactionViolations} from '@src/types/onyx';
@@ -47,7 +47,6 @@ const renderTransactionItemRow = (transactionItem: TransactionWithOptionalSearch
                 report={transactionItem.report}
                 policy={transactionItem.policy}
                 reportActions={reportActions}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...defaultProps}
             />
         </ComposeProviders>,
@@ -135,7 +134,6 @@ describe('TransactionItemRowRBR', () => {
                 <TransactionItemRow
                     transactionItem={mockTransaction}
                     violations={undefined}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...defaultProps}
                     columns={[CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]}
                 />
@@ -298,7 +296,6 @@ describe('TransactionItemRowRBR', () => {
                 <TransactionItemRow
                     transactionItem={mockTimeTransaction}
                     violations={undefined}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...defaultProps}
                     columns={[CONST.SEARCH.TABLE_COLUMNS.TAX_RATE, CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]}
                 />

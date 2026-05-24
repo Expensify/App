@@ -110,7 +110,6 @@ export type {
     MenuItemToRender,
     DividerLineItem,
     ToggleItem,
-    AccordionItem,
     ExpenseRouteParams,
     CustomFieldSubPageWithPolicy,
     CustomListSelectorType,
