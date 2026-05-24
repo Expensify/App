@@ -89,7 +89,7 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
         hasInitialValidationRun.current = true;
         debouncedCommentMaxLengthValidation(draftComment);
         debouncedCommentMaxLengthValidation.flush();
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- Intentional one-time initialization on mount
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentional one-time initialization on mount
     }, []);
 
     const originalReportID = useOriginalReportID(editingReportID ?? undefined, editingReportAction);
