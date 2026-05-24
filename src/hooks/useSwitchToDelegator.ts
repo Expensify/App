@@ -7,10 +7,10 @@ import {getGpsPoints, stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
-import useOnyx from './useOnyx';
-import useNetwork from './useNetwork';
-import useLocalize from './useLocalize';
 import useConfirmModal from './useConfirmModal';
+import useLocalize from './useLocalize';
+import useNetwork from './useNetwork';
+import useOnyx from './useOnyx';
 
 /**
  * Encapsulates the safety checks needed before switching to a delegator account:
