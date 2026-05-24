@@ -107,6 +107,7 @@ function PolicyDistanceRateEndDateEditPage({route}: PolicyDistanceRateEndDateEdi
                 >
                     <View style={styles.mh5}>
                         <InputWrapper
+                            autoFocus
                             InputComponent={DatePicker}
                             inputID={INPUT_IDS.END_DATE}
                             label={translate('workspace.distanceRates.endDate')}

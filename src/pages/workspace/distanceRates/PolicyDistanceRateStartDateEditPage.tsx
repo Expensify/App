@@ -107,6 +107,7 @@ function PolicyDistanceRateStartDateEditPage({route}: PolicyDistanceRateStartDat
                 >
                     <View style={styles.mh5}>
                         <InputWrapper
+                            autoFocus
                             InputComponent={DatePicker}
                             inputID={INPUT_IDS.START_DATE}
                             label={translate('workspace.distanceRates.startDate')}
