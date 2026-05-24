@@ -75,6 +75,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.accounting');
     const hasReusablePoliciesConnectedToSageIntacct = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, policy?.id);
     const hasReusablePoliciesConnectedToQBD = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.QBD, policy?.id);
+    const hasReusablePoliciesConnectedToCertinia = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.CERTINIA, policy?.id);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const theme = useTheme();
@@ -101,10 +102,14 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const allCardSettings = useExpensifyCardFeeds(policyID);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'CircularArrowBackwards', 'ExpensifyCard', 'Gear', 'Key', 'NewWindow', 'Pencil', 'QuestionMark', 'Send', 'Sync', 'Trashcan']);
-    const accountingIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'QBOSquare', 'XeroSquare', 'NetSuiteSquare', 'QBDSquare']);
+    const accountingIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'QBOSquare', 'XeroSquare', 'NetSuiteSquare', 'QBDSquare', 'CertiniaSquare']);
     const illustrations = useMemoizedLazyIllustrations(['Accounting']);
 
-    const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
+    const canUseCertiniaIntegration = isBetaEnabled(CONST.BETAS.CERTINIA) || !!policy?.connections?.financialforce;
+    const accountingIntegrations = useMemo(
+        () => CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => name !== CONST.POLICY.CONNECTIONS.NAME.CERTINIA || canUseCertiniaIntegration),
+        [canUseCertiniaIntegration],
+    );
     const syncingAccountingIntegration = accountingIntegrations.find((integration) => integration === connectionSyncProgress?.connectionName);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? syncingAccountingIntegration;
     const hasAccountingConnection = hasAccountingConnections(policy);
@@ -122,7 +127,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     );
 
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress, accountingIntegrations);
-    const hasUnsupportedNDIntegration = !isEmptyObject(policy?.connections) && hasSupportedOnlyOnOldDotIntegration(policy);
+    const hasUnsupportedNDIntegration = !isEmptyObject(policy?.connections) && hasSupportedOnlyOnOldDotIntegration(policy) && !canUseCertiniaIntegration;
 
     const tenants = useMemo(() => getXeroTenants(policy), [policy]);
     const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);
@@ -317,7 +322,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         integration,
                         policyID,
                         translate,
-                        {sageIntacct: hasReusablePoliciesConnectedToSageIntacct, qbd: hasReusablePoliciesConnectedToQBD},
+                        {sageIntacct: hasReusablePoliciesConnectedToSageIntacct, qbd: hasReusablePoliciesConnectedToQBD, certinia: hasReusablePoliciesConnectedToCertinia},
                         undefined,
                         undefined,
                         undefined,
@@ -381,7 +386,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             connectedIntegration,
             policyID,
             translate,
-            {sageIntacct: hasReusablePoliciesConnectedToSageIntacct, qbd: hasReusablePoliciesConnectedToQBD},
+            {sageIntacct: hasReusablePoliciesConnectedToSageIntacct, qbd: hasReusablePoliciesConnectedToQBD, certinia: hasReusablePoliciesConnectedToCertinia},
             policy,
             undefined,
             undefined,
@@ -481,7 +486,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 ),
             },
             ...(isEmptyObject(integrationSpecificMenuItems) || shouldShowSynchronizationError || !hasAccountingConnection ? [] : [integrationSpecificMenuItems]),
-            ...(!hasAccountingConnection || !isConnectionVerified ? [] : configurationOptions),
+            ...(!hasAccountingConnection || !isConnectionVerified || connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.CERTINIA ? [] : configurationOptions),
         ];
     }, [
         policy,
@@ -516,6 +521,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         popoverAnchorRefs,
         datetimeToRelative,
         hasReusablePoliciesConnectedToSageIntacct,
+        hasReusablePoliciesConnectedToCertinia,
         hasReusablePoliciesConnectedToQBD,
     ]);
 
@@ -532,7 +538,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     integration,
                     policyID,
                     translate,
-                    {sageIntacct: hasReusablePoliciesConnectedToSageIntacct, qbd: hasReusablePoliciesConnectedToQBD},
+                    {sageIntacct: hasReusablePoliciesConnectedToSageIntacct, qbd: hasReusablePoliciesConnectedToQBD, certinia: hasReusablePoliciesConnectedToCertinia},
                     undefined,
                     undefined,
                     undefined,
@@ -586,6 +592,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         policyID,
         translate,
         hasReusablePoliciesConnectedToSageIntacct,
+        hasReusablePoliciesConnectedToCertinia,
         hasReusablePoliciesConnectedToQBD,
         styles.justifyContentCenter,
         styles.sectionMenuItemTopDescription,

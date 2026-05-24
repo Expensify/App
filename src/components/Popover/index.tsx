@@ -23,7 +23,7 @@ function Popover(props: PopoverProps) {
         fullscreen,
         onLayout,
         animationOutTiming,
-        animationInTiming = CONST.ANIMATED_TRANSITION,
+        animationInTiming = CONST.MENU_ANIMATION_DURATION,
         disableAnimation = true,
         withoutOverlay = false,
         anchorPosition = {},
