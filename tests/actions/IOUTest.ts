@@ -293,12 +293,12 @@ describe('actions/IOU', () => {
             const iouReport: Report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
 
             // When the report is in draft status it should return true
-            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, transaction)).toBeTruthy();
+            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeTruthy();
 
             // If the report is not in draft state it should return false
             iouReport.stateNum = CONST.REPORT.STATE_NUM.SUBMITTED;
             iouReport.statusNum = CONST.REPORT.STATUS_NUM.SUBMITTED;
-            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, transaction)).toBeFalsy();
+            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
         });
 
         it('when the current hash is approve action query it should only return true if the iou report is in outstanding state', () => {
@@ -352,12 +352,12 @@ describe('actions/IOU', () => {
             const iouReport: Report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
 
             // When the report is in draft status it should return false
-            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, transaction)).toBeFalsy();
+            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
 
             // If the report is in outstanding state it should return true
             iouReport.stateNum = CONST.REPORT.STATE_NUM.SUBMITTED;
             iouReport.statusNum = CONST.REPORT.STATUS_NUM.SUBMITTED;
-            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, transaction)).toBeTruthy();
+            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeTruthy();
         });
 
         it('when the current hash is unapproved cash action query it should only return true if the iou report is in either draft or outstanding state', () => {
@@ -396,12 +396,12 @@ describe('actions/IOU', () => {
             const iouReport: Report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
 
             // When the report is in draft status it should return true
-            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, transaction)).toBeTruthy();
+            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeTruthy();
 
             // If the report is in approved state it should return false
             iouReport.stateNum = CONST.REPORT.STATE_NUM.APPROVED;
             iouReport.statusNum = CONST.REPORT.STATUS_NUM.APPROVED;
-            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, transaction)).toBeFalsy();
+            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
         });
 
         it('when the current hash includes a policyID filter it should only return true if the iou report matches the policyID filter', () => {
@@ -439,7 +439,7 @@ describe('actions/IOU', () => {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             };
-            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, matchingIOUReport, false, transaction)).toBeTruthy();
+            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, matchingIOUReport, false, RORY_ACCOUNT_ID, transaction)).toBeTruthy();
 
             // When the IOU report has a different policyID, it should return false
             const nonMatchingIOUReport: Report = {
@@ -449,7 +449,7 @@ describe('actions/IOU', () => {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             };
-            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, nonMatchingIOUReport, false, transaction)).toBeFalsy();
+            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, nonMatchingIOUReport, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
         });
     });
 

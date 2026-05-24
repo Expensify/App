@@ -149,10 +149,6 @@ function getAllTransactionDrafts(): NonNullable<OnyxCollection<OnyxTypes.Transac
     return allTransactionDrafts;
 }
 
-function getUserAccountID(): number {
-    return deprecatedUserAccountID;
-}
-
 function getCurrentUserPersonalDetails(): OnyxEntry<OnyxTypes.PersonalDetails> {
     return deprecatedCurrentUserPersonalDetails;
 }
@@ -229,7 +225,6 @@ export {
     getAllReportActionsFromIOU,
     getAllReportNameValuePairs,
     getAllTransactionDrafts,
-    getUserAccountID,
     getCurrentUserPersonalDetails,
     getRecentAttendees,
     // eslint-disable-next-line @typescript-eslint/no-deprecated

@@ -37,6 +37,9 @@ type UseSplitParticipantsParams = {
 
     /** Currency the IOU is being created in */
     iouCurrencyCode: string | undefined;
+
+    /** Account ID of the current user, used as the payer when recalculating split shares */
+    currentUserAccountID: number;
 };
 
 /**
@@ -51,7 +54,16 @@ type UseSplitParticipantsParams = {
  * Also exposes a `getSplitSectionHeader` callback that renders the section title and a
  * Reset link (visible only when shares have been manually modified).
  */
-function useSplitParticipants({isTypeSplit, shouldShowReadOnlySplits, payeePersonalDetails, selectedParticipants, transaction, iouAmount, iouCurrencyCode}: UseSplitParticipantsParams) {
+function useSplitParticipants({
+    isTypeSplit,
+    shouldShowReadOnlySplits,
+    payeePersonalDetails,
+    selectedParticipants,
+    transaction,
+    iouAmount,
+    iouCurrencyCode,
+    currentUserAccountID,
+}: UseSplitParticipantsParams) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {convertToDisplayString, convertToDisplayStringWithoutCurrency, getCurrencySymbol} = useCurrencyListActions();
@@ -143,7 +155,7 @@ function useSplitParticipants({isTypeSplit, shouldShowReadOnlySplits, payeePerso
                         // Dismiss the keyboard so that MoneyRequestAmountInput's useEffect syncs the new amount.
                         // Without this, the effect skips the update while the input is focused (see formatAmountOnBlur guard).
                         Keyboard.dismiss();
-                        resetSplitShares(transaction);
+                        resetSplitShares(transaction, undefined, undefined, currentUserAccountID);
                     }}
                     accessibilityLabel={CONST.ROLE.BUTTON}
                     role={CONST.ROLE.BUTTON}
