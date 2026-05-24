@@ -1,20 +1,22 @@
 import {Circle, Skia, Text as SkText} from '@shopify/react-native-skia';
 import React, {Fragment} from 'react';
 import {useChartDefaultTypeface} from '@components/Charts/hooks';
-import {useVictoryChartScale} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartScaleContext';
+import type {VictoryChartScaleValue} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartScaleContext';
 import type {LegendItem} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 
 type VictoryChartLegendProps = {
     legendItems: LegendItem[];
+    scale: VictoryChartScaleValue;
 };
 
 /**
  * Renders Skia legend symbols and labels (from `<victorylegend>` nodes) over the chart canvas.
  * Intended for use inside CartesianChart's `renderOutside` callback.
+ * Scale must be passed as a prop because Skia's Canvas uses a separate reconciler
+ * that does not inherit React context from the outer tree.
  */
-function VictoryChartLegend({legendItems}: VictoryChartLegendProps) {
+function VictoryChartLegend({legendItems, scale}: VictoryChartLegendProps) {
     const {regular: regularTypeface, bold: boldTypeface} = useChartDefaultTypeface();
-    const scale = useVictoryChartScale();
     const uniformScale = Math.min(scale.x, scale.y);
     return (
         <>

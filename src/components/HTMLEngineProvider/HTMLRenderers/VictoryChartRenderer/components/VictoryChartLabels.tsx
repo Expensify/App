@@ -1,20 +1,22 @@
 import {Skia, Text as SkText} from '@shopify/react-native-skia';
 import React from 'react';
 import {useChartDefaultTypeface} from '@components/Charts/hooks';
-import {useVictoryChartScale} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartScaleContext';
+import type {VictoryChartScaleValue} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartScaleContext';
 import type {LabelItem} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 
 type VictoryChartLabelsProps = {
     labelItems: LabelItem[];
+    scale: VictoryChartScaleValue;
 };
 
 /**
  * Renders floating Skia text labels (from `<victorylabel>` nodes) over the chart canvas.
  * Intended for use inside CartesianChart's `renderOutside` callback.
+ * Scale must be passed as a prop because Skia's Canvas uses a separate reconciler
+ * that does not inherit React context from the outer tree.
  */
-function VictoryChartLabels({labelItems}: VictoryChartLabelsProps) {
+function VictoryChartLabels({labelItems, scale}: VictoryChartLabelsProps) {
     const {regular: regularTypeface, bold: boldTypeface} = useChartDefaultTypeface();
-    const scale = useVictoryChartScale();
     return (
         <>
             {labelItems.map(({x, y, text, color, fontSize, fontWeight}) => {

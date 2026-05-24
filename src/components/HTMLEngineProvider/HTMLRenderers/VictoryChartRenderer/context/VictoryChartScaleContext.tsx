@@ -13,4 +13,5 @@ function useVictoryChartScale(): VictoryChartScaleValue {
     return useContext(VictoryChartScaleContext);
 }
 
+export type {VictoryChartScaleValue};
 export {DEFAULT_SCALE, VictoryChartScaleContext, useVictoryChartScale};
