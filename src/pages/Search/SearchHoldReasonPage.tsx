@@ -36,7 +36,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
         [route.name, selectedTransactionIDs, selectedTransactions],
     );
     const violationsSelector = useMemo(() => transactionViolationsByIDsSelector(relevantTransactionIDs), [relevantTransactionIDs]);
-    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: violationsSelector}, [violationsSelector]);
+    const [selectedTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: violationsSelector}, [violationsSelector]);
     const {isOffline} = useNetwork();
 
     const selectedTransactionsList = Object.values(selectedTransactions);
@@ -52,16 +52,13 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                 return;
             }
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS) {
-                for (const transactionID of selectedTransactionIDs) {
-                    const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
-                    putTransactionsOnHold([transactionID], comment, reportID, isOffline, currentUserLogin ?? '', currentUserAccountID, transactionViolations, ancestors);
-                }
+                putTransactionsOnHold(selectedTransactionIDs, comment, reportID, isOffline, currentUserLogin ?? '', currentUserAccountID, selectedTransactionViolations, ancestors);
                 clearSelectedTransactions(true);
             } else {
                 const transactionIDs = Object.keys(selectedTransactions);
                 for (const transactionID of transactionIDs) {
                     const transactionThreadReportID = selectedTransactions[transactionID].reportAction?.childReportID;
-                    const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+                    const transactionViolations = selectedTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
                     putOnHold(transactionID, comment, transactionThreadReportID, isOffline, currentUserLogin ?? '', currentUserAccountID, transactionViolations, ancestors);
                 }
                 clearSelectedTransactions();
@@ -81,7 +78,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
             selectedTransactions,
             currentUserLogin,
             currentUserAccountID,
-            allTransactionViolations,
+            selectedTransactionViolations,
         ],
     );
 
