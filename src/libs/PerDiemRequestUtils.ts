@@ -213,7 +213,7 @@ function getSubratesForDisplay(subrate: Subrate | undefined, qtyText: string) {
     return `${subrate.name}, ${qtyText}: ${subrate.quantity}`;
 }
 
-function getTimeForDisplay(transaction: OnyxEntry<Transaction>, locale?: Locale) {
+function getTimeForDisplay(transaction: OnyxEntry<Transaction>, locale: Locale) {
     const customUnitRateDate = transaction?.comment?.customUnit?.attributes?.dates ?? {start: '', end: ''};
     if (!customUnitRateDate.start || !customUnitRateDate.end) {
         return '';
@@ -221,7 +221,7 @@ function getTimeForDisplay(transaction: OnyxEntry<Transaction>, locale?: Locale)
     const startDate = new Date(customUnitRateDate.start);
     const endDate = new Date(customUnitRateDate.end);
     if (isSameDay(startDate, endDate)) {
-        return `${DateUtils.formatToLocalTime(customUnitRateDate.start, locale)} - ${DateUtils.formatToLocalTime(customUnitRateDate.end, locale)}`;
+        return `${DateUtils.formatToLocalTime(customUnitRateDate.start, locale)} - ${DateUtils.formatToLocalTime(customUnitRateDate.end, locale)}, ${DateUtils.formatToMediumDate(customUnitRateDate.start, locale)}`;
     }
     const formatEndpoint = (date: string) => `${DateUtils.formatToLocalTime(date, locale)}, ${DateUtils.formatToMediumDate(date, locale)}`;
     return `${formatEndpoint(customUnitRateDate.start)} - ${formatEndpoint(customUnitRateDate.end)}`;

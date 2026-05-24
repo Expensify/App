@@ -68,16 +68,16 @@ type TranslationTargetLocale = ValueOf<typeof TRANSLATION_TARGET_LOCALES>;
 
 // date-fns convention: 0 = Sun, 1 = Mon. EN pinned to en-GB Monday-start to match the historical app default.
 const WEEK_STARTS_ON_BY_LOCALE = {
-    en: 1,
-    es: 1,
-    de: 1,
-    fr: 1,
-    it: 1,
-    nl: 1,
-    pl: 1,
-    'zh-hans': 1,
-    ja: 0,
-    'pt-BR': 0,
+    [LOCALES.EN]: 1,
+    [LOCALES.ES]: 1,
+    [LOCALES.DE]: 1,
+    [LOCALES.FR]: 1,
+    [LOCALES.IT]: 1,
+    [LOCALES.NL]: 1,
+    [LOCALES.PL]: 1,
+    [LOCALES.ZH_HANS]: 1,
+    [LOCALES.JA]: 0,
+    [LOCALES.PT_BR]: 0,
 } as const satisfies Record<Locale, 0 | 1>;
 
 // Sort all locales alphabetically by their display names

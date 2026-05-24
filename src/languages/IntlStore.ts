@@ -9,7 +9,7 @@ import type {Locale} from '@src/CONST/LOCALES';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type DynamicModule from '@src/types/utils/DynamicModule';
 import type de from './de';
-import type en from './en';
+import enTranslations from './en';
 import type es from './es';
 import flattenObject from './flattenObject';
 import type fr from './fr';
@@ -28,12 +28,14 @@ function setAreTranslationsLoading(areTranslationsLoading: boolean) {
 }
 
 class IntlStore {
-    private static currentLocale: Locale | undefined = undefined;
+    /** Eagerly seeded to `LOCALES.DEFAULT` (EN). The user's preferred locale loads async via `load()` and replaces this. */
+    private static currentLocale: Locale = LOCALES.DEFAULT;
 
-    /**
-     * Cache for translations
-     */
-    private static cache = new Map<Locale, FlatTranslationsObject>();
+    /** React subscribers via `useSyncExternalStore`. Notified after `currentLocale` mutates so consumers re-render once, instead of two-ticking through Onyx. */
+    private static listeners = new Set<() => void>();
+
+    /** Pre-seeded with EN so `translate('en', key)` resolves synchronously from module load (no cold-start path-string degradation). */
+    private static cache = new Map<Locale, FlatTranslationsObject>([[LOCALES.EN, flattenObject(enTranslations)]]);
 
     /**
      * Cache for localized date-fns
@@ -58,12 +60,11 @@ class IntlStore {
                       }),
                   ]),
         [LOCALES.EN]: () =>
-            this.cache.has(LOCALES.EN)
+            this.cache.has(LOCALES.EN) && this.dateUtilsCache.has(LOCALES.EN)
                 ? Promise.all([Promise.resolve(), Promise.resolve()])
                 : Promise.all([
-                      import('./en').then((module: DynamicModule<typeof en>) => {
-                          this.cache.set(LOCALES.EN, flattenObject(extractModuleDefaultExport(module)));
-                      }),
+                      // Translations are pre-seeded above; only the date-fns chunk needs to load.
+                      Promise.resolve(),
                       import('date-fns/locale/en-GB').then((module) => {
                           this.dateUtilsCache.set(LOCALES.EN, module.enGB);
                       }),
@@ -158,15 +159,32 @@ class IntlStore {
                   ]),
     };
 
-    public static getCurrentLocale() {
-        return this.currentLocale;
+    /**
+     * `useSyncExternalStore` calls these detached from the class. `this: void` enforces the contract in
+     * types; bodies reference `IntlStore.x` (not `this.x`) to enforce it at runtime.
+     */
+    public static subscribe(this: void, listener: () => void): () => void {
+        IntlStore.listeners.add(listener);
+        return () => {
+            IntlStore.listeners.delete(listener);
+        };
+    }
+
+    public static getCurrentLocale(this: void): Locale {
+        return IntlStore.currentLocale;
+    }
+
+    private static notifyListeners() {
+        for (const listener of IntlStore.listeners) {
+            listener();
+        }
     }
 
     public static load(locale: Locale) {
-        if (this.currentLocale === locale) {
+        if (IntlStore.currentLocale === locale) {
             return Promise.resolve();
         }
-        const loaderPromise = this.loaders[locale];
+        const loaderPromise = IntlStore.loaders[locale];
         setAreTranslationsLoading(true);
 
         const localeSpan = getSpan(CONST.TELEMETRY.SPAN_LOCALE.ROOT);
@@ -181,12 +199,14 @@ class IntlStore {
 
         return loaderPromise()
             .then(() => {
-                this.currentLocale = locale;
-                // Set the default date-fns locale
-                const dateUtilsLocale = this.dateUtilsCache.get(locale);
+                IntlStore.currentLocale = locale;
+                const dateUtilsLocale = IntlStore.dateUtilsCache.get(locale);
                 if (dateUtilsLocale) {
                     setDefaultOptions({locale: dateUtilsLocale});
                 }
+                // Notify React subscribers before flipping the Onyx flag so the provider
+                // re-renders with the new locale in the same microtask batch.
+                IntlStore.notifyListeners();
             })
             .then(() => {
                 setAreTranslationsLoading(false);
@@ -200,11 +220,8 @@ class IntlStore {
     }
 
     public static get<TPath extends TranslationPaths>(key: TPath, locale?: Locale) {
-        const localeToUse = locale && this.cache.has(locale) ? locale : this.currentLocale;
-        if (!localeToUse) {
-            return null;
-        }
-        const translations = this.cache.get(localeToUse);
+        const localeToUse = locale && IntlStore.cache.has(locale) ? locale : IntlStore.currentLocale;
+        const translations = IntlStore.cache.get(localeToUse);
         return translations?.[key] ?? null;
     }
 }

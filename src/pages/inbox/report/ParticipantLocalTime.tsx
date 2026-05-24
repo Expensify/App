@@ -1,12 +1,13 @@
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useNow from '@hooks/useNow';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
-import Timers from '@libs/Timers';
 import type {LocaleContextProps} from '@src/components/LocaleContextProvider';
 import CONST from '@src/CONST';
+import type {Locale} from '@src/CONST/LOCALES';
 import type {PersonalDetails} from '@src/types/onyx';
 
 type ParticipantLocalTimeProps = {
@@ -14,34 +15,26 @@ type ParticipantLocalTimeProps = {
     participant: PersonalDetails;
 };
 
-function getParticipantLocalTime(participant: PersonalDetails, getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime']) {
+function getParticipantLocalTime(participant: PersonalDetails, getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'], locale: Locale, now: Date) {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
     const reportRecipientTimezone = participant.timezone || CONST.DEFAULT_TIME_ZONE;
-    const reportTimezone = getLocalDateFromDatetime(undefined, reportRecipientTimezone.selected);
-    const currentTimezone = getLocalDateFromDatetime();
-    const reportRecipientDay = DateUtils.formatToDayOfWeek(reportTimezone);
-    const currentUserDay = DateUtils.formatToDayOfWeek(currentTimezone);
+    const nowIso = now.toISOString();
+    const reportTimezone = getLocalDateFromDatetime(nowIso, reportRecipientTimezone.selected);
+    const currentTimezone = getLocalDateFromDatetime(nowIso);
+    const reportRecipientDay = DateUtils.formatToDayOfWeek(reportTimezone, locale);
+    const currentUserDay = DateUtils.formatToDayOfWeek(currentTimezone, locale);
     if (reportRecipientDay !== currentUserDay) {
-        return `${DateUtils.formatToLocalTime(reportTimezone)} ${reportRecipientDay}`;
+        return `${DateUtils.formatToLocalTime(reportTimezone, locale)} ${reportRecipientDay}`;
     }
-    return `${DateUtils.formatToLocalTime(reportTimezone)}`;
+    return `${DateUtils.formatToLocalTime(reportTimezone, locale)}`;
 }
 
 function ParticipantLocalTime({participant}: ParticipantLocalTimeProps) {
-    const {translate, getLocalDateFromDatetime} = useLocalize();
+    const {translate, getLocalDateFromDatetime, preferredLocale} = useLocalize();
     const styles = useThemeStyles();
+    const now = useNow();
 
-    const [localTime, setLocalTime] = useState(() => getParticipantLocalTime(participant, getLocalDateFromDatetime));
-    useEffect(() => {
-        const timer = Timers.register(
-            setInterval(() => {
-                setLocalTime(getParticipantLocalTime(participant, getLocalDateFromDatetime));
-            }, 1000),
-        );
-        return () => {
-            clearInterval(timer);
-        };
-    }, [participant, getLocalDateFromDatetime]);
+    const localTime = getParticipantLocalTime(participant, getLocalDateFromDatetime, preferredLocale, now);
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
     const reportRecipientDisplayName = participant.firstName || participant.displayName;

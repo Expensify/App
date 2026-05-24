@@ -65,16 +65,16 @@ describe('DateUtils', () => {
     });
 
     it('formatToLongDateWithWeekday should return a long date with a weekday', () => {
-        const formattedDate = DateUtils.formatToLongDateWithWeekday(datetime);
+        const formattedDate = DateUtils.formatToLongDateWithWeekday(datetime, LOCALE);
         expect(formattedDate).toBe('Monday, November 7, 2022');
     });
 
     it('formatToDayOfWeek should return a weekday', () => {
-        const weekDay = DateUtils.formatToDayOfWeek(new Date(datetime));
+        const weekDay = DateUtils.formatToDayOfWeek(new Date(datetime), LOCALE);
         expect(weekDay).toBe('Monday');
     });
     it('formatToLocalTime should return a date in a local format', () => {
-        const localTime = DateUtils.formatToLocalTime(datetime);
+        const localTime = DateUtils.formatToLocalTime(datetime, LOCALE);
         expect(localTime).toBe('12:00 AM');
     });
 
@@ -319,7 +319,7 @@ describe('DateUtils', () => {
         });
 
         it('returns empty string when input date is empty', () => {
-            expect(DateUtils.getStatusUntilDate(translateLocal, '', inputTimeZoneNY, currentTimeZone)).toBe('');
+            expect(DateUtils.getStatusUntilDate(translateLocal, '', inputTimeZoneNY, currentTimeZone, LOCALE)).toBe('');
         });
 
         it('returns "Until h:mm a" when input and current timezone are same', () => {
@@ -327,7 +327,7 @@ describe('DateUtils', () => {
             const targetTime = set(nowInTZ, {hours: 15, minutes: 34, seconds: 0, milliseconds: 0});
             const inputDateStr = tzFormat(targetTime, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: currentTimeZone});
 
-            const result = DateUtils.getStatusUntilDate(translateLocal, inputDateStr, currentTimeZone, currentTimeZone);
+            const result = DateUtils.getStatusUntilDate(translateLocal, inputDateStr, currentTimeZone, currentTimeZone, LOCALE);
             const expectedLabel = tzFormat(targetTime, CONST.DATE.LOCAL_TIME_FORMAT, {timeZone: currentTimeZone});
 
             expect(result).toBe(`Until ${expectedLabel}`);
@@ -339,7 +339,7 @@ describe('DateUtils', () => {
 
             const inputDateStrNY = tzFormat(endOfTodayCurrent, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: inputTimeZoneNY});
 
-            const result = DateUtils.getStatusUntilDate(translateLocal, inputDateStrNY, inputTimeZoneNY, inputTimeZoneNY);
+            const result = DateUtils.getStatusUntilDate(translateLocal, inputDateStrNY, inputTimeZoneNY, inputTimeZoneNY, LOCALE);
             expect(result).toBe('Until tomorrow');
         });
 
@@ -347,7 +347,7 @@ describe('DateUtils', () => {
             const targetTimeLA = set(toZonedTime(new Date(), currentTimeZone), {hours: 15, minutes: 34, seconds: 0, milliseconds: 0});
             const inputDateStrNY = tzFormat(targetTimeLA, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: inputTimeZoneNY});
 
-            const result = DateUtils.getStatusUntilDate(translateLocal, inputDateStrNY, inputTimeZoneNY, currentTimeZone);
+            const result = DateUtils.getStatusUntilDate(translateLocal, inputDateStrNY, inputTimeZoneNY, currentTimeZone, LOCALE);
 
             const date = fromZonedTime(inputDateStrNY, inputTimeZoneNY);
             const converted = toZonedTime(date, currentTimeZone);
@@ -396,43 +396,46 @@ describe('DateUtils', () => {
         });
     });
 
-    describe('formatInUTCTo* (L7 regression — date-only strings must not day-shift)', () => {
-        // The original bug: `toLocalDate('2025-08-19')` returns local midnight; rendering with timeZone:'UTC' shifts to the
-        // previous day for viewers east of UTC. The fix routes through `toUTCDate` which anchors at UTC midnight.
+    describe('formatInUTCTo* (date-only strings must not day-shift)', () => {
+        // Local-midnight Date + UTC-zone formatter shifts a day for UTC+ viewers; `toUTCDate` anchors at UTC midnight.
         it.each(['en', 'es'] as const)('formatInUTCToMedium renders the input calendar day in %s regardless of viewer timezone', (locale) => {
             const result = DateUtils.formatInUTCToMedium('2025-08-19', locale);
             const expected = new Intl.DateTimeFormat(locale, {dateStyle: 'medium', timeZone: 'UTC'}).format(new Date('2025-08-19T00:00:00Z'));
             expect(result).toBe(expected);
-            expect(result).toMatch(/19|aug/i);
         });
 
-        it('formatInUTCToShort does not shift the calendar day', () => {
-            expect(DateUtils.formatInUTCToShort('2025-01-01', 'en')).toMatch(/Jan\s*1\b/);
+        it.each(['en', 'es'] as const)('formatInUTCToShort renders the input calendar day in %s regardless of viewer timezone', (locale) => {
+            const result = DateUtils.formatInUTCToShort('2025-01-01', locale);
+            const expected = new Intl.DateTimeFormat(locale, {month: 'short', day: 'numeric', timeZone: 'UTC'}).format(new Date('2025-01-01T00:00:00Z'));
+            expect(result).toBe(expected);
         });
 
-        it('formatInUTCToLong does not shift the calendar day', () => {
-            expect(DateUtils.formatInUTCToLong('2025-12-31', 'en')).toMatch(/December\s*31/);
+        it.each(['en', 'es'] as const)('formatInUTCToLong renders the input calendar day in %s regardless of viewer timezone', (locale) => {
+            const result = DateUtils.formatInUTCToLong('2025-12-31', locale);
+            const expected = new Intl.DateTimeFormat(locale, {dateStyle: 'long', timeZone: 'UTC'}).format(new Date('2025-12-31T00:00:00Z'));
+            expect(result).toBe(expected);
         });
 
         it('parses DB wire timestamps (yyyy-MM-dd HH:mm:ss) as UTC, not local — UTC+ viewers must not see day-shift', () => {
             // `new Date('2026-01-01 00:30:00')` parses as LOCAL in V8/Hermes; in UTC+5:30 that becomes 2025-12-31 19:00Z.
-            // toUTCDate must use `toDate(..., {timeZone: 'UTC'})` so the date stays Jan 1, 2026 in the UTC formatter.
             expect(DateUtils.formatInUTCToMedium('2026-01-01 00:30:00', 'en')).toMatch(/Jan\s*1\D.*2026/);
         });
     });
 
-    describe('formatIntl defaults to app locale (not device locale)', () => {
-        it('renders in en when locale is undefined — guards against Intl.DateTimeFormat(undefined, …) leaking device locale', () => {
-            // Without the `locale ?? CONST.LOCALES.DEFAULT` default, an EN app on a Spanish OS would render dates in Spanish.
-            expect(DateUtils.formatToShortMonth(new Date('2025-08-19T00:00:00Z'), undefined)).toMatch(/Aug/);
+    describe('formatToShortMonth (locale parameter affects output)', () => {
+        it.each([
+            ['en', /^Aug/],
+            ['es', /^ago/],
+            ['ja', /8月/],
+        ] as const)('renders the month in %s', (locale, expectedPattern) => {
+            expect(DateUtils.formatToShortMonth(new Date('2025-08-19T00:00:00Z'), locale)).toMatch(expectedPattern);
         });
     });
 
-    describe('getDaysOfWeekNarrow (CJK header collision regression)', () => {
+    describe('getDaysOfWeekNarrow (CJK weekday labels must not collide)', () => {
         it('en narrow labels are single-letter weekday initials', () => {
             const en = DateUtils.getDaysOfWeekNarrow('en');
             expect(en).toHaveLength(7);
-            // M, T, W, T, F, S, S — narrow labels are 1 char each
             expect(en.every((d) => d.length === 1)).toBe(true);
         });
 
@@ -444,7 +447,7 @@ describe('DateUtils', () => {
         });
     });
 
-    describe('Spanish lowercase regression (intentional proposal deviation D1)', () => {
+    describe('Spanish month names render lowercase per RAE typography', () => {
         it('getMonthNames(es)[0] is lowercase per RAE typography', () => {
             expect(DateUtils.getMonthNames('es').at(0)).toBe('enero');
             expect(DateUtils.getMonthNames('es').at(0)).not.toBe('Enero');
@@ -471,7 +474,7 @@ describe('DateUtils', () => {
         });
     });
 
-    describe('formatInTimeZoneTo* (A5 fail-fast — date-only inputs throw)', () => {
+    describe('formatInTimeZoneTo* (date-only inputs throw)', () => {
         it.each([
             ['formatInTimeZoneToLong' as const, '2025-08-19'],
             ['formatInTimeZoneToShortTime' as const, '2025-08-19'],

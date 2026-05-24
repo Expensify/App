@@ -61,6 +61,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
 import type {ThemeColors} from '@styles/theme/types';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -3354,7 +3355,7 @@ function getWeekSections(data: OnyxTypes.SearchResults['data'], queryJSON: Searc
             const rawRange = DateUtils.getWeekDateRange(weekGroup.week);
             const dateResult = queryJSON && weekGroup.week ? buildDateRangeGroupQuery(queryJSON, rawRange) : undefined;
             const transactionsQueryJSON = dateResult?.transactionsQueryJSON;
-            const formattedWeek = DateUtils.getFormattedDateRangeForSearch(dateResult?.start ?? rawRange.start, dateResult?.end ?? rawRange.end);
+            const formattedWeek = DateUtils.getFormattedDateRangeForSearch(dateResult?.start ?? rawRange.start, dateResult?.end ?? rawRange.end, false, false, IntlStore.getCurrentLocale());
 
             weekSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
@@ -3415,7 +3416,7 @@ function getQuarterSections(data: OnyxTypes.SearchResults['data'], queryJSON: Se
                 queryJSON && quarterGroup.year !== undefined && quarterGroup.quarter !== undefined
                     ? buildDateRangeGroupQuery(queryJSON, DateUtils.getQuarterDateRange(quarterGroup.year, quarterGroup.quarter))?.transactionsQueryJSON
                     : undefined;
-            const formattedQuarter = DateUtils.getFormattedQuarterForSearch(quarterGroup.year, quarterGroup.quarter);
+            const formattedQuarter = DateUtils.getFormattedQuarterForSearch(quarterGroup.year, quarterGroup.quarter, IntlStore.getCurrentLocale());
 
             quarterSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
@@ -4868,15 +4869,17 @@ function getDateDisplayValue(syntaxKey: SearchDateFilterKeys, form: Partial<Sear
     const parts: string[] = [];
 
     if (on) {
-        parts.push(isSearchDatePreset(on) ? translate(`search.filters.date.presets.${on}`) : `${translate('common.on')} ${DateUtils.formatToReadableString(on)}`);
+        parts.push(
+            isSearchDatePreset(on) ? translate(`search.filters.date.presets.${on}`) : `${translate('common.on')} ${DateUtils.formatToReadableString(on, IntlStore.getCurrentLocale())}`,
+        );
     }
 
     if (after) {
-        parts.push(`${translate('common.after')} ${DateUtils.formatToReadableString(after)}`);
+        parts.push(`${translate('common.after')} ${DateUtils.formatToReadableString(after, IntlStore.getCurrentLocale())}`);
     }
 
     if (before) {
-        parts.push(`${translate('common.before')} ${DateUtils.formatToReadableString(before)}`);
+        parts.push(`${translate('common.before')} ${DateUtils.formatToReadableString(before, IntlStore.getCurrentLocale())}`);
     }
 
     if (range) {

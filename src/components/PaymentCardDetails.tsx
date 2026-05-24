@@ -27,10 +27,10 @@ type PaymentCardDetailsProps = {
 function PaymentCardDetails({card, rightComponent, wrapperStyle}: PaymentCardDetailsProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['CreditCard']);
 
-    const cardMonth = DateUtils.getMonthNames()[(card?.accountData?.cardMonth ?? 1) - 1];
+    const cardMonth = DateUtils.getMonthNames(preferredLocale)[(card?.accountData?.cardMonth ?? 1) - 1];
 
     if (!card?.accountData || isEmptyObject(card?.accountData)) {
         return null;

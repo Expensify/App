@@ -208,6 +208,7 @@ function CalendarPicker({
 
     // Intl output respects per-locale typography (Spanish lowercase, English capitalized) — don't force-case.
     const monthNames = DateUtils.getMonthNames(preferredLocale);
+    const daysOfWeekLong = DateUtils.getDaysOfWeek(preferredLocale);
     const daysOfWeek = DateUtils.getDaysOfWeekNarrow(preferredLocale);
     useEffect(() => {
         if (isSmallScreenWidth || isFirstRender.current) {
@@ -351,14 +352,13 @@ function CalendarPicker({
                 </View>
             </View>
             <View style={[themeStyles.flexRow, webOnlyMarginStyle]}>
-                {daysOfWeek.map((dayOfWeek, index) => (
+                {daysOfWeekLong.map((longName, slot) => (
                     <View
-                        // Narrow labels can repeat (en: "M","T","T","F","S","S") — fold index into the key.
-                        key={`${index}-${dayOfWeek}`}
+                        key={longName}
                         style={[themeStyles.calendarDayRoot, themeStyles.flex1, themeStyles.justifyContentCenter, themeStyles.alignItemsCenter]}
                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                     >
-                        <Text style={themeStyles.sidebarLinkTextBold}>{dayOfWeek}</Text>
+                        <Text style={themeStyles.sidebarLinkTextBold}>{daysOfWeek.at(slot)}</Text>
                     </View>
                 ))}
             </View>
