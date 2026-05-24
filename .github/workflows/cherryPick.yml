@@ -100,10 +100,8 @@ jobs:
         id: getBranchName
         run: echo "CONFLICT_BRANCH_NAME=cherry-pick-${{ inputs.TARGET }}-${{ steps.getPRInfo.outputs.PR_NUMBER }}-${{ github.run_id }}-${{ github.run_attempt }}" >> "$GITHUB_OUTPUT"
 
-        # v4
       - name: Checkout target branch
-        # v6
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
           ref: ${{ inputs.TARGET }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
