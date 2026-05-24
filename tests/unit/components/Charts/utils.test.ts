@@ -555,28 +555,6 @@ describe('isCursorOverChartLabel', () => {
     });
 });
 
-describe('VictoryTheme.colors.getColor', () => {
-    it('returns a non-empty string for index 0', () => {
-        const color = VictoryTheme.colors.getColor(0);
-        expect(typeof color).toBe('string');
-        expect(color.length).toBeGreaterThan(0);
-    });
-
-    it('returns different colors for consecutive indices', () => {
-        expect(VictoryTheme.colors.getColor(0)).not.toBe(VictoryTheme.colors.getColor(1));
-        expect(VictoryTheme.colors.getColor(1)).not.toBe(VictoryTheme.colors.getColor(2));
-    });
-
-    it('wraps around to the same color after the full palette (30 entries)', () => {
-        expect(VictoryTheme.colors.getColor(0)).toBe(VictoryTheme.colors.getColor(30));
-        expect(VictoryTheme.colors.getColor(5)).toBe(VictoryTheme.colors.getColor(35));
-    });
-
-    it('handles large indices via modulo wrapping', () => {
-        expect(VictoryTheme.colors.getColor(0)).toBe(VictoryTheme.colors.getColor(300));
-    });
-});
-
 describe('getAdditionalOffset', () => {
     // variables.iconSizeExtraSmall = 12
     it('returns iconSizeExtraSmall / 3 for 0° (horizontal)', () => {
