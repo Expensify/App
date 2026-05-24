@@ -1003,6 +1003,10 @@ const translations = {
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
                 personalSubtitle: 'Wallet',
             },
+            enterSignerInfo: {
+                title: 'Enter signer info',
+                subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Account ${bankAccountLastFour}`,
+            },
         },
         freeTrialSection: {
             title: ({days}: {days: number}) => `Free trial: ${days} ${days === 1 ? 'day' : 'days'} left!`,

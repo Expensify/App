@@ -1,0 +1,41 @@
+import React from 'react';
+import BaseWidgetItem from '@components/BaseWidgetItem';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import Navigation from '@libs/Navigation/Navigation';
+import colors from '@styles/theme/colors';
+import ROUTES from '@src/ROUTES';
+
+type EnterSignerInfoProps = {
+    /** The policy ID that owns the bank account requiring signer info */
+    policyID: string;
+
+    /** The bank account ID requiring signer info */
+    bankAccountID: string;
+
+    /** Last four digits of the bank account number */
+    bankAccountLastFour: string;
+};
+
+function EnterSignerInfo({policyID, bankAccountID, bankAccountLastFour}: EnterSignerInfoProps) {
+    const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['UserCheck']);
+
+    const handleCtaPress = () => {
+        Navigation.navigate(ROUTES.BANK_ACCOUNT_ENTER_SIGNER_INFO.getRoute(policyID, bankAccountID, false));
+    };
+
+    return (
+        <BaseWidgetItem
+            icon={icons.UserCheck}
+            iconBackgroundColor={colors.tangerine100}
+            iconFill={colors.tangerine500}
+            title={translate('homePage.timeSensitiveSection.enterSignerInfo.title')}
+            subtitle={translate('homePage.timeSensitiveSection.enterSignerInfo.subtitle', {bankAccountLastFour})}
+            ctaText={translate('signerInfoStep.enterSignerInfo')}
+            onCtaPress={handleCtaPress}
+        />
+    );
+}
+
+export default EnterSignerInfo;

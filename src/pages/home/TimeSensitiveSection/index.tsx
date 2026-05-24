@@ -21,9 +21,11 @@ import useTimeSensitiveAddPaymentCard from './hooks/useTimeSensitiveAddPaymentCa
 import useTimeSensitiveBilling from './hooks/useTimeSensitiveBilling';
 import useTimeSensitiveCards from './hooks/useTimeSensitiveCards';
 import useTimeSensitiveLockedBankAccount from './hooks/useTimeSensitiveLockedBankAccount';
+import useTimeSensitiveSignerInfo from './hooks/useTimeSensitiveSignerInfo';
 import ActivateCard from './items/ActivateCard';
 import AddPaymentCard from './items/AddPaymentCard';
 import AddShippingAddress from './items/AddShippingAddress';
+import EnterSignerInfo from './items/EnterSignerInfo';
 import FixAccountingConnection from './items/FixAccountingConnection';
 import FixCompanyCardConnection from './items/FixCompanyCardConnection';
 import FixFailedBilling from './items/FixFailedBilling';
@@ -83,6 +85,7 @@ function TimeSensitiveSection() {
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const {lockedBankAccounts} = useTimeSensitiveLockedBankAccount(adminPolicies);
+    const {shouldShowEnterSignerInfo, pendingSignerInfo} = useTimeSensitiveSignerInfo();
 
     // Get card feed errors for company card connections (Release 4)
     const cardFeedErrors = useCardFeedErrors();
@@ -157,6 +160,7 @@ function TimeSensitiveSection() {
     // must be reflected here to avoid showing an empty "Time sensitive" section.
     const hasAnyTimeSensitiveContent =
         lockedBankAccounts.length > 0 ||
+        shouldShowEnterSignerInfo ||
         shouldShowValidateAccount ||
         shouldShowFixFailedBilling ||
         shouldShowReviewCardFraud ||
@@ -242,6 +246,16 @@ function TimeSensitiveSection() {
                         key={lockedBankAccount.key}
                         bankAccountID={lockedBankAccount.bankAccountID}
                         policyName={lockedBankAccount.policyName}
+                    />
+                ))}
+
+                {/* Enter signer info for a global bank account */}
+                {pendingSignerInfo.map((item) => (
+                    <EnterSignerInfo
+                        key={`signer-${item.policyID}-${item.bankAccountID}`}
+                        policyID={item.policyID}
+                        bankAccountID={item.bankAccountID}
+                        bankAccountLastFour={item.bankAccountLastFour}
                     />
                 ))}
 
