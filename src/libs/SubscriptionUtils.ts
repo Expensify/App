@@ -1,5 +1,6 @@
 import {differenceInSeconds, fromUnixTime, isAfter, isBefore} from 'date-fns';
 import {fromZonedTime} from 'date-fns-tz';
+import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
@@ -45,6 +46,14 @@ type SubscriptionPlanInfo = {
     src: IconAsset;
     description: string;
 };
+
+let deprecatedCurrentUserAccountID = -1;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (value) => {
+        deprecatedCurrentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+    },
+});
 
 /**
  * @returns Whether the workspace owner's grace period is overdue.
@@ -472,7 +481,7 @@ function shouldRestrictUserBillableActions(
     ownerBillingGracePeriodEnd: OnyxEntry<number>,
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>,
     amountOwed: OnyxEntry<number>,
-    currentUserAccountID: number | undefined,
+    currentUserAccountID: number | undefined = deprecatedCurrentUserAccountID,
 ): boolean {
     const currentDate = new Date();
 
