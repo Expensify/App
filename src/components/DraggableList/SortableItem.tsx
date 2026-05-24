@@ -110,9 +110,7 @@ function SortableItem({id, children, disabled = false, isFocused = false}: Sorta
                 }
                 e.currentTarget.focus();
             }}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...attributes}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...(disabled ? {} : listeners)}
             role="button"
             tabIndex={0}

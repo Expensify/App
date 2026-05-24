@@ -22,6 +22,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
@@ -46,11 +47,12 @@ import {
     isCurrentUserSubmitter,
     isDM,
     isExpenseReport,
-    isOpenReport,
     isSelfDM,
     navigateToDetailsPage,
     rejectMoneyRequestReason,
 } from '@libs/ReportUtils';
+import getShouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     getOriginalTransactionWithSplitInfo,
     hasCustomUnitOutOfPolicyViolation as hasCustomUnitOutOfPolicyViolationTransactionUtils,
@@ -84,7 +86,7 @@ type MoneyRequestHeaderSecondaryActionsProps = {
 
 function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: MoneyRequestHeaderSecondaryActionsProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isInNarrowPaneModal, shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const {isInNarrowPaneModal, isSmallScreenWidth} = useResponsiveLayout();
     const route = useRoute<
         | PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
         | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>
@@ -109,7 +111,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     ] as const);
 
     const {wideRHPRouteKeys} = useWideRHPState();
-    const isNarrow = !shouldUseNarrowLayout || (wideRHPRouteKeys.length > 0 && !isSmallScreenWidth);
+    const isNarrowButton = !useShouldDisplayButtonsInSeparateLine() || (wideRHPRouteKeys.length > 0 && !isSmallScreenWidth);
     const {isOffline} = useNetwork();
 
     // Per-key Onyx subscriptions
@@ -138,6 +140,9 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [shouldFailAllRequests] = useOnyx(ONYXKEYS.NETWORK, {selector: shouldFailAllRequestsSelector});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -148,7 +153,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const [defaultPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(defaultExpensePolicy?.id)}`);
     const {policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses(isPerDiemRequest(transaction));
     const shouldNavigateToUpgradePath = !policyForMovingExpenses && !shouldSelectPolicy;
-    const {deleteTransactions} = useDeleteTransactions({report: parentReport, reportActions: parentReportAction ? [parentReportAction] : [], policy});
+    const {deleteTransactions, shouldOpenSplitExpenseEditFlowOnDelete} = useDeleteTransactions({report: parentReport, reportActions: parentReportAction ? [parentReportAction] : [], policy});
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(parentReportAction);
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
     const {isBetaEnabled} = usePermissions();
@@ -187,8 +192,8 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const shouldDuplicateCloseModalOnSelect = isDistanceExpenseUnsupportedForDuplicating || hasCustomUnitOutOfPolicyViolation || isPerDiemRequestOnNonDefaultWorkspace;
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
     const hasMultipleSplits = useHasMultipleSplitChildren(transaction?.comment?.originalTransactionID);
-    const isReportOpen = isOpenReport(parentReport);
-    const shouldShowSplitIndicator = isExpenseSplit && (hasMultipleSplits || isReportOpen);
+    const shouldShowSplitIndicator = isExpenseSplit && hasMultipleSplits;
+    const shouldShowEditSplitOnDeleteAction = !!transaction?.transactionID && shouldOpenSplitExpenseEditFlowOnDelete([transaction.transactionID]);
     const isReportSubmitter = isCurrentUserSubmitter(chatIOUReport);
     const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
     const targetPolicyTags = defaultPolicyTags ?? {};
@@ -235,8 +240,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 recentWaypoints,
                 targetPolicyTags,
                 conciergeReportID,
-                currentUserAccountID: accountID,
-                currentUserLogin: currentUserLogin ?? '',
+                currentUser: {accountID, email: currentUserLogin ?? ''},
             });
         }
     };
@@ -353,6 +357,12 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             iconFill: isDuplicateActive ? undefined : theme.icon,
             value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DUPLICATE,
             onSelected: () => {
+                if (defaultExpensePolicy && shouldRestrictUserBillableActions(defaultExpensePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+                    dropdownMenuRef.current?.setIsMenuVisible(false);
+                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(defaultExpensePolicy.id));
+                    return;
+                }
+
                 if (hasCustomUnitOutOfPolicyViolation) {
                     showConfirmModal({
                         title: translate('common.duplicateExpense'),
@@ -401,10 +411,15 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DELETE]: {
-            text: translate('common.delete'),
-            icon: expensifyIcons.Trashcan,
+            text: shouldShowEditSplitOnDeleteAction ? translate('iou.editSplits') : translate('common.delete'),
+            icon: shouldShowEditSplitOnDeleteAction ? expensifyIcons.ArrowSplit : expensifyIcons.Trashcan,
             value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
             onSelected: () => {
+                if (shouldShowEditSplitOnDeleteAction && transaction?.transactionID) {
+                    deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, true);
+                    return;
+                }
+
                 showConfirmModal({
                     title: translate('iou.deleteExpense', {count: 1}),
                     prompt: translate('iou.deleteConfirmation', {count: 1}),
@@ -439,8 +454,24 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                             currentUserEmail: currentUserLogin ?? '',
                         });
                     } else {
+                        if (shouldOpenSplitExpenseEditFlowOnDelete([transaction.transactionID])) {
+                            deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, true);
+                            return;
+                        }
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         InteractionManager.runAfterInteractions(() => {
-                            deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, isReportInSearch ? currentSearchHash : undefined, true);
+                            const deleteResult = deleteTransactions(
+                                [transaction.transactionID],
+                                duplicateTransactions,
+                                duplicateTransactionViolations,
+                                isReportInSearch ? currentSearchHash : undefined,
+                                true,
+                            );
+
+                            if (deleteResult.action === 'redirected') {
+                                return;
+                            }
+
                             removeTransaction(transaction.transactionID);
                         });
                     }
@@ -506,6 +537,8 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         return null;
     }
 
+    const shouldPopoverUseScrollView = getShouldPopoverUseScrollView(applicableSecondaryActions);
+
     return (
         <>
             <ButtonWithDropdownMenu
@@ -515,8 +548,9 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 shouldAlwaysShowDropdownMenu
                 customText={translate('common.more')}
                 options={applicableSecondaryActions}
+                shouldPopoverUseScrollView={shouldPopoverUseScrollView}
                 isSplitButton={false}
-                wrapperStyle={!isNarrow && !hasPrimaryAction ? [styles.flexGrow4] : undefined}
+                wrapperStyle={!isNarrowButton && !hasPrimaryAction ? [styles.flexGrow4] : undefined}
             />
             {!!rejectModalAction && (
                 <HoldOrRejectEducationalModal
