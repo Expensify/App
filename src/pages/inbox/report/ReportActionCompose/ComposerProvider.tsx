@@ -80,8 +80,9 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
         isEditing: !!editingReportAction,
     });
 
-    // Prime the debounce so flush() returns a valid result for restored drafts
-    const [hasInitialValidationRun, setHasInitialValidationRun] = useState(false);
+    // Prime the debounce so flush() returns a valid result for restored drafts.
+    // Initialize to true (skip) when there's no draft, false (run) when there is.
+    const [hasInitialValidationRun, setHasInitialValidationRun] = useState(!draftComment);
     if (!hasInitialValidationRun && draftComment) {
         setHasInitialValidationRun(true);
         debouncedCommentMaxLengthValidation(draftComment);
