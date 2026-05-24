@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import type {View} from 'react-native';
 import {scheduleOnUI} from 'react-native-worklets';
 import useOnyx from '@hooks/useOnyx';
@@ -81,16 +81,12 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
     });
 
     // Prime the debounce so flush() returns a valid result for restored drafts
-    const hasInitialValidationRun = useRef<boolean>(false);
-    useEffect(() => {
-        if (hasInitialValidationRun.current || !draftComment) {
-            return;
-        }
-        hasInitialValidationRun.current = true;
+    const [hasInitialValidationRun, setHasInitialValidationRun] = useState(false);
+    if (!hasInitialValidationRun && draftComment) {
+        setHasInitialValidationRun(true);
         debouncedCommentMaxLengthValidation(draftComment);
         debouncedCommentMaxLengthValidation.flush();
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentional one-time initialization on mount
-    }, []);
+    }
 
     const originalReportID = useOriginalReportID(editingReportID ?? undefined, editingReportAction);
 
