@@ -6,6 +6,14 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 
+jest.mock('@hooks/useLocalize', () => ({
+    __esModule: true,
+    default: () => ({
+        translate: () => '',
+        preferredLocale: 'en',
+    }),
+}));
+
 // FloatingActionButton relies on ProductTrainingContext, so provide a minimal mock.
 jest.mock('@components/ProductTrainingContext', () => ({
     useProductTrainingContext: (): {

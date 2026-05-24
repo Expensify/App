@@ -1,4 +1,3 @@
-import {format as formatDate} from 'date-fns';
 import React, {createContext, useEffect, useSyncExternalStore} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
@@ -119,9 +118,9 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
     const localeCompare: LocaleContextProps['localeCompare'] = (a, b) => collator.compare(a, b);
 
     const formatTravelDate: LocaleContextProps['formatTravelDate'] = (datetime) => {
-        const date = new Date(datetime);
-        const formattedDate = formatDate(date, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT);
-        const formattedHour = formatDate(date, CONST.DATE.LOCAL_TIME_FORMAT);
+        // Date part UTC-anchored so date-only inputs (`'2025-07-15'`) don't day-shift for west-of-UTC viewers; time stays in local zone.
+        const formattedDate = DateUtils.formatInUTCToMedium(datetime, currentLocale);
+        const formattedHour = DateUtils.formatToLocalTime(DateUtils.toUTCDate(datetime), currentLocale);
         const at = translateLocalize(currentLocale, 'common.conjunctionAt');
         return `${formattedDate} ${at} ${formattedHour}`;
     };

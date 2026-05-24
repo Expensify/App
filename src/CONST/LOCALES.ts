@@ -66,20 +66,6 @@ type FullySupportedLocale = ValueOf<typeof FULLY_SUPPORTED_LOCALES>;
 type Locale = FullySupportedLocale | ValueOf<typeof BETA_LOCALES>;
 type TranslationTargetLocale = ValueOf<typeof TRANSLATION_TARGET_LOCALES>;
 
-// date-fns convention: 0 = Sun, 1 = Mon. EN pinned to en-GB Monday-start to match the historical app default.
-const WEEK_STARTS_ON_BY_LOCALE = {
-    [LOCALES.EN]: 1,
-    [LOCALES.ES]: 1,
-    [LOCALES.DE]: 1,
-    [LOCALES.FR]: 1,
-    [LOCALES.IT]: 1,
-    [LOCALES.NL]: 1,
-    [LOCALES.PL]: 1,
-    [LOCALES.ZH_HANS]: 1,
-    [LOCALES.JA]: 0,
-    [LOCALES.PT_BR]: 0,
-} as const satisfies Record<Locale, 0 | 1>;
-
 // Sort all locales alphabetically by their display names
 // eslint-disable-next-line rulesdir/prefer-locale-compare-from-context
 const SORTED_LOCALES = Object.values({...FULLY_SUPPORTED_LOCALES, ...BETA_LOCALES}).sort((a, b) => LOCALE_TO_LANGUAGE_STRING[a].localeCompare(LOCALE_TO_LANGUAGE_STRING[b]));
@@ -103,7 +89,6 @@ export {
     LOCALE_TO_LANGUAGE_STRING,
     SORTED_LOCALES,
     TRANSLATION_TARGET_LOCALES,
-    WEEK_STARTS_ON_BY_LOCALE,
     isSupportedLocale,
     isFullySupportedLocale,
     isTranslationTargetLocale,

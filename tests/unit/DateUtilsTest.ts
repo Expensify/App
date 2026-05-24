@@ -432,6 +432,27 @@ describe('DateUtils', () => {
         });
     });
 
+    describe('formatTravelDate inputs (formatToMediumDate + formatToLocalTime localize correctly)', () => {
+        const travelDate = new Date('2025-08-19T14:30:00Z');
+
+        it('formatToMediumDate renders es as "19 ago 2025" (not English)', () => {
+            const es = DateUtils.formatToMediumDate(travelDate, 'es');
+            expect(es).toMatch(/19/);
+            expect(es).toMatch(/ago/);
+            expect(es).not.toMatch(/Aug/);
+        });
+
+        it('formatToLocalTime renders es in 24h (not AM/PM)', () => {
+            const es = DateUtils.formatToLocalTime(travelDate, 'es');
+            expect(es).not.toMatch(/AM|PM/);
+        });
+
+        it('formatToLocalTime renders en in 12h with AM/PM', () => {
+            const en = DateUtils.formatToLocalTime(travelDate, 'en');
+            expect(en).toMatch(/AM|PM/);
+        });
+    });
+
     describe('getDaysOfWeekNarrow (CJK weekday labels must not collide)', () => {
         it('en narrow labels are single-letter weekday initials', () => {
             const en = DateUtils.getDaysOfWeekNarrow('en');
@@ -447,18 +468,38 @@ describe('DateUtils', () => {
         });
     });
 
-    describe('Spanish month names render lowercase per RAE typography', () => {
-        it('getMonthNames(es)[0] is lowercase per RAE typography', () => {
-            expect(DateUtils.getMonthNames('es').at(0)).toBe('enero');
-            expect(DateUtils.getMonthNames('es').at(0)).not.toBe('Enero');
+    describe('getLocalizedDatePlaceholder (deploy-blocker #80011 fix)', () => {
+        it.each(['en', 'es', 'de', 'fr', 'it', 'nl', 'pl', 'pt-BR', 'ja', 'zh-hans'] as const)('%s placeholder follows locale field order and separator', (locale) => {
+            const placeholder = DateUtils.getLocalizedDatePlaceholder(locale);
+            expect(placeholder).toMatch(/^(MM|DD|YYYY)([./-])(MM|DD|YYYY)\2(MM|DD|YYYY)$/);
         });
 
-        it('getMonthNames(en) stays capitalized', () => {
-            expect(DateUtils.getMonthNames('en').at(0)).toBe('January');
+        it('en placeholder is MM/DD/YYYY (deploy-blocker reported YYYY-MM-DD as the bug)', () => {
+            expect(DateUtils.getLocalizedDatePlaceholder('en')).toBe('MM/DD/YYYY');
+            expect(DateUtils.getLocalizedDatePlaceholder('en')).not.toBe('YYYY-MM-DD');
+        });
+
+        it('de uses dot separator', () => {
+            expect(DateUtils.getLocalizedDatePlaceholder('de')).toBe('DD.MM.YYYY');
+        });
+
+        it('ja places year first', () => {
+            expect(DateUtils.getLocalizedDatePlaceholder('ja')).toMatch(/^YYYY/);
         });
     });
 
-    describe('getWeekStartsOn / getWeekEndsOn (product-curated table)', () => {
+    describe('getMonthNames capitalizes first letter across locales (matches iwiznia #69562)', () => {
+        it.each([
+            ['es', 'Enero'],
+            ['en', 'January'],
+            ['de', 'Januar'],
+            ['fr', 'Janvier'],
+        ] as const)('getMonthNames(%s)[0] === %s', (locale, expected) => {
+            expect(DateUtils.getMonthNames(locale).at(0)).toBe(expected);
+        });
+    });
+
+    describe("getWeekStartsOn / getWeekEndsOn ('en' pinned to Monday; others via Intl)", () => {
         it.each([
             ['en', 1, 0],
             ['es', 1, 0],
@@ -469,8 +510,8 @@ describe('DateUtils', () => {
             expect(DateUtils.getWeekEndsOn(locale)).toBe(end);
         });
 
-        it('falls back to default when locale is missing from the table (defensive against stale Onyx)', () => {
-            expect(DateUtils.getWeekStartsOn('xx-XX' as never)).toBe(DateUtils.getWeekStartsOn('en'));
+        it('falls back to Monday on engines without Intl.Locale.getWeekInfo (e.g. Hermes <0.74)', () => {
+            expect(DateUtils.getWeekStartsOn('xx-XX' as never)).toBe(1);
         });
     });
 

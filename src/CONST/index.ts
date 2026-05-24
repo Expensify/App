@@ -605,11 +605,13 @@ const CONST = {
         MONTH_DAYS,
         INTL_FORMATS: {
             SHORT_TIME: {timeStyle: 'short'},
+            SHORT_DATE: {dateStyle: 'short'},
             MEDIUM_DATE: {dateStyle: 'medium'},
             MEDIUM_DATE_TIME: {dateStyle: 'medium', timeStyle: 'short'},
             LONG_DATE: {dateStyle: 'long'},
             FULL_DATE: {dateStyle: 'full'},
             LONG_WEEKDAY: {weekday: 'long'},
+            SHORT_WEEKDAY: {weekday: 'short'},
             NARROW_WEEKDAY: {weekday: 'narrow'},
             LONG_MONTH: {month: 'long'},
             SHORT_MONTH: {month: 'short'},

@@ -9,8 +9,11 @@ const POLL_INTERVAL_MS = 1000;
 
 const listeners = new Set<() => void>();
 let intervalId: ReturnType<typeof setInterval> | null = null;
-let lastMinute = new Date().getMinutes();
-let snapshot = new Date();
+// Snapshot is initialized lazily on first `getSnapshot` (not at module load) so the first consumer
+// after a long idle period sees the current `Date`, not the import-time one. Reset to null when the
+// last subscriber unmounts so the next mount also starts fresh.
+let snapshot: Date | null = null;
+let lastMinute = -1;
 
 function tick() {
     const now = new Date();
@@ -27,9 +30,6 @@ function tick() {
 function subscribe(listener: () => void): () => void {
     listeners.add(listener);
     if (intervalId === null) {
-        // Re-anchor on first subscribe so a sleep/wake gap doesn't immediately fire a stale tick.
-        lastMinute = new Date().getMinutes();
-        snapshot = new Date();
         intervalId = setInterval(tick, POLL_INTERVAL_MS);
     }
     return () => {
@@ -37,11 +37,17 @@ function subscribe(listener: () => void): () => void {
         if (listeners.size === 0 && intervalId !== null) {
             clearInterval(intervalId);
             intervalId = null;
+            snapshot = null;
+            lastMinute = -1;
         }
     };
 }
 
 function getSnapshot(): Date {
+    if (snapshot === null) {
+        snapshot = new Date();
+        lastMinute = snapshot.getMinutes();
+    }
     return snapshot;
 }
 

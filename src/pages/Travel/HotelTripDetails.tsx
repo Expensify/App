@@ -32,8 +32,9 @@ function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps)
 
     const checkInDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date), preferredLocale);
     const checkOutDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date), preferredLocale);
-    const cancellationText = reservation.cancellationDeadline
-        ? `${translate('travel.hotelDetails.cancellationUntil')} ${DateUtils.getFormattedCancellationDate(new Date(reservation.cancellationDeadline), preferredLocale)}`
+    const cancellation = reservation.cancellationDeadline ? DateUtils.getFormattedTransportDateAndHour(new Date(reservation.cancellationDeadline), preferredLocale) : null;
+    const cancellationText = cancellation
+        ? `${translate('travel.hotelDetails.cancellationUntil')} ${cancellation.date} ${cancellation.hour}`
         : cancellationMapping[reservation.cancellationPolicy ?? CONST.CANCELLATION_POLICY.UNKNOWN];
 
     const displayName = personalDetails?.displayName ?? reservation.travelerPersonalInfo?.name;

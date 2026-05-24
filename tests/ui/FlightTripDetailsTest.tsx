@@ -3,6 +3,15 @@ import FlightTripDetails from '@pages/Travel/FlightTripDetails';
 import CONST from '@src/CONST';
 import type {Reservation} from '@src/types/onyx/Transaction';
 
+jest.mock('@hooks/useLocalize', () => ({
+    __esModule: true,
+    default: () => ({
+        translate: () => '',
+        preferredLocale: 'en',
+        formatTravelDate: () => '',
+    }),
+}));
+
 jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
     __esModule: true,
     default: () => ({

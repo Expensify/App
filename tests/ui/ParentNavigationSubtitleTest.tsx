@@ -7,6 +7,14 @@ import ParentNavigationSubtitle from '../../src/components/ParentNavigationSubti
 import NAVIGATORS from '../../src/NAVIGATORS';
 import SCREENS from '../../src/SCREENS';
 
+jest.mock('@hooks/useLocalize', () => ({
+    __esModule: true,
+    default: () => ({
+        translate: () => '',
+        preferredLocale: 'en',
+    }),
+}));
+
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
     default: {

@@ -33,11 +33,11 @@ import {
 import type {Day as WeekDay} from 'date-fns';
 import {formatInTimeZone, fromZonedTime, toDate, toZonedTime, format as tzFormat} from 'date-fns-tz';
 import {enUS} from 'date-fns/locale/en-US';
+import {Str} from 'expensify-common';
 import throttle from 'lodash/throttle';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
-import {WEEK_STARTS_ON_BY_LOCALE} from '@src/CONST/LOCALES';
 import {timezoneBackwardToNewMap, timezoneNewToBackwardMap} from '@src/TIMEZONES';
 import type Locale from '@src/types/onyx/Locale';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
@@ -80,12 +80,25 @@ function formatIntl(locale: Locale, formatKey: IntlFormatKey, date: Date, timeZo
 }
 
 /**
- * Static table instead of `Intl.Locale#getWeekInfo()` because the app pins `'en'` to Monday-start (en-GB
- * convention) — Intl resolves `'en'` to en-US which is Sunday-start. Also sidesteps Hermes <0.74 (no `Intl.Locale`).
+ * `'en'` pinned to Monday because Intl maps `'en'` → en-US (Sunday-start). Other locales via Intl
+ * with dual access — Firefox exposes `weekInfo` as a property, Chromium/spec uses `getWeekInfo()`.
+ * `try/catch` covers engines without `Intl.Locale`.
  */
 function getWeekStartsOn(locale: Locale): WeekDay {
-    // Defensive fallback for stale Onyx values not in the table — without it, undefined cascades into NaN at `startOfWeek`.
-    return WEEK_STARTS_ON_BY_LOCALE[locale] ?? WEEK_STARTS_ON_BY_LOCALE[CONST.LOCALES.DEFAULT];
+    if (locale === CONST.LOCALES.EN) {
+        return 1;
+    }
+    try {
+        const intlLocale = new Intl.Locale(locale) as Intl.Locale & {weekInfo?: Intl.WeekInfo};
+        const weekInfo = typeof intlLocale.getWeekInfo === 'function' ? intlLocale.getWeekInfo() : intlLocale.weekInfo;
+        if (!weekInfo) {
+            return CONST.WEEK_STARTS_ON;
+        }
+        // Intl: Mon=1..Sun=7; date-fns: Sun=0..Sat=6
+        return (weekInfo.firstDay === 7 ? 0 : weekInfo.firstDay) as WeekDay;
+    } catch {
+        return CONST.WEEK_STARTS_ON;
+    }
 }
 
 /**
@@ -260,9 +273,9 @@ function datetimeToRelative(locale: Locale, datetime: string, currentSelectedTim
  * @returns
  */
 function getZoneAbbreviation(datetime: string | Date, selectedTimezone: SelectedTimezone): string {
-    const abbreviation = formatInTimeZone(datetime, selectedTimezone, 'zzz');
+    const abbreviation = formatInTimeZoneWithFallback(datetime, selectedTimezone, 'zzz');
     if (abbreviation === 'GMT') {
-        return formatInTimeZone(datetime, selectedTimezone, 'O');
+        return formatInTimeZoneWithFallback(datetime, selectedTimezone, 'O');
     }
     return abbreviation;
 }
@@ -334,7 +347,8 @@ function getMonthNames(locale: Locale): string[] {
         start: new Date(fullYear, 0, 1), // January 1st of the current year
         end: new Date(fullYear, 11, 31), // December 31st of the current year
     });
-    return monthsArray.map((monthDate) => formatIntl(locale, 'LONG_MONTH', monthDate));
+    // Intl returns natural-case month names (es: "enero" lowercase); UI surfaces want capitalized form across locales.
+    return monthsArray.map((monthDate) => Str.UCFirst(formatIntl(locale, 'LONG_MONTH', monthDate)));
 }
 
 /**
@@ -364,7 +378,35 @@ function getDaysOfWeekNarrow(locale: Locale): string[] {
     return weekdayNamesIn(locale, 'NARROW_WEEKDAY');
 }
 
-function weekdayNamesIn(locale: Locale, formatKey: 'LONG_WEEKDAY' | 'NARROW_WEEKDAY'): string[] {
+/** @returns Short weekday labels (en "Mon"/"Tue", fr "lun."/"mar.") — narrow labels collide in fr/it/pt-BR (duplicate first letters). */
+function getDaysOfWeekShort(locale: Locale): string[] {
+    return weekdayNamesIn(locale, 'SHORT_WEEKDAY');
+}
+
+/**
+ * Year always shown as `YYYY` even when Intl renders 2-digit (en-US `dateStyle:'short'` → "12/31/24"
+ * → placeholder "MM/DD/YYYY"). de → "DD.MM.YYYY"; ja → "YYYY/MM/DD".
+ */
+function getLocalizedDatePlaceholder(locale: Locale): string {
+    const sample = new Date(2024, 11, 31);
+    return getIntlDateTimeFormat(locale, 'SHORT_DATE')
+        .formatToParts(sample)
+        .map((part) => {
+            switch (part.type) {
+                case 'year':
+                    return 'YYYY';
+                case 'month':
+                    return 'MM';
+                case 'day':
+                    return 'DD';
+                default:
+                    return part.value;
+            }
+        })
+        .join('');
+}
+
+function weekdayNamesIn(locale: Locale, formatKey: 'LONG_WEEKDAY' | 'SHORT_WEEKDAY' | 'NARROW_WEEKDAY'): string[] {
     const weekStartsOn = getWeekStartsOn(locale);
     const startOfCurrentWeek = startOfWeek(new Date(), {weekStartsOn});
     const endOfCurrentWeek = endOfWeek(new Date(), {weekStartsOn});
@@ -846,17 +888,6 @@ function getFormattedTransportDateAndHour(date: Date, locale: Locale): {date: st
 }
 
 /**
- * Returns a formatted cancellation date.
- * Dates are formatted as follows:
- * 1. When the date refers to the current year: Wednesday, Mar 17 8:00 AM
- * 2. When the date refers not to the current year: Wednesday, Mar 17, 2023 8:00 AM
- */
-function getFormattedCancellationDate(date: Date, locale: Locale): string {
-    const dateOptions: IntlFormatKey = isThisYear(date) ? 'WEEKDAY_MONTH_DAY' : 'WEEKDAY_MONTH_DAY_YEAR';
-    return `${formatIntl(locale, dateOptions, date)} ${formatIntl(locale, 'SHORT_TIME', date)}`;
-}
-
-/**
  * Returns a formatted layover duration in format "2h 30m".
  */
 function getFormattedDurationBetweenDates(translateParam: LocaleContextProps['translate'], start: Date, end: Date): string | undefined {
@@ -1071,22 +1102,27 @@ function formatInTimeZoneToWeekday(date: Date | string, timeZone: SelectedTimezo
 }
 
 /**
- * Retries with the backward-mapped IANA name on platforms that reject newer zone IDs (older iOS/macOS).
- * Throws when no mapping exists — date-fns-tz silently formats in UTC for falsy timezones, which is worse than crashing.
+ * Retries with the backward-mapped IANA on platforms rejecting newer zone IDs (older iOS/macOS);
+ * falls back to UTC + warn rather than throwing — render-path callers have no error boundaries.
  */
-const formatInTimeZoneWithFallback: typeof formatInTimeZone = (date, timeZone, formatStr, options?) => {
+function formatInTimeZoneWithFallback(date: Date | string | number, timeZone: string, formatStr: string, options?: Parameters<typeof formatInTimeZone>[3]): string {
     try {
         return formatInTimeZone(date, timeZone, formatStr, options);
     } catch (error) {
         const backwardTimeZone = timezoneNewToBackwardMap[timeZone as SelectedTimezone];
-        if (!backwardTimeZone) {
-            Log.warn('[DateUtils] formatInTimeZone failed and no backward mapping exists', {timeZone, error});
-            throw error;
+        if (backwardTimeZone) {
+            try {
+                Log.warn('[DateUtils] formatInTimeZone failed; falling back to backward-mapped timezone', {timeZone, backwardTimeZone, error});
+                return formatInTimeZone(date, backwardTimeZone, formatStr, options);
+            } catch (retryError) {
+                Log.warn('[DateUtils] formatInTimeZone retry with backward-mapped timezone also failed; rendering in UTC', {timeZone, backwardTimeZone, retryError});
+            }
+        } else {
+            Log.warn('[DateUtils] formatInTimeZone failed and no backward mapping exists; rendering in UTC', {timeZone, error});
         }
-        Log.warn('[DateUtils] formatInTimeZone failed; falling back to backward-mapped timezone', {timeZone, backwardTimeZone, error});
-        return formatInTimeZone(date, backwardTimeZone, formatStr, options);
+        return formatInTimeZone(date, 'UTC', formatStr, options);
     }
-};
+}
 
 /**
  * Converts a UTC datetime string to a date string (yyyy-MM-dd) in the target timezone.
@@ -1275,7 +1311,10 @@ const DateUtils = {
     getMonthNames,
     getFilteredMonthItems,
     getDaysOfWeek,
+    getDaysOfWeekShort,
     getDaysOfWeekNarrow,
+    toUTCDate,
+    getLocalizedDatePlaceholder,
     formatWithUTCTimeZone,
     getWeekStartsOn,
     getWeekEndsOn,
@@ -1287,7 +1326,6 @@ const DateUtils = {
     getFormattedReservationRangeDate,
     getFormattedTransportDate,
     getFormattedTransportDateAndHour,
-    getFormattedCancellationDate,
     doesDateBelongToAPastYear,
     isCardExpired,
     getDifferenceInDaysFromNow,

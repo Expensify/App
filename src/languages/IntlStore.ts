@@ -174,6 +174,9 @@ class IntlStore {
         return IntlStore.currentLocale;
     }
 
+    /** Monotonic token used to discard stale `load()` resolutions when a newer call has superseded them. */
+    private static loadToken = 0;
+
     private static notifyListeners() {
         for (const listener of IntlStore.listeners) {
             listener();
@@ -181,10 +184,12 @@ class IntlStore {
     }
 
     public static load(locale: Locale) {
-        if (IntlStore.currentLocale === locale) {
+        // Cold-start EN has translations seeded but the en-GB date-fns chunk + Onyx loading flag still need to fire.
+        if (IntlStore.currentLocale === locale && IntlStore.dateUtilsCache.has(locale)) {
             return Promise.resolve();
         }
         const loaderPromise = IntlStore.loaders[locale];
+        const token = ++IntlStore.loadToken;
         setAreTranslationsLoading(true);
 
         const localeSpan = getSpan(CONST.TELEMETRY.SPAN_LOCALE.ROOT);
@@ -199,17 +204,18 @@ class IntlStore {
 
         return loaderPromise()
             .then(() => {
+                // A newer `load()` call superseded this one — let it commit instead.
+                if (IntlStore.loadToken !== token) {
+                    return;
+                }
                 IntlStore.currentLocale = locale;
                 const dateUtilsLocale = IntlStore.dateUtilsCache.get(locale);
                 if (dateUtilsLocale) {
                     setDefaultOptions({locale: dateUtilsLocale});
                 }
-                // Notify React subscribers before flipping the Onyx flag so the provider
-                // re-renders with the new locale in the same microtask batch.
-                IntlStore.notifyListeners();
-            })
-            .then(() => {
+                // Flag flip + notify in the same microtask — OnyxDerived (flag-gated) and React (notify) commit in one frame.
                 setAreTranslationsLoading(false);
+                IntlStore.notifyListeners();
             })
             .finally(() => {
                 if (!localeSpan) {
