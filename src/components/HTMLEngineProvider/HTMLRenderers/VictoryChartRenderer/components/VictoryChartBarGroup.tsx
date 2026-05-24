@@ -11,12 +11,17 @@ import parseStyles from '@components/HTMLEngineProvider/HTMLRenderers/VictoryCha
 
 type VictoryCharBarGroupProps = {tnode: TNode};
 
+const BAR_BETWEEN_GROUP_PADDING = 2 / 3;
+const BAR_WITHIN_GROUP_PADDING = BAR_INNER_PADDING;
+
 function VictoryCharBarGroup({tnode}: VictoryCharBarGroupProps) {
     const {points, chartBounds} = useVictoryChartRenderArgs();
     const barChildren = tnode.children.filter((child) => child.tagName === 'victorybar');
     return (
         <BarGroup
             chartBounds={chartBounds}
+            betweenGroupPadding={BAR_BETWEEN_GROUP_PADDING}
+            withinGroupPadding={BAR_WITHIN_GROUP_PADDING}
             roundedCorners={parseCornerRadius(barChildren[0]?.attributes?.cornerradius)}
             barWidth={parseAttribute(barChildren[0]?.attributes?.barwidth)}
         >
