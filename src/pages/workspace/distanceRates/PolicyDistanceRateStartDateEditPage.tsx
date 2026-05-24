@@ -59,7 +59,7 @@ function PolicyDistanceRateStartDateEditPage({route}: PolicyDistanceRateStartDat
                 customUnit,
                 {
                     ...rate,
-                    startDate: values.startDate || undefined,
+                    startDate: values.startDate || null,
                 },
                 CONST.CUSTOM_UNITS.RATE_FIELD.START_DATE,
             );

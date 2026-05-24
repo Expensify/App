@@ -59,7 +59,7 @@ function PolicyDistanceRateEndDateEditPage({route}: PolicyDistanceRateEndDateEdi
                 customUnit,
                 {
                     ...rate,
-                    endDate: values.endDate || undefined,
+                    endDate: values.endDate || null,
                 },
                 CONST.CUSTOM_UNITS.RATE_FIELD.END_DATE,
             );
