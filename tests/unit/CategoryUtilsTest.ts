@@ -1,5 +1,5 @@
 import type {OnyxCollection} from 'react-native-onyx';
-import {formatRequireItemizedReceiptsOverText, getAvailableNonPersonalPolicyCategories, isCategoryDescriptionRequired, isCategoryMissing} from '@libs/CategoryUtils';
+import {formatRequireItemizedReceiptsOverText, getAvailableNonPersonalPolicyCategories, getCategoryGLCode, isCategoryDescriptionRequired, isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -206,5 +206,68 @@ describe('getAvailableNonPersonalPolicyCategories', () => {
         expect(Object.keys(result)).toEqual([keyOther]);
         expect(result[keyOther]?.TestCategory2).toBeDefined();
         expect(result[keyOther]?.TestCategory3).toBeDefined();
+    });
+});
+
+describe('getCategoryGLCode', () => {
+    it('returns empty string when policyCategories is undefined', () => {
+        expect(getCategoryGLCode(undefined, 'Meals')).toBe('');
+    });
+
+    it('returns empty string when category is undefined or empty', () => {
+        expect(getCategoryGLCode({} as PolicyCategories, undefined)).toBe('');
+        expect(getCategoryGLCode({} as PolicyCategories, '')).toBe('');
+    });
+
+    it('returns empty string when category is missing from policyCategories', () => {
+        expect(getCategoryGLCode({} as PolicyCategories, 'Meals')).toBe('');
+    });
+
+    it('returns empty string when category has no GL Code', () => {
+        const categories: PolicyCategories = {
+            Meals: {
+                enabled: true,
+                name: 'Meals',
+                pendingAction: null,
+            },
+        };
+        expect(getCategoryGLCode(categories, 'Meals')).toBe('');
+    });
+
+    it('returns GL Code when it is a string', () => {
+        const categories: PolicyCategories = {
+            Meals: {
+                enabled: true,
+                name: 'Meals',
+                pendingAction: null,
+                'GL Code': '1200', // eslint-disable-line @typescript-eslint/naming-convention
+            },
+        };
+        expect(getCategoryGLCode(categories, 'Meals')).toBe('1200');
+    });
+
+    it('returns GL Code when it is a number', () => {
+        const categories: PolicyCategories = {
+            Meals: {
+                enabled: true,
+                name: 'Meals',
+                pendingAction: null,
+                // @ts-expect-error - Defensively handles malformed Onyx data that violates the string type.
+                'GL Code': 1200, // eslint-disable-line @typescript-eslint/naming-convention
+            },
+        };
+        expect(getCategoryGLCode(categories, 'Meals')).toBe('1200');
+    });
+
+    it('strips double quotes from GL Code', () => {
+        const categories: PolicyCategories = {
+            Meals: {
+                enabled: true,
+                name: 'Meals',
+                pendingAction: null,
+                'GL Code': '"1200"', // eslint-disable-line @typescript-eslint/naming-convention
+            },
+        };
+        expect(getCategoryGLCode(categories, 'Meals')).toBe('1200');
     });
 });

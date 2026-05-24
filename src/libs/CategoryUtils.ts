@@ -147,7 +147,8 @@ function getCategoryGLCode(policyCategories: PolicyCategories | undefined, categ
     if (!policyCategories || !category) {
         return '';
     }
-    return policyCategories[category]?.['GL Code']?.replaceAll('"', '') ?? '';
+    const glCode = policyCategories[category]?.['GL Code'];
+    return glCode != null ? String(glCode).replaceAll('"', '') : '';
 }
 
 function getDecodedCategoryName(categoryName: string) {
