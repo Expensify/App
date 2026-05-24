@@ -606,6 +606,7 @@ const CONST = {
         INTL_FORMATS: {
             SHORT_TIME: {timeStyle: 'short'},
             SHORT_DATE: {dateStyle: 'short'},
+            SHORT_DATE_PADDED: {year: 'numeric', month: '2-digit', day: '2-digit'},
             MEDIUM_DATE: {dateStyle: 'medium'},
             MEDIUM_DATE_TIME: {dateStyle: 'medium', timeStyle: 'short'},
             LONG_DATE: {dateStyle: 'long'},

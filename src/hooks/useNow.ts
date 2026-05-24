@@ -9,9 +9,7 @@ const POLL_INTERVAL_MS = 1000;
 
 const listeners = new Set<() => void>();
 let intervalId: ReturnType<typeof setInterval> | null = null;
-// Snapshot is initialized lazily on first `getSnapshot` (not at module load) so the first consumer
-// after a long idle period sees the current `Date`, not the import-time one. Reset to null when the
-// last subscriber unmounts so the next mount also starts fresh.
+// Null-initialized + reset on last unsubscribe so a consumer mounting after an idle gap sees the current `Date`, not a stale one.
 let snapshot: Date | null = null;
 let lastMinute = -1;
 

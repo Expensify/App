@@ -1021,6 +1021,14 @@ function formatToMediumDate(date: Date | string, locale: Locale): string {
     return formatIntl(locale, 'MEDIUM_DATE', toLocalDate(date));
 }
 
+/**
+ * Padded short-date matching `getLocalizedDatePlaceholder` field order + separator; UTC-anchored.
+ * @returns en → "01/05/2026"; de → "05.01.2026"; ja → "2026/01/05".
+ */
+function formatToLocalizedShortDate(date: Date | string, locale: Locale): string {
+    return formatIntl(locale, 'SHORT_DATE_PADDED', toUTCDate(date), 'UTC');
+}
+
 /** @returns Jul 9, 2023, 2:30 PM (en) / 9 jul 2023, 14:30 (es) */
 function formatToLocalDateTime(dateTime: Date | string, locale: Locale): string {
     if (!dateTime) {
@@ -1273,6 +1281,7 @@ const DateUtils = {
     formatToLongMonth,
     formatToReadableString,
     formatToMediumDate,
+    formatToLocalizedShortDate,
     formatToLocalDateTime,
     formatInUTCToMedium,
     formatInUTCToShort,

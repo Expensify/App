@@ -488,6 +488,29 @@ describe('DateUtils', () => {
         });
     });
 
+    describe('formatToLocalizedShortDate (DatePicker selected-value matches placeholder format)', () => {
+        it.each([
+            ['en', '01/05/2026'],
+            ['de', '05.01.2026'],
+            ['ja', '2026/01/05'],
+        ] as const)('renders 2026-01-05 as %s in %s', (locale, expected) => {
+            expect(DateUtils.formatToLocalizedShortDate('2026-01-05', locale)).toBe(expected);
+        });
+
+        it('never renders the canonical "yyyy-MM-dd" form to en users (the placeholder/selected-value inconsistency)', () => {
+            expect(DateUtils.formatToLocalizedShortDate('2026-01-05', 'en')).not.toBe('2026-01-05');
+        });
+
+        it('UTC-anchored: date-only input renders the same calendar day for every viewer timezone', () => {
+            const en = DateUtils.formatToLocalizedShortDate('2025-08-19', 'en');
+            const ja = DateUtils.formatToLocalizedShortDate('2025-08-19', 'ja');
+            expect(en).toContain('08');
+            expect(en).toContain('19');
+            expect(ja).toContain('08');
+            expect(ja).toContain('19');
+        });
+    });
+
     describe('getMonthNames capitalizes first letter across locales (matches iwiznia #69562)', () => {
         it.each([
             ['es', 'Enero'],

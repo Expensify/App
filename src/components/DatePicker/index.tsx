@@ -150,7 +150,7 @@ function DatePicker({
                     label={label}
                     accessibilityLabel={label}
                     role={CONST.ROLE.PRESENTATION}
-                    value={selectedDate}
+                    value={selectedDate ? DateUtils.formatToLocalizedShortDate(selectedDate, preferredLocale) : ''}
                     placeholder={placeholder ?? DateUtils.getLocalizedDatePlaceholder(preferredLocale)}
                     errorText={errorText}
                     inputStyle={styles.pointerEventsNone}
