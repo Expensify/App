@@ -49,7 +49,7 @@ function AgentsListRow({accountID, displayName, login, pendingAction, errors, on
     const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'ChatBubble', 'UserPlus']);
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'ChatBubble']);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
@@ -119,10 +119,9 @@ function AgentsListRow({accountID, displayName, login, pendingAction, errors, on
                     />
                     <Button
                         small
-                        icon={icons.UserPlus}
+                        text={translate('delegate.copilot')}
                         onPress={handleCopilotPress}
                         isDisabled={isPendingDeletion}
-                        accessibilityLabel={translate('editAgentPage.copilotIntoAccount')}
                     />
                     <Button
                         small
