@@ -37,16 +37,16 @@ import AccessOrNotFoundWrapper from '@src/pages/workspace/AccessOrNotFoundWrappe
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route as Routes} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/WorkspaceInviteMessageForm';
-import type {PersonalDetails} from '@src/types/onyx';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import { CurrentUserPersonalDetails } from '@src/types/onyx/PersonalDetails';
 
 type WorkspaceInviteMessageComponentProps = {
     policy: OnyxEntry<Policy>;
     policyID: string;
     backTo: Routes | undefined;
-    currentUserPersonalDetails: OnyxEntry<PersonalDetails>;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
     shouldShowTooltip?: boolean;
     shouldShowBackButton?: boolean;
     shouldShowMemberNames?: boolean;
@@ -69,6 +69,7 @@ function WorkspaceInviteMessageComponent({
     const {translate, formatPhoneNumber} = useLocalize();
     const [formData, formDataResult] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM_DRAFT);
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const filteredReportActions = useAllPolicyExpenseChatReportActions();
 
     const [welcomeNote, setWelcomeNote] = useState<string>();
@@ -160,7 +161,12 @@ function WorkspaceInviteMessageComponent({
             policyMemberAccountIDs,
             workspaceInviteRoleDraft,
             formatPhoneNumber,
-            currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            {
+                accountID: currentUserPersonalDetails?.accountID,
+                displayName: currentUserPersonalDetails?.displayName,
+                email: session?.email,
+                avatar: currentUserPersonalDetails?.avatar,
+            },
             shouldShowApproverRow ? validatedApprover : undefined,
             filteredReportActions,
         );

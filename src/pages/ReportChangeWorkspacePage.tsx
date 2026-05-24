@@ -112,8 +112,12 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
                     report,
                     parentReport,
                     policy,
-                    currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    email: session?.email ?? '',
+                    currentUser: {
+                        accountID: session?.accountID,
+                        displayName: currentUserPersonalDetails.displayName,
+                        email: session?.email,
+                        avatar: currentUserPersonalDetails.avatar,
+                    },
                     hasViolationsParam: hasViolations,
                     isChangePolicyTrainingModalDismissed,
                     isASAPSubmitBetaEnabled,
@@ -158,6 +162,8 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
             reportNextStep,
             isChangePolicyTrainingModalDismissed,
             currentUserPersonalDetails.accountID,
+            currentUserPersonalDetails.displayName,
+            currentUserPersonalDetails.avatar,
         ],
     );
 

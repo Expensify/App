@@ -194,7 +194,7 @@ type WorkspaceFromIOUCreationData = {
 type PolicyCashExpenseMode = ValueOf<typeof CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES>;
 
 type CurrentUser = {
-    accountID: number;
+    accountID: number | undefined;
     // TODO: We'll make these required in a follow-up PR (https://github.com/Expensify/App/issues/66412)
     displayName?: string;
     email?: string;
@@ -1642,7 +1642,7 @@ function createPolicyExpenseChats(
             continue;
         }
         const optimisticReport = ReportUtils.buildOptimisticChatReport({
-            participantList: [currentUserAccountID, cleanAccountID],
+            participantList: currentUserAccountID ? [currentUserAccountID, cleanAccountID] : [cleanAccountID],
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             policyID,
             ownerAccountID: cleanAccountID,

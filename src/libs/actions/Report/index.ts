@@ -180,6 +180,7 @@ import navigateFromNotification from '@userActions/navigateFromNotification';
 import {getAll} from '@userActions/PersistedRequests';
 import {buildAddMembersToWorkspaceOnyxData, buildRoomMembersOnyxData} from '@userActions/Policy/Member';
 import {createPolicyExpenseChats} from '@userActions/Policy/Policy';
+import type {CurrentUser} from '@userActions/Policy/Policy';
 import {
     createUpdateCommentMatcher,
     resolveCommentDeletionConflicts,
@@ -7526,8 +7527,7 @@ function changeReportPolicyAndInviteSubmitter({
     report,
     parentReport,
     policy,
-    currentUserAccountID,
-    email,
+    currentUser,
     hasViolationsParam,
     isChangePolicyTrainingModalDismissed,
     isASAPSubmitBetaEnabled,
@@ -7540,8 +7540,7 @@ function changeReportPolicyAndInviteSubmitter({
     report: Report;
     parentReport: OnyxEntry<Report>;
     policy: Policy;
-    currentUserAccountID: number;
-    email: string;
+    currentUser: CurrentUser;
     hasViolationsParam: boolean;
     isChangePolicyTrainingModalDismissed: boolean;
     isASAPSubmitBetaEnabled: boolean;
@@ -7560,6 +7559,7 @@ function changeReportPolicyAndInviteSubmitter({
     if (!submitterEmail) {
         return;
     }
+    const {accountID: currentUserAccountID = CONST.DEFAULT_NUMBER_ID, email: currentUserEmail = ''} = currentUser;
     const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(employeeList, false, false));
     const {
         optimisticData: optimisticAddMembersData,
@@ -7572,7 +7572,7 @@ function changeReportPolicyAndInviteSubmitter({
         policyMemberAccountIDs,
         CONST.POLICY.ROLE.USER,
         formatPhoneNumber,
-        {accountID: currentUserAccountID},
+        currentUser,
         undefined,
         CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
         reportActionsList,
@@ -7595,7 +7595,7 @@ function changeReportPolicyAndInviteSubmitter({
         parentReport,
         policy,
         currentUserAccountID,
-        email,
+        currentUserEmail,
         hasViolationsParam,
         isASAPSubmitBetaEnabled,
         isReportLastVisibleArchived,
