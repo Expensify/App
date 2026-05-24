@@ -1,5 +1,5 @@
 import lodashDebounce from 'lodash/debounce';
-import {useCallback, useEffect, useMemo, useState} from 'react';
+import {useState} from 'react';
 import {getCommentLength} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 
@@ -20,38 +20,29 @@ function useDebouncedCommentMaxLengthValidation({reportID, isEditing = false}: U
      * Shows red borders and prevents the comment from being sent
      * When editing, we only validate comment length; task title rules do not apply.
      */
-    const validateMaxLength = useCallback(
-        (value: string) => {
-            const taskCommentMatch = value?.match(CONST.REGEX.TASK_TITLE_WITH_OPTIONAL_SHORT_MENTION);
+    function validateMaxLength(value: string) {
+        const taskCommentMatch = value?.match(CONST.REGEX.TASK_TITLE_WITH_OPTIONAL_SHORT_MENTION);
 
-            // Only apply task-title validation when composing (not when editing an existing message)
-            if (!isEditing && taskCommentMatch) {
-                const title = taskCommentMatch?.[3] ? taskCommentMatch[3].trim().replaceAll('\n', ' ') : '';
-                const exceeded = title ? title.length > CONST.TITLE_CHARACTER_LIMIT : false;
+        // Only apply task-title validation when composing (not when editing an existing message)
+        if (!isEditing && taskCommentMatch) {
+            const title = taskCommentMatch?.[3] ? taskCommentMatch[3].trim().replaceAll('\n', ' ') : '';
+            const exceeded = title ? title.length > CONST.TITLE_CHARACTER_LIMIT : false;
 
-                setIsTaskTitle(exceeded);
-                setExceededMaxLength(exceeded ? CONST.TITLE_CHARACTER_LIMIT : null);
-
-                return !exceeded;
-            }
-
-            const exceeded = getCommentLength(value, {reportID}) > CONST.MAX_COMMENT_LENGTH;
-
-            setIsTaskTitle(false);
-            setExceededMaxLength(exceeded ? CONST.MAX_COMMENT_LENGTH : null);
+            setIsTaskTitle(exceeded);
+            setExceededMaxLength(exceeded ? CONST.TITLE_CHARACTER_LIMIT : null);
 
             return !exceeded;
-        },
-        [reportID, isEditing],
-    );
+        }
 
-    const debouncedCommentMaxLengthValidation = useMemo(() => lodashDebounce(validateMaxLength, CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME, {leading: true}), [validateMaxLength]);
+        const exceeded = getCommentLength(value, {reportID}) > CONST.MAX_COMMENT_LENGTH;
 
-    useEffect(() => {
-        return () => {
-            debouncedCommentMaxLengthValidation.cancel();
-        };
-    }, [debouncedCommentMaxLengthValidation]);
+        setIsTaskTitle(false);
+        setExceededMaxLength(exceeded ? CONST.MAX_COMMENT_LENGTH : null);
+
+        return !exceeded;
+    }
+
+    const debouncedCommentMaxLengthValidation = lodashDebounce(validateMaxLength, CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME, {leading: true});
 
     return {debouncedCommentMaxLengthValidation, exceededMaxLength, isTaskTitle, isExceedingMaxLength: !!exceededMaxLength};
 }
