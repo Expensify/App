@@ -12,11 +12,6 @@ function extractLabelProps(style: RawLabelStyle | undefined): Pick<LabelItem, 'c
 
 /**
  * Parse label config from a `<victorylabel>` node.
- *
- * Supports both single-line labels (string text + object style) and multi-line
- * labels (array text + array style), expanding each line into its own LabelItem.
- * Y positions for lines after the first are offset by fontSize × lineHeight derived
- * from the optional `lineheight` attribute (number or array of per-line multipliers).
  */
 function parseVictoryLabelNode(tnode: TNode): PartialProcessNodeResult {
     const x = parseAttribute<number>(tnode.attributes.x) ?? 0;
