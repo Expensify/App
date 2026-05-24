@@ -1,6 +1,5 @@
 import React, {useEffect, useRef} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -13,6 +12,7 @@ import {isPolicyAdmin, isPolicyAuditor, isPolicyOwner, isPolicyUser} from '@libs
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import WorkspaceAdminRestrictedAction from './WorkspaceAdminRestrictedAction';
@@ -26,7 +26,7 @@ function WorkspaceRestrictedActionPage({
         params: {policyID},
     },
 }: WorkspaceRestrictedActionPageProps) {
-    const {accountID, email} = useCurrentUserPersonalDetails();
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const policy = usePolicy(policyID);
     const styles = useThemeStyles();
     const [isLoadingSubscriptionData] = useOnyx(ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA);
@@ -65,10 +65,10 @@ function WorkspaceRestrictedActionPage({
         if (isLoadingSubscriptionData !== false) {
             return;
         }
-        if (!shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriods, amountOwed, accountID)) {
+        if (!shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriods, amountOwed, session?.accountID)) {
             Navigation.goBack();
         }
-    }, [policy, isLoadingSubscriptionData, userBillingGracePeriods, ownerBillingGracePeriodEnd, amountOwed, accountID]);
+    }, [policy, isLoadingSubscriptionData, userBillingGracePeriods, ownerBillingGracePeriodEnd, amountOwed, session?.accountID]);
 
     // Show a loading indicator while waiting for fresh billing data from the server,
     // instead of flashing the restriction UI which may no longer apply.
@@ -83,17 +83,17 @@ function WorkspaceRestrictedActionPage({
     }
 
     // Workspace Owner
-    if (isPolicyOwner(policy, accountID)) {
+    if (isPolicyOwner(policy, session?.accountID ?? CONST.DEFAULT_NUMBER_ID)) {
         return <WorkspaceOwnerRestrictedAction />;
     }
 
     // Workspace Admin
-    if (isPolicyAdmin(policy, email)) {
+    if (isPolicyAdmin(policy, session?.email)) {
         return <WorkspaceAdminRestrictedAction policyID={policyID} />;
     }
 
     // Workspace User or Auditor
-    if (isPolicyUser(policy, email) || isPolicyAuditor(policy, email)) {
+    if (isPolicyUser(policy, session?.email) || isPolicyAuditor(policy, session?.email)) {
         return <WorkspaceUserRestrictedAction policyID={policyID} />;
     }
 

@@ -198,20 +198,8 @@ function MoneyRequestReportTransactionList({
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 lastDistanceExpenseType,
-                currentUserAccountID: currentUserDetails?.accountID,
             }),
-        [
-            translate,
-            expensifyIcons,
-            report?.reportID,
-            policy,
-            userBillingGracePeriodEnds,
-            amountOwed,
-            lastDistanceExpenseType,
-            ownerBillingGracePeriodEnd,
-            draftTransactionIDs,
-            currentUserDetails?.accountID,
-        ],
+        [translate, expensifyIcons, report?.reportID, policy, userBillingGracePeriodEnds, amountOwed, lastDistanceExpenseType, ownerBillingGracePeriodEnd, draftTransactionIDs],
     );
 
     const hasPendingAction = useMemo(() => {
