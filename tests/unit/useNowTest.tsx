@@ -33,6 +33,21 @@ describe('useNow', () => {
         unmount();
     });
 
+    it('re-renders after a 60-minute sleep/wake that lands on the same minute-of-hour', () => {
+        jest.setSystemTime(new Date('2026-05-24T10:30:00Z'));
+        const {result, unmount} = renderHook(() => useNow());
+        const initial = result.current;
+
+        act(() => {
+            jest.setSystemTime(new Date('2026-05-24T11:30:00Z'));
+            jest.advanceTimersByTime(1000);
+        });
+
+        expect(result.current).not.toBe(initial);
+        expect(result.current.getHours()).toBe(11);
+        unmount();
+    });
+
     it('returns the same snapshot inside the same minute (no re-renders)', () => {
         jest.setSystemTime(new Date('2026-05-24T10:30:00Z'));
         const {result, unmount} = renderHook(() => useNow());

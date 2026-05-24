@@ -186,6 +186,8 @@ class IntlStore {
     public static load(locale: Locale) {
         // Cold-start EN has translations seeded but the en-GB date-fns chunk + Onyx loading flag still need to fire.
         if (IntlStore.currentLocale === locale && IntlStore.dateUtilsCache.has(locale)) {
+            // Bump the token so any in-flight earlier load() is invalidated; otherwise its `.then` would commit a stale locale.
+            IntlStore.loadToken++;
             return Promise.resolve();
         }
         const loaderPromise = IntlStore.loaders[locale];

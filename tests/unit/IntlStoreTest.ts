@@ -86,6 +86,15 @@ describe('IntlStore', () => {
             unsubscribe();
         });
 
+        it('discards a stale in-flight load when a newer load supersedes it (race guard)', async () => {
+            await IntlStore.load(CONST.LOCALES.EN);
+            const esLoad = IntlStore.load(CONST.LOCALES.ES);
+            await IntlStore.load(CONST.LOCALES.EN);
+            await esLoad;
+
+            expect(IntlStore.getCurrentLocale()).toBe(CONST.LOCALES.EN);
+        });
+
         it('subscribe and getCurrentLocale are callable as useSyncExternalStore inputs', async () => {
             await IntlStore.load(CONST.LOCALES.EN);
 

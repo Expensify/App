@@ -17,10 +17,12 @@ let lastMinute = -1;
 
 function tick() {
     const now = new Date();
-    if (now.getMinutes() === lastMinute) {
+    // Monotonic minute index (not `getMinutes()` 0–59) — catches sleep/wake gaps that land on the same minute-of-hour (10:30 → 11:30).
+    const currentMinute = Math.floor(now.getTime() / 60000);
+    if (currentMinute === lastMinute) {
         return;
     }
-    lastMinute = now.getMinutes();
+    lastMinute = currentMinute;
     snapshot = now;
     for (const listener of listeners) {
         listener();
@@ -46,7 +48,7 @@ function subscribe(listener: () => void): () => void {
 function getSnapshot(): Date {
     if (snapshot === null) {
         snapshot = new Date();
-        lastMinute = snapshot.getMinutes();
+        lastMinute = Math.floor(snapshot.getTime() / 60000);
     }
     return snapshot;
 }
