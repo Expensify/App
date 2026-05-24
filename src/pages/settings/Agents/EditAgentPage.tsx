@@ -32,7 +32,7 @@ type EditAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, t
 function EditAgentPage({route}: EditAgentPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['Trashcan', 'ChatBubble', 'UserPlus']);
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan', 'ChatBubble', 'Users']);
     const accountID = route.params.accountID;
     const [agent, agentMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
     const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (list) => list?.[accountID]});
@@ -137,7 +137,7 @@ function EditAgentPage({route}: EditAgentPageProps) {
                 />
                 <MenuItem
                     title={translate('editAgentPage.copilotIntoAccount')}
-                    icon={icons.UserPlus}
+                    icon={icons.Users}
                     onPress={handleCopilotPress}
                 />
                 <MenuItem
