@@ -115,12 +115,14 @@ function AgentsListRow({accountID, displayName, login, pendingAction, errors, on
                         icon={icons.ChatBubble}
                         onPress={handleChatPress}
                         isDisabled={isPendingDeletion}
+                        accessibilityLabel={translate('editAgentPage.chatWithAgent')}
                     />
                     <Button
                         small
                         icon={icons.UserPlus}
                         onPress={handleCopilotPress}
                         isDisabled={isPendingDeletion}
+                        accessibilityLabel={translate('editAgentPage.copilotIntoAccount')}
                     />
                     <Button
                         small
