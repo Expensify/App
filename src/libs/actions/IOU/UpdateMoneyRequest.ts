@@ -1597,6 +1597,8 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
                 transactionID,
                 Array.isArray(violationsOnyxData.value) ? violationsOnyxData.value : null,
             );
+            // TODO: https://github.com/Expensify/App/issues/66512
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, getAllTransactionViolations(), currentUserAccountIDParam, currentUserEmailParam);
             const optimisticNextStep = buildOptimisticNextStep({
                 report: moneyRequestReport,
