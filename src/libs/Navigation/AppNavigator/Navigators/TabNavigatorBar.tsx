@@ -51,7 +51,7 @@ const SCREENS_WITH_TAB_BAR = new Set<string>([
     SCREENS.DOMAIN.INITIAL,
 ]);
 
-const isAtTabRootLevel = (name: string | undefined): boolean => !name || SCREENS_WITH_TAB_BAR.has(name) || TAB_WRAPPER_NAVIGATORS.has(name);
+const isAtTabRootLevel = (name: string | undefined): boolean => !!name && (SCREENS_WITH_TAB_BAR.has(name) || TAB_WRAPPER_NAVIGATORS.has(name));
 
 // Deepest `screen` in a `{screen, params}` chain (e.g. WORKSPACE_NAV → WORKSPACE_SPLIT_NAV → WORKSPACE.INITIAL).
 const getPushTargetLeaf = (params: unknown): string | undefined => {

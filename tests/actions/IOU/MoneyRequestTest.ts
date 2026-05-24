@@ -869,8 +869,7 @@ describe('MoneyRequest', () => {
                         gpsPoint: undefined,
                     }),
                     isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
-                    currentUserAccountIDParam: baseParams.currentUserAccountID,
-                    currentUserEmailParam: baseParams.currentUserLogin,
+                    currentUser: {accountID: baseParams.currentUserAccountID, email: baseParams.currentUserLogin},
                     quickAction: baseParams.quickAction,
                     shouldHandleNavigation: true,
                     recentWaypoints,
@@ -1167,7 +1166,7 @@ describe('MoneyRequest', () => {
                 draftTransactionIDs: [baseParams.transactionID],
             });
 
-            expect(Split.resetSplitShares).toHaveBeenCalledWith(splitTransaction);
+            expect(Split.resetSplitShares).toHaveBeenCalledWith(splitTransaction, undefined, undefined, 1);
         });
 
         it('call trackExpense for TRACK iouType when from manual distance step and skipping confirmation', async () => {
@@ -1222,8 +1221,7 @@ describe('MoneyRequest', () => {
                 shouldHandleNavigation: true,
                 shouldDeferForSearch: false,
                 isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
-                currentUserAccountIDParam: baseParams.currentUserAccountID,
-                currentUserEmailParam: baseParams.currentUserLogin,
+                currentUser: {accountID: baseParams.currentUserAccountID, email: baseParams.currentUserLogin},
                 quickAction: baseParams.quickAction,
                 recentWaypoints: baseParams.recentWaypoints,
                 betas: [CONST.BETAS.ALL],
@@ -1318,8 +1316,7 @@ describe('MoneyRequest', () => {
                         }),
                     }),
                     isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
-                    currentUserAccountIDParam: baseParams.currentUserAccountID,
-                    currentUserEmailParam: baseParams.currentUserLogin,
+                    currentUser: {accountID: baseParams.currentUserAccountID, email: baseParams.currentUserLogin},
                     quickAction: baseParams.quickAction,
                     recentWaypoints: baseParams.recentWaypoints,
                 }),
