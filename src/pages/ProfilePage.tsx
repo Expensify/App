@@ -20,6 +20,7 @@ import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -40,6 +41,7 @@ import {isAgentEmail} from '@libs/SessionUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import {isValidAccountRoute} from '@libs/ValidationUtils';
 import type {ProfileNavigatorParamList} from '@navigation/types';
+import {connect} from '@userActions/Delegate';
 import {openExternalLink} from '@userActions/Link';
 import {openPublicProfilePage} from '@userActions/PersonalDetails';
 import {hasErrorInPrivateNotes} from '@userActions/Report';
@@ -81,9 +83,14 @@ function ProfilePage({route}: ProfilePageProps) {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const {isOffline} = useNetwork();
     const guideCalendarLink = account?.guideDetails?.calendarLink ?? '';
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bug', 'Pencil', 'Phone']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bug', 'Pencil', 'Phone', 'UserPlus']);
     const accountID = Number(route.params?.accountID ?? CONST.DEFAULT_NUMBER_ID);
+    const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
     const isCurrentUser = currentUserAccountID === accountID;
     const reportID = isCurrentUser ? findSelfDMReportID() : getChatByParticipants(currentUserAccountID ? [accountID, currentUserAccountID] : [], reports)?.reportID;
     const reportKey = isAnonymousUserSession() || !reportID ? (`${ONYXKEYS.COLLECTION.REPORT}0` as const) : (`${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const);
@@ -143,6 +150,9 @@ function ProfilePage({route}: ProfilePageProps) {
     const statusText = details?.status?.text ?? '';
     const hasStatus = !!statusEmojiCode;
     const statusContent = `${statusEmojiCode}  ${statusText}`;
+
+    const isOwnedAgent = !isCurrentUser && isAgentEmail(login) && !!agentPrompt;
+    const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
 
     const navigateBackTo = route?.params?.backTo;
 
@@ -258,6 +268,32 @@ function ProfilePage({route}: ProfilePageProps) {
                                 title={translate('common.editYourProfile')}
                                 icon={expensifyIcons.Pencil}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute(Navigation.getActiveRoute()))}
+                            />
+                        )}
+                        {isOwnedAgent && (
+                            <OfflineWithFeedback
+                                errors={agentPrompt?.promptErrors}
+                                errorRowStyles={[styles.mh5, styles.mb2]}
+                            >
+                                <MenuItemWithTopDescription
+                                    description={translate('profilePage.customInstructions')}
+                                    title={agentPrompt?.prompt?.trim() ?? ''}
+                                    shouldShowRightIcon
+                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT_PROMPT.getRoute(accountID))}
+                                    numberOfLinesTitle={2}
+                                />
+                            </OfflineWithFeedback>
+                        )}
+                        {isOwnedAgent && (
+                            <MenuItem
+                                title={translate('profilePage.copilotIntoAccount')}
+                                icon={expensifyIcons.UserPlus}
+                                onPress={callFunctionIfActionIsAllowed(() => {
+                                    if (isOffline || isActingAsDelegate) {
+                                        return;
+                                    }
+                                    connect({email: login, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID});
+                                })}
                             />
                         )}
                         {shouldShowNotificationPreference && (
