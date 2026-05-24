@@ -2638,6 +2638,7 @@ describe('PureReportActionItem', () => {
                                 <PureReportActionItem
                                     report={undefined}
                                     parentReportAction={undefined}
+                                    transactionThreadReport={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
