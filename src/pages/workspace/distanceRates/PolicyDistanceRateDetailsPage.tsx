@@ -240,7 +240,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                         >
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
-                                title={rate.startDate ? DateUtils.formatWithUTCTimeZone(rate.startDate) : translate('common.none')}
+                                title={rate.startDate ? DateUtils.formatWithUTCTimeZone(rate.startDate) : ''}
                                 description={translate('workspace.distanceRates.startDate')}
                                 descriptionTextStyle={styles.textNormal}
                                 onPress={editStartDate}
@@ -256,7 +256,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                         >
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
-                                title={rate.endDate ? DateUtils.formatWithUTCTimeZone(rate.endDate) : translate('common.none')}
+                                title={rate.endDate ? DateUtils.formatWithUTCTimeZone(rate.endDate) : ''}
                                 description={translate('workspace.distanceRates.endDate')}
                                 descriptionTextStyle={styles.textNormal}
                                 onPress={editEndDate}
