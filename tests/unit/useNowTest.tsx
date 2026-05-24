@@ -1,5 +1,5 @@
 import {act, renderHook} from '@testing-library/react-native';
-import useNow, {resetForTests} from '@hooks/useNow';
+import useNow from '@hooks/useNow';
 
 describe('useNow', () => {
     beforeEach(() => {
@@ -7,8 +7,6 @@ describe('useNow', () => {
     });
 
     afterEach(() => {
-        // useNow keeps `snapshot` across cleanup (StrictMode fix), so reset module state explicitly between tests.
-        resetForTests();
         jest.clearAllTimers();
         jest.useRealTimers();
     });
@@ -31,7 +29,7 @@ describe('useNow', () => {
         });
 
         expect(result.current).not.toBe(initial);
-        expect(result.current.getMinutes()).toBe(31);
+        expect(result.current.getUTCMinutes()).toBe(31);
         unmount();
     });
 
@@ -76,8 +74,8 @@ describe('useNow', () => {
             jest.advanceTimersByTime(1000);
         });
 
-        expect(a.result.current.getMinutes()).toBe(31);
-        expect(b.result.current.getMinutes()).toBe(31);
+        expect(a.result.current.getUTCMinutes()).toBe(31);
+        expect(b.result.current.getUTCMinutes()).toBe(31);
         expect(a.result.current).toBe(b.result.current);
         a.unmount();
         b.unmount();

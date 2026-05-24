@@ -39,7 +39,7 @@ function subscribe(listener: () => void): () => void {
         if (listeners.size === 0 && intervalId !== null) {
             clearInterval(intervalId);
             intervalId = null;
-            // Keep snapshot to preserve identity across StrictMode remounts; lastMinute reset forces the next tick to refresh.
+            snapshot = null;
             lastMinute = -1;
         }
     };
@@ -57,16 +57,4 @@ function useNow(): Date {
     return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
 
-/** Test-only: reset module-level state between tests. Production callers should not use this. */
-function resetForTests() {
-    listeners.clear();
-    if (intervalId !== null) {
-        clearInterval(intervalId);
-        intervalId = null;
-    }
-    snapshot = null;
-    lastMinute = -1;
-}
-
-export {resetForTests};
 export default useNow;
