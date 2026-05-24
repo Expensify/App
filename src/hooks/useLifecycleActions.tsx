@@ -19,7 +19,7 @@ import {
     isReportOwner,
     shouldBlockSubmitDueToStrictPolicyRules,
 } from '@libs/ReportUtils';
-import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils} from '@libs/TransactionUtils';
+import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 import {cancelPayment, markReportPaymentReceived} from '@userActions/IOU/PayMoneyRequest';
 import {approveMoneyRequest, reopenReport, retractReport, submitReport, unapproveExpenseReport} from '@userActions/IOU/ReportWorkflow';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
@@ -181,6 +181,11 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             return;
         }
 
+        if (hasOnlyPendingCardTransactions(transactions)) {
+            showPendingCardTransactionsBlockModal(showConfirmModal, translate);
+            return;
+        }
+
         const doSubmit = () => {
             submitReport({
                 expenseReport: moneyRequestReport,
@@ -229,6 +234,12 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 if (!moneyRequestReport) {
                     return;
                 }
+
+                if (hasOnlyPendingCardTransactions(transactions)) {
+                    showPendingCardTransactionsBlockModal(showConfirmModal, translate);
+                    return;
+                }
+
                 confirmPendingRTERAndProceed(() => {
                     submitReport({
                         expenseReport: moneyRequestReport,
@@ -280,7 +291,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                         CONST.IOU.REPORT_ACTION_TYPE.PAY,
                         () => {
                             startAnimation();
-                            markReportPaymentReceived(chatReport, moneyRequestReport, nextStep);
+                            markReportPaymentReceived(chatReport, moneyRequestReport, nextStep, accountID, email ?? '');
                         },
                         CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                     );
@@ -288,7 +299,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 }
 
                 startAnimation();
-                markReportPaymentReceived(chatReport, moneyRequestReport, nextStep);
+                markReportPaymentReceived(chatReport, moneyRequestReport, nextStep, accountID, email ?? '');
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE]: {
@@ -353,6 +364,11 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             icon: expensifyIcons.CircularArrowBackwards,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.RETRACT,
             onSelected: async () => {
+                if (isDelegateAccessRestricted) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
+
                 if (isExported) {
                     const reopenExportedReportWarningText = (
                         <Text>
@@ -387,6 +403,11 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             icon: expensifyIcons.CircularArrowBackwards,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.REOPEN,
             onSelected: async () => {
+                if (isDelegateAccessRestricted) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
+
                 if (isExported) {
                     const reopenExportedReportWarningText = (
                         <Text>
@@ -427,4 +448,3 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
 }
 
 export default useLifecycleActions;
-export type {UseLifecycleActionsParams, UseLifecycleActionsResult};

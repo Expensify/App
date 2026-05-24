@@ -211,7 +211,7 @@ function BaseDomainMembersPage({
         return getCustomListHeader();
     };
 
-    const shouldShowSearchBar = data.length > CONST.SEARCH_ITEM_LIMIT;
+    const shouldShowSearchBar = data.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const shouldShowEmptySearchMessage = !!shouldShowSearchBar && inputValue.length !== 0 && filteredData.length === 0;
     // Show empty pre filter state only if we have data, filtered data is empty, but the search have not been used.
     const shouldShowEmptyPreFilterState = filteredData.length === 0 && data.length !== 0 && !!emptyStateTitle && inputValue.length === 0;
@@ -273,6 +273,7 @@ function BaseDomainMembersPage({
                     icon={!useSelectionModeHeader ? headerIcon : undefined}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldUseHeadlineHeader={!useSelectionModeHeader}
+                    shouldDisplayHelpButton
                 >
                     {!shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.flexRow, styles.gap2]}>{headerContent}</View>}
                 </HeaderWithBackButton>
@@ -296,6 +297,7 @@ function BaseDomainMembersPage({
                     customListHeader={getFilteredListHeader()}
                     shouldHeaderBeInsideList
                     canSelectMultiple={canSelectMultiple}
+                    selectAllAccessibilityLabel={translate('accessibilityHints.selectAllMembers')}
                     customListHeaderContent={listHeaderContent}
                     onSelectAll={toggleAllUsers}
                     onSelectionButtonPress={toggleUser}
