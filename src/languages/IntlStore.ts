@@ -188,6 +188,8 @@ class IntlStore {
         if (IntlStore.currentLocale === locale && IntlStore.dateUtilsCache.has(locale)) {
             // Bump the token so any in-flight earlier load() is invalidated; otherwise its `.then` would commit a stale locale.
             IntlStore.loadToken++;
+            // Reset the flag here — the discarded load's `.then` will bail on the token check before reaching its own reset.
+            setAreTranslationsLoading(false);
             return Promise.resolve();
         }
         const loaderPromise = IntlStore.loaders[locale];

@@ -91,8 +91,20 @@ describe('IntlStore', () => {
             const esLoad = IntlStore.load(CONST.LOCALES.ES);
             await IntlStore.load(CONST.LOCALES.EN);
             await esLoad;
+            await waitForBatchedUpdates();
 
             expect(IntlStore.getCurrentLocale()).toBe(CONST.LOCALES.EN);
+            // Discarded load's `.then` bails before resetting the flag — early-return must reset it, else OnyxDerived stays gated.
+            const flag = await new Promise<boolean | undefined>((resolve) => {
+                const id = Onyx.connect({
+                    key: ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING,
+                    callback: (value) => {
+                        Onyx.disconnect(id);
+                        resolve(value);
+                    },
+                });
+            });
+            expect(flag).toBe(false);
         });
 
         it('subscribe and getCurrentLocale are callable as useSyncExternalStore inputs', async () => {
