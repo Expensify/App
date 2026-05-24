@@ -106,7 +106,6 @@ function PolicyDistanceRateEndDateEditPage({route}: PolicyDistanceRateEndDateEdi
                             inputID={INPUT_IDS.END_DATE}
                             label={translate('workspace.distanceRates.endDate')}
                             defaultValue={rate.endDate ?? ''}
-                            minDate={currentStartDate ? new Date(currentStartDate) : undefined}
                         />
                     </View>
                 </FormProvider>
