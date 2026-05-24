@@ -62,6 +62,7 @@ type PolarChartData = {
 type PolarConfig = {
     data: PolarChartData[];
     innerRadius?: number;
+    outerRadius?: number;
     startAngle?: number;
     circleSweepDegrees?: number;
 };
@@ -89,6 +90,9 @@ type LabelItem = {
 
     /** Font weight */
     fontWeight?: 'normal' | 'bold';
+
+    /** Horizontal text alignment relative to x. 'middle' centers the text at x, 'end' right-aligns. Defaults to 'start'. */
+    textAnchor?: 'start' | 'middle' | 'end';
 };
 
 type LegendItemEntry = {

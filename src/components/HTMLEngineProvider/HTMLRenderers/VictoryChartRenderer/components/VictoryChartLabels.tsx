@@ -15,13 +15,18 @@ function VictoryChartLabels({labelItems}: VictoryChartLabelsProps) {
     const {regular: regularTypeface, bold: boldTypeface} = useChartDefaultTypeface();
     return (
         <>
-            {labelItems.map(({x, y, text, color, fontSize, fontWeight}) => {
+            {labelItems.map(({x, y, text, color, fontSize, fontWeight, textAnchor}, i) => {
                 const typeface = fontWeight === 'bold' ? boldTypeface : regularTypeface;
                 const font = typeface ? Skia.Font(typeface, fontSize) : null;
+                let drawX = x;
+                if (font && textAnchor !== 'start') {
+                    const textWidth = font.getTextWidth(text);
+                    drawX = textAnchor === 'middle' ? x - textWidth / 2 : x - textWidth;
+                }
                 return (
                     <SkText
-                        key={`text-${x}-${y}`}
-                        x={x}
+                        key={`text-${x}-${y}-${i}`}
+                        x={drawX}
                         y={y}
                         text={text}
                         font={font}

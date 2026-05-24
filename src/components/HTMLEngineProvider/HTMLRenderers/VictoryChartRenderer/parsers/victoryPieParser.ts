@@ -12,6 +12,7 @@ function parseVictoryPieNode(tnode: TNode): PartialProcessNodeResult {
     const points = parseAttribute<RawChartData[]>(tnode.attributes.data) ?? [];
     const colorScale = parseAttribute<string[]>(tnode.attributes.colorscale) ?? [];
     const innerRadius = parseAttribute<number>(tnode.attributes.innerradius);
+    const outerRadius = parseAttribute<number>(tnode.attributes.radius);
     const startAngle = parseAttribute<number>(tnode.attributes.startangle);
     const endAngle = parseAttribute<number>(tnode.attributes.endangle);
 
@@ -27,6 +28,7 @@ function parseVictoryPieNode(tnode: TNode): PartialProcessNodeResult {
         polarConfig: {
             data,
             innerRadius,
+            outerRadius,
             startAngle,
             circleSweepDegrees,
         },

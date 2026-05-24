@@ -10,12 +10,20 @@ function extractLabelProps(style: RawLabelStyle | undefined): Pick<LabelItem, 'c
     };
 }
 
+function parseTextAnchor(raw: string | undefined): LabelItem['textAnchor'] {
+    if (raw === 'middle' || raw === 'end') {
+        return raw;
+    }
+    return 'start';
+}
+
 /**
  * Parse label config from a `<victorylabel>` node.
  */
 function parseVictoryLabelNode(tnode: TNode): PartialProcessNodeResult {
     const x = parseAttribute<number>(tnode.attributes.x) ?? 0;
     const baseY = parseAttribute<number>(tnode.attributes.y) ?? 0;
+    const textAnchor = parseTextAnchor(tnode.attributes.textanchor);
 
     const rawText = parseAttribute<string | string[]>(tnode.attributes.text);
     const rawStyle = parseAttribute<RawLabelStyle | RawLabelStyle[]>(tnode.attributes.style);
@@ -38,7 +46,7 @@ function parseVictoryLabelNode(tnode: TNode): PartialProcessNodeResult {
     for (let i = 0; i < texts.length; i++) {
         const style = styles.at(i) ?? styles.at(0);
         const props = extractLabelProps(style);
-        labelItems.push({x, y: currentY, text: texts.at(i) ?? '', ...props});
+        labelItems.push({x, y: currentY, text: texts.at(i) ?? '', textAnchor, ...props});
 
         if (i < texts.length - 1) {
             const lh = lineHeights.at(i) ?? 1.2;

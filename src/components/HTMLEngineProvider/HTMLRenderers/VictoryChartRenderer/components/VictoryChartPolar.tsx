@@ -24,6 +24,7 @@ function VictoryChartPolar() {
         >
             <Pie.Chart
                 innerRadius={polarConfig.innerRadius}
+                size={polarConfig.outerRadius !== undefined ? polarConfig.outerRadius * 2 : undefined}
                 startAngle={polarConfig.startAngle}
                 circleSweepDegrees={polarConfig.circleSweepDegrees}
             >
