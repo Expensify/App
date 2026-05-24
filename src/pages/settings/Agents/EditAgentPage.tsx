@@ -1,3 +1,4 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React from 'react';
 import {View} from 'react-native';
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
@@ -9,11 +10,14 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAgentAvatarUpdateError, clearAgentNameUpdateError, clearAgentPromptUpdateError, deleteAgent} from '@libs/actions/Agent';
+import {connect} from '@libs/actions/Delegate';
+import {navigateToAndOpenReportWithAccountIDs} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -28,11 +32,20 @@ type EditAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, t
 function EditAgentPage({route}: EditAgentPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan', 'ChatBubble', 'UserPlus']);
     const accountID = route.params.accountID;
     const [agent, agentMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
     const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (list) => list?.[accountID]});
+    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const {showConfirmModal} = useConfirmModal();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const isOnyxLoaded = agentMetadata.status === 'loaded' && personalDetailsMetadata.status === 'loaded';
     const shouldShowNotFoundPage = isOnyxLoaded && !agent && !personalDetails;
 
@@ -53,6 +66,12 @@ function EditAgentPage({route}: EditAgentPageProps) {
             return;
         }
         deleteAgent(accountID);
+    };
+    const handleChatPress = () => {
+        navigateToAndOpenReportWithAccountIDs([accountID], currentUserPersonalDetails.accountID, introSelected, isSelfTourViewed, betas, allPersonalDetails);
+    };
+    const handleCopilotPress = () => {
+        connect({email: personalDetails?.login ?? '', delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID});
     };
 
     if (shouldShowNotFoundPage) {
@@ -114,6 +133,16 @@ function EditAgentPage({route}: EditAgentPageProps) {
                         numberOfLinesTitle={10}
                     />
                 </OfflineWithFeedback>
+                <MenuItem
+                    title={translate('editAgentPage.chatWithAgent')}
+                    icon={icons.ChatBubble}
+                    onPress={handleChatPress}
+                />
+                <MenuItem
+                    title={translate('editAgentPage.copilotIntoAccount')}
+                    icon={icons.UserPlus}
+                    onPress={handleCopilotPress}
+                />
                 <MenuItem
                     title={translate('editAgentPage.deleteAgent')}
                     icon={icons.Trashcan}
