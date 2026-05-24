@@ -75,7 +75,7 @@ const createTodosReportsAndTransactions = ({
                 reportNameValuePairs: reportNameValuePair,
             }) &&
             !hasOnlyNonReimbursableTransactions(report.reportID, reportTransactions) &&
-            !hasHeldExpenses(report.reportID, reportTransactions)
+            !hasHeldExpenses(reportTransactions)
         ) {
             reportsToPay.push(report);
         }
