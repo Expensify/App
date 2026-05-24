@@ -1,6 +1,6 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useAttendees from '@hooks/useAttendees';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCompanyCardDescription} from '@libs/CardUtils';
@@ -10,7 +10,6 @@ import {isExpenseReport, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
     getAmount,
-    getAttendees,
     getDescription,
     getExchangeRate,
     getMerchant,
@@ -96,7 +95,6 @@ function TransactionItemRow({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const createdAt = getTransactionCreated(transactionItem);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const transactionThreadReportID = reportActions ? getIOUActionForTransactionID(reportActions, transactionItem.transactionID)?.childReportID : undefined;
 
     const bgActiveStyles = isSelected && shouldHighlightItemWhenSelected ? styles.activeComponentBG : EMPTY_ACTIVE_STYLE;
@@ -221,7 +219,7 @@ function TransactionItemRow({
     const description = getDescription(transactionItem);
     const exchangeRateMessage = getExchangeRate(transactionItem, report?.currency ?? policy?.outputCurrency);
     const cardName = getCompanyCardDescription(translate, transactionItem?.cardName, transactionItem?.cardID, nonPersonalAndWorkspaceCards);
-    const transactionAttendees = getAttendees(transactionItem, currentUserPersonalDetails);
+    const transactionAttendees = useAttendees(transactionItem);
     const isUnreported = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const shouldShowAttendees = (isUnreported ? !!isAttendeesEnabledForMovingPolicy : shouldShowAttendeesUtils(CONST.IOU.TYPE.SUBMIT, policy)) && transactionAttendees.length > 0;
 
