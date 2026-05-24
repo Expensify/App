@@ -1,6 +1,7 @@
 import {Circle, Skia, Text as SkText} from '@shopify/react-native-skia';
 import React, {Fragment} from 'react';
 import {useChartDefaultTypeface} from '@components/Charts/hooks';
+import {useVictoryChartScale} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartScaleContext';
 import type {LegendItem} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 
 type VictoryChartLegendProps = {
@@ -13,32 +14,39 @@ type VictoryChartLegendProps = {
  */
 function VictoryChartLegend({legendItems}: VictoryChartLegendProps) {
     const {regular: regularTypeface, bold: boldTypeface} = useChartDefaultTypeface();
+    const scale = useVictoryChartScale();
+    const uniformScale = Math.min(scale.x, scale.y);
     return (
         <>
             {legendItems.map(({x: startX, y, entries, gutter, symbolSpacer}) => {
-                let x = startX;
+                const scaledY = y * scale.y;
+                const scaledGutter = gutter !== undefined ? gutter * uniformScale : undefined;
+                const scaledSymbolSpacer = symbolSpacer !== undefined ? symbolSpacer * uniformScale : undefined;
+                let x = startX * scale.x;
                 return entries.map(({text, color, fontSize, fontWeight, symbolColor, symbolSize}) => {
+                    const scaledFontSize = fontSize !== undefined ? fontSize * uniformScale : undefined;
+                    const scaledSymbolSize = symbolSize !== undefined ? symbolSize * uniformScale : undefined;
                     const typeface = fontWeight === 'bold' ? boldTypeface : regularTypeface;
-                    const font = typeface ? Skia.Font(typeface, fontSize) : null;
+                    const font = typeface ? Skia.Font(typeface, scaledFontSize) : null;
                     const fontMetrics = font?.getMetrics();
                     const lineHeight = fontMetrics ? fontMetrics.ascent + fontMetrics.descent + fontMetrics.leading : 0;
                     const symbolX = x;
-                    x += (symbolSize ?? 0) + (symbolSpacer ?? 0);
+                    x += (scaledSymbolSize ?? 0) + (scaledSymbolSpacer ?? 0);
                     const textX = x;
-                    x += (font?.getGlyphWidths(font.getGlyphIDs(text)).reduce((acc, width) => acc + width, 0) ?? 0) + (gutter ?? 0);
+                    x += (font?.getGlyphWidths(font.getGlyphIDs(text)).reduce((acc, width) => acc + width, 0) ?? 0) + (scaledGutter ?? 0);
                     return (
-                        <Fragment key={`legend-${x}-${y}`}>
-                            {!!symbolSize && (
+                        <Fragment key={`legend-${x}-${scaledY}`}>
+                            {!!scaledSymbolSize && (
                                 <Circle
                                     cx={symbolX}
-                                    cy={y}
-                                    r={symbolSize}
+                                    cy={scaledY}
+                                    r={scaledSymbolSize}
                                     color={symbolColor}
                                 />
                             )}
                             <SkText
                                 x={textX}
-                                y={y - lineHeight / 2}
+                                y={scaledY - lineHeight / 2}
                                 text={text}
                                 font={font}
                                 color={color}
