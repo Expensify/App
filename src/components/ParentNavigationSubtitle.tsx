@@ -196,6 +196,23 @@ function ParentNavigationSubtitle({
                     }
                 }
             }
+
+            // When the parent report is already the topmost route in the tab underneath the RHP,
+            // update its reportActionID and dismiss the modal instead of pushing a new instance
+            // on top of the tab navigator.
+            if (currentFullScreenRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
+                const fullScreenState = currentFullScreenRoute.state;
+                const topRoute = fullScreenState?.routes?.[fullScreenState.index ?? 0];
+                const topRouteReportID = topRoute?.params && 'reportID' in topRoute.params ? String(topRoute.params.reportID) : undefined;
+
+                if (topRouteReportID === parentReportID && topRoute?.key && fullScreenState?.key) {
+                    if (isVisibleAction && parentReportActionID) {
+                        Navigation.setParams({reportActionID: parentReportActionID}, topRoute.key, fullScreenState.key);
+                    }
+                    Navigation.dismissModal();
+                    return;
+                }
+            }
         }
 
         // If the parent report is already the previous screen in the main stack, go back to it
