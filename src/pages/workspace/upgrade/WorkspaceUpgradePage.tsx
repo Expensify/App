@@ -303,15 +303,22 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         categoryId,
     ]);
 
+    const confirmUpgradeOnBlurRef = useRef({isUpgraded, canPerformUpgrade, confirmUpgrade});
+
+    useEffect(() => {
+        confirmUpgradeOnBlurRef.current = {isUpgraded, canPerformUpgrade, confirmUpgrade};
+    });
+
     useFocusEffect(
         useCallback(() => {
             return () => {
-                if (!isUpgraded || !canPerformUpgrade) {
+                const {isUpgraded: wasUpgraded, canPerformUpgrade: couldPerformUpgrade, confirmUpgrade: confirmUpgradeOnBlur} = confirmUpgradeOnBlurRef.current;
+                if (!wasUpgraded || !couldPerformUpgrade) {
                     return;
                 }
-                confirmUpgrade();
+                confirmUpgradeOnBlur();
             };
-        }, [isUpgraded, canPerformUpgrade, confirmUpgrade]),
+        }, []),
     );
 
     // Gate the page to users who can edit workspace settings (admins on any policy,
