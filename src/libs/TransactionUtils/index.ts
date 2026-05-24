@@ -71,7 +71,6 @@ import type {
 } from '@src/types/onyx';
 import type {Attendee, DistanceExpenseType, Participant, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
-import {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {
     Comment,
@@ -1213,8 +1212,6 @@ function getReportOwnerAccountIDAsAttendee(transaction: OnyxInputOrEntry<Transac
 
 /**
  * Return the list of attendees present on the transaction, if it's empty return report owner as default attendee
- * @param transaction
- * @param currentUserPersonalDetails - personal details of current user
  */
 function getOriginalAttendees(transaction: OnyxInputOrEntry<Transaction>, reportOwnerAsAttendee: Attendee | undefined): Attendee[] {
     const rawAttendees = transaction?.comment?.attendees;
@@ -1227,8 +1224,6 @@ function getOriginalAttendees(transaction: OnyxInputOrEntry<Transaction>, report
 
 /**
  * Return the list of modified attendees if present otherwise list of attendees
- * @param transaction
- * @param currentUserPersonalDetails - personal details of current user
  */
 function getAttendees(transaction: OnyxInputOrEntry<Transaction>, reportOwnerAsAttendee?: Attendee): Attendee[] {
     const rawAttendees = transaction?.modifiedAttendees ?? transaction?.comment?.attendees;
