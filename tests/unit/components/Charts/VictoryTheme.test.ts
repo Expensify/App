@@ -11,9 +11,6 @@ function loadVictoryTheme(): typeof VictoryThemeType {
 }
 
 describe('VictoryTheme', () => {
-    // Resetting the modules registry isolates the IIFE that builds CHART_PALETTE,
-    // so each test can mock `@styles/theme/colors` differently and still get a
-    // fresh evaluation of VictoryTheme.
     beforeEach(() => {
         jest.resetModules();
     });

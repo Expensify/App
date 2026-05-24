@@ -11,7 +11,6 @@ import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
 import LeftFrameLine from '@components/Charts/components/LeftFrameLine';
 import ScatterPoints from '@components/Charts/components/ScatterPoints';
-import {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING} from '@components/Charts/constants';
 import type {HitTestArgs} from '@components/Charts/hooks';
 import {
     useChartFontManager,
@@ -24,7 +23,7 @@ import {
     useYAxisLabelWidth,
 } from '@components/Charts/hooks';
 import {calculateMinDomainPadding} from '@components/Charts/utils';
-import VictoryTheme from '@components/Charts/VictoryTheme';
+import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING} from '@components/Charts/VictoryTheme';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
