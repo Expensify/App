@@ -28,7 +28,7 @@ function VictoryChartContainer({children}: {children: React.ReactNode}) {
     const handleContainerLayout = useCallback(
         (event: LayoutChangeEvent) => {
             const w = event.nativeEvent.layout.width;
-            setInitialMeasurement((prev) => prev ?? {containerWidth: w, windowWidth});
+            setInitialMeasurement({containerWidth: w, windowWidth});
         },
         [windowWidth],
     );
@@ -45,7 +45,7 @@ function VictoryChartContainer({children}: {children: React.ReactNode}) {
         if (!hasExplicitDimensions || estimatedContainerWidth === null) {
             return designWidth;
         }
-        return Math.max(Math.min(estimatedContainerWidth, designWidth), MIN_CHART_WIDTH);
+        return Math.max(Math.min(estimatedContainerWidth, designWidth), Math.min(MIN_CHART_WIDTH, designWidth));
     }, [hasExplicitDimensions, estimatedContainerWidth, designWidth]);
 
     const handleContentLayout = useCallback(
