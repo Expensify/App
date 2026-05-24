@@ -503,7 +503,7 @@ function selectTargetAndSourceTransactionsForMerge(
 function getDisplayValue(
     field: MergeFieldKey,
     transaction: Transaction,
-    transactionDetails: TransactionDetails,
+    transactionDetails: TransactionDetails | undefined,
     policy: Policy | undefined,
     translate: LocaleContextProps['translate'],
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
