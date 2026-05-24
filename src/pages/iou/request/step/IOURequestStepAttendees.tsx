@@ -56,7 +56,6 @@ function IOURequestStepAttendees({
             return;
         }
         if (!deepEqual(previousAttendees, attendees)) {
-            setMoneyRequestAttendees(transactionID, attendees, !isEditing);
             if (isEditing) {
                 updateMoneyRequestAttendees({
                     transactionID,
@@ -73,6 +72,8 @@ function IOURequestStepAttendees({
                     parentReportNextStep,
                     delegateAccountID,
                 });
+            } else {
+                setMoneyRequestAttendees(transactionID, attendees, !isEditing);
             }
         }
 
