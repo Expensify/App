@@ -58,6 +58,8 @@ function AgentsListRow({accountID, displayName, login, pendingAction, errors, on
     const switchToDelegator = useSwitchToDelegator();
 
     const isPendingDeletion = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const isPendingAddOrDelete = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || isPendingDeletion;
+    const areActionsDisabled = isPendingAddOrDelete || accountID <= 0 || !login;
     const navigateToEdit = () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(accountID));
     const handleChatPress = () => {
         navigateToAndOpenReportWithAccountIDs([accountID], currentUserPersonalDetails.accountID, introSelected, isSelfTourViewed, betas, personalDetails);
@@ -114,14 +116,14 @@ function AgentsListRow({accountID, displayName, login, pendingAction, errors, on
                         small
                         icon={icons.ChatBubble}
                         onPress={handleChatPress}
-                        isDisabled={isPendingDeletion}
+                        isDisabled={areActionsDisabled}
                         accessibilityLabel={translate('editAgentPage.chatWithAgent')}
                     />
                     <Button
                         small
                         text={translate('delegate.copilot')}
                         onPress={handleCopilotPress}
-                        isDisabled={isPendingDeletion}
+                        isDisabled={areActionsDisabled}
                     />
                     <Button
                         small

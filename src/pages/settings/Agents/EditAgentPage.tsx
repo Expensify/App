@@ -64,11 +64,14 @@ function EditAgentPage({route}: EditAgentPageProps) {
         }
         deleteAgent(accountID);
     };
+    const agentLogin = personalDetails?.login ?? '';
+    const isPendingAddOrDelete = agent?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || agent?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const areActionsDisabled = isPendingAddOrDelete || accountID <= 0 || !agentLogin;
     const handleChatPress = () => {
         navigateToAndOpenReportWithAccountIDs([accountID], currentUserPersonalDetails.accountID, introSelected, isSelfTourViewed, betas, allPersonalDetails);
     };
     const handleCopilotPress = () => {
-        switchToDelegator(personalDetails?.login ?? '');
+        switchToDelegator(agentLogin);
     };
 
     if (shouldShowNotFoundPage) {
@@ -134,11 +137,13 @@ function EditAgentPage({route}: EditAgentPageProps) {
                     title={translate('editAgentPage.chatWithAgent')}
                     icon={icons.ChatBubble}
                     onPress={handleChatPress}
+                    disabled={areActionsDisabled}
                 />
                 <MenuItem
                     title={translate('editAgentPage.copilotIntoAccount')}
                     icon={icons.Users}
                     onPress={handleCopilotPress}
+                    disabled={areActionsDisabled}
                 />
                 <MenuItem
                     title={translate('editAgentPage.deleteAgent')}
