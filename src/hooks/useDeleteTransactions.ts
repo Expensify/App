@@ -92,13 +92,14 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             }
 
             const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.comment?.originalTransactionID}`];
-            if (!shouldRedirectDeleteToSplitExpenseEdit(transaction, originalTransaction)) {
+            const hasMultipleSplits = getChildTransactions(allTransactions, allReports, originalTransaction?.transactionID, true).length > 1;
+            if (!shouldRedirectDeleteToSplitExpenseEdit(transaction, originalTransaction) || (!hasMultipleSplits && isPerDiemRequestTransactionUtils(originalTransaction))) {
                 return undefined;
             }
 
             return transaction;
         },
-        [allTransactions],
+        [allTransactions, allReports],
     );
 
     const shouldOpenSplitExpenseEditFlowOnDelete = useCallback(
@@ -263,11 +264,13 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 const iouReportID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUReportID : undefined;
                 const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
                 const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
+                const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${action?.childReportID}`];
                 const chatIOUReportID = chatReport?.reportID;
                 const isChatIOUReportArchived = archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatIOUReportID}`);
                 deleteMoneyRequest({
                     transactionID,
                     reportAction: action,
+                    transactionThreadReport,
                     transactions: duplicateTransactions,
                     violations: duplicateTransactionViolations,
                     iouReport,

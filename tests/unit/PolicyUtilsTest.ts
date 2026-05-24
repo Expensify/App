@@ -4,7 +4,11 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import DateUtils from '@libs/DateUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import {
+    canAccessSubmitWorkspaceFeatures,
+    canMemberRead,
+    canMemberWrite,
     canSendInvoiceFromWorkspace,
     getActivePolicies,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
@@ -40,11 +44,13 @@ import {
     shouldShowPolicy,
     sortPoliciesByName,
     sortWorkspacesBySelected,
+    tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
 import {isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import {getPolicyBrickRoadIndicatorStatus} from '@src/libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
 import type {Connections} from '@src/types/onyx/Policy';
 import createCollection from '../utils/collections/createCollection';
@@ -65,6 +71,10 @@ const GENERATED_ACCOUNT_ID = '555555';
 jest.mock('@libs/UserUtils', () => ({
     // generateAccountID: () => GENERATED_ACCOUNT_ID,
     generateAccountID: jest.fn().mockReturnValue(GENERATED_ACCOUNT_ID),
+}));
+
+jest.mock('@libs/Navigation/Navigation', () => ({
+    navigate: jest.fn(),
 }));
 
 const testDate = DateUtils.getDBTime();
@@ -232,6 +242,72 @@ describe('PolicyUtils', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
+        });
+    });
+
+    describe('canMemberRead and canMemberWrite', () => {
+        const memberLogin = 'member@test.com';
+        const buildPolicy = (role: Policy['role']): Policy =>
+            ({
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                role,
+                employeeList: {
+                    [memberLogin]: {
+                        role,
+                    },
+                },
+            }) as Policy;
+
+        it('allows write access to satisfy read access', () => {
+            expect(canMemberRead(buildPolicy(CONST.POLICY.ROLE.CARD_ADMIN), memberLogin, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD)).toBe(true);
+        });
+
+        it('denies access when the role does not have the feature', () => {
+            expect(canMemberRead(buildPolicy(CONST.POLICY.ROLE.USER), memberLogin, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD)).toBe(false);
+        });
+
+        it('uses the requested member role when login is provided', () => {
+            const policy = {
+                ...buildPolicy(CONST.POLICY.ROLE.ADMIN),
+                employeeList: {
+                    'member@test.com': {
+                        role: CONST.POLICY.ROLE.USER,
+                    },
+                },
+            };
+
+            expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD)).toBe(false);
+        });
+
+        it('allows admins to write every policy feature', () => {
+            const policy = buildPolicy(CONST.POLICY.ROLE.ADMIN);
+
+            for (const feature of Object.values(CONST.POLICY.POLICY_FEATURE)) {
+                expect(canMemberWrite(policy, memberLogin, feature)).toBe(true);
+            }
+        });
+
+        it('does not allow editors to assign elevated roles', () => {
+            const policy = buildPolicy(CONST.POLICY.ROLE.EDITOR);
+
+            expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.OVERVIEW)).toBe(true);
+            expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES)).toBe(false);
+        });
+
+        it('allows auditors to read but not write every policy feature', () => {
+            const policy = buildPolicy(CONST.POLICY.ROLE.AUDITOR);
+
+            for (const feature of Object.values(CONST.POLICY.POLICY_FEATURE)) {
+                expect(canMemberRead(policy, memberLogin, feature)).toBe(true);
+                expect(canMemberWrite(policy, memberLogin, feature)).toBe(false);
+            }
+        });
+
+        it('limits scoped admins to their assigned write features', () => {
+            expect(canMemberWrite(buildPolicy(CONST.POLICY.ROLE.CARD_ADMIN), memberLogin, CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS)).toBe(true);
+            expect(canMemberWrite(buildPolicy(CONST.POLICY.ROLE.CARD_ADMIN), memberLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS)).toBe(false);
+            expect(canMemberWrite(buildPolicy(CONST.POLICY.ROLE.PEOPLE_ADMIN), memberLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS)).toBe(true);
+            expect(canMemberWrite(buildPolicy(CONST.POLICY.ROLE.PAYMENTS_ADMIN), memberLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS)).toBe(true);
         });
     });
 
@@ -2620,6 +2696,62 @@ describe('PolicyUtils', () => {
         });
     });
 
+    describe('canAccessSubmitWorkspaceFeatures', () => {
+        const submitPolicyForAccessTest: Policy = {...createRandomPolicy(99001, CONST.POLICY.TYPE.SUBMIT), id: 'policy-submit-access-test'};
+        const teamPolicyForAccessTest: Policy = {...createRandomPolicy(99002, CONST.POLICY.TYPE.TEAM), id: 'policy-team-access-test'};
+
+        it('returns true when policy is Submit and SUBMIT_2026 beta is enabled', () => {
+            expect(canAccessSubmitWorkspaceFeatures(submitPolicyForAccessTest, true)).toBe(true);
+        });
+
+        it('returns false when policy is Submit and SUBMIT_2026 beta is disabled', () => {
+            expect(canAccessSubmitWorkspaceFeatures(submitPolicyForAccessTest, false)).toBe(false);
+        });
+
+        it('returns false when policy is not Submit even if beta is enabled', () => {
+            expect(canAccessSubmitWorkspaceFeatures(teamPolicyForAccessTest, true)).toBe(false);
+        });
+
+        it('returns false when policy is undefined', () => {
+            expect(canAccessSubmitWorkspaceFeatures(undefined, true)).toBe(false);
+        });
+    });
+
+    describe('tryNavigateToSubmitWorkspaceUpgrade', () => {
+        const submitPolicyForNavTest: Policy = {...createRandomPolicy(99003, CONST.POLICY.TYPE.SUBMIT), id: 'policy-submit-nav-test'};
+        const teamPolicyForNavTest: Policy = {...createRandomPolicy(99004, CONST.POLICY.TYPE.TEAM), id: 'policy-team-nav-test'};
+        const featureAlias = CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias;
+
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
+
+        it('returns false and does not navigate when isEnabling is false', () => {
+            expect(tryNavigateToSubmitWorkspaceUpgrade(submitPolicyForNavTest, false, featureAlias, true)).toBe(false);
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
+        it('returns false when policy is not Submit', () => {
+            expect(tryNavigateToSubmitWorkspaceUpgrade(teamPolicyForNavTest, true, featureAlias, true)).toBe(false);
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
+        it('returns false when Submit policy but beta is disabled', () => {
+            expect(tryNavigateToSubmitWorkspaceUpgrade(submitPolicyForNavTest, true, featureAlias, false)).toBe(false);
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
+        it('navigates to workspace upgrade with More features back route and returns true when eligible', () => {
+            const policyID = submitPolicyForNavTest.id;
+            const expectedRoute = ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, featureAlias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+
+            expect(tryNavigateToSubmitWorkspaceUpgrade(submitPolicyForNavTest, true, featureAlias, true)).toBe(true);
+
+            expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+            expect(Navigation.navigate).toHaveBeenCalledWith(expectedRoute);
+        });
+    });
+
     describe('HR connection helpers', () => {
         describe('isMergeHRConnected', () => {
             it('returns false for undefined policy', () => {
@@ -2693,6 +2825,7 @@ describe('PolicyUtils', () => {
                 const provider = getConnectedHRProvider(policy);
                 expect(provider?.connectionName).toBe(CONST.POLICY.CONNECTIONS.NAME.MERGE_HR);
                 expect(provider?.displayName).toBe('Workday');
+                expect(provider?.mergeSlug).toBe('workday');
             });
         });
 
