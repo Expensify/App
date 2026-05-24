@@ -54,12 +54,18 @@ function PolicyDistanceRateStartDateEditPage({route}: PolicyDistanceRateStartDat
                 return;
             }
 
+            const newStartDate = values.startDate || null;
+            if ((rate.startDate ?? null) === newStartDate) {
+                Navigation.goBack();
+                return;
+            }
+
             updatePolicyDistanceRate(
                 policyID,
                 customUnit,
                 {
                     ...rate,
-                    startDate: values.startDate || null,
+                    startDate: newStartDate,
                 },
                 CONST.CUSTOM_UNITS.RATE_FIELD.START_DATE,
             );
