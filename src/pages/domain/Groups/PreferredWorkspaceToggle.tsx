@@ -115,7 +115,7 @@ function PreferredWorkspaceToggle({domainAccountID, groupID}: PreferredWorkspace
                 >
                     <MenuItemWithTopDescription
                         description={translate('domain.groups.preferredWorkspace')}
-                        title={preferredPolicyName}
+                        title={preferredPolicyName ?? firstAdminPolicy?.name}
                         shouldShowRightIcon
                         onPress={() => Navigation.navigate(ROUTES.DOMAIN_SECURITY_GROUPS_PREFERRED_WORKSPACE.getRoute(domainAccountID, groupID))}
                         disabled={!isEnabled || (!hasAdminPolicies && !!preferredPolicyName)}
