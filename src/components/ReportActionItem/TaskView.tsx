@@ -184,35 +184,52 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                     disabled={!isTaskActionable}
                                                     sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_CHECKBOX}
                                                 />
-                                                <PressableWithoutFeedback
-                                                    onPress={callFunctionIfActionIsAllowed((e) => {
-                                                        if (isDisableInteractive) {
-                                                            return;
-                                                        }
-                                                        if (e?.type === 'click') {
-                                                            (e.currentTarget as HTMLElement).blur();
-                                                        }
-                                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_TITLE.path));
-                                                    })}
-                                                    role={CONST.ROLE.BUTTON}
-                                                    accessibilityLabel={taskAccessibilityLabel}
-                                                    disabled={isDisableInteractive}
-                                                    style={[styles.flexRow, styles.flex1]}
-                                                    sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_TITLE}
-                                                >
-                                                    <View style={[styles.flexRow, styles.flex1]}>
-                                                        <RenderHTML html={taskTitle} />
-                                                    </View>
-                                                    {!isDisableInteractive && (
-                                                        <View style={styles.taskRightIconContainer}>
-                                                            <Icon
-                                                                additionalStyles={[styles.alignItemsCenter]}
-                                                                src={icons.ArrowRight}
-                                                                fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false, disableState))}
-                                                            />
+                                                {shouldBreakAccessibilityGrouping() ? (
+                                                    <PressableWithoutFeedback
+                                                        onPress={callFunctionIfActionIsAllowed((e) => {
+                                                            if (isDisableInteractive) {
+                                                                return;
+                                                            }
+                                                            if (e?.type === 'click') {
+                                                                (e.currentTarget as HTMLElement).blur();
+                                                            }
+                                                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_TITLE.path));
+                                                        })}
+                                                        role={CONST.ROLE.BUTTON}
+                                                        accessibilityLabel={taskAccessibilityLabel}
+                                                        disabled={isDisableInteractive}
+                                                        style={[styles.flexRow, styles.flex1]}
+                                                        sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_TITLE}
+                                                    >
+                                                        <View style={[styles.flexRow, styles.flex1]}>
+                                                            <RenderHTML html={taskTitle} />
                                                         </View>
-                                                    )}
-                                                </PressableWithoutFeedback>
+                                                        {!isDisableInteractive && (
+                                                            <View style={styles.taskRightIconContainer}>
+                                                                <Icon
+                                                                    additionalStyles={[styles.alignItemsCenter]}
+                                                                    src={icons.ArrowRight}
+                                                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false, disableState))}
+                                                                />
+                                                            </View>
+                                                        )}
+                                                    </PressableWithoutFeedback>
+                                                ) : (
+                                                    <>
+                                                        <View style={[styles.flexRow, styles.flex1]}>
+                                                            <RenderHTML html={taskTitle} />
+                                                        </View>
+                                                        {!isDisableInteractive && (
+                                                            <View style={styles.taskRightIconContainer}>
+                                                                <Icon
+                                                                    additionalStyles={[styles.alignItemsCenter]}
+                                                                    src={icons.ArrowRight}
+                                                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false, disableState))}
+                                                                />
+                                                            </View>
+                                                        )}
+                                                    </>
+                                                )}
                                             </View>
                                         </OfflineWithFeedback>
                                     )}

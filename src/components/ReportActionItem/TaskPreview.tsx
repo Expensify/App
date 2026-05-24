@@ -158,41 +158,51 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                             sentryLabel={CONST.SENTRY_LABEL.TASK.PREVIEW_CHECKBOX}
                         />
                     </View>
-                    <PressableWithoutFeedback
-                        onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(taskReportID, undefined, undefined, Navigation.getActiveRoute()))}
-                        onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
-                        onPressOut={() => ControlSelection.unblock()}
-                        onLongPress={(event) =>
-                            onShowContextMenu(() => {
-                                if (!shouldDisplayContextMenu) {
-                                    return;
-                                }
-                                return showContextMenuForReport(event, contextMenuAnchorRef, chatReportID, action, checkIfContextMenuActive, originalReportID);
-                            })
-                        }
-                        shouldUseHapticsOnLongPress
-                        style={[styles.flex1, styles.flexRow, styles.alignItemsStart]}
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={taskAccessibilityLabel}
-                        sentryLabel={CONST.SENTRY_LABEL.TASK.PREVIEW_CARD}
-                    >
-                        {hasAssignee && (
-                            <UserDetailsTooltip accountID={taskAssigneeAccountID}>
-                                <View>
-                                    <Avatar
-                                        containerStyles={[styles.mr2, isTaskCompleted ? styles.opacitySemiTransparent : undefined]}
-                                        source={avatar}
-                                        size={avatarSize}
-                                        avatarID={taskAssigneeAccountID}
-                                        type={CONST.ICON_TYPE_AVATAR}
-                                    />
-                                </View>
-                            </UserDetailsTooltip>
-                        )}
-                        <View style={[styles.alignSelfCenter, styles.flex1]}>
-                            <RenderHTML html={getTaskHTML()} />
-                        </View>
-                    </PressableWithoutFeedback>
+                    {shouldBreakAccessibilityGrouping() ? (
+                        <PressableWithoutFeedback
+                            onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(taskReportID, undefined, undefined, Navigation.getActiveRoute()))}
+                            style={[styles.flex1, styles.flexRow, styles.alignItemsStart]}
+                            role={CONST.ROLE.BUTTON}
+                            accessibilityLabel={taskAccessibilityLabel}
+                            sentryLabel={CONST.SENTRY_LABEL.TASK.PREVIEW_CARD}
+                        >
+                            {hasAssignee && (
+                                <UserDetailsTooltip accountID={taskAssigneeAccountID}>
+                                    <View>
+                                        <Avatar
+                                            containerStyles={[styles.mr2, isTaskCompleted ? styles.opacitySemiTransparent : undefined]}
+                                            source={avatar}
+                                            size={avatarSize}
+                                            avatarID={taskAssigneeAccountID}
+                                            type={CONST.ICON_TYPE_AVATAR}
+                                        />
+                                    </View>
+                                </UserDetailsTooltip>
+                            )}
+                            <View style={[styles.alignSelfCenter, styles.flex1]}>
+                                <RenderHTML html={getTaskHTML()} />
+                            </View>
+                        </PressableWithoutFeedback>
+                    ) : (
+                        <>
+                            {hasAssignee && (
+                                <UserDetailsTooltip accountID={taskAssigneeAccountID}>
+                                    <View>
+                                        <Avatar
+                                            containerStyles={[styles.mr2, isTaskCompleted ? styles.opacitySemiTransparent : undefined]}
+                                            source={avatar}
+                                            size={avatarSize}
+                                            avatarID={taskAssigneeAccountID}
+                                            type={CONST.ICON_TYPE_AVATAR}
+                                        />
+                                    </View>
+                                </UserDetailsTooltip>
+                            )}
+                            <View style={[styles.alignSelfCenter, styles.flex1]}>
+                                <RenderHTML html={getTaskHTML()} />
+                            </View>
+                        </>
+                    )}
                 </View>
                 {shouldShowGreenDotIndicator && (
                     <View style={iconWrapperStyle}>
