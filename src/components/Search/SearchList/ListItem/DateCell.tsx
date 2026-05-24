@@ -3,6 +3,7 @@ import DatePickerModal from '@components/DatePicker/DatePickerModal';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {EditableCell, usePopoverEditState} from '@components/TransactionItemRow/EditableCell';
 import type {EditableProps} from '@components/TransactionItemRow/EditableCell/types';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
@@ -18,13 +19,20 @@ type DateCellProps = {
 function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, canEdit, onSave}: DateCellProps) {
     const styles = useThemeStyles();
     const {isInNarrowPaneModal} = useResponsiveLayout();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const selectedTimezone = currentUserPersonalDetails?.timezone?.selected;
     const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing, handleSave} = usePopoverEditState({
         canEdit,
         value: date,
         onSave,
     });
 
-    const formattedDate = DateUtils.formatWithUTCTimeZone(date, DateUtils.doesDateBelongToAPastYear(date) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
+    const dateFormat = DateUtils.doesDateBelongToAPastYear(date) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT;
+    const hasTimeComponent = /\d{2}:\d{2}/.test(date) || date.includes('T');
+    const formattedDate =
+        selectedTimezone && hasTimeComponent
+            ? DateUtils.formatUTCDateTimeToDateInTimezone(date, selectedTimezone, dateFormat) || DateUtils.formatWithUTCTimeZone(date, dateFormat)
+            : DateUtils.formatWithUTCTimeZone(date, dateFormat);
     const displayText = suffixText ? `${formattedDate} • ${suffixText}` : formattedDate;
 
     const displayContent = (
