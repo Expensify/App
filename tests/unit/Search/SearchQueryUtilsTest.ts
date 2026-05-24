@@ -252,6 +252,17 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual('type:expense category:equipment,consulting,none,Uncategorized');
         });
 
+        test('serializes No Tag as a negated has tag filter', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                tag: [CONST.SEARCH.TAG_EMPTY_VALUE],
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense -has:tag');
+        });
+
         test('empty filter values', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {};
 
@@ -1012,6 +1023,23 @@ describe('SearchQueryUtils', () => {
                 type: 'expense',
                 status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 attendee: ['12345', 'ZZ'],
+            });
+        });
+
+        test('hydrates negated has tag filter as No Tag', () => {
+            const queryString = 'sortBy:date sortOrder:desc type:expense -has:tag';
+            const queryJSON = buildSearchQueryJSON(queryString);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+
+            expect(result).toEqual({
+                type: 'expense',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                tag: [CONST.SEARCH.TAG_EMPTY_VALUE],
             });
         });
 
