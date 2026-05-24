@@ -102,7 +102,6 @@ function PolicyDistanceRateStartDateEditPage({route}: PolicyDistanceRateStartDat
                     enabledWhenOffline
                     style={[styles.flexGrow1]}
                     shouldHideFixErrorsAlert
-                    submitFlexEnabled={false}
                     submitButtonStyles={[styles.mh5, styles.mt0]}
                     addBottomSafeAreaPadding
                 >
