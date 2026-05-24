@@ -5427,10 +5427,13 @@ function getColumnsToShow({
     // If the user has set custom columns for the search, we need to respect their preference and order
     const allowedColumns: string[] = isExpenseReportView ? Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS) : Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE);
     const filteredVisibleColumns = visibleColumns.filter((column) => allowedColumns.includes(column));
+    const isDefaultExpenseColumnSelection = arraysEqual(Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE), filteredVisibleColumns);
+    const shouldUseCustomResult = !isDefaultExpenseColumnSelection && filteredVisibleColumns.length > 0;
+    const isCategoryGLCodeSelected = filteredVisibleColumns.includes(CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE);
 
     let customResult: SearchColumnType[] | undefined;
 
-    if (!arraysEqual(Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE), filteredVisibleColumns) && filteredVisibleColumns.length > 0) {
+    if (shouldUseCustomResult) {
         const result: SearchColumnType[] = [];
         const addedColumns = new Set<SearchColumnType>();
 
@@ -5512,7 +5515,7 @@ function getColumnsToShow({
         if (hasCategory) {
             const categoryGLCode = getCategoryGLCode(transactionPolicyCategories, transaction.category);
             columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY] = !isExpenseReportViewFromIOUReport;
-            if (!isExpenseReportViewFromIOUReport && categoryGLCode) {
+            if (isCategoryGLCodeSelected && !isExpenseReportViewFromIOUReport && categoryGLCode) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE] = true;
             }
         }

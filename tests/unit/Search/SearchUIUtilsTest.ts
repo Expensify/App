@@ -7998,6 +7998,45 @@ describe('SearchUIUtils', () => {
             expect(strictColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TO);
         });
 
+        test('Should only show Category GL Code when that column is selected', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const transactionWithCategoryGLCode = {
+                ...baseTransaction,
+                transactionID: 'category-gl-code',
+                category: 'Advertising',
+                policyID,
+            };
+            const policyCategories = {
+                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]: {
+                    Advertising: {
+                        name: 'Advertising',
+                        enabled: true,
+                        'GL Code': '10',
+                    },
+                },
+            };
+            const defaultVisibleColumns = Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE);
+
+            let columns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: submitterAccountID,
+                data: [transactionWithCategoryGLCode],
+                visibleColumns: defaultVisibleColumns,
+                policyCategories,
+            });
+
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.CATEGORY);
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE);
+
+            columns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: submitterAccountID,
+                data: [transactionWithCategoryGLCode],
+                visibleColumns: [...defaultVisibleColumns, CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE],
+                policyCategories,
+            });
+
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE);
+        });
+
         test('Should only show columns when at least one transaction has a value for them', () => {
             // Use the existing transaction as a base and modify only the fields we need to test
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
