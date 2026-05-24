@@ -45,6 +45,7 @@ import {
     getReportActionMessage,
     getReportActionText,
     getWhisperedTo,
+    isCreatedTaskReportAction,
     isDeletedParentAction as isDeletedParentActionUtils,
     isMessageDeleted,
     isMoneyRequestAction,
@@ -62,6 +63,7 @@ import {
     shouldDisplayThreadReplies as shouldDisplayThreadRepliesUtils,
 } from '@libs/ReportUtils';
 import SelectionScraper from '@libs/SelectionScraper';
+import shouldBreakAccessibilityGrouping from '@libs/shouldBreakAccessibilityGrouping';
 import {ReactionListContext} from '@pages/inbox/ReportScreenContext';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
@@ -522,6 +524,7 @@ function PureReportActionItem({
                     )}
                     <PressableWithSecondaryInteraction
                         ref={popoverAnchorRef}
+                        accessible={shouldBreakAccessibilityGrouping() && isCreatedTaskReportAction(action) ? false : undefined}
                         onPress={() => {
                             if (!hasDraft) {
                                 onPress?.();

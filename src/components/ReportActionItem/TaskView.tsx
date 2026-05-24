@@ -11,6 +11,7 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import RenderHTML from '@components/RenderHTML';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
@@ -30,6 +31,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getDisplayNameForParticipant, getDisplayNamesWithTooltips, isCompletedTaskReport, isOpenTaskReport} from '@libs/ReportUtils';
+import shouldBreakAccessibilityGrouping from '@libs/shouldBreakAccessibilityGrouping';
 import StringUtils from '@libs/StringUtils';
 import {isActiveTaskEditRoute} from '@libs/TaskUtils';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
@@ -70,6 +72,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     const taskTitleWithoutPre = StringUtils.removePreCodeBlock(report?.reportName);
     const titleWithoutImage = Parser.replace(Parser.htmlToMarkdown(taskTitleWithoutPre), {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]});
     const taskTitle = `<task-title>${titleWithoutImage}</task-title>`;
+    const taskAccessibilityLabel = titleWithoutImage ? `${translate('task.task')}: ${titleWithoutImage}` : translate('task.task');
 
     const assigneeTooltipDetails = getDisplayNamesWithTooltips(
         getPersonalDetailsForAccountIDs(report?.managerID ? [report?.managerID] : [], personalDetails),
@@ -136,6 +139,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                         <Hoverable>
                             {(hovered) => (
                                 <PressableWithSecondaryInteraction
+                                    accessible={shouldBreakAccessibilityGrouping() ? false : undefined}
                                     onPress={callFunctionIfActionIsAllowed((e) => {
                                         if (isDisableInteractive) {
                                             return;
@@ -152,7 +156,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                         StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, false, disableState, !isDisableInteractive), true),
                                         isDisableInteractive && styles.cursorDefault,
                                     ]}
-                                    accessibilityLabel={taskTitle || translate('task.task')}
+                                    accessibilityLabel={taskAccessibilityLabel}
                                     disabled={isDisableInteractive}
                                     sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_TITLE}
                                 >
@@ -162,7 +166,6 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                             <View style={[styles.flexRow, styles.flex1]}>
                                                 <Checkbox
                                                     onPress={callFunctionIfActionIsAllowed(() => {
-                                                        // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
                                                         if (isActiveTaskEditRoute(report?.reportID)) {
                                                             return;
                                                         }
@@ -177,22 +180,39 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                     containerSize={24}
                                                     containerBorderRadius={8}
                                                     caretSize={16}
-                                                    accessibilityLabel={taskTitle || translate('task.task')}
+                                                    accessibilityLabel={taskAccessibilityLabel}
                                                     disabled={!isTaskActionable}
                                                     sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_CHECKBOX}
                                                 />
-                                                <View style={[styles.flexRow, styles.flex1]}>
-                                                    <RenderHTML html={taskTitle} />
-                                                </View>
-                                                {!isDisableInteractive && (
-                                                    <View style={styles.taskRightIconContainer}>
-                                                        <Icon
-                                                            additionalStyles={[styles.alignItemsCenter]}
-                                                            src={icons.ArrowRight}
-                                                            fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false, disableState))}
-                                                        />
+                                                <PressableWithoutFeedback
+                                                    onPress={callFunctionIfActionIsAllowed((e) => {
+                                                        if (isDisableInteractive) {
+                                                            return;
+                                                        }
+                                                        if (e?.type === 'click') {
+                                                            (e.currentTarget as HTMLElement).blur();
+                                                        }
+                                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_TITLE.path));
+                                                    })}
+                                                    role={CONST.ROLE.BUTTON}
+                                                    accessibilityLabel={taskAccessibilityLabel}
+                                                    disabled={isDisableInteractive}
+                                                    style={[styles.flexRow, styles.flex1]}
+                                                    sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_TITLE}
+                                                >
+                                                    <View style={[styles.flexRow, styles.flex1]}>
+                                                        <RenderHTML html={taskTitle} />
                                                     </View>
-                                                )}
+                                                    {!isDisableInteractive && (
+                                                        <View style={styles.taskRightIconContainer}>
+                                                            <Icon
+                                                                additionalStyles={[styles.alignItemsCenter]}
+                                                                src={icons.ArrowRight}
+                                                                fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false, disableState))}
+                                                            />
+                                                        </View>
+                                                    )}
+                                                </PressableWithoutFeedback>
                                             </View>
                                         </OfflineWithFeedback>
                                     )}

@@ -33,6 +33,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import {isCanceledTaskReport, isOpenTaskReport, isReportManager} from '@libs/ReportUtils';
+import shouldBreakAccessibilityGrouping from '@libs/shouldBreakAccessibilityGrouping';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -106,6 +107,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
     const iconWrapperStyle = StyleUtils.getTaskPreviewIconWrapper(hasAssignee ? avatarSize : undefined);
 
     const shouldShowGreenDotIndicator = isOpenTaskReport(taskContextReport, action) && isReportManager(taskContextReport);
+    const taskAccessibilityLabel = taskTitleWithoutImage ? `${translate('task.task')}: ${taskTitleWithoutImage}` : translate('task.task');
     if (isDeletedParentAction) {
         return <RenderHTML html={`<deleted-action>${translate('parentReportAction.deletedTask')}</deleted-action>`} />;
     }
@@ -121,6 +123,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
     return (
         <View style={[styles.chatItemMessage, !hasAssignee && styles.mv1]}>
             <PressableWithoutFeedback
+                accessible={shouldBreakAccessibilityGrouping() ? false : undefined}
                 onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(taskReportID, undefined, undefined, Navigation.getActiveRoute()))}
                 onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
@@ -135,7 +138,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                 shouldUseHapticsOnLongPress
                 style={[styles.flexRow, styles.justifyContentBetween, style]}
                 role={CONST.ROLE.BUTTON}
-                accessibilityLabel={translate('task.task')}
+                accessibilityLabel={taskAccessibilityLabel}
                 sentryLabel={CONST.SENTRY_LABEL.TASK.PREVIEW_CARD}
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsStart, styles.mr2]}>
@@ -151,26 +154,45 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                                     completeTask(taskContextReport, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, delegateEmail, taskReportID);
                                 }
                             })}
-                            accessibilityLabel={translate('task.task')}
+                            accessibilityLabel={taskAccessibilityLabel}
                             sentryLabel={CONST.SENTRY_LABEL.TASK.PREVIEW_CHECKBOX}
                         />
                     </View>
-                    {hasAssignee && (
-                        <UserDetailsTooltip accountID={taskAssigneeAccountID}>
-                            <View>
-                                <Avatar
-                                    containerStyles={[styles.mr2, isTaskCompleted ? styles.opacitySemiTransparent : undefined]}
-                                    source={avatar}
-                                    size={avatarSize}
-                                    avatarID={taskAssigneeAccountID}
-                                    type={CONST.ICON_TYPE_AVATAR}
-                                />
-                            </View>
-                        </UserDetailsTooltip>
-                    )}
-                    <View style={[styles.alignSelfCenter, styles.flex1]}>
-                        <RenderHTML html={getTaskHTML()} />
-                    </View>
+                    <PressableWithoutFeedback
+                        onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(taskReportID, undefined, undefined, Navigation.getActiveRoute()))}
+                        onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
+                        onPressOut={() => ControlSelection.unblock()}
+                        onLongPress={(event) =>
+                            onShowContextMenu(() => {
+                                if (!shouldDisplayContextMenu) {
+                                    return;
+                                }
+                                return showContextMenuForReport(event, contextMenuAnchorRef, chatReportID, action, checkIfContextMenuActive, originalReportID);
+                            })
+                        }
+                        shouldUseHapticsOnLongPress
+                        style={[styles.flex1, styles.flexRow, styles.alignItemsStart]}
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel={taskAccessibilityLabel}
+                        sentryLabel={CONST.SENTRY_LABEL.TASK.PREVIEW_CARD}
+                    >
+                        {hasAssignee && (
+                            <UserDetailsTooltip accountID={taskAssigneeAccountID}>
+                                <View>
+                                    <Avatar
+                                        containerStyles={[styles.mr2, isTaskCompleted ? styles.opacitySemiTransparent : undefined]}
+                                        source={avatar}
+                                        size={avatarSize}
+                                        avatarID={taskAssigneeAccountID}
+                                        type={CONST.ICON_TYPE_AVATAR}
+                                    />
+                                </View>
+                            </UserDetailsTooltip>
+                        )}
+                        <View style={[styles.alignSelfCenter, styles.flex1]}>
+                            <RenderHTML html={getTaskHTML()} />
+                        </View>
+                    </PressableWithoutFeedback>
                 </View>
                 {shouldShowGreenDotIndicator && (
                     <View style={iconWrapperStyle}>
