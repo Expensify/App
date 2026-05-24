@@ -106,12 +106,19 @@ jest.mock('@hooks/usePermissions', () => ({
     }),
 }));
 
-const mockDeleteTransactions = jest.fn(() => []);
+const createDeletedResult = (deletedTransactionThreadReportIDs: string[]) => ({
+    action: 'deleted' as const,
+    deletedTransactionThreadReportIDs,
+});
+type MockDeleteTransactionsResult = ReturnType<typeof createDeletedResult> | {action: 'redirected'};
+const mockDeleteTransactions = jest.fn<MockDeleteTransactionsResult, []>(() => createDeletedResult([]));
+const mockShouldOpenSplitExpenseEditFlowOnDelete = jest.fn(() => false);
 
 jest.mock('@hooks/useDeleteTransactions', () => ({
     __esModule: true,
     default: () => ({
         deleteTransactions: mockDeleteTransactions,
+        shouldOpenSplitExpenseEditFlowOnDelete: mockShouldOpenSplitExpenseEditFlowOnDelete,
     }),
 }));
 
@@ -152,6 +159,7 @@ describe('useSelectedTransactionsActions', () => {
             delete mockSelectedTransactions[key];
         }
         mockIsOffline = false;
+        mockShouldOpenSplitExpenseEditFlowOnDelete.mockReturnValue(false);
     });
 
     afterEach(async () => {
@@ -396,7 +404,7 @@ describe('useSelectedTransactionsActions', () => {
         transaction.transactionID = transactionID;
 
         mockSelectedTransactionIDs.push(transactionID);
-        (mockDeleteTransactions as jest.Mock<string[]>).mockReturnValue(['report1', 'report2']);
+        mockDeleteTransactions.mockReturnValue(createDeletedResult(['report1', 'report2']));
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
@@ -419,6 +427,63 @@ describe('useSelectedTransactionsActions', () => {
         expect(result.current.isDeleteModalVisible).toBe(false);
     });
 
+    it('should show edit split action and delete transactions when deleting redirects to split edit', async () => {
+        const transactionID = '123';
+        const report = createRandomReport(1, undefined);
+        const session: Session = {accountID: 1};
+        const reportActions: ReportAction[] = [
+            {
+                ...createRandomReportAction(1),
+                reportActionID: 'action1',
+                actorAccountID: 1,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: 'iou123',
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    transactionID,
+                },
+            },
+        ];
+        const transaction = createRandomTransaction(1);
+        transaction.transactionID = transactionID;
+        transaction.reportID = report.reportID;
+
+        mockSelectedTransactionIDs.push(transactionID);
+        mockShouldOpenSplitExpenseEditFlowOnDelete.mockReturnValue(true);
+        mockDeleteTransactions.mockReturnValue({action: 'redirected'});
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+
+        jest.spyOn(require('@libs/ReportUtils'), 'canDeleteCardTransactionByLiabilityType').mockReturnValue(true);
+        jest.spyOn(require('@libs/ReportUtils'), 'canDeleteTransaction').mockReturnValue(true);
+        jest.spyOn(require('@libs/ReportActionsUtils'), 'isDeletedAction').mockReturnValue(false);
+        jest.spyOn(require('@libs/ReportActionsUtils'), 'getIOUActionForTransactionID').mockReturnValue(reportActions.at(0) as OnyxEntry<ReportAction>);
+
+        const {result} = renderHook(() =>
+            useSelectedTransactionsActions({
+                report,
+                reportActions,
+                allTransactionsLength: 1,
+                session,
+                beginExportWithTemplate: mockBeginExportWithTemplate,
+            }),
+        );
+
+        await waitFor(() => {
+            expect(result.current.options.length).toBeGreaterThan(0);
+        });
+
+        const deleteOption = result.current.options.find((option) => option.value === CONST.REPORT.SECONDARY_ACTIONS.DELETE);
+        expect(deleteOption).toBeDefined();
+        expect(deleteOption?.text).toBe('iou.editSplits');
+
+        const clearSelectedTransactionsCallsBeforeSelection = mockClearSelectedTransactions.mock.calls.length;
+        deleteOption?.onSelected?.();
+
+        expect(mockDeleteTransactions).toHaveBeenCalledWith([transactionID], mockDuplicateTransactions, mockDuplicateTransactionViolations, undefined, false);
+        expect(mockClearSelectedTransactions.mock.calls.length).toBe(clearSelectedTransactionsCallsBeforeSelection);
+    });
+
     it('should pass currentSearchHash to delete transactions when on search', async () => {
         const transactionID = '123';
         const report = createRandomReport(1, undefined);
@@ -427,7 +492,7 @@ describe('useSelectedTransactionsActions', () => {
         transaction.transactionID = transactionID;
 
         mockSelectedTransactionIDs.push(transactionID);
-        (mockDeleteTransactions as jest.Mock<string[]>).mockReturnValue(['report1']);
+        mockDeleteTransactions.mockReturnValue(createDeletedResult(['report1']));
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
@@ -837,6 +902,130 @@ describe('useSelectedTransactionsActions', () => {
         splitOption?.onSelected?.();
 
         expect(initSplitExpense).toHaveBeenCalled();
+    });
+
+    it('should show split option after the other split half was deleted', async () => {
+        // Given an open expense report the current user owns and belongs to
+        const transactionID = '123';
+        const report = {
+            ...createRandomReport(1, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+        const policy = {
+            ...createRandomPolicy(1),
+            isPolicyExpenseChatEnabled: true,
+            role: CONST.POLICY.ROLE.ADMIN,
+            employeeList: {
+                [CURRENT_USER_LOGIN]: {role: CONST.POLICY.ROLE.ADMIN},
+            },
+        };
+        const reportActions: ReportAction[] = [];
+
+        // And a single selected transaction still tagged as a split child
+        const transaction = {
+            ...createRandomTransaction(1),
+            transactionID,
+            amount: 1000,
+            status: CONST.TRANSACTION.STATUS.POSTED,
+            comment: {originalTransactionID: 'ORIGINAL_TXN', source: CONST.IOU.TYPE.SPLIT},
+        };
+
+        mockSelectedTransactionIDs.push(transactionID);
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID});
+
+        jest.spyOn(require('@libs/TransactionUtils'), 'getOriginalTransactionWithSplitInfo').mockReturnValue({
+            isBillSplit: false,
+            isExpenseSplit: true,
+            originalTransaction: transaction,
+        });
+
+        // And no siblings remain, so the split has dissolved
+        jest.spyOn(require('@libs/TransactionUtils'), 'getChildTransactions').mockReturnValue([transaction]);
+        jest.spyOn(require('@libs/ReportSecondaryActionUtils'), 'isSplitAction').mockReturnValue(true);
+
+        // When the bulk selected-transactions actions are computed
+        const {result} = renderHook(() =>
+            useSelectedTransactionsActions({
+                report,
+                reportActions,
+                allTransactionsLength: 1,
+                policy,
+                beginExportWithTemplate: mockBeginExportWithTemplate,
+            }),
+        );
+
+        // Then the split option is available
+        await waitFor(() => {
+            const splitOption = result.current.options.find((option) => option.value === 'split');
+            expect(splitOption).toBeDefined();
+        });
+    });
+
+    it('should hide split option for an intact multi-child split', async () => {
+        // Given an open expense report the current user owns and belongs to
+        const transactionID = '123';
+        const report = {
+            ...createRandomReport(1, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+        const policy = {
+            ...createRandomPolicy(1),
+            isPolicyExpenseChatEnabled: true,
+            role: CONST.POLICY.ROLE.ADMIN,
+            employeeList: {
+                [CURRENT_USER_LOGIN]: {role: CONST.POLICY.ROLE.ADMIN},
+            },
+        };
+        const reportActions: ReportAction[] = [];
+
+        // And a single selected transaction still tagged as a split child
+        const transaction = {
+            ...createRandomTransaction(1),
+            transactionID,
+            amount: 1000,
+            status: CONST.TRANSACTION.STATUS.POSTED,
+            comment: {originalTransactionID: 'ORIGINAL_TXN', source: CONST.IOU.TYPE.SPLIT},
+        };
+
+        mockSelectedTransactionIDs.push(transactionID);
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID});
+
+        jest.spyOn(require('@libs/TransactionUtils'), 'getOriginalTransactionWithSplitInfo').mockReturnValue({
+            isBillSplit: false,
+            isExpenseSplit: true,
+            originalTransaction: transaction,
+        });
+
+        // And siblings still remain, so it is an intact split (edited via "Edit splits", not re-split)
+        jest.spyOn(require('@libs/TransactionUtils'), 'getChildTransactions').mockReturnValue([transaction, transaction]);
+        jest.spyOn(require('@libs/ReportSecondaryActionUtils'), 'isSplitAction').mockReturnValue(true);
+
+        // When the bulk selected-transactions actions are computed
+        const {result} = renderHook(() =>
+            useSelectedTransactionsActions({
+                report,
+                reportActions,
+                allTransactionsLength: 1,
+                policy,
+                beginExportWithTemplate: mockBeginExportWithTemplate,
+            }),
+        );
+
+        // Then the split option is not offered
+        await waitFor(() => {
+            expect(result.current.options.length).toBeGreaterThan(0);
+        });
+        expect(result.current.options.find((option) => option.value === 'split')).toBeUndefined();
     });
 
     it('should show merge option when transaction can be merged', async () => {

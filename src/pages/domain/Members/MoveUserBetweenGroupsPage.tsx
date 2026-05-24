@@ -23,6 +23,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {Domain} from '@src/types/onyx';
+import useDomainGroupMoveValidation from './useDomainGroupMoveValidation';
 
 type SecurityGroupItem = ListItem & {
     value: string;
@@ -34,8 +35,8 @@ function MoveUserBetweenGroupsPage({route}: MoveUserBetweenGroupsPageProps) {
     const {domainAccountID, accountID} = route.params;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-
     const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>();
+    const {isBlocked, showBlockedModal} = useDomainGroupMoveValidation(domainAccountID, selectedGroupId);
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
     const [securityGroups] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: groupsSelector});
 
@@ -65,6 +66,11 @@ function MoveUserBetweenGroupsPage({route}: MoveUserBetweenGroupsPageProps) {
 
         if (selectedGroupId === currentGroupId) {
             Navigation.goBack(ROUTES.DOMAIN_MEMBER_DETAILS.getRoute(domainAccountID, accountID));
+            return;
+        }
+
+        if (isBlocked) {
+            showBlockedModal();
             return;
         }
 
