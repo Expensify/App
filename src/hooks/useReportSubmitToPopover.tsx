@@ -91,7 +91,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess}: UseReportSubmitTo
                 shouldSkipRemeasurement
                 shouldDisplayBelowModals
             >
-                <View style={[StyleUtils.getHeight(popoverDimensions.height), styles.flexColumn]}>
+                <View style={[StyleUtils.getHeight(popoverDimensions.height), styles.flexColumn, styles.flex1]}>
                     <ReportSubmitToContent
                         report={report}
                         policy={policy}

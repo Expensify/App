@@ -8,6 +8,7 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -16,8 +17,10 @@ import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotal
 import useThemeStyles from '@hooks/useThemeStyles';
 import {search} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getDefaultApprover, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils, isExpenseReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import {submitReport} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -42,7 +45,7 @@ type ReportSubmitToContentProps = {
 
 function ReportSubmitToContent({report, policy, isLoadingReportData, onDismiss, shouldShowTitle = false, onSubmitSuccess, shouldDismissRHPAfterSubmit = true}: ReportSubmitToContentProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -52,6 +55,8 @@ function ReportSubmitToContent({report, policy, isLoadingReportData, onDismiss, 
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {isOffline} = useNetwork();
     const {currentSearchQueryJSON, currentSearchKey, currentSearchResults} = useSearchStateContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
@@ -96,6 +101,31 @@ function ReportSubmitToContent({report, policy, isLoadingReportData, onDismiss, 
             ];
         });
     }, [policy?.employeeList, personalDetails, managerEmail]);
+
+    const sortedWorkspaceMembers = useMemo(() => sortAlphabetically(workspaceMembers, 'text', localeCompare), [workspaceMembers, localeCompare]);
+
+    const filteredWorkspaceMembers = useMemo(() => {
+        if (!debouncedSearchTerm.trim()) {
+            return sortedWorkspaceMembers;
+        }
+        const normalized = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode);
+        return tokenizedSearch(sortedWorkspaceMembers, normalized, (item) => [item.text ?? '', item.alternateText ?? '', item.email]);
+    }, [sortedWorkspaceMembers, debouncedSearchTerm, countryCode]);
+
+    const noMatchingMembers = !!debouncedSearchTerm.trim() && filteredWorkspaceMembers.length === 0;
+
+    const textInputOptions = useMemo(
+        () => ({
+            value: searchTerm,
+            label: translate('common.search'),
+            onChangeText: setSearchTerm,
+            headerMessage: noMatchingMembers ? translate('common.noResultsFound') : undefined,
+            style: {
+                containerStyle: styles.pv3,
+            },
+        }),
+        [searchTerm, setSearchTerm, translate, noMatchingMembers],
+    );
 
     const handleSubmit = useCallback(() => {
         const trimmed = managerEmail.trim();
@@ -167,6 +197,7 @@ function ReportSubmitToContent({report, policy, isLoadingReportData, onDismiss, 
             showButton: true,
             text: translate('common.confirm'),
             onConfirm: handleSubmit,
+            confirmButtonSize: 'medium' as const,
         }),
         [handleSubmit, translate],
     );
@@ -180,15 +211,18 @@ function ReportSubmitToContent({report, policy, isLoadingReportData, onDismiss, 
     }
 
     return (
-        <View style={[styles.w100, styles.flexColumn, shouldShowTitle && styles.gap2]}>
-            {!!shouldShowTitle && <Text style={[styles.textStrong, styles.ph3, styles.pt3]}>{translate('common.submitTo')}</Text>}
+        <View style={[styles.w100, styles.flex1, styles.flexColumn, shouldShowTitle && styles.gap2]}>
             <SelectionList
-                data={workspaceMembers}
+                data={filteredWorkspaceMembers}
                 ListItem={SingleSelectListItem}
                 onSelectRow={onSelectMember}
                 confirmButtonOptions={confirmButtonOptions}
+                textInputOptions={textInputOptions}
+                shouldShowTextInput
+                style={{containerStyle: styles.flex1}}
                 shouldUpdateFocusedIndex
-                initiallyFocusedItemKey={workspaceMembers.find((m) => m.isSelected)?.keyForList}
+                initiallyFocusedItemKey={filteredWorkspaceMembers.find((m) => m.isSelected)?.keyForList}
+                shouldShowLoadingPlaceholder={!noMatchingMembers}
                 disableMaintainingScrollPosition
                 addBottomSafeAreaPadding={!shouldShowTitle}
             />
