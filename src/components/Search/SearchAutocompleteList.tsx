@@ -387,20 +387,28 @@ function SearchAutocompleteList({
     // an effect (which causes cascading renders) and to avoid reading refs during render.
     const [frozenLocalRank, setFrozenLocalRank] = useState<ReadonlyMap<string, number>>(new Map());
     const [prevAutocompleteQuery, setPrevAutocompleteQuery] = useState(autocompleteQueryValue);
+
+    const buildRankMap = (options: OptionData[]): Map<string, number> => {
+        const rank = new Map<string, number>();
+        for (const [index, option] of options.entries()) {
+            const key = option.keyForList ?? option.reportID ?? (option.accountID ? String(option.accountID) : undefined);
+            if (key) {
+                rank.set(key, index);
+            }
+        }
+        return rank;
+    };
+
     if (prevAutocompleteQuery !== autocompleteQueryValue) {
         setPrevAutocompleteQuery(autocompleteQueryValue);
         if (autocompleteQueryValue.trim() === '') {
             setFrozenLocalRank(new Map());
         } else {
-            const rank = new Map<string, number>();
-            for (const [index, option] of recentReportsOptions.entries()) {
-                const key = option.keyForList ?? option.reportID ?? (option.accountID ? String(option.accountID) : undefined);
-                if (key) {
-                    rank.set(key, index);
-                }
-            }
-            setFrozenLocalRank(rank);
+            setFrozenLocalRank(buildRankMap(recentReportsOptions));
         }
+    } else if (autocompleteQueryValue.trim() !== '' && frozenLocalRank.size === 0 && recentReportsOptions.length > 0) {
+        // Options hydrated after the rank was snapshotted as empty — recompute.
+        setFrozenLocalRank(buildRankMap(recentReportsOptions));
     }
 
     const debounceHandleSearch = useDebounce(() => {
@@ -649,4 +657,3 @@ SearchAutocompleteList.displayName = 'SearchAutocompleteList';
 
 export default React.memo(SearchAutocompleteList);
 export {SearchRouterItem};
-export type {GetAdditionalSectionsCallback, SearchAutocompleteListProps};
