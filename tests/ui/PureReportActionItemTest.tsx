@@ -80,6 +80,14 @@ jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed
 
 const ACTOR_ACCOUNT_ID = 123456789;
 const actorEmail = 'test@test.com';
+const testPersonalDetailsList = {
+    [ACTOR_ACCOUNT_ID]: {
+        accountID: ACTOR_ACCOUNT_ID,
+        avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_9.png',
+        displayName: actorEmail,
+        login: actorEmail,
+    },
+};
 
 const createReportAction = (actionName: ReportActionName, originalMessageExtras: Partial<OriginalMessage<ReportActionName>>) =>
     ({
@@ -631,6 +639,10 @@ describe('PureReportActionItem', () => {
                 type: CONST.REPORT.TYPE.CHAT,
             };
 
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            });
+
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
                     <OptionsListContextProvider>
@@ -638,6 +650,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={report}
+                                    originalReportID={report.reportID}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -687,6 +700,10 @@ describe('PureReportActionItem', () => {
                 type: CONST.REPORT.TYPE.CHAT,
             };
 
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            });
+
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
                     <OptionsListContextProvider>
@@ -694,6 +711,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     report={report}
+                                    originalReportID={report.reportID}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -1469,6 +1487,7 @@ describe('PureReportActionItem', () => {
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
+                                    personalDetails={testPersonalDetailsList}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1506,6 +1525,7 @@ describe('PureReportActionItem', () => {
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
+                                    personalDetails={testPersonalDetailsList}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1554,6 +1574,7 @@ describe('PureReportActionItem', () => {
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
+                                    personalDetails={testPersonalDetailsList}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1590,6 +1611,7 @@ describe('PureReportActionItem', () => {
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
+                                    personalDetails={testPersonalDetailsList}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1600,7 +1622,7 @@ describe('PureReportActionItem', () => {
 
             expect(screen.queryByText(translateLocal('bankAccount.addBankAccount'))).toBeNull();
             expect(screen.queryByText(translateLocal('iou.enableWallet'))).toBeNull();
-            expect(screen.getByText(translateLocal('iou.waitingOnBankAccount', 'Hidden'))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.waitingOnBankAccount', actorEmail))).toBeOnTheScreen();
         });
 
         it('REIMBURSEMENT_QUEUED with a Gold wallet tier hides the enable wallet button', async () => {
@@ -1630,6 +1652,7 @@ describe('PureReportActionItem', () => {
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
+                                    personalDetails={testPersonalDetailsList}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1639,7 +1662,7 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.queryByText(translateLocal('iou.enableWallet'))).toBeNull();
-            expect(screen.getByText(translateLocal('iou.waitingOnEnabledWallet', 'Hidden'))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.waitingOnEnabledWallet', actorEmail))).toBeOnTheScreen();
         });
 
         it('IOU PAY VBBA manual renders business bank account message with last 4 digits', async () => {
@@ -2600,7 +2623,18 @@ describe('PureReportActionItem', () => {
             expect(screen.getByTestId('MoneyRequestReportPreviewContent-wrapper')).toBeOnTheScreen();
         });
 
+        const HARVEST_REPORT_ID = 'harvestReport123';
+        const ORIGINAL_REPORT_ID = 'origReport123';
+
         it('CREATED harvest renders CreateHarvestReportAction via BasicMessage', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${HARVEST_REPORT_ID}`, {
+                    origin: 'harvest',
+                    originalID: ORIGINAL_REPORT_ID,
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.CREATED, {});
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
@@ -2608,15 +2642,14 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    report={undefined}
+                                    report={{reportID: HARVEST_REPORT_ID}}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
-                                    reportNameValuePairsOrigin="harvest"
-                                    reportNameValuePairsOriginalID="origReport123"
+                                    isHarvestCreatedExpenseReport
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -2628,12 +2661,16 @@ describe('PureReportActionItem', () => {
             expect(screen.getByText(/created this report to hold/i)).toBeOnTheScreen();
             // When the original report is not loaded in Onyx, the link must fall back to "#<originalID>"
             // instead of rendering an empty hyperlink (regression guard for issue #90422).
-            expect(screen.getByText('#origReport123')).toBeOnTheScreen();
+            expect(screen.getByText(`#${ORIGINAL_REPORT_ID}`)).toBeOnTheScreen();
         });
         it('CREATED harvest renders the original report name when it is loaded in Onyx', async () => {
             await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}origReport123`, {
-                    reportID: 'origReport123',
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${HARVEST_REPORT_ID}`, {
+                    origin: 'harvest',
+                    originalID: ORIGINAL_REPORT_ID,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${ORIGINAL_REPORT_ID}`, {
+                    reportID: ORIGINAL_REPORT_ID,
                     reportName: 'Q1 Expenses',
                 });
             });
@@ -2646,15 +2683,14 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    report={undefined}
+                                    report={{reportID: HARVEST_REPORT_ID}}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
-                                    reportNameValuePairsOrigin="harvest"
-                                    reportNameValuePairsOriginalID="origReport123"
+                                    isHarvestCreatedExpenseReport
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -2665,7 +2701,7 @@ describe('PureReportActionItem', () => {
 
             expect(screen.getByText(/created this report to hold/i)).toBeOnTheScreen();
             expect(screen.getByText('Q1 Expenses')).toBeOnTheScreen();
-            expect(screen.queryByText('#origReport123')).not.toBeOnTheScreen();
+            expect(screen.queryByText(`#${ORIGINAL_REPORT_ID}`)).not.toBeOnTheScreen();
         });
         it('isWhisperActionTargetedToOthers returns null', async () => {
             await act(async () => {
@@ -2753,7 +2789,7 @@ describe('PureReportActionItem', () => {
 
     // Path: No FE flow creates IOU + reject/cancel/delete/approve actions; this defensive path is only
     // reachable from BE-emitted actions
-    describe('IouReportActionMessage edge subtypes', () => {
+    describe('IOUReportActionMessage edge subtypes', () => {
         const TEST_REPORT_ID = 'iouEdgeReport123';
         const TEST_TRANSACTION_ID = 'iouEdgeTx456';
 
