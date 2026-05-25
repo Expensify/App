@@ -12,7 +12,9 @@ import {useSearchStateContext} from '@components/Search/SearchContext';
 import type {TransactionListItemProps, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {ListItem} from '@components/SelectionList/types';
 import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTransactionInlineEdit from '@hooks/useTransactionInlineEdit';
@@ -22,7 +24,13 @@ import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {isInvoiceReport} from '@libs/ReportUtils';
-import {isDeletedTransaction as isDeletedTransactionUtil, isViolationDismissed, mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
+import {
+    isDeletedTransaction as isDeletedTransactionUtil,
+    isViolationDismissed,
+    mergeProhibitedViolations,
+    shouldShowViolation,
+    showPendingCardTransactionsBlockModal,
+} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
@@ -129,6 +137,8 @@ function TransactionListItem<TItem extends ListItem>({
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const {isEditingCell, wasRecentlyEditingCell} = useEditingCellState();
     const [shouldDisableHoverStyle, setShouldDisableHoverStyle] = useState(false);
 
@@ -207,6 +217,7 @@ function TransactionListItem<TItem extends ListItem>({
             ownerBillingGracePeriodEnd,
             amountOwed,
             onUndelete: () => onUndelete?.(transactionItem),
+            onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate),
         });
     };
 
