@@ -32,8 +32,9 @@ function EnterSignerInfo({policyID, bankAccountID, bankAccountLastFour}: EnterSi
             iconFill={colors.tangerine500}
             title={translate('homePage.timeSensitiveSection.enterSignerInfo.title')}
             subtitle={translate('homePage.timeSensitiveSection.enterSignerInfo.subtitle', {bankAccountLastFour})}
-            ctaText={translate('signerInfoStep.enterSignerInfo')}
+            ctaText={translate('homePage.forYouSection.begin')}
             onCtaPress={handleCtaPress}
+            buttonProps={{success: true}}
         />
     );
 }
