@@ -44,7 +44,6 @@ import replaceWithSplitNavigator from './helpers/replaceWithSplitNavigator';
 import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionToMicrotaskQueue';
 import {linkingConfig} from './linkingConfig';
 import {SPLIT_TO_SIDEBAR} from './linkingConfig/RELATIONS';
-import navigateAfterInteraction from './navigateAfterInteraction';
 import navigationRef from './navigationRef';
 import TransitionTracker from './TransitionTracker';
 import type {
@@ -1010,20 +1009,12 @@ function revealRouteBeforeDismissingModal(route: Route, options?: {afterTransiti
             type: CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP,
             payload: {route, collapseTabToLeaf: options?.collapseTabToLeaf},
         });
-        // Nested rAF: the first frame commits the route insertion, the second
-        // frame starts the dismiss. This ensures React processes the two dispatches
-        // in separate renders so the dismiss animation is preserved. On narrow,
-        // wait for the hidden destination transition first so the RHP slides out
-        // over the final page instead of briefly revealing the previous page.
-        requestAnimationFrame(() => {
-            // On iOS Native the freshly inserted fullscreen route hasn't laid out
-            // yet by the time the modal dismiss animation starts, so the slide
-            // momentarily reveals a blank screen. navigateAfterInteraction is a
-            // no-op on web/Android and waits for InteractionManager + microtask + rAF
-            // on iOS, giving the destination time to paint before the dismiss runs.
-            navigateAfterInteraction(() => {
-                dismissModal({afterTransition: options?.afterTransition, waitForTransition: getIsNarrowLayout()});
-            });
+        // Wait for the inserted route's transition before dismissing the modal: the freshly
+        // inserted fullscreen route needs to finish its layout/transition before the RHP
+        // slides away, otherwise the dismiss momentarily reveals a blank screen on iOS.
+        TransitionTracker.runAfterTransitions({
+            callback: () => dismissModal({afterTransition: options?.afterTransition, waitForTransition: getIsNarrowLayout()}),
+            waitForUpcomingTransition: true,
         });
     });
 }
