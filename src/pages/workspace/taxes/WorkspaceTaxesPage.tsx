@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -252,9 +251,7 @@ function WorkspaceTaxesPage({
         }
         deletePolicyTaxes(policy, selectedTaxesIDs, localeCompare);
 
-        InteractionManager.runAfterInteractions(() => {
-            setSelectedTaxesIDs([]);
-        });
+        setSelectedTaxesIDs([]);
     }, [policy, selectedTaxesIDs, localeCompare]);
 
     const toggleTaxes = useCallback(
@@ -407,7 +404,7 @@ function WorkspaceTaxesPage({
                     <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.taxes.subtitle')}</Text>
                 )}
             </View>
-            {taxesList.length > CONST.SEARCH_ITEM_LIMIT && (
+            {taxesList.length >= CONST.STANDARD_LIST_ITEM_LIMIT && (
                 <SearchBar
                     label={translate('workspace.taxes.findTaxRate')}
                     inputValue={inputValue}

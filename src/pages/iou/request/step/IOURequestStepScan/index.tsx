@@ -12,7 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {cancelSpan, endSpan} from '@libs/telemetry/activeSpans';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
-import {updateLastLocationPermissionPrompt} from '@userActions/IOU';
+import {updateLastLocationPermissionPrompt} from '@userActions/IOU/MoneyRequest';
 import {checkIfLocalFileIsAccessible, replaceReceipt} from '@userActions/IOU/Receipt';
 import {removeDraftTransactionsByIDs, removeTransactionReceipt} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
