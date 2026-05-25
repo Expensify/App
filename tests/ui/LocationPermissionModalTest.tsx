@@ -11,6 +11,7 @@ type MockConfirmModalProps = Record<string, unknown>;
 
 const mockGetLocationPermission = jest.fn();
 const mockRequestLocationPermission = jest.fn();
+const mockUpdateLastLocationPermissionPrompt = jest.fn();
 
 let mockConfirmModalProps: MockConfirmModalProps = {};
 
@@ -56,6 +57,12 @@ jest.mock('@libs/Visibility', () => ({
 jest.mock('@pages/iou/request/step/IOURequestStepScan/LocationPermission', () => ({
     getLocationPermission: (...args: unknown[]) => mockGetLocationPermission(...args) as Promise<string>,
     requestLocationPermission: (...args: unknown[]) => mockRequestLocationPermission(...args) as Promise<string>,
+}));
+
+jest.mock('@userActions/IOU/MoneyRequest', () => ({
+    updateLastLocationPermissionPrompt: () => {
+        mockUpdateLastLocationPermissionPrompt();
+    },
 }));
 
 jest.mock('react-native-permissions', () => ({
@@ -121,7 +128,7 @@ describe('LocationPermissionModal', () => {
         jest.restoreAllMocks();
     });
 
-    it('passes a user-initiated denial when the user explicitly skips the prompt', async () => {
+    it('updates the prompt timestamp when the user explicitly skips the prompt', async () => {
         const props = createDefaultProps();
         mockGetLocationPermission.mockResolvedValue(RESULTS.DENIED);
 
@@ -129,16 +136,15 @@ describe('LocationPermissionModal', () => {
 
         await waitFor(() => expect(getConfirmModalProp<boolean>('isVisible')).toBe(true));
 
-        // Given the location prompt is visible, when the user presses "Not now",
-        // Then consumers should treat this as an explicit skip and keep the prompt delay behavior.
         await act(async () => {
             getConfirmModalProp<() => void>('onCancel')?.();
         });
 
-        expect(props.onDeny).toHaveBeenCalledWith(true);
+        expect(mockUpdateLastLocationPermissionPrompt).toHaveBeenCalledTimes(1);
+        expect(props.onDeny).toHaveBeenCalledWith();
     });
 
-    it('passes a non-user-initiated denial when blocked browser permission is still blocked after confirm', async () => {
+    it('does not update the prompt timestamp when blocked browser permission is still blocked after confirm', async () => {
         const props = createDefaultProps();
         mockGetLocationPermission.mockResolvedValue(RESULTS.BLOCKED);
         setOpenSettings(undefined);
@@ -150,17 +156,16 @@ describe('LocationPermissionModal', () => {
         expect(getConfirmModalProp<string>('confirmText')).toBe('common.buttonConfirm');
         expect(getConfirmModalProp<boolean>('shouldShowCancelButton')).toBe(false);
 
-        // Given web geolocation is already blocked, when the user confirms the app prompt,
-        // Then consumers should not treat the browser refusal as an explicit user skip.
         await act(async () => {
             getConfirmModalProp<() => void>('onConfirm')?.();
         });
 
-        await waitFor(() => expect(props.onDeny).toHaveBeenCalledWith(false));
+        await waitFor(() => expect(props.onDeny).toHaveBeenCalledWith());
+        expect(mockUpdateLastLocationPermissionPrompt).not.toHaveBeenCalled();
         expect(mockRequestLocationPermission).not.toHaveBeenCalled();
     });
 
-    it('passes a non-user-initiated denial when the OS denies after the user tries to continue', async () => {
+    it('does not update the prompt timestamp when the OS denies after the user tries to continue', async () => {
         const props = createDefaultProps();
         mockGetLocationPermission.mockResolvedValue(RESULTS.DENIED);
         mockRequestLocationPermission.mockResolvedValue(RESULTS.DENIED);
@@ -169,17 +174,16 @@ describe('LocationPermissionModal', () => {
 
         await waitFor(() => expect(getConfirmModalProp<boolean>('isVisible')).toBe(true));
 
-        // Given the app can request permission, when the platform denies that request,
-        // Then consumers should continue without writing the explicit-skip prompt delay.
         await act(async () => {
             getConfirmModalProp<() => void>('onConfirm')?.();
         });
 
-        await waitFor(() => expect(props.onDeny).toHaveBeenCalledWith(false));
+        await waitFor(() => expect(props.onDeny).toHaveBeenCalledWith());
+        expect(mockUpdateLastLocationPermissionPrompt).not.toHaveBeenCalled();
         expect(mockRequestLocationPermission).toHaveBeenCalledTimes(1);
     });
 
-    it('passes a non-user-initiated denial from Android when the OS denies after continue', async () => {
+    it('does not update the prompt timestamp from Android when the OS denies after continue', async () => {
         const props = createDefaultProps();
         mockGetLocationPermission.mockResolvedValue(RESULTS.DENIED);
         mockRequestLocationPermission.mockResolvedValue(RESULTS.DENIED);
@@ -188,16 +192,15 @@ describe('LocationPermissionModal', () => {
 
         await waitFor(() => expect(getConfirmModalProp<boolean>('isVisible')).toBe(true));
 
-        // Given Android shows the permission prompt, when the OS denies after "Continue",
-        // Then consumers should not write the explicit-skip prompt delay.
         await act(async () => {
             getConfirmModalProp<() => void>('onConfirm')?.();
         });
 
-        await waitFor(() => expect(props.onDeny).toHaveBeenCalledWith(false));
+        await waitFor(() => expect(props.onDeny).toHaveBeenCalledWith());
+        expect(mockUpdateLastLocationPermissionPrompt).not.toHaveBeenCalled();
     });
 
-    it('passes a user-initiated denial from Android when the user explicitly skips the prompt', async () => {
+    it('updates the prompt timestamp from Android when the user explicitly skips the prompt', async () => {
         const props = createDefaultProps();
         mockGetLocationPermission.mockResolvedValue(RESULTS.BLOCKED);
 
@@ -205,12 +208,11 @@ describe('LocationPermissionModal', () => {
 
         await waitFor(() => expect(getConfirmModalProp<boolean>('isVisible')).toBe(true));
 
-        // Given Android shows a blocked-permission prompt, when the user presses "Not now",
-        // Then consumers should keep the explicit-skip prompt delay behavior.
         await act(async () => {
             getConfirmModalProp<() => void>('onCancel')?.();
         });
 
-        expect(props.onDeny).toHaveBeenCalledWith(true);
+        expect(mockUpdateLastLocationPermissionPrompt).toHaveBeenCalledTimes(1);
+        expect(props.onDeny).toHaveBeenCalledWith();
     });
 });

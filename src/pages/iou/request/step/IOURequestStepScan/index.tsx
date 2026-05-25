@@ -12,7 +12,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import {cancelSpan, endSpan} from '@libs/telemetry/activeSpans';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
-import {updateLastLocationPermissionPrompt} from '@userActions/IOU/MoneyRequest';
 import {checkIfLocalFileIsAccessible, replaceReceipt} from '@userActions/IOU/Receipt';
 import {removeDraftTransactionsByIDs, removeTransactionReceipt} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
@@ -208,12 +207,7 @@ function IOURequestStepScan({
                     startPermissionFlow={startLocationPermissionFlow}
                     resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
                     onGrant={() => navigateToConfirmationStep(receiptFiles, true)}
-                    onDeny={(wasUserInitiated) => {
-                        if (wasUserInitiated) {
-                            updateLastLocationPermissionPrompt();
-                        }
-                        navigateToConfirmationStep(receiptFiles, false);
-                    }}
+                    onDeny={() => navigateToConfirmationStep(receiptFiles, false)}
                 />
             )}
         </>

@@ -10,6 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
 import Visibility from '@libs/Visibility';
 import {getLocationPermission, requestLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
+import {updateLastLocationPermissionPrompt} from '@userActions/IOU/MoneyRequest';
 import CONST from '@src/CONST';
 import type LocationPermissionModalProps from './types';
 
@@ -82,7 +83,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
                     if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
                         onGrant();
                     } else {
-                        onDeny?.(false);
+                        onDeny();
                     }
                 });
             }
@@ -99,8 +100,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
                 if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
                     onGrant();
                 } else {
-                    // Browser/OS denied or blocked the permission without a user-driven decision (no OS prompt was actually shown).
-                    onDeny(false);
+                    onDeny();
                 }
             })
             .finally(() => {
@@ -111,7 +111,8 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     });
 
     const skipLocationPermission = () => {
-        onDeny(true);
+        updateLastLocationPermissionPrompt();
+        onDeny();
         setShowModal(false);
         setHasError(false);
     };

@@ -7,6 +7,7 @@ import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLocationPermission, requestLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
+import {updateLastLocationPermissionPrompt} from '@userActions/IOU/MoneyRequest';
 import type LocationPermissionModalProps from './types';
 
 function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDeny, onGrant, onInitialGetLocationCompleted}: LocationPermissionModalProps) {
@@ -56,8 +57,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
                     setHasError(true);
                     return;
                 } else {
-                    // OS-level denial after the user pressed "Continue" (e.g. tapped "Don't allow" on the system prompt).
-                    onDeny(false);
+                    onDeny();
                 }
                 setShowModal(false);
                 setHasError(false);
@@ -68,7 +68,8 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     });
 
     const skipLocationPermission = () => {
-        onDeny(true);
+        updateLastLocationPermissionPrompt();
+        onDeny();
         setShowModal(false);
         setHasError(false);
     };

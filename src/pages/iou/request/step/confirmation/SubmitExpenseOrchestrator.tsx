@@ -14,7 +14,6 @@ import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import getSubmitExpenseScenario from '@libs/telemetry/getSubmitExpenseScenario';
 import {setFastPath, setPendingSubmitFollowUpAction, startTracking} from '@libs/telemetry/submitFollowUpAction';
-import {updateLastLocationPermissionPrompt} from '@userActions/IOU/MoneyRequest';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -406,12 +405,9 @@ function SubmitExpenseOrchestrator({
                             createTransaction(selectedParticipantList, true);
                         });
                     }}
-                    onDeny={(wasUserInitiated) => {
+                    onDeny={() => {
                         startSubmitSpans();
                         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DEFAULT);
-                        if (wasUserInitiated) {
-                            updateLastLocationPermissionPrompt();
-                        }
                         navigateAfterInteraction(() => {
                             createTransaction(selectedParticipantList, false);
                         });

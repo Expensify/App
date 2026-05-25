@@ -2,8 +2,8 @@ type LocationPermissionModalProps = {
     /** A callback to call when the permission has been granted */
     onGrant: () => void;
 
-    /** A callback to call when the permission has been denied. `wasUserInitiated` is true only when the user explicitly pressed "Not now"; it is false when the underlying browser/OS layer denied or blocked the permission without a user-driven decision. */
-    onDeny: (wasUserInitiated: boolean) => void;
+    /** A callback to call when the permission has been denied */
+    onDeny: () => void;
 
     /** Should start the permission flow? */
     startPermissionFlow: boolean;
