@@ -8,6 +8,7 @@ import {useBlockedFromConcierge} from '@components/OnyxListItemProvider';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -89,8 +90,9 @@ function ChatMessageContent({
 
     const {hasBeenFlagged} = getModerationFlagState(action);
 
+    const {isOffline} = useNetwork();
     const [pendingFollowupList] = useOnyx(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${reportID}`);
-    const hasPendingFollowupListSkeleton = pendingFollowupList?.reportActionID === action.reportActionID;
+    const hasPendingFollowupListSkeleton = !isOffline && pendingFollowupList?.reportActionID === action.reportActionID;
 
     const messageHtml = getReportActionMessage(action)?.html;
     const mayHaveActionableButtons =
