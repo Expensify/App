@@ -4,7 +4,13 @@ import Log from '@libs/Log';
 import VictoryChartBar from './VictoryChartBar';
 import VictoryChartLine from './VictoryChartLine';
 
-type VictoryChartSeriesProps = {tnode: TNode};
+type VictoryChartSeriesProps = {
+    tnode: TNode;
+    /** Whether the parent chart has `horizontal` set. Bar renderers use this to switch orientation. */
+    horizontal: boolean;
+    /** Pixel offset along the category axis from `<victorygroup offset="…">`. 0 for ungrouped series. */
+    groupOffset: number;
+};
 
 type SeriesComponent = (props: VictoryChartSeriesProps) => React.ReactElement | null;
 
@@ -17,7 +23,7 @@ const SERIES_RENDERERS: Partial<Record<string, SeriesComponent>> = {
     victoryline: VictoryChartLine,
 };
 
-function VictoryChartSeries({tnode}: VictoryChartSeriesProps) {
+function VictoryChartSeries({tnode, horizontal, groupOffset}: VictoryChartSeriesProps) {
     const SeriesRenderer = SERIES_RENDERERS[tnode.tagName ?? ''];
 
     useEffect(() => {
@@ -31,7 +37,13 @@ function VictoryChartSeries({tnode}: VictoryChartSeriesProps) {
         return null;
     }
 
-    return <SeriesRenderer tnode={tnode} />;
+    return (
+        <SeriesRenderer
+            tnode={tnode}
+            horizontal={horizontal}
+            groupOffset={groupOffset}
+        />
+    );
 }
 
 VictoryChartSeries.displayName = 'VictoryChartSeries';

@@ -204,6 +204,10 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 tagName: 'victorychart',
                 contentModel: HTMLContentModel.block,
             }),
+            victorygroup: HTMLElementModel.fromCustomModel({
+                tagName: 'victorygroup',
+                contentModel: HTMLContentModel.block,
+            }),
             victorybar: HTMLElementModel.fromCustomModel({
                 tagName: 'victorybar',
                 contentModel: HTMLContentModel.block,

@@ -2,6 +2,7 @@ import React, {createContext, useContext} from 'react';
 import type {TNode} from 'react-native-render-html';
 import {useChartDefaultTypeface} from '@components/Charts/hooks';
 import {CHART_TYPE} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
+import applyHorizontalTransform from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/applyHorizontalTransform';
 import processVictoryChartTree from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/processVictoryChartTree';
 import type {ChartType, ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import parseStyles from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseStyles';
@@ -18,6 +19,8 @@ type VictoryChartContextValue = {
     chartContentStyles: ReturnType<typeof parseStyles>['nodeStyles'];
     chartContainerStyles: ReturnType<typeof parseStyles>['parentNodeStyles'];
     type: ChartType | null;
+    /** True when `<victorychart horizontal>` was specified — bars render horizontally and the value axis becomes the X axis. */
+    horizontal: boolean;
 };
 
 const VictoryChartContext = createContext<VictoryChartContextValue | null>(null);
@@ -28,8 +31,16 @@ const VictoryChartContext = createContext<VictoryChartContextValue | null>(null)
  */
 function VictoryChartProvider({tnode, children}: {tnode: TNode; children: React.ReactNode}) {
     const {regular: regularTypeface} = useChartDefaultTypeface();
-    const {data, xKey, yKeys, xAxis, yAxis, labelItems, legendItems} = processVictoryChartTree(tnode, regularTypeface);
+    const parsed = processVictoryChartTree(tnode, regularTypeface);
     const {nodeStyles: chartContentStyles, parentNodeStyles: chartContainerStyles} = parseStyles(tnode);
+
+    // `horizontal` attribute on <victorychart> follows Victory's web convention: same data shape,
+    // the renderer swaps roles so the value axis becomes the X axis and bars extend left-to-right.
+    // Boolean HTML attributes show up as either the literal string "true" or "" (empty); both count.
+    const horizontalAttr = tnode.attributes.horizontal;
+    const horizontal = horizontalAttr !== undefined && horizontalAttr !== 'false';
+
+    const {data, xKey, yKeys, xAxis, yAxis, labelItems, legendItems} = horizontal ? applyHorizontalTransform(parsed) : parsed;
 
     const hasCartesianData = Object.keys(data).length > 0;
     const hasPolarData = false;
@@ -60,6 +71,7 @@ function VictoryChartProvider({tnode, children}: {tnode: TNode; children: React.
         chartContentStyles,
         chartContainerStyles,
         type,
+        horizontal,
     };
 
     return <VictoryChartContext.Provider value={contextValue}>{children}</VictoryChartContext.Provider>;
