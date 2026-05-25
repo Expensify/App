@@ -51,6 +51,10 @@ type ConciergeDraftEvent = {
     startedAt?: string;
     terminalReason?: string;
     updatedAt?: string;
+    telemetryEnabled?: boolean;
+    telemetrySampled?: boolean;
+    agentZeroRequestID?: string;
+    triggeringReportActionID?: string;
     /**
      * Persona accountID the streamed draft should be attributed to — Concierge for Concierge
      * runs, the custom agent's accountID for agent runs. Optional for backward compatibility;

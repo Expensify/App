@@ -13,6 +13,7 @@ type MutableRef<T> = {
 
 type PusherDraftPaceRefs = {
     completedPusherDraftEventRef: MutableRef<ConciergeDraftEvent | null>;
+    draftStreamTimingRef: MutableRef<Map<string, DraftStreamTiming>>;
     latestPusherDraftEventRef: MutableRef<ConciergeDraftEvent | null>;
     pusherPaceIntervalRef: MutableRef<ReturnType<typeof setInterval> | null>;
     visibleBodyMarkdownRef: MutableRef<string>;
@@ -25,7 +26,35 @@ type PusherDraftPacingRuntime = PusherDraftPaceRefs & {
     visibleSequenceRef: MutableRef<number>;
 };
 
+type TerminalDraftStatus = Extract<ConciergeDraftEvent['status'], 'completed' | 'failed' | 'cleared'>;
+
+type DraftStreamTiming = {
+    agentZeroRequestID: string | null;
+    firstDraftReceivedAt: number;
+    firstVisibleAt?: number;
+    lastReceivedAt: number;
+    lastVisibleAt?: number;
+    maxBacklogChars: number;
+    maxReceiveGapMS: number;
+    maxVisibleGapMS: number;
+    maxVisibleLength: number;
+    receiveCount: number;
+    receiveGapCount: number;
+    receiveGapTotalMS: number;
+    reportID: string;
+    streamSessionID: string;
+    terminalAt?: number;
+    terminalStatus?: TerminalDraftStatus;
+    triggeringReportActionID: string | null;
+    visibleGapCount: number;
+    visibleGapTotalMS: number;
+    visibleUpdateCount: number;
+    wasPaced: boolean;
+};
+
 const PUSHER_DRAFT_PACE_INTERVAL_MS = 60;
+const APP_DRAFT_STREAM_SUMMARY_EVENT_TYPE = 'app_draft_stream_summary';
+const APP_DRAFT_STREAM_SUMMARY_LOG_PREFIX = `[ConciergeStreamingTiming] ${APP_DRAFT_STREAM_SUMMARY_EVENT_TYPE}`;
 const PUSHER_DRAFT_EVENT_TYPES = [
     Pusher.TYPE.CONCIERGE_DRAFT_STARTED,
     Pusher.TYPE.CONCIERGE_DRAFT_UPDATED,
@@ -33,6 +62,157 @@ const PUSHER_DRAFT_EVENT_TYPES = [
     Pusher.TYPE.CONCIERGE_DRAFT_FAILED,
     Pusher.TYPE.CONCIERGE_DRAFT_CLEARED,
 ] as const;
+
+function getTextLength(text: string | undefined): number {
+    return text ? Array.from(text).length : 0;
+}
+
+function getDraftStreamTiming(runtime: PusherDraftPaceRefs, event: ConciergeDraftEvent, receivedAt: number): DraftStreamTiming | null {
+    if (!event.telemetryEnabled && !event.telemetrySampled) {
+        return null;
+    }
+
+    const existingTiming = runtime.draftStreamTimingRef.current.get(event.streamSessionID);
+    if (existingTiming) {
+        return existingTiming;
+    }
+
+    const timing: DraftStreamTiming = {
+        agentZeroRequestID: event.agentZeroRequestID ?? null,
+        firstDraftReceivedAt: receivedAt,
+        lastReceivedAt: receivedAt,
+        maxBacklogChars: 0,
+        maxReceiveGapMS: 0,
+        maxVisibleGapMS: 0,
+        maxVisibleLength: 0,
+        receiveCount: 0,
+        receiveGapCount: 0,
+        receiveGapTotalMS: 0,
+        reportID: event.reportID,
+        streamSessionID: event.streamSessionID,
+        triggeringReportActionID: event.triggeringReportActionID ?? null,
+        visibleGapCount: 0,
+        visibleGapTotalMS: 0,
+        visibleUpdateCount: 0,
+        wasPaced: false,
+    };
+    runtime.draftStreamTimingRef.current.set(event.streamSessionID, timing);
+    return timing;
+}
+
+function updateDraftStreamBacklog(timing: DraftStreamTiming, receivedBodyMarkdown: string | undefined, visibleBodyMarkdown: string): void {
+    const backlogChars = Math.max(0, getTextLength(receivedBodyMarkdown) - getTextLength(visibleBodyMarkdown));
+    timing.maxBacklogChars = Math.max(timing.maxBacklogChars, backlogChars);
+}
+
+function recordDraftReceived(runtime: PusherDraftPaceRefs, event: ConciergeDraftEvent): void {
+    const receivedAt = Date.now();
+    const timing = getDraftStreamTiming(runtime, event, receivedAt);
+    if (!timing) {
+        return;
+    }
+
+    if (timing.receiveCount > 0) {
+        const receiveGapMS = receivedAt - timing.lastReceivedAt;
+        timing.receiveGapCount += 1;
+        timing.receiveGapTotalMS += receiveGapMS;
+        timing.maxReceiveGapMS = Math.max(timing.maxReceiveGapMS, receiveGapMS);
+    }
+
+    timing.lastReceivedAt = receivedAt;
+    timing.receiveCount += 1;
+    updateDraftStreamBacklog(timing, event.bodyMarkdown, runtime.visibleBodyMarkdownRef.current);
+
+    if (event.status === 'completed' || event.status === 'failed' || event.status === 'cleared') {
+        timing.terminalAt = receivedAt;
+        timing.terminalStatus = event.status;
+    }
+}
+
+function recordDraftVisibleUpdate(runtime: PusherDraftPaceRefs, event: ConciergeDraftEvent, bodyMarkdown: string | undefined): void {
+    if (!event.telemetryEnabled && !event.telemetrySampled) {
+        return;
+    }
+
+    const timing = runtime.draftStreamTimingRef.current.get(event.streamSessionID);
+    const visibleLength = getTextLength(bodyMarkdown ?? runtime.visibleBodyMarkdownRef.current);
+    const hasVisibleDraftContent = visibleLength > 0 || !!event.finalRenderedHTML;
+    if (!timing || !hasVisibleDraftContent) {
+        return;
+    }
+
+    const visibleAt = Date.now();
+    if (timing.lastVisibleAt !== undefined) {
+        const visibleGapMS = visibleAt - timing.lastVisibleAt;
+        timing.visibleGapCount += 1;
+        timing.visibleGapTotalMS += visibleGapMS;
+        timing.maxVisibleGapMS = Math.max(timing.maxVisibleGapMS, visibleGapMS);
+    }
+
+    timing.firstVisibleAt ??= visibleAt;
+    timing.lastVisibleAt = visibleAt;
+    timing.visibleUpdateCount += 1;
+    timing.maxVisibleLength = Math.max(timing.maxVisibleLength, visibleLength);
+    updateDraftStreamBacklog(timing, runtime.latestPusherDraftEventRef.current?.bodyMarkdown, bodyMarkdown ?? runtime.visibleBodyMarkdownRef.current);
+}
+
+function markDraftStreamPaced(runtime: PusherDraftPaceRefs, event: ConciergeDraftEvent | null): void {
+    if (!event) {
+        return;
+    }
+
+    const timing = runtime.draftStreamTimingRef.current.get(event.streamSessionID);
+    if (!timing) {
+        return;
+    }
+
+    timing.wasPaced = true;
+}
+
+function getAverageGap(totalMS: number, gapCount: number): number {
+    return gapCount > 0 ? Math.round(totalMS / gapCount) : 0;
+}
+
+function logDraftStreamSummary(runtime: PusherDraftPaceRefs, streamSessionID: string): void {
+    const timing = runtime.draftStreamTimingRef.current.get(streamSessionID);
+    if (!timing?.terminalStatus || timing.terminalAt === undefined) {
+        return;
+    }
+
+    const visibleTerminalAt = timing.terminalStatus === 'completed' && timing.lastVisibleAt !== undefined ? timing.lastVisibleAt : timing.terminalAt;
+    const summary = {
+        eventType: APP_DRAFT_STREAM_SUMMARY_EVENT_TYPE,
+        agentZeroRequestID: timing.agentZeroRequestID,
+        reportID: timing.reportID,
+        triggeringReportActionID: timing.triggeringReportActionID,
+        streamSessionID: timing.streamSessionID,
+        firstDraftReceivedToFirstVisibleMS: timing.firstVisibleAt === undefined ? null : timing.firstVisibleAt - timing.firstDraftReceivedAt,
+        firstVisibleToCompletedMS: timing.firstVisibleAt === undefined ? null : visibleTerminalAt - timing.firstVisibleAt,
+        firstDraftReceivedToTerminalMS: timing.terminalAt - timing.firstDraftReceivedAt,
+        terminalReceivedToVisibleCompleteMS: visibleTerminalAt - timing.terminalAt,
+        receiveCount: timing.receiveCount,
+        visibleUpdateCount: timing.visibleUpdateCount,
+        maxReceiveGapMS: timing.maxReceiveGapMS,
+        avgReceiveGapMS: getAverageGap(timing.receiveGapTotalMS, timing.receiveGapCount),
+        maxVisibleGapMS: timing.maxVisibleGapMS,
+        avgVisibleGapMS: getAverageGap(timing.visibleGapTotalMS, timing.visibleGapCount),
+        maxBacklogChars: timing.maxBacklogChars,
+        maxVisibleLength: timing.maxVisibleLength,
+        wasPaced: timing.wasPaced,
+        terminalStatus: timing.terminalStatus,
+    };
+
+    Log.info(`${APP_DRAFT_STREAM_SUMMARY_LOG_PREFIX} ${JSON.stringify(summary)}`, true, summary);
+    runtime.draftStreamTimingRef.current.delete(streamSessionID);
+}
+
+function deleteDraftStreamTiming(runtime: PusherDraftPaceRefs, streamSessionID: string | undefined): void {
+    if (!streamSessionID) {
+        return;
+    }
+
+    runtime.draftStreamTimingRef.current.delete(streamSessionID);
+}
 
 function buildPusherDraftEventFromCachedDraft(reportID: string, draft: ConciergeDraft | null, status: ConciergeDraftEvent['status'] = 'updated'): ConciergeDraftEvent | null {
     if (!draft?.pusherTargetBodyMarkdown) {
@@ -72,9 +252,10 @@ function resetPusherDraftPace(runtime: PusherDraftPaceRefs) {
 }
 
 function clearCachedPusherDraft(runtime: PusherDraftPacingRuntime) {
-    const {currentDraftRef, reportID, setDraft} = runtime;
+    const {currentDraftRef, draftStreamTimingRef, reportID, setDraft} = runtime;
 
     resetPusherDraftPace(runtime);
+    draftStreamTimingRef.current.clear();
     currentDraftRef.current = null;
     setCachedDraft(reportID, null);
     setDraft(null);
@@ -112,6 +293,8 @@ function publishVisibleEvent(runtime: PusherDraftPacingRuntime, event: Concierge
         visibleBodyMarkdownRef.current = bodyMarkdown;
     }
 
+    recordDraftVisibleUpdate(runtime, event, bodyMarkdown);
+
     visibleSequenceRef.current += 1;
     const visibleStatus = status ?? event.status;
     const visibleEvent = {
@@ -140,12 +323,14 @@ function tickPacing(runtime: PusherDraftPacingRuntime) {
     const nextVisibleBodyMarkdown = getNextVisibleConciergeDraftBodyMarkdown(visibleBodyMarkdownRef.current, targetBodyMarkdown, !!completedEvent);
 
     if (nextVisibleBodyMarkdown !== visibleBodyMarkdownRef.current) {
-        const status = completedEvent && nextVisibleBodyMarkdown === targetBodyMarkdown ? 'completed' : 'updated';
-        publishVisibleEvent(runtime, status === 'completed' && completedEvent ? completedEvent : latestEvent, nextVisibleBodyMarkdown, status);
+        const isCompleted = !!completedEvent && nextVisibleBodyMarkdown === targetBodyMarkdown;
+        const status = isCompleted ? 'completed' : 'updated';
+        publishVisibleEvent(runtime, isCompleted ? completedEvent : latestEvent, nextVisibleBodyMarkdown, status);
 
-        if (status === 'completed') {
+        if (isCompleted) {
             completedPusherDraftEventRef.current = null;
             stopPusherDraftPace(runtime);
+            logDraftStreamSummary(runtime, completedEvent.streamSessionID);
         }
         return;
     }
@@ -153,6 +338,7 @@ function tickPacing(runtime: PusherDraftPacingRuntime) {
     if (completedEvent) {
         publishVisibleEvent(runtime, completedEvent, targetBodyMarkdown, 'completed');
         completedPusherDraftEventRef.current = null;
+        logDraftStreamSummary(runtime, completedEvent.streamSessionID);
     }
 
     stopPusherDraftPace(runtime);
@@ -191,9 +377,12 @@ function handlePusherDraftEvent(runtime: PusherDraftPacingRuntime, event: Concie
         return;
     }
 
+    recordDraftReceived(runtime, event);
+
     if (event.status === 'failed' || event.status === 'cleared') {
         resetPusherDraftPace(runtime);
         publishVisibleEvent(runtime, event, undefined, event.status);
+        logDraftStreamSummary(runtime, event.streamSessionID);
         return;
     }
 
@@ -207,10 +396,14 @@ function handlePusherDraftEvent(runtime: PusherDraftPacingRuntime, event: Concie
         }
         completedPusherDraftEventRef.current = event;
         if (latestPusherDraftEventRef.current?.bodyMarkdown) {
+            if (latestPusherDraftEventRef.current.bodyMarkdown !== visibleBodyMarkdownRef.current) {
+                markDraftStreamPaced(runtime, latestPusherDraftEventRef.current);
+            }
             startPusherDraftPace(runtime);
             tickPacing(runtime);
         } else {
             publishVisibleEvent(runtime, event, undefined, 'completed');
+            logDraftStreamSummary(runtime, event.streamSessionID);
         }
         return;
     }
@@ -226,6 +419,7 @@ function handlePusherDraftEvent(runtime: PusherDraftPacingRuntime, event: Concie
         stopPusherDraftPace(runtime);
         completedPusherDraftEventRef.current = null;
         visibleBodyMarkdownRef.current = '';
+        deleteDraftStreamTiming(runtime, activeStreamSessionID);
     }
 
     latestPusherDraftEventRef.current = event;
@@ -235,6 +429,7 @@ function handlePusherDraftEvent(runtime: PusherDraftPacingRuntime, event: Concie
     }
 
     if (nextVisibleBodyMarkdown !== targetBodyMarkdown) {
+        markDraftStreamPaced(runtime, event);
         startPusherDraftPace(runtime);
     } else {
         stopPusherDraftPace(runtime);
@@ -253,6 +448,7 @@ function resumeCachedPusherDraftPace(runtime: PusherDraftPacingRuntime) {
         return;
     }
 
+    markDraftStreamPaced(runtime, latestEvent);
     startPusherDraftPace(runtime);
     tickPacing(runtime);
 }
@@ -268,11 +464,13 @@ function usePusherDraftPacing(reportID: string) {
     const latestPusherDraftEventRef = useRef<ConciergeDraftEvent | null>(buildPusherDraftEventFromCachedDraft(reportID, draft));
     const completedPusherDraftEventRef = useRef<ConciergeDraftEvent | null>(draft?.pusherPendingCompletionEvent ?? null);
     const pusherPaceIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const draftStreamTimingRef = useRef<Map<string, DraftStreamTiming>>(new Map());
 
     const clearDraft = () => {
         clearCachedPusherDraft({
             completedPusherDraftEventRef,
             currentDraftRef,
+            draftStreamTimingRef,
             latestPusherDraftEventRef,
             pusherPaceIntervalRef,
             reportID,
@@ -285,6 +483,7 @@ function usePusherDraftPacing(reportID: string) {
     const dispatchLocalDraftEvent = (event: ConciergeDraftEvent) => {
         resetPusherDraftPace({
             completedPusherDraftEventRef,
+            draftStreamTimingRef,
             latestPusherDraftEventRef,
             pusherPaceIntervalRef,
             visibleBodyMarkdownRef,
@@ -301,6 +500,7 @@ function usePusherDraftPacing(reportID: string) {
         const runtime = {
             completedPusherDraftEventRef,
             currentDraftRef,
+            draftStreamTimingRef,
             latestPusherDraftEventRef,
             pusherPaceIntervalRef,
             reportID,
