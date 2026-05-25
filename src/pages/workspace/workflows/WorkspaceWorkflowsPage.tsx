@@ -444,7 +444,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 title={translate('workflowsPage.automateApprovalsWithAgentsTitle')}
                                 subtitle={translate('workflowsPage.automateApprovalsWithAgentsSubtitle')}
                                 onDismiss={() => dismissProductTraining(CONST.AGENTS_WORKFLOWS_BANNER, true)}
-                                dismissSentryLabel="AgentsWorkflowsBanner-Dismiss"
+                                dismissSentryLabel={CONST.SENTRY_LABEL.AGENTS_WORKFLOWS_BANNER.DISMISS}
                                 style={styles.mt6}
                             />
                         )}

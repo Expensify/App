@@ -74,9 +74,9 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                             subtitle={translate('workspace.rules.agentsPromoBanner.subtitle')}
                             ctaText={translate('workspace.rules.agentsPromoBanner.cta')}
                             onCtaPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID))}
-                            ctaSentryLabel="AgentsRulesBanner-CTA"
+                            ctaSentryLabel={CONST.SENTRY_LABEL.AGENTS_RULES_BANNER.CTA}
                             onDismiss={() => dismissProductTraining(CONST.AGENTS_RULES_BANNER, true)}
-                            dismissSentryLabel="AgentsRulesBanner-Dismiss"
+                            dismissSentryLabel={CONST.SENTRY_LABEL.AGENTS_RULES_BANNER.DISMISS}
                             style={[styles.mh5, styles.mb5]}
                         />
                     )}

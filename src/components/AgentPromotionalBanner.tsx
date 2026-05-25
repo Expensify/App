@@ -29,7 +29,7 @@ type AgentPromotionalBannerProps = {
     /** Called when the CTA is pressed. Required when `ctaText` is set. */
     onCtaPress?: () => void;
 
-    /** Sentry label for the CTA. */
+    /** Sentry label for the CTA. Required when `ctaText` is set. */
     ctaSentryLabel?: string;
 
     /** Extra styles applied to the outer container. */
