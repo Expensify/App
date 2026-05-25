@@ -17,13 +17,23 @@ type InitialMeasurement = {
 function VictoryChartContainer({children}: {children: React.ReactNode}) {
     const styles = useThemeStyles();
     const {chartContentStyles, chartContainerStyles} = useVictoryChartContext();
-    const [scale, setScale] = useState(DEFAULT_SCALE);
+    const [contentDimensions, setContentDimensions] = useState<{width: number; height: number} | null>(null);
     const [initialMeasurement, setInitialMeasurement] = useState<InitialMeasurement | null>(null);
     const {windowWidth} = useWindowDimensions();
 
     const designWidth = typeof chartContentStyles.width === 'number' ? chartContentStyles.width : undefined;
     const designHeight = typeof chartContentStyles.height === 'number' ? chartContentStyles.height : undefined;
     const hasExplicitDimensions = designWidth !== undefined && designHeight !== undefined;
+
+    const scale = useMemo(() => {
+        if (!hasExplicitDimensions || !contentDimensions || !designWidth || !designHeight) {
+            return DEFAULT_SCALE;
+        }
+        return {
+            x: Math.min(contentDimensions.width / designWidth, 1),
+            y: Math.min(contentDimensions.height / designHeight, 1),
+        };
+    }, [hasExplicitDimensions, contentDimensions, designWidth, designHeight]);
 
     const handleContainerLayout = useCallback(
         (event: LayoutChangeEvent) => {
@@ -48,21 +58,18 @@ function VictoryChartContainer({children}: {children: React.ReactNode}) {
         return Math.max(Math.min(estimatedContainerWidth, designWidth), Math.min(MIN_CHART_WIDTH, designWidth));
     }, [hasExplicitDimensions, estimatedContainerWidth, designWidth]);
 
-    const handleContentLayout = useCallback(
-        (event: LayoutChangeEvent) => {
-            const {width: actualWidth, height: actualHeight} = event.nativeEvent.layout;
-            if (designWidth && designHeight && actualWidth > 0 && actualHeight > 0) {
-                setScale({
-                    x: Math.min(actualWidth / designWidth, 1),
-                    y: Math.min(actualHeight / designHeight, 1),
-                });
-            }
-        },
-        [designWidth, designHeight],
-    );
+    const handleContentLayout = useCallback((event: LayoutChangeEvent) => {
+        const {width, height} = event.nativeEvent.layout;
+        if (width > 0 && height > 0) {
+            setContentDimensions({width, height});
+        }
+    }, []);
 
     const contentStyle = useMemo(
-        () => (hasExplicitDimensions && chartWidth ? [{width: chartWidth, aspectRatio: designWidth / designHeight}] : [styles.chartContent, styles.mw100, chartContentStyles]),
+        () =>
+            hasExplicitDimensions && chartWidth
+                ? [styles.chartContent, chartContentStyles, {width: chartWidth, aspectRatio: designWidth / designHeight}]
+                : [styles.chartContent, styles.mw100, chartContentStyles],
         [hasExplicitDimensions, chartWidth, designWidth, designHeight, styles, chartContentStyles],
     );
 
