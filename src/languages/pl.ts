@@ -7808,6 +7808,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
     search: {
         resultsAreLimited: 'Wyniki wyszukiwania są ograniczone.',
         viewResults: 'Zobacz wyniki',
+        applyFilters: 'Zastosuj filtry',
         appliedFilters: 'Zastosowane filtry',
         resetFilters: 'Resetuj filtry',
         searchResults: {
@@ -7917,7 +7918,12 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             amount: {
                 lessThan: (amount?: string) => `Mniej niż ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Większe niż ${amount ?? ''}`,
-                between: (greaterThan: string, lessThan: string) => `Między ${greaterThan} a ${lessThan}`,
+                between: (greaterThan?: string, lessThan?: string) => {
+                    if (greaterThan && lessThan) {
+                        return `Między ${greaterThan} a ${lessThan}`;
+                    }
+                    return 'Między';
+                },
                 equalTo: (amount?: string) => `Równe ${amount ?? ''}`,
             },
             card: {

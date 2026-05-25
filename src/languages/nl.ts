@@ -7816,6 +7816,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
     search: {
         resultsAreLimited: 'Zoekresultaten zijn beperkt.',
         viewResults: 'Resultaten bekijken',
+        applyFilters: 'Filters toepassen',
         appliedFilters: 'Toegepaste filters',
         resetFilters: 'Filters resetten',
         searchResults: {
@@ -7925,7 +7926,12 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             amount: {
                 lessThan: (amount?: string) => `Minder dan ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Groter dan ${amount ?? ''}`,
-                between: (greaterThan: string, lessThan: string) => `Tussen ${greaterThan} en ${lessThan}`,
+                between: (greaterThan?: string, lessThan?: string) => {
+                    if (greaterThan && lessThan) {
+                        return `Tussen ${greaterThan} en ${lessThan}`;
+                    }
+                    return 'Tussen';
+                },
                 equalTo: (amount?: string) => `Gelijk aan ${amount ?? ''}`,
             },
             card: {
