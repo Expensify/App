@@ -84,7 +84,7 @@ function SpendRuleSelectionPage({route}: SpendRuleSelectionPageProps) {
         });
     };
 
-    const headerContent = cardRuleListItems.length > CONST.SEARCH_ITEM_LIMIT && (
+    const headerContent = cardRuleListItems.length > CONST.STANDARD_LIST_ITEM_LIMIT && (
         <SearchBar
             label={translate('workspace.card.searchRules')}
             inputValue={inputValue}
