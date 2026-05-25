@@ -557,6 +557,7 @@ function SearchAutocompleteList({
         searchOptions,
         searchQueryItems,
         styles,
+        theme,
         translate,
         isLoadingOptions,
         isRecentSearchesDataLoaded,
