@@ -1,5 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import {useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchResultsContext} from '@components/Search/SearchContext';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -25,7 +25,7 @@ import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
  * before the server response, or screens where the draft only holds a split list).
  */
 function useSplitEffectivePolicy(currentReport: OnyxEntry<Report>, draftTransaction: OnyxEntry<Transaction>, transaction?: OnyxEntry<Transaction>): OnyxEntry<Policy> {
-    const {currentSearchResults} = useSearchStateContext();
+    const {currentSearchResults} = useSearchResultsContext();
     const policy = usePolicy(currentReport?.policyID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();

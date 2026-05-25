@@ -11,7 +11,7 @@ let mockCurrentSearchResults: SearchResults | undefined;
 let mockPolicyForMovingExpenses: Policy | undefined;
 
 jest.mock('@components/Search/SearchContext', () => ({
-    useSearchStateContext: () => ({
+    useSearchResultsContext: () => ({
         currentSearchResults: mockCurrentSearchResults,
     }),
 }));
