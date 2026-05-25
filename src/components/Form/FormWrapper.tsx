@@ -226,9 +226,7 @@ function FormWrapper({
                 }
                 TransitionTracker.runAfterTransitions({
                     callback: () => {
-                        requestAnimationFrame(() => {
-                            formRef.current?.scrollToEnd({animated: true});
-                        });
+                        formRef.current?.scrollToEnd({animated: true});
                     },
                 });
             }}

@@ -296,7 +296,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             return;
         }
         TransitionTracker.runAfterTransitions({
-            callback: () => requestAnimationFrame(() => loadOlderChats(false)),
+            callback: () => loadOlderChats(false),
         });
     }, [loadOlderChats]);
 
