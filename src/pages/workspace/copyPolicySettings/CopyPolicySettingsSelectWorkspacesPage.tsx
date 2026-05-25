@@ -17,7 +17,7 @@ import {setCopyPolicySettingsData} from '@libs/actions/Policy/CopyPolicySettings
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PolicyCopySettingsNavigatorParamList} from '@libs/Navigation/types';
-import {isPolicyAdmin} from '@libs/PolicyUtils';
+import {isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
@@ -53,13 +53,7 @@ function CopyPolicySettingsSelectWorkspacesPage() {
         ? []
         : Object.values(policies)
               .filter((policy): policy is Policy => {
-                  if (!policy || policy.id === sourcePolicyID) {
-                      return false;
-                  }
-                  if (policy.type === CONST.POLICY.TYPE.PERSONAL) {
-                      return false;
-                  }
-                  if (!isPolicyAdmin(policy, currentUserEmail)) {
+                  if (!policy || policy.id === sourcePolicyID || policy.type === CONST.POLICY.TYPE.PERSONAL || isPendingDeletePolicy(policy) || !isPolicyAdmin(policy, currentUserEmail)) {
                       return false;
                   }
                   // Release 1: when copying from a Corporate workspace, only allow Corporate targets.
@@ -173,6 +167,7 @@ function CopyPolicySettingsSelectWorkspacesPage() {
                         onSelectRow={toggleItem}
                         onSelectAll={eligiblePolicies.length > 0 ? toggleAll : undefined}
                         selectionButtonPosition={CONST.SELECTION_BUTTON_POSITION.RIGHT}
+                        shouldHeaderBeInsideList
                         shouldSingleExecuteRowSelect
                         addBottomSafeAreaPadding
                         confirmButtonOptions={confirmButtonOptions}

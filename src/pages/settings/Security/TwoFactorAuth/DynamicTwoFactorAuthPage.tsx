@@ -5,37 +5,39 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
-import {loadIllustration} from '@components/Icon/IllustrationLoader';
-import type {IllustrationName} from '@components/Icon/IllustrationLoader';
+import Icon from '@components/Icon';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
+import RenderHTML from '@components/RenderHTML';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {READ_COMMANDS} from '@libs/API/types';
 import Clipboard from '@libs/Clipboard';
 import getPlatform from '@libs/getPlatform';
 import localFileDownload from '@libs/localFileDownload';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {toggleTwoFactorAuth} from '@userActions/Session';
 import {quitAndNavigateBack, setCodesAreCopied} from '@userActions/TwoFactorAuthActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import type {TwoFactorAuthPageProps} from './TwoFactorAuthPage';
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
 const TWO_FACTOR_AUTH_RECOVERY_CODES_FILENAME = 'DO-NOT-DELETE_Expensify-2FA-RecoveryCodes.txt';
 
-function CopyCodesPage({route}: TwoFactorAuthPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Download']);
+function DynamicTwoFactorAuthPage() {
+    const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Lightbulb']);
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use correct style
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -43,6 +45,8 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
     const [error, setError] = useState('');
     const [statusAnnouncement, setStatusAnnouncement] = useState({id: 0, text: ''});
     const isFocused = useIsFocused();
+
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_ROOT.path);
 
     const isWeb = getPlatform() === CONST.PLATFORM.WEB;
 
@@ -56,28 +60,37 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
     const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
 
     const isUserValidated = account?.validated ?? false;
-    const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
-    const accountLoadingReasonAttributes: SkeletonSpanReasonAttributes = {context: 'CopyCodesPage', isLoading: !!account?.isLoading};
+    const is2FAEnabled = !!account?.requiresTwoFactorAuth;
+    const accountLoadingReasonAttributes: SkeletonSpanReasonAttributes = {context: 'DynamicTwoFactorAuthPage', isLoading: !!account?.isLoading};
+
+    const recoveryCodes = account?.recoveryCodes;
 
     useEffect(() => {
         if (!isUserValidated) {
-            Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT.getRoute());
+            Navigation.isNavigationReady().then(() => {
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY_ACCOUNT.path, backPath), {forceReplace: true});
+            });
             return;
         }
 
-        if (isLoadingOnyxValue(accountMetadata) || account?.requiresTwoFactorAuth || account?.recoveryCodes || !isUserValidated) {
+        if (isFocused && is2FAEnabled) {
+            Navigation.isNavigationReady().then(() => {
+                Navigation.navigate(ROUTES.SETTINGS_2FA_ENABLED, {forceReplace: true});
+            });
             return;
         }
 
-        // This screen is rendered underneath other 2FA screens. We don't want it making
-        // API calls in the background in response to state updates
+        if (isLoadingOnyxValue(accountMetadata) || is2FAEnabled || account?.recoveryCodes || !isUserValidated) {
+            return;
+        }
+
         if (!isFocused) {
             return;
         }
 
         toggleTwoFactorAuth(true);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- We want to run this when component mounts
-    }, [isUserValidated, accountMetadata.status, isFocused]);
+    }, [isUserValidated, accountMetadata.status, isFocused, is2FAEnabled]);
 
     return (
         <TwoFactorAuthWrapper
@@ -89,20 +102,16 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
             }}
             shouldEnableKeyboardAvoidingView={false}
             stepName={CONST.TWO_FACTOR_AUTH_STEPS.COPY_CODES}
-            // When the 2FA code step is open from Xero flow, we don't need to pass backTo because we build the necessary root route
-            // from the backTo param in the route (in getMatchingRootRouteForRHPRoute) and goBack will not need a fallbackRoute.
-            onBackButtonPress={() => quitAndNavigateBack(route?.params?.forwardTo?.includes(READ_COMMANDS.CONNECT_POLICY_TO_XERO) ? undefined : route?.params?.backTo)}
+            onBackButtonPress={() => quitAndNavigateBack(backPath)}
         >
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 {!!isUserValidated && (
                     <Section
                         title={translate('twoFactorAuth.keepCodesSafe')}
-                        icon={ShieldYellow}
                         containerStyles={[styles.twoFactorAuthSection]}
-                        iconContainerStyles={[styles.ml6]}
                     >
                         <View style={styles.mv3}>
-                            <Text>{translate('twoFactorAuth.codesLoseAccess')}</Text>
+                            <RenderHTML html={translate('twoFactorAuth.codesLoseAccess')} />
                         </View>
                         <View style={[styles.twoFactorAuthCodesBox, styles.twoFactorAuthCodesBoxPadding({isExtraSmallScreenWidth, isSmallScreenWidth})]}>
                             {account?.isLoading ? (
@@ -115,8 +124,8 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                         style={styles.twoFactorAuthCodesContainer}
                                         fsClass={CONST.FULLSTORY.CLASS.MASK}
                                     >
-                                        {!!account?.recoveryCodes &&
-                                            account?.recoveryCodes?.split(', ').map((code) => (
+                                        {!!recoveryCodes &&
+                                            recoveryCodes?.split(', ').map((code) => (
                                                 <Text
                                                     style={styles.twoFactorAuthCode}
                                                     key={code}
@@ -125,48 +134,41 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                                 </Text>
                                             ))}
                                     </View>
-                                    <View style={styles.twoFactorAuthCodesButtonsContainer}>
-                                        <PressableWithDelayToggle
-                                            text={translate('twoFactorAuth.copy')}
-                                            textChecked={translate('common.copied')}
-                                            icon={icons.Copy}
-                                            inline={false}
-                                            onPress={() => {
-                                                Clipboard.setString(account?.recoveryCodes ?? '');
-                                                setError('');
-                                                setCodesAreCopied();
-                                                announceStatus(translate('common.copied'));
-                                            }}
-                                            styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
-                                            textStyles={[styles.buttonMediumText]}
-                                            tooltipText=""
-                                            tooltipTextChecked=""
-                                            accessibilityLabel={`${translate('twoFactorAuth.copy')}, ${translate('twoFactorAuth.stepCodes')}`}
-                                            accessibilityLabelChecked={translate('common.copied')}
-                                            sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.COPY_CODES}
-                                        />
-                                        <PressableWithDelayToggle
-                                            text={translate('common.download')}
-                                            icon={icons.Download}
-                                            onPress={() => {
-                                                localFileDownload(TWO_FACTOR_AUTH_RECOVERY_CODES_FILENAME, account?.recoveryCodes ?? '', translate, undefined, undefined, false);
-                                                setError('');
-                                                setCodesAreCopied();
-                                                announceStatus(translate('fileDownload.success.title'));
-                                            }}
-                                            inline={false}
-                                            styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
-                                            textStyles={[styles.buttonMediumText]}
-                                            tooltipText=""
-                                            tooltipTextChecked=""
-                                            accessibilityLabel={`${translate('common.download')}, ${translate('twoFactorAuth.stepCodes')}`}
-                                            sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.DOWNLOAD_CODES}
-                                        />
-                                    </View>
+                                    <PressableWithDelayToggle
+                                        text={translate('twoFactorAuth.copyCodes')}
+                                        textChecked={translate('common.copied')}
+                                        icon={icons.Copy}
+                                        inline={false}
+                                        onPress={() => {
+                                            Clipboard.setString(account?.recoveryCodes ?? '');
+                                            setError('');
+                                            setCodesAreCopied();
+                                            announceStatus(translate('common.copied'));
+                                        }}
+                                        styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
+                                        wrapperStyles={[styles.twoFactorAuthCodesButtonWrapper, styles.twoFactorAuthCodesButton]}
+                                        textStyles={[styles.buttonMediumText]}
+                                        tooltipText=""
+                                        tooltipTextChecked=""
+                                        accessibilityLabel={`${translate('twoFactorAuth.copy')}, ${translate('twoFactorAuth.stepCodes')}`}
+                                        accessibilityLabelChecked={translate('common.copied')}
+                                        sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.COPY_CODES}
+                                    />
                                 </>
                             )}
                         </View>
                     </Section>
+                )}
+                {!!isUserValidated && (
+                    <View style={[styles.flexRow, styles.mt2, styles.mh5, styles.alignItemsCenter]}>
+                        <Icon
+                            src={icons.Lightbulb}
+                            fill={theme.icon}
+                            additionalStyles={styles.mr2}
+                            medium
+                        />
+                        <Text style={[styles.textLabelSupportingNormal, styles.flex1]}>{translate('twoFactorAuth.screenshotTip')}</Text>
+                    </View>
                 )}
                 <FixedFooter style={[styles.mtAuto, styles.pt5]}>
                     {!!statusAnnouncement.text && (
@@ -186,22 +188,25 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                             style={[styles.mb3]}
                         />
                     )}
-                    <Button
-                        success
-                        large
-                        isDisabled={!isUserValidated}
-                        text={translate('common.next')}
-                        onPress={() => {
-                            if (!account?.codesAreCopied) {
-                                return setError(translate('twoFactorAuth.errorStepCodes'));
-                            }
-                            Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY.getRoute(route.params?.backTo, route.params?.forwardTo));
-                        }}
-                    />
+                    {!!recoveryCodes && (
+                        <Button
+                            success
+                            large
+                            isDisabled={!isUserValidated}
+                            text={translate('twoFactorAuth.downloadCodes')}
+                            onPress={() => {
+                                localFileDownload(TWO_FACTOR_AUTH_RECOVERY_CODES_FILENAME, recoveryCodes, translate, undefined, undefined, false);
+                                setError('');
+                                setCodesAreCopied();
+                                announceStatus(translate('fileDownload.success.title'));
+                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY.path, backPath), {forceReplace: true});
+                            }}
+                        />
+                    )}
                 </FixedFooter>
             </ScrollView>
         </TwoFactorAuthWrapper>
     );
 }
 
-export default CopyCodesPage;
+export default DynamicTwoFactorAuthPage;
