@@ -5,7 +5,7 @@ import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actio
 import useMobileSelectionMode from './useMobileSelectionMode';
 import useResponsiveLayout from './useResponsiveLayout';
 
-function useHandleSelectionMode<TItem extends ListItem>(selectedItems: readonly string[] | TItem[]) {
+function useHandleSelectionMode<TItem extends ListItem>(selectedItems: readonly string[] | TItem[], visibleItemCount: number) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const isFocused = useIsFocused();
@@ -27,12 +27,15 @@ function useHandleSelectionMode<TItem extends ListItem>(selectedItems: readonly 
         if (!wasSelectionOnRef.current && selectedItems.length > 0) {
             wasSelectionOnRef.current = true;
         }
-        if (selectedItems.length > 0 && !isMobileSelectionModeEnabled) {
+
+        if (visibleItemCount <= 0) {
+            turnOffMobileSelectionMode();
+        } else if (selectedItems.length > 0 && !isMobileSelectionModeEnabled) {
             turnOnMobileSelectionMode();
         } else if (selectedItems.length === 0 && isMobileSelectionModeEnabled && !wasSelectionOnRef.current) {
             turnOffMobileSelectionMode();
         }
-    }, [isMobileSelectionModeEnabled, isSmallScreenWidth, isFocused, selectedItems.length]);
+    }, [isMobileSelectionModeEnabled, isSmallScreenWidth, isFocused, selectedItems.length, visibleItemCount]);
 
     useEffect(() => () => turnOffMobileSelectionMode(), []);
 }

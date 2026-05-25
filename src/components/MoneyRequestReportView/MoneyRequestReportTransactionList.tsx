@@ -208,7 +208,8 @@ function MoneyRequestReportTransactionList({
 
     const {selectedTransactionIDs} = useSearchStateContext();
     const {setSelectedTransactions, clearSelectedTransactions} = useSearchActionsContext();
-    useHandleSelectionMode(selectedTransactionIDs);
+    const visibleTransactions = transactions.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
+    useHandleSelectionMode(selectedTransactionIDs, visibleTransactions.length);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
 
     const toggleTransaction = useCallback(
