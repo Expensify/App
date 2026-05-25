@@ -1,7 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import {subYears} from 'date-fns';
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import AddressSearch from '@components/AddressSearch';
 import CountrySelector from '@components/CountrySelector';
@@ -50,6 +50,7 @@ function PrivatePersonalDetailsPage() {
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS>>();
     const fieldToFocus = route.params?.fieldToFocus;
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [draftValues] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT);
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [defaultCountry] = useOnyx(ONYXKEYS.COUNTRY);
@@ -70,11 +71,23 @@ function PrivatePersonalDetailsPage() {
     const country = address?.country ?? '';
 
     const normalizedState = resolveStateCode(state);
-    const [selectedCountry, setSelectedCountry] = useState<Country | ''>(country || ((defaultCountry as Country | undefined) ?? ''));
-    const [selectedState, setSelectedState] = useState(normalizedState);
 
+    // Draft values seed local state on remount (e.g. returning from the magic-code page) so the address-search
+    // suggestion's country/state choices survive a back-navigation instead of reverting to geolocation defaults.
+    const draftCountry = draftValues?.[INPUT_IDS.COUNTRY] ?? '';
+    const draftState = draftValues?.[INPUT_IDS.STATE] ?? '';
+    const [selectedCountry, setSelectedCountry] = useState<Country | ''>(draftCountry || country || ((defaultCountry as Country | undefined) ?? ''));
+    const [selectedState, setSelectedState] = useState(draftState || normalizedState);
+
+    // The draft is what feeds the confirm-magic-code page; clearing it on every unmount wipes the submission
+    // payload as soon as we navigate to the magic-code RHP. Skip clearing in that case and let the magic-code
+    // success path (or the next intentional back out) handle cleanup.
+    const skipClearDraftOnUnmountRef = useRef(false);
     useEffect(
         () => () => {
+            if (skipClearDraftOnUnmountRef.current) {
+                return;
+            }
             clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
         },
         [],
@@ -205,6 +218,7 @@ function PrivatePersonalDetailsPage() {
         // UI-prefilled values (geolocation country, normalized state) only live in component state until the user touches
         // a field, so write the full form values to the draft before navigating so the confirm step submits them.
         setDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM, values);
+        skipClearDraftOnUnmountRef.current = true;
         Navigation.navigate(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE);
     };
 
@@ -305,6 +319,7 @@ function PrivatePersonalDetailsPage() {
                             defaultValue={initialStreet1}
                             shouldSaveDraft
                             autoComplete="address-line1"
+                            autoFocus={fieldToFocus === INPUT_IDS.ADDRESS_LINE_1}
                             renamedInputKeys={{
                                 street: INPUT_IDS.ADDRESS_LINE_1,
                                 street2: INPUT_IDS.ADDRESS_LINE_2,

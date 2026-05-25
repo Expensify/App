@@ -113,6 +113,7 @@ function AddressSearch({
         lng: 'addressLng',
     },
     autoComplete = 'off',
+    autoFocus = false,
     resultTypes = 'address',
     shouldSaveDraft = false,
     value,
@@ -469,6 +470,7 @@ function AddressSearch({
                                 onBlur?.();
                             },
                             autoComplete,
+                            autoFocus,
                             onInputChange: (text: string) => {
                                 setSearchValue(text);
                                 setIsTyping(true);
