@@ -42,6 +42,7 @@ function MapView({
     unit,
     ref,
     shouldDisplayCurrentLocation = true,
+    shouldFollowCurrentLocationWhenRoutePresent = true,
 }: MapViewProps) {
     const directionCoordinates = !directionCoordinatesProp || utils.isSingleSegmentRoute(directionCoordinatesProp) ? directionCoordinatesProp : directionCoordinatesProp.flat();
 
@@ -212,7 +213,7 @@ function MapView({
     const centerCoordinate = useMemo(() => (currentPosition ? [currentPosition.longitude, currentPosition.latitude] : initialState?.location), [currentPosition, initialState?.location]);
 
     const waypointsBounds = useMemo(() => {
-        if (!waypoints) {
+        if (!waypoints || !waypoints.length) {
             return undefined;
         }
         const {northEast, southWest} = utils.getBounds(
@@ -222,8 +223,12 @@ function MapView({
         return {ne: northEast, sw: southWest};
     }, [waypoints, directionCoordinates]);
 
+    const shouldKeepCameraOnRoute = useMemo(() => {
+        return !shouldFollowCurrentLocationWhenRoutePresent && waypointsBounds;
+    }, [waypointsBounds, shouldFollowCurrentLocationWhenRoutePresent]);
+
     const defaultSettings: Mapbox.CameraStop | undefined = useMemo(() => {
-        if (interactive) {
+        if (!shouldKeepCameraOnRoute && interactive) {
             if (!centerCoordinate) {
                 return undefined;
             }
@@ -238,9 +243,9 @@ function MapView({
         return {
             bounds: waypointsBounds,
         };
-    }, [interactive, centerCoordinate, waypointsBounds, initialState?.zoom]);
+    }, [interactive, centerCoordinate, waypointsBounds, initialState?.zoom, shouldKeepCameraOnRoute]);
 
-    const initCenterCoordinate = useMemo(() => (interactive ? centerCoordinate : undefined), [interactive, centerCoordinate]);
+    const initCenterCoordinate = useMemo(() => (interactive && !shouldKeepCameraOnRoute ? centerCoordinate : undefined), [interactive, centerCoordinate, shouldKeepCameraOnRoute]);
     const initBounds = useMemo(() => (interactive ? undefined : waypointsBounds), [interactive, waypointsBounds]);
 
     const distanceSymbolCoordinate = useMemo(() => {
