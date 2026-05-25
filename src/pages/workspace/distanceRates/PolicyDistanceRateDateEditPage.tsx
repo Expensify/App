@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
@@ -19,12 +19,12 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {updatePolicyDistanceRate} from '@userActions/Policy/DistanceRate';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PolicyDistanceRateEditForm';
 
-type PolicyDistanceRateStartDateEditPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATE_START_DATE_EDIT>;
+type PolicyDistanceRateDateEditPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATE_START_DATE_EDIT>;
 
-function PolicyDistanceRateStartDateEditPage({route}: PolicyDistanceRateStartDateEditPageProps) {
+function PolicyDistanceRateDateEditPage({route}: PolicyDistanceRateDateEditPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
@@ -35,44 +35,46 @@ function PolicyDistanceRateStartDateEditPage({route}: PolicyDistanceRateStartDat
     const customUnit = getDistanceRateCustomUnit(policy);
     const rate = customUnit?.rates[rateID];
 
-    const currentEndDate = useMemo(() => rate?.endDate, [rate?.endDate]);
+    const isStartDate = route.name === SCREENS.WORKSPACE.DISTANCE_RATE_START_DATE_EDIT;
+    const fieldName = isStartDate ? CONST.CUSTOM_UNITS.RATE_FIELD.START_DATE : CONST.CUSTOM_UNITS.RATE_FIELD.END_DATE;
+    const inputID = isStartDate ? INPUT_IDS.START_DATE : INPUT_IDS.END_DATE;
+    const titleKey = isStartDate ? 'workspace.distanceRates.startDate' : 'workspace.distanceRates.endDate';
+    const otherDate = isStartDate ? rate?.endDate : rate?.startDate;
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM> = {};
-            if (values.startDate && currentEndDate && values.startDate > currentEndDate) {
-                errors.startDate = translate('workspace.distanceRates.errors.startDateMustBeBeforeEndDate');
-            }
-            return errors;
-        },
-        [translate, currentEndDate],
-    );
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM> = {};
+        if (isStartDate && values.startDate && otherDate && values.startDate > otherDate) {
+            errors.startDate = translate('workspace.distanceRates.errors.startDateMustBeBeforeEndDate');
+        }
+        if (!isStartDate && otherDate && values.endDate && otherDate > values.endDate) {
+            errors.endDate = translate('workspace.distanceRates.errors.startDateMustBeBeforeEndDate');
+        }
+        return errors;
+    };
 
-    const submit = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM>) => {
-            if (!customUnit || !rate) {
-                return;
-            }
+    const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM>) => {
+        if (!customUnit || !rate) {
+            return;
+        }
 
-            const newStartDate = values.startDate || null;
-            if ((rate.startDate ?? null) === newStartDate) {
-                Navigation.goBack();
-                return;
-            }
-
-            updatePolicyDistanceRate(
-                policyID,
-                customUnit,
-                {
-                    ...rate,
-                    startDate: newStartDate,
-                },
-                CONST.CUSTOM_UNITS.RATE_FIELD.START_DATE,
-            );
+        const newValue = (isStartDate ? values.startDate : values.endDate) || null;
+        const currentValue = rate[fieldName] ?? null;
+        if (currentValue === newValue) {
             Navigation.goBack();
-        },
-        [policyID, customUnit, rate],
-    );
+            return;
+        }
+
+        updatePolicyDistanceRate(
+            policyID,
+            customUnit,
+            {
+                ...rate,
+                [fieldName]: newValue,
+            },
+            fieldName,
+        );
+        Navigation.goBack();
+    };
 
     if (!rate || !isDateBoundMileageRateEnabled) {
         return <NotFoundPage />;
@@ -87,11 +89,11 @@ function PolicyDistanceRateStartDateEditPage({route}: PolicyDistanceRateStartDat
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID="PolicyDistanceRateStartDateEditPage"
+                testID={isStartDate ? 'PolicyDistanceRateStartDateEditPage' : 'PolicyDistanceRateEndDateEditPage'}
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.distanceRates.startDate')}
+                    title={translate(titleKey)}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <FormProvider
@@ -101,7 +103,6 @@ function PolicyDistanceRateStartDateEditPage({route}: PolicyDistanceRateStartDat
                     validate={validate}
                     enabledWhenOffline
                     style={[styles.flexGrow1]}
-                    shouldHideFixErrorsAlert
                     submitButtonStyles={[styles.mh5, styles.mt0]}
                     addBottomSafeAreaPadding
                 >
@@ -109,9 +110,9 @@ function PolicyDistanceRateStartDateEditPage({route}: PolicyDistanceRateStartDat
                         <InputWrapper
                             autoFocus
                             InputComponent={DatePicker}
-                            inputID={INPUT_IDS.START_DATE}
-                            label={translate('workspace.distanceRates.startDate')}
-                            defaultValue={rate.startDate ?? ''}
+                            inputID={inputID}
+                            label={translate(titleKey)}
+                            defaultValue={rate[fieldName] ?? ''}
                         />
                     </View>
                 </FormProvider>
@@ -120,4 +121,4 @@ function PolicyDistanceRateStartDateEditPage({route}: PolicyDistanceRateStartDat
     );
 }
 
-export default PolicyDistanceRateStartDateEditPage;
+export default PolicyDistanceRateDateEditPage;
