@@ -9,7 +9,7 @@ import PARSER_REGISTRY from './parserRegistry';
  * Recursively walk the HTML tnode tree, dispatching each node to its registered parser
  * and merging the results into a single chart config.
  */
-function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null): ProcessNodeResult {
+function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, rootProcessedResult: ProcessNodeResult | null): ProcessNodeResult {
     const data: ProcessNodeResult['data'] = {};
     const yKeys: ProcessNodeResult['yKeys'] = [];
     let xAxis: ProcessNodeResult['xAxis'];
@@ -23,7 +23,7 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null): Pro
 
     const parser = PARSER_REGISTRY[tnode.tagName ?? ''];
     if (parser) {
-        const result = parser(tnode, typeface);
+        const result = parser(tnode, typeface, rootProcessedResult);
         if (result.data) {
             lodashMerge(data, result.data);
         }
@@ -56,8 +56,11 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null): Pro
         }
     }
 
+    // If we have `rootProcessedResult` then forward it as it, otherwise we must be the root so construct the data that we just built
+    const rootProcessedNodeResult = rootProcessedResult ?? {data, xKey: X_KEY, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, labelItems, legendItems};
+
     for (const child of tnode.children) {
-        const childResult = processVictoryChartTree(child, typeface);
+        const childResult = processVictoryChartTree(child, typeface, rootProcessedNodeResult);
         lodashMerge(data, childResult.data);
         yKeys.push(...childResult.yKeys);
         if (childResult.xAxis) {

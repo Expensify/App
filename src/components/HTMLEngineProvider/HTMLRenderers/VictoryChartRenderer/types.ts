@@ -132,7 +132,7 @@ type ProcessNodeResult = {
 /** Partial slice produced by a single per-tag parser before merging. */
 type PartialProcessNodeResult = Partial<ProcessNodeResult>;
 
-type NodeParser = (tnode: TNode, typeface: SkTypeface | null) => PartialProcessNodeResult;
+type NodeParser = (tnode: TNode, typeface: SkTypeface | null, rootProcessedResult: ProcessNodeResult | null) => PartialProcessNodeResult;
 
 type ChartType = ValueOf<typeof CHART_TYPE>;
 
