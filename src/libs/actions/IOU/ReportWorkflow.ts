@@ -1165,6 +1165,19 @@ function unapproveExpenseReport(
         optimisticNextStepData,
     ];
 
+    // When unapproving a report whose payment was cancelled, clear the parent chat's
+    // iouReportID so the next expense from the FAB creates a fresh report instead of
+    // appending to the cancelled-and-unapproved one. This mirrors submitReport's cleanup.
+    if (expenseReport.chatReportID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.chatReportID}`,
+            value: {
+                iouReportID: null,
+            },
+        });
+    }
+
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1215,6 +1228,16 @@ function unapproveExpenseReport(
             },
         },
     ];
+
+    if (expenseReport.chatReportID) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.chatReportID}`,
+            value: {
+                iouReportID: expenseReport.reportID,
+            },
+        });
+    }
 
     if (expenseReport.parentReportID && expenseReport.parentReportActionID) {
         optimisticData.push({
