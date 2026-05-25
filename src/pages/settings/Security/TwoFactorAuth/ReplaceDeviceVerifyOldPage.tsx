@@ -62,6 +62,7 @@ function ReplaceDeviceVerifyOldPage() {
                     <Text style={[styles.textLabel, styles.mb4]}>{translate('twoFactorAuth.verifyOldDeviceDescription')}</Text>
                     <TwoFactorAuthForm
                         ref={formRef}
+                        shouldAllowRecoveryCode
                         onSubmit={(code) => {
                             replaceTwoFactorDevice('verify_old', code);
                         }}
