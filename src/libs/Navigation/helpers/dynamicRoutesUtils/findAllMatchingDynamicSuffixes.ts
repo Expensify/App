@@ -48,54 +48,68 @@ function tryMatchParametric(candidate: string, candidateSegmentCount: number, pa
 }
 
 /**
- * Finds a registered dynamic route suffix that matches the end of the given path.
+ * Collects ALL registered dynamic route suffixes that syntactically match the end of the given path,
+ * across all three phases and in priority order:
+ *   1. Static matches (`dynamicRoutePaths` Set lookup), longest to shortest.
+ *   2. Strict parametric patterns (no optional params), longest to shortest.
+ *   3. Optional parametric patterns (has at least one `:param?`), longest to shortest.
  *
- * Uses three-phase matching with decreasing specificity. Each phase iterates
- * all sub-suffixes from longest to shortest before the next phase begins:
- *   1. Static matches (`dynamicRoutePaths` Set lookup).
- *   2. Strict parametric patterns (no optional params).
- *   3. Optional parametric patterns (has at least one `:param?`).
+ * Use this instead of `findMatchingDynamicSuffix` when you need to validate matches against
+ * additional context (e.g. `entryScreens`) and fall back to the next candidate if the first
+ * one doesn't satisfy the constraint. This prevents false-positive greedy matches where a
+ * user-defined name (e.g. a tag named "gl-code") coincides with a registered static suffix.
  *
- * This guarantees that any static match, even a short one, always beats
- * a parametric match, and any strict-parametric match always beats an
- * optional-parametric match.
+ * Each pattern appears at most once in the result array. The first element is always equal
+ * to what `findMatchingDynamicSuffix` would return for the same path.
  *
- * @param path - The path to find the matching dynamic suffix for
- * @returns The matching dynamic suffix, or undefined if no matching suffix is found
+ * @param path - The path to find all matching dynamic suffixes for
+ * @returns Array of all matching dynamic suffixes in priority order (may be empty)
  */
-function findMatchingDynamicSuffix(path = ''): DynamicSuffixMatch | undefined {
+function findAllMatchingDynamicSuffixes(path = ''): DynamicSuffixMatch[] {
     const [normalizedPath] = splitPathAndQuery(path);
     if (!normalizedPath) {
-        return undefined;
+        return [];
     }
 
     const segments = normalizedPath.split('/').filter(Boolean);
+    const results: DynamicSuffixMatch[] = [];
+    const seenPatterns = new Set<string>();
 
     // Phase 1: Static matches (longest to shortest)
     for (let i = 0; i < segments.length; i++) {
         const candidate = segments.slice(i).join('/');
         if (dynamicRoutePaths.has(candidate)) {
-            return {pattern: candidate, actualSuffix: candidate, pathParams: {}};
+            results.push({pattern: candidate, actualSuffix: candidate, pathParams: {}});
+            seenPatterns.add(candidate);
         }
     }
 
     // Phase 2: Strict parametric patterns - no optional params (longest to shortest)
     for (let i = 0; i < segments.length; i++) {
-        const result = tryMatchParametric(segments.slice(i).join('/'), segments.length - i, compiledStrictParametricDynamicRoutes);
-        if (result) {
-            return result;
+        const match = tryMatchParametric(segments.slice(i).join('/'), segments.length - i, compiledStrictParametricDynamicRoutes);
+        if (match && !seenPatterns.has(match.pattern)) {
+            results.push(match);
+            seenPatterns.add(match.pattern);
         }
     }
 
     // Phase 3: Optional parametric patterns - has at least one :param? (longest to shortest)
     for (let i = 0; i < segments.length; i++) {
-        const result = tryMatchParametric(segments.slice(i).join('/'), segments.length - i, compiledOptionalParametricDynamicRoutes);
-        if (result) {
-            return result;
+        const match = tryMatchParametric(segments.slice(i).join('/'), segments.length - i, compiledOptionalParametricDynamicRoutes);
+        if (match && !seenPatterns.has(match.pattern)) {
+            results.push(match);
+            seenPatterns.add(match.pattern);
         }
     }
 
-    return undefined;
+    return results;
 }
 
-export default findMatchingDynamicSuffix;
+/** Mirrors previous `findMatchingDynamicSuffix` logic - returns only the first (highest-priority) match. */
+function findMatchingDynamicSuffix(path = ''): DynamicSuffixMatch | undefined {
+    return findAllMatchingDynamicSuffixes(path).at(0);
+}
+
+export type {DynamicSuffixMatch};
+export {findMatchingDynamicSuffix};
+export default findAllMatchingDynamicSuffixes;
