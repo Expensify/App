@@ -371,7 +371,7 @@ function BaseReportActionContextMenu({
     // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
     const card = useGetExpensifyCardFromReportAction({reportAction: (reportAction ?? null) as ReportAction, policyID});
 
-    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true});
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, style: wrapperStyle});
 
     return (
         (isVisible || shouldKeepOpen || !isMini) && (
@@ -379,7 +379,7 @@ function BaseReportActionContextMenu({
                 <CompactMenuContext.Provider value>
                     <View
                         ref={contentRef}
-                        style={[wrapperStyle, bottomSafeAreaPaddingStyle]}
+                        style={bottomSafeAreaPaddingStyle}
                     >
                         {filteredContextMenuActions.map((contextAction, index) => {
                             const closePopup = !isMini;

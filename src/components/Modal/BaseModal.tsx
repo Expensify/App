@@ -101,10 +101,14 @@ function BaseModal({
     const shouldCallHideModalOnUnmount = useRef(false);
     const hideModalCallbackRef = useRef<(callHideCallback: boolean) => void>(undefined);
     const bottomDockedDismissButtonRef = useRef<View>(null);
+    const fallbackModalIdRef = useRef<number | undefined>(undefined);
+    if (fallbackModalIdRef.current === undefined) {
+        fallbackModalIdRef.current = ComposerFocusManager.getId();
+    }
 
     const wasVisible = usePrevious(isVisible);
 
-    const uniqueModalId = modalId ?? ComposerFocusManager.getId();
+    const uniqueModalId = modalId ?? fallbackModalIdRef.current;
     const saveFocusState = () => {
         if (shouldEnableNewFocusManagement) {
             ComposerFocusManager.saveFocusState(uniqueModalId);

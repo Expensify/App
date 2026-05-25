@@ -205,7 +205,7 @@ type PopoverMenuContentProps = {
 };
 
 function PopoverMenuContent({shouldUseScrollView, contentContainerStyle, children, addBottomSafeAreaPadding}: PopoverMenuContentProps): React.JSX.Element {
-    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding});
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding, style: contentContainerStyle});
 
     if (shouldUseScrollView) {
         return (
@@ -218,7 +218,7 @@ function PopoverMenuContent({shouldUseScrollView, contentContainerStyle, childre
         );
     }
 
-    return <View style={[contentContainerStyle, bottomSafeAreaPaddingStyle]}>{children}</View>;
+    return <View style={bottomSafeAreaPaddingStyle}>{children}</View>;
 }
 
 function getSelectedItemIndex(menuItems: PopoverMenuItem[]) {
