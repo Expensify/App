@@ -68,6 +68,7 @@ const VictoryTheme = {
         padding: {top: 5, left: 5, right: 5, bottom: 5},
     },
     tooltip: {
+        /** Fraction of the pie radius at which the tooltip is anchored for each slice. */
         pieRadiusDistance: 2 / 3,
         /** The height of the chart tooltip pointer */
         pointerHeight: 4,
