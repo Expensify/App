@@ -27,21 +27,19 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTagForm';
 
-type DynamicCreateTagPageProps =
-    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_CREATE>
+type WorkspaceCreateTagPageProps =
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_CREATE>
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_CREATE>;
 
-function DynamicCreateTagPage({route}: DynamicCreateTagPageProps) {
+function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
     const {policyID} = route.params;
     const policyData = usePolicyData(policyID);
     const {tags: policyTagLists, categories: policyCategories} = policyData;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
-    const isDynamicFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_CREATE || route.name === SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TAG_CREATE;
-    const backPath = useDynamicBackPath(
-        route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_CREATE ? DYNAMIC_ROUTES.SETTINGS_TAG_CREATE.path : DYNAMIC_ROUTES.WORKSPACE_TAG_CREATE.path,
-    );
+    const isDynamicFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_CREATE;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_TAG_CREATE.path);
 
     const policyHasCustomCategories = hasCustomCategories(policyCategories);
 
@@ -112,7 +110,7 @@ function DynamicCreateTagPage({route}: DynamicCreateTagPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID="DynamicCreateTagPage"
+                testID="WorkspaceCreateTagPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -144,4 +142,4 @@ function DynamicCreateTagPage({route}: DynamicCreateTagPageProps) {
     );
 }
 
-export default DynamicCreateTagPage;
+export default WorkspaceCreateTagPage;

@@ -7,7 +7,6 @@ import usePolicyData from '@hooks/usePolicyData';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import {
     buildOptimisticPolicyRecentlyUsedTags,
-    cleanPolicyTags,
     clearPolicyTagErrors,
     clearPolicyTagListErrorField,
     clearPolicyTagListErrors,
@@ -276,52 +275,6 @@ describe('actions/Policy', () => {
             expect(policyTags?.[newTagListName]).toBeFalsy();
             expect(policyTags?.[oldTagListName]).toBeTruthy();
             expect(policyTags?.[oldTagListName]?.errors).toBeTruthy();
-        });
-    });
-
-    describe('cleanPolicyTags', () => {
-        it('should disable required tags after cleaning all tags succeeds', async () => {
-            const fakePolicy = createRandomPolicy(0);
-            fakePolicy.areTagsEnabled = true;
-            fakePolicy.requiresTag = true;
-
-            mockFetch.pause();
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-            await waitForBatchedUpdates();
-
-            cleanPolicyTags(fakePolicy.id, true);
-            await waitForBatchedUpdates();
-
-            const policyBeforeSuccess = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
-            expect(policyBeforeSuccess?.requiresTag).toBe(true);
-
-            await mockFetch.resume();
-            await waitForBatchedUpdates();
-
-            const updatedPolicy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
-            expect(updatedPolicy?.requiresTag).toBe(false);
-        });
-
-        it('should keep required tags enabled when cleaning all tags fails', async () => {
-            const fakePolicy = createRandomPolicy(0);
-            fakePolicy.areTagsEnabled = true;
-            fakePolicy.requiresTag = true;
-
-            mockFetch.pause();
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-            await waitForBatchedUpdates();
-
-            mockFetch.fail();
-            cleanPolicyTags(fakePolicy.id, true);
-            await waitForBatchedUpdates();
-
-            mockFetch.resume();
-            await waitForBatchedUpdates();
-
-            const updatedPolicy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
-            expect(updatedPolicy?.requiresTag).toBe(true);
         });
     });
 
