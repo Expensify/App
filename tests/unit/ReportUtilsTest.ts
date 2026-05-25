@@ -17537,6 +17537,26 @@ describe('ReportUtils', () => {
             expect(hasSmartscanError([splitAction], chatReport, allTransactions)).toBe(false);
             expect(getReportActionWithSmartscanError([splitAction], chatReport, allTransactions)).toBeUndefined();
         });
+
+        it('should NOT flag a track expense action when its linked transaction is missing', () => {
+            const trackTransactionID = '700';
+            const trackAction: ReportAction = {
+                ...createRandomReportAction(Number(trackTransactionID)),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: currentUserAccountID,
+                originalMessage: {
+                    IOUTransactionID: trackTransactionID,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                    amount: 0,
+                    currency: CONST.CURRENCY.USD,
+                    comment: '',
+                    participantAccountIDs: [currentUserAccountID],
+                },
+            };
+
+            expect(hasSmartscanError([trackAction], chatReport, {})).toBe(false);
+            expect(getReportActionWithSmartscanError([trackAction], chatReport, {})).toBeUndefined();
+        });
     });
 
     describe('getEffectiveReportErrors', () => {
