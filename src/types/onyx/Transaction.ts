@@ -123,7 +123,7 @@ type Comment = {
     liabilityType?: ValueOf<typeof CONST.TRANSACTION.LIABILITY_TYPE>;
 
     /**
-     * Accounting-system vendor matched to this expense (Vendor matching CC R1, QBO).
+     * Accounting-system vendor matched to this expense.
      * Stored on non-reimbursable card expenses when a vendor is set either by the
      * PHP fuzzy matcher (`isManuallySet=false`) or by the user / a merchant rule
      * (`isManuallySet=true`). The flag prevents auto-match from overwriting a

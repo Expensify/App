@@ -432,11 +432,11 @@ const ViolationsUtils = {
                     : getTagViolationsForMultiLevelTags(updatedTransaction, newTransactionViolations, policyTagList, hasDependentTags);
         }
 
-        // Inactive vendor violation (Vendor matching CC R1, QBO). Mirrors `categoryOutOfPolicy` /
-        // `tagOutOfPolicy` — computed entirely client-side from the policy's imported vendor list.
-        // The vendor object on the transaction is left as-is when the violation fires (or when the
-        // feature is disabled) — we never clear the user's selection just because the vendor list
-        // changed; the admin needs to see what was previously set so they can re-pick.
+        // Inactive vendor violation. Mirrors `categoryOutOfPolicy` / `tagOutOfPolicy` — computed
+        // entirely client-side from the policy's imported vendor list. The vendor object on the
+        // transaction is left as-is when the violation fires (or when the feature is disabled) —
+        // we never clear the user's selection just because the vendor list changed; the admin
+        // needs to see what was previously set so they can re-pick.
         const hasInactiveVendorViolation = newTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.INACTIVE_VENDOR);
         const isVendorFeatureActive = hasVendorFeature(policy);
         const transactionVendorID = updatedTransaction.comment?.vendor?.externalID;

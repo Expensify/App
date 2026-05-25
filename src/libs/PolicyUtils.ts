@@ -2001,10 +2001,10 @@ function getConnectedIntegration(policy: Policy | undefined, connectionNames: re
 }
 
 /**
- * Vendor matching CC R1 (QBO) feature gate. Returns true when QBO is connected and the workspace's
- * non-reimbursable export type is an individual card transaction type — the only scope the Vendor
- * field is shown for. Mirrors `QuickbooksOnline::hasVendorFeature` on the PHP side so the App and
- * backend agree on which workspaces see the field.
+ * QBO vendor feature gate. Returns true when QBO is connected and the workspace's non-reimbursable
+ * export type is an individual card transaction type — the only scope the Vendor field is shown
+ * for. Mirrors `QuickbooksOnline::hasVendorFeature` on the PHP side so the App and backend agree
+ * on which workspaces see the field.
  */
 function hasVendorFeature(policy: OnyxEntry<Policy>): boolean {
     if (!policy) {
@@ -2021,7 +2021,7 @@ function hasVendorFeature(policy: OnyxEntry<Policy>): boolean {
 /**
  * Returns the QBO vendor list imported into the workspace (empty array when QBO isn't connected or
  * the sync hasn't populated vendors yet). Source of truth for the workspace Vendors tab and the
- * vendor selector RHP. Enable/disable filtering is post-R1 polish.
+ * vendor selector RHP.
  */
 function getQBOVendors(policy: OnyxEntry<Policy>): Vendor[] {
     return policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO]?.data?.vendors ?? [];
