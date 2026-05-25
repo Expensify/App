@@ -6,8 +6,10 @@ import DistanceField from '@components/MoneyRequestConfirmationList/sections/Dis
 import MerchantField from '@components/MoneyRequestConfirmationList/sections/MerchantField';
 import RateField from '@components/MoneyRequestConfirmationList/sections/RateField';
 import TimeFields from '@components/MoneyRequestConfirmationList/sections/TimeFields';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {FieldVisibility} from './fieldVisibility';
@@ -27,9 +29,6 @@ type TransactionDetailsFieldsProps = {
 
     /** ID of the originating report action when editing */
     reportActionID: string | undefined;
-
-    /** Active transaction */
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
 
     /** Active policy */
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -73,6 +72,12 @@ type TransactionDetailsFieldsProps = {
     /** Form-level error message */
     formError: string;
 
+    /** Clears specific form errors by key */
+    clearFormErrors: (errors: string[]) => void;
+
+    /** Sets a form error message */
+    setFormError: (error: TranslationPaths | '') => void;
+
     /** Whether navigating to upgrade is required to proceed past blocked workspaces */
     shouldNavigateToUpgradePath: boolean;
 
@@ -108,6 +113,9 @@ type TransactionDetailsFieldsProps = {
 
     /** When true, suppresses the below-show-more entries (Amount, Rate, Merchant, Time) */
     isCompactMode: boolean;
+
+    /** Triggers submit from inline inputs */
+    onSubmitForm?: () => void;
 };
 
 function TransactionDetailsFields({
@@ -116,7 +124,6 @@ function TransactionDetailsFields({
     transactionID,
     reportID,
     reportActionID,
-    transaction,
     policy,
     isReadOnly,
     didConfirm,
@@ -130,6 +137,8 @@ function TransactionDetailsFields({
     isDescriptionRequired,
     shouldDisplayFieldError,
     formError,
+    clearFormErrors,
+    setFormError,
     shouldNavigateToUpgradePath,
     shouldSelectPolicy,
     iouCurrencyCode,
@@ -143,7 +152,10 @@ function TransactionDetailsFields({
     distanceRateCurrency,
     isCompactMode,
     fieldVisibility,
+    onSubmitForm,
 }: TransactionDetailsFieldsProps) {
+    const shouldAutoFocusAmountField = !canUseTouchScreen();
+
     return (
         <>
             {!isCompactMode && fieldVisibility.amount && (
@@ -160,13 +172,32 @@ function TransactionDetailsFields({
                     shouldShowTimeRequestFields={fieldVisibility.time}
                     shouldDisplayFieldError={shouldDisplayFieldError}
                     formError={formError}
-                    transaction={transaction}
                     transactionID={transactionID}
                     iouType={iouType}
                     reportID={reportID}
                     reportActionID={reportActionID}
                     isEditingSplitBill={isEditingSplitBill}
                     policy={policy}
+                    clearFormErrors={clearFormErrors}
+                    setFormError={setFormError}
+                    autoFocus={shouldAutoFocusAmountField}
+                />
+            )}
+
+            {!isCompactMode && fieldVisibility.merchant && (
+                <MerchantField
+                    isMerchantRequired={isMerchantRequired}
+                    isNewManualExpenseFlowEnabled={isNewManualExpenseFlowEnabled}
+                    isReadOnly={isReadOnly}
+                    didConfirm={didConfirm}
+                    shouldDisplayFieldError={shouldDisplayFieldError}
+                    formError={formError}
+                    transactionID={transactionID}
+                    action={action}
+                    iouType={iouType}
+                    reportID={reportID}
+                    reportActionID={reportActionID}
+                    isEditingSplitBill={isEditingSplitBill}
                 />
             )}
 
@@ -181,8 +212,8 @@ function TransactionDetailsFields({
                 reportID={reportID}
                 reportActionID={reportActionID}
                 policy={policy}
-                transaction={transaction}
                 isEditingSplitBill={isEditingSplitBill}
+                onSubmitForm={onSubmitForm}
             />
 
             {fieldVisibility.distance && (
@@ -225,27 +256,8 @@ function TransactionDetailsFields({
                 />
             )}
 
-            {!isCompactMode && fieldVisibility.merchant && (
-                <MerchantField
-                    isMerchantRequired={isMerchantRequired}
-                    isNewManualExpenseFlowEnabled={isNewManualExpenseFlowEnabled}
-                    isReadOnly={isReadOnly}
-                    didConfirm={didConfirm}
-                    shouldDisplayFieldError={shouldDisplayFieldError}
-                    formError={formError}
-                    transactionID={transactionID}
-                    action={action}
-                    iouType={iouType}
-                    reportID={reportID}
-                    reportActionID={reportActionID}
-                    transaction={transaction}
-                    isEditingSplitBill={isEditingSplitBill}
-                />
-            )}
-
             {!isCompactMode && fieldVisibility.time && (
                 <TimeFields
-                    transaction={transaction}
                     isReadOnly={isReadOnly}
                     didConfirm={didConfirm}
                     transactionID={transactionID}

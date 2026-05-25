@@ -1164,8 +1164,7 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                currentUserLogin: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
             await waitForBatchedUpdates();
@@ -1228,8 +1227,7 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                currentUserLogin: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
             await waitForBatchedUpdates();
@@ -1285,8 +1283,7 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                currentUserLogin: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
             await waitForBatchedUpdates();
@@ -1338,8 +1335,7 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                currentUserLogin: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
             await waitForBatchedUpdates();
@@ -1400,8 +1396,7 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                currentUserLogin: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
             await waitForBatchedUpdates();
@@ -1448,8 +1443,7 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                currentUserLogin: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
             await waitForBatchedUpdates();
@@ -1489,8 +1483,7 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                currentUserLogin: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
             await waitForBatchedUpdates();
@@ -1532,8 +1525,7 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                currentUserLogin: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
             await waitForBatchedUpdates();
@@ -1584,8 +1576,7 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                currentUserLogin: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
             await waitForBatchedUpdates();
@@ -1649,8 +1640,7 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints,
                 targetPolicyTags,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                currentUserLogin: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
             await waitForBatchedUpdates();
@@ -1699,8 +1689,7 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints,
                 targetPolicyTags,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                currentUserLogin: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
             await waitForBatchedUpdates();
@@ -1760,8 +1749,7 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints,
                 targetPolicyTags,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                currentUserLogin: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
             await waitForBatchedUpdates();
@@ -2474,8 +2462,7 @@ describe('actions/Duplicate', () => {
                 draftTransactionIDs: [],
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints: [],
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                currentUserLogin: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
             });
 
             await waitForBatchedUpdates();

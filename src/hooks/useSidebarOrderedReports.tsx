@@ -86,7 +86,7 @@ function SidebarOrderedReportsContextProvider({
     const [currentReportsToDisplay, setCurrentReportsToDisplay] = useState<ReportsToDisplayInLHN>({});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
-    const {accountID} = useCurrentUserPersonalDetails();
+    const {accountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue;
     const prevDerivedCurrentReportID = usePrevious(derivedCurrentReportID);
@@ -213,21 +213,25 @@ function SidebarOrderedReportsContextProvider({
                 draftComments: reportsDrafts,
                 transactions,
                 isOffline,
+                currentUserLogin: currentUserLogin ?? '',
+                currentUserAccountID: accountID,
             });
         } else {
             Log.info('[useSidebarOrderedReports] building reportsToDisplay from scratch');
-            reportsToDisplay = SidebarUtils.getReportsToDisplayInLHN(
-                derivedCurrentReportID,
-                chatReports,
+            reportsToDisplay = SidebarUtils.getReportsToDisplayInLHN({
+                currentReportId: derivedCurrentReportID,
+                reports: chatReports,
                 betas,
                 priorityMode,
-                reportsDrafts,
+                draftComments: reportsDrafts,
                 transactionViolations,
                 transactions,
                 isOffline,
+                currentUserLogin: currentUserLogin ?? '',
+                currentUserAccountID: accountID,
                 reportNameValuePairs,
                 reportAttributes,
-            );
+            });
         }
 
         return reportsToDisplay;
@@ -245,6 +249,8 @@ function SidebarOrderedReportsContextProvider({
         reportsDrafts,
         isOffline,
         clearCacheDummyCounter,
+        currentUserLogin,
+        accountID,
     ]);
 
     // Derive a stable boolean map indicating which reports have drafts.
@@ -445,7 +451,7 @@ function useSidebarOrderedReportsPerformance(componentName?: string) {
 }
 
 export {SidebarOrderedReportsContextProvider, useSidebarOrderedReports, useSidebarOrderedReportsState, useSidebarOrderedReportsActions};
-export type {PartialPolicyForSidebar, ReportsToDisplayInLHN};
+export type {ReportsToDisplayInLHN};
 
 function getChangedKeys<T extends Record<string, unknown>>(deps: T, prevDeps: T) {
     const depsKeys = Object.keys(deps);
