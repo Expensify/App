@@ -1120,8 +1120,13 @@ const transactionReportGroupListItems = [
         exported: '',
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
+        firstApproved: '',
+        firstApprover: emptyPersonalDetails,
+        firstApproverAccountID: undefined,
+        formattedFirstApprover: '',
         shouldShowYearApproved: false,
         shouldShowYearExported: false,
+        shouldShowYearFirstApproved: false,
         stateNum: 0,
         statusNum: 0,
         to: emptyPersonalDetails,
@@ -1232,8 +1237,13 @@ const transactionReportGroupListItems = [
         reportName: 'Expense Report #123',
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
+        firstApproved: '',
+        firstApprover: emptyPersonalDetails,
+        firstApproverAccountID: undefined,
+        formattedFirstApprover: '',
         shouldShowYearApproved: false,
         shouldShowYearExported: false,
+        shouldShowYearFirstApproved: false,
         stateNum: 1,
         statusNum: 1,
         to: {
@@ -1354,8 +1364,13 @@ const transactionReportGroupListItems = [
         reportName: 'Approver owes ₫44.00',
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
+        firstApproved: '',
+        firstApprover: emptyPersonalDetails,
+        firstApproverAccountID: undefined,
+        formattedFirstApprover: '',
         shouldShowYearApproved: false,
         shouldShowYearExported: false,
+        shouldShowYearFirstApproved: false,
         stateNum: 1,
         statusNum: 1,
         total: 4400,
@@ -1545,8 +1560,13 @@ const transactionReportGroupListItems = [
         reportName: 'Expense Report #123',
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
+        firstApproved: '',
+        firstApprover: emptyPersonalDetails,
+        firstApproverAccountID: undefined,
+        formattedFirstApprover: '',
         shouldShowYearApproved: false,
         shouldShowYearExported: false,
+        shouldShowYearFirstApproved: false,
         stateNum: 0,
         statusNum: 0,
         to: emptyPersonalDetails,
@@ -5851,6 +5871,53 @@ describe('SearchUIUtils', () => {
                 const item = sections.find((s) => s.keyForList === rptFilterReportID);
                 expect(item?.pendingAction).toBeUndefined();
             });
+
+            it('should populate firstApprover/firstApproved from report.approvers[0] when backend provides it', () => {
+                const approvedAt = '2024-12-22 09:30:00';
+                const data = makeReportFilterTestData({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                    approved: approvedAt,
+                    managerID: adminAccountID,
+                    approvers: [{email: approverEmail, accountID: approverAccountID, date: approvedAt}],
+                });
+                const [sections] = callGetReportSections(data);
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.firstApproved).toBe(approvedAt);
+                expect(item?.firstApproverAccountID).toBe(approverAccountID);
+            });
+
+            it('should resolve firstApproverAccountID from email when approvers[0].accountID is missing', () => {
+                const approvedAt = '2024-12-22 09:30:00';
+                const data = makeReportFilterTestData({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                    approved: approvedAt,
+                    managerID: adminAccountID,
+                    approvers: [{email: approverEmail, date: approvedAt}],
+                });
+                const [sections] = callGetReportSections(data);
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.firstApproverAccountID).toBe(approverAccountID);
+                expect(item?.firstApproved).toBe(approvedAt);
+            });
+
+            it('should leave firstApprover/firstApproved blank when backend omits approvers (no FE fallback to managerID/approved)', () => {
+                const data = makeReportFilterTestData({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                    approved: '2024-12-22 09:30:00',
+                    managerID: approverAccountID,
+                });
+                const [sections] = callGetReportSections(data);
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.firstApproved).toBe('');
+                expect(item?.firstApproverAccountID).toBeUndefined();
+                expect(item?.formattedFirstApprover).toBe('');
+            });
         });
     });
 
@@ -8602,6 +8669,45 @@ describe('SearchUIUtils', () => {
                 isExpenseReportView: true,
             });
             expect(columnsWithoutComments).not.toContain(CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
+        });
+
+        test('Should hide FIRST_APPROVED/FIRST_APPROVER for expense reports when no report has approvers', () => {
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED, CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER, CONST.SEARCH.TABLE_COLUMNS.TOTAL];
+            const data: OnyxTypes.SearchResults['data'] = {
+                ...searchResults.data,
+                [`report_${reportID2}`]: {...searchResults.data[`report_${reportID2}`], approvers: undefined},
+            };
+
+            const columns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: adminAccountID,
+                data,
+                visibleColumns,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+            });
+
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED);
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER);
+        });
+
+        test('Should show FIRST_APPROVED/FIRST_APPROVER for expense reports when at least one report has approvers', () => {
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED, CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER, CONST.SEARCH.TABLE_COLUMNS.TOTAL];
+            const data: OnyxTypes.SearchResults['data'] = {
+                ...searchResults.data,
+                [`report_${reportID2}`]: {
+                    ...searchResults.data[`report_${reportID2}`],
+                    approvers: [{email: approverEmail, accountID: approverAccountID, date: '2024-12-22 09:30:00'}],
+                },
+            };
+
+            const columns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: adminAccountID,
+                data,
+                visibleColumns,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+            });
+
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER);
         });
     });
 
