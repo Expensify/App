@@ -35,7 +35,6 @@ const mockSearchStateContext = {
     shouldResetSearchQuery: false,
     lastSearchType: undefined,
     areAllMatchingItemsSelected: false,
-    totalRowCount: 0,
     shouldShowSelectAllMatchingItems: false,
     shouldShowFiltersBarLoading: false,
     shouldUseLiveData: false,
@@ -56,7 +55,6 @@ const mockSearchActionsContext = {
     setShouldShowFiltersBarLoading: jest.fn(),
     setShouldShowSelectAllMatchingItems: jest.fn(),
     selectAllMatchingItems: jest.fn(),
-    setTotalRowCount: jest.fn(),
     setShouldResetSearchQuery: jest.fn(),
     setSortedReportIDs: jest.fn(),
 } satisfies SearchActionsContextValue;

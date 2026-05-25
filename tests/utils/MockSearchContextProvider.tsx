@@ -54,7 +54,6 @@ function splitState(value: SearchStateContextValue): {
             hasSelectedTransactions: value.hasSelectedTransactions,
             shouldShowSelectAllMatchingItems: value.shouldShowSelectAllMatchingItems,
             areAllMatchingItemsSelected: value.areAllMatchingItemsSelected,
-            totalRowCount: value.totalRowCount,
         },
     };
 }
@@ -79,7 +78,6 @@ function splitActions(value: SearchActionsContextValue): {
             removeTransaction: value.removeTransaction,
             setShouldShowSelectAllMatchingItems: value.setShouldShowSelectAllMatchingItems,
             selectAllMatchingItems: value.selectAllMatchingItems,
-            setTotalRowCount: value.setTotalRowCount,
         },
     };
 }

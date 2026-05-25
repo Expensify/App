@@ -207,8 +207,6 @@ type SearchSelectionContextValue = {
     hasSelectedTransactions: boolean;
     shouldShowSelectAllMatchingItems: boolean;
     areAllMatchingItemsSelected: boolean;
-    /** Visible row count fed by the active Search view; consumed by `useSelectionCounts`. */
-    totalRowCount: number;
 };
 
 type SearchSelectionActionsValue = {
@@ -231,7 +229,6 @@ type SearchSelectionActionsValue = {
     removeTransaction: (transactionID: string | undefined) => void;
     setShouldShowSelectAllMatchingItems: (shouldShow: boolean) => void;
     selectAllMatchingItems: (on: boolean) => void;
-    setTotalRowCount: (count: number) => void;
 };
 
 /** Composed value of all three Search state contexts. Kept as a union for callers that need the full bag shape (e.g. test fixtures, action `searchContext` payloads). */
