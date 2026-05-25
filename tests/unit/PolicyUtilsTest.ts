@@ -3017,7 +3017,7 @@ describe('PolicyUtils', () => {
             it('returns the vendor list from the QBO connection', () => {
                 const vendors = [
                     {id: 'v-1', name: 'Acme', currency: 'USD'},
-                    {id: 'v-2', name: 'Initech', currency: 'USD'},
+                    {id: 'v-2', name: 'Other Co', currency: 'USD'},
                 ];
                 const policy = buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, vendors);
                 expect(getQBOVendors(policy)).toEqual(vendors);
@@ -3037,9 +3037,9 @@ describe('PolicyUtils', () => {
             it('returns the matching vendor when the ID exists in the list', () => {
                 const policy = buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, [
                     {id: 'v-1', name: 'Acme', currency: 'USD'},
-                    {id: 'v-2', name: 'Initech', currency: 'USD'},
+                    {id: 'v-2', name: 'Other Co', currency: 'USD'},
                 ]);
-                expect(getQBOVendorByID(policy, 'v-2')).toEqual({id: 'v-2', name: 'Initech', currency: 'USD'});
+                expect(getQBOVendorByID(policy, 'v-2')).toEqual({id: 'v-2', name: 'Other Co', currency: 'USD'});
             });
 
             it('returns undefined when the ID is not in the list (the inactive-vendor case)', () => {
