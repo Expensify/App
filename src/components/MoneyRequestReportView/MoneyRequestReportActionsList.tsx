@@ -59,6 +59,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import MoneyRequestReportHorizontalScrollWrapper from './MoneyRequestReportHorizontalScrollWrapper';
 import type {MoneyRequestReportTransactionListController, TransactionListItemData} from './MoneyRequestReportTransactionList';
 import MoneyRequestReportTransactionList from './MoneyRequestReportTransactionList';
 import MoneyRequestViewReportFields from './MoneyRequestViewReportFields';
@@ -799,38 +800,39 @@ function MoneyRequestReportUnifiedList({
     const initialScrollIndex = linkedActionIndex >= 0 ? linkedActionIndex : undefined;
 
     return (
-        <>
-            {controller.wrapWithHorizontalScroll(
-                <FlashList<UnifiedListItem>
-                    ref={listRef}
-                    accessibilityLabel={accessibilityLabel}
-                    testID="money-request-report-actions-list"
-                    data={data}
-                    renderItem={dispatchRenderItem}
-                    keyExtractor={unifiedListKeyExtractor}
-                    getItemType={unifiedListItemType}
-                    initialScrollIndex={initialScrollIndex}
-                    onViewableItemsChanged={onViewableItemsChanged}
-                    onLayout={onLayout}
-                    onEndReached={onEndReached}
-                    onStartReached={onStartReached}
-                    ListHeaderComponent={
-                        <>
-                            <MoneyRequestViewReportFields
-                                report={report}
-                                policy={policy}
-                            />
-                            {controller.beforeListContent}
-                        </>
-                    }
-                    keyboardShouldPersistTaps="handled"
-                    onScroll={onScroll}
-                    contentContainerStyle={contentContainerStyle}
-                    ListEmptyComponent={!isOffline && isLoadingInitialActions ? <ReportActionsListLoadingSkeleton reasonAttributes={skeletonReasonAttributes} /> : undefined}
-                />,
-            )}
-            {controller.longPressModal}
-        </>
+        <MoneyRequestReportHorizontalScrollWrapper
+            shouldScroll={controller.shouldScrollHorizontally}
+            contentWidth={controller.tableMinWidth}
+            restorationKey={controller.horizontalScrollRestorationKey}
+        >
+            <FlashList<UnifiedListItem>
+                ref={listRef}
+                accessibilityLabel={accessibilityLabel}
+                testID="money-request-report-actions-list"
+                data={data}
+                renderItem={dispatchRenderItem}
+                keyExtractor={unifiedListKeyExtractor}
+                getItemType={unifiedListItemType}
+                initialScrollIndex={initialScrollIndex}
+                onViewableItemsChanged={onViewableItemsChanged}
+                onLayout={onLayout}
+                onEndReached={onEndReached}
+                onStartReached={onStartReached}
+                ListHeaderComponent={
+                    <>
+                        <MoneyRequestViewReportFields
+                            report={report}
+                            policy={policy}
+                        />
+                        {controller.beforeListContent}
+                    </>
+                }
+                keyboardShouldPersistTaps="handled"
+                onScroll={onScroll}
+                contentContainerStyle={contentContainerStyle}
+                ListEmptyComponent={!isOffline && isLoadingInitialActions ? <ReportActionsListLoadingSkeleton reasonAttributes={skeletonReasonAttributes} /> : undefined}
+            />
+        </MoneyRequestReportHorizontalScrollWrapper>
     );
 }
 

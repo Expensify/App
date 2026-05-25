@@ -1,18 +1,13 @@
 import {findFocusedRoute, useFocusEffect} from '@react-navigation/native';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import isEmpty from 'lodash/isEmpty';
-import React, {memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-// ScrollView type is needed for the horizontal scroll ref exposed via the controller; the parent owns the ScrollView component.
-// eslint-disable-next-line no-restricted-imports
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
+import type {LayoutChangeEvent} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
-import MenuItem from '@components/MenuItem';
-import Modal from '@components/Modal';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import ScrollView from '@components/ScrollView';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {SearchCustomColumnIds, SortOrder} from '@components/Search/types';
@@ -37,7 +32,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {setOptimisticTransactionThread} from '@libs/actions/Report';
 import {getReportLayoutGroupBy, setReportLayoutGroupBy} from '@libs/actions/ReportLayout';
 import {clearActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
@@ -82,6 +76,8 @@ import MoneyRequestReportGroupHeader from './MoneyRequestReportGroupHeader';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
 import MoneyRequestReportTotalSpend from './MoneyRequestReportTotalSpend';
 import MoneyRequestReportTransactionItem from './MoneyRequestReportTransactionItem';
+import MoneyRequestReportTransactionLongPressModal from './MoneyRequestReportTransactionLongPressModal';
+import type {MoneyRequestReportTransactionLongPressModalHandle} from './MoneyRequestReportTransactionLongPressModal';
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
 
 const PENDING_EXPENSE_REASON_ATTRIBUTES = {context: 'MoneyRequestReportTransactionList.PendingExpensePlaceholder'} as const;
@@ -115,15 +111,14 @@ type MoneyRequestReportTransactionListController = {
     /** Chrome rendered below the transaction items (pending placeholder, Add Expense, breakdown, total). Null when there are no transactions. */
     afterListContent: React.ReactElement | null;
 
-    /**
-     * Long-press mobile selection modal. Rendered as a sibling of the FlashList rather than inside `afterListContent`
-     * because FlashList recycles the footer cell out of the React tree when scrolled away, which would prevent the
-     * modal from portalling. Always mounted.
-     */
-    longPressModal: React.ReactElement;
+    /** True when the rendered table is wider than the viewport; the parent should wrap the list in `MoneyRequestReportHorizontalScrollWrapper`. */
+    shouldScrollHorizontally: boolean;
 
-    /** Wrap the unified list element in a horizontal ScrollView when the table is wider than the viewport, otherwise return it unchanged. */
-    wrapWithHorizontalScroll: (listElement: React.ReactElement) => React.ReactElement;
+    /** Pixel width of the table at full column visibility — passed to the horizontal scroll wrapper as `contentWidth`. */
+    tableMinWidth: number;
+
+    /** Token that changes when the rendered list content changes; the horizontal scroll wrapper uses it to restore the previous offset. */
+    horizontalScrollRestorationKey: unknown;
 
     /** True when this report has no transactions; the parent should still render report actions but skip the transactions section. */
     isEmptyTransactions: boolean;
@@ -189,14 +184,13 @@ function MoneyRequestReportTransactionList({
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location', 'CheckSquare', 'ReceiptPlus', 'Columns', 'Plus']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location', 'ReceiptPlus', 'Columns', 'Plus']);
     const {translate, localeCompare} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
     const {markReportIDAsExpense} = useWideRHPActions();
-    const [isModalVisible, setIsModalVisible] = useState(false);
-    const [selectedTransactionID, setSelectedTransactionID] = useState<string>('');
+    const longPressModalRef = useRef<MoneyRequestReportTransactionLongPressModalHandle>(null);
     const {reportPendingAction} = getReportOfflinePendingActionAndErrors(report);
     const {isOffline} = useNetwork();
 
@@ -392,20 +386,6 @@ function MoneyRequestReportTransactionList({
     const {windowWidth, windowHeight} = useWindowDimensions();
     const minTableWidth = getTableMinWidth(columnsToShow);
     const shouldScrollHorizontally = !shouldUseNarrowLayout && minTableWidth > windowWidth;
-    const horizontalScrollViewRef = useRef<RNScrollView>(null);
-    const horizontalScrollOffsetRef = useRef(0);
-
-    const handleHorizontalScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        horizontalScrollOffsetRef.current = event.nativeEvent.contentOffset.x;
-    }, []);
-
-    // Restore horizontal scroll position synchronously before paint when transactions change
-    useLayoutEffect(() => {
-        if (!shouldScrollHorizontally || horizontalScrollOffsetRef.current <= 0) {
-            return;
-        }
-        horizontalScrollViewRef.current?.scrollTo({x: horizontalScrollOffsetRef.current, animated: false});
-    }, [sortedTransactions, shouldScrollHorizontally]);
 
     const currentGroupBy = getReportLayoutGroupBy(reportLayoutGroupBy);
 
@@ -559,10 +539,9 @@ function MoneyRequestReportTransactionList({
                 toggleTransaction(transactionID);
                 return;
             }
-            setSelectedTransactionID(transactionID);
-            setIsModalVisible(true);
+            longPressModalRef.current?.show(transactionID);
         },
-        [isSmallScreenWidth, isMobileSelectionModeEnabled, toggleTransaction, setSelectedTransactionID, setIsModalVisible],
+        [isSmallScreenWidth, isMobileSelectionModeEnabled, toggleTransaction],
     );
 
     const handleOnPress = useCallback(
@@ -937,56 +916,26 @@ function MoneyRequestReportTransactionList({
         </View>
     );
 
-    const longPressModal = (
-        <Modal
-            isVisible={isModalVisible}
-            type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
-            onClose={() => setIsModalVisible(false)}
-            shouldPreventScrollOnFocus
-        >
-            <MenuItem
-                title={translate('common.select')}
-                icon={expensifyIcons.CheckSquare}
-                onPress={() => {
-                    if (!isMobileSelectionModeEnabled) {
-                        turnOnMobileSelectionMode();
-                    }
-                    toggleTransaction(selectedTransactionID);
-                    setIsModalVisible(false);
-                }}
+    return (
+        <>
+            {render({
+                beforeListContent,
+                transactionListItems: isEmptyTransactions ? [] : listItems,
+                renderTransactionListItem,
+                getTransactionListItemKey: keyExtractor,
+                afterListContent,
+                shouldScrollHorizontally,
+                tableMinWidth: minTableWidth,
+                horizontalScrollRestorationKey: sortedTransactions,
+                isEmptyTransactions,
+            })}
+            <MoneyRequestReportTransactionLongPressModal
+                ref={longPressModalRef}
+                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                toggleTransaction={toggleTransaction}
             />
-        </Modal>
+        </>
     );
-
-    const wrapWithHorizontalScroll = (listElement: React.ReactElement): React.ReactElement => {
-        if (!shouldScrollHorizontally) {
-            return listElement;
-        }
-        return (
-            <ScrollView
-                ref={horizontalScrollViewRef}
-                horizontal
-                showsHorizontalScrollIndicator
-                style={styles.flex1}
-                contentContainerStyle={{width: minTableWidth}}
-                onScroll={handleHorizontalScroll}
-                scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
-            >
-                {listElement}
-            </ScrollView>
-        );
-    };
-
-    return render({
-        beforeListContent,
-        transactionListItems: isEmptyTransactions ? [] : listItems,
-        renderTransactionListItem,
-        getTransactionListItemKey: keyExtractor,
-        afterListContent,
-        longPressModal,
-        wrapWithHorizontalScroll,
-        isEmptyTransactions,
-    });
 }
 
 export default memo(MoneyRequestReportTransactionList);
