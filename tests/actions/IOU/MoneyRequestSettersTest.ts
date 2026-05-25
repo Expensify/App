@@ -32,7 +32,6 @@ import createRandomPolicy, {createCategoryTaxExpenseRules} from '../../utils/col
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
-import type {MockFetch} from '../../utils/TestHelper';
 import {getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -149,7 +148,6 @@ describe('actions/IOU', () => {
     beforeEach(() => {
         jest.clearAllTimers();
         global.fetch = getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 

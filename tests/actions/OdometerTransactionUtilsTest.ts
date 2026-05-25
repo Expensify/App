@@ -14,7 +14,6 @@ import type Transaction from '@src/types/onyx/Transaction';
 import currencyList from '../unit/currencyList.json';
 import createRandomTransaction from '../utils/collections/transaction';
 import getOnyxValue from '../utils/getOnyxValue';
-import type {MockFetch} from '../utils/TestHelper';
 import {getGlobalFetchMock} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -122,7 +121,6 @@ describe('actions/OdometerTransactionUtils', () => {
     beforeEach(() => {
         jest.clearAllTimers();
         global.fetch = getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 

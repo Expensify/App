@@ -29,7 +29,6 @@ import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import getOnyxValue from '../utils/getOnyxValue';
-import type {MockFetch} from '../utils/TestHelper';
 import {getGlobalFetchMock, getOnyxData} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -154,7 +153,6 @@ describe('actions/Transaction', () => {
     beforeEach(() => {
         jest.clearAllTimers();
         global.fetch = getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 

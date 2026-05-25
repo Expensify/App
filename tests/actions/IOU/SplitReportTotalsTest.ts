@@ -17,7 +17,6 @@ import type {Participant as IOUParticipant, SplitExpense} from '@src/types/onyx/
 import type {Participant} from '@src/types/onyx/Report';
 import type {SplitShares} from '@src/types/onyx/Transaction';
 import currencyList from '../../unit/currencyList.json';
-import type {MockFetch} from '../../utils/TestHelper';
 import {getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -133,7 +132,6 @@ describe('actions/IOU', () => {
     beforeEach(() => {
         jest.clearAllTimers();
         global.fetch = getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
