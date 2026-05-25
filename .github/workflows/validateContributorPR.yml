@@ -50,7 +50,6 @@ jobs:
                 '- You are not a member of the Expensify GitHub organization',
                 '- You are not a member of the Expensify `contributor-plus` GitHub team',
                 '- No linked GitHub issue was found in the PR description where you are listed as an assignee',
-                '- No linked GitHub PR was found in the PR description where you are the author or a reviewer',
                 '',
                 'If you\'d like to contribute, please make sure to:',
                 '1. Find an open issue you\'d like to work on',

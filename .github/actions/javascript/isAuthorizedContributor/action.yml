@@ -1,5 +1,5 @@
 name: 'Is Authorized Contributor'
-description: 'Checks whether a PR author is authorized to contribute (org member, Contributor+, or linked issue/PR)'
+description: 'Checks whether a PR author is authorized to contribute (org member, Contributor+, or linked issue)'
 inputs:
     PR_NUMBER:
         description: Pull request number
