@@ -4,7 +4,7 @@ import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
 import {FlashList} from '@shopify/flash-list';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -82,6 +82,25 @@ const BACKFILL_MIN_ACTIONS_THRESHOLD = 50;
 type UnifiedListItem = TransactionListItemData | {readonly type: 'transactions-footer'} | {readonly type: 'report-action'; readonly action: OnyxTypes.ReportAction};
 
 const TRANSACTIONS_FOOTER_ITEM: UnifiedListItem = {type: 'transactions-footer'};
+
+function unifiedListKeyExtractor(item: UnifiedListItem) {
+    switch (item.type) {
+        case 'section-header':
+            return `group-${item.groupKey}`;
+        case 'transaction':
+            return item.transaction.transactionID;
+        case 'transactions-footer':
+            return 'transactions-footer';
+        case 'report-action':
+            return item.action.reportActionID;
+        default:
+            return '';
+    }
+}
+
+function unifiedListItemType(item: UnifiedListItem) {
+    return item.type;
+}
 
 type MoneyRequestReportListProps = {
     /** Callback executed on layout */
@@ -639,24 +658,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         markOpenReportEnd(report, {warm: !shouldShowOpenReportLoadingSkeleton});
     }, [report, shouldShowOpenReportLoadingSkeleton]);
 
-    // Wrapped into useCallback to stabilize children re-renders
-    const keyExtractor = useCallback((item: UnifiedListItem) => {
-        switch (item.type) {
-            case 'section-header':
-                return `group-${item.groupKey}`;
-            case 'transaction':
-                return item.transaction.transactionID;
-            case 'transactions-footer':
-                return 'transactions-footer';
-            case 'report-action':
-                return item.action.reportActionID;
-            default:
-                return '';
-        }
-    }, []);
-
-    const getItemType = (item: UnifiedListItem) => item.type;
-
     const isReportEmpty = isEmpty(visibleReportActions) && isEmpty(transactions) && !showReportActionsLoadingState;
     const showEmptyState = isReportEmpty;
 
@@ -708,71 +709,123 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                         policy={policy}
                         hasComments={visibleReportActions.length > 0}
                         isLoadingInitialReportActions={showReportActionsLoadingState}
-                        render={(controller: MoneyRequestReportTransactionListController) => {
-                            const reportActionItems: UnifiedListItem[] = visibleReportActions.map((action) => ({type: 'report-action', action}));
-                            const data: UnifiedListItem[] = controller.isEmptyTransactions
-                                ? reportActionItems
-                                : [...controller.transactionListItems, TRANSACTIONS_FOOTER_ITEM, ...reportActionItems];
-                            const lastTransactionItemIndex = controller.transactionListItems.length - 1;
-                            const reportActionIndexOffset = controller.isEmptyTransactions ? 0 : controller.transactionListItems.length + 1;
-
-                            const dispatchRenderItem = ({item, index}: ListRenderItemInfo<UnifiedListItem>) => {
-                                switch (item.type) {
-                                    case 'section-header':
-                                    case 'transaction':
-                                        return controller.renderTransactionListItem(item, {isFirst: index === 0, isLast: index === lastTransactionItemIndex});
-                                    case 'transactions-footer':
-                                        return controller.afterListContent;
-                                    case 'report-action':
-                                        return renderReportAction(item.action, index - reportActionIndexOffset);
-                                    default:
-                                        return null;
-                                }
-                            };
-
-                            const linkedActionIndex = linkedReportActionID
-                                ? data.findIndex((item) => item.type === 'report-action' && item.action.reportActionID === linkedReportActionID)
-                                : -1;
-                            const initialScrollIndex = linkedActionIndex >= 0 ? linkedActionIndex : undefined;
-
-                            const listElement = (
-                                <FlashList<UnifiedListItem>
-                                    ref={reportScrollManager.ref as unknown as React.Ref<FlashListRef<UnifiedListItem>>}
-                                    accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
-                                    testID="money-request-report-actions-list"
-                                    data={data}
-                                    renderItem={dispatchRenderItem}
-                                    keyExtractor={keyExtractor}
-                                    getItemType={getItemType}
-                                    initialScrollIndex={initialScrollIndex}
-                                    onViewableItemsChanged={onViewableItemsChanged}
-                                    onLayout={recordTimeToMeasureItemLayout}
-                                    onEndReached={onEndReached}
-                                    onStartReached={onStartReached}
-                                    ListHeaderComponent={
-                                        <>
-                                            <MoneyRequestViewReportFields
-                                                report={report}
-                                                policy={policy}
-                                            />
-                                            {controller.beforeListContent}
-                                        </>
-                                    }
-                                    keyboardShouldPersistTaps="handled"
-                                    onScroll={trackVerticalScrolling}
-                                    contentContainerStyle={shouldUseNarrowLayout ? styles.pt4 : styles.pt3}
-                                    ListEmptyComponent={
-                                        !isOffline && showReportActionsLoadingState ? <ReportActionsListLoadingSkeleton reasonAttributes={skeletonReasonAttributes} /> : undefined
-                                    }
-                                />
-                            );
-
-                            return controller.wrapWithHorizontalScroll(listElement);
-                        }}
+                        render={(controller: MoneyRequestReportTransactionListController) => (
+                            <MoneyRequestReportUnifiedList
+                                controller={controller}
+                                report={report}
+                                policy={policy}
+                                visibleReportActions={visibleReportActions}
+                                renderReportAction={renderReportAction}
+                                linkedReportActionID={linkedReportActionID}
+                                listRef={reportScrollManager.ref as unknown as React.Ref<FlashListRef<UnifiedListItem>>}
+                                accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
+                                onLayout={recordTimeToMeasureItemLayout}
+                                onScroll={trackVerticalScrolling}
+                                onViewableItemsChanged={onViewableItemsChanged}
+                                onEndReached={onEndReached}
+                                onStartReached={onStartReached}
+                                contentContainerStyle={shouldUseNarrowLayout ? styles.pt4 : styles.pt3}
+                                isOffline={isOffline}
+                                isLoadingInitialActions={!!showReportActionsLoadingState}
+                                skeletonReasonAttributes={skeletonReasonAttributes}
+                            />
+                        )}
                     />
                 )}
             </View>
         </View>
+    );
+}
+
+type MoneyRequestReportUnifiedListProps = {
+    controller: MoneyRequestReportTransactionListController;
+    report: OnyxTypes.Report;
+    policy?: OnyxTypes.Policy;
+    visibleReportActions: OnyxTypes.ReportAction[];
+    renderReportAction: (reportAction: OnyxTypes.ReportAction, indexWithinReportActions: number) => React.ReactElement;
+    linkedReportActionID: string | undefined;
+    listRef: React.Ref<FlashListRef<UnifiedListItem>>;
+    accessibilityLabel: string;
+    onLayout: () => void;
+    onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+    onViewableItemsChanged: (info: {viewableItems: ViewToken[]; changed: ViewToken[]}) => void;
+    onEndReached: () => void;
+    onStartReached: () => void;
+    contentContainerStyle: StyleProp<ViewStyle>;
+    isOffline: boolean;
+    isLoadingInitialActions: boolean;
+    skeletonReasonAttributes: SkeletonSpanReasonAttributes;
+};
+
+function MoneyRequestReportUnifiedList({
+    controller,
+    report,
+    policy,
+    visibleReportActions,
+    renderReportAction,
+    linkedReportActionID,
+    listRef,
+    accessibilityLabel,
+    onLayout,
+    onScroll,
+    onViewableItemsChanged,
+    onEndReached,
+    onStartReached,
+    contentContainerStyle,
+    isOffline,
+    isLoadingInitialActions,
+    skeletonReasonAttributes,
+}: MoneyRequestReportUnifiedListProps) {
+    const reportActionItems: UnifiedListItem[] = visibleReportActions.map((action) => ({type: 'report-action', action}));
+    const data: UnifiedListItem[] = controller.isEmptyTransactions ? reportActionItems : [...controller.transactionListItems, TRANSACTIONS_FOOTER_ITEM, ...reportActionItems];
+    const lastTransactionItemIndex = controller.transactionListItems.length - 1;
+    const reportActionIndexOffset = controller.isEmptyTransactions ? 0 : controller.transactionListItems.length + 1;
+
+    const dispatchRenderItem = ({item, index}: ListRenderItemInfo<UnifiedListItem>) => {
+        switch (item.type) {
+            case 'section-header':
+            case 'transaction':
+                return controller.renderTransactionListItem(item, {isFirst: index === 0, isLast: index === lastTransactionItemIndex});
+            case 'transactions-footer':
+                return controller.afterListContent;
+            case 'report-action':
+                return renderReportAction(item.action, index - reportActionIndexOffset);
+            default:
+                return null;
+        }
+    };
+
+    const linkedActionIndex = linkedReportActionID ? data.findIndex((item) => item.type === 'report-action' && item.action.reportActionID === linkedReportActionID) : -1;
+    const initialScrollIndex = linkedActionIndex >= 0 ? linkedActionIndex : undefined;
+
+    return controller.wrapWithHorizontalScroll(
+        <FlashList<UnifiedListItem>
+            ref={listRef}
+            accessibilityLabel={accessibilityLabel}
+            testID="money-request-report-actions-list"
+            data={data}
+            renderItem={dispatchRenderItem}
+            keyExtractor={unifiedListKeyExtractor}
+            getItemType={unifiedListItemType}
+            initialScrollIndex={initialScrollIndex}
+            onViewableItemsChanged={onViewableItemsChanged}
+            onLayout={onLayout}
+            onEndReached={onEndReached}
+            onStartReached={onStartReached}
+            ListHeaderComponent={
+                <>
+                    <MoneyRequestViewReportFields
+                        report={report}
+                        policy={policy}
+                    />
+                    {controller.beforeListContent}
+                </>
+            }
+            keyboardShouldPersistTaps="handled"
+            onScroll={onScroll}
+            contentContainerStyle={contentContainerStyle}
+            ListEmptyComponent={!isOffline && isLoadingInitialActions ? <ReportActionsListLoadingSkeleton reasonAttributes={skeletonReasonAttributes} /> : undefined}
+        />,
     );
 }
 
