@@ -12,7 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDraftValues} from '@libs/actions/FormActions';
-import {buildSetPersonalDetailsAndShipExpensifyCardsParams, updatePersonalDetailsForVirtualCard} from '@libs/actions/PersonalDetails';
+import {buildSetPersonalDetailsAndShipExpensifyCardsParams, setPersonalDetailsAndRevealExpensifyCard} from '@libs/actions/PersonalDetails';
 import {isUkEuExpensifyCard} from '@libs/CardUtils';
 import {normalizeCountryCode} from '@libs/CountryUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -118,7 +118,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
         } else if (isVirtualCard && targetCard) {
             // Virtual card reveal flow: submit personal details (without shipping a card),
             // then route into the card-detail reveal step appropriate for the card program.
-            updatePersonalDetailsForVirtualCard(values, countryCode);
+            setPersonalDetailsAndRevealExpensifyCard(values, countryCode, Number(cardID));
             clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
             if (isUkEuExpensifyCard(targetCard)) {
                 Navigation.closeRHPFlow();

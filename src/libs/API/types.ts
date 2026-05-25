@@ -554,6 +554,7 @@ const WRITE_COMMANDS = {
     SET_PERSONAL_CARD_REIMBURSABLE: 'SetPersonalCardReimbursable',
     SET_CARD_EXPORT_ACCOUNT: 'SetCardExportAccount',
     SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS: 'SetPersonalDetailsAndShipExpensifyCards',
+    SET_PERSONAL_DETAILS_AND_REVEAL_EXPENSIFY_CARD: 'SetPersonalDetailsAndRevealExpensifyCard',
     SET_INVOICING_TRANSFER_BANK_ACCOUNT: 'SetInvoicingTransferBankAccount',
     SELF_TOUR_VIEWED: 'SelfTourViewed',
     UPDATE_INVOICE_COMPANY_NAME: 'UpdateInvoiceCompanyName',
@@ -1187,6 +1188,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.PAY_TRAVEL_INVOICING_SPEND]: Parameters.PayTravelInvoicingSpendParams;
     [WRITE_COMMANDS.RETRY_TRAVEL_CARDS_PROVISIONING]: Parameters.RetryTravelCardsProvisioningParams;
     [WRITE_COMMANDS.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS]: Parameters.SetPersonalDetailsAndShipExpensifyCardsParams;
+    [WRITE_COMMANDS.SET_PERSONAL_DETAILS_AND_REVEAL_EXPENSIFY_CARD]: Parameters.SetPersonalDetailsAndRevealExpensifyCardParams;
     [WRITE_COMMANDS.SELF_TOUR_VIEWED]: null;
 
     // Xero API
