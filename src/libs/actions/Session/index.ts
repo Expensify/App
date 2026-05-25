@@ -1511,7 +1511,7 @@ function AddWorkEmail(workEmail: string) {
             return;
         }
 
-        if (response?.message?.includes(CONST.MERGE_ACCOUNT_2FA_ERROR)) {
+        if (response?.message?.includes(CONST.MERGE_ACCOUNT_2FA_ERROR) || response?.title?.includes(CONST.MERGE_ACCOUNT_2FA_ERROR)) {
             Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'onboarding.workEmail2FAError');
             return;
         }
