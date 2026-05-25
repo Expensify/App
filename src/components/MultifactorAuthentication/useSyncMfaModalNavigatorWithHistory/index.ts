@@ -1,7 +1,7 @@
 import {useEffect} from 'react';
 import {BackHandler} from 'react-native';
 import getPlatform from '@libs/getPlatform';
-import {isMfaMarkerStripInProgress, toggleMfaMarker} from '@libs/Navigation/helpers/mfaModalMarkerPreservation';
+import {cancelPendingMfaMarkerReattach, isMfaMarkerStripInProgress, toggleMfaMarker} from '@libs/Navigation/helpers/mfaModalMarkerPreservation';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import CONST from '@src/CONST';
@@ -41,7 +41,11 @@ function useSyncMfaModalNavigatorWithHistory(isModalOpen: boolean, requestCancel
             return;
         }
         dispatchToggle(true);
-        return () => dispatchToggle(false);
+        return () => {
+            // Cancel pending re-attach so it can't re-inject the marker after close.
+            cancelPendingMfaMarkerReattach();
+            dispatchToggle(false);
+        };
     }, [isModalOpen]);
 
     // Subscribe hardware/browser back to requestCancel. Re-subscribes when requestCancel changes — cheap, leaves the marker untouched.

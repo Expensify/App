@@ -12,6 +12,9 @@ import CONST from '@src/CONST';
  *     browser-back skips past the post-pop screen.
  *   With bracket: strip → pop → re-attach. Each toggle drives useLinking to
  *     push/replace a fresh browser entry mapped to the post-pop path.
+ *
+ * Browser-back mid-bracket needs no special handling: re-attach lands the
+ * marker on whatever route useLinking navigated to, listener path stays intact.
  */
 
 const MFA_MARKER = CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_MFA_MODAL_NAVIGATOR;
@@ -29,6 +32,11 @@ function toggleMfaMarker(isVisible: boolean): void {
     });
 }
 
+/** Invalidates a pending re-attach so its callback no-ops. Used on modal close. */
+function cancelPendingMfaMarkerReattach(): void {
+    stripInProgress = false;
+}
+
 /** Strips the marker, runs `pop`, then re-attaches it after the transition. */
 function popAndRealignMfaMarker(pop: () => void): void {
     if (navigationRef.getRootState()?.history?.at(-1) !== MFA_MARKER) {
@@ -43,12 +51,15 @@ function popAndRealignMfaMarker(pop: () => void): void {
     } finally {
         TransitionTracker.runAfterTransitions({
             callback: () => {
-                toggleMfaMarker(true);
+                if (!stripInProgress) {
+                    return;
+                }
                 stripInProgress = false;
+                toggleMfaMarker(true);
             },
             waitForUpcomingTransition: true,
         });
     }
 }
 
-export {isMfaMarkerStripInProgress, popAndRealignMfaMarker, toggleMfaMarker};
+export {cancelPendingMfaMarkerReattach, isMfaMarkerStripInProgress, popAndRealignMfaMarker, toggleMfaMarker};
