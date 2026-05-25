@@ -4,11 +4,9 @@ import Button from '@components/Button';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import useChatWithAgent from '@hooks/useChatWithAgent';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSwitchToDelegator from '@hooks/useSwitchToDelegator';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -38,26 +36,30 @@ type AgentsListRowProps = {
 
     /** Whether to show the red error dot indicator */
     brickRoadIndicator?: typeof CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR | null;
+
+    /** Called when the Chat button is pressed */
+    onChatPress?: (accountID: number) => void;
+
+    /** Called when the Copilot button is pressed */
+    onCopilotPress?: (login: string) => void;
 };
 
-function AgentsListRow({accountID, displayName, login, pendingAction, errors, onErrorClose, brickRoadIndicator}: AgentsListRowProps) {
+function AgentsListRow({accountID, displayName, login, pendingAction, errors, onErrorClose, brickRoadIndicator, onChatPress, onCopilotPress}: AgentsListRowProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'ChatBubble']);
-    const chatWithAgent = useChatWithAgent();
-    const switchToDelegator = useSwitchToDelegator();
 
     const isPendingDeletion = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const isPendingAddOrDelete = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || isPendingDeletion;
     const areActionsDisabled = isPendingAddOrDelete || accountID <= 0 || !login;
     const navigateToEdit = () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(accountID));
     const handleChatPress = () => {
-        chatWithAgent(accountID);
+        onChatPress?.(accountID);
     };
     const handleCopilotPress = () => {
-        switchToDelegator(login);
+        onCopilotPress?.(login);
     };
 
     return (
