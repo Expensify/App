@@ -14,6 +14,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
@@ -77,6 +78,8 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     // Detect selfDM splits whose source workspace is gone: nothing for the Rate step to render.
     // Used below to short-circuit the Rate menu navigation into the upgrade screen.
     const hasAnyPaidWorkspace = useMemo(() => getGroupPaidPoliciesWithExpenseChatEnabled(allPolicies ?? {}).length > 0, [allPolicies]);
+    const {policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
+    const shouldNavigateToUpgradePath = !policyForMovingExpenses && !shouldSelectPolicy;
 
     const effectivePolicyID = effectivePolicy?.id;
 
@@ -315,15 +318,31 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                                 numberOfLinesTitle={2}
                                 rightLabel={isCategoryRequired ? translate('common.required') : ''}
                                 onPress={() => {
-                                    Navigation.navigate(
-                                        ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(
-                                            CONST.IOU.ACTION.EDIT,
-                                            CONST.IOU.TYPE.SPLIT_EXPENSE,
-                                            CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                                            reportID,
-                                            Navigation.getActiveRoute(),
-                                        ),
+                                    const categoryRoute = ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(
+                                        CONST.IOU.ACTION.EDIT,
+                                        CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                        CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                        reportID,
+                                        Navigation.getActiveRoute(),
                                     );
+                                    if (shouldNavigateToUpgradePath) {
+                                        Navigation.navigate(
+                                            ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                                action: CONST.IOU.ACTION.EDIT,
+                                                iouType: CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                                transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                                reportID,
+                                                upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
+                                                backTo: categoryRoute,
+                                            }),
+                                        );
+                                        return;
+                                    }
+                                    if (!effectivePolicy && shouldSelectPolicy) {
+                                        Navigation.navigate(ROUTES.SET_DEFAULT_WORKSPACE.getRoute(categoryRoute));
+                                        return;
+                                    }
+                                    Navigation.navigate(categoryRoute);
                                 }}
                                 style={[styles.moneyRequestMenuItem]}
                                 titleStyle={styles.flex1}
