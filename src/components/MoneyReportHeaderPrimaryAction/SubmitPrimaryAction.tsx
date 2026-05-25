@@ -4,6 +4,7 @@ import React from 'react';
 import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
 import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
 import {useSearchStateContext} from '@components/Search/SearchContext';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useConfirmPendingRTERAndProceed from '@hooks/useConfirmPendingRTERAndProceed';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -18,7 +19,7 @@ import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
 import {hasViolations as hasViolationsReportUtils, shouldBlockSubmitDueToPreventSelfApproval, shouldBlockSubmitDueToStrictPolicyRules, shouldShowMarkAsDone} from '@libs/ReportUtils';
-import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils} from '@libs/TransactionUtils';
+import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 import {submitReport} from '@userActions/IOU/ReportWorkflow';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 import CONST from '@src/CONST';
@@ -59,6 +60,8 @@ function SubmitPrimaryAction({reportID}: SubmitPrimaryActionProps) {
     };
     const confirmPendingRTERAndProceed = useConfirmPendingRTERAndProceed(hasAnyPendingRTERViolation, handleMarkPendingRTERTransactionsAsCash);
 
+    const {showConfirmModal} = useConfirmModal();
+
     const isBlockSubmitDueToPreventSelfApproval = shouldBlockSubmitDueToPreventSelfApproval(moneyRequestReport, policy);
     const isBlockSubmitDueToStrictPolicyRules = shouldBlockSubmitDueToStrictPolicyRules(
         moneyRequestReport?.reportID,
@@ -82,6 +85,12 @@ function SubmitPrimaryAction({reportID}: SubmitPrimaryActionProps) {
         if (!moneyRequestReport || shouldBlockSubmit) {
             return;
         }
+
+        if (hasOnlyPendingCardTransactions(transactions)) {
+            showPendingCardTransactionsBlockModal(showConfirmModal, translate);
+            return;
+        }
+
         confirmPendingRTERAndProceed(() => {
             submitReport({
                 expenseReport: moneyRequestReport,

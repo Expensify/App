@@ -7,7 +7,6 @@ import useLHNRowProductTrainingTooltip from '@components/LHNOptionsList/OptionRo
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import getContextMenuAccessibilityHint from '@components/utils/getContextMenuAccessibilityHint';
 import getContextMenuAccessibilityProps from '@components/utils/getContextMenuAccessibilityProps';
-import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -52,7 +51,6 @@ function Pressable({optionItem, isOptionFocused, onSelectRow, onLayout, onHoverI
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {isProduction} = useEnvironment();
     const {isScreenFocused} = useLHNTooltipContext();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {hideProductTrainingTooltip} = useLHNRowProductTrainingTooltip();
@@ -64,7 +62,7 @@ function Pressable({optionItem, isOptionFocused, onSelectRow, onLayout, onHoverI
     const brickRoadIndicator = optionItem.brickRoadIndicator;
 
     let actionBadgeText = '';
-    if (!isProduction && optionItem.actionBadge) {
+    if (optionItem.actionBadge) {
         actionBadgeText = isMarkAsDone ? translate('common.markAsDone') : translate(`common.actionBadge.${optionItem.actionBadge}`);
     }
     let accessibilityLabelForBadge = '';

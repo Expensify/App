@@ -6,6 +6,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {shouldShowMarkAsDone} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -16,7 +17,7 @@ import PayActionCell from './PayActionCell';
 type ActionCellProps = {
     action?: SearchTransactionAction;
     isSelected?: boolean;
-    onButtonPress: () => void;
+    onButtonPress: (event?: ModifiedMouseEvent) => void;
     isChildListItem?: boolean;
     isLoading?: boolean;
     policyID?: string;

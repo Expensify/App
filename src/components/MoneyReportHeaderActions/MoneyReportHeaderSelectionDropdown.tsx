@@ -134,7 +134,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     const singleTransaction = nonPendingDeleteTransactions.length === 1 ? nonPendingDeleteTransactions.at(0) : undefined;
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(singleTransaction?.comment?.originalTransactionID)}`);
 
-    const {accountID, email, login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const {accountID, email, login: currentUserLogin, localCurrencyCode} = useCurrentUserPersonalDetails();
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
 
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
@@ -158,8 +158,17 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     const {confirmApproval, handleSubmitReport, shouldBlockSubmit, isBlockSubmitDueToPreventSelfApproval} = useLifecycleActions({
         reportID,
         startApprovedAnimation,
+        startAnimation,
         startSubmittingAnimation,
-        onHoldMenuOpen: (requestType) => openHoldMenu({requestType, onConfirm: () => clearSelectedTransactions(true)}),
+        onHoldMenuOpen: (requestType, onConfirm, paymentType) =>
+            openHoldMenu({
+                requestType,
+                onConfirm: () => {
+                    onConfirm?.();
+                    clearSelectedTransactions(true);
+                },
+                paymentType,
+            }),
     });
 
     const {
@@ -258,6 +267,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
                 introSelected,
                 currentUserAccountIDParam: accountID,
                 currentUserEmailParam: email ?? '',
+                currentUserLocalCurrency: localCurrencyCode ?? CONST.CURRENCY.USD,
                 payAsBusiness,
                 existingB2BInvoiceReport,
                 methodID,
