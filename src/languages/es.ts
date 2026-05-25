@@ -78,6 +78,7 @@ const translations: TranslationDeepObject<typeof en> = {
             approve: 'Aprobar',
             pay: 'Pagar',
             fix: 'Corregir',
+            task: 'Tarea',
         },
         home: 'Inicio',
         group: 'Grupo',
