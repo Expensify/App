@@ -49,15 +49,13 @@ function ConciergeSessionProvider({children}: PropsWithChildren) {
     const [prevIsConciergeMainDM, setPrevIsConciergeMainDM] = useState(isConciergeMainDM);
     const [pendingClear, setPendingClear] = useState(false);
 
-    // Resolve pending clear: endSession was called (component unmounted),
-    // now we check the destination to decide whether to actually clear.
-    // Only consume pendingClear when currentReportID is defined so we can
-    // distinguish "navigated to another report" (clear) from "navigated to
-    // a non-report page" (preserve session). If currentReportID is still
-    // undefined the flag stays pending until the next report is opened.
-    if (pendingClear && currentReportID) {
+    // Resolve pending clear: endSession was called (component unmounted).
+    // Clear unless we navigated back to Concierge (e.g. fast back/forward).
+    // When currentReportID is undefined (e.g. mobile LHN), we still clear
+    // because the user has left the Concierge chat.
+    if (pendingClear) {
         setPendingClear(false);
-        if (currentReportID !== conciergeReportID) {
+        if (!currentReportID || currentReportID !== conciergeReportID) {
             setSessionStartTime(null);
             setShowFullHistory(false);
         }
@@ -66,7 +64,7 @@ function ConciergeSessionProvider({children}: PropsWithChildren) {
     // Fallback: direct navigation detection via state-during-render
     if (prevIsConciergeMainDM !== isConciergeMainDM) {
         setPrevIsConciergeMainDM(isConciergeMainDM);
-        if (!isConciergeMainDM && !!currentReportID) {
+        if (!currentReportID || currentReportID !== conciergeReportID) {
             setSessionStartTime(null);
             setShowFullHistory(false);
         }
