@@ -60,7 +60,7 @@ function getReportActionByIDSelector(reportActions: OnyxEntry<ReportActions>, re
  * Prefer parentReportActionID (specific IOU action when `report` is a transaction thread).
  * Fall back to childReportID match, then to the only IOU action for one-transaction reports.
  */
-function findIouActionForReceiptScanFailed(
+function findIOUActionForReceiptScanFailed(
     reportActions: OnyxEntry<ReportActions>,
     isIOUReport: boolean,
     parentReportActionID: string | undefined,
@@ -72,16 +72,16 @@ function findIouActionForReceiptScanFailed(
             return candidate;
         }
     }
-    const iouActions = Object.values(reportActions ?? {}).filter((action): action is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
+    const IOUActions = Object.values(reportActions ?? {}).filter((action): action is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
         isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU),
     );
     if (actionReportID) {
-        const match = iouActions.find((action) => action.childReportID === actionReportID);
+        const match = IOUActions.find((action) => action.childReportID === actionReportID);
         if (match) {
             return match;
         }
     }
-    return iouActions.length === 1 ? iouActions.at(0) : undefined;
+    return IOUActions.length === 1 ? IOUActions.at(0) : undefined;
 }
 
 /** Resolves the IOU action for a RECEIPT_SCAN_FAILED message and returns only the primitive fields the UI needs. */
@@ -91,11 +91,11 @@ function getReceiptScanFailedIOUActionDataSelector(
     parentReportActionID: string | undefined,
     actionReportID: string | undefined,
 ): {transactionID: string | undefined; actorAccountID: number | undefined} {
-    const iouAction = findIouActionForReceiptScanFailed(reportActions, isIOUReport, parentReportActionID, actionReportID);
+    const IOUAction = findIOUActionForReceiptScanFailed(reportActions, isIOUReport, parentReportActionID, actionReportID);
 
     return {
-        transactionID: getLinkedTransactionID(iouAction),
-        actorAccountID: iouAction?.actorAccountID,
+        transactionID: getLinkedTransactionID(IOUAction),
+        actorAccountID: IOUAction?.actorAccountID,
     };
 }
 
