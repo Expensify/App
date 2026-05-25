@@ -48,7 +48,7 @@ function tryMatchParametric(candidate: string, candidateSegmentCount: number, pa
 }
 
 /**
- * Collects ALL registered dynamic route suffixes that syntactically match the end of the given path,
+ * Collects all registered dynamic route suffixes that syntactically match the end of the given path,
  * across all three phases and in priority order:
  *   1. Static matches (`dynamicRoutePaths` Set lookup), longest to shortest.
  *   2. Strict parametric patterns (no optional params), longest to shortest.
