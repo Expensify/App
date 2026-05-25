@@ -276,7 +276,7 @@ key "key"
       / to
       / taxRate
       / cardID
-      / bankAccountFilterKey
+      / bankAccount
       / from
       / attendee
       / payer

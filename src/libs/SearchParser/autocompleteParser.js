@@ -1053,7 +1053,7 @@ function peg$parse(input, options) {
                                         if (s1 === peg$FAILED) {
                                           s1 = peg$parsecardID();
                                           if (s1 === peg$FAILED) {
-                                            s1 = peg$parsebankAccountFilterKey();
+                                            s1 = peg$parsebankAccount();
                                             if (s1 === peg$FAILED) {
                                               s1 = peg$parsefeed();
                                               if (s1 === peg$FAILED) {
@@ -1605,7 +1605,7 @@ function peg$parse(input, options) {
     return s0;
   }
 
-  function peg$parsebankAccountFilterKey() {
+  function peg$parsebankAccount() {
     var s0, s1;
 
     s0 = peg$currPos;
@@ -2431,7 +2431,7 @@ function peg$parse(input, options) {
           if (s0 === peg$FAILED) {
             s0 = peg$parsewithdrawalId();
             if (s0 === peg$FAILED) {
-              s0 = peg$parsebankAccount();
+              s0 = peg$parsebankAccountColumn();
               if (s0 === peg$FAILED) {
                 s0 = peg$parsereportId();
                 if (s0 === peg$FAILED) {
@@ -2772,7 +2772,7 @@ function peg$parse(input, options) {
     return s0;
   }
 
-  function peg$parsebankAccount() {
+  function peg$parsebankAccountColumn() {
     var s0, s1, s2, s3;
 
     s0 = peg$currPos;
