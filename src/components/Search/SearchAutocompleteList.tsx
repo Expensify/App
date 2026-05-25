@@ -473,6 +473,19 @@ function SearchAutocompleteList({
             } as AutocompleteListItem;
         });
 
+        const skeletonHeader = (
+            <OptionsListSkeletonView
+                fixedNumItems={3}
+                shouldStyleAsTable
+                speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
+                reasonAttributes={{
+                    context: 'SearchAutocompleteList',
+                    isRecentSearchesDataLoaded,
+                    isLoadingOptions,
+                }}
+            />
+        );
+
         if (autocompleteQueryValue.trim() === '') {
             // Empty query: single "Recent chats" section (unchanged behaviour).
             if (!isLoadingOptions) {
@@ -482,18 +495,7 @@ function SearchAutocompleteList({
                     title: translate('search.recentChats'),
                     data: [],
                     sectionIndex: sectionIndex++,
-                    customHeader: (
-                        <OptionsListSkeletonView
-                            fixedNumItems={3}
-                            shouldStyleAsTable
-                            speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
-                            reasonAttributes={{
-                                context: 'SearchAutocompleteList',
-                                isRecentSearchesDataLoaded,
-                                isLoadingOptions,
-                            }}
-                        />
-                    ),
+                    customHeader: skeletonHeader,
                 });
             }
         } else {
@@ -520,18 +522,7 @@ function SearchAutocompleteList({
                     title: undefined,
                     data: [],
                     sectionIndex: sectionIndex++,
-                    customHeader: (
-                        <OptionsListSkeletonView
-                            fixedNumItems={3}
-                            shouldStyleAsTable
-                            speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
-                            reasonAttributes={{
-                                context: 'SearchAutocompleteList',
-                                isRecentSearchesDataLoaded,
-                                isLoadingOptions,
-                            }}
-                        />
-                    ),
+                    customHeader: skeletonHeader,
                 });
             }
 
