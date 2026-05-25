@@ -163,7 +163,8 @@ describe('Agents promo banners', () => {
         renderWorkflowsPage();
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.getByText(en.workflowsPage.automateApprovalsWithAgentsTitle)).toBeTruthy();
+        // Title includes a nested "New" badge, so match on subtitle instead of the full title string.
+        expect(screen.getByText(en.workflowsPage.automateApprovalsWithAgentsSubtitle)).toBeTruthy();
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
@@ -172,7 +173,7 @@ describe('Agents promo banners', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
-        expect(screen.queryByText(en.workflowsPage.automateApprovalsWithAgentsTitle)).toBeNull();
+        expect(screen.queryByText(en.workflowsPage.automateApprovalsWithAgentsSubtitle)).toBeNull();
     });
 
     it('renders agentsRulesBanner above IndividualExpenseRulesSection when customAgent beta is active, and hides it after dismissal', async () => {
@@ -184,7 +185,8 @@ describe('Agents promo banners', () => {
         renderRulesPage();
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.getByText(en.workspace.rules.agentsPromoBanner.title)).toBeTruthy();
+        // Title includes a nested "New" badge, so match on subtitle instead of the full title string.
+        expect(screen.getByText(en.workspace.rules.agentsPromoBanner.subtitle)).toBeTruthy();
         // Section title for IndividualExpenseRulesSection sits below the banner.
         expect(screen.getByText(en.workspace.rules.individualExpenseRules.title)).toBeTruthy();
 
@@ -195,7 +197,7 @@ describe('Agents promo banners', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
-        expect(screen.queryByText(en.workspace.rules.agentsPromoBanner.title)).toBeNull();
+        expect(screen.queryByText(en.workspace.rules.agentsPromoBanner.subtitle)).toBeNull();
     });
 
     it('renders neither banner when customAgent beta is inactive', async () => {
@@ -206,11 +208,11 @@ describe('Agents promo banners', () => {
 
         const {unmount} = renderWorkflowsPage();
         await waitForBatchedUpdatesWithAct();
-        expect(screen.queryByText(en.workflowsPage.automateApprovalsWithAgentsTitle)).toBeNull();
+        expect(screen.queryByText(en.workflowsPage.automateApprovalsWithAgentsSubtitle)).toBeNull();
         unmount();
 
         renderRulesPage();
         await waitForBatchedUpdatesWithAct();
-        expect(screen.queryByText(en.workspace.rules.agentsPromoBanner.title)).toBeNull();
+        expect(screen.queryByText(en.workspace.rules.agentsPromoBanner.subtitle)).toBeNull();
     });
 });
