@@ -1484,9 +1484,7 @@ function issueExpensifyCard(
 
     if (isCopyingSpendRule) {
         parameters.cardRuleID = spendRuleID;
-    }
-
-    if (isCreatingNewSpendRule) {
+    } else if (isCreatingNewSpendRule) {
         const cardRuleID = rand64();
         const spendRule = buildSpendRuleAST(spendRuleValue);
 
