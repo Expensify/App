@@ -3,6 +3,7 @@ import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import {
+    getUpdateTrackExpenseParams,
     updateMoneyRequestAmountAndCurrency,
     updateMoneyRequestAttendees,
     updateMoneyRequestBillable,
@@ -20,7 +21,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyTagLists, RecentlyUsedTags, RecentWaypoint, Report} from '@src/types/onyx';
+import type {Policy, PolicyTagLists, RecentlyUsedTags, RecentWaypoint, Report, SearchResults} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -166,6 +167,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 currentUserEmailParam: 'existing@example.com',
                 isASAPSubmitBetaEnabled: false,
                 parentReportNextStep: undefined,
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -246,6 +248,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     currentUserEmailParam: 'existing@example.com',
                     isASAPSubmitBetaEnabled: false,
                     parentReportNextStep: undefined,
+                    delegateAccountID: undefined,
                 });
 
                 await waitForBatchedUpdates();
@@ -293,6 +296,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     currentUserEmailParam: 'existing@example.com',
                     isASAPSubmitBetaEnabled: false,
                     parentReportNextStep: undefined,
+                    delegateAccountID: undefined,
                 });
 
                 await waitForBatchedUpdates();
@@ -351,6 +355,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 currentUserEmailParam: 'existing@example.com',
                 isASAPSubmitBetaEnabled: false,
                 parentReportNextStep: undefined,
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -420,6 +425,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 policyRecentlyUsedCurrencies: initialCurrencies,
                 parentReportNextStep: undefined,
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -490,6 +496,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 policyRecentlyUsedCurrencies: [],
                 parentReportNextStep: undefined,
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -508,6 +515,55 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 });
             });
             expect(updatedTransaction?.modifiedAmount).toBe('');
+        });
+
+        it('adds search snapshot optimistic and success updates for track expense edits when hash is provided', async () => {
+            const transactionID = 'track-expense-transaction';
+            const snapshotHash = 918273645;
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'self-dm-report',
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const transactionThreadReport: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: 'transaction-thread-report',
+                type: CONST.REPORT.TYPE.CHAT,
+                parentReportID: selfDMReport.reportID,
+                parentReportActionID: 'parent-report-action',
+            };
+            const transaction: Transaction = {
+                ...createRandomTransaction(3),
+                transactionID,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                amount: 10000,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport.reportID}`, transactionThreadReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            await waitForBatchedUpdates();
+
+            const {onyxData} = getUpdateTrackExpenseParams(transactionID, transactionThreadReport.reportID, {amount: 20000}, createRandomPolicy(1), undefined, snapshotHash);
+            const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}` as const;
+            const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const;
+
+            const optimisticSnapshot = onyxData.optimisticData?.find((update) => update.key === snapshotKey)?.value as OnyxEntry<SearchResults>;
+            expect(optimisticSnapshot?.data?.[transactionKey]).toMatchObject({
+                modifiedAmount: -20000,
+                pendingFields: {amount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            });
+
+            const successSnapshot = onyxData.successData?.find((update) => update.key === snapshotKey)?.value as OnyxEntry<SearchResults>;
+            expect(successSnapshot?.data?.[transactionKey]).toEqual({pendingFields: {amount: null}});
+
+            const failureSnapshot = onyxData.failureData?.find((update) => update.key === snapshotKey)?.value as OnyxEntry<SearchResults>;
+            expect(failureSnapshot?.data?.[transactionKey]).toMatchObject({
+                transactionID,
+                amount: 10000,
+                pendingFields: {amount: null},
+            });
         });
     });
 
@@ -584,6 +640,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 policyRecentlyUsedCurrencies: [],
                 parentReportNextStep: undefined,
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -621,6 +678,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 parentReportNextStep: undefined,
                 isOffline: false,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -655,6 +713,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 parentReportNextStep: undefined,
                 isOffline: false,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -716,6 +775,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 parentReportNextStep: undefined,
                 isOffline: false,
+                delegateAccountID: undefined,
             });
 
             waitForBatchedUpdates();
@@ -786,6 +846,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 currentUserEmailParam: RORY_EMAIL,
                 isASAPSubmitBetaEnabled: false,
                 parentReportNextStep: undefined,
+                delegateAccountID: undefined,
                 isOffline: false,
             });
 
@@ -844,6 +905,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 currentUserEmailParam: RORY_EMAIL,
                 isASAPSubmitBetaEnabled: false,
                 parentReportNextStep: undefined,
+                delegateAccountID: undefined,
                 isOffline: false,
             });
 
@@ -877,6 +939,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 currentUserEmailParam: RORY_EMAIL,
                 isASAPSubmitBetaEnabled: false,
                 parentReportNextStep: undefined,
+                delegateAccountID: undefined,
                 isOffline: false,
             });
 
@@ -965,6 +1028,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 odometerStart: 10000,
                 odometerEnd: 15000,
                 parentReportNextStep: undefined,
+                delegateAccountID: undefined,
             });
 
             mockFetch?.resume?.();
@@ -1062,6 +1126,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 currentUserEmailParam: 'test@example.com',
                 isASAPSubmitBetaEnabled: false,
                 parentReportNextStep: undefined,
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1171,6 +1236,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 odometerStart: 50000,
                 odometerEnd: 50350,
                 parentReportNextStep: undefined,
+                delegateAccountID: undefined,
             });
 
             mockFetch?.resume?.();
@@ -1242,6 +1308,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 currentUserEmailParam: 'test@example.com',
                 isASAPSubmitBetaEnabled: false,
                 parentReportNextStep: undefined,
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1294,6 +1361,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 currentUserEmailParam: 'test@example.com',
                 isASAPSubmitBetaEnabled: false,
                 parentReportNextStep: undefined,
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1356,6 +1424,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 parentReportNextStep: undefined,
                 isOffline: false,
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1389,6 +1458,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 parentReportNextStep: undefined,
                 isOffline: false,
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1449,6 +1519,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 parentReportNextStep: undefined,
                 isOffline: false,
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1502,6 +1573,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 parentReportNextStep: undefined,
                 isOffline: false,
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1606,6 +1678,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     isASAPSubmitBetaEnabled: false,
                     parentReportNextStep: undefined,
                     isOffline,
+                    delegateAccountID: undefined,
                 });
 
                 await waitForBatchedUpdates();
@@ -1619,5 +1692,45 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 }
             },
         );
+    });
+
+    describe('getUpdateTrackExpenseParams', () => {
+        it('preserves full-precision distance in API params (#90561 — mirror of getUpdateMoneyRequestParams)', async () => {
+            // Given a self-DM track expense whose stored quantity is at 2-decimal precision
+            const transactionID = 'track_distance_precision';
+            const transactionThreadReportID = 'thread_precision';
+            const policyID = 'policy_precision';
+
+            const fakeTransaction: Transaction = {
+                transactionID,
+                amount: 5000,
+                currency: CONST.CURRENCY.USD,
+                created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                merchant: 'Precision Test',
+                reportID: 'parent_precision',
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        quantity: 5,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                    waypoints: {},
+                },
+            };
+            const fakeThreadReport = {reportID: transactionThreadReportID, type: CONST.REPORT.TYPE.CHAT} as Report;
+            const fakePolicy = createRandomPolicy(Number(1));
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, fakeTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, fakeThreadReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            // When the caller passes a higher-precision distance than what `customUnit.quantity` would round to
+            const {params} = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, {distance: 5.555}, fakePolicy, undefined);
+
+            // Then the raw caller value flows into the API params instead of the rounded display value (5.56).
+            expect(params.distance).toBe(5.555);
+        });
     });
 });

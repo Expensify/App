@@ -1,6 +1,7 @@
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useState} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -8,7 +9,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useTransactionViolations from '@hooks/useTransactionViolations';
-import {setMoneyRequestAttendees} from '@libs/actions/IOU';
+import {setMoneyRequestAttendees} from '@libs/actions/IOU/MoneyRequest';
 import {updateMoneyRequestAttendees} from '@libs/actions/IOU/UpdateMoneyRequest';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
@@ -47,6 +48,7 @@ function IOURequestStepAttendees({
     useRestartOnReceiptFailure(transaction, reportID, iouType, action);
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
+    const delegateAccountID = useDelegateAccountID();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {isOffline} = useNetwork();
@@ -56,7 +58,6 @@ function IOURequestStepAttendees({
             return;
         }
         if (!deepEqual(previousAttendees, attendees)) {
-            setMoneyRequestAttendees(transactionID, attendees, !isEditing);
             if (isEditing) {
                 updateMoneyRequestAttendees({
                     transactionID,
@@ -72,7 +73,10 @@ function IOURequestStepAttendees({
                     isASAPSubmitBetaEnabled,
                     parentReportNextStep,
                     isOffline,
+                    delegateAccountID,
                 });
+            } else {
+                setMoneyRequestAttendees(transactionID, attendees, !isEditing);
             }
         }
 
@@ -94,6 +98,7 @@ function IOURequestStepAttendees({
         isASAPSubmitBetaEnabled,
         parentReportNextStep,
         isOffline,
+        delegateAccountID,
     ]);
 
     const navigateBack = () => {

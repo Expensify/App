@@ -1,6 +1,6 @@
 // eslint-disable-next-line you-dont-need-lodash-underscore/union-by
 import lodashUnionBy from 'lodash/unionBy';
-import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {UpdateMoneyRequestParams} from '@libs/API/parameters';
@@ -14,6 +14,7 @@ import {
     buildOptimisticModifiedExpenseReportAction,
     getOutstandingChildRequest,
     getParsedComment,
+    getReportTransactions,
     getTransactionDetails,
     hasViolations as hasViolationsReportUtils,
     isExpenseReport,
@@ -28,6 +29,7 @@ import {
     getClearedPendingFields,
     getMerchant,
     getUpdatedTransaction,
+    hasSubmissionBlockingViolationInReport,
     haveWaypointAddressesChanged,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isFetchingWaypointsFromServer,
@@ -43,12 +45,17 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
+import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {Routes, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {UpdateMoneyRequestData} from '.';
 import {getAllReports, getAllTransactions, getAllTransactionViolations, getPolicyTagsData, getRecentAttendees} from '.';
 import {getUpdatedMoneyRequestReportData, mergePolicyRecentlyUsedCategories, mergePolicyRecentlyUsedCurrencies} from './MoneyRequestBuilder';
+
+type UpdateMoneyRequestData<TKey extends OnyxKey> = {
+    params: UpdateMoneyRequestParams;
+    onyxData: OnyxData<TKey>;
+};
 
 type UpdateMoneyRequestDateParams = {
     transactionID: string;
@@ -65,7 +72,74 @@ type UpdateMoneyRequestDateParams = {
     isASAPSubmitBetaEnabled: boolean;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     isOffline: boolean;
+    hash?: number;
+    delegateAccountID: number | undefined;
 };
+
+type SearchSnapshotOnyxData = {
+    optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>>;
+    successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>>;
+    failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>>;
+};
+
+type SearchSnapshotUpdateParams = {
+    hash?: number;
+    transactionID: string | undefined;
+    updatedTransaction: OnyxTypes.Transaction;
+    pendingFields: OnyxTypes.Transaction['pendingFields'];
+    clearedPendingFields: OnyxTypes.Transaction['pendingFields'];
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
+    optimisticViolations?: OnyxEntry<OnyxTypes.TransactionViolations>;
+    currentTransactionViolations?: OnyxEntry<OnyxTypes.TransactionViolations>;
+};
+
+/**
+ * Builds Onyx writes for the Search snapshot.
+ * Search result rows render from snapshot data, so TRANSACTION writes alone do not refresh the list.
+ */
+function getSearchSnapshotUpdates({
+    hash,
+    transactionID,
+    updatedTransaction,
+    pendingFields,
+    clearedPendingFields,
+    transaction,
+    optimisticViolations,
+    currentTransactionViolations,
+}: SearchSnapshotUpdateParams): SearchSnapshotOnyxData {
+    if (!hash || !transactionID) {
+        return {
+            optimisticData: [],
+            successData: [],
+            failureData: [],
+        };
+    }
+
+    const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}` as const;
+    const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const;
+    const violationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}` as const;
+
+    const optimisticSnapshotData: SearchResultDataType = {};
+    optimisticSnapshotData[transactionKey] = {...updatedTransaction, pendingFields};
+    if (optimisticViolations !== undefined) {
+        optimisticSnapshotData[violationsKey] = optimisticViolations;
+    }
+
+    const successSnapshotData: NullishDeep<SearchResultDataType> = {};
+    successSnapshotData[transactionKey] = {pendingFields: clearedPendingFields};
+
+    const failureSnapshotData: NullishDeep<SearchResultDataType> = {};
+    failureSnapshotData[transactionKey] = {...transaction, pendingFields: clearedPendingFields};
+    if (currentTransactionViolations !== undefined) {
+        failureSnapshotData[violationsKey] = currentTransactionViolations;
+    }
+
+    return {
+        optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key: snapshotKey, value: {data: optimisticSnapshotData}}],
+        successData: [{onyxMethod: Onyx.METHOD.MERGE, key: snapshotKey, value: {data: successSnapshotData}}],
+        failureData: [{onyxMethod: Onyx.METHOD.MERGE, key: snapshotKey, value: {data: failureSnapshotData}}],
+    };
+}
 
 /** Updates the created date of an expense */
 function updateMoneyRequestDate({
@@ -83,6 +157,8 @@ function updateMoneyRequestDate({
     isASAPSubmitBetaEnabled,
     parentReportNextStep,
     isOffline,
+    hash,
+    delegateAccountID,
 }: UpdateMoneyRequestDateParams) {
     const transactionChanges: TransactionChanges = {
         created: value,
@@ -90,7 +166,7 @@ function updateMoneyRequestDate({
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
 
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
+        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy, delegateAccountID, hash);
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID,
@@ -107,6 +183,8 @@ function updateMoneyRequestDate({
             isASAPSubmitBetaEnabled,
             iouReportNextStep: parentReportNextStep,
             isOffline,
+            hash,
+            delegateAccountID,
         });
         removeTransactionFromDuplicateTransactionViolation(data.onyxData, transactionID, transactions, transactionViolations);
     }
@@ -128,6 +206,7 @@ function updateMoneyRequestBillable({
     isASAPSubmitBetaEnabled,
     parentReportNextStep,
     isOffline,
+    delegateAccountID,
 }: {
     transactionID: string | undefined;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -141,6 +220,7 @@ function updateMoneyRequestBillable({
     isASAPSubmitBetaEnabled: boolean;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     isOffline: boolean;
+    delegateAccountID: number | undefined;
 }) {
     if (!transactionID || !transactionThreadReport?.reportID) {
         return;
@@ -163,6 +243,7 @@ function updateMoneyRequestBillable({
         isASAPSubmitBetaEnabled,
         iouReportNextStep: parentReportNextStep,
         isOffline,
+        delegateAccountID,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_BILLABLE, params, onyxData);
 }
@@ -180,6 +261,7 @@ function updateMoneyRequestReimbursable({
     isASAPSubmitBetaEnabled,
     parentReportNextStep,
     isOffline,
+    delegateAccountID,
 }: {
     transactionID: string | undefined;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -193,6 +275,7 @@ function updateMoneyRequestReimbursable({
     isASAPSubmitBetaEnabled: boolean;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     isOffline: boolean;
+    delegateAccountID: number | undefined;
 }) {
     if (!transactionID || !transactionThreadReport?.reportID) {
         return;
@@ -215,6 +298,7 @@ function updateMoneyRequestReimbursable({
         isASAPSubmitBetaEnabled,
         iouReportNextStep: parentReportNextStep,
         isOffline,
+        delegateAccountID,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_REIMBURSABLE, params, onyxData);
 }
@@ -233,6 +317,8 @@ function updateMoneyRequestMerchant({
     isASAPSubmitBetaEnabled,
     parentReportNextStep,
     isOffline,
+    hash,
+    delegateAccountID,
 }: {
     transactionID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -246,6 +332,8 @@ function updateMoneyRequestMerchant({
     isASAPSubmitBetaEnabled: boolean;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     isOffline: boolean;
+    hash?: number;
+    delegateAccountID: number | undefined;
 }) {
     const transactionChanges: TransactionChanges = {
         merchant: value,
@@ -253,7 +341,7 @@ function updateMoneyRequestMerchant({
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
 
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
+        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy, delegateAccountID, hash);
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID,
@@ -270,6 +358,8 @@ function updateMoneyRequestMerchant({
             isASAPSubmitBetaEnabled,
             iouReportNextStep: parentReportNextStep,
             isOffline,
+            hash,
+            delegateAccountID,
         });
     }
     const {params, onyxData} = data;
@@ -291,6 +381,7 @@ function updateMoneyRequestAttendees({
     isASAPSubmitBetaEnabled,
     parentReportNextStep,
     isOffline,
+    delegateAccountID,
 }: {
     transactionID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -305,6 +396,7 @@ function updateMoneyRequestAttendees({
     isASAPSubmitBetaEnabled: boolean;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     isOffline: boolean;
+    delegateAccountID: number | undefined;
 }) {
     const transactionChanges: TransactionChanges = {
         attendees,
@@ -325,6 +417,7 @@ function updateMoneyRequestAttendees({
         isASAPSubmitBetaEnabled,
         iouReportNextStep: parentReportNextStep,
         isOffline,
+        delegateAccountID,
     });
     const {params, onyxData} = data;
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_ATTENDEES, params, onyxData);
@@ -345,6 +438,7 @@ type UpdateMoneyRequestTagParams = {
     hash?: number;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     isOffline: boolean;
+    delegateAccountID: number | undefined;
 };
 
 /** Updates the tag of an expense */
@@ -363,6 +457,7 @@ function updateMoneyRequestTag({
     hash,
     parentReportNextStep,
     isOffline,
+    delegateAccountID,
 }: UpdateMoneyRequestTagParams) {
     const transactionChanges: TransactionChanges = {
         tag,
@@ -384,6 +479,7 @@ function updateMoneyRequestTag({
         isASAPSubmitBetaEnabled,
         iouReportNextStep: parentReportNextStep,
         isOffline,
+        delegateAccountID,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAG, params, onyxData);
 }
@@ -401,6 +497,7 @@ function updateMoneyRequestTaxAmount({
     currentUserEmailParam,
     isASAPSubmitBetaEnabled,
     parentReportNextStep,
+    delegateAccountID,
 }: {
     transactionID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -413,6 +510,7 @@ function updateMoneyRequestTaxAmount({
     currentUserEmailParam: string;
     isASAPSubmitBetaEnabled: boolean;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
+    delegateAccountID: number | undefined;
 }) {
     const transactionChanges = {
         taxAmount,
@@ -431,6 +529,7 @@ function updateMoneyRequestTaxAmount({
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
         iouReportNextStep: parentReportNextStep,
+        delegateAccountID,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAX_AMOUNT, params, onyxData);
 }
@@ -449,6 +548,7 @@ type UpdateMoneyRequestTaxRateParams = {
     currentUserEmailParam: string;
     isASAPSubmitBetaEnabled: boolean;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
+    delegateAccountID: number | undefined;
 };
 
 /** Updates the created tax rate of an expense */
@@ -466,6 +566,7 @@ function updateMoneyRequestTaxRate({
     currentUserEmailParam,
     isASAPSubmitBetaEnabled,
     parentReportNextStep,
+    delegateAccountID,
 }: UpdateMoneyRequestTaxRateParams) {
     const transactionChanges = {
         taxCode,
@@ -486,6 +587,7 @@ function updateMoneyRequestTaxRate({
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
         iouReportNextStep: parentReportNextStep,
+        delegateAccountID,
     });
 
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAX_RATE, params, onyxData);
@@ -509,6 +611,8 @@ type UpdateMoneyRequestDistanceParams = {
     odometerStart?: number;
     odometerEnd?: number;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
+    distanceOriginalPolicy?: OnyxEntry<OnyxTypes.Policy>;
+    delegateAccountID: number | undefined;
 };
 
 /** Updates the waypoints of a distance expense */
@@ -530,6 +634,8 @@ function updateMoneyRequestDistance({
     odometerStart,
     odometerEnd,
     parentReportNextStep,
+    distanceOriginalPolicy,
+    delegateAccountID,
 }: UpdateMoneyRequestDistanceParams) {
     const transactionChanges: TransactionChanges = {
         // Don't sanitize waypoints here - keep all fields for Onyx optimistic data (e.g., keyForList)
@@ -546,7 +652,16 @@ function updateMoneyRequestDistance({
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys | typeof ONYXKEYS.NVP_RECENT_WAYPOINTS>;
 
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transaction?.transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
+        data = getUpdateTrackExpenseParams(
+            transaction?.transactionID,
+            transactionThreadReport?.reportID,
+            transactionChanges,
+            policy,
+            delegateAccountID,
+            undefined,
+            undefined,
+            distanceOriginalPolicy,
+        );
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID: transaction?.transactionID,
@@ -562,6 +677,7 @@ function updateMoneyRequestDistance({
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
             iouReportNextStep: parentReportNextStep,
+            delegateAccountID,
         });
     }
     const {params, onyxData} = data;
@@ -631,6 +747,7 @@ function updateMoneyRequestCategory({
     isASAPSubmitBetaEnabled,
     hash,
     parentReportNextStep,
+    delegateAccountID,
 }: {
     transactionID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -645,6 +762,7 @@ function updateMoneyRequestCategory({
     isASAPSubmitBetaEnabled: boolean;
     hash?: number;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
+    delegateAccountID: number | undefined;
 }) {
     const transactionChanges: TransactionChanges = {
         category,
@@ -666,6 +784,7 @@ function updateMoneyRequestCategory({
         isASAPSubmitBetaEnabled,
         hash,
         iouReportNextStep: parentReportNextStep,
+        delegateAccountID,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_CATEGORY, params, onyxData);
 }
@@ -683,6 +802,8 @@ function updateMoneyRequestDescription({
     currentUserEmailParam,
     isASAPSubmitBetaEnabled,
     parentReportNextStep,
+    hash,
+    delegateAccountID,
 }: {
     transactionID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -695,6 +816,8 @@ function updateMoneyRequestDescription({
     currentUserEmailParam: string;
     isASAPSubmitBetaEnabled: boolean;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
+    hash?: number;
+    delegateAccountID: number | undefined;
 }) {
     const parsedComment = getParsedComment(comment);
     const transactionChanges: TransactionChanges = {
@@ -703,7 +826,7 @@ function updateMoneyRequestDescription({
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
 
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
+        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy, delegateAccountID, hash);
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID,
@@ -719,6 +842,8 @@ function updateMoneyRequestDescription({
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
             iouReportNextStep: parentReportNextStep,
+            hash,
+            delegateAccountID,
         });
     }
     const {params, onyxData} = data;
@@ -742,6 +867,7 @@ function updateMoneyRequestDistanceRate({
     updatedTaxCode,
     updatedTaxValue,
     parentReportNextStep,
+    delegateAccountID,
 }: {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -757,6 +883,7 @@ function updateMoneyRequestDistanceRate({
     updatedTaxCode?: string;
     updatedTaxValue?: string;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
+    delegateAccountID: number | undefined;
 }) {
     const transactionChanges: TransactionChanges = {
         customUnitRateID: rateID,
@@ -781,7 +908,7 @@ function updateMoneyRequestDistanceRate({
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
 
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transaction?.transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
+        data = getUpdateTrackExpenseParams(transaction?.transactionID, transactionThreadReport?.reportID, transactionChanges, policy, delegateAccountID);
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID: transaction?.transactionID,
@@ -797,6 +924,7 @@ function updateMoneyRequestDistanceRate({
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
             iouReportNextStep: parentReportNextStep,
+            delegateAccountID,
         });
     }
     const {params, onyxData} = data;
@@ -825,6 +953,8 @@ type UpdateMoneyRequestAmountAndCurrencyParams = {
     isASAPSubmitBetaEnabled: boolean;
     policyRecentlyUsedCurrencies: string[];
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
+    hash?: number;
+    delegateAccountID: number | undefined;
 };
 
 /** Updates the amount and currency fields of an expense */
@@ -848,6 +978,8 @@ function updateMoneyRequestAmountAndCurrency({
     isASAPSubmitBetaEnabled,
     policyRecentlyUsedCurrencies,
     parentReportNextStep,
+    hash,
+    delegateAccountID,
 }: UpdateMoneyRequestAmountAndCurrencyParams) {
     const transactionChanges = {
         amount,
@@ -860,7 +992,7 @@ function updateMoneyRequestAmountAndCurrency({
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
 
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
+        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy, delegateAccountID, hash);
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID,
@@ -878,6 +1010,8 @@ function updateMoneyRequestAmountAndCurrency({
             isASAPSubmitBetaEnabled,
             policyRecentlyUsedCurrencies,
             iouReportNextStep: parentReportNextStep,
+            hash,
+            delegateAccountID,
         });
         removeTransactionFromDuplicateTransactionViolation(data.onyxData, transactionID, transactions, transactionViolations);
     }
@@ -909,6 +1043,7 @@ type GetUpdateMoneyRequestParamsType = {
     isSplitTransaction?: boolean;
     // TODO: This will be required eventually. Ref: https://github.com/Expensify/App/issues/66407
     isOffline?: boolean;
+    delegateAccountID: number | undefined;
 };
 
 type UpdateMoneyRequestDataKeys =
@@ -948,6 +1083,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         iouReportNextStep,
         isSplitTransaction,
         isOffline,
+        delegateAccountID,
     } = params;
     const optimisticData: Array<
         OnyxUpdate<
@@ -970,6 +1106,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             | typeof ONYXKEYS.COLLECTION.REPORT
             | typeof ONYXKEYS.COLLECTION.TRANSACTION
             | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
         >
     > = [];
     const failureData: Array<
@@ -1100,7 +1237,16 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     // For split transactions, the merchant and amount are already available in transactionChanges,
     // so we can build the optimistic report action even when waypoints are pending.
     const updatedReportAction = shouldBuildOptimisticModifiedExpenseReportAction
-        ? buildOptimisticModifiedExpenseReportAction(transactionThreadReport, transaction, transactionChanges, isFromExpenseReport, policy, updatedTransaction, allowNegative)
+        ? buildOptimisticModifiedExpenseReportAction(
+              transactionThreadReport,
+              transaction,
+              transactionChanges,
+              isFromExpenseReport,
+              policy,
+              delegateAccountID,
+              updatedTransaction,
+              allowNegative,
+          )
         : null;
     if (
         (!hasPendingWaypoints || hasSplitDistanceMessageFields || hasDistanceWithWaypoints) &&
@@ -1318,14 +1464,9 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         apiParams.attendees = JSON.stringify(apiParams?.attendees);
     }
 
-    // Clear out the error fields and loading states on success.
-    // Only clear `routes` when waypoints/rate changed (the server will push a fresh route via Pusher).
-    // For pure distance edits the route is unchanged, and clearing it would make the map briefly disappear.
-    // When the caller already supplied a valid optimistic route (waypoint edit with route pre-fetched
-    // locally), keep it so the receipt thumbnail and ConfirmedRoute don't flicker between success and
-    // the Pusher route push.
-    const hasValidOptimisticRoute = !!transactionChanges.routes?.route0?.geometry?.coordinates?.length;
-    const shouldClearRoutes = (hasWaypointAddressesChanged || hasModifiedDistanceRate) && !hasValidOptimisticRoute;
+    // Clear out the error fields and loading states on success. Keep `routes`: the BE never returns it,
+    // so it's the only source `ConfirmedRoute`/the preview can draw the map from while the receipt
+    // regenerates after a rate/distance edit (GH #90057); a waypoint edit clears + re-fetches it anyway.
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
@@ -1333,7 +1474,6 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             pendingFields: clearedPendingFields,
             isLoading: false,
             errorFields: null,
-            ...(shouldClearRoutes && {routes: null}),
         },
     });
 
@@ -1430,37 +1570,41 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
             value: currentTransactionViolations,
         });
+
         if (hash) {
-            // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
-            const optimisticSnapshotData: SearchResultDataType = {};
-            optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] = Array.isArray(violationsOnyxData.value) ? violationsOnyxData.value : [];
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
-                value: {
-                    data: optimisticSnapshotData,
-                },
+            const snapshotUpdates = getSearchSnapshotUpdates({
+                hash,
+                transactionID,
+                updatedTransaction,
+                pendingFields,
+                clearedPendingFields,
+                transaction,
+                optimisticViolations: Array.isArray(violationsOnyxData.value) ? violationsOnyxData.value : [],
+                currentTransactionViolations,
             });
 
-            // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
-            const failureSnapshotData: SearchResultDataType = {};
-            failureSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] = currentTransactionViolations;
-            failureData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
-                value: {
-                    data: failureSnapshotData,
-                },
-            });
+            optimisticData.push(...snapshotUpdates.optimisticData);
+            successData.push(...snapshotUpdates.successData);
+            failureData.push(...snapshotUpdates.failureData);
         }
+
         if (
             violationsOnyxData &&
             ((iouReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN) === CONST.REPORT.STATUS_NUM.OPEN ||
                 (hasModifiedReimbursable && iouReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED))
         ) {
             const currentNextStep = iouReportNextStep ?? {};
-            const shouldFixViolations = Array.isArray(violationsOnyxData.value) && violationsOnyxData.value.length > 0;
             const moneyRequestReport = updatedMoneyRequestReport ?? iouReport ?? undefined;
+            const reportTransactions = [
+                ...getReportTransactions(moneyRequestReport?.reportID).filter((reportTransaction) => reportTransaction.transactionID !== transactionID),
+                updatedTransaction,
+            ];
+            const shouldFixViolations = hasSubmissionBlockingViolationInReport(
+                reportTransactions,
+                getAllTransactionViolations(),
+                transactionID,
+                Array.isArray(violationsOnyxData.value) ? violationsOnyxData.value : null,
+            );
             const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, getAllTransactionViolations(), currentUserAccountIDParam, currentUserEmailParam);
             const optimisticNextStep = buildOptimisticNextStep({
                 report: moneyRequestReport,
@@ -1552,13 +1696,26 @@ function getUpdateTrackExpenseParams(
     transactionThreadReportID: string | undefined,
     transactionChanges: TransactionChanges,
     policy: OnyxEntry<OnyxTypes.Policy>,
+    delegateAccountID: number | undefined,
+    hash?: number,
     shouldBuildOptimisticModifiedExpenseReportAction = true,
+    distanceOriginalPolicy?: OnyxEntry<OnyxTypes.Policy>,
 ): UpdateMoneyRequestData<
-    typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT
+    | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+    | typeof ONYXKEYS.COLLECTION.TRANSACTION
+    | typeof ONYXKEYS.COLLECTION.REPORT
+    | typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT
+    | typeof ONYXKEYS.COLLECTION.SNAPSHOT
 > {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT>> = [];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [];
+    const optimisticData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.SNAPSHOT>
+    > = [];
+    const successData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.SNAPSHOT>
+    > = [];
+    const failureData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.SNAPSHOT>
+    > = [];
 
     // Step 1: Set any "pending fields" (ones updated while the user was offline) to have error messages in the failureData
     const pendingFields = Object.fromEntries(Object.keys(transactionChanges).map((key) => [key, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE]));
@@ -1569,12 +1726,13 @@ function getUpdateTrackExpenseParams(
     const transactionThread = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
     const transaction = getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const chatReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.parentReportID}`] ?? null;
+    const policyForTransaction = distanceOriginalPolicy ?? policy;
     const updatedTransaction = transaction
         ? getUpdatedTransaction({
               transaction,
               transactionChanges,
               isFromExpenseReport: false,
-              policy,
+              policy: policyForTransaction,
           })
         : null;
     const transactionDetails = getTransactionDetails(updatedTransaction);
@@ -1585,10 +1743,16 @@ function getUpdateTrackExpenseParams(
 
     const dataToIncludeInParams: Partial<TransactionDetails> = Object.fromEntries(Object.entries(transactionDetails ?? {}).filter(([key]) => key in transactionChanges));
 
+    // Preserve full-precision distance to avoid `increasedDistance` drift; mirrors `getUpdateMoneyRequestParams`.
+    if ('distance' in transactionChanges && typeof transactionChanges.distance === 'number') {
+        dataToIncludeInParams.distance = transactionChanges.distance;
+    }
+
     const apiParams: UpdateMoneyRequestParams = {
         ...dataToIncludeInParams,
         reportID: chatReport?.reportID,
         transactionID,
+        policyID: policyForTransaction?.id,
     };
 
     const hasPendingWaypoints = 'waypoints' in transactionChanges;
@@ -1623,7 +1787,7 @@ function getUpdateTrackExpenseParams(
     // and the report action is created on the server with the distance-related response from the MapBox API
     const allowNegative = shouldEnableNegative(transactionThread ?? undefined);
     const updatedReportAction = shouldBuildOptimisticModifiedExpenseReportAction
-        ? buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, false, policy, updatedTransaction, allowNegative)
+        ? buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, false, policy, delegateAccountID, updatedTransaction, allowNegative)
         : null;
     if (!hasPendingWaypoints && !(hasModifiedDistanceRate && isFetchingWaypointsFromServer(transaction)) && updatedReportAction) {
         apiParams.reportActionID = updatedReportAction.reportActionID;
@@ -1666,6 +1830,21 @@ function getUpdateTrackExpenseParams(
         },
     });
 
+    if (updatedTransaction) {
+        const snapshotUpdates = getSearchSnapshotUpdates({
+            hash,
+            transactionID,
+            updatedTransaction,
+            pendingFields,
+            clearedPendingFields,
+            transaction,
+        });
+
+        optimisticData.push(...snapshotUpdates.optimisticData);
+        successData.push(...snapshotUpdates.successData);
+        failureData.push(...snapshotUpdates.failureData);
+    }
+
     if (updatedReportAction) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1684,7 +1863,7 @@ function getUpdateTrackExpenseParams(
         });
     }
 
-    // Clear out the error fields and loading states on success
+    // Clear out the error fields and loading states on success. Keep `routes` (see `getUpdateMoneyRequestParams`) — GH #90057.
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
@@ -1692,7 +1871,6 @@ function getUpdateTrackExpenseParams(
             pendingFields: clearedPendingFields,
             isLoading: false,
             errorFields: null,
-            routes: null,
         },
     });
 
@@ -1738,4 +1916,4 @@ export {
     updateMoneyRequestDistanceRate,
     updateMoneyRequestAmountAndCurrency,
 };
-export type {GetUpdateMoneyRequestParamsType, UpdateMoneyRequestDataKeys};
+export type {UpdateMoneyRequestData, UpdateMoneyRequestDataKeys};
