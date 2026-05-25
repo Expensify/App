@@ -12,6 +12,12 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
     const StyleUtils = useStyleUtils();
     const [previousStatusBarColor, setPreviousStatusBarColor] = useState<string>();
 
+    const isRightDocked = type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED;
+    const animationInTiming = rest.animationInTiming ?? (isRightDocked ? CONST.MODAL.ANIMATION_TIMING.RHP_DURATION_IN_WEB : undefined);
+    const animationOutTiming = rest.animationOutTiming ?? (isRightDocked ? CONST.MODAL.ANIMATION_TIMING.RHP_DURATION_OUT_WEB : undefined);
+    const animationIn = rest.animationIn ?? (isRightDocked ? 'slideAndFadeInRight' : undefined);
+    const animationOut = rest.animationOut ?? (isRightDocked ? 'slideAndFadeOutRight' : undefined);
+
     const setStatusBarColor = (color = theme.appBG) => {
         if (!fullscreen) {
             return;
@@ -106,6 +112,10 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
     return (
         <BaseModal
             {...rest}
+            animationIn={animationIn}
+            animationOut={animationOut}
+            animationInTiming={animationInTiming}
+            animationOutTiming={animationOutTiming}
             onModalHide={hideModal}
             onModalShow={showModal}
             onModalWillShow={onModalWillShow}
