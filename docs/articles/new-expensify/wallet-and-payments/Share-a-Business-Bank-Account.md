@@ -14,7 +14,7 @@ If you've already added and verified a business bank account, you can share it w
 ## Who can share a business bank account
 
 - Only **Workspace Admins** can share a business bank account.
-- You can only share **verified** business bank accounts.
+- You can only share **verified** business bank accounts that support withdrawals. Deposit-only accounts cannot be shared.
 - You can only share with admins of Workspaces where you are also an admin.
 
 ---
@@ -73,6 +73,7 @@ Yes. You can select multiple Workspace Admins when sharing.
 
 The **Share** option only appears if:
 - The account is verified
+- The account supports withdrawals (deposit-only accounts cannot be shared)
 - There is at least one eligible Workspace Admin you haven’t shared it with
 
 ## What if the other admin already has a copy of the account?
