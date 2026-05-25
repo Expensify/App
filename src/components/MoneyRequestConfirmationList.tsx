@@ -110,6 +110,9 @@ type MoneyRequestConfirmationListProps = {
     /** Whether the odometer receipt is currently being stitched */
     isLoadingReceipt?: boolean;
 
+    /** Error message from the odometer receipt stitcher, rendered below the receipt */
+    receiptStitchError?: string | null;
+
     /** Whether the expense is a per diem expense */
     isPerDiemRequest?: boolean;
 
@@ -172,6 +175,7 @@ function MoneyRequestConfirmationList({
     iouType = CONST.IOU.TYPE.SUBMIT,
     isOdometerDistanceRequest = false,
     isLoadingReceipt = false,
+    receiptStitchError,
     isPerDiemRequest = false,
     isPolicyExpenseChat = false,
     shouldShowSmartScanFields = true,
@@ -537,6 +541,7 @@ function MoneyRequestConfirmationList({
                 isManualDistanceRequest={isManualDistanceRequest}
                 isOdometerDistanceRequest={isOdometerDistanceRequest}
                 isLoadingReceipt={isLoadingReceipt}
+                receiptStitchError={receiptStitchError}
                 isGPSDistanceRequest={isGPSDistanceRequest}
                 isPerDiemRequest={isPerDiemRequest}
                 isTimeRequest={isTimeRequest}

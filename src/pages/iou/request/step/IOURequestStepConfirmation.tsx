@@ -5,7 +5,6 @@ import {View} from 'react-native';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
-import FormHelpMessage from '@components/FormHelpMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -820,7 +819,6 @@ function IOURequestStepConfirmation({
                         />
                     </DragAndDropConsumer>
                     {ErrorModal}
-                    {!!stitchError && <FormHelpMessage message={stitchError} />}
                     <SubmitExpenseOrchestrator
                         createTransaction={createTransaction}
                         destinationReportID={destinationReportID}
@@ -867,6 +865,7 @@ function IOURequestStepConfirmation({
                                 policyID={policyID}
                                 isOdometerDistanceRequest={isOdometerDistanceRequest}
                                 isLoadingReceipt={isStitchingReceipt || (isOdometerDistanceRequest && !hasVerifiedBlobs)}
+                                receiptStitchError={stitchError}
                                 isPerDiemRequest={isPerDiemRequest}
                                 shouldShowSmartScanFields={shouldShowSmartScanFields}
                                 action={action}

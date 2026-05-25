@@ -12,6 +12,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
+import FormHelpMessage from './FormHelpMessage';
 import ConfirmationFieldList from './MoneyRequestConfirmationListFooter/ConfirmationFieldList';
 import useFooterDerivedFlags from './MoneyRequestConfirmationListFooter/hooks/useFooterDerivedFlags';
 import useFooterTagVisibility from './MoneyRequestConfirmationListFooter/hooks/useFooterTagVisibility';
@@ -71,6 +72,9 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** Whether the receipt is currently being stitched */
     isLoadingReceipt?: boolean;
+
+    /** Error message from the odometer receipt stitcher, rendered below the receipt */
+    receiptStitchError?: string | null;
 
     /** Flag indicating if it is a GPS distance request */
     isGPSDistanceRequest: boolean;
@@ -202,6 +206,7 @@ function MoneyRequestConfirmationListFooter({
     isManualDistanceRequest,
     isOdometerDistanceRequest = false,
     isLoadingReceipt = false,
+    receiptStitchError,
     isGPSDistanceRequest,
     isPerDiemRequest,
     isTimeRequest,
@@ -325,6 +330,12 @@ function MoneyRequestConfirmationListFooter({
                 onPDFLoadError={onPDFLoadError}
                 onPDFPassword={onPDFPassword}
             />
+
+            {!!receiptStitchError && (
+                <View style={styles.mh5}>
+                    <FormHelpMessage message={receiptStitchError} />
+                </View>
+            )}
 
             <ConfirmationFieldList
                 action={action}
