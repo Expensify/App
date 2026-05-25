@@ -95,7 +95,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const isTextInputFocusedRef = useRef<boolean>(false);
     const hasKeyBeenPressed = useRef(false);
     const [isKeyboardNavigating, setIsKeyboardNavigating] = useState(false);
-    const suppressNextFocusScrollRef = useRef(false);
     const activeElementRole = useActiveElementRole();
     const {isKeyboardShown} = useKeyboardState();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
@@ -151,9 +150,8 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         maxIndex: flattenedData.length - 1,
         disabledIndexes,
         isActive: isScreenFocused && itemsCount > 0,
-        onFocusedIndexChange: (index: number) => {
-            if (suppressNextFocusScrollRef.current) {
-                suppressNextFocusScrollRef.current = false;
+        onFocusedIndexChange: (index, {shouldScroll}) => {
+            if (!shouldScroll) {
                 return;
             }
             if (!shouldScrollToFocusedIndex) {
@@ -170,21 +168,14 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         },
     });
 
-    // Move the cursor, and skip the scroll the move would otherwise trigger when the index actually changes.
-    const setFocusedIndexWithoutScrollOnChange = (index: number) => {
-        if (index !== focusedIndex) {
-            suppressNextFocusScrollRef.current = true;
-        }
-        setFocusedIndex(index);
-    };
-
     // Keep the cursor on the restored row so keyboard nav continues from there, but don't scroll to it on the way back.
-    const setFocusedIndexFromRowFocus = (index: number) => {
+    // Options are forwarded so onFocus callers (e.g. ListItemRenderer) keep their {shouldScroll: false} intent.
+    const setFocusedIndexFromRowFocus = (index: number, options?: {shouldScroll?: boolean}) => {
         if (isFocusRestoreInProgress()) {
-            setFocusedIndexWithoutScrollOnChange(index);
-        } else {
-            setFocusedIndex(index);
+            setFocusedIndex(index, {shouldScroll: false});
+            return;
         }
+        setFocusedIndex(index, options);
     };
 
     const getFocusedItem = (): TItem | undefined => {
@@ -212,7 +203,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             }
         }
         if (shouldUpdateFocusedIndex && typeof indexToFocus === 'number') {
-            setFocusedIndexWithoutScrollOnChange(indexToFocus);
+            setFocusedIndex(indexToFocus, {shouldScroll: false});
         }
         onSelectRow(item);
 
@@ -238,10 +229,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     };
 
     const updateAndScrollToFocusedIndex = (index: number, shouldScroll = true) => {
-        if (!shouldScroll) {
-            suppressNextFocusScrollRef.current = true;
-        }
-        setFocusedIndex(index);
+        setFocusedIndex(index, {shouldScroll: false});
         if (shouldScroll) {
             scrollToIndex(index);
         }
@@ -312,10 +300,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         setFocusedIndex,
     });
 
-    const suppressNextFocusScroll = () => {
-        suppressNextFocusScrollRef.current = true;
-    };
-
     useSearchFocusSync({
         searchValue: syncedSearchValue,
         data: flattenedData,
@@ -327,7 +311,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         setFocusedIndex,
         focusedIndex,
         firstFocusableIndex,
-        suppressNextFocusScroll,
     });
 
     const textInputComponent = () => {

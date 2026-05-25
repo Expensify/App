@@ -1,11 +1,13 @@
-import {useCallback, useEffect, useMemo, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import CONST from '@src/CONST';
 import useKeyboardShortcut from './useKeyboardShortcut';
 import usePrevious from './usePrevious';
 
+type FocusedIndexChangeOptions = {shouldScroll?: boolean};
+
 type Config = {
     maxIndex: number;
-    onFocusedIndexChange?: (index: number) => void;
+    onFocusedIndexChange?: (index: number, options: Required<FocusedIndexChangeOptions>) => void;
     initialFocusedIndex?: number;
     disabledIndexes?: readonly number[];
     captureOnInputs?: boolean;
@@ -20,7 +22,7 @@ type Config = {
     onArrowUpDownCallback?: () => void;
 };
 
-type UseArrowKeyFocusManager = [number, (index: number) => void];
+type UseArrowKeyFocusManager = [number, (index: number, options?: FocusedIndexChangeOptions) => void];
 
 /**
  * A hook that makes it easy to use the arrow keys to manage focus of items in a list
@@ -59,6 +61,19 @@ export default function useArrowKeyFocusManager({
 }: Config): UseArrowKeyFocusManager {
     const [focusedIndex, setFocusedIndex] = useState(initialFocusedIndex);
     const prevIsFocusedIndex = usePrevious(focusedIndex);
+
+    const shouldScrollNextChangeRef = useRef(true);
+
+    const setFocusedIndexExternal = useCallback((index: number, {shouldScroll = true}: FocusedIndexChangeOptions = {}) => {
+        shouldScrollNextChangeRef.current = shouldScroll;
+        setFocusedIndex(index);
+    }, []);
+
+    const setFocusedIndexInternal = useCallback((updater: (prev: number) => number) => {
+        shouldScrollNextChangeRef.current = true;
+        setFocusedIndex(updater);
+    }, []);
+
     const arrowConfig = useMemo(
         () => ({
             excludedNodes: shouldExcludeTextAreaNodes ? ['TEXTAREA'] : [],
@@ -81,7 +96,7 @@ export default function useArrowKeyFocusManager({
         if (prevIsFocusedIndex === focusedIndex) {
             return;
         }
-        onFocusedIndexChange(focusedIndex);
+        onFocusedIndexChange(focusedIndex, {shouldScroll: shouldScrollNextChangeRef.current});
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [focusedIndex, prevIsFocusedIndex]);
 
@@ -91,7 +106,7 @@ export default function useArrowKeyFocusManager({
         }
         const nextIndex = disableCyclicTraversal ? -1 : maxIndex;
         setHasKeyBeenPressed?.();
-        setFocusedIndex((actualIndex) => {
+        setFocusedIndexInternal((actualIndex) => {
             const currentFocusedIndex = actualIndex > 0 ? actualIndex - (itemsPerRow ?? 1) : nextIndex;
             let newFocusedIndex = currentFocusedIndex;
 
@@ -114,7 +129,7 @@ export default function useArrowKeyFocusManager({
             return newFocusedIndex;
         });
         onArrowUpDownCallback();
-    }, [maxIndex, isFocused, disableCyclicTraversal, itemsPerRow, disabledIndexes, allowNegativeIndexes, setHasKeyBeenPressed, onArrowUpDownCallback]);
+    }, [maxIndex, isFocused, disableCyclicTraversal, itemsPerRow, disabledIndexes, allowNegativeIndexes, setHasKeyBeenPressed, onArrowUpDownCallback, setFocusedIndexInternal]);
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_UP, arrowUpCallback, arrowConfig);
 
@@ -126,7 +141,7 @@ export default function useArrowKeyFocusManager({
 
         const nextIndex = disableCyclicTraversal ? maxIndex : 0;
 
-        setFocusedIndex((actualIndex) => {
+        setFocusedIndexInternal((actualIndex) => {
             let currentFocusedIndex = -1;
 
             if (actualIndex === -1) {
@@ -161,7 +176,7 @@ export default function useArrowKeyFocusManager({
             return newFocusedIndex;
         });
         onArrowUpDownCallback();
-    }, [disableCyclicTraversal, disabledIndexes, isFocused, itemsPerRow, maxIndex, setHasKeyBeenPressed, onArrowUpDownCallback]);
+    }, [disableCyclicTraversal, disabledIndexes, isFocused, itemsPerRow, maxIndex, setHasKeyBeenPressed, onArrowUpDownCallback, setFocusedIndexInternal]);
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN, arrowDownCallback, arrowConfig);
 
@@ -172,7 +187,7 @@ export default function useArrowKeyFocusManager({
 
         const nextIndex = disableCyclicTraversal ? -1 : maxIndex;
 
-        setFocusedIndex((actualIndex) => {
+        setFocusedIndexInternal((actualIndex) => {
             const currentFocusedIndex = actualIndex > 0 ? actualIndex - 1 : nextIndex;
 
             let newFocusedIndex = currentFocusedIndex;
@@ -187,7 +202,7 @@ export default function useArrowKeyFocusManager({
             }
             return newFocusedIndex;
         });
-    }, [allowHorizontalArrowKeys, disableCyclicTraversal, disabledIndexes, maxIndex]);
+    }, [allowHorizontalArrowKeys, disableCyclicTraversal, disabledIndexes, maxIndex, setFocusedIndexInternal]);
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT, arrowLeftCallback, horizontalArrowConfig);
 
@@ -198,7 +213,7 @@ export default function useArrowKeyFocusManager({
 
         const nextIndex = disableCyclicTraversal ? maxIndex : 0;
 
-        setFocusedIndex((actualIndex) => {
+        setFocusedIndexInternal((actualIndex) => {
             const currentFocusedIndex = actualIndex < maxIndex ? actualIndex + 1 : nextIndex;
 
             let newFocusedIndex = currentFocusedIndex;
@@ -213,10 +228,10 @@ export default function useArrowKeyFocusManager({
             }
             return newFocusedIndex;
         });
-    }, [allowHorizontalArrowKeys, disableCyclicTraversal, disabledIndexes, maxIndex]);
+    }, [allowHorizontalArrowKeys, disableCyclicTraversal, disabledIndexes, maxIndex, setFocusedIndexInternal]);
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT, arrowRightCallback, horizontalArrowConfig);
 
-    // Note: you don't need to manually manage focusedIndex in the parent. setFocusedIndex is only exposed in case you want to reset focusedIndex or focus a specific item
-    return [focusedIndex, setFocusedIndex];
+    // Note: you don't need to manually manage focusedIndex in the parent. setFocusedIndexExternal is only exposed in case you want to reset focusedIndex or focus a specific item
+    return [focusedIndex, setFocusedIndexExternal];
 }
