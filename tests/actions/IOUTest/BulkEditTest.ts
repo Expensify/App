@@ -1674,6 +1674,7 @@ describe('actions/IOU/BulkEdit', () => {
                     currentUserAccountID: RORY_ACCOUNT_ID,
                     isSelfTourViewed,
                     hasCompletedGuidedSetupFlow,
+                    delegateAccountID: undefined,
                 });
 
                 expect(createTransactionThreadReportSpy).toHaveBeenCalledWith(
@@ -1748,6 +1749,7 @@ describe('actions/IOU/BulkEdit', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 isSelfTourViewed: true,
                 hasCompletedGuidedSetupFlow: true,
+                delegateAccountID: undefined,
             });
 
             expect(createTransactionThreadReportSpy).not.toHaveBeenCalled();
