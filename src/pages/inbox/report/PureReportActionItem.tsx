@@ -26,6 +26,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Accessibility from '@libs/Accessibility';
 import {cleanUpMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
 import {isSafari} from '@libs/Browser';
 import {isChronosOOOListAction} from '@libs/ChronosUtils';
@@ -233,6 +234,9 @@ function PureReportActionItem({
     const downloadedPreviews = useRef<string[]>([]);
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
     const [isReportActionActive, setIsReportActionActive] = useState(!!isReportActionLinked);
+
+    const isScreenReaderActive = Accessibility.useScreenReaderStatus();
+    const shouldBreakGrouping = shouldBreakAccessibilityGrouping() && isScreenReaderActive;
 
     const isHarvestCreatedExpenseReport = isHarvestCreatedExpenseReportUtils(reportNameValuePairsOrigin, reportNameValuePairsOriginalID);
     const shouldRenderViewBasedOnAction = useTableReportViewActionRenderConditionals(action);
@@ -524,7 +528,7 @@ function PureReportActionItem({
                     )}
                     <PressableWithSecondaryInteraction
                         ref={popoverAnchorRef}
-                        accessible={shouldBreakAccessibilityGrouping() && isCreatedTaskReportAction(action) ? false : undefined}
+                        accessible={shouldBreakGrouping && isCreatedTaskReportAction(action) ? false : undefined}
                         onPress={() => {
                             if (!hasDraft) {
                                 onPress?.();

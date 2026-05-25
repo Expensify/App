@@ -25,6 +25,7 @@ import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Accessibility from '@libs/Accessibility';
 import getButtonState from '@libs/getButtonState';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -56,6 +57,8 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
+    const isScreenReaderActive = Accessibility.useScreenReaderStatus();
+    const shouldBreakGrouping = shouldBreakAccessibilityGrouping() && isScreenReaderActive;
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
@@ -146,7 +149,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                         <Hoverable>
                             {(hovered) => (
                                 <PressableWithSecondaryInteraction
-                                    accessible={shouldBreakAccessibilityGrouping() ? false : undefined}
+                                    accessible={shouldBreakGrouping ? false : undefined}
                                     onPress={callFunctionIfActionIsAllowed((e) => {
                                         if (isDisableInteractive) {
                                             return;
@@ -192,7 +195,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                     disabled={!isTaskActionable}
                                                     sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_CHECKBOX}
                                                 />
-                                                {shouldBreakAccessibilityGrouping() ? (
+                                                {shouldBreakGrouping ? (
                                                     <PressableWithoutFeedback
                                                         onPress={callFunctionIfActionIsAllowed((e) => {
                                                             if (isDisableInteractive) {

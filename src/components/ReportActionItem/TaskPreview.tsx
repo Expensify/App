@@ -23,6 +23,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Accessibility from '@libs/Accessibility';
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 import {canActionTask, completeTask, getTaskAssigneeAccountID, reopenTask} from '@libs/actions/Task';
 import ControlSelection from '@libs/ControlSelection';
@@ -64,6 +65,8 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const theme = useTheme();
+    const isScreenReaderActive = Accessibility.useScreenReaderStatus();
+    const shouldBreakGrouping = shouldBreakAccessibilityGrouping() && isScreenReaderActive;
     const {originalReportID, anchor: contextMenuAnchorRef, shouldDisplayContextMenu = true} = useShowContextMenuState();
     const {checkIfContextMenuActive, onShowContextMenu} = useShowContextMenuActions();
     const originalMessage = getOriginalMessage(action);
@@ -131,7 +134,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
     return (
         <View style={[styles.chatItemMessage, !hasAssignee && styles.mv1]}>
             <PressableWithoutFeedback
-                accessible={shouldBreakAccessibilityGrouping() ? false : undefined}
+                accessible={shouldBreakGrouping ? false : undefined}
                 onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(taskReportID, undefined, undefined, Navigation.getActiveRoute()))}
                 onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
@@ -167,7 +170,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                             sentryLabel={CONST.SENTRY_LABEL.TASK.PREVIEW_CHECKBOX}
                         />
                     </View>
-                    {shouldBreakAccessibilityGrouping() ? (
+                    {shouldBreakGrouping ? (
                         <PressableWithoutFeedback
                             onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(taskReportID, undefined, undefined, Navigation.getActiveRoute()))}
                             style={[styles.flex1, styles.flexRow, styles.alignItemsStart]}
