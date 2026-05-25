@@ -38,7 +38,6 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBank
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const policyID = reimbursementAccount?.achData?.policyID;
     const shouldShowResetModal = reimbursementAccount?.shouldShowResetModal ?? false;
 
     const handleNavigateToConciergeChat = () =>
@@ -93,7 +92,7 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBank
                     shouldShowRightIcon
                 />
             </Section>
-            {!requiresTwoFactorAuth && <Enable2FACard policyID={policyID} />}
+            {!requiresTwoFactorAuth && <Enable2FACard />}
             {shouldShowResetModal && (
                 <WorkspaceResetBankAccountModal
                     reimbursementAccount={reimbursementAccount}
