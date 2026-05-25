@@ -819,7 +819,7 @@ function beginGoogleSignIn(token: string | null, preferredLocale: Locale | undef
  */
 function signInWithShortLivedAuthToken(authToken: string, isSAML = false) {
     const {optimisticData, failureData, finallyData} = getShortLivedLoginParams(false, isSAML);
-    const authMethod = isSAML ? 'saml' : undefined;
+    const authMethod = isSAML ? CONST.AUTH_METHOD.SAML : undefined;
     API.read(READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, {authToken, skipReauthentication: true, authMethod}, {optimisticData, failureData, finallyData});
     NetworkStore.setLastShortAuthToken(authToken);
 }
