@@ -20,7 +20,6 @@ import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSortedActions from '@hooks/useSortedActions';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import FS from '@libs/Fullstory';
 import type {Options, SearchOption} from '@libs/OptionsListUtils';
@@ -148,7 +147,6 @@ function SearchAutocompleteList({
     autocompleteSubstitutions,
     ref,
 }: SearchAutocompleteListProps) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -545,7 +543,6 @@ function SearchAutocompleteList({
         searchOptions,
         searchQueryItems,
         styles,
-        theme,
         translate,
         isLoadingOptions,
         isRecentSearchesDataLoaded,
