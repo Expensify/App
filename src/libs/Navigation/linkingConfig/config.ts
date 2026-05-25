@@ -490,10 +490,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_SET_DEFAULT_CONFIRM]: {
                             path: ROUTES.SETTINGS_CONTACT_METHOD_SET_DEFAULT_CONFIRM.route,
                         },
-                        [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_VERIFY_ACCOUNT]: {
-                            path: ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.route,
-                            exact: true,
-                        },
                         [SCREENS.SETTINGS.PROFILE.LEGAL_NAME]: {
                             path: ROUTES.SETTINGS_LEGAL_NAME,
                             exact: true,
@@ -508,6 +504,14 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.PROFILE.ADDRESS]: {
                             path: ROUTES.SETTINGS_ADDRESS,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS]: {
+                            path: ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.route,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE]: {
+                            path: ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.PROFILE.DYNAMIC_ADDRESS_COUNTRY]: DYNAMIC_ROUTES.ADDRESS_COUNTRY.path,
@@ -1076,6 +1080,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS]: {
                             path: ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.route,
                         },
+                        [SCREENS.WORKSPACE.DISTANCE_RATES_UNIT]: {
+                            path: ROUTES.WORKSPACE_DISTANCE_RATES_UNIT.route,
+                        },
                         [SCREENS.WORKSPACE.DISTANCE_RATE_DETAILS]: {
                             path: ROUTES.WORKSPACE_DISTANCE_RATE_DETAILS.route,
                         },
@@ -1435,20 +1442,16 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH]: {
                     screens: {
-                        [SCREENS.TWO_FACTOR_AUTH.VERIFY_ACCOUNT]: {
-                            path: ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT.route,
-                            exact: true,
-                        },
-                        [SCREENS.TWO_FACTOR_AUTH.ROOT]: {
-                            path: ROUTES.SETTINGS_2FA_ROOT.route,
-                            exact: true,
-                        },
-                        [SCREENS.TWO_FACTOR_AUTH.VERIFY]: {
-                            path: ROUTES.SETTINGS_2FA_VERIFY.route,
+                        [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY_ACCOUNT]: DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY_ACCOUNT.path,
+                        [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_ROOT]: DYNAMIC_ROUTES.TWO_FACTOR_AUTH_ROOT.path,
+                        [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY]: DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY.path,
+                        [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_SUCCESS]: DYNAMIC_ROUTES.TWO_FACTOR_AUTH_SUCCESS.path,
+                        [SCREENS.TWO_FACTOR_AUTH.ENABLED]: {
+                            path: ROUTES.SETTINGS_2FA_ENABLED,
                             exact: true,
                         },
                         [SCREENS.TWO_FACTOR_AUTH.SUCCESS]: {
-                            path: ROUTES.SETTINGS_2FA_SUCCESS.route,
+                            path: ROUTES.SETTINGS_2FA_SUCCESS,
                             exact: true,
                         },
                         [SCREENS.TWO_FACTOR_AUTH.DISABLED]: {
@@ -1471,8 +1474,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: {
                     screens: {
-                        [SCREENS.PRIVATE_NOTES.LIST]: ROUTES.PRIVATE_NOTES_LIST.route,
-                        [SCREENS.PRIVATE_NOTES.EDIT]: ROUTES.PRIVATE_NOTES_EDIT.route,
+                        [SCREENS.DYNAMIC_PRIVATE_NOTES_LIST]: DYNAMIC_ROUTES.PRIVATE_NOTES_LIST.path,
+                        [SCREENS.DYNAMIC_PRIVATE_NOTES_EDIT]: DYNAMIC_ROUTES.PRIVATE_NOTES_EDIT.path,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.NEW_REPORT_WORKSPACE_SELECTION]: {
@@ -1590,7 +1593,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.REPORT_DESCRIPTION]: {
                     screens: {
-                        [SCREENS.REPORT_DESCRIPTION_ROOT]: ROUTES.REPORT_DESCRIPTION.route,
+                        [SCREENS.DYNAMIC_REPORT_DESCRIPTION]: DYNAMIC_ROUTES.REPORT_DESCRIPTION.path,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.NEW_CHAT]: {
@@ -1870,8 +1873,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.TASK_DETAILS]: {
                     screens: {
-                        [SCREENS.TASK.TITLE]: ROUTES.TASK_TITLE.route,
-                        [SCREENS.TASK.ASSIGNEE]: ROUTES.TASK_ASSIGNEE.route,
+                        [SCREENS.DYNAMIC_TASK_TITLE]: DYNAMIC_ROUTES.TASK_TITLE.path,
+                        [SCREENS.DYNAMIC_TASK_ASSIGNEE]: DYNAMIC_ROUTES.TASK_ASSIGNEE.path,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.ADD_PERSONAL_BANK_ACCOUNT]: {
