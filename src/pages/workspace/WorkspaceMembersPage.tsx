@@ -665,7 +665,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         />
     );
 
-    const roleFilterDropdownLabel = selectedRoleFilters.length > 0 ? selectedRoleFilters.map(({text}) => text).join(', ') : translate('workspace.people.members');
+    const roleFilterDropdownLabel = `${translate('common.role')}: ${selectedRoleFilters.length > 0 ? selectedRoleFilters.map(({text}) => text).join(', ') : translate('common.all')}`;
 
     const roleFilterDropdown = shouldShowRoleFilter ? (
         <DropdownButton

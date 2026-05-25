@@ -67,7 +67,7 @@ function useDomainGroupFilter(domainAccountID: number): UseDomainGroupFilterResu
 
     const groupPreFilter = (item: MemberOption) => !selectedGroupMemberIDs || selectedGroupMemberIDs.has(item.accountID);
 
-    const dropdownLabel = selectedGroups.length > 0 ? selectedGroups.map((g) => g.text).join(', ') : translate('workspace.common.members');
+    const dropdownLabel = `${translate('common.group')}: ${selectedGroups.length > 0 ? selectedGroups.map((g) => g.text).join(', ') : translate('common.all')}`;
 
     return {
         groupPreFilter,
