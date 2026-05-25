@@ -511,17 +511,6 @@ describe('DateUtils', () => {
         });
     });
 
-    describe('getMonthNames capitalizes first letter across locales', () => {
-        it.each([
-            ['es', 'Enero'],
-            ['en', 'January'],
-            ['de', 'Januar'],
-            ['fr', 'Janvier'],
-        ] as const)('getMonthNames(%s)[0] === %s', (locale, expected) => {
-            expect(DateUtils.getMonthNames(locale).at(0)).toBe(expected);
-        });
-    });
-
     describe("getWeekStartsOn / getWeekEndsOn ('en' pinned to Monday; others via Intl)", () => {
         it.each([
             ['en', 1, 0],

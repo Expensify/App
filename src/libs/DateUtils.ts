@@ -347,7 +347,6 @@ function getMonthNames(locale: Locale): string[] {
         start: new Date(fullYear, 0, 1), // January 1st of the current year
         end: new Date(fullYear, 11, 31), // December 31st of the current year
     });
-    // Intl returns natural-case month names (Spanish lowercases them); UI surfaces want capitalized form across locales.
     return monthsArray.map((monthDate) => Str.UCFirst(formatIntl(locale, 'LONG_MONTH', monthDate)));
 }
 
