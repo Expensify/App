@@ -118,7 +118,6 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                     })()}
                 />
             </OfflineWithFeedback>
-
             {toggleSections.map((section) => (
                 <ToggleSettingOptionRow
                     key={section.label}

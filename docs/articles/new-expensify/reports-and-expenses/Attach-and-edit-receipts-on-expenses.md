@@ -1,7 +1,7 @@
 ---
 title: Attach and edit receipts on expenses
 description: Learn how to properly attach, verify, and troubleshoot receipts on expenses in New Expensify for audits and accounting.
-keywords: [New Expensify,attach receipt, verify receipt, missing receipt, expense attachments, audit trail, New Expensify, receipt not showing, crop receipt, rotate receipt, trim receipt]
+keywords: [New Expensify, attach receipt, verify receipt, missing receipt, expense attachments, audit trail, receipt not showing, crop receipt, rotate receipt, trim receipt, receipt upload failed, receipt upload error, save receipt, delete expense]
 internalScope: Audience is Expensify members and Workspace Admins. Covers attaching, replacing, and cropping receipts on expenses. Does not cover SmartScan configuration or receipt forwarding via email.
 ---
 
@@ -121,6 +121,13 @@ No. Receipts in the comments section are considered supplemental and are not inc
 
 ## Can I crop or rotate an eReceipt?
 No. eReceipts cannot be cropped or rotated. The **Crop** button is available for uploaded or scanned image receipts only. The **Rotate** button is available for image receipts and PDF receipts on web or mobile web. PDF rotation is not available in the native mobile app.
+
+## What should I do if my receipt upload fails?
+
+If the upload fails (for example, due to a lost network connection), you'll see the message "Receipt upload failed. Save the receipt, or delete the expense and lose it." with two options:
+
+- **Save receipt** — downloads the receipt image to your device so you don't lose it. You can then re-create the expense and attach the saved receipt.
+- **Delete expense** — removes the failed expense entirely. The receipt will be lost if you haven't saved it first.
 
 ## Can I attach both the card and itemized restaurant receipts?
 Yes. Attach the **card receipt** to the expense itself, and upload the **itemized receipt** in the report comments as supporting documentation.
