@@ -13,9 +13,9 @@ import type {ChartDataPoint, ChartProps, PieSlice, UnitPosition} from '@componen
 import {findSliceAtPosition, processDataIntoSlices} from '@components/Charts/utils';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import PieSliceGap from './PieSliceGap';
 
 type PieChartProps = ChartProps & {
     /** Callback when a slice is pressed */
@@ -30,7 +30,6 @@ type PieChartProps = ChartProps & {
 
 function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlicePress}: PieChartProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
     const [canvasWidth, setCanvasWidth] = useState(0);
     const [canvasHeight, setCanvasHeight] = useState(0);
@@ -61,10 +60,6 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
 
     const {formatValue} = useChartLabelFormats({data, unit: valueUnit, unitPosition: valueUnitPosition});
     const tooltipData = useTooltipData(activeOriginalDataIndex, data, formatValue);
-
-    // Pixel stroke width that yields ~PIE_CHART_SLICE_GAP_DEGREES at the outer radius.
-    // (Pie.SliceAngularInset's "angularStrokeWidth" is misleadingly named — it's a pixel width.)
-    const gapStrokePx = 2 * radius * Math.sin(((PIE_CHART_SLICE_GAP_DEGREES / 2) * Math.PI) / 180);
 
     // Handle hover state updates
     const updateActiveSlice = (x: number, y: number) => {
@@ -186,14 +181,12 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
                                 startAngle={PIE_CHART_START_ANGLE}
                                 innerRadius={`${PIE_CHART_INNER_RADIUS_RATIO * 100}%`}
                             >
-                                {() => (
+                                {({slice}) => (
                                     <>
                                         <Pie.Slice />
-                                        <Pie.SliceAngularInset
-                                            angularInset={{
-                                                angularStrokeWidth: gapStrokePx,
-                                                angularStrokeColor: theme.highlightBG,
-                                            }}
+                                        <PieSliceGap
+                                            slice={slice}
+                                            gapDegrees={PIE_CHART_SLICE_GAP_DEGREES}
                                         />
                                     </>
                                 )}

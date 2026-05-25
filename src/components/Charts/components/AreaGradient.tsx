@@ -14,8 +14,6 @@ type AreaGradientProps = {
     color: string;
 };
 
-const FILL_STYLE = 'fill' as const;
-
 function AreaGradient({points, y0, color}: AreaGradientProps) {
     const {path} = useAreaPath(points, y0, {curveType: 'linear'});
 
@@ -30,7 +28,8 @@ function AreaGradient({points, y0, color}: AreaGradientProps) {
     return (
         <Path
             path={path}
-            style={FILL_STYLE}
+            // eslint-disable-next-line react/style-prop-object -- this is a valid Skia style prop value
+            style="fill"
         >
             <LinearGradient
                 start={vec(0, y0)}
