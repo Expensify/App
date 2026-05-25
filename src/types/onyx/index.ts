@@ -71,6 +71,7 @@ import type ExpenseRule from './ExpenseRule';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
 import type ExpensifyCardSettings from './ExpensifyCardSettings';
 import type {ExpensifyCardSettingsBase, NestedExpensifyCardSettings} from './ExpensifyCardSettings';
+import type ExportDownload from './ExportDownload';
 import type ExportTemplate from './ExportTemplate';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
@@ -222,6 +223,7 @@ export type {
     DismissedReferralBanners,
     Domain,
     Download,
+    ExportDownload,
     DuplicateWorkspace,
     CopyPolicySettings,
     WorkspaceCardsList,

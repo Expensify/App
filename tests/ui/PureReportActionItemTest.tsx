@@ -14,9 +14,12 @@ import {openLink} from '@libs/actions/Link';
 import {setHasRadio} from '@libs/NetworkState';
 import Parser from '@libs/Parser';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
+import type * as UrlType from '@libs/Url';
 import PureReportActionItem from '@pages/inbox/report/PureReportActionItem';
 import ReportActionItemMessage from '@pages/inbox/report/ReportActionItemMessage';
 import colors from '@styles/theme/colors';
+import type CONFIGType from '@src/CONFIG';
+import type CONSTType from '@src/CONST';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
@@ -30,13 +33,46 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 
 jest.mock('@react-navigation/native');
 
-type LinkModuleMock = {openLink: typeof openLink} & Record<string, unknown>;
-
+// Stub `@libs/actions/Link` without spreading `requireActual` — its transitive Navigation/ReportUtils
+// chain races with the lightweight `useOnyx → SearchContext` import path and can hand consumers
+// (e.g. ReportActionItemMessageWithExplain) the real `openLink` reference before the mock factory
+// finishes wiring up. Reimplement only the URL helpers AnchorRenderer needs for internal-link detection.
 jest.mock('@libs/actions/Link', () => {
-    const actual = jest.requireActual<LinkModuleMock>('@libs/actions/Link');
+    const Url = jest.requireActual<typeof UrlType>('@libs/Url');
+    const CONSTreal = jest.requireActual<{default: typeof CONSTType}>('@src/CONST').default;
+    const CONFIGreal = jest.requireActual<{default: typeof CONFIGType}>('@src/CONFIG').default;
     return {
-        ...actual,
         openLink: jest.fn(),
+        openOldDotLink: jest.fn(),
+        openExternalLink: jest.fn(),
+        openTravelDotLink: jest.fn(),
+        openReportFromDeepLink: jest.fn(),
+        getTravelDotLink: jest.fn(),
+        buildOldDotURL: jest.fn(),
+        buildTravelDotURL: jest.fn(),
+        getInternalNewExpensifyPath: (href: string) => {
+            if (!href) {
+                return '';
+            }
+            const attrPath = Url.getPathFromURL(href);
+            return (Url.hasSameExpensifyOrigin(href, CONSTreal.NEW_EXPENSIFY_URL) ||
+                Url.hasSameExpensifyOrigin(href, CONSTreal.STAGING_NEW_EXPENSIFY_URL) ||
+                href.startsWith(CONSTreal.DEV_NEW_EXPENSIFY_URL)) &&
+                !CONSTreal.PATHS_TO_TREAT_AS_EXTERNAL.find((p) => attrPath.startsWith(p))
+                ? attrPath
+                : '';
+        },
+        getInternalExpensifyPath: (href: string) => {
+            if (!href) {
+                return '';
+            }
+            const attrPath = Url.getPathFromURL(href);
+            const hasExpensifyOrigin = Url.hasSameExpensifyOrigin(href, CONFIGreal.EXPENSIFY.EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(href, CONFIGreal.EXPENSIFY.STAGING_API_ROOT);
+            if (!hasExpensifyOrigin || attrPath.startsWith(CONFIGreal.EXPENSIFY.CONCIERGE_URL_PATHNAME) || attrPath.startsWith(CONFIGreal.EXPENSIFY.DEVPORTAL_URL_PATHNAME)) {
+                return '';
+            }
+            return attrPath;
+        },
     };
 });
 
@@ -2590,6 +2626,46 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(/created this report to hold/i)).toBeOnTheScreen();
+            // When the original report is not loaded in Onyx, the link must fall back to "#<originalID>"
+            // instead of rendering an empty hyperlink (regression guard for issue #90422).
+            expect(screen.getByText('#origReport123')).toBeOnTheScreen();
+        });
+        it('CREATED harvest renders the original report name when it is loaded in Onyx', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}origReport123`, {
+                    reportID: 'origReport123',
+                    reportName: 'Q1 Expenses',
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.CREATED, {});
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <OptionsListContextProvider>
+                        <ScreenWrapper testID="test">
+                            <PortalProvider>
+                                <PureReportActionItem
+                                    report={undefined}
+                                    parentReportAction={undefined}
+                                    action={action}
+                                    displayAsGroup={false}
+                                    shouldDisplayNewMarker={false}
+                                    index={0}
+                                    isFirstVisibleReportAction={false}
+                                    reportNameValuePairsOrigin="harvest"
+                                    reportNameValuePairsOriginalID="origReport123"
+                                />
+                            </PortalProvider>
+                        </ScreenWrapper>
+                    </OptionsListContextProvider>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/created this report to hold/i)).toBeOnTheScreen();
+            expect(screen.getByText('Q1 Expenses')).toBeOnTheScreen();
+            expect(screen.queryByText('#origReport123')).not.toBeOnTheScreen();
         });
         it('isWhisperActionTargetedToOthers returns null', async () => {
             await act(async () => {
