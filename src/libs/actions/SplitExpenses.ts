@@ -5,7 +5,7 @@ import {calculateAmount} from '@libs/IOUUtils';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
-import {getTransactionDetails} from '@libs/ReportUtils';
+import {getTransactionDetails, isOpenReport} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {buildOptimisticTransaction, getChildTransactions, getOriginalTransactionWithSplitInfo, isDistanceRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -82,9 +82,10 @@ function initSplitExpense(transaction: OnyxEntry<Transaction>, policy?: OnyxEntr
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
     const relatedTransactions = getChildTransactions(allTransactions, allReports, originalTransactionID);
-    const hasMultipleSplits = getChildTransactions(allTransactions, allReports, originalTransactionID, true).length > 1;
+    const hasMultipleSplits = relatedTransactions.length > 1;
     const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
-    const shouldShowSplitIndicator = isExpenseSplit && hasMultipleSplits;
+    const isReportOpen = isOpenReport(transactionReport);
+    const shouldShowSplitIndicator = isExpenseSplit && (hasMultipleSplits || isReportOpen);
 
     if (isExpenseSplit && shouldShowSplitIndicator) {
         const transactionDetails = getTransactionDetails(originalTransaction);
