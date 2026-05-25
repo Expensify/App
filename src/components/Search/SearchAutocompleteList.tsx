@@ -657,4 +657,4 @@ SearchAutocompleteList.displayName = 'SearchAutocompleteList';
 
 export default React.memo(SearchAutocompleteList);
 export {SearchRouterItem};
-export type {SearchAutocompleteListProps, GetAdditionalSectionsCallback};
+export type {GetAdditionalSectionsCallback, SearchAutocompleteListProps};
