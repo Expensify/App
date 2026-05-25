@@ -1127,7 +1127,6 @@ function getShareDestination(
     policy: OnyxEntry<OnyxTypes.Policy>,
     reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'],
 ): ShareDestination {
-
     const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
 
     const participants = ReportUtils.getParticipantsAccountIDsForDisplay(report);
