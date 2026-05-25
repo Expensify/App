@@ -213,9 +213,10 @@ function MapView({
     const centerCoordinate = useMemo(() => (currentPosition ? [currentPosition.longitude, currentPosition.latitude] : initialState?.location), [currentPosition, initialState?.location]);
 
     const waypointsBounds = useMemo(() => {
-        if (!waypoints || !waypoints.length) {
+        if (!waypoints || (!waypoints.length && !directionCoordinates?.length)) {
             return undefined;
         }
+
         const {northEast, southWest} = utils.getBounds(
             waypoints.map((waypoint) => waypoint.coordinate),
             directionCoordinates,
