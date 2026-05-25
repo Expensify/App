@@ -1,5 +1,5 @@
 import type {DataModule, SkTypefaceFontProvider} from '@shopify/react-native-skia';
-import {useFonts} from '@shopify/react-native-skia';
+import {useFonts, useTypeface} from '@shopify/react-native-skia';
 
 function useChartFontManager(): SkTypefaceFontProvider | null {
     return useFonts({
@@ -14,4 +14,11 @@ function useChartFontManager(): SkTypefaceFontProvider | null {
     });
 }
 
+function useChartDefaultTypeface() {
+    const regular = useTypeface(require('@assets/fonts/native/ExpensifyNeue-Regular.otf') as DataModule);
+    const bold = useTypeface(require('@assets/fonts/native/ExpensifyNeue-Bold.otf') as DataModule);
+    return {regular, bold};
+}
+
+export {useChartDefaultTypeface};
 export default useChartFontManager;
