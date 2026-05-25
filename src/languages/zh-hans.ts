@@ -1006,6 +1006,7 @@ const translations: TranslationDeepObject<typeof en> = {
             inviteAccountant: '邀请你的会计',
         },
         yourSpend: {title: '您的支出', awaitingApproval: '等待审批', repaidLast30Days: '过去30天内已偿还', recentTransactions: ({lastFour}: {lastFour: string}) => `最近交易 • ${lastFour}`},
+        seeMore: ({count}: {count: number}) => `再查看 ${count} 个`,
     },
     allSettingsScreen: {
         subscription: '订阅',
@@ -2157,7 +2158,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     deviceManagementPage: {
         title: '设备管理',
-        description: '管理所有已使用你的 Expensify 账户登录的设备。<a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">了解详情</a>',
+        description: '管理所有已使用你的 Expensify 账户登录的设备。<a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">了解详情</a>.',
         revoke: '撤销',
         unknownDevice: '未知设备',
     },
@@ -2881,7 +2882,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         peopleYouMayKnow: '你可能认识的人已经在这里了！验证你的邮箱以加入他们。',
         workspaceYouMayJoin: (domain: string, email: string) => `${domain} 中的某位成员已经创建了一个工作区。请输入发送到 ${email} 的魔法验证码。`,
         joinAWorkspace: '加入工作区',
-        listOfWorkspaces: '以下是你可以加入的工作空间列表。别担心，如果你愿意，你随时都可以稍后再加入。',
+        listOfWorkspaces: '以下是你可以加入的工作区列表。',
         skipForNow: '暂时跳过',
         workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount} 位成员${employeeCount > 1 ? '秒' : ''} • ${policyOwner}`,
         whereYouWork: '你在哪里工作？',
@@ -3239,7 +3240,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         enterPhoneNumber: '你的电话号码是多少？',
         personalDetails: '个人信息',
         privateDataMessage: '这些详细信息将用于出行和付款，绝不会显示在你的公开个人资料中。',
-        basicDetails: '基本信息',
         legalName: '法定姓名',
         legalFirstName: '法定名（名）',
         legalLastName: '法定姓氏',
@@ -3428,7 +3428,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             noBankAccountSelected: '请选择一个账户',
             taxID: '请输入有效的税号',
             website: '请输入有效的网站',
-            zipCode: `请输入有效的邮政编码，格式为：${COMMON_CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
+            zipCode: `请输入有效的邮政编码，格式为：${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
             phoneNumber: '请输入有效的电话号码',
             email: '请输入有效的邮箱地址',
             companyName: '请输入有效的公司名称',
@@ -6086,6 +6086,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `确定要连接 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? '此会计集成'} 吗？这将删除所有现有的会计连接。`,
             enterCredentials: '请输入您的凭证',
+            updateCredentials: '更新凭证',
             claimOffer: {
                 badgeText: '优惠可用！',
                 xero: {
@@ -6559,7 +6560,7 @@ ${reportName}
                 perActiveMember: '每位活跃成员每月。',
                 perMember: '每位成员每月。',
             },
-            note: (subscriptionLink: string) => `<muted-text>升级以使用此功能，或<a href="${subscriptionLink}">了解更多</a>我们的方案和价格。</muted-text>`,
+            note: (subscriptionLink: string) => `<muted-text><a href="${subscriptionLink}">了解详情</a>，包括我们的方案和价格。</muted-text>`,
             upgradeToUnlock: '解锁此功能',
             completed: {
                 headline: `您已升级您的工作区！`,
@@ -7609,6 +7610,7 @@ ${reportName}
     search: {
         resultsAreLimited: '搜索结果已受限制。',
         viewResults: '查看结果',
+        applyFilters: '应用筛选条件',
         appliedFilters: '已应用的筛选条件',
         resetFilters: '重置筛选条件',
         searchResults: {
@@ -7718,7 +7720,12 @@ ${reportName}
             amount: {
                 lessThan: (amount?: string) => `少于 ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `大于 ${amount ?? ''}`,
-                between: (greaterThan: string, lessThan: string) => `介于 ${greaterThan} 和 ${lessThan} 之间`,
+                between: (greaterThan?: string, lessThan?: string) => {
+                    if (greaterThan && lessThan) {
+                        return `介于 ${greaterThan} 和 ${lessThan} 之间`;
+                    }
+                    return '之间';
+                },
                 equalTo: (amount?: string) => `等于 ${amount ?? ''}`,
             },
             card: {

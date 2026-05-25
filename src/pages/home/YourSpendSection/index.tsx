@@ -1,4 +1,5 @@
-import React from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import WidgetContainer from '@components/WidgetContainer';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -6,6 +7,8 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import HomeSectionExpandToggle from '@pages/home/HomeSectionExpandToggle';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import CardRow from './CardRow';
 import SpendSummaryRow from './SpendSummaryRow';
@@ -17,19 +20,27 @@ function YourSpendSection() {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['ThumbsUpHourglass', 'MoneyBag']);
+    const [isExpanded, setIsExpanded] = useState(false);
 
-    const isVisible =
-        approvalRowState === YOUR_SPEND_ROW_STATE.LOADING ||
-        approvalRowState === YOUR_SPEND_ROW_STATE.READY ||
-        paymentRowState === YOUR_SPEND_ROW_STATE.LOADING ||
-        paymentRowState === YOUR_SPEND_ROW_STATE.READY ||
-        cardRows.length > 0;
+    useFocusEffect(
+        useCallback(() => {
+            return () => setIsExpanded(false);
+        }, []),
+    );
+
+    const isApprovalRowVisible = approvalRowState === YOUR_SPEND_ROW_STATE.LOADING || approvalRowState === YOUR_SPEND_ROW_STATE.READY;
+    const isPaymentRowVisible = paymentRowState === YOUR_SPEND_ROW_STATE.LOADING || paymentRowState === YOUR_SPEND_ROW_STATE.READY;
+    const isVisible = isApprovalRowVisible || isPaymentRowVisible || cardRows.length > 0;
 
     if (!isVisible) {
         return null;
     }
 
     const wrapperStyle = [styles.alignItemsCenter, shouldUseNarrowLayout ? styles.ph5 : styles.ph8];
+    const visibleSummaryRowsCount = (isApprovalRowVisible ? 1 : 0) + (isPaymentRowVisible ? 1 : 0);
+    const cardLimit = Math.max(0, CONST.HOME.SECTION_VISIBLE_LIMIT - visibleSummaryRowsCount);
+    const hiddenCount = Math.max(0, cardRows.length - cardLimit);
+    const visibleCardRows = isExpanded ? cardRows : cardRows.slice(0, cardLimit);
 
     return (
         <View testID="your-spend-section">
@@ -59,13 +70,20 @@ function YourSpendSection() {
                     skeletonRowIndex={1}
                 />
 
-                {cardRows.map((cardRow) => (
+                {visibleCardRows.map((cardRow) => (
                     <CardRow
                         key={cardRow.cardID}
                         cardRow={cardRow}
                         wrapperStyle={wrapperStyle}
                     />
                 ))}
+                {hiddenCount > 0 && (
+                    <HomeSectionExpandToggle
+                        isExpanded={isExpanded}
+                        onPress={() => setIsExpanded((prev) => !prev)}
+                        collapsedLabel={translate('homePage.seeMore', {count: hiddenCount})}
+                    />
+                )}
             </WidgetContainer>
         </View>
     );

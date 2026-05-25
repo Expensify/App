@@ -204,7 +204,6 @@ type GetOptionsConfig = {
     includeSelectedOptions?: boolean;
     recentAttendees?: Option[];
     excludeHidden?: boolean;
-    canShowManagerMcTest?: boolean;
     searchString?: string;
     searchInputValue?: string;
     maxElements?: number;
