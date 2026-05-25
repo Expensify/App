@@ -2,7 +2,7 @@ import React from 'react';
 import type {TNode} from 'react-native-render-html';
 import {BarGroup} from 'victory-native';
 import {BAR_INNER_PADDING} from '@components/Charts/BarChart/BarChartContent';
-import {DEFAULT_CHART_COLOR} from '@components/Charts/utils';
+import VictoryTheme from '@components/Charts/VictoryTheme';
 import {useVictoryChartRenderArgs} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartRenderArgsContext';
 import getYKey from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getYKey';
 import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
@@ -31,7 +31,7 @@ function VictoryCharBarGroup({tnode}: VictoryCharBarGroupProps) {
                 return (
                     <BarGroup.Bar
                         key={`${child.tagName ?? 'node'}-${yKey}`}
-                        color={nodeStyles.fill ?? DEFAULT_CHART_COLOR}
+                        color={nodeStyles.fill ?? VictoryTheme.colors.default}
                         points={points[yKey]}
                     />
                 );
