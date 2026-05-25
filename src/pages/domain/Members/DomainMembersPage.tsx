@@ -137,7 +137,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
         return (
             <CustomListHeader
                 canSelectMultiple={canSelectMultiple}
-                leftHeaderText={translate('domain.domainMembers')}
+                leftHeaderText={translate('domain.members.title')}
                 rightHeaderText={translate('common.group')}
                 shouldDivideEqualWidth
                 shouldShowRightCaret
@@ -323,7 +323,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                         <View style={shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection}>
                             <FeatureList
                                 menuItems={membersFeatureListItems}
-                                title={translate('domain.members.membersFeatureList.title')}
+                                title={translate('domain.domainMembers')}
                                 renderSubtitle={() => (
                                     <SectionSubtitleHTML
                                         html={translate('domain.members.membersFeatureList.subtitle', {domainName: `@${domainName ?? ''}`})}
