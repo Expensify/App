@@ -2158,7 +2158,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     deviceManagementPage: {
         title: '设备管理',
-        description: '管理所有已使用你的 Expensify 账户登录的设备。<a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">了解详情</a>',
+        description: '管理所有已使用你的 Expensify 账户登录的设备。<a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">了解详情</a>.',
         revoke: '撤销',
         unknownDevice: '未知设备',
     },
