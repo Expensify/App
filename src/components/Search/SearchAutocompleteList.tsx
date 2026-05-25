@@ -513,14 +513,35 @@ function SearchAutocompleteList({
 
             if (localRows.length > 0 || !isLoadingOptions) {
                 pushSection({title: undefined, data: localRows, sectionIndex: sectionIndex++});
+            } else {
+                // Options are still loading and no local results matched — show a skeleton so the
+                // user sees feedback instead of a bare section header.
+                pushSection({
+                    title: undefined,
+                    data: [],
+                    sectionIndex: sectionIndex++,
+                    customHeader: (
+                        <OptionsListSkeletonView
+                            fixedNumItems={3}
+                            shouldStyleAsTable
+                            speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
+                            reasonAttributes={{
+                                context: 'SearchAutocompleteList',
+                                isRecentSearchesDataLoaded,
+                                isLoadingOptions,
+                            }}
+                        />
+                    ),
+                });
             }
 
-            const bottomSection: Section<AutocompleteListItem> = {
-                title: translate('search.serverResults'),
-                data: serverRows,
-                sectionIndex: sectionIndex++,
-            };
-            pushSection(bottomSection);
+            if (serverRows.length > 0) {
+                pushSection({
+                    title: translate('search.serverResults'),
+                    data: serverRows,
+                    sectionIndex: sectionIndex++,
+                });
+            }
         }
 
         if (autocompleteSuggestions.length > 0) {
