@@ -10,6 +10,7 @@ import useReportTransactionsCollection from '@hooks/useReportTransactionsCollect
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
 import {isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ReportActionsView from './report/ReportActionsView';
 import type ReportScreenNavigationProps from './types';
@@ -40,9 +41,10 @@ function ReportActionsList() {
 
     const allReportTransactions = useReportTransactionsCollection(reportIDFromRoute);
     const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true);
+    const visibleTransactions = reportTransactions.filter((t) => isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
-    const latchedIDs = useLatchedTransactionIDs(reportTransactions, reportIDFromRoute);
-    const transactionsForViewDecision = latchedIDs ? reportTransactions.filter((t) => latchedIDs.has(t.transactionID)) : reportTransactions;
+    const latchedIDs = useLatchedTransactionIDs(visibleTransactions, reportIDFromRoute);
+    const transactionsForViewDecision = latchedIDs ? visibleTransactions.filter((t) => latchedIDs.has(t.transactionID)) : visibleTransactions;
 
     const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
     const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, reportTransactions, reportLoadingState, isOffline);

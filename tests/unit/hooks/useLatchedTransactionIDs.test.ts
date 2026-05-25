@@ -75,6 +75,31 @@ describe('useLatchedTransactionIDs', () => {
         expect(result.current).toBeUndefined();
     });
 
+    it('excludes pendingAction === DELETE from the stable snapshot when engaging', () => {
+        const {result} = renderHook(() => useLatchedTransactionIDs([stable('t1'), pendingDelete('t2'), optimistic('t3')]));
+        expect(result.current).toEqual(new Set(['t1']));
+    });
+
+    it('does not release when a non-latched tx transitions to pendingDelete', () => {
+        type Tx = ReturnType<typeof stable> | ReturnType<typeof optimistic> | ReturnType<typeof pendingDelete>;
+        const {result, rerender} = renderHook(({txs}: {txs: Tx[]}) => useLatchedTransactionIDs(txs), {
+            initialProps: {txs: [stable('t1'), pendingDelete('t2'), optimistic('t3')] as Tx[]},
+        });
+        expect(result.current).toEqual(new Set(['t1']));
+        rerender({txs: [stable('t1'), stable('t3')]});
+        expect(result.current).toEqual(new Set(['t1']));
+    });
+
+    it('releases when a latched tx transitions to pendingDelete (user deletes the original post-duplicate)', () => {
+        type Tx = ReturnType<typeof stable> | ReturnType<typeof optimistic> | ReturnType<typeof pendingDelete>;
+        const {result, rerender} = renderHook(({txs}: {txs: Tx[]}) => useLatchedTransactionIDs(txs), {
+            initialProps: {txs: [stable('t1'), optimistic('t2')] as Tx[]},
+        });
+        expect(result.current).toEqual(new Set(['t1']));
+        rerender({txs: [pendingDelete('t1'), stable('t2')]});
+        expect(result.current).toBeUndefined();
+    });
+
     it('releases the latch when resetKey changes (screen reused for a different report)', () => {
         type Tx = ReturnType<typeof stable> | ReturnType<typeof optimistic>;
         const {result, rerender} = renderHook(({txs, key}: {txs: Tx[]; key: string}) => useLatchedTransactionIDs(txs, key), {
