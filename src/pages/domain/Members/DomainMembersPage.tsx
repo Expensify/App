@@ -1,14 +1,12 @@
 import {defaultSecurityGroupIDSelector, domainNameSelector, memberAccountIDsSelector, memberPendingActionSelector, selectSecurityGroupForAccount} from '@selectors/Domain';
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DomainMemberBulkActionType, DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import DecisionModal from '@components/DecisionModal';
 import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -46,7 +44,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type DomainMembersPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.MEMBERS>;
 
@@ -54,7 +51,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const {domainAccountID} = route.params;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['Profile', 'LaptopWithMembers', 'LockClosed', 'ShieldYellow', 'Encryption']);
+    const illustrations = useMemoizedLazyIllustrations(['Profile', 'LaptopWithMembers', 'LockClosed', 'BuildingCross', 'Encryption']);
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Gear', 'DotIndicator', 'RemoveMembers', 'Download', 'Transfer']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
@@ -73,8 +70,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const [shouldForceCloseAccount, setShouldForceCloseAccount] = useState<boolean>();
     const {showConfirmModal} = useConfirmModal();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [domain, domainResults] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
-    const doesDomainExist = !!domain;
+    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
     useDomainDocumentTitle(domainName, 'domain.domainMembers');
     // We need to use isSmallScreenWidth here because the DecisionModal is opening from RHP and ShouldUseNarrowLayout layout will not work in this place.
@@ -87,23 +83,20 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
 
     const {groupPreFilter, groupOptions, selectedGroup, handleGroupChange, dropdownLabel, groups} = useDomainGroupFilter(domainAccountID);
 
-    const membersFeatureListItems: FeatureListItem[] = useMemo(
-        () => [
-            {
-                icon: illustrations.ShieldYellow,
-                translationKey: 'domain.members.membersFeatureList.controlPolicyCreation',
-            },
-            {
-                icon: illustrations.LockClosed,
-                translationKey: 'domain.members.membersFeatureList.enableSamlSso',
-            },
-            {
-                icon: illustrations.Encryption,
-                translationKey: 'domain.members.membersFeatureList.enforce2FA',
-            },
-        ],
-        [illustrations.ShieldYellow, illustrations.LockClosed, illustrations.Encryption],
-    );
+    const membersFeatureListItems: FeatureListItem[] = [
+        {
+            icon: illustrations.BuildingCross,
+            translationKey: 'domain.members.membersFeatureList.controlPolicyCreation',
+        },
+        {
+            icon: illustrations.LockClosed,
+            translationKey: 'domain.members.membersFeatureList.enableSamlSso',
+        },
+        {
+            icon: illustrations.Encryption,
+            translationKey: 'domain.members.membersFeatureList.enforce2FA',
+        },
+    ];
 
     const groupPopoverComponent = ({closeOverlay, isExpanded}: PopoverComponentProps) => (
         <SingleSelectPopup
@@ -144,7 +137,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
         return (
             <CustomListHeader
                 canSelectMultiple={canSelectMultiple}
-                leftHeaderText={translate('domain.members.title')}
+                leftHeaderText={translate('domain.domainMembers')}
                 rightHeaderText={translate('common.group')}
                 shouldDivideEqualWidth
                 shouldShowRightCaret
@@ -306,10 +299,6 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
 
     const getCustomRowProps = (accountID: number, email?: string) => getMemberCustomRowProps(accountID, domainPendingActions, domainErrors, email);
 
-    if (isLoadingOnyxValue(domainResults)) {
-        return <FullScreenLoadingIndicator reasonAttributes={{context: 'DomainMembersPage'}} />;
-    }
-
     if (!domain?.validated) {
         return (
             <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
@@ -319,48 +308,41 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                     shouldShowOfflineIndicatorInWideScreen
                     testID="DomainMembersPage"
                 >
-                    <FullPageNotFoundView
-                        onBackButtonPress={() => Navigation.goBack()}
-                        shouldShow={!doesDomainExist}
-                        shouldForceFullScreen
-                        shouldDisplaySearchRouter
+                    <HeaderWithBackButton
+                        title={translate('domain.domainMembers')}
+                        onBackButtonPress={Navigation.goBack}
+                        icon={illustrations.Profile}
+                        shouldShowBackButton={shouldUseNarrowLayout}
+                        shouldDisplayHelpButton
+                    />
+                    <ScrollView
+                        keyboardShouldPersistTaps="handled"
+                        addBottomSafeAreaPadding
+                        style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
                     >
-                        <HeaderWithBackButton
-                            title={translate('domain.domainMembers')}
-                            onBackButtonPress={Navigation.goBack}
-                            icon={illustrations.Profile}
-                            shouldShowBackButton={shouldUseNarrowLayout}
-                            shouldDisplayHelpButton
-                        />
-                        <ScrollView
-                            keyboardShouldPersistTaps="handled"
-                            addBottomSafeAreaPadding
-                            style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
-                        >
-                            <View style={shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection}>
-                                <FeatureList
-                                    menuItems={membersFeatureListItems}
-                                    title={translate('domain.members.membersFeatureList.title')}
-                                    renderSubtitle={() => (
-                                        <SectionSubtitleHTML
-                                            html={translate('domain.members.membersFeatureList.subtitle', {domainName: `@${domainName ?? ''}`})}
-                                            wrapperStyle={styles.pt3}
-                                        />
-                                    )}
-                                    ctaText={translate('domain.verifyDomain.title')}
-                                    ctaAccessibilityLabel={translate('domain.verifyDomain.title')}
-                                    onCtaPress={() => {
-                                        Navigation.navigate(ROUTES.DOMAIN_VERIFY.getRoute(domainAccountID));
-                                    }}
-                                    illustrationBackgroundColor={colors.ice800}
-                                    illustration={illustrations.LaptopWithMembers}
-                                    illustrationStyle={styles.emptyStateSamlIllustration}
-                                    illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentCenter, styles.pv5]}
-                                    titleStyles={styles.textHeadlineH1}
-                                />
-                            </View>
-                        </ScrollView>
-                    </FullPageNotFoundView>
+                        <View style={shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection}>
+                            <FeatureList
+                                menuItems={membersFeatureListItems}
+                                title={translate('domain.members.membersFeatureList.title')}
+                                renderSubtitle={() => (
+                                    <SectionSubtitleHTML
+                                        html={translate('domain.members.membersFeatureList.subtitle', {domainName: `@${domainName ?? ''}`})}
+                                        wrapperStyle={styles.pt3}
+                                    />
+                                )}
+                                ctaText={translate('domain.verifyDomain.title')}
+                                ctaAccessibilityLabel={translate('domain.verifyDomain.title')}
+                                onCtaPress={() => {
+                                    Navigation.navigate(ROUTES.DOMAIN_VERIFY.getRoute(domainAccountID));
+                                }}
+                                illustrationBackgroundColor={colors.ice800}
+                                illustration={illustrations.LaptopWithMembers}
+                                illustrationStyle={styles.emptyStateSamlIllustration}
+                                illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentCenter, styles.pv5]}
+                                titleStyles={styles.textHeadlineH1}
+                            />
+                        </View>
+                    </ScrollView>
                 </ScreenWrapper>
             </DomainNotFoundPageWrapper>
         );

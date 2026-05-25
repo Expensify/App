@@ -112,6 +112,7 @@ import Binoculars from '@assets/images/simple-illustrations/simple-illustration_
 import BlueShield from '@assets/images/simple-illustrations/simple-illustration__blueshield.svg';
 import Broom from '@assets/images/simple-illustrations/simple-illustration__broom.svg';
 import Building from '@assets/images/simple-illustrations/simple-illustration__building.svg';
+import BuildingCross from '@assets/images/simple-illustrations/simple-illustration__building_cross.svg';
 import Buildings from '@assets/images/simple-illustrations/simple-illustration__buildings.svg';
 import CalculatorMoney from '@assets/images/simple-illustrations/simple-illustration__calculator-money.svg';
 import CalendarMonthly from '@assets/images/simple-illustrations/simple-illustration__calendar-monthly.svg';
@@ -314,6 +315,7 @@ const Illustrations = {
     Accounting,
     AiBot,
     Building,
+    BuildingCross,
     BankCoin,
     Coins,
     CreditCardsNew,
