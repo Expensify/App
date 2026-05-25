@@ -56,6 +56,4 @@ function HomeSectionExpandToggle({isExpanded, onPress, collapsedLabel, wrapperSt
     );
 }
 
-HomeSectionExpandToggle.displayName = 'HomeSectionExpandToggle';
-
 export default HomeSectionExpandToggle;

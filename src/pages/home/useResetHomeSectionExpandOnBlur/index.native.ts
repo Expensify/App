@@ -1,6 +1,6 @@
 import type UseResetHomeSectionExpandOnBlur from './types';
 
-// Native navigators unmount the Home screen on tab switch, so no manual reset is needed.
+// On narrow layout we intentionally don't reset the expanded state on blur.
 const useResetHomeSectionExpandOnBlur: UseResetHomeSectionExpandOnBlur = () => {};
 
 export default useResetHomeSectionExpandOnBlur;
