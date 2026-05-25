@@ -1,10 +1,9 @@
 import {Str} from 'expensify-common';
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import UserPills from '@components/UserPills';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
@@ -19,7 +18,6 @@ type HotelTripDetailsProps = {
 };
 
 function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -86,14 +84,23 @@ function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps)
                 />
             )}
             {!!displayName && (
-                <MenuItem
-                    label={translate('travel.hotelDetails.guest')}
-                    title={displayName}
-                    icon={personalDetails?.avatar ?? icons.FallbackAvatar}
-                    iconType={CONST.ICON_TYPE_AVATAR}
-                    description={personalDetails?.login ?? reservation.travelerPersonalInfo?.email}
+                <MenuItemWithTopDescription
+                    description={translate('travel.hotelDetails.guest')}
+                    descriptionTextStyle={styles.fontSizeLabel}
                     interactive={false}
-                    wrapperStyle={styles.pb3}
+                    accessibilityLabel={`${translate('travel.hotelDetails.guest')} ${displayName}`}
+                    titleComponent={
+                        <UserPills
+                            users={[
+                                {
+                                    avatar: personalDetails?.avatar,
+                                    displayName,
+                                    accountID: personalDetails?.accountID,
+                                    email: personalDetails?.login ?? reservation.travelerPersonalInfo?.email,
+                                },
+                            ]}
+                        />
+                    }
                 />
             )}
         </>
