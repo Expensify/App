@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import Banner from '@components/Banner';
+import Button from '@components/Button';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {dismissForSession} from '@libs/actions/ConciergeNotificationBanner';
@@ -38,13 +39,22 @@ function EnableNotificationsBanner() {
                 text={translate('concierge.enableNotifications.prompt')}
                 textStyles={[styles.textNormal, styles.mr3, styles.breakWord]}
                 containerStyles={[styles.pt3, styles.pr3, styles.pl4, containerOverrideStyle]}
-                shouldShowButton
-                shouldUseSmallButtons
-                buttonText={translate('concierge.enableNotifications.cta')}
-                onButtonPress={requestAndDismiss}
-                shouldShowSecondaryButton
-                secondaryButtonText={translate('common.notNow')}
-                onSecondaryButtonPress={dismissForSession}
+                actions={
+                    <>
+                        <Button
+                            success
+                            small
+                            text={translate('concierge.enableNotifications.cta')}
+                            onPress={requestAndDismiss}
+                        />
+                        <Button
+                            small
+                            style={[styles.ml2]}
+                            text={translate('common.notNow')}
+                            onPress={dismissForSession}
+                        />
+                    </>
+                }
             />
         </View>
     );

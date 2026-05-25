@@ -51,23 +51,11 @@ type BannerProps = {
     /** Whether to display button in the banner */
     shouldShowButton?: boolean;
 
-    /** Text for the primary action button. Defaults to "Chat now". */
-    buttonText?: string;
-
     /** Callback called when pressing the button */
     onButtonPress?: () => void;
 
-    /** Whether to display a secondary action button alongside the primary one */
-    shouldShowSecondaryButton?: boolean;
-
-    /** Text for the secondary action button */
-    secondaryButtonText?: string;
-
-    /** Callback called when pressing the secondary button */
-    onSecondaryButtonPress?: () => void;
-
-    /** Render action buttons at the `small` size — useful when the banner is compact */
-    shouldUseSmallButtons?: boolean;
+    /** Custom action element rendered in the right side of the banner. Overrides the configured `shouldShowButton` when provided. */
+    actions?: React.ReactNode;
 };
 
 function Banner({
@@ -77,17 +65,13 @@ function Banner({
     onClose,
     onPress,
     onButtonPress,
-    buttonText,
     containerStyles,
     textStyles,
+    actions,
     shouldRenderHTML = false,
     shouldShowIcon = false,
     shouldShowCloseButton = false,
     shouldShowButton = false,
-    shouldShowSecondaryButton = false,
-    secondaryButtonText,
-    onSecondaryButtonPress,
-    shouldUseSmallButtons = false,
 }: BannerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -138,23 +122,15 @@ function Banner({
                                     </Text>
                                 ))}
                         </View>
-                        {shouldShowButton && (
-                            <Button
-                                success
-                                small={shouldUseSmallButtons}
-                                style={shouldUseSmallButtons ? undefined : [styles.ph3]}
-                                text={buttonText ?? translate('common.chatNow')}
-                                onPress={onButtonPress}
-                            />
-                        )}
-                        {shouldShowSecondaryButton && !!secondaryButtonText && (
-                            <Button
-                                small={shouldUseSmallButtons}
-                                style={[styles.ml2]}
-                                text={secondaryButtonText}
-                                onPress={onSecondaryButtonPress}
-                            />
-                        )}
+                        {actions ??
+                            (shouldShowButton && (
+                                <Button
+                                    success
+                                    style={[styles.ph3]}
+                                    text={translate('common.chatNow')}
+                                    onPress={onButtonPress}
+                                />
+                            ))}
                         {shouldShowCloseButton && !!onClose && (
                             <Tooltip text={translate('common.close')}>
                                 <PressableWithFeedback
