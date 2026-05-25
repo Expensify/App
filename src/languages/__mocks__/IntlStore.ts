@@ -64,6 +64,10 @@ class IntlStore {
         const translations = this.localeCache.get(localeToUse);
         return translations?.[key] ?? null;
     }
+
+    static subscribe(_listener: () => void): () => void {
+        return () => {};
+    }
 }
 
 export default IntlStore;

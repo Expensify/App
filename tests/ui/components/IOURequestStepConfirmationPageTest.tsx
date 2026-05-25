@@ -42,6 +42,7 @@ jest.mock('@src/languages/IntlStore', () => {
             const translations = cache.get(locale ?? 'en');
             return translations?.[key] ?? null;
         }),
+        subscribe: jest.fn(() => () => {}),
     };
 });
 

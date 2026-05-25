@@ -54,7 +54,7 @@ type IntlFormatKey = keyof typeof CONST.DATE.INTL_FORMATS;
 
 /**
  * LRU-bounded (Intl.DateTimeFormat holds 10-50 KB ICU state per entry); retries with the backward-mapped IANA name on
- * older iOS/macOS (e.g. `Europe/Kyiv`); throws when no mapping exists — silent runtime-default fallback would misrender.
+ * older iOS/macOS (e.g. `Europe/Kyiv`); throws when no mapping exists — silent runtime-default fallback would produce wrong output.
  */
 const getIntlDateTimeFormat = memoize(
     (locale: Locale, formatKey: IntlFormatKey, timeZone?: string): Intl.DateTimeFormat => {
@@ -74,7 +74,7 @@ const getIntlDateTimeFormat = memoize(
     {maxSize: 256},
 );
 
-/** Formats `date` via the cached Intl formatter and strips ICU 72+ NNBSP before AM/PM. */
+/** Formats `date` via the cached Intl formatter and strips the narrow no-break space ICU 72+ inserts before AM/PM. */
 function formatIntl(locale: Locale, formatKey: IntlFormatKey, date: Date, timeZone?: string): string {
     return getIntlDateTimeFormat(locale, formatKey, timeZone).format(date).replaceAll(CONST.DATE.INTL_NBSP_PATTERN, ' ');
 }
@@ -347,7 +347,7 @@ function getMonthNames(locale: Locale): string[] {
         start: new Date(fullYear, 0, 1), // January 1st of the current year
         end: new Date(fullYear, 11, 31), // December 31st of the current year
     });
-    // Intl returns natural-case month names (es: "enero" lowercase); UI surfaces want capitalized form across locales.
+    // Intl returns natural-case month names (Spanish lowercases them); UI surfaces want capitalized form across locales.
     return monthsArray.map((monthDate) => Str.UCFirst(formatIntl(locale, 'LONG_MONTH', monthDate)));
 }
 
@@ -1010,7 +1010,7 @@ function toUTCDate(date: Date | string): Date {
 }
 
 /**
- * Converts a date to a locale-aware long date string ("March 1, 2025" en / "1 de marzo de 2025" es).
+ * Converts a date to a locale-aware long date string (e.g. "March 1, 2025" in English).
  */
 function formatToReadableString(date: Date | string, locale: Locale): string {
     return formatIntl(locale, 'LONG_DATE', toLocalDate(date));

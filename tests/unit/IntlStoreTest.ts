@@ -62,15 +62,15 @@ describe('IntlStore', () => {
             await IntlStore.load(CONST.LOCALES.EN);
             const a = jest.fn();
             const b = jest.fn();
-            const unsubA = IntlStore.subscribe(a);
-            const unsubB = IntlStore.subscribe(b);
+            const unsubscribeA = IntlStore.subscribe(a);
+            const unsubscribeB = IntlStore.subscribe(b);
 
             await IntlStore.load(CONST.LOCALES.JA);
 
             expect(a).toHaveBeenCalledTimes(1);
             expect(b).toHaveBeenCalledTimes(1);
-            unsubA();
-            unsubB();
+            unsubscribeA();
+            unsubscribeB();
         });
 
         it('snapshot reflects the new locale at the moment listeners fire', async () => {

@@ -511,7 +511,7 @@ describe('DateUtils', () => {
         });
     });
 
-    describe('getMonthNames capitalizes first letter across locales (matches iwiznia #69562)', () => {
+    describe('getMonthNames capitalizes first letter across locales', () => {
         it.each([
             ['es', 'Enero'],
             ['en', 'January'],

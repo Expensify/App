@@ -62,7 +62,20 @@ type LocaleContextProps = {
 
 type LocalizedTranslate = LocaleContextProps['translate'];
 
-const LocaleContext = createContext<LocaleContextProps | null>(null);
+const LocaleContext = createContext<LocaleContextProps>({
+    translate: () => '',
+    numberFormat: () => '',
+    getLocalDateFromDatetime: () => new Date(),
+    datetimeToRelative: () => '',
+    datetimeToCalendarTime: () => '',
+    formatPhoneNumber: () => '',
+    toLocaleDigit: () => '',
+    toLocaleOrdinal: () => '',
+    fromLocaleDigit: () => '',
+    localeCompare: () => 0,
+    formatTravelDate: () => '',
+    preferredLocale: CONST.LOCALES.DEFAULT,
+});
 
 const COLLATOR_OPTIONS: Intl.CollatorOptions = {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'};
 
