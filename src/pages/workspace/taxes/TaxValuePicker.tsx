@@ -1,4 +1,5 @@
-import React from 'react';
+import React, {useEffect} from 'react';
+import type {GestureResponderEvent} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useLocalize from '@hooks/useLocalize';
 import {getTaxValueWithPercentage} from '@libs/actions/TaxRate';
@@ -18,17 +19,30 @@ type TaxValuePickerProps = {
 
     /** Label displayed on the right side of the menu item (e.g. "required"). */
     rightLabel?: string;
+
+    /** Callback to call when the input changes. */
+    onInputChange?: (value: string | undefined) => void;
+
+    /** Callback to call when the component is pressed. */
+    onPress?: (event: GestureResponderEvent | KeyboardEvent) => void;
 };
 
-function TaxValuePicker({policyID, value, errorText, rightLabel}: TaxValuePickerProps) {
+function TaxValuePicker({policyID, value, errorText, rightLabel, onInputChange, onPress}: TaxValuePickerProps) {
     const {translate} = useLocalize();
+
+    useEffect(() => {
+        onInputChange?.(value);
+    }, [value, onInputChange]);
 
     return (
         <MenuItemWithTopDescription
             shouldShowRightIcon
             title={value ? getTaxValueWithPercentage(value) : ''}
             description={translate('workspace.taxes.value')}
-            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_CREATE_VALUE.getRoute(policyID))}
+            onPress={(event) => {
+                onPress?.(event);
+                Navigation.navigate(ROUTES.WORKSPACE_TAX_CREATE_VALUE.getRoute(policyID));
+            }}
             brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
             rightLabel={rightLabel}
             errorText={errorText}

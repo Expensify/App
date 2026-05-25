@@ -39,7 +39,8 @@ function WorkspaceCreateTaxValuePage({
     const goBack = () => Navigation.goBack(ROUTES.WORKSPACE_TAX_CREATE.getRoute(policyID));
 
     const save = () => {
-        setDraftValues(ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM, {[INPUT_IDS.VALUE]: currentValue});
+        const normalizedValue = currentValue !== undefined ? String(Number(currentValue)) : currentValue;
+        setDraftValues(ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM, {[INPUT_IDS.VALUE]: normalizedValue});
         goBack();
     };
 
