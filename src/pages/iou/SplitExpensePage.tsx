@@ -25,6 +25,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -112,6 +113,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getIOURequestPolicyID(transaction, currentReport)}`);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const policy = usePolicy(currentReport?.policyID);
+    const personalPolicy = usePersonalPolicy();
     const currentPolicy = Object.keys(policy?.employeeList ?? {}).length
         ? policy
         : currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(currentReport?.policyID)}`];
@@ -189,7 +191,11 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             if (isSplitDistance) {
                 const currentRateID = splitExpense?.customUnit?.customUnitRateID ?? String(CONST.DEFAULT_NUMBER_ID);
                 const rates = DistanceRequestUtils.getMileageRates(currentPolicy, false, currentRateID);
-                const {rate} = DistanceRequestUtils.getRate({transaction: splitTransaction, policy: currentPolicy});
+                const {rate} = DistanceRequestUtils.getRate({
+                    transaction: splitTransaction,
+                    policy: currentPolicy,
+                    personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                });
                 if (!rates[currentRateID] || !rate) {
                     isUnitRateIDOutOfPolicy = true;
                 }
