@@ -74,6 +74,7 @@ describe('actions/IOU/BulkEdit', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: false,
+                delegateAccountID: undefined,
             });
 
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
@@ -85,6 +86,7 @@ describe('actions/IOU/BulkEdit', () => {
                 expect.objectContaining({amount: 1000, currency: CONST.CURRENCY.USD}),
                 true,
                 policy,
+                undefined,
                 expect.anything(),
             );
 
@@ -149,6 +151,7 @@ describe('actions/IOU/BulkEdit', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: false,
+                delegateAccountID: undefined,
             });
 
             expect(writeSpy).not.toHaveBeenCalled();
@@ -213,6 +216,7 @@ describe('actions/IOU/BulkEdit', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: false,
+                delegateAccountID: undefined,
             });
 
             const getOptimisticTotal = (callIndex: number) => {
@@ -286,6 +290,7 @@ describe('actions/IOU/BulkEdit', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: false,
+                delegateAccountID: undefined,
             });
 
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
@@ -297,6 +302,7 @@ describe('actions/IOU/BulkEdit', () => {
                 expect.objectContaining({amount: -1000, currency: CONST.CURRENCY.USD}),
                 true,
                 policy,
+                undefined,
                 expect.anything(),
             );
 
@@ -363,6 +369,7 @@ describe('actions/IOU/BulkEdit', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: false,
+                delegateAccountID: undefined,
             });
 
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
@@ -431,6 +438,7 @@ describe('actions/IOU/BulkEdit', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: false,
+                delegateAccountID: undefined,
             });
 
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
@@ -442,6 +450,7 @@ describe('actions/IOU/BulkEdit', () => {
                 expect.objectContaining({amount: 1000, currency: CONST.CURRENCY.USD}),
                 false,
                 policy,
+                undefined,
                 expect.anything(),
             );
 
@@ -497,6 +506,7 @@ describe('actions/IOU/BulkEdit', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: false,
+                delegateAccountID: undefined,
             });
 
             expect(writeSpy).toHaveBeenCalled();
@@ -570,6 +580,7 @@ describe('actions/IOU/BulkEdit', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: false,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -628,6 +639,7 @@ describe('actions/IOU/BulkEdit', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: false,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -689,6 +701,7 @@ describe('actions/IOU/BulkEdit', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: false,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -757,6 +770,7 @@ describe('actions/IOU/BulkEdit', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: false,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -826,6 +840,7 @@ describe('actions/IOU/BulkEdit', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: false,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -906,6 +921,7 @@ describe('actions/IOU/BulkEdit', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: false,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -974,6 +990,7 @@ describe('actions/IOU/BulkEdit', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: false,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1054,6 +1071,7 @@ describe('actions/IOU/BulkEdit', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: false,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1115,6 +1133,7 @@ describe('actions/IOU/BulkEdit', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: false,
+                delegateAccountID: undefined,
             });
 
             // category/billable changes must be silently dropped for IOUs —
@@ -1183,6 +1202,7 @@ describe('actions/IOU/BulkEdit', () => {
                 currentUserAccountID: 1,
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: false,
+                delegateAccountID: undefined,
             });
 
             expect(writeSpy).toHaveBeenCalled();
@@ -1275,6 +1295,7 @@ describe('actions/IOU/BulkEdit', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: false,
+                delegateAccountID: undefined,
             });
 
             // Then: the optimistic transaction update should use the transaction's own policy for tax resolution.
@@ -1369,6 +1390,7 @@ describe('actions/IOU/BulkEdit', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: false,
+                delegateAccountID: undefined,
             });
 
             // Then: buildOptimisticModifiedExpenseReportAction should receive the transaction's own policy,
@@ -1380,6 +1402,7 @@ describe('actions/IOU/BulkEdit', () => {
                 expect.anything(),
                 expect.anything(),
                 expect.objectContaining({id: transactionPolicy.id}),
+                undefined,
                 expect.anything(),
             );
 
@@ -1441,6 +1464,7 @@ describe('actions/IOU/BulkEdit', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: false,
+                delegateAccountID: undefined,
             });
 
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
@@ -1512,6 +1536,7 @@ describe('actions/IOU/BulkEdit', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: false,
+                delegateAccountID: undefined,
             });
 
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
@@ -1579,6 +1604,7 @@ describe('actions/IOU/BulkEdit', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: false,
+                delegateAccountID: undefined,
             });
 
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
