@@ -732,6 +732,8 @@ function updateSplitTransactions({
                 const transactionThreadReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportKey}`];
                 const iouReportID = workspaceExpenseReportID ?? splitExpense?.reportID ?? transactionThreadReport?.parentReportID;
                 const transactionIOUReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
+                const isSelfDMPerDiemSplit = isSelfDMSplit && isPerDiemRequestTransactionUtils(originalTransaction);
+                const newTransactionReportID = isSelfDMPerDiemSplit ? CONST.REPORT.UNREPORTED_REPORT_ID : (workspaceExpenseReportID ?? splitExpense?.reportID);
                 const {onyxData: moneyRequestParamsOnyxData, params} = getUpdateMoneyRequestParams({
                     transactionID: existingTransactionID,
                     transactionThreadReport,
@@ -742,7 +744,7 @@ function updateSplitTransactions({
                     // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
                     reportPolicyTags: getPolicyTagsData(transactionIOUReport?.policyID),
                     policyCategories: policyCategories ?? null,
-                    newTransactionReportID: workspaceExpenseReportID ?? splitExpense?.reportID,
+                    newTransactionReportID,
                     policyRecentlyUsedCategories,
                     currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
                     currentUserEmailParam: currentUserPersonalDetails?.login ?? '',
