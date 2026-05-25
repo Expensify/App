@@ -8,17 +8,15 @@ import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 import RoomDescriptionPage from './RoomDescriptionPage';
 import TaskDescriptionPage from './tasks/TaskDescriptionPage';
 
-type ReportDescriptionPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportDescriptionNavigatorParamList, typeof SCREENS.REPORT_DESCRIPTION_ROOT>;
+type ReportDescriptionPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportDescriptionNavigatorParamList, typeof SCREENS.DYNAMIC_REPORT_DESCRIPTION>;
 
 function ReportDescriptionPage(props: ReportDescriptionPageProps) {
     const isTask = ReportUtils.isTaskReport(props.report);
 
     if (isTask) {
-        // eslint-disable-next-line react/jsx-props-no-spreading
         return <TaskDescriptionPage {...props} />;
     }
 
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return <RoomDescriptionPage {...props} />;
 }
 

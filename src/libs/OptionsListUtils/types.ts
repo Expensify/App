@@ -133,15 +133,6 @@ type PayeePersonalDetails = {
     isInteractive: boolean;
 };
 
-type SectionBase = {
-    title: string | undefined;
-    shouldShow: boolean;
-};
-
-type Section = SectionBase & {
-    data: Option[];
-};
-
 type GetValidOptionsSharedConfig = {
     includeP2P?: boolean;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
@@ -202,6 +193,7 @@ type IsValidReportsConfig = Pick<
     | 'isTimeRequest'
 > & {
     currentUserAccountID: number;
+    currentUserLogin: string;
 };
 
 type GetOptionsConfig = {
@@ -309,7 +301,6 @@ export type {
     FilterUserToInviteConfig,
     GetOptionsConfig,
     GetUserToInviteConfig,
-    GetValidOptionsSharedConfig,
     GetValidReportsConfig,
     MemberForList,
     Option,
@@ -324,8 +315,6 @@ export type {
     ReportAndPersonalDetailOptions,
     SearchOption,
     SearchOptionData,
-    Section,
-    SectionBase,
     SelectionListSections,
     SectionForSearchTerm,
     IsValidReportsConfig,

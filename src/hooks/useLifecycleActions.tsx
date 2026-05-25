@@ -19,12 +19,13 @@ import {
     isReportOwner,
     shouldBlockSubmitDueToStrictPolicyRules,
 } from '@libs/ReportUtils';
-import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils} from '@libs/TransactionUtils';
-import {cancelPayment} from '@userActions/IOU/PayMoneyRequest';
+import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
+import {cancelPayment, markReportPaymentReceived} from '@userActions/IOU/PayMoneyRequest';
 import {approveMoneyRequest, reopenReport, retractReport, submitReport, unapproveExpenseReport} from '@userActions/IOU/ReportWorkflow';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import useConfirmModal from './useConfirmModal';
 import useConfirmPendingRTERAndProceed from './useConfirmPendingRTERAndProceed';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -42,8 +43,9 @@ import useTransactionsAndViolationsForReport from './useTransactionsAndViolation
 type UseLifecycleActionsParams = {
     reportID: string | undefined;
     startApprovedAnimation: () => void;
+    startAnimation: () => void;
     startSubmittingAnimation: () => void;
-    onHoldMenuOpen: (requestType: ActionHandledType, onConfirm?: () => void) => void;
+    onHoldMenuOpen: (requestType: ActionHandledType, onConfirm?: () => void, paymentType?: PaymentMethodType) => void;
 };
 
 type UseLifecycleActionsResult = {
@@ -58,7 +60,7 @@ type UseLifecycleActionsResult = {
  * Provides report lifecycle transition actions (submit, approve, unapprove, cancel payment, retract, reopen)
  * and their associated guards (delegate access, hold, pending RTER, strict policy rules).
  */
-function useLifecycleActions({reportID, startApprovedAnimation, startSubmittingAnimation, onHoldMenuOpen}: UseLifecycleActionsParams): UseLifecycleActionsResult {
+function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, startSubmittingAnimation, onHoldMenuOpen}: UseLifecycleActionsParams): UseLifecycleActionsResult {
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
@@ -95,7 +97,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startSubmittingA
     const {clearSelectedTransactions} = useSearchActionsContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Send', 'ThumbsUp', 'CircularArrowBackwards', 'Clear']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Send', 'ThumbsUp', 'CircularArrowBackwards', 'Clear', 'MoneyBag']);
 
     const nextApproverAccountID = getNextApproverAccountID(moneyRequestReport);
     const isSubmitterSameAsNextApprover =
@@ -179,6 +181,11 @@ function useLifecycleActions({reportID, startApprovedAnimation, startSubmittingA
             return;
         }
 
+        if (hasOnlyPendingCardTransactions(transactions)) {
+            showPendingCardTransactionsBlockModal(showConfirmModal, translate);
+            return;
+        }
+
         const doSubmit = () => {
             submitReport({
                 expenseReport: moneyRequestReport,
@@ -227,6 +234,12 @@ function useLifecycleActions({reportID, startApprovedAnimation, startSubmittingA
                 if (!moneyRequestReport) {
                     return;
                 }
+
+                if (hasOnlyPendingCardTransactions(transactions)) {
+                    showPendingCardTransactionsBlockModal(showConfirmModal, translate);
+                    return;
+                }
+
                 confirmPendingRTERAndProceed(() => {
                     submitReport({
                         expenseReport: moneyRequestReport,
@@ -250,6 +263,44 @@ function useLifecycleActions({reportID, startApprovedAnimation, startSubmittingA
             icon: expensifyIcons.ThumbsUp,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.APPROVE,
             onSelected: confirmApproval,
+        },
+        [CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT]: {
+            value: CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT,
+            text: translate('iou.receivedPayment'),
+            icon: expensifyIcons.MoneyBag,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.RECEIVED_PAYMENT,
+            onSelected: async () => {
+                if (isDelegateAccessRestricted) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
+
+                const result = await showConfirmModal({
+                    title: translate('iou.confirmPaymentReceivedModalTitle'),
+                    prompt: translate('iou.receivedPaymentConfirmation'),
+                    confirmText: translate('iou.confirmReceivedPayment'),
+                    cancelText: translate('common.cancel'),
+                });
+
+                if (result.action !== ModalActions.CONFIRM) {
+                    return;
+                }
+
+                if (isAnyTransactionOnHold) {
+                    onHoldMenuOpen(
+                        CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                        () => {
+                            startAnimation();
+                            markReportPaymentReceived(chatReport, moneyRequestReport, nextStep, accountID, email ?? '');
+                        },
+                        CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                    );
+                    return;
+                }
+
+                startAnimation();
+                markReportPaymentReceived(chatReport, moneyRequestReport, nextStep, accountID, email ?? '');
+            },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE,
@@ -313,6 +364,11 @@ function useLifecycleActions({reportID, startApprovedAnimation, startSubmittingA
             icon: expensifyIcons.CircularArrowBackwards,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.RETRACT,
             onSelected: async () => {
+                if (isDelegateAccessRestricted) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
+
                 if (isExported) {
                     const reopenExportedReportWarningText = (
                         <Text>
@@ -347,6 +403,11 @@ function useLifecycleActions({reportID, startApprovedAnimation, startSubmittingA
             icon: expensifyIcons.CircularArrowBackwards,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.REOPEN,
             onSelected: async () => {
+                if (isDelegateAccessRestricted) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
+
                 if (isExported) {
                     const reopenExportedReportWarningText = (
                         <Text>
@@ -387,4 +448,3 @@ function useLifecycleActions({reportID, startApprovedAnimation, startSubmittingA
 }
 
 export default useLifecycleActions;
-export type {UseLifecycleActionsParams, UseLifecycleActionsResult};

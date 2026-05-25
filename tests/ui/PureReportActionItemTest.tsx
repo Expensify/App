@@ -1780,6 +1780,45 @@ describe('PureReportActionItem', () => {
 
             expect(screen.getByText(/exported to/i)).toBeOnTheScreen();
         });
+
+        it('EXPORTED_TO_INTEGRATION with reasoning shows Explain link', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, {
+                label: 'NetSuite',
+                automaticAction: true,
+                reasoning: 'Test reasoning',
+            });
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('Explain')).toBeOnTheScreen();
+        });
+
+        it('EXPORTED_TO_INTEGRATION without reasoning does not show Explain link', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, {
+                label: 'NetSuite',
+                automaticAction: true,
+            });
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText('Explain')).not.toBeOnTheScreen();
+        });
+
+        it('EXPORTED_TO_INTEGRATION with reasoning does not produce double period before Explain', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, {
+                label: 'NetSuite',
+                automaticAction: true,
+                reasoning: 'Test reasoning',
+                reimbursableUrls: ['https://system.netsuite.com/'],
+            });
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            // The rendered text must not contain ".." before "Explain"
+            const text = screen.getByText('Explain');
+            expect(text).toBeOnTheScreen();
+            expect(document.body.textContent).not.toMatch(/\.\.\s*Explain/);
+        });
     });
 
     describe('Card freeze/unfreeze actions', () => {
@@ -2551,6 +2590,46 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(/created this report to hold/i)).toBeOnTheScreen();
+            // When the original report is not loaded in Onyx, the link must fall back to "#<originalID>"
+            // instead of rendering an empty hyperlink (regression guard for issue #90422).
+            expect(screen.getByText('#origReport123')).toBeOnTheScreen();
+        });
+        it('CREATED harvest renders the original report name when it is loaded in Onyx', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}origReport123`, {
+                    reportID: 'origReport123',
+                    reportName: 'Q1 Expenses',
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.CREATED, {});
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <OptionsListContextProvider>
+                        <ScreenWrapper testID="test">
+                            <PortalProvider>
+                                <PureReportActionItem
+                                    report={undefined}
+                                    parentReportAction={undefined}
+                                    action={action}
+                                    displayAsGroup={false}
+                                    shouldDisplayNewMarker={false}
+                                    index={0}
+                                    isFirstVisibleReportAction={false}
+                                    reportNameValuePairsOrigin="harvest"
+                                    reportNameValuePairsOriginalID="origReport123"
+                                />
+                            </PortalProvider>
+                        </ScreenWrapper>
+                    </OptionsListContextProvider>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/created this report to hold/i)).toBeOnTheScreen();
+            expect(screen.getByText('Q1 Expenses')).toBeOnTheScreen();
+            expect(screen.queryByText('#origReport123')).not.toBeOnTheScreen();
         });
         it('isWhisperActionTargetedToOthers returns null', async () => {
             await act(async () => {
