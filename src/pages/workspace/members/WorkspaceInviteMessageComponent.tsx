@@ -37,10 +37,10 @@ import AccessOrNotFoundWrapper from '@src/pages/workspace/AccessOrNotFoundWrappe
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route as Routes} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/WorkspaceInviteMessageForm';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import { CurrentUserPersonalDetails } from '@src/types/onyx/PersonalDetails';
 
 type WorkspaceInviteMessageComponentProps = {
     policy: OnyxEntry<Policy>;
