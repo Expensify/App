@@ -6,6 +6,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import useLatchedTransactionIDs from './useLatchedTransactionIDs';
 import useOnyx from './useOnyx';
 import useReportIsArchived from './useReportIsArchived';
 import useReportTransactionsCollection from './useReportTransactionsCollection';
@@ -41,7 +42,10 @@ function useTransactionThread({reportID, report, allReportActions, isOffline}: U
 
     const visibleTransactionsForThreadID = reportTransactionsForThreadID?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
-    const reportTransactionIDsForThread = visibleTransactionsForThreadID?.map((t) => t.transactionID);
+    const latchedTransactionIDs = useLatchedTransactionIDs(visibleTransactionsForThreadID, reportID);
+    const reportTransactionIDsForThread = latchedTransactionIDs
+        ? visibleTransactionsForThreadID?.filter((t) => latchedTransactionIDs.has(t.transactionID)).map((t) => t.transactionID)
+        : visibleTransactionsForThreadID?.map((t) => t.transactionID);
 
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, allReportActions ?? [], isOffline, reportTransactionIDsForThread);
 
