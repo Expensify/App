@@ -1,6 +1,8 @@
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {UnitPosition, UnitWithFallback} from '@components/Charts';
 import type {PaymentMethod} from '@components/KYCWall/types';
+import type {SelectionListStyle} from '@components/SelectionList/types';
 import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import type CONST from '@src/CONST';
 import type {Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
@@ -281,6 +283,7 @@ type SearchDateFilterKeys =
 type SearchDateKey = `${SearchDateFilterKeys}${ValueOf<typeof CONST.SEARCH.DATE_MODIFIERS>}` | ReportFieldDateKey;
 
 type SearchAmountFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT;
+type SearchAmountValues = Record<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS>, string | undefined>;
 
 type SearchCurrencyFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY
@@ -406,6 +409,13 @@ type SearchChartProps = {
     unitPosition?: UnitPosition;
 };
 
+type SearchFilterSelectionListProps = {
+    selectionListTextInputStyle?: StyleProp<ViewStyle>;
+    selectionListStyle?: SelectionListStyle;
+    autoFocus?: boolean;
+    footer?: React.ReactNode;
+};
+
 export type {
     SelectedTransactionInfo,
     SelectedTransactions,
@@ -414,6 +424,7 @@ export type {
     SearchDateFilterKeys,
     SearchDateKey,
     SearchAmountFilterKeys,
+    SearchAmountValues,
     SearchStatus,
     SearchQueryJSON,
     SearchQueryString,
@@ -458,4 +469,5 @@ export type {
     SearchCustomColumnIds,
     GroupedItem,
     SearchChartProps,
+    SearchFilterSelectionListProps,
 };

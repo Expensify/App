@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {isMoneyRequestReport} from '@libs/ReportUtils';
+import {getReimbursableTotal, isMoneyRequestReport} from '@libs/ReportUtils';
 import {isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
 import {hasValidModifiedAmount} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -44,41 +44,27 @@ function deriveSelectedReports(
                 }
                 return item.transactions.every(({keyForList}) => transactionIDs[keyForList]?.isSelected);
             })
-            .map(
-                ({
-                    reportID,
-                    action = CONST.SEARCH.ACTION_TYPES.VIEW,
-                    total = CONST.DEFAULT_NUMBER_ID,
-                    policyID,
-                    canPay,
-                    canApprove,
-                    canSubmit,
-                    canChangeApprover,
-                    currency,
-                    chatReportID,
-                    managerID,
-                    ownerAccountID,
-                    parentReportActionID,
-                    parentReportID,
-                    type,
-                }) => ({
-                    reportID,
-                    action,
-                    total,
-                    policyID,
-                    canPay,
-                    canApprove,
-                    canSubmit,
-                    canChangeApprover,
-                    currency,
-                    chatReportID,
-                    managerID,
-                    ownerAccountID,
-                    parentReportActionID,
-                    parentReportID,
-                    type,
+            .map((item) => ({
+                reportID: item.reportID,
+                action: item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW,
+                total: getReimbursableTotal({
+                    total: item.total ?? CONST.DEFAULT_NUMBER_ID,
+                    nonReimbursableTotal: item.nonReimbursableTotal,
+                    reimbursableTotal: item.reimbursableTotal,
                 }),
-            );
+                policyID: item.policyID,
+                canPay: item.canPay,
+                canApprove: item.canApprove,
+                canSubmit: item.canSubmit,
+                canChangeApprover: item.canChangeApprover,
+                currency: item.currency,
+                chatReportID: item.chatReportID,
+                managerID: item.managerID,
+                ownerAccountID: item.ownerAccountID,
+                parentReportActionID: item.parentReportActionID,
+                parentReportID: item.parentReportID,
+                type: item.type,
+            }));
     }
     if (data.length && data.every(isTransactionListItemType)) {
         return data
