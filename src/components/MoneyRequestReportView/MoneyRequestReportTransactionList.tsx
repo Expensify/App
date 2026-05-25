@@ -112,8 +112,15 @@ type MoneyRequestReportTransactionListController = {
     /** Key extractor for transaction-list items. */
     getTransactionListItemKey: (item: TransactionListItemData) => string;
 
-    /** Chrome rendered below the transaction items (pending placeholder, Add Expense, breakdown, total, modal). Null when there are no transactions. */
+    /** Chrome rendered below the transaction items (pending placeholder, Add Expense, breakdown, total). Null when there are no transactions. */
     afterListContent: React.ReactElement | null;
+
+    /**
+     * Long-press mobile selection modal. Rendered as a sibling of the FlashList rather than inside `afterListContent`
+     * because FlashList recycles the footer cell out of the React tree when scrolled away, which would prevent the
+     * modal from portalling. Always mounted.
+     */
+    longPressModal: React.ReactElement;
 
     /** Wrap the unified list element in a horizontal ScrollView when the table is wider than the viewport, otherwise return it unchanged. */
     wrapWithHorizontalScroll: (listElement: React.ReactElement) => React.ReactElement;
@@ -927,25 +934,28 @@ function MoneyRequestReportTransactionList({
                     </OfflineWithFeedback>
                 </View>
             </View>
-            <Modal
-                isVisible={isModalVisible}
-                type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
-                onClose={() => setIsModalVisible(false)}
-                shouldPreventScrollOnFocus
-            >
-                <MenuItem
-                    title={translate('common.select')}
-                    icon={expensifyIcons.CheckSquare}
-                    onPress={() => {
-                        if (!isMobileSelectionModeEnabled) {
-                            turnOnMobileSelectionMode();
-                        }
-                        toggleTransaction(selectedTransactionID);
-                        setIsModalVisible(false);
-                    }}
-                />
-            </Modal>
         </View>
+    );
+
+    const longPressModal = (
+        <Modal
+            isVisible={isModalVisible}
+            type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
+            onClose={() => setIsModalVisible(false)}
+            shouldPreventScrollOnFocus
+        >
+            <MenuItem
+                title={translate('common.select')}
+                icon={expensifyIcons.CheckSquare}
+                onPress={() => {
+                    if (!isMobileSelectionModeEnabled) {
+                        turnOnMobileSelectionMode();
+                    }
+                    toggleTransaction(selectedTransactionID);
+                    setIsModalVisible(false);
+                }}
+            />
+        </Modal>
     );
 
     const wrapWithHorizontalScroll = (listElement: React.ReactElement): React.ReactElement => {
@@ -973,6 +983,7 @@ function MoneyRequestReportTransactionList({
         renderTransactionListItem,
         getTransactionListItemKey: keyExtractor,
         afterListContent,
+        longPressModal,
         wrapWithHorizontalScroll,
         isEmptyTransactions,
     });

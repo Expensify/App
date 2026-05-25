@@ -798,34 +798,39 @@ function MoneyRequestReportUnifiedList({
     const linkedActionIndex = linkedReportActionID ? data.findIndex((item) => item.type === 'report-action' && item.action.reportActionID === linkedReportActionID) : -1;
     const initialScrollIndex = linkedActionIndex >= 0 ? linkedActionIndex : undefined;
 
-    return controller.wrapWithHorizontalScroll(
-        <FlashList<UnifiedListItem>
-            ref={listRef}
-            accessibilityLabel={accessibilityLabel}
-            testID="money-request-report-actions-list"
-            data={data}
-            renderItem={dispatchRenderItem}
-            keyExtractor={unifiedListKeyExtractor}
-            getItemType={unifiedListItemType}
-            initialScrollIndex={initialScrollIndex}
-            onViewableItemsChanged={onViewableItemsChanged}
-            onLayout={onLayout}
-            onEndReached={onEndReached}
-            onStartReached={onStartReached}
-            ListHeaderComponent={
-                <>
-                    <MoneyRequestViewReportFields
-                        report={report}
-                        policy={policy}
-                    />
-                    {controller.beforeListContent}
-                </>
-            }
-            keyboardShouldPersistTaps="handled"
-            onScroll={onScroll}
-            contentContainerStyle={contentContainerStyle}
-            ListEmptyComponent={!isOffline && isLoadingInitialActions ? <ReportActionsListLoadingSkeleton reasonAttributes={skeletonReasonAttributes} /> : undefined}
-        />,
+    return (
+        <>
+            {controller.wrapWithHorizontalScroll(
+                <FlashList<UnifiedListItem>
+                    ref={listRef}
+                    accessibilityLabel={accessibilityLabel}
+                    testID="money-request-report-actions-list"
+                    data={data}
+                    renderItem={dispatchRenderItem}
+                    keyExtractor={unifiedListKeyExtractor}
+                    getItemType={unifiedListItemType}
+                    initialScrollIndex={initialScrollIndex}
+                    onViewableItemsChanged={onViewableItemsChanged}
+                    onLayout={onLayout}
+                    onEndReached={onEndReached}
+                    onStartReached={onStartReached}
+                    ListHeaderComponent={
+                        <>
+                            <MoneyRequestViewReportFields
+                                report={report}
+                                policy={policy}
+                            />
+                            {controller.beforeListContent}
+                        </>
+                    }
+                    keyboardShouldPersistTaps="handled"
+                    onScroll={onScroll}
+                    contentContainerStyle={contentContainerStyle}
+                    ListEmptyComponent={!isOffline && isLoadingInitialActions ? <ReportActionsListLoadingSkeleton reasonAttributes={skeletonReasonAttributes} /> : undefined}
+                />,
+            )}
+            {controller.longPressModal}
+        </>
     );
 }
 
