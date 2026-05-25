@@ -1909,10 +1909,6 @@ function isAccountingConnectionName(connectionName?: ConnectionName): connection
     return connectionName !== undefined && getAccountingConnectionNames().some((accountingConnectionName) => accountingConnectionName === connectionName);
 }
 
-function getHRConnectionNames(): HRConnectionName[] {
-    return [...CONST.POLICY.CONNECTIONS.HR_CONNECTION_NAMES];
-}
-
 function isGustoConnected(policy?: OnyxEntry<Policy>) {
     return !!policy?.connections?.gusto;
 }
@@ -2545,7 +2541,6 @@ export {
     tryNavigateToSubmitWorkspaceUpgrade,
     canAccessSubmitWorkspaceFeatures,
     getRulesDocumentSourceURL,
-    getHRConnectionNames,
     isGustoConnected,
     isZenefitsConnected,
     isMergeHRConnected,
