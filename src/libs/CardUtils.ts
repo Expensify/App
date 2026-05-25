@@ -60,7 +60,9 @@ function getCardFeedColors(cardFeed: string | undefined): {background: string; t
     if (!cardFeed) {
         return GENERIC_CARD_COLORS;
     }
-    const feedKey = Object.keys(CARD_FEED_COLORS).find((key) => cardFeed.startsWith(key));
+    const feedKey = Object.keys(CARD_FEED_COLORS)
+        .sort((a, b) => b.length - a.length)
+        .find((key) => cardFeed.startsWith(key));
     return feedKey !== undefined ? CARD_FEED_COLORS[feedKey] : GENERIC_CARD_COLORS;
 }
 

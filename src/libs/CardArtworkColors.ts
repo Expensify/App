@@ -18,8 +18,9 @@ import colors from '@styles/theme/colors';
  * <path>, and read its fill — either the inline fill="..." attribute or the CSS class.
  *
  * Keys are the runtime string values of CONST.COMPANY_CARD.FEED_BANK_NAME and
- * CONST.EXPENSIFY_CARD.BANK. Lookup uses prefix-matching (see getCardFeedColors),
- * so partial feed-name suffixes (e.g. "vcf123") still resolve correctly.
+ * CONST.EXPENSIFY_CARD.BANK. Lookup uses longest-prefix matching (see getCardFeedColors),
+ * so partial feed-name suffixes (e.g. "vcf123") resolve correctly, and more specific keys
+ * always take precedence over shorter ones.
  */
 
 type CardArtworkColors = {background: string; text: string};
