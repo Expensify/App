@@ -54,16 +54,4 @@ function openExpenseReportIDsSelector(reports: OnyxCollection<Report>): OpenExpe
     return openExpenseReportIDMap;
 }
 
-const policyRoomNamesSelector =
-    (policyID: string) =>
-    (reports: OnyxCollection<Report>): string[] => {
-        const names: string[] = [];
-        for (const report of Object.values(reports ?? {})) {
-            if (report?.policyID === policyID && report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ROOM && report?.reportName) {
-                names.push(report.reportName);
-            }
-        }
-        return names;
-    };
-
-export {getArchiveReason, getReportChatType, getReportOwnerAccountID, getReportPolicyID, policyIDsWithEmptyReportsSelector, openExpenseReportIDsSelector, policyRoomNamesSelector};
+export {getArchiveReason, getReportChatType, getReportOwnerAccountID, getReportPolicyID, policyIDsWithEmptyReportsSelector, openExpenseReportIDsSelector};

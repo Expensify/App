@@ -156,6 +156,7 @@ function WorkspaceNewRoomPage({ref, policyID: lockedPolicyID}: WorkspaceNewRoomP
         InteractionManager.runAfterInteractions(() => {
             requestAnimationFrame(() => {
                 addPolicyReport(policyReport);
+                Navigation.dismissModalWithReport({reportID: policyReport.reportID});
             });
         });
     };
