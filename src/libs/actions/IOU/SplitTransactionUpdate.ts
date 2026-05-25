@@ -438,6 +438,11 @@ function updateSplitTransactions({
     // Collect optimistic child transactions to add to the search snapshot (forward split only)
     const optimisticChildSnapshotEntries: SearchResultDataType = {};
     const optimisticChildSnapshotKeys: Array<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`> = [];
+    // Collect optimistic IOU actions (per chat report) so they can be embedded into the search
+    // snapshot's report_actions. Without this, search list items for newly created / reverted
+    // selfDM split transactions can't resolve their IOU action, which leaves the "From" column
+    // blank and breaks downstream ownership lookups.
+    const optimisticSelfDMIouActionsByReportID: Record<string, Record<string, OnyxTypes.ReportAction>> = {};
 
     for (const [index, splitExpense] of splitExpenses.entries()) {
         const existingTransactionID = isReverseSplitOperation ? originalTransactionID : splitExpense.transactionID;
@@ -593,6 +598,21 @@ function updateSplitTransactions({
                 isSelfDMSplit,
                 selfDMReportID,
             };
+            if (originalTransaction) {
+                requestMoneyInformation.existingTransaction = {
+                    ...originalTransaction,
+                    comment: {
+                        ...originalTransaction.comment,
+                        source: undefined,
+                        originalTransactionID: undefined,
+                        splits: undefined,
+                        splitExpenses: undefined,
+                        splitsStartDate: undefined,
+                        splitsEndDate: undefined,
+                        splitExpensesTotal: undefined,
+                    },
+                };
+            }
         }
 
         // For confirmed workspace transactions, override participant and parentChatReport.
@@ -1154,6 +1174,18 @@ function updateSplitTransactions({
                 // For edits, show a pending indicator in the snapshot while the request is in-flight.
                 ...(!isCreationOfSplits && {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
             });
+
+            const reportActionsTargetReportID = selfDMReportID ?? originalSelfDMReportID;
+            const targetReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionsTargetReportID}` as const;
+            if (iouAction && reportActionsTargetReportID) {
+                const iouActionForSnapshot: OnyxTypes.ReportAction = {
+                    ...iouAction,
+                    // Reuse the chat reportID so downstream consumers reading the snapshot don't lose context.
+                    reportID: reportActionsTargetReportID,
+                } as OnyxTypes.ReportAction;
+                optimisticSelfDMIouActionsByReportID[targetReportActionsKey] ??= {};
+                optimisticSelfDMIouActionsByReportID[targetReportActionsKey][iouAction.reportActionID] = iouActionForSnapshot;
+            }
         }
 
         // Only apply the money-request Onyx data when the split actually changed or is new.
@@ -1373,7 +1405,21 @@ function updateSplitTransactions({
                     }
                 }
 
-                if (Object.keys(optimisticSnapshotData).length === 0) {
+                const reportActionsMergePatch: Record<string, Record<string, OnyxTypes.ReportAction>> = {};
+                const reportActionsFailurePatch: Record<string, Record<string, null>> = {};
+                let didTouchReportActions = false;
+                if (optimisticSnapshotData[originalSnapshotTransactionKey] || Object.keys(optimisticSnapshotData).some((k) => k.startsWith(ONYXKEYS.COLLECTION.TRANSACTION))) {
+                    for (const [actionsKey, actionsMap] of Object.entries(optimisticSelfDMIouActionsByReportID)) {
+                        if (Object.keys(actionsMap).length === 0) {
+                            continue;
+                        }
+                        reportActionsMergePatch[actionsKey] = actionsMap;
+                        reportActionsFailurePatch[actionsKey] = Object.fromEntries(Object.keys(actionsMap).map((actionID) => [actionID, null]));
+                        didTouchReportActions = true;
+                    }
+                }
+
+                if (Object.keys(optimisticSnapshotData).length === 0 && !didTouchReportActions) {
                     continue;
                 }
 
@@ -1381,14 +1427,20 @@ function updateSplitTransactions({
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: typedSnapshotKey,
                     value: {
-                        data: optimisticSnapshotData,
+                        data: {
+                            ...optimisticSnapshotData,
+                            ...reportActionsMergePatch,
+                        },
                     },
                 });
                 onyxData.failureData?.push({
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: typedSnapshotKey,
                     value: {
-                        data: failureSnapshotData,
+                        data: {
+                            ...failureSnapshotData,
+                            ...reportActionsFailurePatch,
+                        },
                     },
                 });
             }
@@ -1530,7 +1582,23 @@ function updateSplitTransactions({
                     }
                 }
 
-                if (Object.keys(optimisticSnapshotData).length === 0) {
+                // Embed the new IOU actions for newly-written selfDM split transactions so search-page
+                // rendering can resolve `from` / actorAccountID for them.
+                const reportActionsMergePatch: Record<string, Record<string, OnyxTypes.ReportAction>> = {};
+                const reportActionsFailurePatch: Record<string, Record<string, null>> = {};
+                let didTouchReportActions = false;
+                if (Object.keys(optimisticSnapshotData).length > 0) {
+                    for (const [actionsKey, actionsMap] of Object.entries(optimisticSelfDMIouActionsByReportID)) {
+                        if (Object.keys(actionsMap).length === 0) {
+                            continue;
+                        }
+                        reportActionsMergePatch[actionsKey] = actionsMap;
+                        reportActionsFailurePatch[actionsKey] = Object.fromEntries(Object.keys(actionsMap).map((actionID) => [actionID, null]));
+                        didTouchReportActions = true;
+                    }
+                }
+
+                if (Object.keys(optimisticSnapshotData).length === 0 && !didTouchReportActions) {
                     continue;
                 }
 
@@ -1538,12 +1606,12 @@ function updateSplitTransactions({
                 onyxData.optimisticData?.push({
                     onyxMethod: Onyx.METHOD.MERGE,
                     key,
-                    value: {data: optimisticSnapshotData},
+                    value: {data: {...optimisticSnapshotData, ...reportActionsMergePatch}},
                 });
                 onyxData.failureData?.push({
                     onyxMethod: Onyx.METHOD.MERGE,
                     key,
-                    value: {data: failureSnapshotData},
+                    value: {data: {...failureSnapshotData, ...reportActionsFailurePatch}},
                 });
             }
         }
