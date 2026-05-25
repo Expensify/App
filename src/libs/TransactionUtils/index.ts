@@ -1463,6 +1463,18 @@ function isPending(transaction: OnyxEntry<Transaction>): boolean {
 }
 
 /**
+ * Returns the appropriate delete confirmation prompt for an expense.
+ * Shows a BYOC-specific warning when deleting a single pending transaction,
+ * since it may be re-imported once it posts.
+ */
+function getDeleteConfirmationPrompt(translate: LocaleContextProps['translate'], transaction: OnyxEntry<Transaction> | undefined, count = 1): string {
+    if (count === 1 && isPending(transaction)) {
+        return translate('iou.deleteConfirmationPendingBYOC');
+    }
+    return translate('iou.deleteConfirmation', {count});
+}
+
+/**
  * Check if all transactions are pending Expensify card transactions.
  */
 function hasOnlyPendingCardTransactions(transactions: Array<OnyxEntry<Transaction>>): boolean {
@@ -3039,6 +3051,7 @@ export {
     removeSettledAndApprovedTransactions,
     removeTransactionFromDuplicateTransactionViolation,
     getCardName,
+    getDeleteConfirmationPrompt,
     hasReceiptSource,
     hasOdometerImageSource,
     shouldShowAttendees,
