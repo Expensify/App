@@ -102,21 +102,6 @@ function getDisplayNameOrDefault(
     return shouldFallbackToHidden ? hiddenTranslation : '';
 }
 
-function temporaryGetDisplayNameOrDefault(params: {
-    passedPersonalDetails?: Partial<PersonalDetails> | null;
-    defaultValue?: string;
-    shouldFallbackToHidden?: boolean;
-    shouldAddCurrentUserPostfix: true;
-    youAfterTranslation?: string;
-    translate: LocalizedTranslate;
-}): string;
-function temporaryGetDisplayNameOrDefault(params: {
-    passedPersonalDetails?: Partial<PersonalDetails> | null;
-    defaultValue?: string;
-    shouldFallbackToHidden?: boolean;
-    shouldAddCurrentUserPostfix?: false;
-    translate: LocalizedTranslate;
-}): string;
 function temporaryGetDisplayNameOrDefault({
     passedPersonalDetails,
     defaultValue = '',
