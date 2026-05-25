@@ -114,6 +114,8 @@ function CopyPolicySettingsSelectFeaturesPage() {
         if ((CODING_PARTS_TIED_TO_CONNECTION as readonly Part[]).includes(part)) {
             return isCopyPolicySettingsPartEnabledOnSource(part, sourceFeatureContext);
         }
+        // Incompatible non-coding parts (e.g. accounting) stay visible so users
+        // understand why coding rows are disabled, even when the source has no data.
         return true;
     };
 
