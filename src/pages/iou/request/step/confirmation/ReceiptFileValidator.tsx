@@ -59,8 +59,7 @@ function ReceiptFileValidator({
     useEffect(() => {
         let ignore = false;
         let newReceiptFiles: Record<string, Receipt> = {};
-        let didInitialFail = false;
-        let didNonInitialFail = false;
+        let isScanFilesCanBeRead = true;
         let resetInitialTransactionReceipt = false;
 
         Promise.all(
@@ -100,13 +99,11 @@ function ReceiptFileValidator({
                 };
 
                 const onFailure = () => {
+                    isScanFilesCanBeRead = false;
                     if (initialTransactionID === item.transactionID) {
-                        didInitialFail = true;
                         // We don't directly reset the receipt here because this will cause the transaction to change
                         // and retrigger the effect before the promise is resolved which will cause ignoring of the redirection.
                         resetInitialTransactionReceipt = true;
-                    } else {
-                        didNonInitialFail = true;
                     }
                 };
 
@@ -120,7 +117,6 @@ function ReceiptFileValidator({
             if (resetInitialTransactionReceipt) {
                 setMoneyRequestReceipt(initialTransactionID, '', '', true, '');
             }
-            const isScanFilesCanBeRead = !didInitialFail && !didNonInitialFail;
             if (isScanFilesCanBeRead) {
                 onReceiptFilesChange(newReceiptFiles);
                 return;
