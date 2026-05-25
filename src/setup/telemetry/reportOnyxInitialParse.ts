@@ -16,20 +16,26 @@ function reportOnyxInitialParse(): void {
         if (__DEV__) {
             const kb = (stats.totalBytes / 1024).toFixed(1);
             // eslint-disable-next-line no-console
-            console.log(`[Onyx] initial JSON.parse: ${stats.totalMs.toFixed(1)} ms / ${stats.rowCount} rows / ${kb} KB`);
+            console.log(
+                `[Onyx] initial JSON.parse: ${stats.totalMs.toFixed(1)} ms / ${stats.rowCount} rows / ${kb} KB ` +
+                    `(slowest row: ${stats.maxRowMs.toFixed(1)} ms / ${stats.maxRowBytes} bytes / key="${stats.maxRowKey}")`,
+            );
         }
 
         Sentry.setContext(CONST.TELEMETRY.CONTEXT_ONYX_INITIAL_PARSE, {
             totalMs: stats.totalMs,
             rowCount: stats.rowCount,
             totalBytes: stats.totalBytes,
+            maxRowMs: stats.maxRowMs,
+            maxRowBytes: stats.maxRowBytes,
+            maxRowKey: stats.maxRowKey,
         });
 
         Sentry.setMeasurement(CONST.TELEMETRY.MEASUREMENT_ONYX_INITIAL_PARSE_MS, stats.totalMs, 'millisecond');
 
         Sentry.addBreadcrumb({
             category: CONST.TELEMETRY.BREADCRUMB_CATEGORY_ONYX_INIT,
-            message: `Onyx initial JSON.parse: ${stats.totalMs.toFixed(1)} ms (${stats.rowCount} rows, ${stats.totalBytes} bytes)`,
+            message: `Onyx initial JSON.parse: ${stats.totalMs.toFixed(1)} ms (${stats.rowCount} rows, ${stats.totalBytes} bytes, max ${stats.maxRowMs.toFixed(1)} ms on "${stats.maxRowKey}")`,
             level: 'info',
             data: stats,
         });
