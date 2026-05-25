@@ -34,7 +34,7 @@ index 08b83f3..05a64b1 100644
       * Scrolls to a specific item in the list.
       *
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
-index 9f3b776..f1b7668 100644
+index 4e53325..ef4daf2 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
 @@ -58,7 +58,7 @@ const RecyclerViewComponent = (props, ref) => {
@@ -76,7 +76,7 @@ index 9f3b776..f1b7668 100644
          recyclerViewManager,
          velocityTracker,
      ]);
-@@ -458,7 +468,7 @@ const RecyclerViewComponent = (props, ref) => {
+@@ -461,7 +471,7 @@ const RecyclerViewComponent = (props, ref) => {
                          recyclerViewManager.animationOptimizationsEnabled = false;
                      }, CellRendererComponent: CellRendererComponent, ItemSeparatorComponent: ItemSeparatorComponent, isInLastRow: (index) => recyclerViewManager.isInLastRow(index), getChildContainerLayout: () => recyclerViewManager.hasLayout()
                          ? recyclerViewManager.getChildContainerDimensions()
@@ -398,7 +398,7 @@ index 62d55cd..b715484 100644
  //# sourceMappingURL=useRecyclerViewController.d.ts.map
 \ No newline at end of file
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
-index 3e28f14..3a2707e 100644
+index 165b080..18e59ce 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
 @@ -25,6 +25,21 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
@@ -469,7 +469,7 @@ index 3e28f14..3a2707e 100644
              /**
               * Scrolls to a specific index in the list.
               * Supports viewPosition and viewOffset for precise positioning.
-@@ -289,6 +336,11 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+@@ -292,6 +339,11 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
                          // Pause the scroll offset adjustments
                          pauseOffsetCorrection.current = true;
                          recyclerViewManager.setOffsetProjectionEnabled(false);
@@ -481,7 +481,7 @@ index 3e28f14..3a2707e 100644
                          const getFinalOffset = () => {
                              const layout = recyclerViewManager.getLayout(index);
                              const offset = horizontal ? layout.x : layout.y;
-@@ -493,6 +545,7 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+@@ -496,6 +548,7 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
          setTimeout,
          isUnmounted,
          updateScrollOffsetWithCallback,
@@ -489,7 +489,7 @@ index 3e28f14..3a2707e 100644
      ]);
      const applyInitialScrollIndex = useCallback(() => {
          var _a, _b, _c;
-@@ -547,6 +600,13 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+@@ -550,6 +603,13 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
          computeFirstVisibleIndexForOffsetCorrection,
          applyInitialScrollIndex,
          handlerMethods,
