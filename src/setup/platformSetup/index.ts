@@ -30,6 +30,7 @@ function webUpdate() {
                 window.location.reload();
             }
         })
+        // Soft-fail: webUpdate is a best-effort check, so we only log the error to the console
         // eslint-disable-next-line no-console
         .catch((error) => console.warn('[webUpdate] Failed to check version.json', error));
 }
