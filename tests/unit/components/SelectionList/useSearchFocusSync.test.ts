@@ -39,6 +39,6 @@ describe('useSearchFocusSync', () => {
         });
 
         expect(scrollToIndex).toHaveBeenCalledWith(2, false);
-        expect(setFocusedIndex).toHaveBeenCalledWith(2);
+        expect(setFocusedIndex).toHaveBeenCalledWith(2, {shouldScroll: false});
     });
 });

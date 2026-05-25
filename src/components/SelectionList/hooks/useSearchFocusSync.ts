@@ -27,9 +27,6 @@ type UseSearchFocusSyncParams<TItem extends ListItem, TData = TItem> = {
     /** Function to set the focused index */
     setFocusedIndex: (index: number, options?: {shouldScroll?: boolean}) => void;
 
-    /** The current focused index — kept for backwards-compatible parameter ordering, no longer used for scroll-suppression bookkeeping */
-    focusedIndex?: number;
-
     /** The first focusable index in the list (useful when index 0 is a header). Defaults to 0. */
     firstFocusableIndex?: number;
 };
@@ -50,7 +47,6 @@ function useSearchFocusSync<TItem extends ListItem, TData = TItem>({
     shouldUpdateFocusedIndex,
     scrollToIndex,
     setFocusedIndex,
-    focusedIndex,
     firstFocusableIndex = 0,
 }: UseSearchFocusSyncParams<TItem, TData>) {
     const prevSearchValue = usePrevious(searchValue);
@@ -89,7 +85,7 @@ function useSearchFocusSync<TItem extends ListItem, TData = TItem>({
         const shouldResetFocus = isSearchIdle || (selectedOptionsChanged && prevItemsLength === data.length);
 
         if (shouldResetFocus) {
-            setFocusedIndex(-1);
+            setFocusedIndex(-1, {shouldScroll: false});
             return;
         }
 
@@ -108,7 +104,6 @@ function useSearchFocusSync<TItem extends ListItem, TData = TItem>({
         shouldUpdateFocusedIndex,
         searchValue,
         isItemSelected,
-        focusedIndex,
         firstFocusableIndex,
     ]);
 }

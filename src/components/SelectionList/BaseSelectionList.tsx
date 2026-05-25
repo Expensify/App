@@ -18,7 +18,6 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
-import {isFocusRestoreInProgress} from '@libs/NavigationFocusReturn';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -233,19 +232,6 @@ function BaseSelectionList<TItem extends ListItem>({
         },
     });
 
-    // Keep the cursor on the restored row so keyboard nav continues from there, but don't scroll to it on the way back.
-    // Options are forwarded so onFocus callers (e.g. ListItemRenderer) keep their {shouldScroll: false} intent.
-    const setFocusedIndexFromRowFocus = useCallback(
-        (index: number, options?: {shouldScroll?: boolean}) => {
-            if (isFocusRestoreInProgress()) {
-                setFocusedIndex(index, {shouldScroll: false});
-                return;
-            }
-            setFocusedIndex(index, options);
-        },
-        [setFocusedIndex],
-    );
-
     // extraData helps FlashList detect when data changes significantly (e.g., during filtering)
     // Including data.length ensures FlashList resets its layout cache when the list size changes
     // This prevents "index out of bounds" errors when filtering reduces the list size
@@ -389,7 +375,7 @@ function BaseSelectionList<TItem extends ListItem>({
                     isSelected: selected,
                     ...item,
                 }}
-                setFocusedIndex={setFocusedIndexFromRowFocus}
+                setFocusedIndex={setFocusedIndex}
                 index={index}
                 isFocused={isItemFocused}
                 isFocusVisible={isItemVisuallyFocused}
@@ -559,7 +545,6 @@ function BaseSelectionList<TItem extends ListItem>({
         shouldUpdateFocusedIndex,
         scrollToIndex,
         setFocusedIndex,
-        focusedIndex,
     });
 
     useEffect(() => {

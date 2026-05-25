@@ -29,7 +29,6 @@ import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import Log from '@libs/Log';
-import {isFocusRestoreInProgress} from '@libs/NavigationFocusReturn';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import type {FlattenedItem, ListItem, SelectionListWithSectionsProps} from './types';
@@ -168,16 +167,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         },
     });
 
-    // Keep the cursor on the restored row so keyboard nav continues from there, but don't scroll to it on the way back.
-    // Options are forwarded so onFocus callers (e.g. ListItemRenderer) keep their {shouldScroll: false} intent.
-    const setFocusedIndexFromRowFocus = (index: number, options?: {shouldScroll?: boolean}) => {
-        if (isFocusRestoreInProgress()) {
-            setFocusedIndex(index, {shouldScroll: false});
-            return;
-        }
-        setFocusedIndex(index, options);
-    };
-
     const getFocusedItem = (): TItem | undefined => {
         if (focusedIndex < 0 || focusedIndex >= flattenedData.length) {
             return;
@@ -309,7 +298,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         shouldUpdateFocusedIndex,
         scrollToIndex,
         setFocusedIndex,
-        focusedIndex,
         firstFocusableIndex,
     });
 
@@ -385,7 +373,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
                         onDismissError={onDismissError}
                         rightHandSideComponent={rightHandSideComponent}
-                        setFocusedIndex={setFocusedIndexFromRowFocus}
+                        setFocusedIndex={setFocusedIndex}
                         singleExecution={singleExecution}
                         shouldSyncFocus={!isTextInputFocusedRef.current && isKeyboardNavigating}
                         shouldIgnoreFocus={shouldIgnoreFocus}
