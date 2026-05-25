@@ -260,15 +260,17 @@ function callSAMLSignOut(params: LogOutParams, authToken: string): Promise<void 
     return openAuthSessionAsync(`${CONFIG.EXPENSIFY.SAML_URL}/logout?${queryString}`, expectedURL)
         .catch((error) => {
             Log.hmmm('SAML sign out failed', {error});
+            return undefined;
         })
         .then((result) => {
             if (result && result.type !== 'success') {
+                Log.info('SAML logout browser was dismissed; clearing local session anyway.');
                 if (CONFIG.IS_HYBRID_APP) {
                     HybridAppModule.cancelSignOut();
                 }
-                return Promise.reject(Error('Logout cancelled'));
+                // Let the caller proceed to clear local Onyx state even though the IDP browser was dismissed
+                return undefined;
             }
-            // We always want to sign out the user from the app
             // eslint-disable-next-line rulesdir/no-api-side-effects-method
             return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.LOG_OUT, params, {});
         });
@@ -479,7 +481,11 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
                 });
             }
         })
-        .catch((error: string) => Log.warn('Error during sign out process:', error));
+        .catch((error: string) => {
+            Log.warn('Error during sign out process:', error);
+            // Failsafe: ensure the user lands on the sign-in screen even if signOut threw
+            redirectToSignIn();
+        });
 }
 
 /**
