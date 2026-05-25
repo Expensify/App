@@ -62,13 +62,19 @@ function getDisplayNameOrDefault(
     youAfterTranslation = youTranslation,
 ): string {
     let displayName = passedPersonalDetails?.displayName ?? '';
-
     let login = passedPersonalDetails?.login ?? '';
 
+    // FIX 1: Use a local, non-global regex pattern for testing to prevent lastIndex state bugs
+    const MERGED_ACCOUNT_TEST = /^MERGED_\d+@/;
+
     // If the displayName starts with the merged account prefix, remove it.
-    if (regexMergedAccount.test(displayName)) {
-        // Remove the merged account prefix from the displayName.
+    if (MERGED_ACCOUNT_TEST.test(displayName)) {
         displayName = displayName.replaceAll(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
+    }
+
+    // FIX 2: Symmetrically strip the prefix from the login string as well
+    if (MERGED_ACCOUNT_TEST.test(login)) {
+        login = login.replaceAll(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     }
 
     // If the displayName is not set by the user, the backend sets the displayName same as the login so
@@ -101,6 +107,7 @@ function getDisplayNameOrDefault(
     }
     return shouldFallbackToHidden ? hiddenTranslation : '';
 }
+
 
 /**
  * Given a list of account IDs (as number) it will return an array of personal details objects.
