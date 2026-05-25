@@ -214,6 +214,7 @@ const translations = {
         admin: 'Admin',
         owner: 'Owner',
         dateFormat: 'YYYY-MM-DD',
+        calendarOpened: 'calendar opened',
         send: 'Send',
         na: 'N/A',
         noResultsFound: 'No results found',
@@ -722,6 +723,9 @@ const translations = {
         changePin: {
             didNotChange: "We didn't change your PIN. Please try again.",
         },
+        revealCardDetail: {
+            couldNotReveal: "We couldn't reveal your card details. Please try again.",
+        },
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -1023,6 +1027,7 @@ const translations = {
             repaidLast30Days: 'Repaid in the last 30 days',
             recentTransactions: ({lastFour}: {lastFour: string}) => `Recent transactions • ${lastFour}`,
         },
+        seeMore: ({count}: {count: number}) => `See ${count} more`,
         announcements: 'Announcements',
         discoverSection: {
             title: 'Discover',
@@ -1330,7 +1335,7 @@ const translations = {
         receiptStatusTitle: 'Scanning…',
         receiptStatusText: "Only you can see this receipt when it's scanning. Check back later or enter the details now.",
         receiptScanningFailed: 'Receipt scanning failed. Please enter the details manually.',
-        transactionPendingDescription: 'Transaction pending. It may take a few days to post.',
+        allTransactionsPendingNextStep: "All transactions are pending. You can't submit this report until they post in a few days.",
         companyInfo: 'Company info',
         companyInfoDescription: 'We need a few more details before you can send your first invoice.',
         yourCompanyName: 'Your company name',
@@ -1371,6 +1376,10 @@ const translations = {
         settlePayment: (formattedAmount: string) => `Pay ${formattedAmount}`,
         settleBusiness: (formattedAmount?: string) => (formattedAmount ? `Pay ${formattedAmount} as a business` : `Pay with business account`),
         payElsewhere: (formattedAmount?: string) => (formattedAmount ? `Mark ${formattedAmount} as paid` : `Mark as paid`),
+        confirmPaymentReceivedModalTitle: 'Confirm payment received',
+        receivedPayment: 'Received payment',
+        receivedPaymentConfirmation: "Please proceed only if you've already received payment outside of Expensify.",
+        confirmReceivedPayment: "Yes, I've received payment",
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `paid ${amount} with personal account ${last4Digits}` : `Paid with personal account`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `paid ${amount} with business account ${last4Digits}` : `Paid with business account`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `Pay ${formattedAmount} via ${policyName}` : `Pay via ${policyName}`),
@@ -1489,6 +1498,8 @@ const translations = {
             distanceAmountTooLargeReduceRate: 'The total amount is too large. Lower the rate.',
             odometerReadingTooLarge: (formattedMax: string) => `Odometer readings cannot exceed ${formattedMax}.`,
             stitchOdometerImagesFailed: 'Failed to combine odometer images. Please try again later.',
+            unableToSubmitReport: 'Unable to submit report',
+            allTransactionsPendingDescription: "You can't submit this report because all transactions are pending. They may take a few days to post.",
             failedToSaveOdometerDraft: "Couldn't save your odometer draft. Please try again.",
             invalidIntegerAmount: 'Please enter a whole dollar amount before continuing',
             invalidTaxAmount: (amount: string) => `Maximum tax amount is ${amount}`,
@@ -1566,7 +1577,6 @@ const translations = {
         someDuplicatesArePaid: 'Some of these duplicates have been approved or paid already.',
         reviewDuplicates: 'Review duplicates',
         keepAll: 'Keep all',
-        keepSelected: 'Keep selected',
         noDuplicatesTitle: 'All set!',
         noDuplicatesDescription: 'There are no duplicate transactions for review here.',
         confirmApprove: 'Confirm approval amount',
@@ -2285,7 +2295,8 @@ const translations = {
     },
     deviceManagementPage: {
         title: 'Device management',
-        description: 'Manage all the devices that you have logged into with your Expensify Account.',
+        description:
+            'Manage all the devices that you have logged into with your Expensify Account. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Learn more</a>.',
         revoke: 'Revoke',
         unknownDevice: 'Unknown Device',
     },
@@ -2297,14 +2308,16 @@ const translations = {
         explainProcessToRemove: 'To disable two-factor authentication (2FA), please enter a valid code from your authentication app.',
         explainProcessToRemoveWithRecovery: 'To disable two-factor authentication (2FA), please enter a valid recovery code.',
         disabled: 'Two-factor authentication is now disabled',
+        downloadCodes: 'Download codes',
         noAuthenticatorApp: 'You’ll no longer require an authenticator app to log into Expensify.',
         stepCodes: 'Recovery codes',
-        keepCodesSafe: 'Keep these recovery codes safe!',
+        keepCodesSafe: 'Keep these codes safe!',
         codesLoseAccess: dedent(`
             If you lose access to your authenticator app and don't have these codes, you'll lose access to your account.
 
-            Note: Setting up two-factor authentication will log you out of all other active sessions.
+            <strong>Note</strong>: Setting up two-factor authentication will log you out of all other active sessions.
         `),
+        screenshotTip: 'Tip: Screenshot this to save it to your photo library',
         errorStepCodes: 'Please copy or download codes before continuing',
         stepVerify: 'Verify',
         scanCode: 'Scan the QR code using your',
@@ -2316,6 +2329,7 @@ const translations = {
         enabled: 'Two-factor authentication enabled',
         congrats: 'Congrats! Now you’ve got that extra security.',
         copy: 'Copy',
+        copyCodes: 'Copy codes',
         disable: 'Disable',
         enableTwoFactorAuth: 'Enable two-factor authentication',
         pleaseEnableTwoFactorAuth: 'Please enable two-factor authentication.',
@@ -2742,6 +2756,7 @@ const translations = {
     reportFraudConfirmationPage: {
         title: 'Card fraud reported',
         description: 'We’ve permanently deactivated your existing card. When you go back to view your card details, you’ll have a new virtual card available.',
+        descriptionCardNotReplaced: 'Your card was permanently deactivated. Please contact an admin to issue a new card.',
         buttonText: 'Got it, thanks!',
     },
     activateCardPage: {
@@ -3023,7 +3038,7 @@ const translations = {
         peopleYouMayKnow: 'People you may know are already here! Verify your email to join them.',
         workspaceYouMayJoin: (domain: string, email: string) => `Someone from ${domain} has already created a workspace. Please enter the magic code sent to ${email}.`,
         joinAWorkspace: 'Join a workspace',
-        listOfWorkspaces: "Here's the list of workspaces you can join. Don't worry, you can always join them later if you prefer.",
+        listOfWorkspaces: "Here's the list of workspaces you can join.",
         skipForNow: 'Skip for now',
         workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount} member${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
         whereYouWork: 'Where do you work?',
@@ -3079,6 +3094,7 @@ const translations = {
             sameAsSignupEmail: 'Please enter a different email than the one you signed up with',
             offline: 'We couldn’t add your work email as you appear to be offline',
         },
+        workEmail2FAError: 'This login is an existing account with Two-Factor Authentication (2FA) enabled.',
         mergeBlockScreen: {
             title: 'Couldn’t add work email',
             subtitle: (workEmail: string | undefined) => `We couldn’t add ${workEmail}. Please try again later in Settings or chat with Concierge for guidance.`,
@@ -5378,6 +5394,10 @@ const translations = {
                     confirmText: 'Report issue',
                     cancelText: 'Skip',
                 },
+                duplicateFeedModal: {
+                    title: 'Card feed already connected',
+                    prompt: "You can't add the same card feed to the same workspace twice.",
+                },
                 csvColumns: {
                     cardNumber: 'Card number',
                     postedDate: 'Date',
@@ -6125,8 +6145,8 @@ const translations = {
             addedWithPrimary: 'Some members were added with their primary logins.',
             invitedBySecondaryLogin: (secondaryLogin: string) => `Added by secondary login ${secondaryLogin}.`,
             workspaceMembersCount: (count: number) => `Total workspace members: ${count}`,
-            configureGustoSync: 'Configure Gusto sync.',
-            syncWithGusto: 'Sync with Gusto',
+            configureHRSync: (providerName: string) => `Configure ${providerName} sync.`,
+            syncWithHR: (providerName: string) => `Sync with ${providerName}`,
             allMembers: 'All members',
             admins: 'Admins',
             approvers: 'Approvers',
@@ -6480,6 +6500,8 @@ const translations = {
             disconnect: 'Disconnect',
             disconnectTitle: (providerName: string) => `Disconnect ${providerName}`,
             disconnectPrompt: (providerName: string) => `Are you sure you want to disconnect ${providerName}?`,
+            alreadyConnectedTitle: 'Cannot connect to multiple HR platforms',
+            alreadyConnectedPrompt: 'You must disconnect your current HR platform before connecting another.',
             lastSync: (relativeDate: string) => `Last synced ${relativeDate}`,
             syncError: (providerName: string) => `Can't connect to ${providerName}`,
             connectionDescription: (providerName: string) => `Connect ${providerName} to keep employee approvals in sync with your workspace.`,
@@ -6488,6 +6510,9 @@ const translations = {
             finalApprover: 'Final approver',
             providerFinalApprover: (providerName: string) => `${providerName} final approver`,
             notSet: 'Not set',
+            syncing: 'Syncing employees',
+            syncingModalTitle: 'Your connection is syncing',
+            syncingModalDescription: "The first connection can take some time. You'll be notified of any errors.",
             approvalModeDescription: (providerName: string) => `Members and managers are set up to sync with ${providerName}.`,
             approvalModeWarningTitle: 'Change approval mode?',
             approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
@@ -6515,8 +6540,6 @@ const translations = {
                         return 'Loading data from TriNet';
                     case 'zenefitsSyncProvisioning':
                         return 'Provisioning employees in policy';
-                    case 'mergeHRSyncTitle':
-                        return 'Synchronizing HR Employees';
                     case 'jobDone':
                         return 'Waiting for imported data to load';
                     default: {
@@ -6892,7 +6915,7 @@ const translations = {
                 perActiveMember: 'per active member per month.',
                 perMember: 'per member per month.',
             },
-            note: (subscriptionLink: string) => `<muted-text>Upgrade to access this feature, or <a href="${subscriptionLink}">learn more</a> about our plans and pricing.</muted-text>`,
+            note: (subscriptionLink: string) => `<muted-text><a href="${subscriptionLink}">Learn more</a> about our plans and pricing.</muted-text>`,
             upgradeToUnlock: 'Unlock this feature',
             completed: {
                 headline: `You've upgraded your workspace!`,
@@ -7861,6 +7884,7 @@ const translations = {
         },
         resultsAreLimited: 'Search results are limited.',
         viewResults: 'View results',
+        applyFilters: 'Apply filters',
         appliedFilters: 'Applied filters',
         resetFilters: 'Reset filters',
         searchResults: {
@@ -7973,7 +7997,12 @@ const translations = {
             amount: {
                 lessThan: (amount?: string) => `Less than ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Greater than ${amount ?? ''}`,
-                between: (greaterThan: string, lessThan: string) => `Between ${greaterThan} and ${lessThan}`,
+                between: (greaterThan?: string, lessThan?: string) => {
+                    if (greaterThan && lessThan) {
+                        return `Between ${greaterThan} and ${lessThan}`;
+                    }
+                    return 'Between';
+                },
                 equalTo: (amount?: string) => `Equal to ${amount ?? ''}`,
             },
             card: {

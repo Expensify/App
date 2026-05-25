@@ -36,7 +36,6 @@ import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 import {filterInactiveCards} from '@libs/CardUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import FreezeWrapper from '@libs/Navigation/AppNavigator/FreezeWrapper';
 import openInternalRouteInNewTab from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import Navigation from '@libs/Navigation/Navigation';
@@ -102,7 +101,7 @@ function isUserReimburserForPolicy(policies: Record<string, PolicyType | undefin
     return policy.achAccount?.reimburser === userEmail;
 }
 
-function WorkspacesListPageContent() {
+function WorkspacesListPage() {
     const tableRef = useRef<TableHandle<WorkspaceRowData, WorkspaceTableColumnKey, string>>(null);
     const icons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Star', 'Trashcan', 'Transfer', 'FallbackWorkspaceAvatar', 'Plus']);
     const styles = useThemeStyles();
@@ -319,7 +318,7 @@ function WorkspacesListPageContent() {
             return {adminNonPersonal, corporateOnly};
         }
         for (const policy of Object.values(policies)) {
-            if (!policy || policy.type === CONST.POLICY.TYPE.PERSONAL || !isPolicyAdmin(policy, session?.email)) {
+            if (!policy || policy.type === CONST.POLICY.TYPE.PERSONAL || !isPolicyAdmin(policy, session?.email) || isPendingDeletePolicy(policy)) {
                 continue;
             }
             adminNonPersonal.push(policy.id);
@@ -595,6 +594,7 @@ function WorkspacesListPageContent() {
 
     const headerButton = !isRestrictedPolicyCreation && !!workspaceRows.length && (
         <Button
+            success
             accessibilityLabel={translate('common.new')}
             text={translate('common.new')}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.NEW_WORKSPACE_BUTTON}
@@ -673,14 +673,6 @@ function WorkspacesListPageContent() {
             />
             {outstandingBalanceModal}
         </WorkspaceListLayout>
-    );
-}
-
-function WorkspacesListPage() {
-    return (
-        <FreezeWrapper>
-            <WorkspacesListPageContent />
-        </FreezeWrapper>
     );
 }
 

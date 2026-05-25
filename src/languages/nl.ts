@@ -207,6 +207,7 @@ const translations: TranslationDeepObject<typeof en> = {
         admin: 'Beheerder',
         owner: 'Eigenaar',
         dateFormat: 'JJJJ-MM-DD',
+        calendarOpened: 'kalender geopend',
         send: 'Verzenden',
         na: 'n.v.t.',
         noResultsFound: 'Geen resultaten gevonden',
@@ -693,6 +694,7 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: 'We hebben je kaart niet verzonden. Probeer het opnieuw.'},
         revealPin: {couldNotReveal: 'We konden je pincode niet tonen. Probeer het opnieuw.'},
         changePin: {didNotChange: 'We hebben je pincode niet gewijzigd. Probeer het opnieuw.'},
+        revealCardDetail: {couldNotReveal: 'We konden je kaartgegevens niet weergeven. Probeer het opnieuw.'},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -1041,6 +1043,7 @@ const translations: TranslationDeepObject<typeof en> = {
             repaidLast30Days: 'Terugbetaald in de afgelopen 30 dagen',
             recentTransactions: ({lastFour}: {lastFour: string}) => `Recente transacties • ${lastFour}`,
         },
+        seeMore: ({count}: {count: number}) => `Bekijk nog ${count}`,
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -1277,7 +1280,7 @@ const translations: TranslationDeepObject<typeof en> = {
         receiptStatusTitle: 'Scannen…',
         receiptStatusText: 'Alleen jij kunt deze bon zien terwijl hij wordt gescand. Kom later terug of voer de gegevens nu in.',
         receiptScanningFailed: 'Bon scannen mislukt. Voer de gegevens handmatig in.',
-        transactionPendingDescription: 'Transactie in behandeling. Het kan een paar dagen duren voordat deze wordt verwerkt.',
+        allTransactionsPendingNextStep: 'Alle transacties zijn in behandeling. Je kunt dit rapport pas indienen als ze over een paar dagen zijn geboekt.',
         companyInfo: 'Bedrijfsgegevens',
         companyInfoDescription: 'We hebben nog een paar gegevens nodig voordat je je eerste factuur kunt versturen.',
         yourCompanyName: 'Naam van je bedrijf',
@@ -1317,6 +1320,10 @@ const translations: TranslationDeepObject<typeof en> = {
         settlePayment: (formattedAmount: string) => `Betaal ${formattedAmount}`,
         settleBusiness: (formattedAmount?: string) => (formattedAmount ? `Betaal ${formattedAmount} als bedrijf` : `Betalen met zakelijke rekening`),
         payElsewhere: (formattedAmount?: string) => (formattedAmount ? `Markeer ${formattedAmount} als betaald` : `Markeren als betaald`),
+        confirmPaymentReceivedModalTitle: 'Ontvangst van betaling bevestigen',
+        receivedPayment: 'Betaling ontvangen',
+        receivedPaymentConfirmation: 'Ga alleen verder als je de betaling al buiten Expensify hebt ontvangen.',
+        confirmReceivedPayment: 'Ja, ik heb de betaling ontvangen.',
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `heeft ${amount} betaald met persoonlijke rekening ${last4Digits}` : `Betaald met privérekening`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `heeft ${amount} betaald met zakelijke rekening ${last4Digits}` : `Betaald met zakelijke rekening`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `Betaal ${formattedAmount} via ${policyName}` : `Betaal via ${policyName}`),
@@ -1463,6 +1470,8 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: 'De einddatum mag niet gelijk zijn aan de startdatum',
             manySplitsProvided: `Het maximale aantal toegestane splitsingen is ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `Het datumbereik mag niet meer dan ${CONST.IOU.SPLITS_LIMIT} dagen zijn.`,
+            unableToSubmitReport: 'Rapport kan niet worden ingediend',
+            allTransactionsPendingDescription: 'Je kunt dit rapport niet indienen omdat alle transacties in behandeling zijn. Het kan een paar dagen duren voordat ze worden verwerkt.',
             stitchOdometerImagesFailed: 'Odometerafbeeldingen combineren mislukt. Probeer het later opnieuw.',
             failedToSaveOdometerDraft: 'De conceptkilometerstand kon niet worden opgeslagen. Probeer het opnieuw.',
         },
@@ -1509,7 +1518,6 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Sommige van deze duplicaten zijn al goedgekeurd of betaald.',
         reviewDuplicates: 'Dubbele items controleren',
         keepAll: 'Alles behouden',
-        keepSelected: 'Selectie behouden',
         noDuplicatesTitle: 'Alles in orde!',
         noDuplicatesDescription: 'Er zijn hier geen dubbele transacties om te beoordelen.',
         confirmApprove: 'Bevestig goedkeuringsbedrag',
@@ -2208,7 +2216,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     deviceManagementPage: {
         title: 'Apparaatbeheer',
-        description: 'Beheer alle apparaten waarop u bent ingelogd met uw Expensify-account.',
+        description:
+            'Beheer alle apparaten waarop je bent ingelogd met je Expensify-account. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Meer informatie</a>.',
         revoke: 'Intrekken',
         unknownDevice: 'Onbekend Apparaat',
     },
@@ -2223,11 +2232,11 @@ const translations: TranslationDeepObject<typeof en> = {
         disabled: 'Tweeledige verificatie is nu uitgeschakeld',
         noAuthenticatorApp: 'Je hebt geen authenticator-app meer nodig om in te loggen bij Expensify.',
         stepCodes: 'Herstelcodes',
-        keepCodesSafe: 'Bewaar deze herstercodes goed!',
+        keepCodesSafe: 'Bewaar deze codes goed!',
         codesLoseAccess: dedent(`
-            Als je de toegang tot je authenticator-app kwijtraakt en deze codes niet hebt, verlies je de toegang tot je account.
+            Als je de toegang tot je authenticator-app verliest en deze codes niet hebt, verlies je de toegang tot je account.
 
-            Let op: het instellen van tweeledige verificatie zal je uitloggen bij alle andere actieve sessies.
+            <strong>Let op</strong>: Het instellen van twee-factor-authenticatie zal je bij alle andere actieve sessies afmelden.
         `),
         errorStepCodes: 'Kopieer of download de codes voordat je verdergaat',
         stepVerify: 'Verifiëren',
@@ -2256,6 +2265,9 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyOldDeviceDescription: 'Voer de zescijferige code uit je huidige authenticator-app in om te bevestigen dat je daar toegang toe hebt.',
         verifyNewDeviceTitle: 'Nieuw apparaat instellen',
         verifyNewDeviceDescription: 'Scan de QR-code met je nieuwe apparaat en voer daarna de code in om de installatie te voltooien.',
+        downloadCodes: 'Codes downloaden',
+        screenshotTip: 'Tip: maak een screenshot om dit op te slaan in je fotobibliotheek',
+        copyCodes: 'Codes kopiëren',
     },
     recoveryCodeForm: {
         error: {
@@ -2681,6 +2693,7 @@ ${amount} voor ${merchant} - ${date}`,
     reportFraudConfirmationPage: {
         title: 'Kaartfraude gemeld',
         description: 'We hebben je bestaande kaart permanent gedeactiveerd. Wanneer je teruggaat om je kaartgegevens te bekijken, heb je een nieuwe virtuele kaart beschikbaar.',
+        descriptionCardNotReplaced: 'Je kaart is permanent gedeactiveerd. Neem contact op met een beheerder om een nieuwe kaart uit te geven.',
         buttonText: 'Begrepen, dank je!',
     },
     activateCardPage: {
@@ -2951,7 +2964,7 @@ ${amount} voor ${merchant} - ${date}`,
         peopleYouMayKnow: 'Mensen die je misschien kent zijn hier al! Verifieer je e-mailadres om je bij hen aan te sluiten.',
         workspaceYouMayJoin: (domain: string, email: string) => `Iemand van ${domain} heeft al een workspace gemaakt. Voer de magische code in die is verzonden naar ${email}.`,
         joinAWorkspace: 'Lid worden van een workspace',
-        listOfWorkspaces: 'Hier is de lijst met werkruimtes waaraan je kunt deelnemen. Geen zorgen, je kunt je er altijd later nog bij aansluiten als je dat liever hebt.',
+        listOfWorkspaces: 'Hier is de lijst met werkruimtes waartoe je je kunt aansluiten.',
         skipForNow: 'Voorlopig overslaan',
         workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount} lid${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
         whereYouWork: 'Waar werk je?',
@@ -3290,6 +3303,7 @@ ${amount} voor ${merchant} - ${date}`,
             title: 'Leden uitnodigen',
             subtitle: 'Voeg je team toe of nodig je accountant uit. Hoe meer zielen, hoe meer vreugd!',
         },
+        workEmail2FAError: 'Deze inlog is een bestaand account met Two-Factor Authentication (2FA) ingeschakeld.',
     },
     featureTraining: {
         doNotShowAgain: 'Dit niet meer tonen',
@@ -5356,6 +5370,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                         `Oeps! Je hebt één enkel veld (“${duplicateColumn}”) aan meerdere kolommen gekoppeld. Controleer dit en probeer het opnieuw.`,
                 },
                 fileImportDescription: 'Een handmatige optie als je bank geen feed kan versturen.',
+                duplicateFeedModal: {title: 'Kaartfeed al verbonden', prompt: 'Je kunt dezelfde kaartfeed niet twee keer aan dezelfde workspace toevoegen.'},
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Laatste dag van de maand',
@@ -6088,8 +6103,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             approvers: 'Fiatteurs',
             auditors: 'Accountants',
             emptyRoleFilter: {title: 'Geen leden komen overeen met dit filter', subtitle: 'Nodig een lid uit of wijzig het filter hierboven.'},
-            configureGustoSync: 'Gusto-synchronisatie configureren.',
-            syncWithGusto: 'Synchroniseren met Gusto',
+            configureHRSync: (providerName: string) => `Stel ${providerName}-synchronisatie in.`,
+            syncWithHR: (providerName: string) => `Synchroniseren met ${providerName}`,
         },
         card: {
             getStartedIssuing: 'Begin met het uitgeven van je eerste virtuele of fysieke kaart.',
@@ -6721,8 +6736,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 perActiveMember: 'per actieve deelnemer per maand.',
                 perMember: 'per lid per maand.',
             },
-            note: (subscriptionLink: string) =>
-                `<muted-text>Upgrade om toegang te krijgen tot deze functie, of <a href="${subscriptionLink}">lees meer</a> over onze abonnementen en prijzen.</muted-text>`,
+            note: (subscriptionLink: string) => `<muted-text><a href="${subscriptionLink}">Lees meer</a> over onze abonnementen en prijzen.</muted-text>`,
             upgradeToUnlock: 'Deze functie ontgrendelen',
             completed: {
                 headline: `Je hebt je workspace geüpgraded!`,
@@ -7150,6 +7164,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             disconnect: 'Ontkoppelen',
             disconnectTitle: (providerName: string) => `${providerName} ontkoppelen`,
             disconnectPrompt: (providerName: string) => `Weet je zeker dat je ${providerName} wilt ontkoppelen?`,
+            alreadyConnectedTitle: 'Kan niet met meerdere HR-platformen verbinden',
+            alreadyConnectedPrompt: 'Je moet je huidige HR-platform loskoppelen voordat je een ander kunt verbinden.',
             lastSync: (relativeDate: string) => `Laatst gesynchroniseerd ${relativeDate}`,
             syncError: (providerName: string) => `Kan geen verbinding maken met ${providerName}`,
             connectionDescription: (providerName: string) => `Verbind ${providerName} om goedkeuringen van werknemers gesynchroniseerd te houden met je werkruimte.`,
@@ -7209,6 +7225,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             zenefits: {
                 title: 'TriNet',
             },
+            syncingModalTitle: 'Je verbinding wordt gesynchroniseerd',
+            syncingModalDescription: 'De eerste verbinding kan even duren. Je krijgt een melding als er fouten optreden.',
+            syncing: 'Werknemers synchroniseren',
         },
         emptyDomain: {title: 'Verbeter je beveiliging met domeinen', subtitle: 'Vereis dat leden op je domein inloggen via single sign-on, beperk het aanmaken van werkruimtes en meer.'},
     },
@@ -7799,6 +7818,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
     search: {
         resultsAreLimited: 'Zoekresultaten zijn beperkt.',
         viewResults: 'Resultaten bekijken',
+        applyFilters: 'Filters toepassen',
         appliedFilters: 'Toegepaste filters',
         resetFilters: 'Filters resetten',
         searchResults: {
@@ -7908,7 +7928,12 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             amount: {
                 lessThan: (amount?: string) => `Minder dan ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Groter dan ${amount ?? ''}`,
-                between: (greaterThan: string, lessThan: string) => `Tussen ${greaterThan} en ${lessThan}`,
+                between: (greaterThan?: string, lessThan?: string) => {
+                    if (greaterThan && lessThan) {
+                        return `Tussen ${greaterThan} en ${lessThan}`;
+                    }
+                    return 'Tussen';
+                },
                 equalTo: (amount?: string) => `Gelijk aan ${amount ?? ''}`,
             },
             card: {
