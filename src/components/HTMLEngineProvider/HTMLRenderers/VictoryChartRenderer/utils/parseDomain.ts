@@ -7,12 +7,10 @@ type Domain = CartesianChartProps['domain'];
 /**
  * Translate VictoryChart's `domain` attribute into victory-native's `domain` shape.
  */
-function parseDomain(attribute: string): Domain {
+function parseDomain(attribute: string, isHorizontal: boolean): Domain {
     const domain = parseAttribute(attribute);
     if (Array.isArray(domain)) {
-        return {
-            y: [Number(domain.at(0)), Number(domain.at(1))],
-        };
+        return isHorizontal ? {x: [Number(domain.at(0)), Number(domain.at(1))]} : {y: [Number(domain.at(0)), Number(domain.at(1))]};
     }
     if (lodashIsObject(domain)) {
         let x: [number, number] | undefined;
@@ -23,7 +21,7 @@ function parseDomain(attribute: string): Domain {
         if ('y' in domain && Array.isArray(domain.y)) {
             y = [Number(domain.y.at(0)), Number(domain.y.at(1))];
         }
-        return {x, y};
+        return isHorizontal ? {x: y, y: x} : {x, y};
     }
     return undefined;
 }

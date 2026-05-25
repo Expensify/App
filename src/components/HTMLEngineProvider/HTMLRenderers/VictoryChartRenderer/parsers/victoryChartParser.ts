@@ -9,8 +9,8 @@ import parsePadding from '@components/HTMLEngineProvider/HTMLRenderers/VictoryCh
  */
 function parseVictoryChartNode(tnode: TNode): PartialProcessNodeResult {
     const isHorizontal = 'horizontal' in tnode.attributes && tnode.attributes.horizontal !== 'false';
-    const domain = parseDomain(tnode.attributes.domain);
-    const domainPadding = parseDomainPadding(tnode.attributes.domainpadding);
+    const domain = parseDomain(tnode.attributes.domain, isHorizontal);
+    const domainPadding = parseDomainPadding(tnode.attributes.domainpadding, isHorizontal);
     const padding = parsePadding(tnode.attributes.padding);
     return {domain, domainPadding, padding, isHorizontal};
 }
