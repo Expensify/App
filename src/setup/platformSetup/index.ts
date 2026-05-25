@@ -30,12 +30,8 @@ function webUpdate() {
                 window.location.reload();
             }
         })
-        .catch(() => {
-            // During deploys, version.json may be temporarily unavailable and the
-            // SPA fallback can return index.html (HTML) with a 200 status, causing
-            // response.json() to throw a SyntaxError. Silently ignore and retry on the
-            // next visibility change or update interval.
-        });
+        // eslint-disable-next-line no-console
+        .catch((error) => console.warn('[webUpdate] Failed to check version.json', error));
 }
 
 /**
