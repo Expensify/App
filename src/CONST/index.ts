@@ -1367,6 +1367,7 @@ const CONST = {
         SECONDARY_ACTIONS: {
             SUBMIT: 'submit',
             APPROVE: 'approve',
+            RECEIVED_PAYMENT: 'receivedPayment',
             REMOVE_HOLD: 'removeHold',
             UNAPPROVE: 'unapprove',
             CANCEL_PAYMENT: 'cancelPayment',
@@ -2920,9 +2921,9 @@ const CONST = {
 
     ZENEFITS: {
         APPROVAL_MODE: {
-            BASIC: 'basic',
-            MANAGER: 'manager',
-            CUSTOM: 'custom',
+            BASIC: 'APPROVAL_SUBMIT_AND_APPROVE',
+            MANAGER: 'APPROVAL_ADVANCED',
+            CUSTOM: 'APPROVAL_MANUAL',
         },
     },
 
@@ -5012,7 +5013,12 @@ const CONST = {
         PINK: 'Pink',
     },
 
-    MAP_MARKER_SIZE: 20,
+    MAP_MARKER_SIZES: {
+        CURRENT_LOCATION: {width: 48, height: 48},
+        START_WAYPOINT: {width: 48, height: 48},
+        STOP_WAYPOINT: {width: 48, height: 53},
+        WAYPOINT: {width: 40, height: 40},
+    },
 
     QUICK_REACTIONS: [
         {
@@ -8576,6 +8582,7 @@ const CONST = {
             CLOSE_PDF_MODAL: 'MoreMenu-ClosePDFModal',
             SUBMIT: 'MoreMenu-Submit',
             APPROVE: 'MoreMenu-Approve',
+            RECEIVED_PAYMENT: 'MoreMenu-ReceivedPayment',
             UNAPPROVE: 'MoreMenu-Unapprove',
             CANCEL_PAYMENT: 'MoreMenu-CancelPayment',
             HOLD: 'MoreMenu-Hold',
@@ -9227,6 +9234,7 @@ const CONST = {
         USER_LOCATION: 'user-location',
         ROUTE_SOURCE: 'route-source',
         ROUTE_FILL: 'route-fill',
+        ROUTE_BORDER: 'route-border',
     },
 
     PARTNER_ID: {
