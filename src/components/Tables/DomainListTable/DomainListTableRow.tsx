@@ -99,6 +99,7 @@ export default function DomainListTableRow({item, rowIndex, shouldUseNarrowTable
                                 shouldOverlay
                                 shouldSelfPosition
                                 menuItems={threeDotMenuItems}
+                                iconStyles={styles.h7}
                             />
                         )}
 

@@ -76,6 +76,7 @@ function DomainsListPage() {
 
     const headerButton = !!domainRows.length && (
         <Button
+            success
             accessibilityLabel={translate('common.new')}
             text={translate('common.new')}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.NEW_DOMAIN_BUTTON}

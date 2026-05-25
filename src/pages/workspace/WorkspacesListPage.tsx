@@ -592,6 +592,7 @@ function WorkspacesListPage() {
 
     const headerButton = !isRestrictedPolicyCreation && !!workspaceRows.length && (
         <Button
+            success
             accessibilityLabel={translate('common.new')}
             text={translate('common.new')}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.NEW_WORKSPACE_BUTTON}

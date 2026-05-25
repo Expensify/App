@@ -117,8 +117,8 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
             shouldAnimateInHighlight={item.shouldAnimateInHighlight}
             onPress={item.action}
             offlineWithFeedback={{
-                shouldHideOnDelete: false,
                 errors: item.errors,
+                shouldHideOnDelete: false,
                 pendingAction: item.pendingAction,
                 onClose: item.dismissError,
             }}
@@ -240,6 +240,7 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
                                             isContainerFocused={isFocused}
                                             threeDotsMenuRef={threeDotsMenuRef}
                                             menuItems={item.threeDotMenuItems ?? []}
+                                            iconStyles={styles.h7}
                                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.THREE_DOT_MENU}
                                             anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
                                         />
