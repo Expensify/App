@@ -1,4 +1,4 @@
-import React, {useEffect, useId} from 'react';
+import React, {useDeferredValue, useEffect, useId} from 'react';
 import type {ReactNode, RefObject} from 'react';
 import {View} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -51,6 +51,7 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
     const isEditable = isLargeScreenWidth && !shouldUseNarrowLayout;
     const cellId = useId();
     const {setIsEditingCell, setFocusedCellId} = useEditingCellActions();
+    const isInteractive = useDeferredValue(true, false);
 
     useEffect(() => {
         if (!isEditable || !isEditing) {
@@ -85,9 +86,11 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
         );
     }
 
-    // Transient non-editable state (loading, permissions pending): render the container for layout
-    // consistency but skip the pressable so the user cannot trigger edit mode.
-    if (!canEdit) {
+    // Render a layout-identical plain View when editing isn't permitted OR while the
+    // PressableWithFeedback tree is deferred.  This avoids mounting the expensive
+    // Tooltip / Hoverable / BoundsObserver subtree during the initial skeleton render,
+    // unblocking the main thread so the network response can be processed sooner.
+    if (!canEdit || !isInteractive) {
         return <View style={[styles.editableCell]}>{children}</View>;
     }
 

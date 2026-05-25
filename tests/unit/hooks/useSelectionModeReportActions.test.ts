@@ -232,6 +232,8 @@ jest.mock('@libs/PaymentUtils', () => ({
 jest.mock('@libs/TransactionUtils', () => ({
     __esModule: true,
     hasAnyPendingRTERViolation: jest.fn(() => false),
+    hasOnlyPendingCardTransactions: jest.fn(() => false),
+    showPendingCardTransactionsBlockModal: jest.fn(),
     isExpensifyCardTransaction: jest.fn(() => false),
     isPending: jest.fn(() => false),
     getReimbursable: jest.fn(() => true),
