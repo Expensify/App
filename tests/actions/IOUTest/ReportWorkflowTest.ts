@@ -2056,7 +2056,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // No optimistic update should target a chat report with iouReportID: null
             const optimisticChatUpdate = (onyxData.optimisticData ?? []).find(
-                (update: {key: string; value: unknown}) =>
+                (update: {key: string; value?: unknown}) =>
                     update.key !== `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}` && (update.value as Record<string, unknown>)?.iouReportID === null,
             );
             expect(optimisticChatUpdate).toBeUndefined();
