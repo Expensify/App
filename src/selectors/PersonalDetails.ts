@@ -1,5 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import {newGetPersonalDetailsByIDs, getPersonalDetailsObjectByIDs} from '@libs/PersonalDetailsUtils';
+import {getPersonalDetailsObjectByIDs, newGetPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import type {PersonalDetailsList, Report} from '@src/types/onyx';
 import type PersonalDetails from '@src/types/onyx/PersonalDetails';
