@@ -16,6 +16,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {createOptionFromReport, filterAndOrderOptions, formatSectionsFromSearchTerm, getAlternateText, getSearchOptions} from '@libs/OptionsListUtils';
 import type {Option, OptionWithKey, SelectionListSections} from '@libs/OptionsListUtils/types';
 import type {OptionData} from '@libs/ReportUtils';
+import {expensifyLoginsSelector} from '@libs/UserUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -46,7 +47,7 @@ function InSelector({value = [], onChange}: InSelectorProps) {
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const sortedActions = useSortedActions();
 

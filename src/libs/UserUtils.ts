@@ -54,6 +54,32 @@ function getLastLogin(login: NewLogin) {
     return login.lastLogin > login.created ? login.lastLogin : login.created;
 }
 
+/**
+ * Selector that filters the new `logins` Onyx key to only Expensify logins (partnerID === 1)
+ * and re-keys them by partnerUserID, returning a LoginList-compatible shape.
+ */
+function expensifyLoginsSelector(logins: OnyxEntry<Logins>): LoginList | undefined {
+    if (!logins) {
+        return undefined;
+    }
+
+    const result: LoginList = {};
+    for (const login of Object.values(logins)) {
+        if (login.partnerID !== CONST.PARTNER_ID.EXPENSIFY) {
+            continue;
+        }
+        result[login.partnerUserID] = {
+            partnerUserID: login.partnerUserID,
+            validatedDate: login.validatedDate ?? undefined,
+            validateCodeSent: login.validateCodeSent,
+            errorFields: login.errorFields,
+            pendingFields: login.pendingFields,
+            pendingAction: login.pendingAction,
+        };
+    }
+    return result;
+}
+
 const DEVICE_PARTNER_IDS = new Set<number>([CONST.PARTNER_ID.IPHONE, CONST.PARTNER_ID.ANDROID, CONST.PARTNER_ID.NEWDOT]);
 
 function isDeviceLogin(login: NewLogin) {
@@ -202,5 +228,6 @@ export {
     getLastLogin,
     getDeviceLogins,
     hasDeviceManagementError,
+    expensifyLoginsSelector,
 };
 export type {AvatarSource};

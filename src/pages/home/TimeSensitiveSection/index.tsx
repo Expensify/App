@@ -13,7 +13,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hasSynchronizationErrorMessage, isConnectionInProgress} from '@libs/actions/connections';
-import {isCurrentUserValidated} from '@libs/UserUtils';
+import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type {ConnectionName, PolicyConnectionName} from '@src/types/onyx/Policy';
@@ -80,7 +80,7 @@ function TimeSensitiveSection() {
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: isUserValidatedSelector,
     });
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const {lockedBankAccounts} = useTimeSensitiveLockedBankAccount(adminPolicies);
 

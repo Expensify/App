@@ -10,7 +10,7 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getContactMethod} from '@libs/UserUtils';
+import {expensifyLoginsSelector, getContactMethod} from '@libs/UserUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -24,7 +24,7 @@ function SetDefaultContactMethodConfirmMagicCodePage({route}: SetDefaultContactM
     const contactMethod = getDecodedContactMethodFromUriParam(route.params.contactMethod);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const primaryContactMethod = getContactMethod(account?.primaryLogin, session?.email);
 

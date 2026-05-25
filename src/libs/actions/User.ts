@@ -68,6 +68,10 @@ import {showReportActionNotification} from './Report';
 import {resendValidateCode as sessionResendValidateCode} from './Session';
 import redirectToSignIn from './SignInRedirect';
 
+function getExpensifyLoginKey(contactMethod: string) {
+    return `${CONST.PARTNER_ID.EXPENSIFY}_${contactMethod}`;
+}
+
 type DomainOnyxUpdate =
     | OnyxUpdate<`${typeof ONYXKEYS.COLLECTION.DOMAIN}${string}`>
     | OnyxUpdate<`${typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${string}`>
@@ -196,12 +200,13 @@ function resendValidateCode(login: string) {
  * @param contactMethod - the new contact method that the user is trying to verify
  */
 function requestContactMethodValidateCode(contactMethod: string) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.LOGIN_LIST>> = [
+    const loginKey = getExpensifyLoginKey(contactMethod);
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.LOGINS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.LOGIN_LIST,
+            key: ONYXKEYS.LOGINS,
             value: {
-                [contactMethod]: {
+                [loginKey]: {
                     validateCodeSent: false,
                     errorFields: {
                         validateCodeSent: null,
@@ -214,12 +219,12 @@ function requestContactMethodValidateCode(contactMethod: string) {
             },
         },
     ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.LOGIN_LIST>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.LOGINS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.LOGIN_LIST,
+            key: ONYXKEYS.LOGINS,
             value: {
-                [contactMethod]: {
+                [loginKey]: {
                     validateCodeSent: true,
                     pendingFields: {
                         validateCodeSent: null,
@@ -229,12 +234,12 @@ function requestContactMethodValidateCode(contactMethod: string) {
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.LOGIN_LIST>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.LOGINS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.LOGIN_LIST,
+            key: ONYXKEYS.LOGINS,
             value: {
-                [contactMethod]: {
+                [loginKey]: {
                     validateCodeSent: false,
                     errorFields: {
                         validateCodeSent: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.requestContactMethodValidateCode'),
@@ -287,13 +292,14 @@ function updateNewsletterSubscription(isSubscribed: boolean) {
  */
 function deleteContactMethod(contactMethod: string, loginList: Record<string, Login>, backTo?: string) {
     const oldLoginData = loginList[contactMethod];
+    const loginKey = getExpensifyLoginKey(contactMethod);
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.LOGIN_LIST>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.LOGINS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.LOGIN_LIST,
+            key: ONYXKEYS.LOGINS,
             value: {
-                [contactMethod]: {
+                [loginKey]: {
                     partnerUserID: '',
                     errorFields: null,
                     pendingFields: {
@@ -303,21 +309,21 @@ function deleteContactMethod(contactMethod: string, loginList: Record<string, Lo
             },
         },
     ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.LOGIN_LIST>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.LOGINS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.LOGIN_LIST,
+            key: ONYXKEYS.LOGINS,
             value: {
-                [contactMethod]: null,
+                [loginKey]: null,
             },
         },
     ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.LOGIN_LIST>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.LOGINS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.LOGIN_LIST,
+            key: ONYXKEYS.LOGINS,
             value: {
-                [contactMethod]: {
+                [loginKey]: {
                     ...oldLoginData,
                     errorFields: {
                         ...oldLoginData?.errorFields,
@@ -346,11 +352,11 @@ function clearContactMethod(contactMethods: string[]) {
     }
 
     const loginsToClear = contactMethods.reduce<Record<string, null>>((acc, method) => {
-        acc[method] = null;
+        acc[getExpensifyLoginKey(method)] = null;
         return acc;
     }, {});
 
-    Onyx.merge(ONYXKEYS.LOGIN_LIST, loginsToClear);
+    Onyx.merge(ONYXKEYS.LOGINS, loginsToClear);
 }
 
 /**
@@ -377,8 +383,8 @@ function resetValidateActionCodeSent() {
  * Clears any possible stored errors for a specific field on a contact method
  */
 function clearContactMethodErrors(contactMethod: string, fieldName: string) {
-    Onyx.merge(ONYXKEYS.LOGIN_LIST, {
-        [contactMethod]: {
+    Onyx.merge(ONYXKEYS.LOGINS, {
+        [getExpensifyLoginKey(contactMethod)]: {
             errorFields: {
                 [fieldName]: null,
             },
@@ -395,8 +401,8 @@ function clearContactMethodErrors(contactMethod: string, fieldName: string) {
  * @param contactMethod - The identifier of the contact method to reset.
  */
 function resetContactMethodValidateCodeSentState(contactMethod: string) {
-    Onyx.merge(ONYXKEYS.LOGIN_LIST, {
-        [contactMethod]: {
+    Onyx.merge(ONYXKEYS.LOGINS, {
+        [getExpensifyLoginKey(contactMethod)]: {
             validateCodeSent: false,
         },
     });
@@ -419,12 +425,13 @@ function clearPendingContactActionErrors() {
  * Adds a secondary login to a user's account
  */
 function addNewContactMethod(contactMethod: string, validateCode = '') {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.LOGIN_LIST | typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.PENDING_CONTACT_ACTION>> = [
+    const loginKey = getExpensifyLoginKey(contactMethod);
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.LOGINS | typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.PENDING_CONTACT_ACTION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.LOGIN_LIST,
+            key: ONYXKEYS.LOGINS,
             value: {
-                [contactMethod]: {
+                [loginKey]: {
                     partnerUserID: contactMethod,
                     validatedDate: '',
                     errorFields: {
@@ -467,7 +474,7 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
             value: {isLoading: false},
         },
     ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.VALIDATE_ACTION_CODE | typeof ONYXKEYS.PENDING_CONTACT_ACTION | typeof ONYXKEYS.LOGIN_LIST>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.VALIDATE_ACTION_CODE | typeof ONYXKEYS.PENDING_CONTACT_ACTION | typeof ONYXKEYS.LOGINS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -488,9 +495,9 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.LOGIN_LIST,
+            key: ONYXKEYS.LOGINS,
             value: {
-                [contactMethod]: {
+                [loginKey]: {
                     errorFields: {
                         addedLogin: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.addContactMethod'),
                     },
@@ -566,12 +573,13 @@ function requestValidateCodeAction() {
  * Validates a secondary login / contact method
  */
 function validateSecondaryLogin(contactMethod: string, validateCode: string, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], shouldResetActionCode?: boolean) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.LOGIN_LIST | typeof ONYXKEYS.ACCOUNT>> = [
+    const loginKey = getExpensifyLoginKey(contactMethod);
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.LOGINS | typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.LOGIN_LIST,
+            key: ONYXKEYS.LOGINS,
             value: {
-                [contactMethod]: {
+                [loginKey]: {
                     errorFields: {
                         validateLogin: null,
                         validateCodeSent: null,
@@ -591,12 +599,12 @@ function validateSecondaryLogin(contactMethod: string, validateCode: string, for
             },
         },
     ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.LOGIN_LIST | typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.VALIDATE_ACTION_CODE>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.LOGINS | typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.VALIDATE_ACTION_CODE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.LOGIN_LIST,
+            key: ONYXKEYS.LOGINS,
             value: {
-                [contactMethod]: {
+                [loginKey]: {
                     validatedDate: DateUtils.getDBTime(),
                     pendingFields: {
                         validateLogin: null,
@@ -617,12 +625,12 @@ function validateSecondaryLogin(contactMethod: string, validateCode: string, for
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.LOGIN_LIST | typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.VALIDATE_ACTION_CODE>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.LOGINS | typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.VALIDATE_ACTION_CODE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.LOGIN_LIST,
+            key: ONYXKEYS.LOGINS,
             value: {
-                [contactMethod]: {
+                [loginKey]: {
                     errorFields: {
                         validateLogin: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.validateSecondaryLogin'),
                         validateCodeSent: null,
@@ -1124,13 +1132,14 @@ function setContactMethodAsDefault(
     skipNavigation: boolean,
     validateCode: string,
 ) {
+    const loginKey = getExpensifyLoginKey(newDefaultContactMethod);
     // Pattern C: only set a pending indicator optimistically, no actual data changes
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.LOGIN_LIST>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.LOGINS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.LOGIN_LIST,
+            key: ONYXKEYS.LOGINS,
             value: {
-                [newDefaultContactMethod]: {
+                [loginKey]: {
                     pendingFields: {
                         defaultLogin: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
@@ -1143,7 +1152,7 @@ function setContactMethodAsDefault(
     ];
 
     // Pattern C: apply all actual data changes only after server confirms success
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION | typeof ONYXKEYS.LOGIN_LIST | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION | typeof ONYXKEYS.LOGINS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -1160,9 +1169,9 @@ function setContactMethodAsDefault(
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.LOGIN_LIST,
+            key: ONYXKEYS.LOGINS,
             value: {
-                [newDefaultContactMethod]: {
+                [loginKey]: {
                     pendingFields: {
                         defaultLogin: null,
                     },
@@ -1181,12 +1190,12 @@ function setContactMethodAsDefault(
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.LOGIN_LIST>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.LOGINS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.LOGIN_LIST,
+            key: ONYXKEYS.LOGINS,
             value: {
-                [newDefaultContactMethod]: {
+                [loginKey]: {
                     pendingFields: {
                         defaultLogin: null,
                     },

@@ -36,10 +36,10 @@ describe('actions/User', () => {
             UserActions.clearContactMethod(contactMethods);
             await waitForBatchedUpdates();
 
-            // Then LOGIN_LIST should remain unchanged (null/undefined)
+            // Then LOGINS should remain unchanged (null/undefined)
             const loginList = await new Promise<Record<string, unknown> | null>((resolve) => {
                 const connection = Onyx.connect({
-                    key: ONYXKEYS.LOGIN_LIST,
+                    key: ONYXKEYS.LOGINS,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value ?? null);
@@ -54,23 +54,24 @@ describe('actions/User', () => {
             // Given a login list with a contact method
             const contactMethod = 'test@example.com';
             const initialLoginList = {
-                [contactMethod]: {
+                [`1_${contactMethod}`]: {
+                    partnerID: 1,
                     partnerUserID: contactMethod,
                     validatedDate: '2024-01-01',
                 },
             };
 
-            await Onyx.merge(ONYXKEYS.LOGIN_LIST, initialLoginList);
+            await Onyx.merge(ONYXKEYS.LOGINS, initialLoginList);
             await waitForBatchedUpdates();
 
             // When clearContactMethod is called with that contact method
             UserActions.clearContactMethod([contactMethod]);
             await waitForBatchedUpdates();
 
-            // Then the contact method should be set to null in LOGIN_LIST
+            // Then the contact method should be set to null in LOGINS
             const loginList = await new Promise<Record<string, unknown> | null>((resolve) => {
                 const connection = Onyx.connect({
-                    key: ONYXKEYS.LOGIN_LIST,
+                    key: ONYXKEYS.LOGINS,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value ?? null);
@@ -87,21 +88,24 @@ describe('actions/User', () => {
             const contactMethod2 = 'test2@example.com';
             const contactMethod3 = 'test3@example.com';
             const initialLoginList = {
-                [contactMethod1]: {
+                [`1_${contactMethod1}`]: {
+                    partnerID: 1,
                     partnerUserID: contactMethod1,
                     validatedDate: '2024-01-01',
                 },
-                [contactMethod2]: {
+                [`1_${contactMethod2}`]: {
+                    partnerID: 1,
                     partnerUserID: contactMethod2,
                     validatedDate: '2024-01-02',
                 },
-                [contactMethod3]: {
+                [`1_${contactMethod3}`]: {
+                    partnerID: 1,
                     partnerUserID: contactMethod3,
                     validatedDate: '2024-01-03',
                 },
             };
 
-            await Onyx.merge(ONYXKEYS.LOGIN_LIST, initialLoginList);
+            await Onyx.merge(ONYXKEYS.LOGINS, initialLoginList);
             await waitForBatchedUpdates();
 
             // When clearContactMethod is called with multiple contact methods
@@ -111,7 +115,7 @@ describe('actions/User', () => {
             // Then the specified contact methods should be set to null, while others remain unchanged
             const loginList = await new Promise<Record<string, unknown> | null>((resolve) => {
                 const connection = Onyx.connect({
-                    key: ONYXKEYS.LOGIN_LIST,
+                    key: ONYXKEYS.LOGINS,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value ?? null);
@@ -120,7 +124,8 @@ describe('actions/User', () => {
             });
 
             expect(loginList).toEqual({
-                [contactMethod2]: {
+                [`1_${contactMethod2}`]: {
+                    partnerID: 1,
                     partnerUserID: contactMethod2,
                     validatedDate: '2024-01-02',
                 },
@@ -132,23 +137,24 @@ describe('actions/User', () => {
             const existingContactMethod = 'existing@example.com';
             const nonExistentContactMethod = 'nonexistent@example.com';
             const initialLoginList = {
-                [existingContactMethod]: {
+                [`1_${existingContactMethod}`]: {
+                    partnerID: 1,
                     partnerUserID: existingContactMethod,
                     validatedDate: '2024-01-01',
                 },
             };
 
-            await Onyx.merge(ONYXKEYS.LOGIN_LIST, initialLoginList);
+            await Onyx.merge(ONYXKEYS.LOGINS, initialLoginList);
             await waitForBatchedUpdates();
 
             // When clearContactMethod is called with both existing and non-existent contact methods
             UserActions.clearContactMethod([existingContactMethod, nonExistentContactMethod]);
             await waitForBatchedUpdates();
 
-            // Then both should be set to null in LOGIN_LIST
+            // Then both should be set to null in LOGINS
             const loginList = await new Promise<Record<string, unknown> | null>((resolve) => {
                 const connection = Onyx.connect({
-                    key: ONYXKEYS.LOGIN_LIST,
+                    key: ONYXKEYS.LOGINS,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value ?? null);
@@ -384,13 +390,14 @@ describe('actions/User', () => {
 
             expect(optimisticData).toHaveLength(3);
 
-            // Verify LOGIN_LIST update
-            const loginListUpdate = optimisticData.find((update) => update.key === ONYXKEYS.LOGIN_LIST);
+            // Verify LOGINS update
+            const loginListUpdate = optimisticData.find((update) => update.key === ONYXKEYS.LOGINS);
             expect(loginListUpdate).toEqual({
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.LOGIN_LIST,
+                key: ONYXKEYS.LOGINS,
                 value: {
-                    [contactMethod]: {
+                    [`1_${contactMethod}`]: {
+                        partnerID: 1,
                         partnerUserID: contactMethod,
                         validatedDate: '',
                         errorFields: {
@@ -533,10 +540,10 @@ describe('actions/User', () => {
             UserActions.addNewContactMethod(contactMethod);
             await waitForBatchedUpdates();
 
-            // Then LOGIN_LIST should be updated with the new contact method
+            // Then LOGINS should be updated with the new contact method
             const loginList = await new Promise<Record<string, unknown> | null>((resolve) => {
                 const connection = Onyx.connect({
-                    key: ONYXKEYS.LOGIN_LIST,
+                    key: ONYXKEYS.LOGINS,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value ?? null);
@@ -544,7 +551,8 @@ describe('actions/User', () => {
                 });
             });
 
-            expect(loginList?.[contactMethod]).toEqual({
+            expect(loginList?.[`1_${contactMethod}`]).toEqual({
+                partnerID: 1,
                 partnerUserID: contactMethod,
                 validatedDate: '',
                 errorFields: {},

@@ -40,6 +40,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import {expensifyLoginsSelector} from '@libs/UserUtils';
 import {close} from '@userActions/Modal';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -53,7 +54,7 @@ import getDecodedContactMethodFromUriParam from './utils';
 type ContactMethodDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS>;
 
 function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
-    const [loginList, loginListResult] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList, loginListResult] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [session, sessionResult] = useOnyx(ONYXKEYS.SESSION);
     const [myDomainSecurityGroups, myDomainSecurityGroupsResult] = useOnyx(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS);
     const [securityGroups, securityGroupsResult] = useOnyx(ONYXKEYS.COLLECTION.SECURITY_GROUP);

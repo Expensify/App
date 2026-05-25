@@ -10055,6 +10055,7 @@ const CONST = {
     },
 
     PARTNER_ID: {
+        EXPENSIFY: 1,
         IPHONE: 14,
         ANDROID: 16,
         NEWDOT: 83,
