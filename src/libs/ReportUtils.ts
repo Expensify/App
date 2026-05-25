@@ -3991,7 +3991,7 @@ function getReimbursementQueuedActionMessage({
 function getReimbursementDeQueuedOrCanceledActionMessage(
     translate: LocalizedTranslate,
     reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED | typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED>>,
-    report: OnyxEntry<Report>,
+    reportOwnerAccountID: number | undefined,
 ): string {
     const originalMessage = getOriginalMessage(reportAction);
     const amount = originalMessage?.amount;
@@ -4000,7 +4000,7 @@ function getReimbursementDeQueuedOrCanceledActionMessage(
     if (originalMessage?.cancellationReason === CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN || originalMessage?.cancellationReason === CONST.REPORT.CANCEL_PAYMENT_REASONS.USER) {
         return translate('iou.adminCanceledRequest');
     }
-    const submitterDisplayName = getDisplayNameForParticipant({accountID: report?.ownerAccountID, shouldUseShortForm: true, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
+    const submitterDisplayName = getDisplayNameForParticipant({accountID: reportOwnerAccountID, shouldUseShortForm: true, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
     return translate('iou.canceledRequest', formattedAmount, submitterDisplayName);
 }
 
