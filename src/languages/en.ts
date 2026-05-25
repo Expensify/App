@@ -1027,6 +1027,7 @@ const translations = {
             repaidLast30Days: 'Repaid in the last 30 days',
             recentTransactions: ({lastFour}: {lastFour: string}) => `Recent transactions • ${lastFour}`,
         },
+        seeMore: ({count}: {count: number}) => `See ${count} more`,
         announcements: 'Announcements',
         discoverSection: {
             title: 'Discover',
@@ -2295,7 +2296,7 @@ const translations = {
     deviceManagementPage: {
         title: 'Device management',
         description:
-            'Manage all the devices that you have logged into with your Expensify Account. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Learn more</a>',
+            'Manage all the devices that you have logged into with your Expensify Account. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Learn more</a>.',
         revoke: 'Revoke',
         unknownDevice: 'Unknown Device',
     },
@@ -7878,6 +7879,7 @@ const translations = {
         },
         resultsAreLimited: 'Search results are limited.',
         viewResults: 'View results',
+        applyFilters: 'Apply filters',
         appliedFilters: 'Applied filters',
         resetFilters: 'Reset filters',
         searchResults: {
@@ -7990,7 +7992,12 @@ const translations = {
             amount: {
                 lessThan: (amount?: string) => `Less than ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Greater than ${amount ?? ''}`,
-                between: (greaterThan: string, lessThan: string) => `Between ${greaterThan} and ${lessThan}`,
+                between: (greaterThan?: string, lessThan?: string) => {
+                    if (greaterThan && lessThan) {
+                        return `Between ${greaterThan} and ${lessThan}`;
+                    }
+                    return 'Between';
+                },
                 equalTo: (amount?: string) => `Equal to ${amount ?? ''}`,
             },
             card: {

@@ -1047,6 +1047,7 @@ const translations: TranslationDeepObject<typeof en> = {
             repaidLast30Days: 'Remboursé au cours des 30 derniers jours',
             recentTransactions: ({lastFour}: {lastFour: string}) => `Transactions récentes • ${lastFour}`,
         },
+        seeMore: ({count}: {count: number}) => `Voir ${count} de plus`,
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -2229,7 +2230,7 @@ const translations: TranslationDeepObject<typeof en> = {
     deviceManagementPage: {
         title: 'Gestion des appareils',
         description:
-            'Gérez tous les appareils sur lesquels vous vous êtes connecté avec votre compte Expensify. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">En savoir plus</a>',
+            'Gérez tous les appareils sur lesquels vous vous êtes connecté avec votre compte Expensify. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">En savoir plus</a>.',
         revoke: 'Révoquer',
         unknownDevice: 'Appareil Inconnu',
     },
@@ -7885,6 +7886,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
     search: {
         resultsAreLimited: 'Les résultats de recherche sont limités.',
         viewResults: 'Afficher les résultats',
+        applyFilters: 'Appliquer des filtres',
         appliedFilters: 'Filtres appliqués',
         resetFilters: 'Réinitialiser les filtres',
         searchResults: {
@@ -7994,7 +7996,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             amount: {
                 lessThan: (amount?: string) => `Inférieur à ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Supérieur à ${amount ?? ''}`,
-                between: (greaterThan: string, lessThan: string) => `Entre ${greaterThan} et ${lessThan}`,
+                between: (greaterThan?: string, lessThan?: string) => {
+                    if (greaterThan && lessThan) {
+                        return `Entre ${greaterThan} et ${lessThan}`;
+                    }
+                    return 'Entre';
+                },
                 equalTo: (amount?: string) => `Égal à ${amount ?? ''}`,
             },
             card: {
