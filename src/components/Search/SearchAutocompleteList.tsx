@@ -1,7 +1,7 @@
 import type {ForwardedRef, RefObject} from 'react';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {ActivityIndicator} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
+import ActivityIndicator from '@components/ActivityIndicator';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
@@ -521,7 +521,7 @@ function SearchAutocompleteList({
                     <ActivityIndicator
                         size="large"
                         style={[styles.flex1, styles.mt4]}
-                        color={theme.spinner}
+                        reasonAttributes={{context: 'SearchAutocompleteList', isSearchingForReports}}
                     />
                 );
             }
