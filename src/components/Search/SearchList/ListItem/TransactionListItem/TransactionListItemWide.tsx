@@ -3,6 +3,7 @@ import type {View} from 'react-native';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {ListItem} from '@components/SelectionList/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
@@ -15,7 +16,6 @@ import type {TransactionListItemWideProps} from './types';
 
 function TransactionListItemWide<TItem extends ListItem>({
     item,
-    transactionItem,
     isDeletedTransaction,
     isFocused,
     showTooltip,
@@ -58,6 +58,8 @@ function TransactionListItemWide<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<View>(null);
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
+
+    const transactionItem = item as unknown as TransactionListItemType;
 
     const amountColumnSize = transactionItem.isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
     const taxAmountColumnSize = transactionItem.isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
@@ -136,7 +138,7 @@ function TransactionListItemWide<TItem extends ListItem>({
                         checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM_CHECKBOX}
                         style={[styles.p3, styles.pv2, isLastItem ? styles.tableBottomRadius : styles.noBorderRadius]}
                         violations={transactionViolations}
-                        onArrowRightPress={isDeletedTransaction ? undefined : () => onSelectRow(item, transactionPreviewData)}
+                        onArrowRightPress={isDeletedTransaction ? undefined : (event) => onSelectRow(item, transactionPreviewData, event)}
                         isHover={hovered}
                         nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                         reportActions={exportedReportActions}

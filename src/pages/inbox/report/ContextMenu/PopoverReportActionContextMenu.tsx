@@ -390,7 +390,12 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     currentUserEmail: email ?? '',
                 });
             } else if (originalMessage?.IOUTransactionID) {
-                deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, undefined);
+                const deleteResult = deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, undefined);
+
+                if (deleteResult.action === 'redirected') {
+                    setIsDeleteCommentConfirmModalVisible(false);
+                    return;
+                }
             }
         } else if (isReportPreviewAction(reportAction)) {
             deleteAppReport({
