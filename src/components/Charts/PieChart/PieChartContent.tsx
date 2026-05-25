@@ -15,7 +15,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import PieSliceGap from './PieSliceGap';
+import PaddedPieSlice from './PaddedPieSlice';
 
 type PieChartProps = ChartProps & {
     /** Callback when a slice is pressed */
@@ -182,13 +182,10 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
                                 innerRadius={`${PIE_CHART_INNER_RADIUS_RATIO * 100}%`}
                             >
                                 {({slice}) => (
-                                    <>
-                                        <Pie.Slice />
-                                        <PieSliceGap
-                                            slice={slice}
-                                            gapDegrees={PIE_CHART_SLICE_GAP_DEGREES}
-                                        />
-                                    </>
+                                    <PaddedPieSlice
+                                        slice={slice}
+                                        padAngle={PIE_CHART_SLICE_GAP_DEGREES}
+                                    />
                                 )}
                             </Pie.Chart>
                         </PolarChart>
