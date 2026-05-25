@@ -25,9 +25,9 @@ type ReceiptFileValidatorProps = {
     participants: Participant[];
     draftTransactionIDs: string[] | undefined;
     /**
-     * False if an upstream writer is still finalizing the initial transaction's receipt. The validator
-     * skips only the initial row while this is false; non-initial rows still validate. Pass `true`
-     * when nothing else is contending with the validator.
+     * False if an upstream writer is still finalizing transaction receipts. The validator skips
+     * validation entirely while this is false. Pass `true` when nothing else is contending with
+     * the validator.
      */
     isReceiptReady: boolean;
     onReceiptFilesChange: (files: Record<string, Receipt>) => void;
@@ -69,10 +69,9 @@ function ReceiptFileValidator({
                 const itemReceiptType = item.receipt?.type;
                 const isLocalFile = isLocalFileFileUtils(itemReceiptPath);
 
-                // Skip the initial row while an upstream writer is finalizing its receipt. When
-                // isReceiptReady flips true, this effect re-runs and picks up the row. Non-initial
-                // rows always validate.
-                if (item.transactionID === initialTransactionID && !isReceiptReady) {
+                // Skip validation while an upstream writer is finalizing receipts. When
+                // isReceiptReady flips true, this effect re-runs and validates from scratch.
+                if (!isReceiptReady) {
                     return Promise.resolve();
                 }
 
