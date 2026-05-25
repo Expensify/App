@@ -11625,7 +11625,9 @@ async function isContributorPlusMember(username, orgToken) {
             console.log(`${username} is not a Contributor+ member.`);
             return false;
         }
-        throw error;
+        const message = error instanceof Error ? error.message : String(error);
+        core.warning(`Could not verify Contributor+ membership for ${username}. Assuming they are not a Contributor+: ${message}`);
+        return false;
     }
 }
 async function isAuthorizedViaLinkedIssues(prBody, prAuthor) {

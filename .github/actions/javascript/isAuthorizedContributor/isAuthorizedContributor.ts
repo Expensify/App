@@ -64,7 +64,9 @@ async function isContributorPlusMember(username: string, orgToken: string): Prom
             console.log(`${username} is not a Contributor+ member.`);
             return false;
         }
-        throw error;
+        const message = error instanceof Error ? error.message : String(error);
+        core.warning(`Could not verify Contributor+ membership for ${username}. Assuming they are not a Contributor+: ${message}`);
+        return false;
     }
 }
 
