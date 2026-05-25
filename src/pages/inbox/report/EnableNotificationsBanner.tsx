@@ -8,8 +8,10 @@ import NotificationPermission from '@libs/Notification/notificationPermission';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
+// Visual breathing room hidden behind the composer in addition to the corner-radius arc.
+const BANNER_EXTRA_OVERLAP_PX = 8;
 // Composer overlaps this banner; the overlap must be ≥ the composer's corner radius.
-const BANNER_COMPOSER_OVERLAP_PX = variables.componentBorderRadiusRounded + 8;
+const BANNER_COMPOSER_OVERLAP_PX = variables.componentBorderRadiusRounded + BANNER_EXTRA_OVERLAP_PX;
 const BANNER_VISIBLE_BOTTOM_GAP_PX = 12;
 
 const containerOverrideStyle = {
