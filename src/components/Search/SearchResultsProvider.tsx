@@ -1,4 +1,4 @@
-import React, {useContext, useState} from 'react';
+import React, {useState} from 'react';
 // We need direct access to useOnyx from react-native-onyx to avoid circular dependencies in SearchContext
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx} from 'react-native-onyx';
@@ -7,8 +7,8 @@ import {isTodoSearch} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
+import {useSearchQueryContext} from './SearchContext';
 import {SearchResultsActionsContext, SearchResultsContext} from './SearchContextDefinitions';
-import {useSearchQueryContext} from './SearchQueryProvider';
 import type {SearchResultsActionsValue, SearchResultsContextValue} from './types';
 
 type SearchResultsProviderProps = {
@@ -93,12 +93,4 @@ function SearchResultsProvider({children}: SearchResultsProviderProps) {
     );
 }
 
-function useSearchResultsContext() {
-    return useContext(SearchResultsContext);
-}
-
-function useSearchResultsActions() {
-    return useContext(SearchResultsActionsContext);
-}
-
-export {SearchResultsProvider, useSearchResultsContext, useSearchResultsActions, SearchResultsContext, SearchResultsActionsContext};
+export default SearchResultsProvider;

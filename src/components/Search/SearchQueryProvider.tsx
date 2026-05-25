@@ -1,6 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
 import type {NavigationState} from '@react-navigation/routers';
-import React, {useContext, useState} from 'react';
+import React, {useState} from 'react';
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import usePreviousDefined from '@hooks/usePreviousDefined';
@@ -66,12 +66,4 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
     );
 }
 
-function useSearchQueryContext() {
-    return useContext(SearchQueryContext);
-}
-
-function useSearchQueryActions() {
-    return useContext(SearchQueryActionsContext);
-}
-
-export {SearchQueryProvider, useSearchQueryContext, useSearchQueryActions, SearchQueryContext, SearchQueryActionsContext};
+export default SearchQueryProvider;

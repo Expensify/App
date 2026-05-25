@@ -1,7 +1,12 @@
 import React from 'react';
-import {SearchQueryActionsContext, SearchQueryContext} from '@components/Search/SearchQueryProvider';
-import {SearchResultsActionsContext, SearchResultsContext} from '@components/Search/SearchResultsProvider';
-import {SearchSelectionActionsContext, SearchSelectionContext} from '@components/Search/SearchSelectionProvider';
+import {
+    SearchQueryActionsContext,
+    SearchQueryContext,
+    SearchResultsActionsContext,
+    SearchResultsContext,
+    SearchSelectionActionsContext,
+    SearchSelectionContext,
+} from '@components/Search/SearchContext';
 import type {
     SearchActionsContextValue,
     SearchQueryActionsValue,

@@ -1,12 +1,12 @@
-import React, {useContext, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
 import {isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
 import {hasValidModifiedAmount} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {useSearchQueryContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
 import {SearchSelectionActionsContext, SearchSelectionContext} from './SearchContextDefinitions';
 import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from './SearchList/ListItem/types';
-import {useSearchQueryContext} from './SearchQueryProvider';
 import type {SearchSelectionActionsValue, SearchSelectionContextValue, SelectedReports, SelectedTransactions} from './types';
 
 type SearchSelectionProviderProps = {
@@ -256,21 +256,12 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
 }
 
 /**
+ * Derives `selectedReports` from the current selection + visible rows and syncs it into context.
+ * Used by the Search component so `toggleTransaction` can stay independent of `filteredData`.
+ *
  * Note: `selectedTransactionIDs` and `selectedTransactions` are two separate properties.
  * Setting or clearing one of them does not influence the other.
  * IDs should be used if transaction details are not required.
- */
-function useSearchSelectionContext() {
-    return useContext(SearchSelectionContext);
-}
-
-function useSearchSelectionActions() {
-    return useContext(SearchSelectionActionsContext);
-}
-
-/**
- * Derives `selectedReports` from the current selection + visible rows and syncs it into context.
- * Used by the Search component so `toggleTransaction` can stay independent of `filteredData`.
  *
  * `data` is read via a ref so this effect only fires when `selectedTransactions` changes.
  * Without that, a `data` change (e.g. Onyx push) would fire this effect with a stale
@@ -290,4 +281,4 @@ function useSyncSelectedReports(data: TransactionListItemType[] | TransactionGro
     }, [selectedTransactions, setSelectedReports]);
 }
 
-export {SearchSelectionProvider, useSearchSelectionContext, useSearchSelectionActions, useSyncSelectedReports, SearchSelectionContext, SearchSelectionActionsContext};
+export {SearchSelectionProvider, useSyncSelectedReports};
