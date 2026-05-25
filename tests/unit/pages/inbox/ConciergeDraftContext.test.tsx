@@ -2,7 +2,7 @@ import {act, renderHook, waitFor} from '@testing-library/react-native';
 import type {PropsWithChildren} from 'react';
 import Onyx from 'react-native-onyx';
 import Pusher from '@libs/Pusher';
-import type {ConciergeDraftEvent} from '@libs/Pusher/types';
+import type {ConciergeDraftEvent, ConciergeDraftEventsEvent} from '@libs/Pusher/types';
 import {ConciergeDraftProvider, useConciergeDraft} from '@pages/inbox/ConciergeDraftContext';
 import {applyConciergeDraftEvent, getCachedDraft, setCachedDraft} from '@pages/inbox/conciergeDraftState';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -11,6 +11,7 @@ import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/Pusher', () => ({
     TYPE: {
+        CONCIERGE_DRAFT_EVENTS: 'conciergeDraftEvents',
         CONCIERGE_DRAFT_STARTED: 'conciergeDraftStarted',
         CONCIERGE_DRAFT_UPDATED: 'conciergeDraftUpdated',
         CONCIERGE_DRAFT_COMPLETED: 'conciergeDraftCompleted',
@@ -33,7 +34,7 @@ const COMPLETED_BODY_MARKDOWN = 'Hello world';
 const FINAL_RENDERED_HTML = '<comment>Server final response</comment>';
 
 type MockPusherSubscribe = jest.MockedFunction<
-    (channelName: string, eventName?: string, eventCallback?: (event: ConciergeDraftEvent) => void, onResubscribe?: () => void) => ReturnType<typeof Pusher.subscribe>
+    (channelName: string, eventName?: string, eventCallback?: (event: ConciergeDraftEvent | ConciergeDraftEventsEvent) => void, onResubscribe?: () => void) => ReturnType<typeof Pusher.subscribe>
 >;
 
 function getMockPusherSubscribe(): MockPusherSubscribe {
@@ -63,7 +64,7 @@ function createDraftEvent(bodyMarkdown: string, overrides: Partial<ConciergeDraf
     };
 }
 
-function emitPusherEvent(eventType: string, event: ConciergeDraftEvent) {
+function emitPusherEvent(eventType: string, event: ConciergeDraftEvent | ConciergeDraftEventsEvent) {
     const subscriptionCall = getMockPusherSubscribe().mock.calls.find(([, subscribedEventType]) => subscribedEventType === eventType);
     const callback = subscriptionCall?.[2];
 
@@ -129,7 +130,7 @@ describe('ConciergeDraftContext', () => {
         const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
 
         await waitFor(() => {
-            expect(Pusher.subscribe).toHaveBeenCalledTimes(5);
+            expect(Pusher.subscribe).toHaveBeenCalledTimes(6);
         });
 
         // Given an active paced Pusher target
@@ -164,7 +165,7 @@ describe('ConciergeDraftContext', () => {
         const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
 
         await waitFor(() => {
-            expect(Pusher.subscribe).toHaveBeenCalledTimes(5);
+            expect(Pusher.subscribe).toHaveBeenCalledTimes(6);
         });
 
         // Given an in-progress Pusher target
@@ -205,7 +206,7 @@ describe('ConciergeDraftContext', () => {
         const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
 
         await waitFor(() => {
-            expect(Pusher.subscribe).toHaveBeenCalledTimes(5);
+            expect(Pusher.subscribe).toHaveBeenCalledTimes(6);
         });
 
         // When completion arrives with markdown only
@@ -226,6 +227,30 @@ describe('ConciergeDraftContext', () => {
             expect(getCachedDraft(REPORT_ID)?.status).toBe('completed');
             expect(getFirstMessageText(result.current.draftReportAction)).toBe(TARGET_BODY_MARKDOWN);
         });
+
+        unmount();
+    });
+
+    it('applies ordered batched Pusher draft events', async () => {
+        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
+        const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
+
+        await waitFor(() => {
+            expect(Pusher.subscribe).toHaveBeenCalledTimes(6);
+        });
+
+        act(() => {
+            emitPusherEvent(Pusher.TYPE.CONCIERGE_DRAFT_EVENTS, {
+                events: [
+                    createDraftEvent('H', {sequence: 1, status: 'started'}),
+                    createDraftEvent(TARGET_BODY_MARKDOWN, {sequence: 2, status: 'updated'}),
+                ],
+            });
+        });
+
+        expect(getFirstMessageText(result.current.draftReportAction)).toBe('He');
+        expect(getCachedDraft(REPORT_ID)?.pusherTargetBodyMarkdown).toBe(TARGET_BODY_MARKDOWN);
+        expect(getCachedDraft(REPORT_ID)?.pusherTargetSequence).toBe(2);
 
         unmount();
     });

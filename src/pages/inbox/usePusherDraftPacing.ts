@@ -3,7 +3,7 @@ import type {Dispatch, SetStateAction} from 'react';
 import {getReportChannelName} from '@libs/actions/Report';
 import Log from '@libs/Log';
 import Pusher from '@libs/Pusher';
-import type {ConciergeDraftEvent} from '@libs/Pusher/types';
+import type {ConciergeDraftEvent, ConciergeDraftEventsEvent} from '@libs/Pusher/types';
 import type {ConciergeDraft} from './conciergeDraftState';
 import {applyConciergeDraftEvent, getCachedDraft, getNextVisibleConciergeDraftBodyMarkdown, setCachedDraft} from './conciergeDraftState';
 
@@ -241,6 +241,12 @@ function handlePusherDraftEvent(runtime: PusherDraftPacingRuntime, event: Concie
     }
 }
 
+function handlePusherDraftEvents(runtime: PusherDraftPacingRuntime, eventData: ConciergeDraftEventsEvent) {
+    for (const event of eventData.events) {
+        handlePusherDraftEvent(runtime, event);
+    }
+}
+
 function resumeCachedPusherDraftPace(runtime: PusherDraftPacingRuntime) {
     const {completedPusherDraftEventRef, latestPusherDraftEventRef, visibleBodyMarkdownRef} = runtime;
     const latestEvent = latestPusherDraftEventRef.current;
@@ -313,22 +319,37 @@ function usePusherDraftPacing(reportID: string) {
             clearCachedPusherDraft(runtime);
         };
 
-        const subscriptions = PUSHER_DRAFT_EVENT_TYPES.map((eventType) => {
-            const listener = Pusher.subscribe(
-                channelName,
-                eventType,
-                (eventData) => {
-                    handlePusherDraftEvent(runtime, eventData as ConciergeDraftEvent);
-                },
-                handleResubscribe,
-            );
-
-            listener.catch((error: unknown) => {
-                Log.hmmm('Failed to subscribe to Pusher concierge draft events', {eventType, reportID, error});
-            });
-
-            return listener;
+        const batchSubscription = Pusher.subscribe(
+            channelName,
+            Pusher.TYPE.CONCIERGE_DRAFT_EVENTS,
+            (eventData) => {
+                handlePusherDraftEvents(runtime, eventData as ConciergeDraftEventsEvent);
+            },
+            handleResubscribe,
+        );
+        batchSubscription.catch((error: unknown) => {
+            Log.hmmm('Failed to subscribe to Pusher concierge draft events', {eventType: Pusher.TYPE.CONCIERGE_DRAFT_EVENTS, reportID, error});
         });
+
+        const subscriptions = [
+            batchSubscription,
+            ...PUSHER_DRAFT_EVENT_TYPES.map((eventType) => {
+                const listener = Pusher.subscribe(
+                    channelName,
+                    eventType,
+                    (eventData) => {
+                        handlePusherDraftEvent(runtime, eventData as ConciergeDraftEvent);
+                    },
+                    handleResubscribe,
+                );
+
+                listener.catch((error: unknown) => {
+                    Log.hmmm('Failed to subscribe to Pusher concierge draft events', {eventType, reportID, error});
+                });
+
+                return listener;
+            }),
+        ];
 
         resumeCachedPusherDraftPace(runtime);
 
