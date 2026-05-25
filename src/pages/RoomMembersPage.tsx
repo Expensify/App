@@ -13,8 +13,6 @@ import TableListItem from '@components/SelectionList/ListItem/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import Text from '@components/Text';
-import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
-import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useFilteredSelection from '@hooks/useFilteredSelection';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -36,7 +34,7 @@ import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navig
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
 import {isPersonalDetailsReady, isSearchStringMatchUserDetails} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
+import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isPolicyAdmin, isPolicyEmployee as isPolicyEmployeeUtils} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
@@ -55,12 +53,13 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {personalDetailsSelector} from '@src/selectors/PersonalDetails';
 import type {PersonalDetails} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
 import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 
-type RoomMembersPageProps = WithReportOrNotFoundProps & WithCurrentUserPersonalDetailsProps & PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.ROOT>;
+type RoomMembersPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.ROOT>;
 
 function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     const route = useRoute<PlatformStackRouteProp<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.ROOT>>();
@@ -71,7 +70,6 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     const reportAttributes = useReportAttributes();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`);
-    const currentUserAccountID = Number(session?.accountID);
     const {formatPhoneNumber, translate, localeCompare} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE);
@@ -109,6 +107,8 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     );
 
     const [selectedMembers, setSelectedMembers] = useFilteredSelection(personalDetailsParticipants, shouldIncludeMember);
+    const firstSelectedMember = selectedMembers?.at(0);
+    const [firstSelectedMemberDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(firstSelectedMember)});
 
     const isFocusedScreen = useIsFocused();
     const {isOffline} = useNetwork();
@@ -166,7 +166,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
             title: translate('workspace.people.removeMembersTitle', {count: selectedMembers.length}),
             prompt: translate('roomMembersPage.removeMembersPrompt', {
                 count: selectedMembers.length,
-                memberName: formatPhoneNumber(getPersonalDetailsByIDs({accountIDs: selectedMembers, currentUserAccountID}).at(0)?.displayName ?? ''),
+                memberName: formatPhoneNumber(firstSelectedMemberDetails?.displayName ?? ''),
             }),
             confirmText: translate('common.remove'),
             cancelText: translate('common.cancel'),
@@ -176,7 +176,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
             return;
         }
         removeUsers();
-    }, [showConfirmModal, translate, selectedMembers, formatPhoneNumber, currentUserAccountID, removeUsers]);
+    }, [showConfirmModal, translate, selectedMembers.length, formatPhoneNumber, firstSelectedMemberDetails?.displayName, removeUsers]);
 
     /**
      * Add user from the selectedMembers list
@@ -481,4 +481,4 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     );
 }
 
-export default withReportOrNotFound()(withCurrentUserPersonalDetails(RoomMembersPage));
+export default withReportOrNotFound()(RoomMembersPage);
