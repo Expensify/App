@@ -301,10 +301,16 @@ describe('SequentialQueue', () => {
             expect(processSpy).toHaveBeenCalledTimes(1);
             expect(getAll().length).toBe(0);
 
-            const dispatchedSuccess = onyxUpdateSpy.mock.calls.some((args) => Array.isArray(args[0]) && args[0].some((update) => update === successData[0]));
+            const dispatchedSuccess = onyxUpdateSpy.mock.calls.some((args) => {
+                const updates = args.at(0) as unknown[] | undefined;
+                return Array.isArray(updates) && updates.includes(successData.at(0));
+            });
             expect(dispatchedSuccess).toBe(true);
 
-            const dispatchedFailure = onyxUpdateSpy.mock.calls.some((args) => Array.isArray(args[0]) && args[0].some((update) => update === failureData[0]));
+            const dispatchedFailure = onyxUpdateSpy.mock.calls.some((args) => {
+                const updates = args.at(0) as unknown[] | undefined;
+                return Array.isArray(updates) && updates.includes(failureData.at(0));
+            });
             expect(dispatchedFailure).toBe(false);
         } finally {
             processSpy.mockRestore();
