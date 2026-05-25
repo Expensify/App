@@ -2987,29 +2987,33 @@ describe('PolicyUtils', () => {
             }) as Policy;
 
         describe('hasVendorFeature', () => {
-            it('returns true when QBO non-reimbursable export is Credit Card', () => {
-                expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD))).toBe(true);
+            it('returns true when beta is enabled and QBO non-reimbursable export is Credit Card', () => {
+                expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), true)).toBe(true);
             });
 
-            it('returns true when QBO non-reimbursable export is Debit Card', () => {
-                expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD))).toBe(true);
+            it('returns true when beta is enabled and QBO non-reimbursable export is Debit Card', () => {
+                expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD), true)).toBe(true);
+            });
+
+            it('returns false when beta is disabled, even with Credit Card export configured', () => {
+                expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), false)).toBe(false);
             });
 
             it('returns false when QBO non-reimbursable export is Vendor Bill', () => {
-                expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL))).toBe(false);
+                expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL), true)).toBe(false);
             });
 
             it('returns false when QBO export destination is not set', () => {
-                expect(hasVendorFeature(buildQBOPolicy(undefined))).toBe(false);
+                expect(hasVendorFeature(buildQBOPolicy(undefined), true)).toBe(false);
             });
 
             it('returns false when no QBO connection exists on the policy', () => {
                 const policy = {...createRandomPolicy(0), connections: {}} as Policy;
-                expect(hasVendorFeature(policy)).toBe(false);
+                expect(hasVendorFeature(policy, true)).toBe(false);
             });
 
             it('returns false when policy is undefined', () => {
-                expect(hasVendorFeature(undefined)).toBe(false);
+                expect(hasVendorFeature(undefined, true)).toBe(false);
             });
         });
 

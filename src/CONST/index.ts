@@ -930,6 +930,7 @@ const CONST = {
         WORKSPACE_ROOMS_PAGE: 'workspaceRoomsPage',
         CERTINIA: 'financialForceNewDot',
         MERGE_HR: 'mergeHRConnections',
+        VENDOR_MATCHING_CC: 'vendorMatchingCC',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',

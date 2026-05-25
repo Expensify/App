@@ -13,6 +13,7 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import Parser from '@libs/Parser';
+import Permissions from '@libs/Permissions';
 import {
     getDistanceRateCustomUnitRate,
     getPerDiemRateCustomUnitRate,
@@ -28,11 +29,19 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import {hasValidModifiedAmount, isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, CardList, Policy, PolicyCategories, PolicyTagLists, PolicyTags, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
+import type {Beta, Card, CardList, Policy, PolicyCategories, PolicyTagLists, PolicyTags, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ViolationFixParams from './types';
+
+let allBetas: OnyxEntry<Beta[]>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.BETAS,
+    callback: (value) => {
+        allBetas = value;
+    },
+});
 
 type ViolationTranslationParams = {
     violation: TransactionViolation;
@@ -436,9 +445,12 @@ const ViolationsUtils = {
         // entirely client-side from the policy's imported vendor list. The vendor object on the
         // transaction is left as-is when the violation fires (or when the feature is disabled) —
         // we never clear the user's selection just because the vendor list changed; the admin
-        // needs to see what was previously set so they can re-pick.
+        // needs to see what was previously set so they can re-pick. Gated behind the
+        // `vendorMatchingCC` beta so Web-Expensify can ship the auto-match write path
+        // independently — no production workspace sees the violation until the beta is enabled.
+        const isVendorMatchingCCBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.VENDOR_MATCHING_CC, allBetas);
         const hasInactiveVendorViolation = newTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.INACTIVE_VENDOR);
-        const isVendorFeatureActive = hasVendorFeature(policy);
+        const isVendorFeatureActive = hasVendorFeature(policy, isVendorMatchingCCBetaEnabled);
         const transactionVendorID = updatedTransaction.comment?.vendor?.externalID;
         if (!isVendorFeatureActive) {
             // Feature off (e.g. admin switched export type away from credit/debit card) — clear any

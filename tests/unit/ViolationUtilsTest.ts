@@ -1,6 +1,7 @@
 import {beforeEach} from '@jest/globals';
 import Onyx from 'react-native-onyx';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
+import Permissions from '@libs/Permissions';
 import {getTransactionViolations, hasWarningTypeViolation, isViolationDismissed} from '@libs/TransactionUtils';
 import ViolationsUtils, {filterReceiptViolations, getIsViolationFixed} from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
@@ -1307,6 +1308,8 @@ describe('getViolationsOnyxData', () => {
     });
 
     describe('inactiveVendor violation', () => {
+        let isBetaEnabledSpy: jest.SpyInstance;
+
         const policyWithQBOVendorFeature = (vendors: Array<{id: string; name: string; currency: string}> = [{id: 'v-active', name: 'Acme Co', currency: 'USD'}]) =>
             ({
                 requiresTag: false,
@@ -1318,6 +1321,16 @@ describe('getViolationsOnyxData', () => {
                     },
                 },
             }) as unknown as Policy;
+
+        beforeEach(() => {
+            // Default to beta-enabled so the four branches of the violation logic are reachable.
+            // The "beta disabled" test overrides this below.
+            isBetaEnabledSpy = jest.spyOn(Permissions, 'isBetaEnabled').mockImplementation((beta) => beta === CONST.BETAS.VENDOR_MATCHING_CC);
+        });
+
+        afterEach(() => {
+            isBetaEnabledSpy.mockRestore();
+        });
 
         it('adds the violation when the transaction vendor is not in the policy vendor list', () => {
             policy = policyWithQBOVendorFeature();
@@ -1365,6 +1378,14 @@ describe('getViolationsOnyxData', () => {
 
         it('does not add the violation when the feature is inactive (no QBO connection)', () => {
             transaction.comment = {...transaction.comment, vendor: {externalID: 'v-anything', isManuallySet: true}};
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            expect(result.value).not.toContainEqual(inactiveVendorViolation);
+        });
+
+        it('does not add the violation when the vendorMatchingCC beta is disabled, even with QBO configured', () => {
+            isBetaEnabledSpy.mockImplementation(() => false);
+            policy = policyWithQBOVendorFeature();
+            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', isManuallySet: true}};
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
             expect(result.value).not.toContainEqual(inactiveVendorViolation);
         });
