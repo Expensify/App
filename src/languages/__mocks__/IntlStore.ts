@@ -65,7 +65,7 @@ class IntlStore {
         return translations?.[key] ?? null;
     }
 
-    static subscribe(_listener: () => void): () => void {
+    static subscribe(): () => void {
         return () => {};
     }
 }
