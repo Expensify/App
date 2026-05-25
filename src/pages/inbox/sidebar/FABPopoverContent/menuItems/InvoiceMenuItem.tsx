@@ -5,7 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMappedPolicies from '@hooks/useMappedPolicies';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import {startMoneyRequest} from '@libs/actions/IOU';
+import {startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {canSendInvoice as canSendInvoicePolicyUtils} from '@libs/PolicyUtils';
 import FABFocusableMenuItem from '@pages/inbox/sidebar/FABPopoverContent/FABFocusableMenuItem';

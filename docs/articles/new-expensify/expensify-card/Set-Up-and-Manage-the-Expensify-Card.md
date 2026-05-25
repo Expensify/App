@@ -84,7 +84,7 @@ You can issue virtual or physical cards to employees:
    - Limit type
    - Card name
    - Deactivation
-4. To change the linked bank account or update settlement frequency, click **Settings**.
+4. To change the linked bank account, update settlement frequency, or manage cash back settings, click **Settings**.
 
 ![Click Expensify Card in the left menu to see a list of cards]({{site.url}}/assets/images/ExpensifyHelp-ExpensifyCard_05.png){:width="100%"}
 
@@ -92,8 +92,37 @@ You can issue virtual or physical cards to employees:
 
 ![Click Settings to adjust the settlement account or frequency]({{site.url}}/assets/images/ExpensifyHelp-ExpensifyCard_08.png){:width="100%"}
 
+---
+
+## How to apply Expensify Card cash back to your Expensify bill
+
+Workspace Admins with a US Expensify Card program can choose whether their Expensify Card cash back is applied toward their Expensify bill or sent to their settlement account. This setting is enabled by default.
+
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Expensify Card**.
+2. Click **Settings**.
+3. Toggle **Apply cash back to my Expensify bill** on or off.
+
+When enabled, cash back earned from the Expensify Card is automatically applied toward payment for your Expensify bill. When disabled, cash back is sent to your settlement account instead.
+
+**Note:** This setting is only available for US card programs and is not shown for workspaces on an invoiced subscription.
+
+---
+
 If a Single-use card completes its first successful transaction, it automatically deactivates.
 If a card reaches its expiration date, it automatically deactivates and declines new transactions.
+
+---
+
+## How to export Expensify Card data as CSV
+
+You can bulk-select cards and export their details to a CSV file for reporting or reconciliation.
+
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces > [Workspace Name] > Expensify Card**.
+2. Select the checkboxes next to the cards you want to export. Use the checkbox in the header row to select all cards at once.
+3. Click the **selected** dropdown that appears.
+4. Select **Export as CSV**.
+
+The downloaded CSV file includes the following columns for each selected card: email, name, last four digits, type (virtual or physical), limit type, and limit amount.
 
 ---
 

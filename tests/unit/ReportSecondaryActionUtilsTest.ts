@@ -37,6 +37,8 @@ const PERSONAL_DETAILS = {
 const REPORT_ID = 1;
 const POLICY_ID = 'POLICY_ID';
 const OLD_POLICY_ID = 'OLD_POLICY_ID';
+const ORIGINAL_TRANSACTION_ID = 'ORIGINAL_TRANSACTION_ID';
+const SPLIT_TRANSACTION_ID = 'SPLIT_TRANSACTION_ID';
 
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
@@ -458,7 +460,7 @@ describe('getSecondaryAction', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
 
-    it('should not include SUBMIT option for admin with only pending transactions', async () => {
+    it('should include SUBMIT option for admin with only pending transactions', async () => {
         const report = {
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -494,7 +496,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
         });
-        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
 
     it('should not include SUBMIT option when transaction has smartscan failed violation', async () => {
@@ -1513,6 +1515,36 @@ describe('getSecondaryAction', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
     });
 
+    it('include RECEIVED_PAYMENT option when payments are disabled', () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            total: -100,
+            nonReimbursableTotal: 0,
+        } as unknown as Report;
+        const policy = {
+            role: CONST.POLICY.ROLE.USER,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+        } as unknown as Policy;
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: {} as Transaction,
+            violations: {},
+            bankAccountList: {},
+            policy,
+            reportActions: [],
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(true);
+    });
+
     it('does not include RECEIVED_PAYMENT option when a bank payment action exists', () => {
         const report = {
             reportID: REPORT_ID,
@@ -1545,6 +1577,40 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [reportAction],
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
+    });
+
+    it('does not include RECEIVED_PAYMENT option when the report has held expenses', () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            total: -100,
+            nonReimbursableTotal: 0,
+        } as unknown as Report;
+        const policy = {
+            role: CONST.POLICY.ROLE.USER,
+        } as unknown as Policy;
+        const heldTransaction = {
+            comment: {
+                hold: '2026-05-09 00:00:00',
+            },
+        } as unknown as Transaction;
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            report,
+            chatReport,
+            reportTransactions: [heldTransaction],
+            originalTransaction: {} as Transaction,
+            violations: {},
+            bankAccountList: {},
+            policy,
+            reportActions: [],
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
     });
@@ -1635,6 +1701,41 @@ describe('getSecondaryAction', () => {
 
         jest.spyOn(ReportUtils, 'isAwaitingFirstLevelApproval').mockReturnValueOnce(false);
         jest.spyOn(ReportUtils, 'isActionCreator').mockReturnValueOnce(true);
+        jest.spyOn(ReportActionsUtils, 'getOneTransactionThreadReportID').mockReturnValueOnce(originalMessageR14932.IOUTransactionID);
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            report,
+            chatReport,
+            reportTransactions: [transaction],
+            originalTransaction: {} as Transaction,
+            violations: {},
+            bankAccountList: {},
+            policy,
+            reportActions: [actionR14932],
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(false);
+    });
+
+    it('does not include HOLD option for action owner on open expense report when expense is already on hold', () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        } as unknown as Report;
+
+        const transaction = {
+            transactionID: 'TRANSACTION_ID_R14932',
+            comment: {
+                hold: 'REPORT_ACTION_ID',
+            },
+        } as unknown as Transaction;
+        const policy = {} as unknown as Policy;
+
+        jest.spyOn(ReportUtils, 'canHoldUnholdReportAction').mockReturnValueOnce({canHoldRequest: false, canUnholdRequest: true});
+        jest.spyOn(ReportUtils, 'isActionCreator').mockReturnValue(true);
         jest.spyOn(ReportActionsUtils, 'getOneTransactionThreadReportID').mockReturnValueOnce(originalMessageR14932.IOUTransactionID);
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
@@ -1942,6 +2043,68 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
         });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
+    });
+
+    it('replaces SPLIT with DELETE for per diem split expenses in the more menu', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            policyID: POLICY_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+        } as unknown as Report;
+        const transaction = {
+            transactionID: SPLIT_TRANSACTION_ID,
+            reportID: REPORT_ID,
+            status: CONST.TRANSACTION.STATUS.POSTED,
+            amount: 10,
+            merchant: 'Merchant',
+            date: '2025-01-01',
+            comment: {
+                originalTransactionID: ORIGINAL_TRANSACTION_ID,
+                source: CONST.IOU.TYPE.SPLIT,
+            },
+        } as unknown as Transaction;
+        const originalTransaction = {
+            transactionID: ORIGINAL_TRANSACTION_ID,
+            amount: 20,
+            merchant: 'Merchant',
+            date: '2025-01-01',
+            comment: {
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                customUnit: {
+                    name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                },
+            },
+        } as unknown as Transaction;
+        const policy = {
+            id: POLICY_ID,
+            type: CONST.POLICY.TYPE.TEAM,
+            isPolicyExpenseChatEnabled: true,
+            employeeList: {
+                [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER},
+            },
+        } as unknown as Policy;
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            report,
+            chatReport,
+            reportTransactions: [transaction],
+            originalTransaction,
+            violations: {},
+            bankAccountList: {},
+            policy,
+        });
+
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
 
@@ -3075,6 +3238,58 @@ describe('getSecondaryTransactionThreadActions', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, EMPLOYEE_ACCOUNT_ID, report, {} as Transaction, undefined, {} as Transaction, policy);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
+    });
+
+    it('replaces SPLIT with DELETE for per diem split expenses in transaction threads', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            policyID: POLICY_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+        } as unknown as Report;
+        const transaction = {
+            transactionID: SPLIT_TRANSACTION_ID,
+            reportID: REPORT_ID,
+            status: CONST.TRANSACTION.STATUS.POSTED,
+            amount: 10,
+            merchant: 'Merchant',
+            date: '2025-01-01',
+            comment: {
+                originalTransactionID: ORIGINAL_TRANSACTION_ID,
+                source: CONST.IOU.TYPE.SPLIT,
+            },
+        } as unknown as Transaction;
+        const originalTransaction = {
+            transactionID: ORIGINAL_TRANSACTION_ID,
+            amount: 20,
+            merchant: 'Merchant',
+            date: '2025-01-01',
+            comment: {
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                customUnit: {
+                    name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                },
+            },
+        } as unknown as Transaction;
+        const policy = {
+            id: POLICY_ID,
+            type: CONST.POLICY.TYPE.TEAM,
+            isPolicyExpenseChatEnabled: true,
+            employeeList: {
+                [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER},
+            },
+        } as unknown as Policy;
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, EMPLOYEE_ACCOUNT_ID, report, transaction, undefined, originalTransaction, policy);
+
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
 
