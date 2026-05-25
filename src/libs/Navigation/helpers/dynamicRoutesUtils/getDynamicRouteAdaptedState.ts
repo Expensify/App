@@ -3,6 +3,7 @@ import findFocusedRouteWithOnyxTabGuard from '@libs/Navigation/helpers/findFocus
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import type {Route} from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import findAllMatchingDynamicSuffixes from './findAllMatchingDynamicSuffixes';
 import type {DynamicSuffixMatch} from './findAllMatchingDynamicSuffixes';
 import getPathWithoutDynamicSuffix from './getPathWithoutDynamicSuffix';
@@ -90,6 +91,10 @@ function getDynamicRouteAdaptedState(state: PartialState<NavigationState>, focus
             }
             const candidateBaseState = getStateFromPath(candidateBasePath as Route);
             if (!candidateBaseState) {
+                continue;
+            }
+            const lastRoute = candidateBaseState.routes?.at(-1);
+            if (!lastRoute || lastRoute.name === SCREENS.NOT_FOUND) {
                 continue;
             }
             resolvedMatch = candidate;
