@@ -142,6 +142,7 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
                     reimbursementAccount={reimbursementAccount}
                     setUSDBankAccountStep={setUSDBankAccountStep}
                     backTo={backTo}
+                    policy={policy}
                 />
             )}
         </ScreenWrapper>

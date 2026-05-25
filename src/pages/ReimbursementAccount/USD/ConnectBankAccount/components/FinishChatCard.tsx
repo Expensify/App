@@ -1,5 +1,6 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import MenuItem from '@components/MenuItem';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
@@ -18,7 +19,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type {ReimbursementAccount} from '@src/types/onyx';
+import type {Policy, ReimbursementAccount} from '@src/types/onyx';
 import Enable2FACard from './Enable2FACard';
 
 type FinishChatCardProps = {
@@ -28,6 +29,9 @@ type FinishChatCardProps = {
     /** Boolean required to display Enable2FACard component */
     requiresTwoFactorAuth: boolean;
 
+    /** The policy which the user has access to and which the report is tied to */
+    policy: OnyxEntry<Policy>;
+
     /** Method to set the state of USD bank account step */
     setUSDBankAccountStep?: (step: string | null) => void;
 
@@ -35,7 +39,7 @@ type FinishChatCardProps = {
     backTo?: Route;
 };
 
-function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBankAccountStep, backTo}: FinishChatCardProps) {
+function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, policy, setUSDBankAccountStep, backTo}: FinishChatCardProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -86,7 +90,7 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBank
                             goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
                             Navigation.navigate(
                                 ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({
-                                    policyID,
+                                    policyID: policy?.id,
                                     page: CONST.BANK_ACCOUNT.PAGE_NAMES.REQUESTOR,
                                     subPage: CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.SUB_PAGE_NAMES.FULL_NAME,
                                     backTo,
