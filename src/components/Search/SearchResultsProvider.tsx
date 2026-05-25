@@ -1,5 +1,8 @@
 import React, {useState} from 'react';
-// We need direct access to useOnyx from react-native-onyx to avoid circular dependencies in SearchContext
+// This provider is the source of the snapshot data that `@hooks/useOnyx` later routes consumers onto,
+// so going through that wrapper here would be self-referential. The wrapper also short-circuits its own
+// logic for snapshot keys (see the `!key.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT)` guard in useOnyx.ts),
+// so it would add nothing for this read. Use the raw react-native-onyx hook directly.
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx} from 'react-native-onyx';
 import useTodos from '@hooks/useTodos';
