@@ -5358,6 +5358,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                     duplicateColumns: (duplicateColumn: string) => `Ops! Você mapeou um único campo ("${duplicateColumn}") para várias colunas. Revise e tente novamente.`,
                 },
                 fileImportDescription: 'Uma opção manual caso seu banco não possa enviar um feed.',
+                duplicateFeedModal: {title: 'Feed do cartão já conectado', prompt: 'Você não pode adicionar o mesmo feed de cartão ao mesmo workspace duas vezes.'},
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Último dia do mês',
