@@ -365,7 +365,7 @@ describe('processDataIntoSlices', () => {
     });
 
     it('places tooltipPosition at the ring midpoint along each slice midangle', () => {
-        // Two equal slices from -90° produce midangles 0° (right) and 180° (left).
+        // Two equal slices from -90° produce mid-angles 0° (right) and 180° (left).
         // tooltipRadius = (innerRadius + radius) / 2 = (60 + 100) / 2 = 80.
         const data: ChartDataPoint[] = [
             {label: 'Right', total: 50},
