@@ -4844,8 +4844,6 @@ ${amount} per ${merchant} - ${date}`,
                 dimensions: {dimension1: 'Dimensione 1', dimension2: 'Dimensione 2', dimension3: 'Dimensione 3', dimension4: 'Dimensione 4'},
                 doNotMap: 'Non mappare',
                 doNotMapSubtitle: 'Usa come predefinita la risorsa dipendente',
-                importedAsTags: 'Importato come tag',
-                importedAsReportFields: 'Importato come campi del report',
                 mappingTypes: {
                     [CONST.CERTINIA_MAPPING_VALUE.DEFAULT]: 'Non mappare',
                     [CONST.CERTINIA_MAPPING_VALUE.TAG]: 'Importato come tag',

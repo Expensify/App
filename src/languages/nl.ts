@@ -4835,8 +4835,6 @@ ${amount} voor ${merchant} - ${date}`,
                 dimensions: {dimension1: 'Dimensie 1', dimension2: 'Dimensie 2', dimension3: 'Dimensie 3', dimension4: 'Dimensie 4'},
                 doNotMap: 'Niet toewijzen',
                 doNotMapSubtitle: 'Standaard werknemersbron gebruiken',
-                importedAsTags: 'Geïmporteerd als labels',
-                importedAsReportFields: 'Geïmporteerd als rapportvelden',
                 mappingTypes: {
                     [CONST.CERTINIA_MAPPING_VALUE.DEFAULT]: 'Niet toewijzen',
                     [CONST.CERTINIA_MAPPING_VALUE.TAG]: 'Geïmporteerd als labels',

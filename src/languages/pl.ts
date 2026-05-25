@@ -4827,8 +4827,6 @@ ${amount} dla ${merchant} - ${date}`,
                 dimensions: {dimension1: 'Wymiar 1', dimension2: 'Wymiar 2', dimension3: 'Wymiar 3', dimension4: 'Wymiar 4'},
                 doNotMap: 'Nie mapuj',
                 doNotMapSubtitle: 'Domyślnie użyj zasobu pracownika',
-                importedAsTags: 'Zaimportowano jako tagi',
-                importedAsReportFields: 'Zaimportowano jako pola raportu',
                 mappingTypes: {
                     [CONST.CERTINIA_MAPPING_VALUE.DEFAULT]: 'Nie mapuj',
                     [CONST.CERTINIA_MAPPING_VALUE.TAG]: 'Zaimportowano jako tagi',

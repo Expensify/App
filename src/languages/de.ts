@@ -4859,8 +4859,6 @@ ${amount} für ${merchant} – ${date}`,
                 dimensions: {dimension1: 'Dimension 1', dimension2: 'Dimension 2', dimension3: 'Dimension 3', dimension4: 'Dimension 4'},
                 doNotMap: 'Nicht zuordnen',
                 doNotMapSubtitle: 'Mitarbeiterressource standardmäßig verwenden',
-                importedAsTags: 'Als Tags importiert',
-                importedAsReportFields: 'Als Berichtsfelder importiert',
                 mappingTypes: {
                     [CONST.CERTINIA_MAPPING_VALUE.DEFAULT]: 'Nicht zuordnen',
                     [CONST.CERTINIA_MAPPING_VALUE.TAG]: 'Als Tags importiert',

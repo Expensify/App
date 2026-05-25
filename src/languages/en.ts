@@ -4941,8 +4941,6 @@ const translations = {
                 },
                 doNotMap: 'Do not map',
                 doNotMapSubtitle: 'Use employee resource on default',
-                importedAsTags: 'Imported as tags',
-                importedAsReportFields: 'Imported as report fields',
                 mappingTypes: {
                     [CONST.CERTINIA_MAPPING_VALUE.DEFAULT]: 'Do not map',
                     [CONST.CERTINIA_MAPPING_VALUE.TAG]: 'Imported as tags',

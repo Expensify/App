@@ -4711,8 +4711,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 dimensions: {dimension1: '维度 1', dimension2: '维度 2', dimension3: '维度 3', dimension4: '维度 4'},
                 doNotMap: '不要映射',
                 doNotMapSubtitle: '默认使用员工资源',
-                importedAsTags: '已作为标签导入',
-                importedAsReportFields: '已作为报表字段导入',
                 mappingTypes: {
                     [CONST.CERTINIA_MAPPING_VALUE.DEFAULT]: '不要映射',
                     [CONST.CERTINIA_MAPPING_VALUE.TAG]: '已作为标签导入',

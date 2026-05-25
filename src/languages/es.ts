@@ -4743,8 +4743,6 @@ ${amount} para ${merchant} - ${date}`,
                 dimensions: {dimension1: 'Dimensión 1', dimension2: 'Dimensión 2', dimension3: 'Dimensión 3', dimension4: 'Dimensión 4'},
                 doNotMap: 'No asignar',
                 doNotMapSubtitle: 'Usar recurso de empleado por defecto',
-                importedAsTags: 'Importado como etiquetas',
-                importedAsReportFields: 'Importado como campos de informe',
                 mappingTypes: {
                     [CONST.CERTINIA_MAPPING_VALUE.DEFAULT]: 'No asignar',
                     [CONST.CERTINIA_MAPPING_VALUE.TAG]: 'Importado como etiquetas',

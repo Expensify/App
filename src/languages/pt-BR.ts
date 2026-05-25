@@ -4830,8 +4830,6 @@ ${amount} para ${merchant} - ${date}`,
                 dimensions: {dimension1: 'Dimensão 1', dimension2: 'Dimensão 2', dimension3: 'Dimensão 3', dimension4: 'Dimensão 4'},
                 doNotMap: 'Não mapear',
                 doNotMapSubtitle: 'Usar recurso de funcionário por padrão',
-                importedAsTags: 'Importado como tags',
-                importedAsReportFields: 'Importado como campos de relatório',
                 mappingTypes: {
                     [CONST.CERTINIA_MAPPING_VALUE.DEFAULT]: 'Não mapear',
                     [CONST.CERTINIA_MAPPING_VALUE.TAG]: 'Importado como tags',

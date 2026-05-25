@@ -4801,8 +4801,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 dimensions: {dimension1: 'ディメンション 1', dimension2: 'ディメンション 2', dimension3: 'ディメンション 3', dimension4: 'ディメンション4'},
                 doNotMap: 'マッピングしない',
                 doNotMapSubtitle: '従業員リソースをデフォルトで使用する',
-                importedAsTags: 'タグとしてインポート済み',
-                importedAsReportFields: 'レポートフィールドとしてインポートしました',
                 mappingTypes: {
                     [CONST.CERTINIA_MAPPING_VALUE.DEFAULT]: 'マッピングしない',
                     [CONST.CERTINIA_MAPPING_VALUE.TAG]: 'タグとしてインポート済み',

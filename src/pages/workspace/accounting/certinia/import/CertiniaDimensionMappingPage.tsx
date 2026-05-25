@@ -37,11 +37,11 @@ const MAPPING_OPTION_LABELS: Record<CertiniaMappingValue, {title: TranslationPat
         subtitle: 'workspace.certinia.import.doNotMapSubtitle',
     },
     [CONST.CERTINIA_MAPPING_VALUE.TAG]: {
-        title: 'workspace.certinia.import.importedAsTags',
+        title: 'workspace.common.tags',
         subtitle: 'workspace.common.lineItemLevel',
     },
     [CONST.CERTINIA_MAPPING_VALUE.REPORT_FIELD]: {
-        title: 'workspace.certinia.import.importedAsReportFields',
+        title: 'workspace.common.reportFields',
         subtitle: 'workspace.common.reportLevel',
     },
 };
