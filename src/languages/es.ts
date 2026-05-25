@@ -6302,7 +6302,7 @@ ${amount} para ${merchant} - ${date}`,
             title: 'HR',
             connections: 'Conexiones',
             connectionsSubtitle:
-                "Connect to your HR system to sync employee data, auto-match reimbursements to the right people, and keep your team's expenses accurate without the manual work.",
+                'Conéctate a tu sistema de RR. HH. para sincronizar los datos de empleados, emparejar automáticamente los reembolsos con las personas correctas y mantener los gastos de tu equipo precisos sin trabajo manual.',
             subtitle: 'Conecta herramientas de HR y mantén sincronizadas las aprobaciones de empleados.',
             connect: 'Conectar',
             syncNow: 'Sincronizar ahora',

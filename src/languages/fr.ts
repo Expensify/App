@@ -7222,7 +7222,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             title: 'RH',
             connections: 'Connexions',
             connectionsSubtitle:
-                "Connect to your HR system to sync employee data, auto-match reimbursements to the right people, and keep your team's expenses accurate without the manual work.",
+                'Connectez votre système RH pour synchroniser les données des employé·es, faire correspondre automatiquement les remboursements aux bonnes personnes et garder les dépenses de votre équipe exactes, sans travail manuel.',
             subtitle: 'Connectez vos outils RH et gardez les approbations des employés synchronisées.',
             connect: 'Connecter',
             syncNow: 'Synchroniser maintenant',
