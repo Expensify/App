@@ -5,7 +5,7 @@ import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -53,8 +53,8 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     const {isMovingExpenses, backTo} = route.params ?? {};
     const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar']);
-    const {selectedTransactions, selectedTransactionIDs} = useSearchStateContext();
-    const {clearSelectedTransactions} = useSearchActionsContext();
+    const {selectedTransactions, selectedTransactionIDs} = useSearchSelectionContext();
+    const {clearSelectedTransactions} = useSearchSelectionActions();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate, localeCompare} = useLocalize();
@@ -83,7 +83,10 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     const [todos] = useOnyx(ONYXKEYS.DERIVED.TODOS);
     const transactionsByReportID = todos?.transactionsByReportID;
 
-    const policiesWithEmptyReportsForAccountSelector = useMemo(() => policyIDsWithEmptyReportsSelector(accountID, transactionsByReportID ?? {}), [accountID, transactionsByReportID]);
+    const policiesWithEmptyReportsForAccountSelector = useMemo(
+        () => policyIDsWithEmptyReportsSelector(accountID, transactionsByReportID ?? {}, !!hasDismissedEmptyReportsConfirmation),
+        [accountID, transactionsByReportID, hasDismissedEmptyReportsConfirmation],
+    );
     const [policiesWithEmptyReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policiesWithEmptyReportsForAccountSelector});
 
     const navigateToNewReport = (optimisticReportID: string) => {
@@ -179,7 +182,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
             return;
         }
 
-        const shouldShowEmptyReportConfirmation = !!policiesWithEmptyReports?.[policy.policyID] && hasDismissedEmptyReportsConfirmation !== true;
+        const shouldShowEmptyReportConfirmation = !!policiesWithEmptyReports?.[policy.policyID];
         if (!shouldShowEmptyReportConfirmation) {
             createReport(policy.policyID, false);
             return;

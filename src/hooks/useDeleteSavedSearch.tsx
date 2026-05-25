@@ -1,6 +1,6 @@
 import {useCallback} from 'react';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import {useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext} from '@components/Search/SearchContext';
 import {deleteSavedSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
@@ -10,7 +10,7 @@ import useLocalize from './useLocalize';
 
 export default function useDeleteSavedSearch() {
     const {translate} = useLocalize();
-    const {currentSearchHash} = useSearchStateContext();
+    const {currentSearchHash} = useSearchQueryContext();
     const {showConfirmModal} = useConfirmModal();
 
     const handleDeleteSavedSearch = useCallback(
