@@ -17,6 +17,7 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null): Pro
     let domain: ProcessNodeResult['domain'];
     let domainPadding: ProcessNodeResult['domainPadding'];
     let padding: ProcessNodeResult['padding'];
+    let isHorizontal: ProcessNodeResult['isHorizontal'];
     const labelItems: ProcessNodeResult['labelItems'] = [];
     const legendItems: ProcessNodeResult['legendItems'] = [];
 
@@ -43,6 +44,9 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null): Pro
         }
         if (result.padding) {
             padding = result.padding;
+        }
+        if (result.isHorizontal) {
+            isHorizontal = result.isHorizontal;
         }
         if (result.labelItems) {
             labelItems.push(...result.labelItems);
@@ -71,11 +75,14 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null): Pro
         if (childResult.padding) {
             padding = childResult.padding;
         }
+        if (childResult.isHorizontal) {
+            isHorizontal = childResult.isHorizontal;
+        }
         labelItems.push(...childResult.labelItems);
         legendItems.push(...childResult.legendItems);
     }
 
-    return {data, xKey: X_KEY, yKeys, xAxis, yAxis, domain, domainPadding, padding, labelItems, legendItems};
+    return {data, xKey: X_KEY, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, labelItems, legendItems};
 }
 
 export default processVictoryChartTree;

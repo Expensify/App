@@ -11,7 +11,8 @@ function parseVictoryChartNode(tnode: TNode): PartialProcessNodeResult {
     const domain = parseDomain(tnode.attributes.domain);
     const domainPadding = parseDomainPadding(tnode.attributes.domainpadding);
     const padding = parsePadding(tnode.attributes.padding);
-    return {domain, domainPadding, padding};
+    const isHorizontal = 'horizontal' in tnode.attributes && tnode.attributes.horizontal !== 'false';
+    return {domain, domainPadding, padding, isHorizontal};
 }
 
 export default parseVictoryChartNode;
