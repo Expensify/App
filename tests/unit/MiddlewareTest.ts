@@ -18,6 +18,16 @@ import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 type FormDataObject = {body: TestHelper.FormData};
 
+const waitForFetchCallCount = async (expectedCallCount: number, maxAttempts = 5) => {
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        if ((global.fetch as jest.Mock).mock.calls.length === expectedCallCount) {
+            return;
+        }
+        await waitForNetworkPromises();
+    }
+    expect(global.fetch).toHaveBeenCalledTimes(expectedCallCount);
+};
+
 Onyx.init({
     keys: ONYXKEYS,
 });
@@ -93,7 +103,7 @@ describe('Middleware', () => {
             SequentialQueue.unpause();
             await waitForNetworkPromises();
 
-            expect(global.fetch).toHaveBeenCalledTimes(2);
+            await waitForFetchCallCount(2);
             expect(global.fetch).toHaveBeenLastCalledWith('https://www.expensify.com.dev/api/AddComment?', expect.anything());
             TestHelper.assertFormDataMatchesObject(
                 {
@@ -340,7 +350,7 @@ describe('Middleware', () => {
             SequentialQueue.unpause();
             await waitForBatchedUpdates();
 
-            expect(global.fetch).toHaveBeenCalledTimes(2);
+            await waitForFetchCallCount(2);
 
             const optimisticReportUpdated = await new Promise<OnyxEntry<OnyxReport>>((resolve) => {
                 const connection = Onyx.connect({
