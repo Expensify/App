@@ -120,7 +120,6 @@ function SplitExpenseCreateDateRagePage({route}: SplitExpenseCreateDateRagePageP
                             label={translate('iou.startDate')}
                             maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                             defaultValue={draftTransaction?.comment?.splitsStartDate}
-                            autoFocus
                         />
                         <InputWrapper
                             InputComponent={DatePicker}
