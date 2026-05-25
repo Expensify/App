@@ -1,6 +1,6 @@
 import React from 'react';
 import type {TNode} from 'react-native-render-html';
-import {Bar, BarGroup} from 'victory-native';
+import {BarGroup} from 'victory-native';
 import {BAR_INNER_PADDING} from '@components/Charts/BarChart/BarChartContent';
 import {DEFAULT_CHART_COLOR} from '@components/Charts/utils';
 import {useVictoryChartRenderArgs} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartRenderArgsContext';
@@ -22,8 +22,8 @@ function VictoryCharBarGroup({tnode}: VictoryCharBarGroupProps) {
             chartBounds={chartBounds}
             betweenGroupPadding={BAR_BETWEEN_GROUP_PADDING}
             withinGroupPadding={BAR_WITHIN_GROUP_PADDING}
-            roundedCorners={parseCornerRadius(barChildren[0]?.attributes?.cornerradius)}
-            barWidth={parseAttribute(barChildren[0]?.attributes?.barwidth)}
+            roundedCorners={parseCornerRadius(barChildren.at(0)?.attributes?.cornerradius ?? '')}
+            barWidth={parseAttribute(barChildren.at(0)?.attributes?.barwidth ?? '')}
         >
             {barChildren.map((child) => {
                 const yKey = getYKey(child);
