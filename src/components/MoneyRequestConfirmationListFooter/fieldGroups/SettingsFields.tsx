@@ -24,7 +24,7 @@ type SettingsFieldsProps = {
     /** ID of the originating report action when editing */
     reportActionID: string | undefined;
 
-    /** Active transaction */
+    /** Active transaction (still needed by ReportField until it reads its own slice) */
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 
     /** Selected participants (drives ReportField presentation) */
@@ -56,6 +56,9 @@ type SettingsFieldsProps = {
 
     /** Per-field visibility decisions resolved by `computeFieldVisibility` */
     fieldVisibility: Pick<FieldVisibility, 'toggles' | 'report'>;
+
+    /** Whether we're editing an existing split expense */
+    isEditingSplitBill: boolean;
 };
 
 /**
@@ -80,6 +83,7 @@ function SettingsFields({
     onToggleBillable,
     isCompactMode,
     fieldVisibility,
+    isEditingSplitBill,
 }: SettingsFieldsProps) {
     if (isCompactMode) {
         return null;
@@ -93,7 +97,8 @@ function SettingsFields({
                     shouldShowBillable={shouldShowBillable}
                     onToggleReimbursable={onToggleReimbursable}
                     onToggleBillable={onToggleBillable}
-                    transaction={transaction}
+                    transactionID={transactionID}
+                    isEditingSplitBill={isEditingSplitBill}
                 />
             )}
             {fieldVisibility.report && (

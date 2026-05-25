@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/refs */
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
@@ -8,7 +9,7 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {BulkPaySelectionData, PaymentData, SearchQueryJSON} from '@components/Search/types';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
@@ -56,6 +57,7 @@ import {navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     hasCustomUnitOutOfPolicyViolation,
+    hasOnlyPendingCardTransactions,
     hasTransactionBeenRejected,
     isDeletedTransaction,
     isDistanceRequest,
@@ -63,6 +65,7 @@ import {
     isPerDiemRequest,
     isScanning,
     shouldRedirectDeleteToSplitExpenseEdit,
+    showPendingCardTransactionsBlockModal,
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import {initBulkEditDraftTransaction} from '@userActions/IOU/BulkEdit';
@@ -216,8 +219,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {isOffline} = useNetwork();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const {selectedTransactions, selectedReports, areAllMatchingItemsSelected, currentSearchResults, currentSearchKey} = useSearchStateContext();
-    const {clearSelectedTransactions, selectAllMatchingItems} = useSearchActionsContext();
+    const {selectedTransactions, selectedReports, areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {currentSearchResults} = useSearchResultsContext();
+    const {currentSearchKey} = useSearchQueryContext();
+    const {clearSelectedTransactions, selectAllMatchingItems} = useSearchSelectionActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {accountID} = currentUserPersonalDetails;
     const allTransactions = useAllTransactions();
@@ -1133,7 +1138,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     icon: expensifyIcons.ExpenseCopy,
                     value: CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE,
                     shouldCloseModalOnSelect: true,
-                    onSelected: invokeDuplicateHandler,
+                    onSelected: () => {
+                        if (defaultExpensePolicy && shouldRestrictUserBillableActions(defaultExpensePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+                            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(defaultExpensePolicy.id));
+                            return;
+                        }
+                        invokeDuplicateHandler();
+                    },
                 });
             }
 
@@ -1265,6 +1276,17 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     const restrictedPolicyID = getRestrictedPolicyID(itemList, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed, policies, accountID);
                     if (restrictedPolicyID) {
                         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedPolicyID));
+                        return;
+                    }
+
+                    const allSelectedTransactionsList = selectedReports.length
+                        ? Object.values(allTransactions ?? {}).filter((t): t is NonNullable<typeof t> => !!t && selectedReports.some((report) => report.reportID === t.reportID))
+                        : selectedTransactionsKeys
+                              .map((id) => selectedTransactions[id]?.transaction ?? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`])
+                              .filter((t): t is NonNullable<typeof t> => !!t);
+
+                    if (hasOnlyPendingCardTransactions(allSelectedTransactionsList)) {
+                        showPendingCardTransactionsBlockModal(showConfirmModal, translate);
                         return;
                     }
 
@@ -1477,6 +1499,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE,
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
+                    if (defaultExpensePolicy && shouldRestrictUserBillableActions(defaultExpensePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(defaultExpensePolicy.id));
+                        return;
+                    }
                     if (exceedsBulkDuplicateLimit) {
                         showConfirmModal({
                             title: translate('common.duplicateExpense'),
@@ -1598,6 +1624,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         allTransactions,
         transactions,
         isBetaEnabled,
+        defaultExpensePolicy,
     ]);
 
     const handleOfflineModalClose = useCallback(() => {
