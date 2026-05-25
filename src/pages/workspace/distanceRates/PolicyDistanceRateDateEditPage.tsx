@@ -92,10 +92,7 @@ function PolicyDistanceRateDateEditPage({route}: PolicyDistanceRateDateEditPageP
                 testID={isStartDate ? 'PolicyDistanceRateStartDateEditPage' : 'PolicyDistanceRateEndDateEditPage'}
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton
-                    title={translate(titleKey)}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButton title={translate(titleKey)} />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM}
                     submitButtonText={translate('common.save')}
