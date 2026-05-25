@@ -23,20 +23,16 @@ describe('getStateToResetAfterLogout', () => {
         expect(getStateToResetAfterLogout(buildRootState([]))).toBeUndefined();
     });
 
-    it('resets to the host navigator (params cleared) when a consumed magic-link is the last route and a host is mounted', () => {
+    it('resets to SCREENS.HOME when a consumed magic-link is the last route, even if a host is mounted (HOME is the only route registered in both navigators)', () => {
         const result = getStateToResetAfterLogout(buildRootState([{name: NAVIGATORS.TAB_NAVIGATOR, params: {deep: 'link'}}, {name: SCREENS.VALIDATE_LOGIN}]));
 
-        expect(result?.routes).toHaveLength(1);
-        expect(result?.routes[0].name).toBe(NAVIGATORS.TAB_NAVIGATOR);
-        expect(result?.routes[0].params).toBeUndefined();
-        expect(result?.index).toBe(0);
+        expect(result).toEqual({index: 0, routes: [{name: SCREENS.HOME}]});
     });
 
-    it('also matches a ReportsSplit host for a consumed magic-link', () => {
+    it('resets to SCREENS.HOME for a consumed magic-link with a ReportsSplit host too', () => {
         const result = getStateToResetAfterLogout(buildRootState([{name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}, {name: SCREENS.VALIDATE_LOGIN}]));
 
-        expect(result?.routes[0].name).toBe(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
-        expect(result?.routes[0].params).toBeUndefined();
+        expect(result).toEqual({index: 0, routes: [{name: SCREENS.HOME}]});
     });
 
     it('resets to SCREENS.HOME when a consumed magic-link is the only route (fresh session, no host mounted)', () => {

@@ -13,26 +13,19 @@ function getStateToResetAfterLogout(rootState: NavigationState | undefined): Nav
         return undefined;
     }
 
-    // ValidateLogin's /v/ code is spent by logout; keeping it strands the user.
-    // Only this route is special-cased — others (e.g. TransitionBetweenApps) keep their
-    // live auth params.
-    const isConsumedMagicLink = lastRoute.name === SCREENS.VALIDATE_LOGIN;
-    const signInHostRoute = isConsumedMagicLink ? rootState.routes.find((route) => route.name === NAVIGATORS.TAB_NAVIGATOR || route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) : undefined;
-
-    // Fresh magic-link session: no host mounted and PublicScreens is active, so reset to
-    // SCREENS.HOME (PublicScreens maps "/" → SignInPage); a TabNavigator/ReportsSplit reset
-    // would fail since they aren't registered there.
-    if (isConsumedMagicLink && !signInHostRoute) {
+    // ValidateLogin's /v/ code is spent by logout; keeping it strands the user. Reset to
+    // SCREENS.HOME — the only route registered in both AuthScreens and PublicScreens, so the
+    // reset is well-defined regardless of which navigator the auth swap has mounted.
+    if (lastRoute.name === SCREENS.VALIDATE_LOGIN) {
         return {index: 0, routes: [{name: SCREENS.HOME}]};
     }
 
-    // ReportsSplit & the consumed magic-link host must drop stale params; others keep theirs.
-    const targetRoute = signInHostRoute ?? lastRoute;
-    const shouldClearParams = isConsumedMagicLink || targetRoute.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
+    // ReportsSplit is shared between logged-in & logged-out; its params can carry stale auth.
+    const shouldClearParams = lastRoute.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
     return {
         ...rootState,
         index: 0,
-        routes: [{...targetRoute, params: shouldClearParams ? undefined : targetRoute.params}],
+        routes: [{...lastRoute, params: shouldClearParams ? undefined : lastRoute.params}],
     };
 }
 
