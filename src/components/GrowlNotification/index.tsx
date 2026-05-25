@@ -30,7 +30,10 @@ type GrowlNotificationProps = {
 };
 
 function GrowlNotification({ref}: GrowlNotificationProps) {
-    const translateY = useSharedValue(INACTIVE_POSITION_Y);
+    // Normalized: 0 = fully offscreen for the current anchor, 1 = fully visible. The container
+    // multiplies this against the live `inactiveY`, so the offscreen position stays correct
+    // even when the responsive layout flips after the growl is dismissed.
+    const progress = useSharedValue(0);
     const [bodyText, setBodyText] = useState('');
     const [type, setType] = useState('success');
     const [duration, setDuration] = useState<number>();
@@ -93,21 +96,19 @@ function GrowlNotification({ref}: GrowlNotificationProps) {
     }, []);
 
     /**
-     * Animate growl notification
-     *
-     * @param {Number} val
+     * Animate growl notification. `targetProgress` is 0 for offscreen, 1 for visible.
      */
     const fling = useCallback(
-        (val = inactiveY) => {
+        (targetProgress = 0) => {
             'worklet';
 
-            translateY.set(
-                withSpring(val, {
+            progress.set(
+                withSpring(targetProgress, {
                     overshootClamping: false,
                 }),
             );
         },
-        [translateY, inactiveY],
+        [progress],
     );
 
     useImperativeHandle(
@@ -127,10 +128,10 @@ function GrowlNotification({ref}: GrowlNotificationProps) {
             return;
         }
 
-        // Snap to inactive offscreen position before sliding in, so the slide-in direction
-        // matches the current placement (from above for top, from below for bottom).
-        translateY.set(inactiveY);
-        fling(0);
+        // Snap to fully offscreen before sliding in so the slide-in direction matches the
+        // current placement (from above for top, from below for bottom).
+        progress.set(0);
+        fling(1);
 
         if (duration <= 0) {
             // Indefinite (loading) growl - slide in but don't auto-dismiss.
@@ -138,12 +139,12 @@ function GrowlNotification({ref}: GrowlNotificationProps) {
         }
 
         const timeoutId = setTimeout(() => {
-            fling();
+            fling(0);
             setDuration(undefined);
         }, duration);
 
         return () => clearTimeout(timeoutId);
-    }, [duration, fling, inactiveY, translateY]);
+    }, [duration, fling, progress]);
 
     // GestureDetector by default runs callbacks on UI thread using Reanimated. In this
     // case we want to trigger an RN's Animated animation, which needs to be done on JS thread.
@@ -159,7 +160,8 @@ function GrowlNotification({ref}: GrowlNotificationProps) {
     return (
         <View style={[styles.growlNotificationWrapper]}>
             <GrowlNotificationContainer
-                translateY={translateY}
+                progress={progress}
+                inactiveY={inactiveY}
                 useBottomPosition={useBottomPosition}
             >
                 <PressableWithoutFeedback

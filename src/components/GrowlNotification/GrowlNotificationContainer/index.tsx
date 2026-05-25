@@ -4,10 +4,10 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type GrowlNotificationContainerProps from './types';
 
-function GrowlNotificationContainer({children, translateY, useBottomPosition}: GrowlNotificationContainerProps) {
+function GrowlNotificationContainer({children, progress, inactiveY, useBottomPosition}: GrowlNotificationContainerProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const animatedStyles = useAnimatedStyle(() => styles.growlNotificationTranslateY(translateY));
+    const animatedStyles = useAnimatedStyle(() => ({transform: [{translateY: inactiveY * (1 - progress.get())}]}), [inactiveY]);
 
     if (useBottomPosition) {
         return <Animated.View style={[styles.growlNotificationContainerBottomRight, animatedStyles]}>{children}</Animated.View>;
