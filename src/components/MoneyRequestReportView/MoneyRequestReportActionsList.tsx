@@ -498,24 +498,26 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
     const scrollToBottomForCurrentUserAction = useCallback(
         (isFromCurrentUser: boolean, reportAction?: OnyxTypes.ReportAction) => {
-            InteractionManager.runAfterInteractions(() => {
-                setIsFloatingMessageCounterVisible(false);
-                // If a new comment is added from the current user, scroll to the bottom, otherwise leave the user position unchanged
-                if (!isFromCurrentUser || reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) {
-                    return;
-                }
+            TransitionTracker.runAfterTransitions({
+                callback: () => {
+                    setIsFloatingMessageCounterVisible(false);
+                    // If a new comment is added from the current user, scroll to the bottom, otherwise leave the user position unchanged
+                    if (!isFromCurrentUser || reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) {
+                        return;
+                    }
 
-                // We want to scroll to the end of the list where the newest message is
-                // however scrollToEnd will not work correctly with items of variable sizes without `getItemLayout` - so we need to delay the scroll until every item rendered
-                const index = visibleReportActions.findIndex((item) => item.reportActionID === reportAction?.reportActionID);
-                if (index !== -1) {
-                    setTimeout(() => {
-                        reportScrollManager.scrollToEnd();
-                    }, DELAY_FOR_SCROLLING_TO_END);
-                } else {
-                    setEnableScrollToEnd(true);
-                    setLastActionEventId(reportAction?.reportActionID);
-                }
+                    // We want to scroll to the end of the list where the newest message is
+                    // however scrollToEnd will not work correctly with items of variable sizes without `getItemLayout` - so we need to delay the scroll until every item rendered
+                    const index = visibleReportActions.findIndex((item) => item.reportActionID === reportAction?.reportActionID);
+                    if (index !== -1) {
+                        setTimeout(() => {
+                            reportScrollManager.scrollToEnd();
+                        }, DELAY_FOR_SCROLLING_TO_END);
+                    } else {
+                        setEnableScrollToEnd(true);
+                        setLastActionEventId(reportAction?.reportActionID);
+                    }
+                },
             });
         },
         [reportScrollManager, setIsFloatingMessageCounterVisible, visibleReportActions],
