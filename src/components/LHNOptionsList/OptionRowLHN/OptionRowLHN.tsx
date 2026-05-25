@@ -56,6 +56,7 @@ function OptionRowLHN({isOptionFocused = false, onSelectRow = () => {}, optionIt
                             <OptionRow.ErrorBadge
                                 brickRoadIndicator={brickRoadIndicator}
                                 actionBadge={optionItem.actionBadge}
+                                isMarkAsDone={isMarkAsDone}
                             />
                         </View>
                     </View>
@@ -63,6 +64,7 @@ function OptionRowLHN({isOptionFocused = false, onSelectRow = () => {}, optionIt
                         <OptionRow.InfoBadge
                             brickRoadIndicator={brickRoadIndicator}
                             actionBadge={optionItem.actionBadge}
+                            isMarkAsDone={isMarkAsDone}
                         />
                         <OptionRow.DraftIndicator
                             hasDraftComment={hasDraftComment}

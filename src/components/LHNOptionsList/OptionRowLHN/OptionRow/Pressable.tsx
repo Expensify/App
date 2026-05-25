@@ -5,6 +5,7 @@ import Hoverable from '@components/Hoverable';
 import {useLHNTooltipContext} from '@components/LHNOptionsList/LHNTooltipContext';
 import useLHNRowProductTrainingTooltip from '@components/LHNOptionsList/OptionRowLHN/useLHNRowProductTrainingTooltip';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
+import getActionBadgeText from '@components/utils/getActionBadgeText';
 import getContextMenuAccessibilityHint from '@components/utils/getContextMenuAccessibilityHint';
 import getContextMenuAccessibilityProps from '@components/utils/getContextMenuAccessibilityProps';
 import useLocalize from '@hooks/useLocalize';
@@ -61,10 +62,8 @@ function Pressable({optionItem, isOptionFocused, onSelectRow, onLayout, onHoverI
     const reportID = optionItem.reportID;
     const brickRoadIndicator = optionItem.brickRoadIndicator;
 
-    let actionBadgeText = '';
-    if (optionItem.actionBadge) {
-        actionBadgeText = isMarkAsDone ? translate('common.markAsDone') : translate(`common.actionBadge.${optionItem.actionBadge}`);
-    }
+    const actionBadgeText = getActionBadgeText(optionItem.actionBadge, translate, isMarkAsDone);
+
     let accessibilityLabelForBadge = '';
     if (brickRoadIndicator) {
         accessibilityLabelForBadge = [translate('common.yourReviewIsRequired'), actionBadgeText].filter(Boolean).join(', ');
