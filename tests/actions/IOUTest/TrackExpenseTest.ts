@@ -1596,7 +1596,6 @@ describe('actions/IOU/TrackExpense', () => {
             const parsedRetryParams = JSON.parse(receiptError?.retryParams as unknown as string) as Record<string, unknown>;
             const persistedExistingTransaction = parsedRetryParams.existingTransaction as Partial<Transaction> | undefined;
             expect(persistedExistingTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.SCAN);
-            // Source-state fields like comment/receipt/cardNumber must not survive into the persisted retry payload
             expect(persistedExistingTransaction?.comment).toBeUndefined();
             expect(persistedExistingTransaction?.receipt).toBeUndefined();
             expect(persistedExistingTransaction?.cardNumber).toBeUndefined();

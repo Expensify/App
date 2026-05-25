@@ -1671,7 +1671,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                   currency: '',
                   created: '',
                   merchant: '',
-                  modifiedCreated: '',
                   reportID: '1',
                   transactionID: '1',
               }
@@ -2430,7 +2429,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
                   currency: '',
                   created: '',
                   merchant: '',
-                  modifiedCreated: '',
                   reportID: '1',
                   transactionID: '1',
               }
