@@ -1,22 +1,18 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useChatWithAgent from '@hooks/useChatWithAgent';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSwitchToDelegator from '@hooks/useSwitchToDelegator';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {navigateToAndOpenReportWithAccountIDs} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import AgentInfoRow from './AgentInfoRow';
@@ -50,11 +46,7 @@ function AgentsListRow({accountID, displayName, login, pendingAction, errors, on
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'ChatBubble']);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const chatWithAgent = useChatWithAgent();
     const switchToDelegator = useSwitchToDelegator();
 
     const isPendingDeletion = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -62,7 +54,7 @@ function AgentsListRow({accountID, displayName, login, pendingAction, errors, on
     const areActionsDisabled = isPendingAddOrDelete || accountID <= 0 || !login;
     const navigateToEdit = () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(accountID));
     const handleChatPress = () => {
-        navigateToAndOpenReportWithAccountIDs([accountID], currentUserPersonalDetails.accountID, introSelected, isSelfTourViewed, betas, personalDetails);
+        chatWithAgent(accountID);
     };
     const handleCopilotPress = () => {
         switchToDelegator(login);
@@ -124,6 +116,7 @@ function AgentsListRow({accountID, displayName, login, pendingAction, errors, on
                         text={translate('delegate.copilot')}
                         onPress={handleCopilotPress}
                         isDisabled={areActionsDisabled}
+                        accessibilityLabel={translate('editAgentPage.copilotIntoAccount')}
                     />
                     <Button
                         small

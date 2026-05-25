@@ -1,4 +1,3 @@
-import {useCallback} from 'react';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {connect, disconnect} from '@libs/actions/Delegate';
@@ -7,6 +6,7 @@ import {getGpsPoints, stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
+import type {Account} from '@src/types/onyx';
 import useConfirmModal from './useConfirmModal';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
@@ -27,7 +27,7 @@ function useSwitchToDelegator() {
     const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [delegatedAccess] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account: Account | undefined) => account?.delegatedAccess});
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [stashedCredentials = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS);
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -36,71 +36,52 @@ function useSwitchToDelegator() {
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
 
-    const showOfflineModal = useCallback(() => {
+    const showOfflineModal = () => {
         showConfirmModal({
             title: translate('common.youAppearToBeOffline'),
             prompt: translate('common.offlinePrompt'),
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
         });
-    }, [showConfirmModal, translate]);
+    };
 
-    const showGpsInProgressModal = useCallback(
-        async (switchAccount: () => ReturnType<typeof connect | typeof disconnect>) => {
-            const result = await showConfirmModal({
-                title: translate('gps.switchAccountWarningTripInProgress.title'),
-                prompt: translate('gps.switchAccountWarningTripInProgress.prompt'),
-                confirmText: translate('gps.switchAccountWarningTripInProgress.confirm'),
-                cancelText: translate('common.cancel'),
-            });
+    const showGpsInProgressModal = async (switchAccount: () => ReturnType<typeof connect | typeof disconnect>) => {
+        const result = await showConfirmModal({
+            title: translate('gps.switchAccountWarningTripInProgress.title'),
+            prompt: translate('gps.switchAccountWarningTripInProgress.prompt'),
+            confirmText: translate('gps.switchAccountWarningTripInProgress.confirm'),
+            cancelText: translate('common.cancel'),
+        });
 
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
 
-            await stopGpsTrip(false, getGpsPoints(gpsDraftDetails), true);
-            switchAccount();
-        },
-        [gpsDraftDetails, showConfirmModal, translate],
-    );
+        await stopGpsTrip(false, getGpsPoints(gpsDraftDetails), true);
+        switchAccount();
+    };
 
-    const switchToDelegator = useCallback(
-        (email: string) => {
-            if (isOffline) {
-                modalClose(() => showOfflineModal());
-                return;
-            }
-            const isReturningToOriginalUser = isActingAsDelegate && email === stashedSession?.email;
-            // Chained delegation isn't supported by the backend — if we're already acting as a delegate,
-            // the only legal switch is back to the original user. Anything else triggers the "Not so fast" modal.
-            if (isActingAsDelegate && !isReturningToOriginalUser) {
-                modalClose(() => showDelegateNoAccessModal());
-                return;
-            }
-            const switchAction = isReturningToOriginalUser
-                ? () => disconnect({stashedCredentials, stashedSession})
-                : () => connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID});
-            if (isTrackingGPS) {
-                modalClose(() => showGpsInProgressModal(switchAction));
-                return;
-            }
-            switchAction();
-        },
-        [
-            account?.delegatedAccess,
-            activePolicyID,
-            credentials,
-            isActingAsDelegate,
-            isOffline,
-            isTrackingGPS,
-            session,
-            showDelegateNoAccessModal,
-            showGpsInProgressModal,
-            showOfflineModal,
-            stashedCredentials,
-            stashedSession,
-        ],
-    );
+    const switchToDelegator = (email: string) => {
+        if (isOffline) {
+            modalClose(() => showOfflineModal());
+            return;
+        }
+        const isReturningToOriginalUser = isActingAsDelegate && email === stashedSession?.email;
+        // Chained delegation isn't supported by the backend — if we're already acting as a delegate,
+        // the only legal switch is back to the original user. Anything else triggers the "Not so fast" modal.
+        if (isActingAsDelegate && !isReturningToOriginalUser) {
+            modalClose(() => showDelegateNoAccessModal());
+            return;
+        }
+        const switchAction = isReturningToOriginalUser
+            ? () => disconnect({stashedCredentials, stashedSession})
+            : () => connect({email, delegatedAccess, credentials, session, activePolicyID});
+        if (isTrackingGPS) {
+            modalClose(() => showGpsInProgressModal(switchAction));
+            return;
+        }
+        switchAction();
+    };
 
     return switchToDelegator;
 }
