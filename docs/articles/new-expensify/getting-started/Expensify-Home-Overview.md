@@ -52,6 +52,8 @@ These alerts appear when:
 - There is potential risk, such as suspected Expensify Card fraud
 - An action must be taken within a short window, such as a limited-time offer or early adoption discount
 
+If there are more than 5 alerts, the section shows the first 5 and displays a **See N more** button. Tap the button to reveal all remaining alerts. Tap **Show less** to collapse the section back to the first 5.
+
 If there are no urgent issues, this section will not appear.
 
 ---
@@ -119,6 +121,8 @@ This section helps you stay informed about what’s new or recently changed in N
 The **Assigned cards** section shows your active Expensify Cards along with the available spending limit for each card.
 
 Use this section to quickly check how much you can spend before making a purchase. The available limit updates automatically as transactions are made.
+
+If there are more than 5 items in this section, only the first 5 are shown by default. Tap **See N more** to view all cards, or tap **Show less** to collapse back to 5.
 
 Cards with a custom spending limit of $0 are not shown in this section.
 
