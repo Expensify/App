@@ -470,7 +470,7 @@ function AttachmentPickerWithMenuItems({
                                             style={styles.composerSizeButton}
                                             disabled={disabled}
                                             role={CONST.ROLE.BUTTON}
-                                            accessibilityLabel={translate('common.create')}
+                                            accessibilityLabel={translate('accessibilityHints.openActionsMenu')}
                                             sentryLabel={CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_CREATE_BUTTON}
                                         >
                                             <Icon

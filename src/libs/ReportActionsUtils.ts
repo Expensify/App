@@ -208,7 +208,8 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | Optimisti
     if (
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS ||
-        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER ||
+        isCardIssuedAction(reportAction)
     ) {
         return false;
     }
@@ -1259,7 +1260,7 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
     // Hide REIMBURSED and MARKED_REIMBURSED actions created from NewDot since an IOU PAY action is displayed instead
     if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
         const originalMessage = getOriginalMessage(reportAction);
-        if (originalMessage?.isNewDot) {
+        if (originalMessage?.isNewDot || reportAction.shouldShow === false) {
             return false;
         }
     }
@@ -2729,6 +2730,12 @@ function getExportIntegrationActionFragments(translate: LocalizedTranslate, repo
             url = nonReimbursableUrl.startsWith('https://') ? nonReimbursableUrl : '';
         } else {
             switch (label) {
+                case CONST.EXPORT_LABELS.INTACCT:
+                case CONST.EXPORT_LABELS.SAGE_INTACCT:
+                case CONST.EXPORT_LABELS.QBD:
+                    // These integrations store IDs, not URLs.
+                    url = '';
+                    break;
                 case CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.xero:
                     url = XERO_NON_REIMBURSABLE_EXPENSES_URL;
                     break;
@@ -4318,7 +4325,7 @@ function getSettlementAccountLockedMessage(translate: LocalizedTranslate, action
 }
 
 function isCardIssuedAction(
-    reportAction: OnyxEntry<ReportAction>,
+    reportAction: OnyxInputOrEntry<ReportAction>,
 ): reportAction is ReportAction<
     | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED
     | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL
