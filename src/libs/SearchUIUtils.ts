@@ -1277,9 +1277,8 @@ function getReportListColumnsWithData(data: OnyxTypes.SearchResults['data'] | On
             if (report?.approved) {
                 present.add(CONST.SEARCH.TABLE_COLUMNS.APPROVED);
             }
-            // First approver/approved mirror the export's `report.approvers[0]`; show the columns
-            // when the backend sends approvers or (fallback) the report has an approved date.
-            if (report?.approvers?.length || report?.approved) {
+            // Mirrors export's `report.approvers[0]`; needs backend `approvers` to render.
+            if (report?.approvers?.length) {
                 present.add(CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED);
                 present.add(CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER);
             }
@@ -1891,9 +1890,7 @@ function processReportEntry(ctx: PreprocessingContext, report: OnyxTypes.Report)
     if (!ctx.shouldShowYearApprovedReport && report.approved && DateUtils.doesDateBelongToAPastYear(report.approved)) {
         ctx.shouldShowYearApprovedReport = true;
     }
-    // First-approved date: prefer the backend-computed approvers[0].date (matches the export
-    // template); fall back to report.approved when the backend doesn't send approvers.
-    const firstApprovedDate = report.approvers?.at(0)?.date ?? report.approved;
+    const firstApprovedDate = report.approvers?.at(0)?.date;
     if (!ctx.shouldShowYearFirstApprovedReport && firstApprovedDate && DateUtils.doesDateBelongToAPastYear(firstApprovedDate)) {
         ctx.shouldShowYearFirstApprovedReport = true;
     }
@@ -2839,20 +2836,13 @@ function getReportSections({
                     emptyPersonalDetails;
                 const toDetails = !shouldShowBlankTo && reportItem.managerID ? mergedPersonalDetails?.[reportItem.managerID] : emptyPersonalDetails;
 
-                // First approver/approved mirror the detailed export template's `report.approvers[0]`.
-                // Prefer the backend-computed approvers list; the Search snapshot doesn't send it yet,
-                // so fall back to the report's approver (managerID) + approved date — but only for
-                // reports that are actually approved, so unapproved reports stay blank like the export.
+                // First approver/approved come from BE `report.approvers[0]`; blank when absent.
                 const reportFirstApprover = reportItem.approvers?.at(0);
-                const isReportApproved = !!reportFirstApprover || !!reportItem.approved;
-                let firstApproverAccountID: number | undefined;
-                if (reportFirstApprover) {
-                    firstApproverAccountID = reportFirstApprover.accountID ?? Object.values(mergedPersonalDetails).find((details) => details?.login === reportFirstApprover.email)?.accountID;
-                } else if (isReportApproved) {
-                    firstApproverAccountID = reportItem.managerID;
-                }
+                const firstApproverAccountID = reportFirstApprover
+                    ? (reportFirstApprover.accountID ?? Object.values(mergedPersonalDetails).find((details) => details?.login === reportFirstApprover.email)?.accountID)
+                    : undefined;
                 const firstApproverDetails = firstApproverAccountID ? (mergedPersonalDetails?.[firstApproverAccountID] ?? emptyPersonalDetails) : emptyPersonalDetails;
-                const firstApproved = reportFirstApprover?.date ?? (isReportApproved ? (reportItem.approved ?? '') : '');
+                const firstApproved = reportFirstApprover?.date ?? '';
 
                 const formattedFrom = formatPhoneNumber(getDisplayNameOrDefault(fromDetails));
                 const formattedTo = !shouldShowBlankTo ? formatPhoneNumber(getDisplayNameOrDefault(toDetails)) : '';

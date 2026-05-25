@@ -98,11 +98,7 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The date the report was approved */
         approved?: string;
 
-        /**
-         * Ordered list of users who approved this report, as computed by the backend (mirrors the
-         * detailed export template's `report.approvers`). `approvers[0]` is the first approver.
-         * Not yet sent by the Search command — the Reports table falls back to FE-derived data when absent.
-         */
+        /** Backend-computed approver list (mirrors export's `report.approvers`); `[0]` is the first approver. */
         approvers?: Array<{
             /** Email of the approver */
             email: string;
