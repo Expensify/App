@@ -4451,6 +4451,7 @@ function createWorkspaceFromIOUPayment(
     const expenseReport = {
         ...iouReport,
         chatReportID: memberData.workspaceChatReportID,
+        parentReportID: memberData.workspaceChatReportID,
         policyID,
         policyName: workspaceName,
         type: CONST.REPORT.TYPE.EXPENSE,
