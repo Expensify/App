@@ -1,3 +1,4 @@
+import {useFocusEffect} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
 import {activeAdminPoliciesSelector} from '@selectors/Policy';
 import {emailSelector} from '@selectors/Session';
@@ -15,7 +16,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {hasSynchronizationErrorMessage, isConnectionInProgress} from '@libs/actions/connections';
 import {isCurrentUserValidated} from '@libs/UserUtils';
 import HomeSectionExpandToggle from '@pages/home/HomeSectionExpandToggle';
-import useResetHomeSectionExpandOnBlur from '@pages/home/useResetHomeSectionExpandOnBlur';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
@@ -70,7 +70,11 @@ function TimeSensitiveSection() {
     const isAnonymous = useIsAnonymousUser();
     const [isExpanded, setIsExpanded] = useState(false);
 
-    useResetHomeSectionExpandOnBlur(() => setIsExpanded(false));
+    useFocusEffect(
+        useCallback(() => {
+            return () => setIsExpanded(false);
+        }, []),
+    );
 
     // Use custom hooks for offers and cards (Release 3)
     const {shouldShowAddPaymentCard} = useTimeSensitiveAddPaymentCard();

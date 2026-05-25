@@ -1,4 +1,5 @@
-import React, {useState} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import WidgetContainer from '@components/WidgetContainer';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -7,7 +8,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import HomeSectionExpandToggle from '@pages/home/HomeSectionExpandToggle';
-import useResetHomeSectionExpandOnBlur from '@pages/home/useResetHomeSectionExpandOnBlur';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import CardRow from './CardRow';
@@ -22,7 +22,11 @@ function YourSpendSection() {
     const icons = useMemoizedLazyExpensifyIcons(['ThumbsUpHourglass', 'MoneyBag']);
     const [isExpanded, setIsExpanded] = useState(false);
 
-    useResetHomeSectionExpandOnBlur(() => setIsExpanded(false));
+    useFocusEffect(
+        useCallback(() => {
+            return () => setIsExpanded(false);
+        }, []),
+    );
 
     const isApprovalRowVisible = approvalRowState === YOUR_SPEND_ROW_STATE.LOADING || approvalRowState === YOUR_SPEND_ROW_STATE.READY;
     const isPaymentRowVisible = paymentRowState === YOUR_SPEND_ROW_STATE.LOADING || paymentRowState === YOUR_SPEND_ROW_STATE.READY;
