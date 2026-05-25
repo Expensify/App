@@ -1,3 +1,6 @@
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
+
 type SignInWithShortLivedAuthTokenParams = {
     authToken: string;
     skipReauthentication: boolean;
@@ -7,7 +10,7 @@ type SignInWithShortLivedAuthTokenParams = {
      * SAML sign-in and OldDot → NewDot deep-link handovers — so callers should set this when the upstream
      * method is known.
      */
-    authMethod?: string;
+    authMethod?: ValueOf<typeof CONST.AUTH_METHOD>;
 };
 
 export default SignInWithShortLivedAuthTokenParams;
