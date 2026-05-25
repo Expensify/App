@@ -49,7 +49,7 @@ function AgentPromotionalBanner({title, subtitle, onDismiss, dismissSentryLabel,
         () => (
             <View style={[styles.flexRow, styles.flexShrink1]}>
                 <Text style={[styles.textStrong]}>
-                    {title}{' '}
+                    {title}
                     <Badge
                         badgeStyles={styles.agentPromotionalBannerBadge}
                         success
