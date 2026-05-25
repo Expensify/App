@@ -1,7 +1,6 @@
 import {pendingChatMembersSelector} from '@selectors/ReportMetaData';
 import React, {useEffect} from 'react';
 import type {SectionListData} from 'react-native';
-import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -79,39 +78,45 @@ function RoomInvitePage({
         excludedUsers[smsDomain] = true;
     }
 
-    const {searchTerm, debouncedSearchTerm, setSearchTerm, selectedOptions, availableOptions, toggleSelection, areOptionsInitialized} = usePersonalDetailSearchSelector({
-        shouldInitialize: didScreenTransitionEnd,
-        selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
-        excludeLogins: excludedUsers,
-        includeCurrentUser: false,
-        includeRecentReports: false,
-        includeUserToInvite: true,
-        initialSearchPhrase: userSearchPhrase,
-    });
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, selectedOptions, availableOptions, selectedNonExistingOptions, toggleSelection, areOptionsInitialized} =
+        usePersonalDetailSearchSelector({
+            shouldInitialize: didScreenTransitionEnd,
+            selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+            excludeLogins: excludedUsers,
+            includeCurrentUser: false,
+            includeRecentReports: false,
+            includeUserToInvite: true,
+            initialSearchPhrase: userSearchPhrase,
+            shouldKeepSelectedInAvailableOptions: true,
+        });
 
     const sections: MembersSection[] = [];
     if (areOptionsInitialized) {
-        if (availableOptions.userToInvite) {
+        // Selected non-existing users section (e.g., typed email addresses)
+        if (selectedNonExistingOptions.length > 0) {
+            sections.push({
+                title: undefined,
+                data: selectedNonExistingOptions,
+                sectionIndex: 0,
+            });
+        }
+
+        // Contacts section (selected items stay in-place with isSelected flag)
+        if (availableOptions.personalDetails.length > 0) {
+            sections.push({
+                title: translate('common.contacts'),
+                data: availableOptions.personalDetails,
+                sectionIndex: 1,
+            });
+        }
+
+        // User to invite section (hide if already selected)
+        if (availableOptions.userToInvite && !availableOptions.userToInvite.isSelected) {
             sections.push({
                 title: undefined,
                 data: [availableOptions.userToInvite],
-                sectionIndex: 0,
+                sectionIndex: 2,
             });
-        } else {
-            if (availableOptions.selectedOptions.length > 0) {
-                sections.push({
-                    title: undefined,
-                    data: availableOptions.selectedOptions,
-                    sectionIndex: 0,
-                });
-            }
-            if (availableOptions.personalDetails.length > 0) {
-                sections.push({
-                    title: translate('common.contacts'),
-                    data: availableOptions.personalDetails,
-                    sectionIndex: availableOptions.selectedOptions.length > 0 ? 1 : 0,
-                });
-            }
         }
     }
 
@@ -196,6 +201,17 @@ function RoomInvitePage({
         headerMessage: getHeaderMessageText(),
     };
 
+    const footerContent = (
+        <FormAlertWithSubmitButton
+            isDisabled={!validSelectedOptions.length}
+            buttonText={translate('common.invite')}
+            onSubmit={inviteUsers}
+            containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
+            enabledWhenOffline
+            isAlertVisible={false}
+        />
+    );
+
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
@@ -218,24 +234,18 @@ function RoomInvitePage({
                     textInputOptions={textInputOptions}
                     onSelectRow={toggleSelection}
                     confirmButtonOptions={{
+                        isDisabled: !validSelectedOptions.length,
                         onConfirm: inviteUsers,
                     }}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                    shouldUpdateFocusedIndex
+                    shouldPreventAutoScrollOnSelect
                     shouldShowLoadingPlaceholder={!areOptionsInitialized}
                     isLoadingNewOptions={!!isSearchingForReports}
                     shouldShowTextInput
                     canSelectMultiple
+                    footerContent={footerContent}
                 />
-                <View style={[styles.flexShrink0]}>
-                    <FormAlertWithSubmitButton
-                        isDisabled={!validSelectedOptions.length}
-                        buttonText={translate('common.invite')}
-                        onSubmit={inviteUsers}
-                        containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5, styles.ph5]}
-                        enabledWhenOffline
-                        isAlertVisible={false}
-                    />
-                </View>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
