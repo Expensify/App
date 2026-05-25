@@ -67,7 +67,7 @@ type HRConnectionName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.HR_CONNECTI
 /** Display info for an HR provider connected to a policy. */
 type HRProviderInfo = {
     /** The internal connection name used as the key on `policy.connections` (e.g. `'gusto'`, `'zenefits'`, `'merge_hris'`). */
-    connectionName: string;
+    connectionName: ConnectionName;
 
     /** Human-readable label shown in the UI (e.g. `'Gusto'`, `'TriNet'`, or a Merge HR provider brand like `'Workday'`). */
     displayName: string;
