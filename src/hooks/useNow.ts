@@ -6,6 +6,7 @@ import {useSyncExternalStore} from 'react';
  */
 
 const POLL_INTERVAL_MS = 1000;
+const MS_PER_MINUTE = 60_000;
 
 const listeners = new Set<() => void>();
 let intervalId: ReturnType<typeof setInterval> | null = null;
@@ -16,7 +17,7 @@ let lastMinute = -1;
 function tick() {
     const now = new Date();
     // Monotonic minute index (not `getMinutes()` 0–59) — catches sleep/wake gaps that land on the same minute-of-hour (10:30 → 11:30).
-    const currentMinute = Math.floor(now.getTime() / 60000);
+    const currentMinute = Math.floor(now.getTime() / MS_PER_MINUTE);
     if (currentMinute === lastMinute) {
         return;
     }
@@ -46,7 +47,7 @@ function subscribe(listener: () => void): () => void {
 function getSnapshot(): Date {
     if (snapshot === null) {
         snapshot = new Date();
-        lastMinute = Math.floor(snapshot.getTime() / 60000);
+        lastMinute = Math.floor(snapshot.getTime() / MS_PER_MINUTE);
     }
     return snapshot;
 }
