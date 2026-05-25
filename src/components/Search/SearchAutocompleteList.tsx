@@ -87,6 +87,8 @@ const defaultListOptions = {
     categoryOptions: [],
 };
 
+const EMPTY_RANK_MAP: ReadonlyMap<string, number> = new Map();
+
 const emptyOptionList = {
     reports: [],
     personalDetails: [],
@@ -383,10 +385,10 @@ function SearchAutocompleteList({
     // Locked rank map (keyForList -> originalIndex) capturing the order of locally-known
     // results at the moment the query changes. Recomputed only when the query changes, so server
     // reports merged into Onyx later do not shift the rows already visible in the top section.
-    // Uses the React-recommended "setState during render" pattern to avoid calling setState in
-    // an effect (which causes cascading renders) and to avoid reading refs during render.
-    const [frozenLocalRank, setFrozenLocalRank] = useState<ReadonlyMap<string, number>>(new Map());
-    const [prevAutocompleteQuery, setPrevAutocompleteQuery] = useState(autocompleteQueryValue);
+    // Uses refs instead of state to avoid extra re-renders — the useMemo already recomputes
+    // due to autocompleteQueryValue or recentReportsOptions changing when these refs are updated.
+    const frozenLocalRankRef = useRef<ReadonlyMap<string, number>>(EMPTY_RANK_MAP);
+    const prevAutocompleteQueryRef = useRef(autocompleteQueryValue);
 
     const buildRankMap = (options: OptionData[]): Map<string, number> => {
         const rank = new Map<string, number>();
@@ -399,16 +401,16 @@ function SearchAutocompleteList({
         return rank;
     };
 
-    if (prevAutocompleteQuery !== autocompleteQueryValue) {
-        setPrevAutocompleteQuery(autocompleteQueryValue);
+    if (prevAutocompleteQueryRef.current !== autocompleteQueryValue) {
+        prevAutocompleteQueryRef.current = autocompleteQueryValue;
         if (autocompleteQueryValue.trim() === '') {
-            setFrozenLocalRank(new Map());
+            frozenLocalRankRef.current = EMPTY_RANK_MAP;
         } else {
-            setFrozenLocalRank(buildRankMap(recentReportsOptions));
+            frozenLocalRankRef.current = buildRankMap(recentReportsOptions);
         }
-    } else if (autocompleteQueryValue.trim() !== '' && frozenLocalRank.size === 0 && recentReportsOptions.length > 0) {
+    } else if (autocompleteQueryValue.trim() !== '' && frozenLocalRankRef.current.size === 0 && recentReportsOptions.length > 0) {
         // Options hydrated after the rank was snapshotted as empty — recompute.
-        setFrozenLocalRank(buildRankMap(recentReportsOptions));
+        frozenLocalRankRef.current = buildRankMap(recentReportsOptions);
     }
 
     const debounceHandleSearch = useDebounce(() => {
@@ -501,7 +503,7 @@ function SearchAutocompleteList({
             const localRows: AutocompleteListItem[] = [];
             const serverRows: AutocompleteListItem[] = [];
             for (const item of nextStyledRecentReports) {
-                if (item.keyForList && frozenLocalRank.has(item.keyForList)) {
+                if (item.keyForList && frozenLocalRankRef.current.has(item.keyForList)) {
                     localRows.push(item);
                 } else {
                     serverRows.push(item);
@@ -509,7 +511,7 @@ function SearchAutocompleteList({
             }
             // Sort the local section by the rank captured at query-change time so it cannot
             // reorder when the API returns.
-            localRows.sort((a, b) => (frozenLocalRank.get(a.keyForList ?? '') ?? 0) - (frozenLocalRank.get(b.keyForList ?? '') ?? 0));
+            localRows.sort((a, b) => (frozenLocalRankRef.current.get(a.keyForList ?? '') ?? 0) - (frozenLocalRankRef.current.get(b.keyForList ?? '') ?? 0));
 
             if (localRows.length > 0 || !isLoadingOptions) {
                 pushSection({title: undefined, data: localRows, sectionIndex: sectionIndex++});
@@ -565,7 +567,6 @@ function SearchAutocompleteList({
         autocompleteQueryValue,
         autocompleteSuggestions,
         expensifyIcons,
-        frozenLocalRank,
         getAdditionalSections,
         recentReportsOptions,
         recentSearchesData,
