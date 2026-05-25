@@ -252,7 +252,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
         }
 
         return '';
-    }, [isReportArchived, report]);
+    }, [isReportArchived, report, policy]);
 
     const isSystemChat = useMemo(() => isSystemChatUtil(report), [report]);
     const isGroupChat = useMemo(() => isGroupChatUtil(report), [report]);
