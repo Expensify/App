@@ -1,5 +1,6 @@
 import {useEffect, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import {clearAgentZeroProcessingIndicator} from '@libs/actions/Report';
 import {applyPendingConciergeAction, clearPendingFollowupList, discardPendingConciergeAction} from '@libs/actions/Report/SuggestedFollowup';
 import {MAX_AGE_MS} from '@libs/AgentZeroOptimisticStore';
 import Log from '@libs/Log';
@@ -94,8 +95,12 @@ function usePendingConciergeResponse(reportID: string | undefined) {
             return;
         }
         const html = pendingFollowupAction ? getReportActionHtml(pendingFollowupAction) : '';
-        if (parseFollowupsFromHtml(html)?.length) {
+        const hardClearIndicator = () => {
+            clearAgentZeroProcessingIndicator(reportID);
             clearPendingFollowupList(reportID);
+        };
+        if (parseFollowupsFromHtml(html)?.length) {
+            hardClearIndicator();
             return;
         }
         if (isOffline) {
@@ -104,10 +109,10 @@ function usePendingConciergeResponse(reportID: string | undefined) {
         const effectiveStart = Math.max(pendingFollowupList.createdAt, lastOnlineTransitionAtRef.current);
         const remainingTTL = effectiveStart + PENDING_FOLLOWUP_LIST_HARD_CAP_MS - Date.now();
         if (remainingTTL <= 0) {
-            clearPendingFollowupList(reportID);
+            hardClearIndicator();
             return;
         }
-        const ttlTimer = setTimeout(() => clearPendingFollowupList(reportID), remainingTTL);
+        const ttlTimer = setTimeout(hardClearIndicator, remainingTTL);
         return () => clearTimeout(ttlTimer);
     }, [reportID, pendingFollowupList, pendingFollowupAction, isOffline]);
 
