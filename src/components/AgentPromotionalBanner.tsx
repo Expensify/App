@@ -72,7 +72,7 @@ function AgentPromotionalBanner({title, subtitle, onDismiss, dismissSentryLabel,
                 <View style={[styles.flex0, styles.flexBasis100, styles.maxWidth100Percentage, styles.justifyContentCenter]}>
                     <Button
                         success
-                        large
+                        medium
                         text={ctaText}
                         onPress={onCtaPress}
                         sentryLabel={ctaSentryLabel}
