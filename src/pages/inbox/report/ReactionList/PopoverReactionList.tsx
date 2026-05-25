@@ -4,9 +4,11 @@ import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import {getEmojiReactionDetails, mergeReactionsByEmoji} from '@libs/EmojiUtils';
-import {getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import type {ReactionListAnchor} from '@pages/inbox/ReportScreenContext';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {multiPersonalDetailsSelector} from '@src/selectors/PersonalDetails';
+import type {PersonalDetails} from '@src/types/onyx';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 import BaseReactionList from './BaseReactionList';
 
 type PopoverReactionListProps = {
@@ -29,7 +31,14 @@ function PopoverReactionList({isVisible, emojiName, reportActionID, anchorPositi
     const selectedReaction = mergedReactions[emojiName];
     const isReady = !!selectedReaction;
     const {emojiCodes = [], reactionCount = 0, hasUserReacted = false, userAccountIDs = []} = selectedReaction ? getEmojiReactionDetails(emojiName, selectedReaction, accountID) : {};
-    const users = isReady ? getPersonalDetailsByIDs({accountIDs: userAccountIDs, currentUserAccountID: accountID, shouldChangeUserDisplayName: true}) : [];
+
+    const [users = getEmptyArray<PersonalDetails>()] = useOnyx(
+        ONYXKEYS.PERSONAL_DETAILS_LIST,
+        {
+            selector: multiPersonalDetailsSelector(isReady ? userAccountIDs : []),
+        },
+        [isReady, userAccountIDs],
+    );
 
     // Hide the list when all reactions are removed
     useEffect(() => {

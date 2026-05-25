@@ -3,7 +3,7 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import * as API from '@libs/API';
-import type {PayInvoiceParams, PayMoneyRequestParams} from '@libs/API/parameters';
+import type {MarkReportPaymentReceivedParams, PayInvoiceParams, PayMoneyRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -15,7 +15,9 @@ import {getAllReportActions, getReportActionHtml, getReportActionText, isCreated
 import {
     buildOptimisticCancelPaymentReportAction,
     buildOptimisticIOUReportAction,
+    getReimbursableTotal,
     getReportTransactions,
+    getUnheldReimbursableTotal,
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasOutstandingChildRequest,
     isExpenseReport,
@@ -213,9 +215,9 @@ function getPayMoneyRequestParams({
     }
 
     const reportTransactions = getReportTransactions(iouReport?.reportID);
-    let total = (iouReport?.total ?? 0) - (iouReport?.nonReimbursableTotal ?? 0);
+    let total = getReimbursableTotal(iouReport);
     if (hasHeldExpensesReportUtils(reportTransactions) && !full && !!iouReport?.unheldTotal) {
-        total = iouReport.unheldTotal - (iouReport?.unheldNonReimbursableTotal ?? 0);
+        total = getUnheldReimbursableTotal(iouReport);
     }
 
     const optimisticIOUReportAction = buildOptimisticIOUReportAction({
@@ -491,9 +493,10 @@ function cancelPayment(
         return;
     }
 
+    // Prefer the freshly computed reimbursableTotal over deriving from the (sometimes stale) stored total.
     const optimisticReportAction = buildOptimisticCancelPaymentReportAction(
         expenseReport.reportID,
-        -((expenseReport.total ?? 0) - (expenseReport?.nonReimbursableTotal ?? 0)),
+        -getReimbursableTotal(expenseReport),
         expenseReport.currency ?? '',
         currentUserAccountIDParam,
     );
@@ -736,7 +739,6 @@ function completePaymentOnboarding(
         companySize: introSelected?.companySize as OnboardingCompanySize,
         introSelected,
         isSelfTourViewed,
-        betas,
     });
 }
 
@@ -806,6 +808,175 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
     API.write(apiCommand, payMoneyRequestParams, onyxData);
     notifyNewAction(!full ? (Navigation.getTopmostReportId() ?? iouReport?.reportID) : iouReport?.reportID, undefined, true);
     return payMoneyRequestParams.optimisticHoldReportID;
+}
+
+function markReportPaymentReceived(
+    chatReport: OnyxEntry<OnyxTypes.Report>,
+    iouReport: OnyxEntry<OnyxTypes.Report>,
+    iouReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
+    currentUserAccountID: number,
+    currentUserEmail: string,
+) {
+    if (!chatReport || !iouReport) {
+        return;
+    }
+
+    const allTransactionViolations = getAllTransactionViolations();
+    const recipient = {accountID: iouReport.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
+    const total = (iouReport.total ?? 0) - (iouReport.nonReimbursableTotal ?? 0);
+    const optimisticIOUReportAction = buildOptimisticIOUReportAction({
+        type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+        amount: -total,
+        currency: iouReport.currency ?? '',
+        comment: '',
+        participants: [recipient],
+        transactionID: '',
+        paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+        iouReportID: iouReport.reportID,
+        isSettlingUp: true,
+    });
+
+    const reportPreviewAction = getReportPreviewAction(chatReport.reportID, iouReport.reportID);
+    const optimisticReportPreviewAction = reportPreviewAction ? updateReportPreview(iouReport, reportPreviewAction, true) : null;
+    const optimisticNextStepDeprecated =
+        // buildOptimisticNextStep is used in parallel
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        buildNextStepNew({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED});
+    const optimisticNextStep = buildOptimisticNextStep({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED});
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.NEXT_STEP>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: {
+                ...chatReport,
+                iouReportID: null,
+                hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, iouReport.reportID, currentUserEmail, currentUserAccountID, allTransactionViolations, undefined),
+                lastMessageText: getReportActionText(optimisticIOUReportAction),
+                lastMessageHtml: getReportActionHtml(optimisticIOUReportAction),
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+            value: {
+                [optimisticIOUReportAction.reportActionID]: {
+                    ...(optimisticIOUReportAction as OnyxTypes.ReportAction),
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: {
+                lastMessageText: getReportActionText(optimisticIOUReportAction),
+                lastMessageHtml: getReportActionHtml(optimisticIOUReportAction),
+                lastVisibleActionCreated: optimisticIOUReportAction.created,
+                hasOutstandingChildRequest: false,
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                pendingFields: {
+                    preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    reimbursed: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    partial: null,
+                    nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+                nextStep: optimisticNextStep,
+                errors: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`,
+            value: optimisticNextStepDeprecated,
+        },
+    ];
+
+    if (optimisticReportPreviewAction) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [optimisticReportPreviewAction.reportActionID]: optimisticReportPreviewAction,
+            },
+        });
+    }
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: {
+                pendingFields: {
+                    preview: null,
+                    reimbursed: null,
+                    partial: null,
+                    nextStep: null,
+                },
+                errors: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+            value: {
+                [optimisticIOUReportAction.reportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.NEXT_STEP>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+            value: {
+                [optimisticIOUReportAction.reportActionID]: {
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other', 0),
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: {
+                ...iouReport,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: chatReport,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`,
+            value: iouReportCurrentNextStepDeprecated ?? null,
+        },
+    ];
+
+    if (optimisticReportPreviewAction) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [optimisticReportPreviewAction.reportActionID]: {
+                    created: optimisticReportPreviewAction.created,
+                },
+            },
+        });
+    }
+
+    const parameters: MarkReportPaymentReceivedParams = {
+        reportID: iouReport.reportID,
+        reportActionID: optimisticIOUReportAction.reportActionID,
+    };
+
+    playSound(SOUNDS.SUCCESS);
+    API.write(WRITE_COMMANDS.MARK_REPORT_PAYMENT_RECEIVED, parameters, {optimisticData, successData, failureData});
+    notifyNewAction(iouReport.reportID, undefined, true);
 }
 
 function payInvoice({
@@ -920,4 +1091,4 @@ function savePreferredPaymentMethod(
     });
 }
 
-export {cancelPayment, completePaymentOnboarding, payInvoice, payMoneyRequest, savePreferredPaymentMethod};
+export {cancelPayment, completePaymentOnboarding, markReportPaymentReceived, payInvoice, payMoneyRequest, savePreferredPaymentMethod};

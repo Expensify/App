@@ -55,7 +55,7 @@ function NetSuiteCustomListSelectorModal({isVisible, currentCustomListValue, onC
 
         return {
             options: isEmpty ? [] : filteredCustomLists,
-            showTextInput: customListData.length > CONST.STANDARD_LIST_ITEM_LIMIT,
+            showTextInput: customListData.length >= CONST.STANDARD_LIST_ITEM_LIMIT,
         };
     }, [debouncedSearchValue, rawCustomLists, currentCustomListValue]);
 
