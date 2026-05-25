@@ -364,7 +364,7 @@ describe('processDataIntoSlices', () => {
         expect(uniqueColors.size).toBe(4);
     });
 
-    it('places tooltipPosition at the ring midpoint along each slice midangle', () => {
+    it('places tooltipPosition at the ring midpoint along each slice mid-angle', () => {
         // Two equal slices from -90° produce mid-angles 0° (right) and 180° (left).
         // tooltipRadius = (innerRadius + radius) / 2 = (60 + 100) / 2 = 80.
         const data: ChartDataPoint[] = [
