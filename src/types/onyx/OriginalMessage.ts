@@ -30,7 +30,6 @@ type IOUDetails = {
     currency: string;
 };
 
-/** Base fields shared across all `IOU` report action types */
 /** Model of `IOU` report action */
 type OriginalMessageIOU = {
     /** The ID of the `IOU` transaction */

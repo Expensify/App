@@ -4718,12 +4718,13 @@ function canEditMoneyRequest(
         return true;
     }
 
+    const moneyRequestReportID = originalMessage?.IOUReportID ?? reportAction?.reportID;
     const isRequestor = deprecatedCurrentUserAccountID === reportAction?.actorAccountID;
-    if (actionType === CONST.IOU.REPORT_ACTION_TYPE.TRACK && isRequestor) {
-        return true;
+
+    if (!moneyRequestReportID) {
+        return actionType === CONST.IOU.REPORT_ACTION_TYPE.TRACK && isRequestor;
     }
 
-    const moneyRequestReportID = originalMessage?.IOUReportID ?? reportAction?.reportID;
     const moneyRequestReport = report ?? getReportOrDraftReport(String(moneyRequestReportID));
 
     const isSubmitted = isProcessingReport(moneyRequestReport);
