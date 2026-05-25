@@ -12,7 +12,7 @@ inputs:
         required: true
     GITHUB_TOKEN:
         description: Auth token for repository API calls
-        required: false
+        required: true
         default: ${{ github.token }}
     OS_BOTIFY_TOKEN:
         description: OSBotify token for org team membership (read:org)
