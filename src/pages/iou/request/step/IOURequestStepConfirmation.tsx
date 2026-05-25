@@ -36,6 +36,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setMoneyRequestBillable, setMoneyRequestReimbursable} from '@libs/actions/IOU/MoneyRequest';
 import {submitWithDismissFirst} from '@libs/actions/IOU/submitWithDismissFirst';
+import {setTransactionReport} from '@libs/actions/Transaction';
 import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
@@ -117,6 +118,7 @@ function IOURequestStepConfirmation({
     transaction: initialTransaction,
     isLoadingTransaction,
     shouldHideHeader = false,
+    navigation,
 }: IOURequestStepConfirmationProps) {
     const params = route.params;
     const {iouType, reportID, transactionID: initialTransactionID, action, backToReport, backTo} = params;
@@ -343,12 +345,19 @@ function IOURequestStepConfirmation({
             if (!activeTransactionID) {
                 return;
             }
-            setMoneyRequestParticipants(activeTransactionID, participantsList);
+            if (participantsList.at(0)?.isSelfDM) {
+                setMoneyRequestParticipantsFromReport(activeTransactionID, selfDMReport, currentUserPersonalDetails.accountID);
+                setTransactionReport(activeTransactionID, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}, true);
+                navigation.setParams({iouType: CONST.IOU.TYPE.TRACK});
+            } else {
+                navigation.setParams({iouType: CONST.IOU.TYPE.CREATE});
+                setMoneyRequestParticipants(activeTransactionID, participantsList);
+            }
             if (participantsList.length > 0) {
                 closeParticipantPicker();
             }
         },
-        [activeTransactionID, closeParticipantPicker],
+        [activeTransactionID, closeParticipantPicker, currentUserPersonalDetails.accountID, navigation, selfDMReport],
     );
 
     useEffect(() => {
@@ -365,7 +374,13 @@ function IOURequestStepConfirmation({
         }
 
         setMoneyRequestParticipants(transaction.transactionID, defaultParticipants);
-    }, [transaction?.transactionID, transaction?.participants, defaultParticipants, isNewManualExpenseFlowEnabled, isManualRequest]);
+        if (defaultParticipants.at(0)?.isSelfDM) {
+            setTransactionReport(transaction.transactionID, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}, true);
+            navigation.setParams({iouType: CONST.IOU.TYPE.TRACK});
+        } else {
+            navigation.setParams({iouType: CONST.IOU.TYPE.CREATE});
+        }
+    }, [transaction?.transactionID, transaction?.participants, defaultParticipants, isNewManualExpenseFlowEnabled, isManualRequest, navigation]);
 
     const isPolicyExpenseChat = useMemo(() => {
         const hasPolicyExpenseChat = (participantList: typeof defaultParticipants) =>
