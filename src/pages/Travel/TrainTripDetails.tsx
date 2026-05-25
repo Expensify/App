@@ -2,8 +2,8 @@ import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import SingleUserPill from '@components/SingleUserPill';
 import Text from '@components/Text';
+import UserPills from '@components/UserPills';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
@@ -100,11 +100,15 @@ function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps)
                     interactive={false}
                     accessibilityLabel={`${translate('travel.trainDetails.passenger')} ${displayName}`}
                     titleComponent={
-                        <SingleUserPill
-                            avatar={personalDetails?.avatar}
-                            displayName={displayName}
-                            accountID={personalDetails?.accountID}
-                            email={personalDetails?.login ?? reservation.travelerPersonalInfo?.email}
+                        <UserPills
+                            users={[
+                                {
+                                    avatar: personalDetails?.avatar,
+                                    displayName,
+                                    accountID: personalDetails?.accountID,
+                                    email: personalDetails?.login ?? reservation.travelerPersonalInfo?.email,
+                                },
+                            ]}
                         />
                     }
                 />
