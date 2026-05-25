@@ -147,6 +147,9 @@ type MoneyRequestConfirmationListFooterProps = {
     /** Flag indicating if the amount field should be shown */
     shouldShowAmountField?: boolean;
 
+    /** Whether the parent-owned participant picker modal is currently open (new manual expense flow). Drives amount autofocus on picker close. */
+    isParticipantPickerVisible?: boolean;
+
     /** Flag indicating if the tax should be shown */
     shouldShowTax: boolean;
 
@@ -227,6 +230,7 @@ function MoneyRequestConfirmationListFooter({
     shouldShowMerchant,
     shouldShowSmartScanFields,
     shouldShowAmountField = true,
+    isParticipantPickerVisible = false,
     shouldShowTax,
     transaction,
     transactionID,
@@ -344,6 +348,7 @@ function MoneyRequestConfirmationListFooter({
                 isNewManualExpenseFlowEnabled={isNewManualExpenseFlowEnabled}
                 shouldShowSmartScanFields={shouldShowSmartScanFields}
                 shouldShowAmountField={shouldShowAmountField}
+                isParticipantPickerVisible={isParticipantPickerVisible}
                 shouldShowMerchant={shouldShowMerchant}
                 shouldShowCategories={shouldShowCategories}
                 shouldShowDate={flags.shouldShowDate}
