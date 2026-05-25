@@ -2124,9 +2124,12 @@ const translations: TranslationDeepObject<typeof en> = {
         disabled: 'La autenticación de dos factores está ahora deshabilitada',
         noAuthenticatorApp: 'Ya no necesitarás una aplicación de autenticación para iniciar sesión en Expensify.',
         stepCodes: 'Códigos de recuperación',
-        keepCodesSafe: '¡Guarda los códigos de recuperación en un lugar seguro!',
-        codesLoseAccess:
-            'Si pierdes el acceso a tu aplicación de autenticación y no tienes estos códigos, perderás el acceso a tu cuenta. \n\nNota: Configurar la autenticación de dos factores cerrará la sesión de todas las demás sesiones activas.',
+        keepCodesSafe: '¡Guarda estos códigos en un lugar seguro!',
+        codesLoseAccess: dedent(`
+            Si pierdes el acceso a tu aplicación de autenticación y no tienes estos códigos, perderás el acceso a tu cuenta.
+
+            <strong>Nota</strong>: Configurar la autenticación de dos factores cerrará la sesión en todas las demás sesiones activas.
+        `),
         errorStepCodes: 'Copia o descarga los códigos antes de continuar',
         stepVerify: 'Verificar',
         scanCode: 'Escanea el código QR usando tu',
@@ -2154,6 +2157,9 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyOldDeviceDescription: 'Introduce el código de seis dígitos de tu aplicación de autenticación actual para confirmar que tienes acceso a ella.',
         verifyNewDeviceTitle: 'Configurar nuevo dispositivo',
         verifyNewDeviceDescription: 'Escanea el código QR con tu nuevo dispositivo y luego introduce el código para completar la configuración.',
+        downloadCodes: 'Descargar códigos',
+        screenshotTip: 'Consejo: haz una captura de pantalla para guardarla en tu galería de fotos',
+        copyCodes: 'Copiar códigos',
     },
     recoveryCodeForm: {
         error: {
@@ -3207,7 +3213,6 @@ ${amount} para ${merchant} - ${date}`,
         enterPhoneNumber: '¿Cuál es tu número de teléfono?',
         personalDetails: 'Datos personales',
         privateDataMessage: 'Estos detalles se utilizan para viajes y pagos. Nunca se mostrarán en tu perfil público.',
-        basicDetails: 'Datos básicos',
         legalName: 'Nombre completo',
         legalFirstName: 'Nombre legal',
         legalLastName: 'Apellidos legales',
@@ -3405,7 +3410,7 @@ ${amount} para ${merchant} - ${date}`,
             noBankAccountSelected: 'Por favor, elige una cuenta bancaria',
             taxID: 'Por favor, introduce un número de identificación fiscal válido',
             website: 'Por favor, introduce un sitio web válido',
-            zipCode: `Formato de código postal incorrecto. Formato aceptable: ${COMMON_CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}.`,
+            zipCode: `Formato de código postal incorrecto. Formato aceptable: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}.`,
             phoneNumber: 'Por favor, introduce un teléfono válido',
             email: 'Por favor, introduce una dirección de correo electrónico válida',
             companyName: 'Por favor, introduce un nombre comercial legal válido',

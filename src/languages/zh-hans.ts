@@ -2171,11 +2171,11 @@ const translations: TranslationDeepObject<typeof en> = {
         disabled: '已关闭双重身份验证',
         noAuthenticatorApp: '你今后登录 Expensify 时将不再需要验证器应用程序。',
         stepCodes: '恢复代码',
-        keepCodesSafe: '请妥善保管这些恢复代码！',
+        keepCodesSafe: '妥善保管这些验证码！',
         codesLoseAccess: dedent(`
-            如果你无法访问身份验证应用并且没有这些代码，你将无法访问你的帐户。
+            如果你无法使用身份验证应用且没有这些代码，你将无法访问你的账户。
 
-            注意：设置双重身份验证会将你从所有其他活动会话中登出。
+            <strong>注意</strong>：设置双重身份验证后，你将在所有其他活跃会话中退出登录。
         `),
         errorStepCodes: '请在继续之前复制或下载这些代码',
         stepVerify: '验证',
@@ -2204,6 +2204,9 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyOldDeviceDescription: '请输入您当前身份验证器应用中的六位数验证码，以确认您仍可访问该应用。',
         verifyNewDeviceTitle: '设置新设备',
         verifyNewDeviceDescription: '使用新设备扫描二维码，然后输入代码完成设置。',
+        downloadCodes: '下载代码',
+        screenshotTip: '提示：截屏此页面以将其保存到你的相册',
+        copyCodes: '复制代码',
     },
     recoveryCodeForm: {
         error: {
@@ -3236,7 +3239,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         enterPhoneNumber: '你的电话号码是多少？',
         personalDetails: '个人信息',
         privateDataMessage: '这些详细信息将用于出行和付款，绝不会显示在你的公开个人资料中。',
-        basicDetails: '基本信息',
         legalName: '法定姓名',
         legalFirstName: '法定名（名）',
         legalLastName: '法定姓氏',
@@ -3425,7 +3427,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             noBankAccountSelected: '请选择一个账户',
             taxID: '请输入有效的税号',
             website: '请输入有效的网站',
-            zipCode: `请输入有效的邮政编码，格式为：${COMMON_CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
+            zipCode: `请输入有效的邮政编码，格式为：${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
             phoneNumber: '请输入有效的电话号码',
             email: '请输入有效的邮箱地址',
             companyName: '请输入有效的公司名称',

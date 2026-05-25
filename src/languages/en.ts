@@ -2307,14 +2307,16 @@ const translations = {
         explainProcessToRemove: 'To disable two-factor authentication (2FA), please enter a valid code from your authentication app.',
         explainProcessToRemoveWithRecovery: 'To disable two-factor authentication (2FA), please enter a valid recovery code.',
         disabled: 'Two-factor authentication is now disabled',
+        downloadCodes: 'Download codes',
         noAuthenticatorApp: 'You’ll no longer require an authenticator app to log into Expensify.',
         stepCodes: 'Recovery codes',
-        keepCodesSafe: 'Keep these recovery codes safe!',
+        keepCodesSafe: 'Keep these codes safe!',
         codesLoseAccess: dedent(`
             If you lose access to your authenticator app and don't have these codes, you'll lose access to your account.
 
-            Note: Setting up two-factor authentication will log you out of all other active sessions.
+            <strong>Note</strong>: Setting up two-factor authentication will log you out of all other active sessions.
         `),
+        screenshotTip: 'Tip: Screenshot this to save it to your photo library',
         errorStepCodes: 'Please copy or download codes before continuing',
         stepVerify: 'Verify',
         scanCode: 'Scan the QR code using your',
@@ -2326,6 +2328,7 @@ const translations = {
         enabled: 'Two-factor authentication enabled',
         congrats: 'Congrats! Now you’ve got that extra security.',
         copy: 'Copy',
+        copyCodes: 'Copy codes',
         disable: 'Disable',
         enableTwoFactorAuth: 'Enable two-factor authentication',
         pleaseEnableTwoFactorAuth: 'Please enable two-factor authentication.',
@@ -3406,7 +3409,6 @@ const translations = {
         enterPhoneNumber: "What's your phone number?",
         personalDetails: 'Personal details',
         privateDataMessage: 'These details are used for travel and payments. They are never shown on your public profile.',
-        basicDetails: 'Basic details',
         legalName: 'Legal name',
         legalFirstName: 'Legal first name',
         legalLastName: 'Legal last name',
@@ -3604,7 +3606,7 @@ const translations = {
             noBankAccountSelected: 'Please choose an account',
             taxID: 'Please enter a valid tax ID number',
             website: 'Please enter a valid website',
-            zipCode: `Please enter a valid ZIP code using the format: ${COMMON_CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
+            zipCode: `Please enter a valid ZIP code using the format: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
             phoneNumber: 'Please enter a valid phone number',
             email: 'Please enter a valid email address',
             companyName: 'Please enter a valid business name',
