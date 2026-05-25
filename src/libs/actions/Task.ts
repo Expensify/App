@@ -1121,13 +1121,12 @@ function getAssignee(assigneeAccountID: number | undefined, personalDetails: Ony
  * Get the share destination data
  * */
 function getShareDestination(
-    reportID: string,
-    reports: OnyxCollection<OnyxTypes.Report>,
+    report: OnyxEntry<OnyxTypes.Report>,
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
     localeCompare: LocaleContextProps['localeCompare'],
+    policy: OnyxEntry<OnyxTypes.Policy>,
     reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'],
 ): ShareDestination {
-    const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
 
@@ -1149,7 +1148,7 @@ function getShareDestination(
         const login = personalDetails?.[participantAccountID]?.login ?? '';
         subtitle = LocalePhoneNumber.formatPhoneNumber(login || displayName);
     } else {
-        subtitle = ReportUtils.getChatRoomSubtitle(report) ?? '';
+        subtitle = ReportUtils.getChatRoomSubtitle(report, policy) ?? '';
     }
     return {
         icons: ReportUtils.getIcons(report, LocalePhoneNumber.formatPhoneNumber, personalDetails, FallbackAvatar),

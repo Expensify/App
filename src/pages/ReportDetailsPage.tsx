@@ -245,7 +245,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
     const ancestors = useAncestors(report);
 
     const chatRoomSubtitle = useMemo(() => {
-        const subtitle = getChatRoomSubtitle(report, false, isReportArchived);
+        const subtitle = getChatRoomSubtitle(report, policy, false, isReportArchived);
 
         if (subtitle) {
             return subtitle;
