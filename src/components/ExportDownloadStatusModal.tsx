@@ -60,7 +60,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
             return;
         }
         fileDownload(translate, downloadURL);
-    }, [isReady, downloadURL, shouldSendFromConcierge]);
+    }, [isReady]);
 
     const handleSendFromConcierge = useCallback(() => {
         sendExportFileFromConcierge(exportID, displayedExport ?? undefined);
