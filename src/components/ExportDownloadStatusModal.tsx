@@ -56,11 +56,11 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     const isFailed = state === CONST.EXPORT_DOWNLOAD.STATE.FAILED;
 
     useEffect(() => {
-        if (!isReady || !downloadURL) {
+        if (!isReady || !downloadURL || shouldSendFromConcierge) {
             return;
         }
         fileDownload(translate, downloadURL);
-    }, [isReady, downloadURL, translate]);
+    }, [isReady, downloadURL, shouldSendFromConcierge]);
 
     const handleSendFromConcierge = useCallback(() => {
         sendExportFileFromConcierge(exportID, displayedExport ?? undefined);
