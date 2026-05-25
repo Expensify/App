@@ -1,9 +1,10 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePreviousDefined from '@hooks/usePreviousDefined';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import fileDownload from '@libs/fileDownload';
@@ -11,7 +12,6 @@ import {clearExportDownload, sendExportFileFromConcierge} from '@userActions/Exp
 import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type ExportDownload from '@src/types/onyx/ExportDownload';
 import ActivityIndicator from './ActivityIndicator';
 import Button from './Button';
 import Modal from './Modal';
@@ -44,15 +44,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
     const [exportDownload] = useOnyx(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}`);
-
-    const [lastKnownExport, setLastKnownExport] = useState<ExportDownload | null>(null);
-    useEffect(() => {
-        if (exportDownload) {
-            setLastKnownExport(exportDownload);
-        }
-    }, [exportDownload]);
-
-    const displayedExport = exportDownload ?? lastKnownExport;
+    const displayedExport = usePreviousDefined(exportDownload);
 
     const state = displayedExport?.state;
     const shouldSendFromConcierge = displayedExport?.shouldSendFromConcierge;
@@ -83,9 +75,10 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     }, [onClose]);
 
     const handleDownloadFile = useCallback(() => {
-        if (downloadURL) {
-            fileDownload(translate, downloadURL);
+        if (!downloadURL) {
+            return;
         }
+        fileDownload(translate, downloadURL);
     }, [downloadURL, translate]);
 
     const handleClose = useCallback(() => {
