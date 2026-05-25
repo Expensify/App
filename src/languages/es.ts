@@ -2565,6 +2565,7 @@ ${amount} para ${merchant} - ${date}`,
     reportFraudConfirmationPage: {
         title: 'Fraude con tarjeta reportado',
         description: 'Hemos desactivado permanentemente tu tarjeta existente. Cuando vuelvas a ver los detalles de tu tarjeta, tendrás una nueva tarjeta virtual disponible.',
+        descriptionCardNotReplaced: 'Tu tarjeta fue desactivada permanentemente. Por favor, contacta a un administrador para emitir una nueva tarjeta.',
         buttonText: 'Entendido, ¡gracias!',
     },
     activateCardPage: {
