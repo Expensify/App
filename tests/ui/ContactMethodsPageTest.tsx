@@ -15,6 +15,8 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     goBack: jest.fn(),
     getActiveRoute: jest.fn(() => ''),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
 }));
 
 // Mock RenderHTML component
@@ -89,7 +91,7 @@ describe('ContactMethodsPage', () => {
         expect(node).toHaveTextContent('error-brickRoadIndicator');
 
         // Verify that RBR disappears
-        Onyx.merge(ONYXKEYS.LOGIN_LIST, {
+        await Onyx.merge(ONYXKEYS.LOGIN_LIST, {
             [otherEmail]: {
                 partnerUserID: otherEmail,
                 validatedDate: '2024-02-02',
@@ -134,7 +136,7 @@ describe('ContactMethodsPage', () => {
         expect(node).toHaveTextContent('info-brickRoadIndicator');
 
         // Verify that GBR disappears
-        Onyx.merge(ONYXKEYS.LOGIN_LIST, {
+        await Onyx.merge(ONYXKEYS.LOGIN_LIST, {
             [otherEmail]: {
                 partnerUserID: otherEmail,
                 validatedDate: '2024-02-02',

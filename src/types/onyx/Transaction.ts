@@ -1,7 +1,9 @@
 import type {KeysOfUnion, ValueOf} from 'type-fest';
-import type {IOURequestType, ReplaceReceipt, StartSplitBilActionParams} from '@libs/actions/IOU';
 import type {RequestMoneyInformation} from '@libs/actions/IOU/MoneyRequestBuilder';
+import type {ReplaceReceipt} from '@libs/actions/IOU/Receipt';
+import type {StartSplitBilActionParams} from '@libs/actions/IOU/Split';
 import type {CreateTrackExpenseParams} from '@libs/actions/IOU/TrackExpense';
+import type {IOURequestType} from '@src/CONST';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -199,8 +201,8 @@ type GeometryType = 'LineString';
 
 /** Geometry data */
 type Geometry = {
-    /** Matrix of points, indexed by their coordinates */
-    coordinates: number[][] | null;
+    /** Matrix of points, indexed by their coordinates, GPS trip is represented as a 3 dimensional array to support multiple routes in a single trip */
+    coordinates: number[][] | number[][][] | null;
 
     /** Type of connections between coordinates */
     type?: GeometryType;
@@ -266,10 +268,10 @@ type ReceiptError = {
     filename: string;
 
     /** Action that caused the error */
-    action: string;
+    action?: string;
 
     /** Parameters required to retry the failed action */
-    retryParams: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
+    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
 
     /** The type of receipt error */
     error: typeof CONST.IOU.RECEIPT_ERROR;
@@ -511,6 +513,17 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Used during the creation flow before the transaction is saved to the server */
         iouRequestType?: IOURequestType;
+
+        /**
+         * Tracks whether the user has explicitly set an amount in the new manual expense flow.
+         * A fresh draft transaction starts at amount=0 which is indistinguishable from an intentional $0 entry,
+         * so this flag is set to `true` the first time setMoneyRequestAmount is called, allowing the UI
+         * to show an empty field initially and the confirmation step to block submission until the field is empty.
+         */
+        isAmountSet?: boolean;
+
+        /** Whether the merchant has been explicitly set by the user */
+        isMerchantSet?: boolean;
 
         /** The original merchant name */
         merchant: string;
