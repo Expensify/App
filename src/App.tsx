@@ -34,6 +34,7 @@ import SVGDefinitionsProvider from './components/SVGDefinitionsProvider';
 import ThemeIllustrationsProvider from './components/ThemeIllustrationsProvider';
 import ThemeProvider from './components/ThemeProvider';
 import ThemeStylesProvider from './components/ThemeStylesContextProvider';
+import {EditingCellProvider} from './components/TransactionItemRow/EditableCell';
 import {KeyboardStateProvider} from './components/withKeyboardState';
 import CONFIG from './CONFIG';
 import CONST from './CONST';
@@ -115,6 +116,7 @@ function App() {
                                         FullScreenLoaderContextProvider,
                                         ModalProvider,
                                         SidePanelContextProvider,
+                                        EditingCellProvider,
                                     ]}
                                 >
                                     <CustomStatusBarAndBackground />

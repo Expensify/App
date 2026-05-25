@@ -20,6 +20,8 @@ jest.mock('@libs/actions/Link', () => ({
 }));
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
 }));
 jest.mock('@libs/actions/ScheduleCall', () => ({
     clearBookingDraft: jest.fn(),

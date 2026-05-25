@@ -623,6 +623,15 @@ function updateSageIntacctDefaultVendor(policyID: string, settingName: keyof Sag
         updateSageIntacctNonreimbursableExpensesExportVendor(policyID, vendor, oldVendor);
     }
 }
+function updateSageIntacctTravelInvoicingPayableAccount(policyID: string, payableAccountName: string, oldPayableAccountName?: string) {
+    const onyxData = prepareOnyxDataForExportUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT, payableAccountName, oldPayableAccountName);
+    const parameters = {
+        policyID,
+        creditCardAccountID: payableAccountName,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_TRAVEL_INVOICING_PAYABLE_ACCOUNT, parameters, onyxData);
+}
 
 function clearSageIntacctErrorField(policyID: string | undefined, key: SageIntacctOfflineStateKeys | keyof SageIntacctConnectionsConfig) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {intacct: {config: {errorFields: {[key]: null}}}}});
@@ -977,6 +986,7 @@ export {
     updateSageIntacctNonreimbursableExpensesExportDestination,
     updateSageIntacctNonreimbursableExpensesExportAccount,
     updateSageIntacctDefaultVendor,
+    updateSageIntacctTravelInvoicingPayableAccount,
     updateSageIntacctAutoSync,
     updateSageIntacctImportEmployees,
     updateSageIntacctApprovalMode,
