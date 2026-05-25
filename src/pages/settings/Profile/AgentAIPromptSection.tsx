@@ -1,6 +1,8 @@
 import {Str} from 'expensify-common';
-import React, {useEffect, useRef, useState} from 'react';
-import type {TextInputKeyPressEvent} from 'react-native';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import type {RefObject} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView as RNScrollView, TextInputKeyPressEvent} from 'react-native';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -14,18 +16,38 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAgentPromptUpdateError, openProfilePage, updateAgentPrompt} from '@libs/actions/Agent';
+import getPlatform from '@libs/getPlatform';
 import Parser from '@libs/Parser';
 import {containsHtmlTag} from '@libs/ValidationUtils';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const MAX_VISIBLE_PROMPT_LINES = 15;
 
 type AgentAIPromptSectionProps = {
     accountID: number;
+    parentScrollViewRef?: RefObject<RNScrollView | null>;
 };
 
-function AgentAIPromptSection({accountID}: AgentAIPromptSectionProps) {
+function scrollInputIntoView(parentScrollViewRef: RefObject<RNScrollView | null>) {
+    if (getPlatform() !== CONST.PLATFORM.IOS) {
+        return;
+    }
+
+    const scrollView = parentScrollViewRef.current;
+    if (!scrollView) {
+        return;
+    }
+
+    requestAnimationFrame(() => {
+        setTimeout(() => {
+            scrollView.scrollToEnd({animated: true});
+        }, CONST.ANIMATED_TRANSITION);
+    });
+}
+
+function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSectionProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
@@ -64,6 +86,20 @@ function AgentAIPromptSection({accountID}: AgentAIPromptSectionProps) {
         setDraftPrompt(storedPrompt);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [agentPrompt?.promptErrors]);
+
+    useEffect(() => {
+        if (!isEditing || !parentScrollViewRef) {
+            return;
+        }
+        scrollInputIntoView(parentScrollViewRef);
+    }, [isEditing, parentScrollViewRef]);
+
+    const handleInputFocus = useCallback(() => {
+        if (!parentScrollViewRef) {
+            return;
+        }
+        scrollInputIntoView(parentScrollViewRef);
+    }, [parentScrollViewRef]);
 
     const handleEditPress = () => {
         setDraftPrompt(storedPrompt);
@@ -135,6 +171,7 @@ function AgentAIPromptSection({accountID}: AgentAIPromptSectionProps) {
                         containerStyles={[styles.mb4]}
                         testID="ai-prompt-input"
                         autoFocus
+                        onFocus={handleInputFocus}
                     />
                 ) : (
                     <View
