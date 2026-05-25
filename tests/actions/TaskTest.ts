@@ -421,6 +421,7 @@ describe('actions/Task', () => {
                 policyID: mockPolicyID,
                 isCreatedUsingMarkdown: false,
                 quickAction: {},
+                taskCreatorAndAssigneeDetails: undefined,
             });
             // Then: Verify API.write called with expected arguments
             const calls = (API.write as jest.Mock).mock.calls;
@@ -464,6 +465,7 @@ describe('actions/Task', () => {
                 policyID: mockPolicyID,
                 isCreatedUsingMarkdown: false,
                 quickAction: {},
+                taskCreatorAndAssigneeDetails: undefined,
             });
 
             await waitForBatchedUpdatesWithAct();
@@ -493,6 +495,7 @@ describe('actions/Task', () => {
                 policyID: mockPolicyID,
                 isCreatedUsingMarkdown: false,
                 quickAction: {},
+                taskCreatorAndAssigneeDetails: undefined,
             });
 
             await waitForBatchedUpdatesWithAct();
@@ -527,6 +530,7 @@ describe('actions/Task', () => {
                 policyID: mockPolicyID,
                 isCreatedUsingMarkdown: false,
                 quickAction: mockQuickAction,
+                taskCreatorAndAssigneeDetails: undefined,
             });
 
             await waitForBatchedUpdatesWithAct();
@@ -589,6 +593,7 @@ describe('actions/Task', () => {
                 policyID: mockPolicyID,
                 isCreatedUsingMarkdown: true,
                 quickAction: {},
+                taskCreatorAndAssigneeDetails: undefined,
             });
 
             await waitForBatchedUpdatesWithAct();
@@ -629,6 +634,7 @@ describe('actions/Task', () => {
                 policyID: CONST.POLICY.OWNER_EMAIL_FAKE,
                 isCreatedUsingMarkdown: false,
                 quickAction: {},
+                taskCreatorAndAssigneeDetails: undefined,
             });
 
             await waitForBatchedUpdatesWithAct();
@@ -676,6 +682,7 @@ describe('actions/Task', () => {
                 policyID: mockPolicyID,
                 isCreatedUsingMarkdown: false,
                 quickAction: {},
+                taskCreatorAndAssigneeDetails: undefined,
             });
 
             await waitForBatchedUpdatesWithAct();
@@ -733,6 +740,7 @@ describe('actions/Task', () => {
                 policyID: mockPolicyID,
                 isCreatedUsingMarkdown: false,
                 quickAction: {},
+                taskCreatorAndAssigneeDetails: undefined,
             });
 
             await waitForBatchedUpdatesWithAct();
@@ -769,7 +777,8 @@ describe('actions/Task', () => {
                 assigneeChatReport: mockAssigneeChatReport,
                 policyID: mockPolicyID,
                 isCreatedUsingMarkdown: false,
-                quickAction: {}, // quickAction is empty
+                quickAction: {},
+                taskCreatorAndAssigneeDetails: undefined, // quickAction is empty
             });
 
             await waitForBatchedUpdatesWithAct();
@@ -810,6 +819,7 @@ describe('actions/Task', () => {
                 policyID: mockPolicyID,
                 isCreatedUsingMarkdown: false,
                 quickAction: {},
+                taskCreatorAndAssigneeDetails: undefined,
             });
 
             // Then: buildOptimisticCreatedReportAction receives the exact identity values that were passed in
@@ -838,6 +848,7 @@ describe('actions/Task', () => {
                 policyID: mockPolicyID,
                 isCreatedUsingMarkdown: false,
                 quickAction: {},
+                taskCreatorAndAssigneeDetails: undefined,
             });
 
             // Then: buildOptimisticCreatedReportAction is invoked with the same undefined values
@@ -866,6 +877,7 @@ describe('actions/Task', () => {
                 policyID: mockPolicyID,
                 isCreatedUsingMarkdown: false,
                 quickAction: {},
+                taskCreatorAndAssigneeDetails: undefined,
             });
 
             // Then: emailCreatingAction is the empty string we provided (no fallback to a session value)
@@ -896,6 +908,7 @@ describe('actions/Task', () => {
                 policyID: mockPolicyID,
                 isCreatedUsingMarkdown: false,
                 quickAction: {},
+                taskCreatorAndAssigneeDetails: undefined,
             });
 
             await waitForBatchedUpdatesWithAct();

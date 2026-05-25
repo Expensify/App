@@ -138,10 +138,10 @@ function getPersonalDetailsByIDs({
     return result;
 }
 
-function newGetPersonalDetailsByIDs(accountIDs: number[], personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetails[] {
+function newGetPersonalDetailsByIDs(accountIDs: (number | undefined)[], personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetails[] {
     const result: PersonalDetails[] = [];
     for (const accountID of accountIDs) {
-        const detail = personalDetails?.[accountID];
+        const detail = accountID ? personalDetails?.[accountID] : undefined;
         if (!detail) {
             continue;
         }
@@ -149,6 +149,20 @@ function newGetPersonalDetailsByIDs(accountIDs: number[], personalDetails: OnyxE
         result.push(detail);
     }
     return result;
+}
+
+function getPersonalDetailsObjectByIDs(accountIDs: (number | undefined)[], personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetailsList {
+    return accountIDs.reduce((acc, accountID) => {
+        if (!accountID) {
+            return acc;
+        }
+        const detail = personalDetails?.[accountID];
+        if (!detail) {
+            return acc;
+        }
+        acc[accountID] = detail;
+        return acc;
+    }, {} as PersonalDetailsList);
 }
 
 function getDisplayNameOrYou(displayName: string, accountID: number, currentUserAccountID: number, translate: LocalizedTranslate) {
@@ -502,6 +516,7 @@ export {
     getDisplayNameOrDefault,
     getPersonalDetailsByIDs,
     newGetPersonalDetailsByIDs,
+    getPersonalDetailsObjectByIDs,
     getDisplayNameOrYou,
     getPersonalDetailByEmail,
     getAccountIDsByLogins,
