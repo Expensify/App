@@ -56,7 +56,7 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
         }
     }
 
-    // If we have `rootProcessedResult` then forward it as it, otherwise we must be the root so construct the data that we just built
+    // If we have `rootProcessedResult` then forward it as it, otherwise we must be the root so pass the data that we just built
     const rootProcessedNodeResult = rootProcessedResult ?? {data, xKey: X_KEY, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, labelItems, legendItems};
 
     for (const child of tnode.children) {
