@@ -324,7 +324,7 @@ describe('BaseSelectionList', () => {
         expect(screen.queryByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}0`)).toBeNull();
     });
 
-    it('suppresses the scroll on a focus-return restore but still syncs the cursor (no scroll-jump, no stale focusedIndex)', () => {
+    it('suppresses the scroll on a focus-return restore', () => {
         (NativeNavigation.useIsFocused as jest.Mock).mockReturnValue(true);
         mockIsFocusRestoreInProgress.mockReturnValue(true);
         render(<SelectionListRenderer data={mockItems} />);
@@ -334,15 +334,9 @@ describe('BaseSelectionList', () => {
         fireEvent(row, 'focus', {nativeEvent: {sourceCapabilities: null}});
 
         expect(mockScrollToIndex).not.toHaveBeenCalled();
-
-        // Cursor still moved: a later non-restore focus on another row scrolls, so focusedIndex wasn't left stale.
-        mockIsFocusRestoreInProgress.mockReturnValue(false);
-        const otherRow = screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}7`);
-        fireEvent(otherRow, 'focus', {nativeEvent: {sourceCapabilities: {firesTouchEvents: false}}});
-        expect(mockScrollToIndex).toHaveBeenCalledWith(expect.objectContaining({index: 7}));
     });
 
-    it('still syncs the cursor on genuine keyboard Tab focus (no sourceCapabilities, restore NOT in progress) — regression guard for Codex P2', () => {
+    it('does not auto-scroll on genuine keyboard Tab focus (programmatic focus is non-scrolling)', () => {
         (NativeNavigation.useIsFocused as jest.Mock).mockReturnValue(true);
         mockIsFocusRestoreInProgress.mockReturnValue(false);
         render(<SelectionListRenderer data={mockItems} />);
@@ -351,10 +345,10 @@ describe('BaseSelectionList', () => {
         const row = screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}5`);
         fireEvent(row, 'focus', {nativeEvent: {sourceCapabilities: null}});
 
-        expect(mockScrollToIndex).toHaveBeenCalledWith(expect.objectContaining({index: 5}));
+        expect(mockScrollToIndex).not.toHaveBeenCalled();
     });
 
-    it('still scrolls to a row on genuine pointer focus (sourceCapabilities present)', () => {
+    it('does not auto-scroll on genuine pointer focus (jump-on-click prevented)', () => {
         (NativeNavigation.useIsFocused as jest.Mock).mockReturnValue(true);
         mockIsFocusRestoreInProgress.mockReturnValue(false);
         render(<SelectionListRenderer data={mockItems} />);
@@ -363,6 +357,21 @@ describe('BaseSelectionList', () => {
         const row = screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}5`);
         fireEvent(row, 'focus', {nativeEvent: {sourceCapabilities: {firesTouchEvents: false}}});
 
-        expect(mockScrollToIndex).toHaveBeenCalledWith(expect.objectContaining({index: 5}));
+        expect(mockScrollToIndex).not.toHaveBeenCalled();
+    });
+
+    it('restore-mode suppression does not leak into the next focus event', () => {
+        (NativeNavigation.useIsFocused as jest.Mock).mockReturnValue(true);
+        mockIsFocusRestoreInProgress.mockReturnValue(true);
+        render(<SelectionListRenderer data={mockItems} />);
+
+        fireEvent(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}5`), 'focus', {nativeEvent: {sourceCapabilities: null}});
+
+        mockScrollToIndex.mockClear();
+        mockIsFocusRestoreInProgress.mockReturnValue(false);
+
+        fireEvent(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}7`), 'focus', {nativeEvent: {sourceCapabilities: {firesTouchEvents: false}}});
+
+        expect(mockScrollToIndex).not.toHaveBeenCalled();
     });
 });
