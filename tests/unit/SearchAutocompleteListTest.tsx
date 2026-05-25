@@ -1,5 +1,5 @@
 import type * as NativeNavigation from '@react-navigation/native';
-import {act, render, screen, waitFor} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import React, {useMemo} from 'react';
 import Onyx from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -69,6 +69,13 @@ jest.mock('@hooks/useExportedToFilterOptions', () => ({
     }),
 }));
 
+// Mock useFilteredOptions to bypass derived Onyx keys that aren't available in tests.
+const mockUseFilteredOptions = jest.fn();
+jest.mock('@hooks/useFilteredOptions', () => ({
+    __esModule: true,
+    default: (...args: unknown[]) => mockUseFilteredOptions(...args),
+}));
+
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof NativeNavigation>('@react-navigation/native');
     return {
@@ -118,6 +125,14 @@ const mockedOptions = createOptionList(mockedPersonalDetails, EMPTY_PRIVATE_IS_A
 
 const mockOnClose = jest.fn();
 
+// Fake report options that getSearchOptions returns as recentReports.
+// These simulate local results available before any server search completes.
+const fakeRecentReports = [
+    {reportID: '101', keyForList: '101', text: 'Alice Report', alternateText: 'alice alt', lastMessageText: 'hello'},
+    {reportID: '102', keyForList: '102', text: 'Bob Report', alternateText: 'bob alt', lastMessageText: 'hi'},
+    {reportID: '103', keyForList: '103', text: 'Charlie Report', alternateText: 'charlie alt', lastMessageText: 'hey'},
+];
+
 function SearchRouterWrapper({options = mockedOptions}: {options?: ReturnType<typeof createOptionList>}) {
     return (
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
@@ -154,6 +169,13 @@ describe('SearchAutocompleteList', () => {
     beforeEach(() => {
         global.fetch = TestHelper.getGlobalFetchMock();
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
+        mockUseFilteredOptions.mockReturnValue({
+            options: mockedOptions,
+            isLoading: false,
+            loadMore: jest.fn(),
+            hasMore: false,
+            isLoadingMore: false,
+        });
     });
 
     afterEach(async () => {
@@ -192,5 +214,120 @@ describe('SearchAutocompleteList', () => {
         // Verify the recent search items themselves are also displayed
         expect(screen.getByText('type:expense status:approved')).toBeTruthy();
         expect(screen.getByText('type:chat')).toBeTruthy();
+    });
+
+    describe('two-section chat switcher', () => {
+        // These tests use a controlled getSearchOptions mock to verify the section splitting logic
+        // introduced for stable two-section chat switcher results (local + server).
+        let getSearchOptionsSpy: jest.SpyInstance;
+
+        beforeEach(() => {
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
+            const OptionsListUtils = require<typeof import('@libs/OptionsListUtils')>('@libs/OptionsListUtils');
+            getSearchOptionsSpy = jest.spyOn(OptionsListUtils, 'getSearchOptions').mockReturnValue({
+                recentReports: fakeRecentReports,
+                personalDetails: [],
+                currentUserOption: null,
+                userToInvite: null,
+                categoryOptions: [],
+            });
+        });
+
+        afterEach(() => {
+            getSearchOptionsSpy.mockRestore();
+        });
+
+        it('should display "Recent chats" section when query is empty', async () => {
+            const recentSearches: Record<string, {query: string; timestamp: string}> = {};
+            recentSearches['2024-01-01T00:00:00'] = {query: 'type:expense', timestamp: '2024-01-01T00:00:00'};
+
+            await waitForBatchedUpdates();
+            await Onyx.multiSet({
+                ...mockedReports,
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                [ONYXKEYS.BETAS]: mockedBetas,
+                [ONYXKEYS.RECENT_SEARCHES]: recentSearches,
+            });
+
+            render(<SearchRouterWrapper />);
+            await flushAllUpdates();
+
+            await waitFor(() => {
+                expect(screen.getByText('Recent chats')).toBeTruthy();
+            });
+
+            // "Search results" section should NOT be visible when query is empty
+            expect(screen.queryByText('Search results')).toBeNull();
+        });
+
+        it('should not show "Recent chats" header when an active search query is entered', async () => {
+            const recentSearches: Record<string, {query: string; timestamp: string}> = {};
+            recentSearches['2024-01-01T00:00:00'] = {query: 'type:expense', timestamp: '2024-01-01T00:00:00'};
+
+            await waitForBatchedUpdates();
+            await Onyx.multiSet({
+                ...mockedReports,
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                [ONYXKEYS.BETAS]: mockedBetas,
+                [ONYXKEYS.RECENT_SEARCHES]: recentSearches,
+            });
+
+            render(<SearchRouterWrapper />);
+            await flushAllUpdates();
+
+            // Verify initial state shows "Recent chats" section
+            await waitFor(() => {
+                expect(screen.getByText('Recent chats')).toBeTruthy();
+            });
+
+            // Type a search query to trigger the two-section split
+            const textInput = screen.getByTestId('search-autocomplete-text-input');
+            fireEvent.changeText(textInput, 'test');
+            await flushAllUpdates();
+
+            // "Recent chats" header should NOT be visible with an active query
+            // (local section has no title, server section uses "Search results")
+            await waitFor(() => {
+                expect(screen.queryByText('Recent chats')).toBeNull();
+            });
+        });
+
+        it('should return to "Recent chats" section when search query is cleared', async () => {
+            const recentSearches: Record<string, {query: string; timestamp: string}> = {};
+            recentSearches['2024-01-01T00:00:00'] = {query: 'type:expense', timestamp: '2024-01-01T00:00:00'};
+
+            await waitForBatchedUpdates();
+            await Onyx.multiSet({
+                ...mockedReports,
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                [ONYXKEYS.BETAS]: mockedBetas,
+                [ONYXKEYS.RECENT_SEARCHES]: recentSearches,
+            });
+
+            render(<SearchRouterWrapper />);
+            await flushAllUpdates();
+
+            // Type a search query
+            const textInput = screen.getByTestId('search-autocomplete-text-input');
+            fireEvent.changeText(textInput, 'some query');
+            await flushAllUpdates();
+
+            // "Recent chats" should be gone
+            await waitFor(() => {
+                expect(screen.queryByText('Recent chats')).toBeNull();
+            });
+
+            // Clear the query
+            fireEvent.changeText(textInput, '');
+            await flushAllUpdates();
+
+            // Should return to "Recent chats" section
+            await waitFor(() => {
+                expect(screen.getByText('Recent chats')).toBeTruthy();
+            });
+
+            // "Search results" section should not be visible
+            expect(screen.queryByText('Search results')).toBeNull();
+        });
     });
 });
