@@ -7,7 +7,9 @@ import type {OnyxCollection, OnyxEntry, OnyxMergeCollectionInput} from 'react-na
 import type {SearchQueryJSON, SearchStatus} from '@components/Search/types';
 import useOnyx from '@hooks/useOnyx';
 import {clearAllRelatedReportActionErrors} from '@libs/actions/ClearReportActionErrors';
+import {putOnHold} from '@libs/actions/IOU/Hold';
 import {
+    initMoneyRequest,
     resetDraftTransactionsCustomUnit,
     setMoneyRequestAmount,
     setMoneyRequestBillable,
@@ -17,9 +19,7 @@ import {
     setMoneyRequestDistanceRate,
     setMoneyRequestMerchant,
     setMoneyRequestTag,
-} from '@libs/actions/IOU';
-import {putOnHold} from '@libs/actions/IOU/Hold';
-import {initMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
+} from '@libs/actions/IOU/MoneyRequest';
 import {calculateDiffAmount} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {handleNavigateAfterExpenseCreate} from '@libs/actions/IOU/NavigationHelpers';
 import {shouldOptimisticallyUpdateSearch} from '@libs/actions/IOU/SearchUpdate';
@@ -37,7 +37,6 @@ import Log from '@libs/Log';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
-import {getManagerMcTestParticipant} from '@libs/OptionsListUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getAllReportActions, getIOUActionForReportID, getOriginalMessage, isActionableTrackExpense, isActionOfType, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReportAction, createDraftTransactionAndNavigateToParticipantSelector, getReportOrDraftReport} from '@libs/ReportUtils';
@@ -293,12 +292,12 @@ describe('actions/IOU', () => {
             const iouReport: Report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
 
             // When the report is in draft status it should return true
-            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, transaction)).toBeTruthy();
+            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeTruthy();
 
             // If the report is not in draft state it should return false
             iouReport.stateNum = CONST.REPORT.STATE_NUM.SUBMITTED;
             iouReport.statusNum = CONST.REPORT.STATUS_NUM.SUBMITTED;
-            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, transaction)).toBeFalsy();
+            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
         });
 
         it('when the current hash is approve action query it should only return true if the iou report is in outstanding state', () => {
@@ -352,12 +351,12 @@ describe('actions/IOU', () => {
             const iouReport: Report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
 
             // When the report is in draft status it should return false
-            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, transaction)).toBeFalsy();
+            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
 
             // If the report is in outstanding state it should return true
             iouReport.stateNum = CONST.REPORT.STATE_NUM.SUBMITTED;
             iouReport.statusNum = CONST.REPORT.STATUS_NUM.SUBMITTED;
-            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, transaction)).toBeTruthy();
+            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeTruthy();
         });
 
         it('when the current hash is unapproved cash action query it should only return true if the iou report is in either draft or outstanding state', () => {
@@ -396,12 +395,12 @@ describe('actions/IOU', () => {
             const iouReport: Report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
 
             // When the report is in draft status it should return true
-            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, transaction)).toBeTruthy();
+            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeTruthy();
 
             // If the report is in approved state it should return false
             iouReport.stateNum = CONST.REPORT.STATE_NUM.APPROVED;
             iouReport.statusNum = CONST.REPORT.STATUS_NUM.APPROVED;
-            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, transaction)).toBeFalsy();
+            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
         });
 
         it('when the current hash includes a policyID filter it should only return true if the iou report matches the policyID filter', () => {
@@ -439,7 +438,7 @@ describe('actions/IOU', () => {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             };
-            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, matchingIOUReport, false, transaction)).toBeTruthy();
+            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, matchingIOUReport, false, RORY_ACCOUNT_ID, transaction)).toBeTruthy();
 
             // When the IOU report has a different policyID, it should return false
             const nonMatchingIOUReport: Report = {
@@ -449,7 +448,7 @@ describe('actions/IOU', () => {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             };
-            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, nonMatchingIOUReport, false, transaction)).toBeFalsy();
+            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, nonMatchingIOUReport, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
         });
     });
 
@@ -1733,8 +1732,7 @@ describe('actions/IOU', () => {
                     billable: false,
                 },
                 isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                currentUserEmailParam: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
@@ -1801,8 +1799,7 @@ describe('actions/IOU', () => {
                     accountant,
                 },
                 isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                currentUserEmailParam: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
@@ -2325,8 +2322,7 @@ describe('actions/IOU', () => {
                     billable: false,
                 },
                 isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                currentUserEmailParam: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
@@ -2426,6 +2422,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 isSelfTourViewed: false,
                 existingTransactionDraft: transaction,
+                existingTransaction: transaction,
                 draftTransactionIDs: [],
                 personalDetails: {},
                 betas: [CONST.BETAS.ALL],
@@ -4896,8 +4893,7 @@ describe('actions/IOU', () => {
                 },
                 accountantParams: action === CONST.IOU.ACTION.SHARE ? {accountant: {accountID: VIT_ACCOUNT_ID, login: VIT_EMAIL}} : undefined,
                 isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                currentUserEmailParam: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
@@ -5369,8 +5365,7 @@ describe('actions/IOU', () => {
                     reimbursable: false,
                 },
                 isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                currentUserEmailParam: RORY_EMAIL,
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
@@ -5498,6 +5493,7 @@ describe('actions/IOU', () => {
                     introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                     currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                     currentUserEmailParam: CARLOS_EMAIL,
+                    currency: undefined,
                     isSelfTourViewed: false,
                     betas: undefined,
                     hasActiveAdminPolicies: false,
@@ -5676,6 +5672,7 @@ describe('actions/IOU', () => {
                     introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                     currentUserAccountIDParam: RORY_ACCOUNT_ID,
                     currentUserEmailParam: RORY_EMAIL,
+                    currency: undefined,
                     isSelfTourViewed: false,
                     betas: undefined,
                     hasActiveAdminPolicies: false,
@@ -5858,6 +5855,7 @@ describe('actions/IOU', () => {
                     introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                     currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                     currentUserEmailParam: CARLOS_EMAIL,
+                    currency: undefined,
                     isSelfTourViewed: false,
                     betas: undefined,
                     hasActiveAdminPolicies: false,
@@ -6049,6 +6047,7 @@ describe('actions/IOU', () => {
                     introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                     currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                     currentUserEmailParam: CARLOS_EMAIL,
+                    currency: undefined,
                     isSelfTourViewed: false,
                     betas: undefined,
                     hasActiveAdminPolicies: false,
@@ -6298,55 +6297,6 @@ describe('actions/IOU', () => {
                     expect(split2CommentActions.length).toBeGreaterThanOrEqual(1);
                 }
             });
-        });
-    });
-
-    describe('getManagerMcTestParticipant', () => {
-        it('should return manager mctest participant when personalDetails contains manager_mctest', () => {
-            // Given personalDetails that include manager_mctest
-            const managerMcTestAccountID = CONST.ACCOUNT_ID.MANAGER_MCTEST;
-            const personalDetailsList: PersonalDetailsList = {
-                [managerMcTestAccountID]: {
-                    accountID: managerMcTestAccountID,
-                    login: CONST.EMAIL.MANAGER_MCTEST,
-                    displayName: 'Manager McTest',
-                },
-            };
-
-            // When calling getManagerMcTestParticipant with personalDetails
-            const result = getManagerMcTestParticipant(RORY_ACCOUNT_ID, personalDetailsList);
-
-            // Then it should return a participant with the manager mctest account ID
-            expect(result).toBeDefined();
-            expect(result?.accountID).toBe(managerMcTestAccountID);
-        });
-
-        it('should return undefined when personalDetails does not contain manager_mctest', () => {
-            // Given personalDetails without manager_mctest
-            const personalDetailsList: PersonalDetailsList = {
-                [RORY_ACCOUNT_ID]: {
-                    accountID: RORY_ACCOUNT_ID,
-                    login: RORY_EMAIL,
-                    displayName: 'Rory',
-                },
-            };
-
-            // When calling getManagerMcTestParticipant with personalDetails
-            const result = getManagerMcTestParticipant(RORY_ACCOUNT_ID, personalDetailsList);
-
-            // Then it should return undefined since manager_mctest is not in the provided personalDetails
-            expect(result).toBeUndefined();
-        });
-
-        it('should return undefined when personalDetails is empty', () => {
-            // Given empty personalDetails
-            const personalDetailsList: PersonalDetailsList = {};
-
-            // When calling getManagerMcTestParticipant with empty personalDetails
-            const result = getManagerMcTestParticipant(RORY_ACCOUNT_ID, personalDetailsList);
-
-            // Then it should return undefined
-            expect(result).toBeUndefined();
         });
     });
 

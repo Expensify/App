@@ -11,6 +11,81 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {FieldVisibility, TagEntry} from './fieldVisibility';
 
+type TagFieldRowProps = {
+    /** Tag entry to render (carries name, index, and required flag) */
+    entry: TagEntry;
+
+    /** Tag lists configured on the policy (used to look up the list at the entry's index) */
+    policyTagLists: Array<ValueOf<OnyxTypes.PolicyTagLists>>;
+
+    /** Previous render's per-tag-list `shouldShow` projection (drives transition styling) */
+    previousTagsVisibility: boolean[];
+
+    /** Whether the user has confirmed (locks editable controls) */
+    didConfirm: boolean;
+
+    /** Whether the surface is read-only */
+    isReadOnly: boolean;
+
+    /** ID of the active transaction */
+    transactionID: string | undefined;
+
+    /** Action being performed (drives section navigation targets) */
+    action: IOUAction;
+
+    /** Type of IOU being confirmed */
+    iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
+
+    /** ID of the report the transaction belongs to */
+    reportID: string;
+
+    /** ID of the originating report action when editing */
+    reportActionID: string | undefined;
+
+    /** Form-level error message */
+    formError: string;
+
+    /** Whether we're editing an existing split expense */
+    isEditingSplitBill: boolean;
+};
+
+function TagFieldRow({
+    entry: {index, isTagRequired},
+    policyTagLists,
+    previousTagsVisibility,
+    didConfirm,
+    isReadOnly,
+    transactionID,
+    action,
+    iouType,
+    reportID,
+    reportActionID,
+    formError,
+    isEditingSplitBill,
+}: TagFieldRowProps) {
+    const policyTagList = policyTagLists.at(index);
+    if (!policyTagList) {
+        return null;
+    }
+    return (
+        <TagFields
+            tagIndex={index}
+            policyTagList={policyTagList}
+            isTagRequired={isTagRequired}
+            previousShouldShow={previousTagsVisibility.at(index) ?? false}
+            didConfirm={didConfirm}
+            isReadOnly={isReadOnly}
+            transactionID={transactionID}
+            action={action}
+            iouType={iouType}
+            reportID={reportID}
+            reportActionID={reportActionID}
+            formError={formError}
+            isEditingSplitBill={isEditingSplitBill}
+        />
+    );
+}
+
 type ClassificationFieldsProps = {
     /** Action being performed (drives section navigation targets) */
     action: IOUAction;
@@ -26,9 +101,6 @@ type ClassificationFieldsProps = {
 
     /** ID of the originating report action when editing */
     reportActionID: string | undefined;
-
-    /** Active transaction */
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
 
     /** Active policy */
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -77,6 +149,9 @@ type ClassificationFieldsProps = {
 
     /** Per-field visibility decisions resolved by `computeFieldVisibility` */
     fieldVisibility: Pick<FieldVisibility, 'categoryRequired' | 'categoryOptional' | 'date' | 'tagsRequired' | 'tagsOptional' | 'tax' | 'attendees'>;
+
+    /** Whether we're editing an existing split expense */
+    isEditingSplitBill: boolean;
 };
 
 function ClassificationFields({
@@ -85,7 +160,6 @@ function ClassificationFields({
     transactionID,
     reportID,
     reportActionID,
-    transaction,
     policy,
     policyForMovingExpenses,
     policyTagLists,
@@ -102,32 +176,21 @@ function ClassificationFields({
     formError,
     isCompactMode,
     fieldVisibility,
+    isEditingSplitBill,
 }: ClassificationFieldsProps) {
-    const renderTagFields = (entries: TagEntry[]) =>
-        entries.map(({name, index, isTagRequired}) => {
-            const policyTagList = policyTagLists.at(index);
-            if (!policyTagList) {
-                return null;
-            }
-            return (
-                <TagFields
-                    key={`tag_${name}`}
-                    tagIndex={index}
-                    policyTagList={policyTagList}
-                    isTagRequired={isTagRequired}
-                    previousShouldShow={previousTagsVisibility.at(index) ?? false}
-                    didConfirm={didConfirm}
-                    isReadOnly={isReadOnly}
-                    transactionID={transactionID}
-                    action={action}
-                    iouType={iouType}
-                    reportID={reportID}
-                    reportActionID={reportActionID}
-                    transaction={transaction}
-                    formError={formError}
-                />
-            );
-        });
+    const tagRowSharedProps = {
+        policyTagLists,
+        previousTagsVisibility,
+        didConfirm,
+        isReadOnly,
+        transactionID,
+        action,
+        iouType,
+        reportID,
+        reportActionID,
+        formError,
+        isEditingSplitBill,
+    };
 
     return (
         <>
@@ -142,10 +205,10 @@ function ClassificationFields({
                     reportID={reportID}
                     reportActionID={reportActionID}
                     policy={policy}
-                    transaction={transaction}
                     formError={formError}
                     shouldNavigateToUpgradePath={shouldNavigateToUpgradePath}
                     shouldSelectPolicy={shouldSelectPolicy}
+                    isEditingSplitBill={isEditingSplitBill}
                 />
             )}
 
@@ -159,19 +222,51 @@ function ClassificationFields({
                     iouType={iouType}
                     reportID={reportID}
                     reportActionID={reportActionID}
-                    transaction={transaction}
+                    isEditingSplitBill={isEditingSplitBill}
                 />
             )}
 
-            {renderTagFields(fieldVisibility.tagsRequired)}
+            {fieldVisibility.tagsRequired.map((entry) => (
+                <TagFieldRow
+                    key={`tag_${entry.name}`}
+                    entry={entry}
+                    policyTagLists={tagRowSharedProps.policyTagLists}
+                    previousTagsVisibility={tagRowSharedProps.previousTagsVisibility}
+                    didConfirm={tagRowSharedProps.didConfirm}
+                    isReadOnly={tagRowSharedProps.isReadOnly}
+                    transactionID={tagRowSharedProps.transactionID}
+                    action={tagRowSharedProps.action}
+                    iouType={tagRowSharedProps.iouType}
+                    reportID={tagRowSharedProps.reportID}
+                    reportActionID={tagRowSharedProps.reportActionID}
+                    formError={tagRowSharedProps.formError}
+                    isEditingSplitBill={tagRowSharedProps.isEditingSplitBill}
+                />
+            ))}
 
-            {!isCompactMode && renderTagFields(fieldVisibility.tagsOptional)}
+            {!isCompactMode &&
+                fieldVisibility.tagsOptional.map((entry) => (
+                    <TagFieldRow
+                        key={`tag_${entry.name}`}
+                        entry={entry}
+                        policyTagLists={tagRowSharedProps.policyTagLists}
+                        previousTagsVisibility={tagRowSharedProps.previousTagsVisibility}
+                        didConfirm={tagRowSharedProps.didConfirm}
+                        isReadOnly={tagRowSharedProps.isReadOnly}
+                        transactionID={tagRowSharedProps.transactionID}
+                        action={tagRowSharedProps.action}
+                        iouType={tagRowSharedProps.iouType}
+                        reportID={tagRowSharedProps.reportID}
+                        reportActionID={tagRowSharedProps.reportActionID}
+                        formError={tagRowSharedProps.formError}
+                        isEditingSplitBill={tagRowSharedProps.isEditingSplitBill}
+                    />
+                ))}
 
             {!isCompactMode && fieldVisibility.tax && (
                 <TaxFields
                     policy={policy}
                     policyForMovingExpenses={policyForMovingExpenses}
-                    transaction={transaction}
                     iouCurrencyCode={iouCurrencyCode}
                     canModifyTaxFields={canModifyTaxFields}
                     didConfirm={didConfirm}
@@ -180,6 +275,7 @@ function ClassificationFields({
                     iouType={iouType}
                     reportID={reportID}
                     formError={formError}
+                    isEditingSplitBill={isEditingSplitBill}
                 />
             )}
 
@@ -192,7 +288,6 @@ function ClassificationFields({
                     iouType={iouType}
                     reportID={reportID}
                     formError={formError}
-                    transaction={transaction}
                 />
             )}
         </>

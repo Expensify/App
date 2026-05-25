@@ -1,5 +1,5 @@
 import {CardStyleInterpolators} from '@react-navigation/stack';
-import {accountIDSelector} from '@selectors/Session';
+import {accountIDSelector, emailSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -68,17 +68,20 @@ function OnboardingModalNavigator() {
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {
         selector: accountIDSelector,
     });
+    const [email] = useOnyx(ONYXKEYS.SESSION, {
+        selector: emailSelector,
+    });
 
     // Publish a sign_up event when we start the onboarding flow. This should track basic sign ups
     // as well as Google and Apple SSO.
     useEffect(() => {
-        if (!accountID || signUpEventPublishedForAccountID === accountID) {
+        if (!accountID || !email || signUpEventPublishedForAccountID === accountID) {
             return;
         }
 
         signUpEventPublishedForAccountID = accountID;
-        GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.SIGN_UP, accountID);
-    }, [accountID]);
+        GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.SIGN_UP.NAME, accountID, email);
+    }, [accountID, email]);
 
     const handleOuterClick = useCallback(() => {
         OnboardingRefManager.handleOuterClick();
@@ -95,7 +98,7 @@ function OnboardingModalNavigator() {
             gestureDirection: 'horizontal',
             web: {
                 // The .forHorizontalIOS interpolator from `@react-navigation` is misbehaving on Safari, so we override it with Expensify custom interpolator
-                cardStyleInterpolator: isMobileSafari() ? (props) => customInterpolator({props}) : CardStyleInterpolators.forHorizontalIOS,
+                cardStyleInterpolator: isMobileSafari() ? (props) => customInterpolator({props, enter: {kind: 'slide-from-width'}}) : CardStyleInterpolators.forHorizontalIOS,
                 gestureDirection: 'horizontal',
                 cardStyle: {
                     height: '100%',
