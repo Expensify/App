@@ -1,14 +1,18 @@
+import type {OnyxKey} from 'react-native-onyx';
+import HttpsError from '@libs/Errors/HttpsError';
 import {reconnect} from '@libs/actions/Reconnect';
 import redirectToSignIn from '@libs/actions/SignInRedirect';
 import Log from '@libs/Log';
 import {replay as replayMainQueue} from '@libs/Network/MainQueue';
 import {isAuthenticating as isAuthenticatingNetworkStore, setIsAuthenticating} from '@libs/Network/NetworkStore';
 import type {RequestError} from '@libs/Network/SequentialQueue';
-import {getIsOffline} from '@libs/NetworkState';
 import reauthenticateLibs from '@libs/Reauthentication';
 import {processWithMiddleware} from '@libs/Request';
 import RequestThrottle from '@libs/RequestThrottle';
 import CONST from '@src/CONST';
+import type Request from '@src/types/onyx/Request';
+import type {PaginatedRequest} from '@src/types/onyx/Request';
+import type Response from '@src/types/onyx/Response';
 import type Middleware from './types';
 
 // We store a reference to the active authentication request so that we are only ever making one request to authenticate at a time.
@@ -52,6 +56,70 @@ function resetReauthentication(): void {
     reauthThrottle.clear();
 }
 
+function isExpiredSessionError(error: unknown): error is HttpsError {
+    return error instanceof HttpsError && Number(error.status) === CONST.JSON_CODE.NOT_AUTHENTICATED;
+}
+
+function handleExpiredSession<TKey extends OnyxKey>(
+    request: Request<TKey> | PaginatedRequest<TKey>,
+    isFromSequentialQueue: boolean,
+    data: Response<TKey> = {jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED} as Response<TKey>,
+): Promise<Response<TKey> | void> {
+    // There are some API requests that should not be retried when there is an auth failure like
+    // creating and deleting logins. In those cases, they should handle the original response instead
+    // of the new response created by handleExpiredAuthToken.
+    const shouldRetry = request?.data?.shouldRetry;
+    const apiRequestType = request?.data?.apiRequestType;
+
+    // For the SignInWithShortLivedAuthToken command, if the short token expires, the server returns a 407 error,
+    // and credentials are still empty at this time, which causes reauthenticate to throw an error (requireParameters),
+    // and the subsequent SaveResponseInOnyx also cannot be executed, so we need this parameter to skip the reauthentication logic.
+    const skipReauthentication = request?.data?.skipReauthentication;
+    if ((!shouldRetry && !apiRequestType) || skipReauthentication) {
+        if (isFromSequentialQueue) {
+            return Promise.resolve(data);
+        }
+
+        if (request.resolve) {
+            request.resolve(data);
+        }
+        return Promise.resolve(data);
+    }
+
+    // We are already authenticating and using the DeprecatedAPI so we will replay the request
+    if (!apiRequestType && isAuthenticatingNetworkStore()) {
+        replayMainQueue(request);
+        return Promise.resolve(data);
+    }
+
+    return reauthenticate(request?.commandName)
+        .then((wasSuccessful) => {
+            if (!wasSuccessful) {
+                return;
+            }
+
+            if (isFromSequentialQueue || apiRequestType === CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS) {
+                return processWithMiddleware(request, isFromSequentialQueue);
+            }
+
+            if (apiRequestType === CONST.API_REQUEST_TYPE.READ) {
+                // Re-sync app data after successful re-authentication
+                reconnect();
+                return Promise.resolve();
+            }
+
+            replayMainQueue(request);
+        })
+        .catch(() => {
+            if (isFromSequentialQueue || apiRequestType) {
+                throw new Error('Failed to reauthenticate');
+            }
+
+            // If we make it here, then our reauthenticate request could not be made due to a networking issue. The original request can be retried safely.
+            replayMainQueue(request);
+        });
+}
+
 const Reauthentication: Middleware = (response, request, isFromSequentialQueue) =>
     response
         .then((data) => {
@@ -62,64 +130,7 @@ const Reauthentication: Middleware = (response, request, isFromSequentialQueue) 
             }
 
             if (data.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
-                if (getIsOffline()) {
-                    // If we are offline and somehow handling this response we do not want to reauthenticate
-                    throw new Error('Unable to reauthenticate because we are offline');
-                }
-
-                // There are some API requests that should not be retried when there is an auth failure like
-                // creating and deleting logins. In those cases, they should handle the original response instead
-                // of the new response created by handleExpiredAuthToken.
-                const shouldRetry = request?.data?.shouldRetry;
-                const apiRequestType = request?.data?.apiRequestType;
-
-                // For the SignInWithShortLivedAuthToken command, if the short token expires, the server returns a 407 error,
-                // and credentials are still empty at this time, which causes reauthenticate to throw an error (requireParameters),
-                // and the subsequent SaveResponseInOnyx also cannot be executed, so we need this parameter to skip the reauthentication logic.
-                const skipReauthentication = request?.data?.skipReauthentication;
-                if ((!shouldRetry && !apiRequestType) || skipReauthentication) {
-                    if (isFromSequentialQueue) {
-                        return data;
-                    }
-
-                    if (request.resolve) {
-                        request.resolve(data);
-                    }
-                    return data;
-                }
-
-                // We are already authenticating and using the DeprecatedAPI so we will replay the request
-                if (!apiRequestType && isAuthenticatingNetworkStore()) {
-                    replayMainQueue(request);
-                    return data;
-                }
-
-                return reauthenticate(request?.commandName)
-                    .then((wasSuccessful) => {
-                        if (!wasSuccessful) {
-                            return;
-                        }
-
-                        if (isFromSequentialQueue || apiRequestType === CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS) {
-                            return processWithMiddleware(request, isFromSequentialQueue);
-                        }
-
-                        if (apiRequestType === CONST.API_REQUEST_TYPE.READ) {
-                            // Re-sync app data after successful re-authentication
-                            reconnect();
-                            return Promise.resolve();
-                        }
-
-                        replayMainQueue(request);
-                    })
-                    .catch(() => {
-                        if (isFromSequentialQueue || apiRequestType) {
-                            throw new Error('Failed to reauthenticate');
-                        }
-
-                        // If we make it here, then our reauthenticate request could not be made due to a networking issue. The original request can be retried safely.
-                        replayMainQueue(request);
-                    });
+                return handleExpiredSession(request, isFromSequentialQueue, data);
             }
 
             if (isFromSequentialQueue) {
@@ -134,6 +145,18 @@ const Reauthentication: Middleware = (response, request, isFromSequentialQueue) 
             return data;
         })
         .catch((error) => {
+            if (isExpiredSessionError(error)) {
+                return handleExpiredSession(request, isFromSequentialQueue).catch((reauthenticationError) => {
+                    if (isFromSequentialQueue) {
+                        throw reauthenticationError;
+                    }
+
+                    if (request.resolve) {
+                        request.resolve({jsonCode: CONST.JSON_CODE.UNABLE_TO_RETRY});
+                    }
+                });
+            }
+
             // If the request is on the sequential queue, re-throw the error so we can decide to retry or not
             if (isFromSequentialQueue) {
                 throw error;

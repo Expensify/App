@@ -252,6 +252,135 @@ describe('NetworkTests', () => {
             });
     });
 
+    test('stale short-lived token authentication state does not block re-authentication for response-body 407', async () => {
+        const TEST_USER_LOGIN = 'test@testguy.com';
+        const TEST_USER_ACCOUNT_ID = 1;
+        const NEW_AUTH_TOKEN = 'staleStateRecoveredAuthToken';
+
+        const reconnectSpy = jest.spyOn(Reconnect, 'reconnect');
+
+        let sessionState: OnyxEntry<OnyxSession>;
+        Onyx.connect({
+            key: ONYXKEYS.SESSION,
+            callback: (val) => (sessionState = val),
+        });
+
+        await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+        await Onyx.merge(ONYXKEYS.SESSION, {
+            signedInWithShortLivedAuthToken: true,
+            isAuthenticatingWithShortLivedToken: true,
+            isSupportAuthTokenUsed: true,
+        });
+        await Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
+        await waitForBatchedUpdates();
+
+        const mockedXhr = jest
+            .fn()
+            .mockImplementationOnce(() =>
+                Promise.resolve({
+                    jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
+                }),
+            )
+            .mockImplementationOnce(() =>
+                Promise.resolve({
+                    jsonCode: CONST.JSON_CODE.SUCCESS,
+                    authToken: NEW_AUTH_TOKEN,
+                    encryptedAuthToken: NEW_AUTH_TOKEN,
+                }),
+            );
+
+        HttpUtils.xhr = mockedXhr;
+
+        PersonalDetails.openPublicProfilePage(TEST_USER_ACCOUNT_ID);
+        await waitForBatchedUpdates();
+
+        const callsToAuthenticate = mockedXhr.mock.calls.filter(([command]) => command === 'Authenticate');
+        expect(callsToAuthenticate).toHaveLength(1);
+        expect(sessionState?.authToken).toBe(NEW_AUTH_TOKEN);
+        expect(sessionState?.isAuthenticatingWithShortLivedToken).toBe(false);
+        expect(sessionState?.signedInWithShortLivedAuthToken).toBeFalsy();
+        expect(sessionState?.isSupportAuthTokenUsed).toBeFalsy();
+        expect(reconnectSpy).toHaveBeenCalled();
+
+        reconnectSpy.mockRestore();
+    });
+
+    test('READ requests trigger reconnect after successful re-authentication when the original request fails with HTTP 407', async () => {
+        const TEST_USER_LOGIN = 'test@testguy.com';
+        const TEST_USER_ACCOUNT_ID = 1;
+        const NEW_AUTH_TOKEN = 'newAuthToken123';
+
+        const reconnectSpy = jest.spyOn(Reconnect, 'reconnect');
+
+        let sessionState: OnyxEntry<OnyxSession>;
+        Onyx.connect({
+            key: ONYXKEYS.SESSION,
+            callback: (val) => (sessionState = val),
+        });
+
+        await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+
+        const mockHeaders = {get: () => null};
+        const fetchMock = jest.fn().mockImplementation((input: RequestInfo) => {
+            const requestURL = typeof input === 'string' ? input : input.url;
+            const commandName = requestURL.match(/\/api\/(\w+)\?/)?.[1];
+
+            if (commandName === 'OpenPublicProfilePage') {
+                return Promise.resolve({
+                    ok: false,
+                    status: CONST.JSON_CODE.NOT_AUTHENTICATED,
+                    statusText: 'Proxy Authentication Required',
+                    headers: mockHeaders,
+                });
+            }
+
+            if (commandName === 'Authenticate') {
+                return Promise.resolve({
+                    ok: true,
+                    status: CONST.JSON_CODE.SUCCESS,
+                    headers: mockHeaders,
+                    json: () =>
+                        Promise.resolve({
+                            jsonCode: CONST.JSON_CODE.SUCCESS,
+                            authToken: NEW_AUTH_TOKEN,
+                            encryptedAuthToken: NEW_AUTH_TOKEN,
+                        }),
+                });
+            }
+
+            return Promise.resolve({
+                ok: true,
+                status: CONST.JSON_CODE.SUCCESS,
+                headers: mockHeaders,
+                json: () =>
+                    Promise.resolve({
+                        jsonCode: CONST.JSON_CODE.SUCCESS,
+                    }),
+            });
+        });
+
+        global.fetch = fetchMock as unknown as typeof fetch;
+
+        PersonalDetails.openPublicProfilePage(TEST_USER_ACCOUNT_ID);
+        await waitForBatchedUpdates();
+        await waitForBatchedUpdates();
+
+        const fetchCalls = fetchMock.mock.calls as Array<[RequestInfo, RequestInit | undefined]>;
+        const commandNames = fetchCalls
+            .map(([input]) => {
+                const requestURL = typeof input === 'string' ? input : input.url;
+                return requestURL.match(/\/api\/(\w+)\?/)?.[1];
+            })
+            .filter(Boolean);
+
+        expect(commandNames).toContain('Authenticate');
+        expect(commandNames.filter((commandName) => commandName === 'Authenticate')).toHaveLength(1);
+        expect(sessionState?.authToken).toBe(NEW_AUTH_TOKEN);
+        expect(reconnectSpy).toHaveBeenCalled();
+
+        reconnectSpy.mockRestore();
+    });
+
     test('Request will not run until credentials are read from Onyx', () => {
         // In order to test an scenario where the auth token and credentials hasn't been read from storage we reset hasReadRequiredDataFromStorage
         // and set the session and credentials to "ready" the Network

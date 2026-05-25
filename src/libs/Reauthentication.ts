@@ -7,6 +7,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account} from '@src/types/onyx';
 import type Response from '@src/types/onyx/Response';
 import {isConnectedAsDelegate, restoreDelegateSession} from './actions/Delegate';
+import clearShortLivedAuthState from './actions/Session/clearShortLivedAuthState';
 import updateSessionAuthTokens from './actions/Session/updateSessionAuthTokens';
 import redirectToSignIn from './actions/SignInRedirect';
 import {getAuthenticateErrorMessage} from './ErrorUtils';
@@ -109,11 +110,21 @@ function reauthenticate(command = ''): Promise<boolean> {
 
     // Prevent re-authentication if authentication with shortLiveToken is in progress
     if (isAuthenticatingWithShortLivedToken) {
-        Log.hmmm('[Reauthenticate] Authentication with shortLivedToken is in progress. Re-authentication aborted.', {
+        if (account?.isLoading) {
+            Log.hmmm('[Reauthenticate] Authentication with shortLivedToken is in progress. Re-authentication aborted.', {
+                command,
+                isSupportAuthTokenUsed,
+            });
+            return Promise.resolve(false);
+        }
+
+        Log.alert('[Reauthenticate] Found stale shortLivedToken authentication state. Clearing it before re-authenticating.', {
             command,
             isSupportAuthTokenUsed,
         });
-        return Promise.resolve(false);
+        isAuthenticatingWithShortLivedToken = false;
+        isSupportAuthTokenUsed = false;
+        clearShortLivedAuthState();
     }
 
     // Prevent any more requests from being processed while authentication happens
