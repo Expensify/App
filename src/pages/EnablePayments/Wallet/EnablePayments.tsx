@@ -12,7 +12,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import {hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import FailedKYC from '@pages/EnablePayments/shared/FailedKYC';
-import useHasFreshWalletData from '@pages/EnablePayments/shared/useHasFreshWalletData';
 import {openEnablePaymentsPage} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,15 +32,21 @@ function EnablePaymentsPage() {
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const paymentCardList = fundList ?? {};
 
-    const hasFreshData = useHasFreshWalletData(isOffline, userWallet?.isLoading);
+    const [hasFreshData] = useOnyx(ONYXKEYS.RAM_ONLY_HAS_FRESH_WALLET_DATA);
 
     useEffect(() => {
         if (isOffline) {
             return;
         }
+        if (hasFreshData) {
+            return;
+        }
+        if (userWallet?.isLoading) {
+            return;
+        }
 
         openEnablePaymentsPage();
-    }, [isOffline]);
+    }, [isOffline, hasFreshData, userWallet?.isLoading]);
 
     // Each child orchestrator (AddBankAccount, PersonalInfo, FeesAndTerms) owns the shared
     // SETTINGS_ENABLE_PAYMENTS `:subPage` URL slot via useSubPage. The parent switches between

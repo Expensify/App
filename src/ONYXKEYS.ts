@@ -345,6 +345,9 @@ const ONYXKEYS = {
     /** Object containing Onfido SDK Token + applicantID */
     RAM_ONLY_WALLET_ONFIDO: 'walletOnfido',
 
+    /** Stores information whether wallet data is stale and needs to be refetched */
+    RAM_ONLY_HAS_FRESH_WALLET_DATA: 'hasFreshWalletData',
+
     /** Stores information about additional details form entry */
     WALLET_ADDITIONAL_DETAILS: 'walletAdditionalDetails',
 
@@ -1507,6 +1510,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_PRIVATE_BILLING_STATUS]: OnyxTypes.BillingStatus;
     [ONYXKEYS.USER_WALLET]: OnyxTypes.UserWallet;
     [ONYXKEYS.RAM_ONLY_WALLET_ONFIDO]: OnyxTypes.WalletOnfido;
+    [ONYXKEYS.RAM_ONLY_HAS_FRESH_WALLET_DATA]: boolean;
     [ONYXKEYS.WALLET_ADDITIONAL_DETAILS]: OnyxTypes.WalletAdditionalDetails;
     [ONYXKEYS.WALLET_TERMS]: OnyxTypes.WalletTerms;
     [ONYXKEYS.BANK_ACCOUNT_LIST]: OnyxTypes.BankAccountList;
