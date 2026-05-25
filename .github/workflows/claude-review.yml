@@ -76,7 +76,7 @@ jobs:
 
       - name: Setup Claude review toolkit
         id: toolkit
-        uses: Expensify/GitHub-Actions/.github/actions/claude-review-toolkit@43c1b4348cd46637e44064b02f5d316bfab990ee
+        uses: Expensify/GitHub-Actions/.github/actions/claude-review-toolkit@27d36e4f9e124ed03db877cd164f489078398da2
 
       - name: Mark review as in progress
         env:
@@ -103,22 +103,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           STRUCTURED_OUTPUT: ${{ steps.code-review.outputs.structured_output }}
-        run: |
-          if [ -z "$STRUCTURED_OUTPUT" ]; then
-            echo "::error::Claude Code Action returned empty structured output"
-            exit 1
-          fi
-          COUNT=$(echo "$STRUCTURED_OUTPUT" | jq '.violations | length')
-          if [ "$COUNT" -eq 0 ]; then
-            addPrReaction.sh "$PR_NUMBER" "+1"
-          else
-            echo "$STRUCTURED_OUTPUT" | jq -c '.violations[]' | while IFS= read -r v; do
-              PATH_ARG=$(echo "$v" | jq -r '.path')
-              BODY_ARG=$(echo "$v" | jq -r '.body')
-              LINE_ARG=$(echo "$v" | jq -r '.line')
-              createInlineComment.sh "$PR_NUMBER" "$PATH_ARG" "$BODY_ARG" "$LINE_ARG" || true
-            done
-          fi
+        run: postCodeReviewResults.sh "$PR_NUMBER"
 
       - name: Run Claude Code (docs)
         if: steps.filter.outputs.docs == 'true'
