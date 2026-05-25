@@ -248,7 +248,9 @@ describe('useDomainGroupFilter', () => {
     });
 
     describe('dropdownLabel', () => {
-        const LocaleWrapper = ({children}: {children: React.ReactNode}) => React.createElement(LocaleContextProvider, null, children);
+        function LocaleWrapper({children}: {children: React.ReactNode}) {
+            return React.createElement(LocaleContextProvider, null, children);
+        }
 
         it('should show the default label when no group is selected', async () => {
             const domain = buildDomain({

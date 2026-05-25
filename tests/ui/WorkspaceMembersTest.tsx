@@ -384,7 +384,8 @@ describe('WorkspaceMembers', () => {
             await waitFor(() => {
                 expect(screen.getAllByText(membersOption).length).toBeGreaterThan(0);
             });
-            fireEvent.press(screen.getAllByText(membersOption).at(-1)!);
+            const membersItems = screen.getAllByText(membersOption);
+            fireEvent.press(membersItems[membersItems.length - 1]);
 
             const applyText = TestHelper.translateLocal('common.apply');
             fireEvent.press(screen.getByText(applyText));
@@ -416,8 +417,10 @@ describe('WorkspaceMembers', () => {
             await waitFor(() => {
                 expect(screen.getAllByText(membersOption).length).toBeGreaterThan(0);
             });
-            fireEvent.press(screen.getAllByText(membersOption).at(-1)!);
-            fireEvent.press(screen.getAllByText(adminsOption).at(-1)!);
+            const memberItems = screen.getAllByText(membersOption);
+            fireEvent.press(memberItems[memberItems.length - 1]);
+            const adminItems = screen.getAllByText(adminsOption);
+            fireEvent.press(adminItems[adminItems.length - 1]);
 
             const applyText = TestHelper.translateLocal('common.apply');
             fireEvent.press(screen.getByText(applyText));
