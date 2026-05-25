@@ -62,13 +62,84 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
     });
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
     const prevReportAttributesLocale = usePrevious(reportAttributes?.locale);
-    const [reports, {sourceValue: changedReports}] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [allPolicies, {sourceValue: changedPolicies}] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const prevPolicies = usePrevious(allPolicies);
     const prevReports = usePrevious(reports);
-    const [, {sourceValue: changedReportActions}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+    const prevReportActions = usePrevious(allReportActions);
     const personalDetails = usePersonalDetails();
     const prevPersonalDetails = usePrevious(personalDetails);
+
+    // Compute deltas via ref-equality walks against the previous-render snapshot.
+    // Structural sharing in Onyx means unchanged members keep the same reference,
+    // so this loop is O(collection_size) with O(1) per step.
+    // Replaces the old `useOnyx({sourceValue})` API.
+    const changedReports = useMemo(() => {
+        if (reports === prevReports) {
+            return undefined;
+        }
+        const delta: OnyxCollection<Report> = {};
+        if (reports) {
+            for (const key of Object.keys(reports)) {
+                if (reports[key] !== prevReports?.[key]) {
+                    delta[key] = reports[key];
+                }
+            }
+        }
+        if (prevReports) {
+            for (const key of Object.keys(prevReports)) {
+                if (!reports || !(key in reports)) {
+                    delta[key] = undefined;
+                }
+            }
+        }
+        return Object.keys(delta).length > 0 ? delta : undefined;
+    }, [reports, prevReports]);
+
+    const changedPolicies = useMemo(() => {
+        if (allPolicies === prevPolicies) {
+            return undefined;
+        }
+        const delta: OnyxCollection<NonNullable<typeof allPolicies>[string]> = {};
+        if (allPolicies) {
+            for (const key of Object.keys(allPolicies)) {
+                if (allPolicies[key] !== prevPolicies?.[key]) {
+                    delta[key] = allPolicies[key];
+                }
+            }
+        }
+        if (prevPolicies) {
+            for (const key of Object.keys(prevPolicies)) {
+                if (!allPolicies || !(key in allPolicies)) {
+                    delta[key] = undefined;
+                }
+            }
+        }
+        return Object.keys(delta).length > 0 ? delta : undefined;
+    }, [allPolicies, prevPolicies]);
+
+    const changedReportActions = useMemo(() => {
+        if (allReportActions === prevReportActions) {
+            return undefined;
+        }
+        const delta: OnyxCollection<NonNullable<typeof allReportActions>[string]> = {};
+        if (allReportActions) {
+            for (const key of Object.keys(allReportActions)) {
+                if (allReportActions[key] !== prevReportActions?.[key]) {
+                    delta[key] = allReportActions[key];
+                }
+            }
+        }
+        if (prevReportActions) {
+            for (const key of Object.keys(prevReportActions)) {
+                if (!allReportActions || !(key in allReportActions)) {
+                    delta[key] = undefined;
+                }
+            }
+        }
+        return Object.keys(delta).length > 0 ? delta : undefined;
+    }, [allReportActions, prevReportActions]);
     const privateIsArchivedMap = usePrivateIsArchivedMap();
     const hasInitialData = useMemo(() => Object.keys(personalDetails ?? {}).length > 0, [personalDetails]);
     const getReprocessedReportOption = useCallback(

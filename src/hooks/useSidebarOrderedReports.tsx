@@ -75,13 +75,31 @@ function SidebarOrderedReportsContextProvider({
 }: SidebarOrderedReportsContextProviderProps) {
     const {localeCompare} = useLocalize();
     const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
-    const [chatReports, {sourceValue: reportUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [policies, {sourceValue: policiesUpdates}] = useMappedPolicies(policyMapper);
-    const [transactions, {sourceValue: transactionsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
-    const [transactionViolations, {sourceValue: transactionViolationsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [reportNameValuePairs, {sourceValue: reportNameValuePairsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
-    const [reportsDrafts, {sourceValue: reportsDraftsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
+    const [chatReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [policies] = useMappedPolicies(policyMapper);
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [reportsDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+
+    // Previous-render snapshots for incremental delta computation. With Onyx's structural
+    // sharing, unchanged collection members keep the same reference across renders, so
+    // walking these against current values gives the "what changed" signal that
+    // useOnyx's removed `sourceValue` metadata used to provide.
+    const prevChatReports = usePrevious(chatReports);
+    const prevPolicies = usePrevious(policies);
+    const prevTransactions = usePrevious(transactions);
+    const prevTransactionViolations = usePrevious(transactionViolations);
+    const prevReportNameValuePairs = usePrevious(reportNameValuePairs);
+    const prevReportsDrafts = usePrevious(reportsDrafts);
+
+    const reportUpdates = useCollectionDelta(chatReports, prevChatReports);
+    const policiesUpdates = useCollectionDelta(policies, prevPolicies);
+    const transactionsUpdates = useCollectionDelta(transactions, prevTransactions);
+    const transactionViolationsUpdates = useCollectionDelta(transactionViolations, prevTransactionViolations);
+    const reportNameValuePairsUpdates = useCollectionDelta(reportNameValuePairs, prevReportNameValuePairs);
+    const reportsDraftsUpdates = useCollectionDelta(reportsDrafts, prevReportsDrafts);
     const reportAttributes = useReportAttributes();
     const [currentReportsToDisplay, setCurrentReportsToDisplay] = useState<ReportsToDisplayInLHN>({});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -492,4 +510,37 @@ function parseDepsForLogging<T extends Record<string, unknown>>(deps: T) {
     // If object or array, return the keys' length
     // If primitive, return the value
     return Object.fromEntries(Object.entries(deps).map(([key, value]) => [key, typeof value === 'object' && value !== null ? Object.keys(value).length : value]));
+}
+
+/**
+ * Returns the subset of `current` whose members differ by reference from `previous`,
+ * plus any keys that were present in `previous` but are missing from `current` (mapped
+ * to `undefined`). Returns `undefined` if nothing changed or both inputs are nullish.
+ *
+ * Replaces the old `useOnyx({sourceValue})` API by walking the previous-render
+ * snapshot — cheap thanks to Onyx's structural sharing (unchanged members keep the
+ * same reference across renders).
+ */
+function useCollectionDelta<TValue>(current: Record<string, TValue> | undefined, previous: Record<string, TValue> | undefined): Record<string, TValue | undefined> | undefined {
+    return useMemo(() => {
+        if (current === previous) {
+            return undefined;
+        }
+        const delta: Record<string, TValue | undefined> = {};
+        if (current) {
+            for (const key of Object.keys(current)) {
+                if (current[key] !== previous?.[key]) {
+                    delta[key] = current[key];
+                }
+            }
+        }
+        if (previous) {
+            for (const key of Object.keys(previous)) {
+                if (!current || !(key in current)) {
+                    delta[key] = undefined;
+                }
+            }
+        }
+        return Object.keys(delta).length > 0 ? delta : undefined;
+    }, [current, previous]);
 }

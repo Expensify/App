@@ -98,6 +98,11 @@ function init() {
                 }
             };
 
+            // Track previous values per collection dep so we can compute deltas without `sourceValue`.
+            // Structural sharing in Onyx means unchanged members keep the same reference across
+            // updates, so walking against the previous snapshot is the cheap way to find what changed.
+            const previousCollectionValues: Record<number, Record<string, unknown> | undefined> = {};
+
             for (let i = 0; i < dependencies.length; i++) {
                 const dependencyIndex = i;
                 const dependencyOnyxKey = dependencies[dependencyIndex];
@@ -106,10 +111,38 @@ function init() {
                     Onyx.connectWithoutView({
                         key: dependencyOnyxKey,
                         waitForCollectionCallback: true,
-                        callback: (value, collectionKey, sourceValue) => {
+                        callback: (value, collectionKey) => {
                             Log.info(`[OnyxDerived] dependency ${collectionKey} for derived key ${key} changed, recomputing`);
+
+                            // Compute the changed-members delta from the previous snapshot.
+                            // This mirrors what `sourceValue` used to deliver.
+                            const previousValue = previousCollectionValues[dependencyIndex];
+                            const currentValue = value as Record<string, unknown> | undefined;
+                            let delta: Record<string, unknown> | undefined;
+                            if (previousValue !== currentValue) {
+                                const result: Record<string, unknown> = {};
+                                if (currentValue) {
+                                    for (const memberKey of Object.keys(currentValue)) {
+                                        if (currentValue[memberKey] !== previousValue?.[memberKey]) {
+                                            result[memberKey] = currentValue[memberKey];
+                                        }
+                                    }
+                                }
+                                if (previousValue) {
+                                    for (const memberKey of Object.keys(previousValue)) {
+                                        if (!currentValue || !(memberKey in currentValue)) {
+                                            result[memberKey] = undefined;
+                                        }
+                                    }
+                                }
+                                if (Object.keys(result).length > 0) {
+                                    delta = result;
+                                }
+                            }
+                            previousCollectionValues[dependencyIndex] = currentValue;
+
                             setDependencyValue(dependencyIndex, value as Parameters<typeof compute>[0][typeof dependencyIndex]);
-                            recomputeDerivedValue(dependencyOnyxKey, sourceValue, dependencyIndex);
+                            recomputeDerivedValue(dependencyOnyxKey, delta, dependencyIndex);
                         },
                     });
                 } else if (dependencyOnyxKey === ONYXKEYS.NVP_PREFERRED_LOCALE) {

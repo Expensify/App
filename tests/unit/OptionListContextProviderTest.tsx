@@ -47,8 +47,14 @@ describe('OptionListContextProvider', () => {
             [ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: {locale: 'en'},
             [ONYXKEYS.COLLECTION.REPORT]: {},
             [ONYXKEYS.COLLECTION.POLICY]: {},
+            [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: {},
         };
 
+        // `onyxSourceValues` was driving the legacy `useOnyx({sourceValue})` API. That metadata
+        // has been removed; the component now derives "what changed" by diff'ing the current
+        // useOnyx value against `usePrevious(...)`. Tests must update `onyxState[KEY]` (the
+        // actual value) between renders to surface a change. `onyxSourceValues` is kept here
+        // only for shape compatibility with the metadata tuple consumers may still destructure.
         onyxSourceValues = {
             [ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: onyxState[ONYXKEYS.DERIVED.REPORT_ATTRIBUTES],
             [ONYXKEYS.COLLECTION.REPORT]: {},
@@ -74,7 +80,7 @@ describe('OptionListContextProvider', () => {
             }
 
             if (key === ONYXKEYS.COLLECTION.REPORT_ACTIONS) {
-                return [undefined, {sourceValue: onyxSourceValues[key]}];
+                return [onyxState[key], {sourceValue: onyxSourceValues[key]}];
             }
 
             return [undefined];
@@ -173,6 +179,10 @@ describe('OptionListContextProvider', () => {
 
         mockProcessReport.mockClear();
 
+        onyxState = {
+            ...onyxState,
+            [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: {[reportActionsKey]: {someAction: {}}},
+        };
         onyxSourceValues = {
             ...onyxSourceValues,
             [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: {[reportActionsKey]: {someAction: {}}},
