@@ -214,6 +214,14 @@ function process(): Promise<void> {
                         updatesCount: onyxUpdates.length,
                     });
                     Onyx.update(onyxUpdates);
+                } else if (error.message === CONST.ERROR.DUPLICATE_RECORD) {
+                    // Server already has the record from a previous attempt — reconcile optimistic state as if the request had succeeded.
+                    const onyxUpdates = [...(requestToProcess.successData ?? []), ...(requestToProcess.finallyData ?? [])] as AnyOnyxUpdate[];
+                    Log.info('[SequentialQueue] Applying success and finally data on DUPLICATE_RECORD', false, {
+                        command: requestToProcess.command,
+                        updatesCount: onyxUpdates.length,
+                    });
+                    Onyx.update(onyxUpdates);
                 }
                 Log.info("[SequentialQueue] Removing persisted request because it failed and doesn't need to be retried.", false, {
                     command: requestToProcess.command,

@@ -1,8 +1,10 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
-import {getAll, getLength, getOngoingRequest, updateOngoingRequest} from '@userActions/PersistedRequests';
+import {clear as clearPersistedRequests, getAll, getLength, getOngoingRequest, updateOngoingRequest} from '@userActions/PersistedRequests';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
+import * as RequestModule from '../../src/libs/Request';
 import type Request from '../../src/types/onyx/Request';
 import type {AnyRequest, ConflictActionData} from '../../src/types/onyx/Request';
 import * as TestHelper from '../utils/TestHelper';
@@ -278,6 +280,36 @@ describe('SequentialQueue', () => {
         await Promise.resolve();
         await waitForBatchedUpdates();
         expect(SequentialQueue.getQueueFlushedData()).toEqual([flushedUpdate]);
+    });
+
+    it('should treat a request as success and drain it without retry when the server says the record already exists', async () => {
+        await Onyx.set(ONYXKEYS.NETWORK, {shouldFailAllRequests: false, shouldForceOffline: false});
+        await clearPersistedRequests();
+        await waitForBatchedUpdates();
+
+        const processSpy = jest.spyOn(RequestModule, 'processWithMiddleware').mockRejectedValue(new Error(CONST.ERROR.DUPLICATE_RECORD));
+        const onyxUpdateSpy = jest.spyOn(Onyx, 'update');
+
+        const successData: Array<OnyxUpdate<typeof ONYXKEYS.USER_METADATA>> = [{key: 'userMetadata', onyxMethod: 'set', value: {accountID: 9999}}];
+        const failureData: Array<OnyxUpdate<typeof ONYXKEYS.USER_METADATA>> = [{key: 'userMetadata', onyxMethod: 'set', value: {accountID: 1}}];
+
+        try {
+            SequentialQueue.push({command: 'ReconnectApp', successData, failureData});
+            await Promise.resolve();
+            await waitForBatchedUpdates();
+
+            expect(processSpy).toHaveBeenCalledTimes(1);
+            expect(getAll().length).toBe(0);
+
+            const dispatchedSuccess = onyxUpdateSpy.mock.calls.some((args) => Array.isArray(args[0]) && args[0].some((update) => update === successData[0]));
+            expect(dispatchedSuccess).toBe(true);
+
+            const dispatchedFailure = onyxUpdateSpy.mock.calls.some((args) => Array.isArray(args[0]) && args[0].some((update) => update === failureData[0]));
+            expect(dispatchedFailure).toBe(false);
+        } finally {
+            processSpy.mockRestore();
+            onyxUpdateSpy.mockRestore();
+        }
     });
 });
 
