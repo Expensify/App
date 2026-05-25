@@ -8037,6 +8037,42 @@ describe('SearchUIUtils', () => {
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE);
         });
 
+        test('Should only show MCC when that column is selected and at least one transaction has a displayable MCC', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const transactionWithoutMCC = {
+                ...baseTransaction,
+                transactionID: 'without-mcc',
+                mcc: undefined,
+            };
+            const transactionWithPlaceholderMCC = {
+                ...baseTransaction,
+                transactionID: 'placeholder-mcc',
+                mcc: CONST.DEFAULT_NUMBER_ID,
+            };
+            const transactionWithMCC = {
+                ...baseTransaction,
+                transactionID: 'with-mcc',
+                mcc: '5812',
+            };
+            const visibleColumns = [...Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE), CONST.SEARCH.TABLE_COLUMNS.MCC];
+
+            let columns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: submitterAccountID,
+                data: [transactionWithoutMCC, transactionWithPlaceholderMCC],
+                visibleColumns,
+            });
+
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.MCC);
+
+            columns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: submitterAccountID,
+                data: [transactionWithoutMCC, transactionWithMCC],
+                visibleColumns,
+            });
+
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.MCC);
+        });
+
         test('Should only show columns when at least one transaction has a value for them', () => {
             // Use the existing transaction as a base and modify only the fields we need to test
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];

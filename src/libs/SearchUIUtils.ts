@@ -5642,7 +5642,6 @@ function getColumnsToShow({
             CONST.SEARCH.TABLE_COLUMNS.TYPE,
             CONST.SEARCH.TABLE_COLUMNS.DATE,
             CONST.SEARCH.TABLE_COLUMNS.STATUS,
-            CONST.SEARCH.TABLE_COLUMNS.MCC,
             // TOTAL_AMOUNT (Amount) is data-driven in expense report view: shown only when a
             // conversion exists. In search view, TOTAL_AMOUNT is always-true via the default
             // columns map, so we don't need to list it here as non-data for either surface.
