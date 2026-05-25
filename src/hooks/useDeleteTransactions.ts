@@ -92,14 +92,13 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             }
 
             const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.comment?.originalTransactionID}`];
-            const hasMultipleSplits = getChildTransactions(allTransactions, allReports, originalTransaction?.transactionID, true).length > 1;
-            if (!shouldRedirectDeleteToSplitExpenseEdit(transaction, originalTransaction) || (!hasMultipleSplits && isPerDiemRequestTransactionUtils(originalTransaction))) {
+            if (!shouldRedirectDeleteToSplitExpenseEdit(transaction, originalTransaction)) {
                 return undefined;
             }
 
             return transaction;
         },
-        [allTransactions, allReports],
+        [allTransactions],
     );
 
     const shouldOpenSplitExpenseEditFlowOnDelete = useCallback(

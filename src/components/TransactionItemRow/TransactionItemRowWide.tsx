@@ -76,7 +76,6 @@ function TransactionItemRowWide({
     isInSingleTransactionReport = false,
     shouldShowRadioButton = false,
     onRadioButtonPress = () => {},
-    radioButtonContainerStyle,
     shouldShowErrors = true,
     isDisabled = false,
     violations,
@@ -593,7 +592,7 @@ function TransactionItemRowWide({
                     )}
                     {columns?.map(renderColumn)}
                     {shouldShowRadioButton && (
-                        <View style={[styles.ml1, styles.justifyContentCenter, radioButtonContainerStyle]}>
+                        <View style={[styles.ml1, styles.justifyContentCenter]}>
                             <RadioButton
                                 isChecked={isSelected}
                                 disabled={isDisabled}
