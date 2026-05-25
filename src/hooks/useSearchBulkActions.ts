@@ -124,7 +124,7 @@ function getRestrictedPolicyID(
 
 type ShouldShowBulkDuplicateParams = {
     selectedTransactionsKeys: string[];
-    selectedTransactions: Record<string, {reportID?: string}>;
+    selectedTransactions: Record<string, {reportID?: string; transaction?: Transaction}>;
     allTransactions: OnyxCollection<Transaction> | undefined;
     allReports: OnyxCollection<Report> | undefined;
     allTransactionViolations: OnyxCollection<TransactionViolations> | undefined;
@@ -134,6 +134,38 @@ type ShouldShowBulkDuplicateParams = {
     typeExpenseReport: boolean;
     searchData: Record<string, unknown> | undefined;
 };
+
+function getAllTransactionsForDuplicate({
+    selectedTransactionsKeys,
+    selectedTransactions,
+    allTransactions,
+}: Pick<ShouldShowBulkDuplicateParams, 'selectedTransactionsKeys' | 'selectedTransactions' | 'allTransactions'>): NonNullable<OnyxCollection<Transaction>> {
+    let missingSelectedTransactions: NonNullable<OnyxCollection<Transaction>> | undefined;
+
+    for (const id of selectedTransactionsKeys) {
+        const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${id}`;
+        if (allTransactions?.[transactionKey]) {
+            continue;
+        }
+
+        const transaction = selectedTransactions[id]?.transaction;
+        if (!transaction) {
+            continue;
+        }
+
+        missingSelectedTransactions = missingSelectedTransactions ?? {};
+        missingSelectedTransactions[transactionKey] = transaction;
+    }
+
+    if (!missingSelectedTransactions) {
+        return allTransactions ?? {};
+    }
+
+    return {
+        ...(allTransactions ?? {}),
+        ...missingSelectedTransactions,
+    };
+}
 
 /**
  * Determines whether the bulk duplicate option should be shown for the selected transactions.
@@ -162,8 +194,10 @@ function shouldShowBulkDuplicateOption({
               .filter((report): report is Report => report != null && 'reportID' in report)
         : [];
 
+    const allTransactionsForDuplicate = getAllTransactionsForDuplicate({selectedTransactionsKeys, selectedTransactions, allTransactions});
+
     return selectedTransactionsKeys.every((id) => {
-        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
+        const transaction = allTransactionsForDuplicate[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
         if (!transaction || isManagedCardTransaction(transaction) || isScanning(transaction)) {
             return false;
         }
@@ -891,12 +925,22 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         [currentUserPersonalDetails.accountID, defaultExpensePolicy?.id],
     );
 
+    const allTransactionsForDuplicate = useMemo(
+        () =>
+            getAllTransactionsForDuplicate({
+                selectedTransactionsKeys,
+                selectedTransactions,
+                allTransactions,
+            }),
+        [selectedTransactionsKeys, selectedTransactions, allTransactions],
+    );
+
     const isDuplicateOptionVisible = useMemo(
         () =>
             shouldShowBulkDuplicateOption({
                 selectedTransactionsKeys,
                 selectedTransactions,
-                allTransactions,
+                allTransactions: allTransactionsForDuplicate,
                 allReports,
                 allTransactionViolations,
                 allReportNameValuePairs,
@@ -908,7 +952,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         [
             selectedTransactionsKeys,
             selectedTransactions,
-            allTransactions,
+            allTransactionsForDuplicate,
             allReports,
             allTransactionViolations,
             allReportNameValuePairs,
@@ -1685,7 +1729,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         setDuplicateHandler,
         isDuplicateReportOptionVisible,
         setDuplicateReportHandler,
-        allTransactions,
+        allTransactions: allTransactionsForDuplicate,
         allReports,
         searchData: currentSearchResults?.data,
     };
