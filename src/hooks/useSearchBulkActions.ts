@@ -136,21 +136,31 @@ function getAllTransactionsForDuplicate({
     selectedTransactions,
     allTransactions,
 }: Pick<ShouldShowBulkDuplicateParams, 'selectedTransactionsKeys' | 'selectedTransactions' | 'allTransactions'>): NonNullable<OnyxCollection<Transaction>> {
-    const allTransactionsForDuplicate = {...(allTransactions ?? {})};
+    let missingSelectedTransactions: NonNullable<OnyxCollection<Transaction>> | undefined;
 
     for (const id of selectedTransactionsKeys) {
         const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${id}`;
-        if (allTransactionsForDuplicate[transactionKey]) {
+        if (allTransactions?.[transactionKey]) {
             continue;
         }
 
         const transaction = selectedTransactions[id]?.transaction;
-        if (transaction) {
-            allTransactionsForDuplicate[transactionKey] = transaction;
+        if (!transaction) {
+            continue;
         }
+
+        missingSelectedTransactions = missingSelectedTransactions ?? {};
+        missingSelectedTransactions[transactionKey] = transaction;
     }
 
-    return allTransactionsForDuplicate;
+    if (!missingSelectedTransactions) {
+        return allTransactions ?? {};
+    }
+
+    return {
+        ...(allTransactions ?? {}),
+        ...missingSelectedTransactions,
+    };
 }
 
 /**
@@ -1685,5 +1695,5 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 }
 
 export default useSearchBulkActions;
-export {getAllTransactionsForDuplicate, shouldShowBulkDuplicateOption};
+export {shouldShowBulkDuplicateOption};
 export type {SearchHeaderOptionValue};
