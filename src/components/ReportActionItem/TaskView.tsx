@@ -1,6 +1,6 @@
 import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {AttachmentContext} from '@components/AttachmentContext';
@@ -82,7 +82,14 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     );
 
     const isOpen = isOpenTaskReport(report);
-    const isCompleted = isCompletedTaskReport(report);
+    const isCompletedFromOnyx = isCompletedTaskReport(report);
+    const [prevIsCompletedFromOnyx, setPrevIsCompletedFromOnyx] = useState(isCompletedFromOnyx);
+    const [isCompleted, setIsCompleted] = useState(isCompletedFromOnyx);
+
+    if (prevIsCompletedFromOnyx !== isCompletedFromOnyx) {
+        setPrevIsCompletedFromOnyx(isCompletedFromOnyx);
+        setIsCompleted(isCompletedFromOnyx);
+    }
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
     const hasOutstandingChildTask = useHasOutstandingChildTask(report);
     const isTaskModifiable = canModifyTask(report, currentUserPersonalDetails.accountID, isParentReportArchived);
@@ -169,6 +176,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                         if (isActiveTaskEditRoute(report?.reportID)) {
                                                             return;
                                                         }
+                                                        setIsCompleted((prev) => !prev);
                                                         if (isCompleted) {
                                                             reopenTask(report, parentReport, currentUserPersonalDetails.accountID, delegateEmail);
                                                         } else {

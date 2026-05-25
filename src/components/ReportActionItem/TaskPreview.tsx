@@ -1,5 +1,5 @@
 import {delegateEmailSelector} from '@selectors/Account';
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -89,9 +89,17 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
     // The reportAction might not contain details regarding the taskReport
     // Only the direct parent reportAction will contain details about the taskReport
     // Other linked reportActions will only contain the taskReportID and we will grab the details from there
-    const isTaskCompleted = !isEmptyObject(taskReport)
+    const isTaskCompletedFromOnyx = !isEmptyObject(taskReport)
         ? taskReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && taskReport.statusNum === CONST.REPORT.STATUS_NUM.APPROVED
         : action?.childStateNum === CONST.REPORT.STATE_NUM.APPROVED && action?.childStatusNum === CONST.REPORT.STATUS_NUM.APPROVED;
+    const [prevIsTaskCompletedFromOnyx, setPrevIsTaskCompletedFromOnyx] = useState(isTaskCompletedFromOnyx);
+    const [isTaskCompleted, setIsTaskCompleted] = useState(isTaskCompletedFromOnyx);
+
+    if (prevIsTaskCompletedFromOnyx !== isTaskCompletedFromOnyx) {
+        setPrevIsTaskCompletedFromOnyx(isTaskCompletedFromOnyx);
+        setIsTaskCompleted(isTaskCompletedFromOnyx);
+    }
+
     const parentReportAction = useParentReportAction(taskContextReport);
     const taskAssigneeAccountID = getTaskAssigneeAccountID(taskContextReport, parentReportAction) ?? action?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const parentReport = useParentReport(taskContextReport?.reportID);
@@ -148,6 +156,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                             isChecked={isTaskCompleted}
                             disabled={!isTaskActionable}
                             onPress={callFunctionIfActionIsAllowed(() => {
+                                setIsTaskCompleted((prev) => !prev);
                                 if (isTaskCompleted) {
                                     reopenTask(taskContextReport, parentReport, currentUserPersonalDetails.accountID, delegateEmail, taskReportID);
                                 } else {
