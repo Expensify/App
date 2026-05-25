@@ -17,13 +17,7 @@ type AreaGradientProps = {
 function AreaGradient({points, y0, color}: AreaGradientProps) {
     const {path} = useAreaPath(points, y0, {curveType: 'linear'});
 
-    const yValues = points.reduce<number[]>((acc, p) => {
-        if (typeof p.y === 'number') {
-            acc.push(p.y);
-        }
-        return acc;
-    }, []);
-    const topY = yValues.length > 0 ? Math.min(...yValues) : y0;
+    const topY = points.reduce((min, p) => (typeof p.y === 'number' && p.y < min ? p.y : min), y0);
 
     return (
         <Path
