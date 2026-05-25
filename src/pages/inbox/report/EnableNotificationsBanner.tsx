@@ -39,23 +39,20 @@ function EnableNotificationsBanner() {
                 text={translate('concierge.enableNotifications.prompt')}
                 textStyles={[styles.textNormal, styles.mr3, styles.breakWord]}
                 containerStyles={[styles.pt3, styles.pr3, styles.pl4, containerOverrideStyle]}
-                actions={
-                    <>
-                        <Button
-                            success
-                            small
-                            text={translate('concierge.enableNotifications.cta')}
-                            onPress={requestAndDismiss}
-                        />
-                        <Button
-                            small
-                            style={[styles.ml2]}
-                            text={translate('common.notNow')}
-                            onPress={dismissForSession}
-                        />
-                    </>
-                }
-            />
+            >
+                <Button
+                    success
+                    small
+                    text={translate('concierge.enableNotifications.cta')}
+                    onPress={requestAndDismiss}
+                />
+                <Button
+                    small
+                    style={[styles.ml2]}
+                    text={translate('common.notNow')}
+                    onPress={dismissForSession}
+                />
+            </Banner>
         </View>
     );
 }

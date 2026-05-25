@@ -54,8 +54,8 @@ type BannerProps = {
     /** Callback called when pressing the button */
     onButtonPress?: () => void;
 
-    /** Custom action element rendered in the right side of the banner. Overrides the configured `shouldShowButton` when provided. */
-    actions?: React.ReactNode;
+    /** Custom action content rendered in the right side of the banner. Overrides the configured `shouldShowButton` when provided. */
+    children?: React.ReactNode;
 };
 
 function Banner({
@@ -67,7 +67,7 @@ function Banner({
     onButtonPress,
     containerStyles,
     textStyles,
-    actions,
+    children,
     shouldRenderHTML = false,
     shouldShowIcon = false,
     shouldShowCloseButton = false,
@@ -122,7 +122,7 @@ function Banner({
                                     </Text>
                                 ))}
                         </View>
-                        {actions ??
+                        {children ??
                             (shouldShowButton && (
                                 <Button
                                     success
