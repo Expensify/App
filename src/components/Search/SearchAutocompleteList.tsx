@@ -1,7 +1,6 @@
 import type {ForwardedRef, RefObject} from 'react';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
-import ActivityIndicator from '@components/ActivityIndicator';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
@@ -155,7 +154,6 @@ function SearchAutocompleteList({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const reportAttributes = useReportAttributes();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
@@ -516,15 +514,6 @@ function SearchAutocompleteList({
                 data: serverRows,
                 sectionIndex: sectionIndex++,
             };
-            if (isSearchingForReports && serverRows.length === 0) {
-                bottomSection.customHeader = (
-                    <ActivityIndicator
-                        size="large"
-                        style={[styles.flex1, styles.mt4]}
-                        reasonAttributes={{context: 'SearchAutocompleteList', isSearchingForReports}}
-                    />
-                );
-            }
             pushSection(bottomSection);
         }
 
@@ -551,7 +540,6 @@ function SearchAutocompleteList({
         expensifyIcons,
         frozenLocalRank,
         getAdditionalSections,
-        isSearchingForReports,
         recentReportsOptions,
         recentSearchesData,
         searchOptions,
