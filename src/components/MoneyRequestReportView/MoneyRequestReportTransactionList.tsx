@@ -96,7 +96,7 @@ type TransactionListItemData = {type: 'section-header'; groupKey: string; group:
 /**
  * Bundle of data + JSX nodes the parent needs to render the unified list around the transaction-list state.
  * Wide on purpose: this is the single integration point between TransactionList's internal state and the parent
- * FlatList that virtualizes both transactions and report actions in one scroll. Splitting would just smear the
+ * FlatList that renders both transactions and report actions in one virtualized scroll. Splitting would just smear the
  * same locals across multiple call sites without earning an abstraction.
  */
 type MoneyRequestReportTransactionListController = {
