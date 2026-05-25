@@ -174,7 +174,7 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
     const selectionListRef = useRef<SelectionListHandle<Transaction & ListItem>>(null);
 
     const shouldShowTextInput = useMemo(() => {
-        return transactions.length >= CONST.SEARCH_ITEM_LIMIT;
+        return transactions.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     }, [transactions.length]);
 
     const filteredTransactions = useMemo(() => {
