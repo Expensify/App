@@ -86,7 +86,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
         onClose();
     }, [exportID, displayedExport, onClose]);
 
-    const isNonDismissable = isPreparing;
+    const isNonDismissible = isPreparing;
 
     const renderContent = () => {
         if (isPreparing) {
@@ -169,8 +169,8 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     return (
         <Modal
             isVisible={isVisible}
-            onClose={isNonDismissable ? () => {} : onClose}
-            onBackdropPress={isNonDismissable ? () => {} : undefined}
+            onClose={isNonDismissible ? () => {} : onClose}
+            onBackdropPress={isNonDismissible ? () => {} : undefined}
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={styles.pv0}
         >

@@ -69,7 +69,7 @@ describe('ExportDownloadStatusModal', () => {
         expect(screen.getByText('exportDownload.sendFromConcierge')).toBeTruthy();
     });
 
-    it('is non-dismissable during preparing state', async () => {
+    it('is non-dismissible during preparing state', async () => {
         const onClose = jest.fn();
         await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'preparing'});
 
