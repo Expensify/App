@@ -174,7 +174,7 @@ function TransactionListItemInner<TItem extends ListItem>({
 
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
 
-    const handleOnPress = () => {
+    const handleOnPress = (event?: Parameters<typeof onSelectRow>[2]) => {
         // Consume the tap that dismissed an editing cell — a second tap will open the row.
         // We check the ref rather than isEditingCell because blur fires before onPress and resets the state.
         if (wasEditingOnMouseDownRef.current) {
@@ -188,7 +188,7 @@ function TransactionListItemInner<TItem extends ListItem>({
         if (isDeletedTransaction && !canSelectMultiple) {
             return;
         }
-        onSelectRow(item, transactionPreviewData);
+        onSelectRow(item, transactionPreviewData, event);
     };
 
     const handleOnMouseDown = (e?: React.MouseEvent) => {
@@ -202,11 +202,11 @@ function TransactionListItemInner<TItem extends ListItem>({
 
     const handleOnHoverIn = () => setShouldDisableHoverStyle(false);
 
-    const handleActionButtonPress = () => {
+    const handleActionButtonPress = (event?: Parameters<typeof onSelectRow>[2]) => {
         handleActionButtonPressUtil({
             hash: currentSearchHash,
             item: transactionItem,
-            goToItem: () => onSelectRow(item, transactionPreviewData),
+            goToItem: () => onSelectRow(item, transactionPreviewData, event),
             snapshotReport,
             snapshotPolicy,
             policy: parentPolicy,
@@ -225,7 +225,6 @@ function TransactionListItemInner<TItem extends ListItem>({
 
     const sharedProps = {
         item,
-        transactionItem,
         isDeletedTransaction,
         isFocused,
         showTooltip,

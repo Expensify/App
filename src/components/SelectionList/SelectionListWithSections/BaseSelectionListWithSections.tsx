@@ -164,10 +164,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         },
         setHasKeyBeenPressed,
         isFocused: isScreenFocused,
-        onArrowUpDownCallback: () => {
-            setShouldDisableHoverStyle(true);
-            listRef.current?.announceProgrammaticScroll();
-        },
+        onArrowUpDownCallback: () => setShouldDisableHoverStyle(true),
     });
 
     // Move the cursor, and skip the scroll the move would otherwise trigger when the index actually changes.

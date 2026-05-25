@@ -22,6 +22,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import {handleActionButtonPress} from '@libs/actions/Search';
 import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -153,6 +154,8 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const {showHoldMenu} = useHoldMenuModal();
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
+    const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(reportItem.reportID);
+    const liveReportTransactions = useMemo(() => Object.values(reportTransactions), [reportTransactions]);
 
     const handleOnButtonPress = useCallback(() => {
         handleActionButtonPress({
@@ -173,8 +176,13 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                 // collection yet. Fall back to the snapshot so the modal can submit.
                 const moneyRequestReport = parentReport ?? snapshotReport;
                 const chatReport = parentChatReport ?? snapshotChatReport;
-                const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, holdItem.allActions?.includes(CONST.SEARCH.ACTION_TYPES.PAY) ?? false);
-                const hasNonHeldExpenses = holdItem.transactions.some((t) => !isOnHold(t));
+                const transactionsForHoldMenu = liveReportTransactions.length > 0 ? liveReportTransactions : holdItem.transactions;
+                const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(
+                    moneyRequestReport,
+                    holdItem.allActions?.includes(CONST.SEARCH.ACTION_TYPES.PAY) ?? false,
+                    transactionsForHoldMenu,
+                );
+                const hasNonHeldExpenses = transactionsForHoldMenu.some((t) => !isOnHold(t));
                 showHoldMenu({
                     reportID: holdItem.reportID,
                     chatReportID: holdItem.parentReportID,
@@ -185,7 +193,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                     nonHeldAmount: hasNonHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined,
                     fullAmount,
                     hasNonHeldExpenses,
-                    transactionCount: holdItem.transactionCount ?? 0,
+                    transactionCount: transactionsForHoldMenu.length > 0 ? transactionsForHoldMenu.length : (holdItem.transactionCount ?? 0),
                 });
             },
             ownerBillingGracePeriodEnd,
@@ -209,6 +217,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
         showHoldMenu,
+        liveReportTransactions,
         ownerBillingGracePeriodEnd,
         amountOwed,
         openReportSubmitToPopover,

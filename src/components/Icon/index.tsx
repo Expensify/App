@@ -69,6 +69,9 @@ type IconProps = {
 
     /** Renders the Icon component within a MultiGestureCanvas for improved gesture controls. */
     enableMultiGestureCanvas?: boolean;
+
+    /** When set, exposes the icon to assistive tech with this label. Leave unset to keep the icon decorative. */
+    accessibilityLabel?: string;
 };
 
 function Icon({
@@ -88,6 +91,7 @@ function Icon({
     contentFit = 'cover',
     isButtonIcon = false,
     enableMultiGestureCanvas = false,
+    accessibilityLabel,
 }: IconProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
@@ -191,13 +195,17 @@ function Icon({
         );
     }
 
+    const hasLabel = !!accessibilityLabel;
+
     return (
         <View
             testID={testID}
             style={additionalStyles}
-            accessibilityElementsHidden
-            importantForAccessibility="no-hide-descendants"
-            accessible={false}
+            accessibilityLabel={accessibilityLabel}
+            accessibilityRole={hasLabel ? 'image' : undefined}
+            accessibilityElementsHidden={!hasLabel}
+            importantForAccessibility={hasLabel ? 'yes' : 'no-hide-descendants'}
+            accessible={hasLabel}
             pointerEvents="none"
         >
             <ImageSVG

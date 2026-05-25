@@ -16,7 +16,7 @@ function CreateHarvestReportAction({reportNameValuePairsOriginalID}: CreateHarve
     const {translate} = useLocalize();
     const [harvestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportNameValuePairsOriginalID}`);
     const harvestReportName = getReportName(harvestReport);
-    const htmlContent = `<comment><muted-text>${getHarvestCreatedExpenseReportMessage(harvestReport?.reportID, harvestReportName, translate)}</muted-text></comment>`;
+    const htmlContent = `<comment><muted-text>${getHarvestCreatedExpenseReportMessage(reportNameValuePairsOriginalID, harvestReportName, translate)}</muted-text></comment>`;
 
     return (
         <ReportActionItemBasicMessage>

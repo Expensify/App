@@ -16,6 +16,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {handleActionButtonPress} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -31,7 +32,7 @@ type ReportListItemHeaderProps<TItem extends ListItem> = SearchListActionProps &
     report: TransactionReportGroupListItemType;
 
     /** Callback to fire when the item is pressed */
-    onSelectRow: (item: TItem) => void;
+    onSelectRow: (item: TItem, event?: ModifiedMouseEvent) => void;
 
     /** Callback to fire when a checkbox is pressed */
     onCheckboxPress?: (item: TItem) => void;
@@ -75,7 +76,7 @@ type FirstRowReportHeaderProps<TItem extends ListItem> = {
     canSelectMultiple: boolean | undefined;
 
     /** Callback passed as goToItem in actionCell, triggered by clicking actionButton */
-    handleOnButtonPress?: () => void;
+    handleOnButtonPress?: (event?: ModifiedMouseEvent) => void;
 
     /** Color of the secondary avatar border, usually should match the container background */
     avatarBorderColor?: ColorValue;
@@ -239,11 +240,11 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
 
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
 
-    const handleOnButtonPress = () => {
+    const handleOnButtonPress = (event?: ModifiedMouseEvent) => {
         handleActionButtonPress({
             hash: currentSearchHash,
             item: reportItem,
-            goToItem: () => onSelectRow(reportItem as unknown as TItem),
+            goToItem: () => onSelectRow(reportItem as unknown as TItem, event),
             snapshotReport,
             snapshotPolicy,
             policy: parentPolicy,
