@@ -35,6 +35,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    // isSmallScreenWidth is needed here because the modal type depends on actual screen width, not layout mode
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
