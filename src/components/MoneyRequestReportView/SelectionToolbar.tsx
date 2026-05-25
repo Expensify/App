@@ -391,7 +391,6 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                         isDelegateAccessRestricted={isDelegateAccessRestricted}
                         showDelegateNoAccessModal={showDelegateNoAccessModal}
                         dismissedRejectUseExplanation={dismissedRejectUseExplanation}
-                        route={route}
                         clearSelectedTransactions={clearSelectedTransactions}
                         setSelectedTransactions={setSelectedTransactions}
                     />

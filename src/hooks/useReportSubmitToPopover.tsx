@@ -116,5 +116,5 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess}: UseReportSubmitTo
     };
 }
 
-export type {ReportSubmitToPopoverOpenOptions}
+export type {ReportSubmitToPopoverOpenOptions};
 export default useReportSubmitToPopover;
