@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {act, renderHook, waitFor} from '@testing-library/react-native';
+import React from 'react';
 import Onyx from 'react-native-onyx';
+import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import useDomainGroupFilter from '@hooks/useDomainGroupFilter';
 import type {MemberOption} from '@pages/domain/BaseDomainMembersPage';
@@ -246,13 +248,15 @@ describe('useDomainGroupFilter', () => {
     });
 
     describe('dropdownLabel', () => {
+        const LocaleWrapper = ({children}: {children: React.ReactNode}) => React.createElement(LocaleContextProvider, null, children);
+
         it('should show the default label when no group is selected', async () => {
             const domain = buildDomain({
                 '1': {members: {'100': 'read'}, name: 'Engineering'},
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, domain);
 
-            const {result} = renderHook(() => useDomainGroupFilter(DOMAIN_ACCOUNT_ID));
+            const {result} = renderHook(() => useDomainGroupFilter(DOMAIN_ACCOUNT_ID), {wrapper: LocaleWrapper});
             const defaultLabel = result.current.dropdownLabel;
 
             await waitFor(() => {
@@ -276,7 +280,7 @@ describe('useDomainGroupFilter', () => {
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, domain);
 
-            const {result} = renderHook(() => useDomainGroupFilter(DOMAIN_ACCOUNT_ID));
+            const {result} = renderHook(() => useDomainGroupFilter(DOMAIN_ACCOUNT_ID), {wrapper: LocaleWrapper});
 
             await waitFor(() => {
                 expect(result.current.groupOptions).toHaveLength(1);
@@ -286,7 +290,7 @@ describe('useDomainGroupFilter', () => {
                 result.current.handleGroupChange([{text: 'Engineering', value: '1'}]);
             });
 
-            expect(result.current.dropdownLabel).toBe('Engineering');
+            expect(result.current.dropdownLabel).toBe('Group: Engineering');
         });
 
         it('should show comma-joined names when multiple groups are selected', async () => {
@@ -296,7 +300,7 @@ describe('useDomainGroupFilter', () => {
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, domain);
 
-            const {result} = renderHook(() => useDomainGroupFilter(DOMAIN_ACCOUNT_ID));
+            const {result} = renderHook(() => useDomainGroupFilter(DOMAIN_ACCOUNT_ID), {wrapper: LocaleWrapper});
 
             await waitFor(() => {
                 expect(result.current.groupOptions).toHaveLength(2);
@@ -309,7 +313,7 @@ describe('useDomainGroupFilter', () => {
                 ]);
             });
 
-            expect(result.current.dropdownLabel).toBe('Engineering, Marketing');
+            expect(result.current.dropdownLabel).toBe('Group: Engineering, Marketing');
         });
 
         it('should revert to the default label when selected groups are removed from Onyx', async () => {
@@ -318,7 +322,7 @@ describe('useDomainGroupFilter', () => {
             });
             await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, domain);
 
-            const {result} = renderHook(() => useDomainGroupFilter(DOMAIN_ACCOUNT_ID));
+            const {result} = renderHook(() => useDomainGroupFilter(DOMAIN_ACCOUNT_ID), {wrapper: LocaleWrapper});
             const defaultLabel = result.current.dropdownLabel;
 
             await waitFor(() => {
@@ -328,7 +332,7 @@ describe('useDomainGroupFilter', () => {
             act(() => {
                 result.current.handleGroupChange([{text: 'Engineering', value: '1'}]);
             });
-            expect(result.current.dropdownLabel).toBe('Engineering');
+            expect(result.current.dropdownLabel).toBe('Group: Engineering');
 
             // Replace the domain with one that no longer has the selected group
             const updatedDomain = buildDomain({
@@ -351,7 +355,7 @@ describe('useDomainGroupFilter', () => {
             });
             await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, domain);
 
-            const {result} = renderHook(() => useDomainGroupFilter(DOMAIN_ACCOUNT_ID));
+            const {result} = renderHook(() => useDomainGroupFilter(DOMAIN_ACCOUNT_ID), {wrapper: LocaleWrapper});
             const defaultLabel = result.current.dropdownLabel;
 
             await waitFor(() => {
