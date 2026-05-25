@@ -12,6 +12,9 @@ import type {ActiveSorting, CompareItemsCallback, SortingMethods} from './middle
 type TableData = {
     /** A unique identifier for the row */
     keyForList: string;
+
+    /** Whether or not the row is disabled. Prevents row selection when the row is disabled */
+    disabled?: boolean;
 };
 
 /**

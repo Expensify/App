@@ -261,7 +261,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 keyForList: value.name,
                 name: getDecodedCategoryName(value.name),
                 glCode: value['GL Code'],
-                isDisabled,
+                disabled: isDisabled,
                 approverAvatar,
                 approverAccountID,
                 approverDisplayName,

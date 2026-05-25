@@ -19,7 +19,7 @@ type WorkspaceCategoryTableRowData = TableData & {
     approverAvatar?: AvatarSource;
     approverAccountID?: number;
     approverDisplayName?: string;
-    isDisabled: boolean;
+    disabled: boolean;
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
     action: () => void;

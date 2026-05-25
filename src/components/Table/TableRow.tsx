@@ -204,6 +204,7 @@ export default function TableRow({
                             <View style={tableRowContentStyles}>
                                 {!!isSelectionCheckboxVisible && (
                                     <Checkbox
+                                        disabled={item.disabled}
                                         isChecked={!!item.selected}
                                         accessibilityLabel="TEST"
                                         onPress={(event) => handleCheckboxPress(event as unknown as MouseEvent)}

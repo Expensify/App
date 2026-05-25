@@ -28,20 +28,21 @@ type UseSelectionResult<DataType extends TableData> = MiddlewareHookResult<DataT
 
 export default function useSelection<DataType extends TableData>({data, onRowSelectionChange}: UseSelectionProps<DataType>): UseSelectionResult<DataType> {
     const keyForLists = data.map((item) => item.keyForList);
+    const disabledKeyForLists = data.filter((item) => item.disabled).map((item) => item.keyForList);
 
     const lastSelectedRowKeyRef = useRef<string | null>(null);
     const lastSelectedRowIsSelectedRef = useRef<boolean>(false);
     const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
 
-    let areAllRowsSelected = true;
+    let areAllActiveRowsSelected = true;
     const modifiedData: Array<TableRow<DataType>> = [];
 
     for (const item of data) {
         const isSelected = selectedKeys.includes(item.keyForList);
         modifiedData.push({...item, selected: isSelected});
 
-        if (!isSelected) {
-            areAllRowsSelected = false;
+        if (!isSelected && !item.disabled) {
+            areAllActiveRowsSelected = false;
         }
     }
 
@@ -51,14 +52,14 @@ export default function useSelection<DataType extends TableData>({data, onRowSel
      */
     const updateSelectedKeys = (action: (previousSelectedKeys: string[]) => string[]) => {
         setSelectedKeys((previousSelectedKeys) => {
-            const updatedValue = action(previousSelectedKeys);
+            const modifiedSelectedKeys = action(previousSelectedKeys).filter((key) => !disabledKeyForLists.includes(key));
 
             if (onRowSelectionChange) {
-                const visibleSelectedRows = modifiedData.filter((row) => updatedValue.includes(row.keyForList));
+                const visibleSelectedRows = modifiedData.filter((row) => modifiedSelectedKeys.includes(row.keyForList));
                 onRowSelectionChange(visibleSelectedRows);
             }
 
-            return updatedValue;
+            return modifiedSelectedKeys;
         });
     };
 
@@ -74,7 +75,7 @@ export default function useSelection<DataType extends TableData>({data, onRowSel
      * rows in the table
      */
     const handleSelectAll = () => {
-        if (areAllRowsSelected) {
+        if (areAllActiveRowsSelected) {
             updateSelectedKeys(() => []);
         } else {
             updateSelectedKeys(() => keyForLists);

@@ -73,13 +73,15 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         gridTemplateColumns.unshift(`${variables.tableCheckboxColumnWidth}px`);
     }
 
-    let isEveryRowSelected = true;
+    let isEveryActiveRowSelected = true;
     let isSelectionIndeterminate = false;
 
+    // We exclude disabled rows from the 'select all' behavior, so if a disabled row is not selected, we still
+    // consider all active rows to be selected
     if (isSelectionCheckboxVisible) {
         for (const row of processedData) {
             isSelectionIndeterminate ||= row.selected;
-            isEveryRowSelected &&= row.selected;
+            isEveryActiveRowSelected &&= !!(row.selected || row.disabled);
         }
     }
 
@@ -108,8 +110,8 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.tableHeaderContentHeight, styles.gap3]}>
                     {!!isSelectionCheckboxVisible && (
                         <Checkbox
-                            isChecked={isEveryRowSelected}
-                            isIndeterminate={isSelectionIndeterminate && !isEveryRowSelected}
+                            isChecked={isEveryActiveRowSelected}
+                            isIndeterminate={isSelectionIndeterminate && !isEveryActiveRowSelected}
                             onPress={tableMethods.handleSelectAll}
                             accessibilityLabel={translate('workspace.common.selectAll')}
                             style={styles.pl1}
@@ -131,8 +133,8 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                     {!!selectionEnabled && (
                         <View style={styles.flex1}>
                             <Checkbox
-                                isChecked={isEveryRowSelected}
-                                isIndeterminate={isSelectionIndeterminate && !isEveryRowSelected}
+                                isChecked={isEveryActiveRowSelected}
+                                isIndeterminate={isSelectionIndeterminate && !isEveryActiveRowSelected}
                                 onPress={tableMethods.handleSelectAll}
                                 accessibilityLabel={translate('workspace.common.selectAll')}
                             />
