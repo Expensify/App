@@ -1,5 +1,6 @@
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import {normalizeReactionUpdates} from '@libs/ReportActionReactionsUtils';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
@@ -21,7 +22,7 @@ Onyx.connectWithoutView({
  * @param updates Onyx updates to queue for later
  */
 function queueOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdate<TKey>>): Promise<void> {
-    queuedOnyxUpdates = queuedOnyxUpdates.concat(updates);
+    queuedOnyxUpdates = queuedOnyxUpdates.concat(normalizeReactionUpdates(updates));
 
     return Promise.resolve();
 }
