@@ -18,6 +18,7 @@ const baseSelectionContext = {
     hasSelectedTransactions: false,
     areAllMatchingItemsSelected: false,
     shouldShowSelectAllMatchingItems: false,
+    totalRowCount: 0,
 } satisfies Omit<SearchSelectionContextValue, 'selectedTransactions'>;
 
 function buildTransactionItem(overrides: Partial<TransactionListItemType> & {keyForList: string; transactionID: string}) {
@@ -102,6 +103,7 @@ function renderHarness({
                 clearSelectedTransactions: () => {},
                 setShouldShowSelectAllMatchingItems: () => {},
                 selectAllMatchingItems: () => {},
+                setTotalRowCount: () => {},
             }),
             [],
         );

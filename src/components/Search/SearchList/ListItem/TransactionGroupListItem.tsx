@@ -11,6 +11,7 @@ import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {SearchGroupBy} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
@@ -249,7 +250,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
     };
 
     const StyleUtils = useStyleUtils();
-    const isItemSelected = isSelectAllChecked || item?.isSelected;
+    const {isSelected: liveRowSelected} = useRowSelection(item?.keyForList);
+    const isItemSelected = isSelectAllChecked || liveRowSelected;
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,

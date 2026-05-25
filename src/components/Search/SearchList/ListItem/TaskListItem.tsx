@@ -1,5 +1,6 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
@@ -44,6 +45,7 @@ function TaskListItem<TItem extends ListItem>({
     const theme = useTheme();
 
     const {isLargeScreenWidth} = useResponsiveLayout();
+    const {isSelected} = useRowSelection(item.keyForList);
 
     const listItemPressableStyle = [
         styles.selectionListPressableItemWrapper,
@@ -51,9 +53,9 @@ function TaskListItem<TItem extends ListItem>({
         styles.ph3,
         // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
         styles.bgTransparent,
-        item.isSelected && styles.activeComponentBG,
+        isSelected && styles.activeComponentBG,
         styles.mh0,
-        isLargeScreenWidth && StyleUtils.getSearchTableRowPressableStyle(!!isLastItem, item.isSelected, {vertical: variables.tableRowPaddingVertical}),
+        isLargeScreenWidth && StyleUtils.getSearchTableRowPressableStyle(!!isLastItem, isSelected, {vertical: variables.tableRowPaddingVertical}),
     ];
 
     const listItemWrapperStyle = [
@@ -88,7 +90,7 @@ function TaskListItem<TItem extends ListItem>({
             onFocus={onFocus}
             onLongPressRow={onLongPressRow}
             shouldSyncFocus={shouldSyncFocus}
-            hoverStyle={item.isSelected && styles.activeComponentBG}
+            hoverStyle={isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle, isLargeScreenWidth && isLastItem && [styles.tableBottomRadius, styles.overflowHidden]]}
             forwardedFSClass={fsClass}
         >

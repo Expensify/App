@@ -43,6 +43,7 @@ const defaultSearchSelectionContext: SearchSelectionContextValue = {
     hasSelectedTransactions: false,
     shouldShowSelectAllMatchingItems: false,
     areAllMatchingItemsSelected: false,
+    totalRowCount: 0,
 };
 
 const defaultSearchSelectionActions: SearchSelectionActionsValue = {
@@ -53,6 +54,7 @@ const defaultSearchSelectionActions: SearchSelectionActionsValue = {
     removeTransaction: () => {},
     setShouldShowSelectAllMatchingItems: () => {},
     selectAllMatchingItems: () => {},
+    setTotalRowCount: () => {},
 };
 
 const SearchQueryContext = React.createContext<SearchQueryContextValue>(defaultSearchQueryContext);

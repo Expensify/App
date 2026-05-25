@@ -19,6 +19,7 @@ type SelectionState = {
     selectedReports: SelectedReports[];
     currentSelectedTransactionReportID: string | undefined;
     shouldTurnOffSelectionMode: boolean;
+    totalRowCount: number;
 };
 
 const defaultSelectionState: SelectionState = {
@@ -27,6 +28,7 @@ const defaultSelectionState: SelectionState = {
     selectedReports: [],
     currentSelectedTransactionReportID: undefined,
     shouldTurnOffSelectionMode: false,
+    totalRowCount: 0,
 };
 
 function deriveSelectedReports(
@@ -247,6 +249,10 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
         areAllMatchingItemsSelected,
     };
 
+    const setTotalRowCount: SearchSelectionActionsValue['setTotalRowCount'] = (count) => {
+        setSelectionState((prevState) => (prevState.totalRowCount === count ? prevState : {...prevState, totalRowCount: count}));
+    };
+
     const selectionActionsValue: SearchSelectionActionsValue = {
         setSelectedTransactions,
         setSelectedReports,
@@ -255,6 +261,7 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
         removeTransaction,
         setShouldShowSelectAllMatchingItems,
         selectAllMatchingItems,
+        setTotalRowCount,
     };
 
     return (
@@ -290,4 +297,34 @@ function useSyncSelectedReports(data: TransactionListItemType[] | TransactionGro
     }, [selectedTransactions, setSelectedReports]);
 }
 
-export {SearchSelectionProvider, useSyncSelectedReports};
+/**
+ * Narrow per-row selection read. Replaces `joinedItem.isSelected` consumption inside rows so the
+ * screen-level `applySelectionToItem` no longer needs to mint new item objects on selection change.
+ */
+function useRowSelection(keyForList: string | undefined): {isSelected: boolean} {
+    const {selectedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
+    if (!keyForList) {
+        return {isSelected: false};
+    }
+    return {isSelected: areAllMatchingItemsSelected || !!selectedTransactions[keyForList]?.isSelected};
+}
+
+/**
+ * Aggregate counts for the selection top bar. `totalRowCount` is fed by the active Search view via
+ * `setTotalRowCount` so the hook stays argument-free.
+ */
+function useSelectionCounts(): {selected: number; total: number; isAllSelected: boolean; isIndeterminate: boolean} {
+    const {selectedTransactions, areAllMatchingItemsSelected, totalRowCount} = useSearchSelectionContext();
+    let selected = 0;
+    for (const key in selectedTransactions) {
+        if (selectedTransactions[key]?.isSelected) {
+            selected += 1;
+        }
+    }
+    const total = totalRowCount;
+    const isAllSelected = areAllMatchingItemsSelected || (total > 0 && selected >= total);
+    const isIndeterminate = selected > 0 && selected < total && !areAllMatchingItemsSelected;
+    return {selected, total, isAllSelected, isIndeterminate};
+}
+
+export {SearchSelectionProvider, useSyncSelectedReports, useRowSelection, useSelectionCounts};

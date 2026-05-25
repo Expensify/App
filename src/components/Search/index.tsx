@@ -248,7 +248,7 @@ function Search({
 
     const {setShouldResetSearchQuery} = useSearchQueryActions();
     const {setShouldShowFiltersBarLoading} = useSearchResultsActions();
-    const {setSelectedTransactions, clearSelectedTransactions, setShouldShowSelectAllMatchingItems, selectAllMatchingItems} = useSearchSelectionActions();
+    const {setSelectedTransactions, clearSelectedTransactions, setShouldShowSelectAllMatchingItems, selectAllMatchingItems, setTotalRowCount} = useSearchSelectionActions();
     const [offset, setOffset] = useState(0);
 
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
@@ -931,6 +931,10 @@ function Search({
     }, [selectedTransactions]);
 
     useSyncSelectedReports(filteredData);
+
+    useEffect(() => {
+        setTotalRowCount(filteredData.length);
+    }, [filteredData.length, setTotalRowCount]);
 
     const areItemsGrouped = !!validGroupBy || isExpenseReportType;
     const totalSelectableItemsCount = useMemo(() => {

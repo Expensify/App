@@ -9,6 +9,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
+import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
@@ -67,6 +68,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
+    const {isSelected} = useRowSelection(item.keyForList);
     const {translate} = useLocalize();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {currentSearchHash, currentSearchKey} = useSearchQueryContext();
@@ -271,14 +273,14 @@ function ExpenseReportListItem<TItem extends ListItem>({
             isLargeScreenWidth && styles.ph3,
             // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
             styles.bgTransparent,
-            item.isSelected && styles.activeComponentBG,
+            isSelected && styles.activeComponentBG,
             styles.mh0,
             isPendingDelete && styles.cursorDisabled,
-            isLargeScreenWidth ? StyleUtils.getSearchTableRowPressableStyle(!!isLastItem, item.isSelected, {vertical: variables.tableRowPaddingVertical}) : styles.noBorderRadius,
+            isLargeScreenWidth ? StyleUtils.getSearchTableRowPressableStyle(!!isLastItem, isSelected, {vertical: variables.tableRowPaddingVertical}) : styles.noBorderRadius,
             !isLargeScreenWidth && isFirstItem && [styles.tableTopRadius, styles.overflowHidden],
             !isLargeScreenWidth && isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
         ],
-        [styles, item.isSelected, isLargeScreenWidth, isFirstItem, isLastItem, isPendingDelete, StyleUtils],
+        [styles, isSelected, isLargeScreenWidth, isFirstItem, isLastItem, isPendingDelete, StyleUtils],
     );
 
     const listItemWrapperStyle = useMemo(
@@ -294,7 +296,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
         borderRadius: 0,
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
-        backgroundColor: item.isSelected ? theme.activeComponentBG : theme.highlightBG,
+        backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG,
         shouldApplyOtherStyles: !isLargeScreenWidth,
     });
 
@@ -370,7 +372,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             onFocus={onFocus}
             onLongPressRow={onLongPressRow}
             shouldSyncFocus={shouldSyncFocus}
-            hoverStyle={item.isSelected && styles.activeComponentBG}
+            hoverStyle={isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[
                 styles.mh5,
                 animatedHighlightStyle,
@@ -378,7 +380,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                 isLargeScreenWidth && isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
                 !isLargeScreenWidth && isFirstItem && styles.tableTopRadius,
                 !isLargeScreenWidth && isLastItem && styles.tableBottomRadius,
-                !isLargeScreenWidth && !isLastItem && StyleUtils.getSelectedBorderBottomStyle(item.isSelected),
+                !isLargeScreenWidth && !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isSelected),
             ]}
             accessible={false}
             shouldShowRightCaret={false}
@@ -393,7 +395,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                             shouldShowUserInfo={!!reportItem?.from}
                             stateNum={reportItem.stateNum}
                             statusNum={reportItem.statusNum}
-                            isSelected={!!reportItem.isSelected}
+                            isSelected={isSelected}
                         />
                     )}
                     <ExpenseReportListItemRow
@@ -405,7 +407,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                         canSelectMultiple={canSelectMultiple}
                         onCheckboxPress={handleSelectionButtonPress}
                         onButtonPress={handleOnButtonPress}
-                        isSelectAllChecked={!!reportItem.isSelected}
+                        isSelectAllChecked={isSelected}
                         isIndeterminate={false}
                         isDisabledCheckbox={isDisabledCheckbox}
                         isHovered={hovered}
