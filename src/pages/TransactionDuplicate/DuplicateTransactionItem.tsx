@@ -11,8 +11,8 @@ import ReportActionItem from '@pages/inbox/report/ReportActionItem';
 import {ReportActionItemActionsContext, ReportActionItemStateContext} from '@pages/inbox/report/ReportActionItemContext';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {getStableReportSelector} from '@src/selectors/Report';
 import type {Transaction} from '@src/types/onyx';
-import { getStableReportSelector } from '@src/selectors/Report';
 
 type DuplicateTransactionItemProps = {
     transaction: OnyxEntry<Transaction>;
