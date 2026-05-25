@@ -163,7 +163,7 @@ Yes. The QuickBooks Desktop integration is available on the **Control** plan.
 
 ## Can I export to an employee record instead of a vendor record?
 
-You can export to an employee record when exporting reports as Journal Entries or Checks. 
+You can export to an employee record when exporting reports as **Journal Entries** or **Checks**. 
 
 By default, we'll look for a vendor record with an email address matching the report submitter. If we don't find one, we'll look for an employee record. Employees must have a **Main Email** in QuickBooks Desktop that matches the email associated with their Expensify account. 
 
