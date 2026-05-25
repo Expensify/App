@@ -31,7 +31,7 @@ function webUpdate() {
             }
         })
         .catch(() => {
-            // During deploy rollouts, version.json may be temporarily unavailable and the
+            // During deploys, version.json may be temporarily unavailable and the
             // SPA fallback can return index.html (HTML) with a 200 status, causing
             // response.json() to throw a SyntaxError. Silently ignore and retry on the
             // next visibility change or update interval.
