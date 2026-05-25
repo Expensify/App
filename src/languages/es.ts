@@ -162,6 +162,7 @@ const translations: TranslationDeepObject<typeof en> = {
         admin: 'Administrador',
         owner: 'Dueño',
         dateFormat: 'AAAA-MM-DD',
+        calendarOpened: 'calendario abierto',
         send: 'Enviar',
         na: 'N/A',
         noResultsFound: 'No se han encontrado resultados',
@@ -652,6 +653,7 @@ const translations: TranslationDeepObject<typeof en> = {
         changePin: {
             didNotChange: 'No pudimos cambiar tu PIN. Por favor, inténtalo de nuevo.',
         },
+        revealCardDetail: {couldNotReveal: 'No hemos podido mostrar los datos de tu tarjeta. Por favor, inténtalo de nuevo.'},
     },
     validateCodeModal: {
         successfulSignInTitle: 'Abracadabra,\n¡sesión iniciada!',
@@ -854,7 +856,6 @@ const translations: TranslationDeepObject<typeof en> = {
         buttonFind: 'Encuentre algo...',
         buttonMySettings: 'Mi configuración',
         fabNewChat: 'Iniciar chat',
-        fabNewChatExplained: 'Abrir menú de acciones',
         fabScanReceiptExplained: 'Escanear recibo',
         chatPinned: 'Chat fijado',
         draftedMessage: 'Mensaje borrador',
@@ -1007,6 +1008,7 @@ const translations: TranslationDeepObject<typeof en> = {
             }),
             today: 'Hoy',
         },
+        seeMore: ({count}: {count: number}) => `Ver ${count} más`,
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',
@@ -1239,7 +1241,7 @@ const translations: TranslationDeepObject<typeof en> = {
         receiptStatusTitle: 'Escaneando…',
         receiptStatusText: 'Solo tú puedes ver este recibo cuando se está escaneando. Vuelve más tarde o introduce los detalles ahora.',
         receiptScanningFailed: 'El escaneo de recibo ha fallado. Introduce los detalles manualmente.',
-        transactionPendingDescription: 'Transacción pendiente. Puede tardar unos días en contabilizarse.',
+        allTransactionsPendingNextStep: 'Todas las transacciones están pendientes. No puedes enviar este informe hasta que se registren dentro de unos días.',
         companyInfo: 'Información de la empresa',
         companyInfoDescription: 'Necesitamos algunos detalles más antes de que pueda enviar su primera factura.',
         yourCompanyName: 'Nombre de su empresa',
@@ -1280,6 +1282,10 @@ const translations: TranslationDeepObject<typeof en> = {
         settlePayment: (formattedAmount) => `Pagar ${formattedAmount}`,
         settleBusiness: (formattedAmount) => (formattedAmount ? `Pagar ${formattedAmount} como negocio` : `Pago con cuenta empresarial`),
         payElsewhere: (formattedAmount) => (formattedAmount ? `Marcar ${formattedAmount} como pagado` : `Marcar como pagado`),
+        confirmPaymentReceivedModalTitle: 'Confirmar el pago recibido',
+        receivedPayment: 'Pago recibido',
+        receivedPaymentConfirmation: 'Por favor, continúa solo si ya has recibido el pago fuera de Expensify.',
+        confirmReceivedPayment: 'Sí, he recibido el pago.',
         settleInvoicePersonal: (amount, last4Digits) => (amount ? `pagado ${amount} con cuenta personal ${last4Digits}` : `Pagado con cuenta personal`),
         settleInvoiceBusiness: (amount, last4Digits) => (amount ? `pagado ${amount} con cuenta de empresa ${last4Digits}` : `Pagado con cuenta de empresa`),
         payWithPolicy: (policyName, formattedAmount) => (formattedAmount ? `Pay ${formattedAmount} via ${policyName}` : `Pay via ${policyName}`),
@@ -1400,6 +1406,8 @@ const translations: TranslationDeepObject<typeof en> = {
             distanceAmountTooLargeReduceDistance: 'El importe total es demasiado alto. Reduce la distancia.',
             distanceAmountTooLargeReduceRate: 'El importe total es demasiado alto. Disminuye la tarifa.',
             odometerReadingTooLarge: (formattedMax: string) => `Las lecturas del odómetro no pueden superar ${formattedMax}.`,
+            unableToSubmitReport: 'No se puede enviar el informe',
+            allTransactionsPendingDescription: 'No puedes enviar este informe porque todas las transacciones están pendientes. Pueden tardar unos días en procesarse.',
             stitchOdometerImagesFailed: 'No se pudieron combinar las imágenes del odómetro. Por favor, inténtalo de nuevo más tarde.',
             failedToSaveOdometerDraft: 'No se pudo guardar el borrador del odómetro. Por favor, inténtalo de nuevo.',
             invalidIntegerAmount: 'Por favor, introduce un importe entero en dólares antes de continuar',
@@ -1476,7 +1484,6 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Algunos de estos duplicados ya han sido aprobados o pagados.',
         reviewDuplicates: 'Revisar duplicados',
         keepAll: 'Mantener todos',
-        keepSelected: 'Mantener seleccionado',
         noDuplicatesTitle: '¡Todo listo!',
         noDuplicatesDescription: 'No hay transacciones duplicadas para revisar aquí.',
         confirmApprove: 'Confirmar importe a aprobar',
@@ -2102,7 +2109,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     deviceManagementPage: {
         title: 'Gestión de dispositivos',
-        description: 'Gestiona todos los dispositivos en los que has iniciado sesión con tu cuenta de Expensify.',
+        description:
+            'Gestiona todos los dispositivos en los que has iniciado sesión con tu cuenta de Expensify. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Más información</a>.',
         revoke: 'Revocar',
         unknownDevice: 'Dispositivo Desconocido',
     },
@@ -2117,9 +2125,12 @@ const translations: TranslationDeepObject<typeof en> = {
         disabled: 'La autenticación de dos factores está ahora deshabilitada',
         noAuthenticatorApp: 'Ya no necesitarás una aplicación de autenticación para iniciar sesión en Expensify.',
         stepCodes: 'Códigos de recuperación',
-        keepCodesSafe: '¡Guarda los códigos de recuperación en un lugar seguro!',
-        codesLoseAccess:
-            'Si pierdes el acceso a tu aplicación de autenticación y no tienes estos códigos, perderás el acceso a tu cuenta. \n\nNota: Configurar la autenticación de dos factores cerrará la sesión de todas las demás sesiones activas.',
+        keepCodesSafe: '¡Guarda estos códigos en un lugar seguro!',
+        codesLoseAccess: dedent(`
+            Si pierdes el acceso a tu aplicación de autenticación y no tienes estos códigos, perderás el acceso a tu cuenta.
+
+            <strong>Nota</strong>: Configurar la autenticación de dos factores cerrará la sesión en todas las demás sesiones activas.
+        `),
         errorStepCodes: 'Copia o descarga los códigos antes de continuar',
         stepVerify: 'Verificar',
         scanCode: 'Escanea el código QR usando tu',
@@ -2147,6 +2158,9 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyOldDeviceDescription: 'Introduce el código de seis dígitos de tu aplicación de autenticación actual para confirmar que tienes acceso a ella.',
         verifyNewDeviceTitle: 'Configurar nuevo dispositivo',
         verifyNewDeviceDescription: 'Escanea el código QR con tu nuevo dispositivo y luego introduce el código para completar la configuración.',
+        downloadCodes: 'Descargar códigos',
+        screenshotTip: 'Consejo: haz una captura de pantalla para guardarla en tu galería de fotos',
+        copyCodes: 'Copiar códigos',
     },
     recoveryCodeForm: {
         error: {
@@ -2558,6 +2572,7 @@ ${amount} para ${merchant} - ${date}`,
     reportFraudConfirmationPage: {
         title: 'Fraude con tarjeta reportado',
         description: 'Hemos desactivado permanentemente tu tarjeta existente. Cuando vuelvas a ver los detalles de tu tarjeta, tendrás una nueva tarjeta virtual disponible.',
+        descriptionCardNotReplaced: 'Tu tarjeta fue desactivada permanentemente. Por favor, contacta a un administrador para emitir una nueva tarjeta.',
         buttonText: 'Entendido, ¡gracias!',
     },
     activateCardPage: {
@@ -2833,7 +2848,7 @@ ${amount} para ${merchant} - ${date}`,
         workspaceMemberList: (employeeCount, policyOwner) => `${employeeCount} miembro${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
         workspaceYouMayJoin: (domain, email) => `Alguien de ${domain} ya ha creado un espacio de trabajo. Por favor, introduce el código mágico enviado a ${email}.`,
         joinAWorkspace: 'Unirse a un espacio de trabajo',
-        listOfWorkspaces: 'Aquí está la lista de espacios de trabajo a los que puedes unirte. No te preocupes, siempre puedes unirte a ellos más tarde si lo prefieres.',
+        listOfWorkspaces: 'Aquí tienes la lista de espacios de trabajo a los que puedes unirte.',
         skipForNow: 'Omitir por ahora',
         whereYouWork: '¿Dónde trabajas?',
         errorSelection: 'Selecciona una opción para continuar',
@@ -3179,6 +3194,7 @@ ${amount} para ${merchant} - ${date}`,
             title: 'Invita a miembros',
             subtitle: 'Añade a tu equipo o invita a tu contador. ¡Cuantos más, mejor!',
         },
+        workEmail2FAError: 'Este inicio de sesión corresponde a una cuenta existente con la autenticación de dos factores (2FA) habilitada.',
     },
     featureTraining: {
         doNotShowAgain: 'No muestres esto otra vez',
@@ -5208,6 +5224,7 @@ ${amount} para ${merchant} - ${date}`,
                     requiredColumns: (missingColumns: string) => `Por favor, asigna una columna a cada uno de los atributos: ${missingColumns}.`,
                     duplicateColumns: (duplicateColumn: string) => `¡Ups! Has asignado un solo campo ("${duplicateColumn}") a múltiples columnas. Por favor, revisa y vuelve a intentarlo.`,
                 },
+                duplicateFeedModal: {title: 'Feed de tarjeta ya conectado', prompt: 'No puedes añadir el mismo flujo de tarjeta al mismo espacio de trabajo dos veces.'},
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Último día del mes',
@@ -5936,8 +5953,6 @@ ${amount} para ${merchant} - ${date}`,
             addedWithPrimary: 'Se agregaron algunos miembros con sus nombres de usuario principales.',
             invitedBySecondaryLogin: (secondaryLogin) => `Agregado por nombre de usuario secundario ${secondaryLogin}.`,
             workspaceMembersCount: (count) => `Total de miembros del espacio de trabajo: ${count}`,
-            configureGustoSync: 'Configurar sincronización de Gusto.',
-            syncWithGusto: 'Sincronizar con Gusto',
             allMembers: 'Todos los miembros',
             admins: 'Administradores',
             approvers: 'Aprobadores',
@@ -5959,6 +5974,8 @@ ${amount} para ${merchant} - ${date}`,
                 `${memberName} tiene gastos pendientes por aprobar. Por favor, pídeles que aprueben o tomen el control de sus informes antes de eliminarlos del espacio de trabajo.`,
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
                 `${memberName} tiene un informe en proceso pendiente de acción. Pídele que complete la acción requerida antes de eliminarlo del espacio de trabajo.`,
+            configureHRSync: (providerName: string) => `Configura la sincronización de ${providerName}.`,
+            syncWithHR: (providerName: string) => `Sincronizar con ${providerName}`,
         },
         accounting: {
             settings: 'configuración',
@@ -6289,6 +6306,8 @@ ${amount} para ${merchant} - ${date}`,
             disconnect: 'Desconectar',
             disconnectTitle: (providerName: string) => `Desconectar ${providerName}`,
             disconnectPrompt: (providerName: string) => `¿Seguro que quieres desconectar ${providerName}?`,
+            alreadyConnectedTitle: 'No se puede conectar a varias plataformas de RR. HH.',
+            alreadyConnectedPrompt: 'Debes desconectar tu plataforma de RR. HH. actual antes de conectar otra.',
             lastSync: (relativeDate: string) => `Última sincronización ${relativeDate}`,
             syncError: (providerName: string) => `No se puede conectar con ${providerName}`,
             connectionDescription: (providerName: string) => `Conecta ${providerName} para mantener sincronizadas las aprobaciones de empleados con tu espacio de trabajo.`,
@@ -6324,8 +6343,6 @@ ${amount} para ${merchant} - ${date}`,
                         return 'Cargando datos desde TriNet';
                     case 'zenefitsSyncProvisioning':
                         return 'Aprovisionar empleados en la política';
-                    case 'mergeHRSyncTitle':
-                        return 'Sincronización de empleados de HR';
                     case 'jobDone':
                         return 'Esperando a que se carguen los datos importados';
                     default: {
@@ -6350,6 +6367,9 @@ ${amount} para ${merchant} - ${date}`,
             zenefits: {
                 title: 'TriNet',
             },
+            syncingModalTitle: 'Tu conexión se está sincronizando',
+            syncingModalDescription: 'La primera conexión puede tardar un poco. Se te notificará de cualquier error.',
+            syncing: 'Sincronizando empleados',
         },
         export: {
             notReadyHeading: 'No está listo para exportar',
@@ -6724,7 +6744,7 @@ ${amount} para ${merchant} - ${date}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
                     `<muted-text>La facturación está disponible en los planes Recopilar y Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
-            note: (subscriptionLink) => `<muted-text>Mejore para acceder a esta función, o <a href="${subscriptionLink}">más información</a> sobre nuestros planes y precios.</muted-text>`,
+            note: (subscriptionLink: string) => `<muted-text><a href="${subscriptionLink}">Obtén más información</a> sobre nuestros planes y precios.</muted-text>`,
             pricing: {
                 perActiveMember: 'por miembro activo al mes.',
                 perMember: 'por miembro al mes.',
@@ -7648,6 +7668,7 @@ ${amount} para ${merchant} - ${date}`,
         },
         resultsAreLimited: 'Los resultados de búsqueda están limitados.',
         viewResults: 'Ver resultados',
+        applyFilters: 'Aplicar filtros',
         appliedFilters: 'Filtros aplicados',
         resetFilters: 'Restablecer filtros',
         searchResults: {
@@ -7774,7 +7795,12 @@ ${amount} para ${merchant} - ${date}`,
             amount: {
                 lessThan: (amount) => `Menos de ${amount ?? ''}`,
                 greaterThan: (amount) => `Más que ${amount ?? ''}`,
-                between: (greaterThan, lessThan) => `Entre ${greaterThan} y ${lessThan}`,
+                between: (greaterThan, lessThan) => {
+                    if (greaterThan && lessThan) {
+                        return `Entre ${greaterThan} y ${lessThan}`;
+                    }
+                    return 'Entre';
+                },
                 equalTo: (amount) => `Igual a ${amount ?? ''}`,
             },
             current: 'Actual',
@@ -8555,6 +8581,7 @@ ${amount} para ${merchant} - ${date}`,
         selectAllFeatures: 'Seleccionar todas las características',
         selectAllItems: 'Seleccionar todos los elementos',
         selectAllTransactions: 'Seleccionar todas las transacciones',
+        openActionsMenu: 'Abrir menú de acciones',
         selectAllCategories: 'Seleccionar todas las categorías',
         selectAllDistanceRates: 'Seleccionar todas las tarifas de distancia',
         selectAllTags: 'Seleccionar todas las etiquetas',

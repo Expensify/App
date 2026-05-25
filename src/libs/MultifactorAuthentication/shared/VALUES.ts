@@ -153,6 +153,9 @@ const API_RESPONSE_MAP = {
     REVEAL_CARD_PIN: {},
 
     /** No custom error handling — all responses rely on category fallback reasons. */
+    REVEAL_CARD_DETAILS_WITH_SCA: {},
+
+    /** No custom error handling — all responses rely on category fallback reasons. */
     CHANGE_CARD_PIN: {},
 } as const;
 
