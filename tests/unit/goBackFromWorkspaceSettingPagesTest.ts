@@ -1,12 +1,9 @@
 import type {NavigationState, PartialState} from '@react-navigation/native';
 import {StackActions} from '@react-navigation/native';
+import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFromWorkspaceSettingPages';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
-
-const mockDispatch = jest.fn();
-const mockGetRootState = jest.fn();
-
-const ROOT_STATE_KEY = 'root-state-key';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
@@ -16,15 +13,15 @@ jest.mock('@libs/Navigation/Navigation', () => ({
         dismissModal: jest.fn(),
     },
     navigationRef: {
-        getRootState: mockGetRootState,
-        current: {dispatch: mockDispatch},
+        getRootState: jest.fn(),
+        current: {dispatch: jest.fn()},
     },
 }));
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports, rulesdir/no-import-or-require -- require after mock setup to ensure mocks are in place
-const goBackFromWorkspaceSettingPages = require('@libs/Navigation/helpers/goBackFromWorkspaceSettingPages').default;
-// eslint-disable-next-line @typescript-eslint/no-require-imports, rulesdir/no-import-or-require -- require after mock setup to ensure mocks are in place
-const Navigation = require('@libs/Navigation/Navigation').default;
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/unbound-method -- jest.fn() mock is always defined; mocks don't rely on `this` binding
+const mockedDispatch = jest.mocked(navigationRef.current!.dispatch);
+
+const ROOT_STATE_KEY = 'root-state-key';
 
 function mockRootState(routes: Array<{name: string; state?: PartialState<NavigationState>}>, index?: number) {
     const state = {
@@ -32,7 +29,8 @@ function mockRootState(routes: Array<{name: string; state?: PartialState<Navigat
         routes,
         index: index ?? routes.length - 1,
     };
-    mockGetRootState.mockReturnValue(state);
+    // eslint-disable-next-line @typescript-eslint/unbound-method -- jest.fn() mock doesn't rely on `this` binding
+    jest.mocked(navigationRef.getRootState).mockReturnValue(state as unknown as NavigationState);
 }
 
 describe('goBackFromWorkspaceSettingPages', () => {
@@ -62,14 +60,13 @@ describe('goBackFromWorkspaceSettingPages', () => {
         goBackFromWorkspaceSettingPages();
 
         // Should pop 1 route (from index 1 back to the underlying TAB_NAVIGATOR at index 0)
-        expect(mockDispatch).toHaveBeenCalledWith({...StackActions.pop(1), target: ROOT_STATE_KEY});
+        expect(mockedDispatch).toHaveBeenCalledWith({...StackActions.pop(1), target: ROOT_STATE_KEY});
         expect(Navigation.dismissModal).not.toHaveBeenCalled();
         expect(Navigation.goBack).not.toHaveBeenCalled();
     });
 
     it('calls dismissModal when previous route is Inbox but no underlying TAB_NAVIGATOR exists', () => {
         // Root stack: REPORTS_SPLIT_NAVIGATOR (not a TAB_NAVIGATOR) → current workspace route
-        // secondToLastRoute is REPORTS_SPLIT_NAVIGATOR which getActiveTabName returns directly
         mockRootState([
             {
                 name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
@@ -87,13 +84,12 @@ describe('goBackFromWorkspaceSettingPages', () => {
 
         // No TAB_NAVIGATOR at an index below topRootIndex, so falls through to dismissModal
         expect(Navigation.dismissModal).toHaveBeenCalled();
-        expect(mockDispatch).not.toHaveBeenCalled();
+        expect(mockedDispatch).not.toHaveBeenCalled();
         expect(Navigation.goBack).not.toHaveBeenCalled();
     });
 
     it('navigates to WORKSPACES_LIST when previous route is not Inbox', () => {
         // Root stack: TAB_NAVIGATOR with WORKSPACE_NAVIGATOR active → another TAB_NAVIGATOR
-        // secondToLastRoute active tab is WORKSPACE_NAVIGATOR, not REPORTS_SPLIT_NAVIGATOR
         mockRootState([
             {
                 name: NAVIGATORS.TAB_NAVIGATOR,
@@ -114,7 +110,7 @@ describe('goBackFromWorkspaceSettingPages', () => {
         goBackFromWorkspaceSettingPages();
 
         expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACES_LIST.route);
-        expect(mockDispatch).not.toHaveBeenCalled();
+        expect(mockedDispatch).not.toHaveBeenCalled();
         expect(Navigation.dismissModal).not.toHaveBeenCalled();
     });
 });
