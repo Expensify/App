@@ -41,6 +41,7 @@ import {isAgentEmail} from '@libs/SessionUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import {isValidAccountRoute} from '@libs/ValidationUtils';
 import type {ProfileNavigatorParamList} from '@navigation/types';
+import {openAgentsPage} from '@userActions/Agent';
 import {connect} from '@userActions/Delegate';
 import {openExternalLink} from '@userActions/Link';
 import {openPublicProfilePage} from '@userActions/PersonalDetails';
@@ -171,6 +172,13 @@ function ProfilePage({route}: ProfilePageProps) {
             openPublicProfilePage(accountID);
         }
     }, [accountID, loginParams, isConcierge]);
+
+    useEffect(() => {
+        if (isCurrentUser || !isAgentEmail(login)) {
+            return;
+        }
+        openAgentsPage();
+    }, [isCurrentUser, login]);
 
     const promotedActions: PromotedAction[] = [];
     if (report) {
