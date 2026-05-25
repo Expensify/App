@@ -12,11 +12,10 @@ import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
+import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import {
-    generateReportID,
     getPolicyExpenseChat,
     getReportOrDraftReport,
     isInvoiceRoom,
@@ -135,7 +134,6 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     policyRecentlyUsedCurrencies?: string[];
     introSelected?: IntroSelected;
     files: ReceiptFile[];
-    isTestTransaction?: boolean;
     locationPermissionGranted?: boolean;
     shouldGenerateTransactionThreadReport: boolean;
     selfDMReport: OnyxEntry<Report>;
@@ -358,7 +356,6 @@ function handleMoneyRequestStepScanParticipants({
     policyRecentlyUsedCurrencies,
     introSelected,
     files,
-    isTestTransaction = false,
     locationPermissionGranted = false,
     selfDMReport,
     isSelfTourViewed,
@@ -373,28 +370,6 @@ function handleMoneyRequestStepScanParticipants({
 }: MoneyRequestStepScanParticipantsFlowParams) {
     if (backTo) {
         Navigation.goBack(backTo);
-        return;
-    }
-
-    if (isTestTransaction) {
-        const managerMcTestParticipant = getManagerMcTestParticipant(currentUserAccountID, personalDetails) ?? {};
-        let reportIDParam = managerMcTestParticipant.reportID;
-        if (!managerMcTestParticipant.reportID && report?.reportID) {
-            reportIDParam = generateReportID();
-        }
-        setMoneyRequestParticipants(
-            initialTransaction.transactionID,
-            [
-                {
-                    ...managerMcTestParticipant,
-                    reportID: reportIDParam,
-                    selected: true,
-                },
-            ],
-            true,
-        ).then(() => {
-            navigateToConfirmationPage(iouType, initialTransaction.transactionID, reportID, backToReport, true, reportIDParam);
-        });
         return;
     }
 
@@ -1087,12 +1062,9 @@ function startDistanceRequest(
     }
 }
 
-function setMoneyRequestParticipants(transactionID: string, participants: Participant[] = [], isTestTransaction = false) {
-    // We should change the reportID and isFromGlobalCreate of the test transaction since this flow can start inside an existing report
+function setMoneyRequestParticipants(transactionID: string, participants: Participant[] = []) {
     return Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
         participants,
-        isFromGlobalCreate: isTestTransaction ? true : undefined,
-        reportID: isTestTransaction ? participants?.at(0)?.reportID : undefined,
     });
 }
 
