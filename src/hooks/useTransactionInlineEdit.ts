@@ -24,6 +24,7 @@ import {isExpenseUnreported, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
+import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
 import usePolicyForTransaction from './usePolicyForTransaction';
@@ -127,6 +128,8 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     const isPerDiem = isPerDiemRequest(transaction);
     const {shouldSelectPolicy} = usePolicyForMovingExpenses(isPerDiem);
 
+    const {isOffline} = useNetwork();
+
     const permissions = getTransactionEditPermissions({
         transaction,
         parentReportAction,
@@ -157,6 +160,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
             policyRecentlyUsedCategories,
             policyRecentlyUsedTags,
             parentReportNextStep,
+            isOffline,
         };
     };
 
