@@ -45,6 +45,11 @@ type Approver = {
      * Email of the user this user forwards all approved reports to when report total is above 'approvalLimit'
      */
     overLimitForwardsTo?: string;
+
+    /**
+     * Display name of the user this user forwards all approved reports to when report total is above 'approvalLimit'
+     */
+    overLimitForwardsToDisplayName?: string;
 };
 
 /**

@@ -295,7 +295,7 @@ function BasePopoverMenu({
     animationIn = 'fadeIn',
     animationInDelay,
     animationOut = 'fadeOut',
-    animationInTiming = CONST.ANIMATED_TRANSITION,
+    animationInTiming = CONST.MENU_ANIMATION_DURATION,
     animationOutTiming,
     disableAnimation = true,
     withoutOverlay = false,

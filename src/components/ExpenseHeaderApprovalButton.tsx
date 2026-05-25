@@ -3,9 +3,10 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import {getNonHeldAndFullAmount, hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import type {Report} from '@src/types/onyx';
+import type {Report, Transaction} from '@src/types/onyx';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
@@ -48,6 +49,7 @@ type ApprovalDropdownOptionProps = {
     illustrations: Record<'ThumbsUp' | 'DocumentCheck', IconAsset>;
     shouldShowPayButton: boolean;
     hasOnlyHeldExpenses: boolean;
+    transactions: Transaction[];
 };
 
 /**
@@ -61,11 +63,12 @@ function getApprovalDropdownOptions({
     moneyRequestReport,
     shouldShowPayButton,
     hasOnlyHeldExpenses,
+    transactions,
 }: ApprovalDropdownOptionProps): ApprovalOption[] {
     const APPROVE_PARTIAL = 'approve_partial';
     const APPROVE_FULL = 'approve_full';
     const options: ApprovalOption[] = [];
-    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, shouldShowPayButton);
+    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, shouldShowPayButton, transactions);
 
     if (hasValidNonHeldAmount && !hasOnlyHeldExpenses) {
         options.push({
@@ -102,8 +105,10 @@ function ExpenseHeaderApprovalButton({
 
     const shouldShowDropdown = isAnyTransactionOnHold && !isDelegateAccessRestricted;
 
+    const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
+    const transactions = Object.values(reportTransactions);
     if (shouldShowDropdown) {
-        const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(moneyRequestReport?.reportID);
+        const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions);
         const approvalOptions = getApprovalDropdownOptions({
             onPartialApprove: () => onApprove(false),
             onFullApprove: () => onApprove(true),
@@ -112,6 +117,7 @@ function ExpenseHeaderApprovalButton({
             moneyRequestReport,
             shouldShowPayButton,
             hasOnlyHeldExpenses,
+            transactions,
         });
 
         return (
