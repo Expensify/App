@@ -72,7 +72,7 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
             shouldShowCancelButton: false,
             success: false,
             confirmText: translate('common.buttonConfirm'),
-            innerContainerStyle: shouldUseNarrowLayout ? undefined : StyleUtils.getWidthStyle(variables.builtInProtectionModalWidth),
+            innerContainerStyle: shouldUseNarrowLayout ? undefined : StyleUtils.getWidthStyle(variables.wideConfirmModalWidth),
         });
     };
 
