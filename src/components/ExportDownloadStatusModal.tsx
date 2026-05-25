@@ -1,5 +1,5 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -45,12 +45,14 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
 
     const [exportDownload] = useOnyx(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}`);
 
-    const lastKnownExportRef = useRef<ExportDownload | null>(null);
-    if (exportDownload) {
-        lastKnownExportRef.current = exportDownload;
-    }
+    const [lastKnownExport, setLastKnownExport] = useState<ExportDownload | null>(null);
+    useEffect(() => {
+        if (exportDownload) {
+            setLastKnownExport(exportDownload);
+        }
+    }, [exportDownload]);
 
-    const displayedExport = exportDownload ?? lastKnownExportRef.current;
+    const displayedExport = exportDownload ?? lastKnownExport;
 
     const state = displayedExport?.state;
     const shouldSendFromConcierge = displayedExport?.shouldSendFromConcierge;
