@@ -260,8 +260,7 @@ function processDataIntoSlices(data: ChartDataPoint[], startAngle: number, pieGe
         return [];
     }
 
-    // Anchor the tooltip at the midpoint of the donut ring (between inner and outer radius)
-    // so it sits on the slice rather than in the empty center.
+    // Anchor the tooltip at the midpoint of the donut ring (between inner and outer radius).
     const tooltipRadius = (pieGeometry.innerRadius + pieGeometry.radius) / 2;
 
     return data
