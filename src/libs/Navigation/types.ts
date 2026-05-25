@@ -111,11 +111,6 @@ type SettingsNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
-    [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_VERIFY_ACCOUNT]: {
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
-        forwardTo?: Routes;
-    };
     [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.PAYMENT_CURRENCY]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: undefined;
@@ -139,7 +134,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.LOCK.LOCK_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.LOCK.UNLOCK_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.LOCK.FAILED_TO_LOCK_ACCOUNT]: undefined;
-    [SCREENS.SETTINGS.DYNAMIC_VERIFY_ACCOUNT]: undefined;
+    [SCREENS.SETTINGS.DYNAMIC_VERIFY_ACCOUNT]: {
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo?: Routes;
+    };
     [SCREENS.SETTINGS.DYNAMIC_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.DYNAMIC_EXIT_SURVEY_REASON]: undefined;
     [SCREENS.SETTINGS.DYNAMIC_EXIT_SURVEY_CONFIRM]: undefined;
@@ -1654,26 +1652,12 @@ type DomainCardNavigatorParamList = {
 };
 
 type TwoFactorAuthNavigatorParamList = {
-    [SCREENS.TWO_FACTOR_AUTH.ROOT]: {
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
-        forwardTo?: string;
-    };
-    [SCREENS.TWO_FACTOR_AUTH.VERIFY_ACCOUNT]: {
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
-        forwardTo?: Routes;
-    };
-    [SCREENS.TWO_FACTOR_AUTH.VERIFY]: {
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
-        forwardTo?: string;
-    };
-    [SCREENS.TWO_FACTOR_AUTH.SUCCESS]: {
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
-        forwardTo?: string;
-    };
+    [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_ROOT]: undefined;
+    [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY_ACCOUNT]: undefined;
+    [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY]: undefined;
+    [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_SUCCESS]: {policyID?: string};
+    [SCREENS.TWO_FACTOR_AUTH.ENABLED]: undefined;
+    [SCREENS.TWO_FACTOR_AUTH.SUCCESS]: undefined;
     [SCREENS.TWO_FACTOR_AUTH.DISABLE]: undefined;
     [SCREENS.TWO_FACTOR_AUTH.DISABLED]: undefined;
 };
@@ -1772,10 +1756,8 @@ type ReportSettingsNavigatorParamList = {
 };
 
 type ReportDescriptionNavigatorParamList = {
-    [SCREENS.REPORT_DESCRIPTION_ROOT]: {
+    [SCREENS.DYNAMIC_REPORT_DESCRIPTION]: {
         reportID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
 };
 
@@ -2302,14 +2284,11 @@ type TeachersUniteNavigatorParamList = {
 };
 
 type TaskDetailsNavigatorParamList = {
-    [SCREENS.TASK.TITLE]: {
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
-    };
-    [SCREENS.TASK.ASSIGNEE]: {
+    [SCREENS.DYNAMIC_TASK_TITLE]: {
         reportID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
+    };
+    [SCREENS.DYNAMIC_TASK_ASSIGNEE]: {
+        reportID: string;
     };
 };
 
@@ -2422,15 +2401,12 @@ type ReferralDetailsNavigatorParamList = {
 };
 
 type PrivateNotesNavigatorParamList = {
-    [SCREENS.PRIVATE_NOTES.LIST]: {
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
+    [SCREENS.DYNAMIC_PRIVATE_NOTES_LIST]: {
+        reportID: string;
     };
-    [SCREENS.PRIVATE_NOTES.EDIT]: {
+    [SCREENS.DYNAMIC_PRIVATE_NOTES_EDIT]: {
         reportID: string;
         accountID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
 };
 
