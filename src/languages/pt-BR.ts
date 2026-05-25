@@ -1046,6 +1046,7 @@ const translations: TranslationDeepObject<typeof en> = {
             repaidLast30Days: 'Reembolsado nos últimos 30 dias',
             recentTransactions: ({lastFour}: {lastFour: string}) => `Transações recentes • ${lastFour}`,
         },
+        seeMore: ({count}: {count: number}) => `Ver mais ${count}`,
     },
     allSettingsScreen: {
         subscription: 'Assinatura',
@@ -2232,7 +2233,7 @@ const translations: TranslationDeepObject<typeof en> = {
     deviceManagementPage: {
         title: 'Gerenciamento de dispositivos',
         description:
-            'Gerencie todos os dispositivos nos quais você fez login com sua conta Expensify. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Saiba mais</a>',
+            'Gerencie todos os dispositivos nos quais você fez login com sua conta Expensify. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Saiba mais</a>.',
         revoke: 'Revogar',
         unknownDevice: 'Dispositivo Desconhecido',
     },
@@ -2247,11 +2248,11 @@ const translations: TranslationDeepObject<typeof en> = {
         disabled: 'A autenticação em duas etapas está desativada agora',
         noAuthenticatorApp: 'Você não vai mais precisar de um app autenticador para entrar no Expensify.',
         stepCodes: 'Códigos de recuperação',
-        keepCodesSafe: 'Mantenha estes códigos de recuperação em segurança!',
+        keepCodesSafe: 'Mantenha estes códigos em segurança!',
         codesLoseAccess: dedent(`
             Se você perder o acesso ao seu app autenticador e não tiver esses códigos, perderá o acesso à sua conta.
 
-            Observação: Configurar a autenticação em duas etapas desconectará você de todas as outras sessões ativas.
+            <strong>Observação</strong>: Configurar a autenticação em duas etapas vai desconectar você de todas as outras sessões ativas.
         `),
         errorStepCodes: 'Copie ou faça o download dos códigos antes de continuar',
         stepVerify: 'Verificar',
@@ -2280,6 +2281,9 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyOldDeviceDescription: 'Digite o código de seis dígitos do seu aplicativo autenticador atual para confirmar que você tem acesso a ele.',
         verifyNewDeviceTitle: 'Configurar novo dispositivo',
         verifyNewDeviceDescription: 'Escaneie o código QR com seu novo dispositivo e depois insira o código para concluir a configuração.',
+        downloadCodes: 'Baixar códigos',
+        screenshotTip: 'Dica: faça uma captura de tela para salvar na sua galeria de fotos',
+        copyCodes: 'Copiar códigos',
     },
     recoveryCodeForm: {
         error: {
@@ -2702,6 +2706,7 @@ ${amount} para ${merchant} - ${date}`,
     reportFraudConfirmationPage: {
         title: 'Fraude no cartão reportada',
         description: 'Desativamos permanentemente seu cartão atual. Quando você voltar para ver os detalhes do cartão, um novo cartão virtual estará disponível.',
+        descriptionCardNotReplaced: 'Seu cartão foi desativado permanentemente. Entre em contato com um administrador para emitir um novo cartão.',
         buttonText: 'Entendido, obrigado!',
     },
     activateCardPage: {
@@ -3331,7 +3336,6 @@ ${amount} para ${merchant} - ${date}`,
         enterPhoneNumber: 'Qual é o seu número de telefone?',
         personalDetails: 'Dados pessoais',
         privateDataMessage: 'Esses dados são usados para viagens e pagamentos. Eles nunca são exibidos no seu perfil público.',
-        basicDetails: 'Detalhes básicos',
         legalName: 'Nome legal',
         legalFirstName: 'Primeiro nome legal',
         legalLastName: 'Sobrenome legal',
@@ -3523,7 +3527,7 @@ ${amount} para ${merchant} - ${date}`,
             noBankAccountSelected: 'Escolha uma conta',
             taxID: 'Insira um número de identificação fiscal válido',
             website: 'Insira um site válido',
-            zipCode: `Insira um CEP válido usando o formato: ${COMMON_CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
+            zipCode: `Insira um CEP válido usando o formato: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
             phoneNumber: 'Insira um número de telefone válido',
             email: 'Insira um endereço de e-mail válido',
             companyName: 'Insira um nome comercial válido',
@@ -7824,6 +7828,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
     search: {
         resultsAreLimited: 'Os resultados da pesquisa são limitados.',
         viewResults: 'Ver resultados',
+        applyFilters: 'Aplicar filtros',
         appliedFilters: 'Filtros aplicados',
         resetFilters: 'Redefinir filtros',
         searchResults: {
@@ -7934,7 +7939,12 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             amount: {
                 lessThan: (amount?: string) => `Menos de ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Maior que ${amount ?? ''}`,
-                between: (greaterThan: string, lessThan: string) => `Entre ${greaterThan} e ${lessThan}`,
+                between: (greaterThan?: string, lessThan?: string) => {
+                    if (greaterThan && lessThan) {
+                        return `Entre ${greaterThan} e ${lessThan}`;
+                    }
+                    return 'Entre';
+                },
                 equalTo: (amount?: string) => `Igual a ${amount ?? ''}`,
             },
             card: {

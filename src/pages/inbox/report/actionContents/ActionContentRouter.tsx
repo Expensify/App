@@ -356,7 +356,11 @@ function ActionContentRouter({
             />
         );
     }
-    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN || action.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_UNFROZEN) {
+    if (
+        action.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN ||
+        action.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_UNFROZEN ||
+        action.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_DEACTIVATED
+    ) {
         return (
             <ReportActionItemBasicMessage message="">
                 <RenderHTML html={`<comment><muted-text>${getReportActionHtml(action)}</muted-text></comment>`} />

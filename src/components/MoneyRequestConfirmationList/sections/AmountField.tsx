@@ -8,7 +8,6 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearMoneyRequestAmount, getMoneyRequestParticipantsFromReport, setMoneyRequestAmount} from '@libs/actions/IOU/MoneyRequest';
 import {convertToBackendAmount, convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
@@ -49,6 +48,7 @@ type AmountFieldProps = {
     clearFormErrors: (errors: string[]) => void;
     setFormError: (error: TranslationPaths | '') => void;
     autoFocus?: boolean;
+    isParticipantPickerVisible?: boolean;
 };
 
 function AmountField({
@@ -73,6 +73,7 @@ function AmountField({
     clearFormErrors,
     setFormError,
     autoFocus = false,
+    isParticipantPickerVisible = false,
 }: AmountFieldProps) {
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
@@ -81,7 +82,7 @@ function AmountField({
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const amountInputRef = useRef<BaseTextInputRef | null>(null);
-    const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
+    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const transactionSlice = useTransactionSelector(transactionID, amountSliceSelector, isEditingSplitBill);
 
@@ -114,15 +115,24 @@ function AmountField({
     const allowNegative = shouldEnableNegative(report, policy, iouType, transactionSlice?.participants);
 
     // `autoFocus` on our TextInput only runs on mount. Closing and reopening the RHP often keeps the same mounted
-    // instance, so autofocus does not run again. After `ScreenWrapper` finishes its entry transition the field is
-    // reliably focusable.
+    // instance, so autofocus does not run again. We re-focus when the parent-owned participant picker closes
+    // (visible → hidden) so the amount input gains focus once the user selects a participant in the new manual
+    // expense flow. The setTimeout defers focus past the RHP entry / picker close animation so the input reliably
+    // receives focus.
     useEffect(() => {
-        if (!didScreenTransitionEnd || !autoFocus || isAmountFieldDisabled || !isNewManualExpenseFlowEnabled) {
+        if (!autoFocus || isAmountFieldDisabled || !isNewManualExpenseFlowEnabled || isParticipantPickerVisible) {
             return;
         }
 
-        amountInputRef.current?.focus();
-    }, [didScreenTransitionEnd, autoFocus, isAmountFieldDisabled, isNewManualExpenseFlowEnabled]);
+        focusTimeoutRef.current = setTimeout(() => amountInputRef.current?.focus(), CONST.ANIMATED_TRANSITION);
+
+        return () => {
+            if (!focusTimeoutRef.current) {
+                return;
+            }
+            clearTimeout(focusTimeoutRef.current);
+        };
+    }, [autoFocus, isAmountFieldDisabled, isNewManualExpenseFlowEnabled, isParticipantPickerVisible]);
 
     const showCurrencyPicker = () => {
         setIsCurrencyPickerVisible(true);
@@ -266,7 +276,7 @@ function AmountField({
                     <NumberWithSymbolForm
                         ref={amountInputRef}
                         displayAsTextInput
-                        autoFocus={autoFocus}
+                        autoFocus={false}
                         value={transactionAmount}
                         decimals={decimals}
                         currency={effectiveCurrency}
