@@ -74,17 +74,17 @@ function TrialPaymentReminderModal({isVisible, variant, daysRemaining, countdown
                 <Text style={[styles.textSupporting]}>{translate('trialPaymentReminder.subtitle')}</Text>
 
                 <Button
-                    style={[styles.mt5]}
-                    onPress={onClose}
-                    text={translate('trialPaymentReminder.closeButton')}
-                    large
-                />
-                <Button
                     success
-                    style={[styles.mt3]}
+                    style={[styles.mt5]}
                     onPress={onAddPaymentCard}
                     pressOnEnter
                     text={translate('trialPaymentReminder.addPaymentCardButton')}
+                    large
+                />
+                <Button
+                    style={[styles.mt3]}
+                    onPress={onClose}
+                    text={translate('trialPaymentReminder.closeButton')}
                     large
                 />
             </View>
