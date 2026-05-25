@@ -1006,6 +1006,7 @@ const translations: TranslationDeepObject<typeof en> = {
             inviteAccountant: '邀请你的会计',
         },
         yourSpend: {title: '您的支出', awaitingApproval: '等待审批', repaidLast30Days: '过去30天内已偿还', recentTransactions: ({lastFour}: {lastFour: string}) => `最近交易 • ${lastFour}`},
+        seeMore: ({count}: {count: number}) => `再查看 ${count} 个`,
     },
     allSettingsScreen: {
         subscription: '订阅',
@@ -1235,7 +1236,7 @@ const translations: TranslationDeepObject<typeof en> = {
         receiptStatusTitle: '正在扫描…',
         receiptStatusText: '扫描期间只有你自己能看到这张收据。稍后再来查看，或立即输入详细信息。',
         receiptScanningFailed: '收据扫描失败。请手动输入详细信息。',
-        transactionPendingDescription: '交易待处理。入账可能需要几天时间。',
+        allTransactionsPendingNextStep: '所有交易都在待处理状态。在几天后这些交易入账之前，你无法提交此报表。',
         companyInfo: '公司信息',
         companyInfoDescription: '在您发送第一张发票之前，我们还需要一些详细信息。',
         yourCompanyName: '您的公司名称',
@@ -1275,6 +1276,10 @@ const translations: TranslationDeepObject<typeof en> = {
         settlePayment: (formattedAmount: string) => `支付 ${formattedAmount}`,
         settleBusiness: (formattedAmount?: string) => (formattedAmount ? `以企业身份支付 ${formattedAmount}` : `使用公司账户付款`),
         payElsewhere: (formattedAmount?: string) => (formattedAmount ? `将 ${formattedAmount} 标记为已支付` : `标记为已支付`),
+        confirmPaymentReceivedModalTitle: '确认已收到付款',
+        receivedPayment: '已收到付款',
+        receivedPaymentConfirmation: '仅当您已在 Expensify 之外收到付款时才继续。',
+        confirmReceivedPayment: '是的，我已收到付款。',
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `使用个人账户 ${last4Digits} 支付了 ${amount}` : `使用个人账户支付`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `已使用商务账户 ${last4Digits} 支付 ${amount}` : `使用公司账户支付`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `通过 ${policyName} 支付 ${formattedAmount}` : `通过 ${policyName} 支付`),
@@ -1418,6 +1423,8 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: '结束日期不能与开始日期相同',
             manySplitsProvided: `允许的最大拆分数为 ${CONST.IOU.SPLITS_LIMIT}。`,
             dateRangeExceedsMaxDays: `日期范围不能超过 ${CONST.IOU.SPLITS_LIMIT} 天。`,
+            unableToSubmitReport: '无法提交报表',
+            allTransactionsPendingDescription: '您无法提交此报表，因为所有交易都在待处理。它们可能需要几天时间才会入账。',
             stitchOdometerImagesFailed: '合并里程表图片失败。请稍后重试。',
             failedToSaveOdometerDraft: '无法保存你的里程表草稿。请重试。',
         },
@@ -1463,7 +1470,6 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: '其中一些重复项已被批准或支付。',
         reviewDuplicates: '审核重复项',
         keepAll: '全部保留',
-        keepSelected: '保留所选项',
         noDuplicatesTitle: '全部完成！',
         noDuplicatesDescription: '这里没有需要审核的重复交易。',
         confirmApprove: '确认批准金额',
@@ -2152,7 +2158,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     deviceManagementPage: {
         title: '设备管理',
-        description: '管理所有已使用你的 Expensify 账户登录的设备。<a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">了解详情</a>',
+        description: '管理所有已使用你的 Expensify 账户登录的设备。<a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">了解详情</a>.',
         revoke: '撤销',
         unknownDevice: '未知设备',
     },
@@ -2166,11 +2172,11 @@ const translations: TranslationDeepObject<typeof en> = {
         disabled: '已关闭双重身份验证',
         noAuthenticatorApp: '你今后登录 Expensify 时将不再需要验证器应用程序。',
         stepCodes: '恢复代码',
-        keepCodesSafe: '请妥善保管这些恢复代码！',
+        keepCodesSafe: '妥善保管这些验证码！',
         codesLoseAccess: dedent(`
-            如果你无法访问身份验证应用并且没有这些代码，你将无法访问你的帐户。
+            如果你无法使用身份验证应用且没有这些代码，你将无法访问你的账户。
 
-            注意：设置双重身份验证会将你从所有其他活动会话中登出。
+            <strong>注意</strong>：设置双重身份验证后，你将在所有其他活跃会话中退出登录。
         `),
         errorStepCodes: '请在继续之前复制或下载这些代码',
         stepVerify: '验证',
@@ -2199,6 +2205,9 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyOldDeviceDescription: '请输入您当前身份验证器应用中的六位数验证码，以确认您仍可访问该应用。',
         verifyNewDeviceTitle: '设置新设备',
         verifyNewDeviceDescription: '使用新设备扫描二维码，然后输入代码完成设置。',
+        downloadCodes: '下载代码',
+        screenshotTip: '提示：截屏此页面以将其保存到你的相册',
+        copyCodes: '复制代码',
     },
     recoveryCodeForm: {
         error: {
@@ -2606,6 +2615,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     reportFraudConfirmationPage: {
         title: '已报告卡片欺诈',
         description: '我们已永久停用你的现有卡片。当你返回查看卡片详情时，你将会看到一张新的虚拟卡片可用。',
+        descriptionCardNotReplaced: '您的卡已被永久停用。请联系管理员以发行新卡。',
         buttonText: '明白了，谢谢！',
     },
     activateCardPage: {
@@ -5227,6 +5237,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     duplicateColumns: (duplicateColumn: string) => `哎呀！你已将单个字段（“${duplicateColumn}”）映射到了多个列。请检查后重试。`,
                 },
                 fileImportDescription: '如果您的银行无法发送数据馈送时的手动选项。',
+                duplicateFeedModal: {title: '卡片流水已连接', prompt: '您不能将同一张卡片流水两次添加到同一个工作区。'},
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: '月末最后一天',
@@ -7601,6 +7612,7 @@ ${reportName}
     search: {
         resultsAreLimited: '搜索结果已受限制。',
         viewResults: '查看结果',
+        applyFilters: '应用筛选条件',
         appliedFilters: '已应用的筛选条件',
         resetFilters: '重置筛选条件',
         searchResults: {
@@ -7710,7 +7722,12 @@ ${reportName}
             amount: {
                 lessThan: (amount?: string) => `少于 ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `大于 ${amount ?? ''}`,
-                between: (greaterThan: string, lessThan: string) => `介于 ${greaterThan} 和 ${lessThan} 之间`,
+                between: (greaterThan?: string, lessThan?: string) => {
+                    if (greaterThan && lessThan) {
+                        return `介于 ${greaterThan} 和 ${lessThan} 之间`;
+                    }
+                    return '之间';
+                },
                 equalTo: (amount?: string) => `等于 ${amount ?? ''}`,
             },
             card: {

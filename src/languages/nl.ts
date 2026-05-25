@@ -1043,6 +1043,7 @@ const translations: TranslationDeepObject<typeof en> = {
             repaidLast30Days: 'Terugbetaald in de afgelopen 30 dagen',
             recentTransactions: ({lastFour}: {lastFour: string}) => `Recente transacties • ${lastFour}`,
         },
+        seeMore: ({count}: {count: number}) => `Bekijk nog ${count}`,
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -1279,7 +1280,7 @@ const translations: TranslationDeepObject<typeof en> = {
         receiptStatusTitle: 'Scannen…',
         receiptStatusText: 'Alleen jij kunt deze bon zien terwijl hij wordt gescand. Kom later terug of voer de gegevens nu in.',
         receiptScanningFailed: 'Bon scannen mislukt. Voer de gegevens handmatig in.',
-        transactionPendingDescription: 'Transactie in behandeling. Het kan een paar dagen duren voordat deze wordt verwerkt.',
+        allTransactionsPendingNextStep: 'Alle transacties zijn in behandeling. Je kunt dit rapport pas indienen als ze over een paar dagen zijn geboekt.',
         companyInfo: 'Bedrijfsgegevens',
         companyInfoDescription: 'We hebben nog een paar gegevens nodig voordat je je eerste factuur kunt versturen.',
         yourCompanyName: 'Naam van je bedrijf',
@@ -1319,6 +1320,10 @@ const translations: TranslationDeepObject<typeof en> = {
         settlePayment: (formattedAmount: string) => `Betaal ${formattedAmount}`,
         settleBusiness: (formattedAmount?: string) => (formattedAmount ? `Betaal ${formattedAmount} als bedrijf` : `Betalen met zakelijke rekening`),
         payElsewhere: (formattedAmount?: string) => (formattedAmount ? `Markeer ${formattedAmount} als betaald` : `Markeren als betaald`),
+        confirmPaymentReceivedModalTitle: 'Ontvangst van betaling bevestigen',
+        receivedPayment: 'Betaling ontvangen',
+        receivedPaymentConfirmation: 'Ga alleen verder als je de betaling al buiten Expensify hebt ontvangen.',
+        confirmReceivedPayment: 'Ja, ik heb de betaling ontvangen.',
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `heeft ${amount} betaald met persoonlijke rekening ${last4Digits}` : `Betaald met privérekening`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `heeft ${amount} betaald met zakelijke rekening ${last4Digits}` : `Betaald met zakelijke rekening`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `Betaal ${formattedAmount} via ${policyName}` : `Betaal via ${policyName}`),
@@ -1465,6 +1470,8 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: 'De einddatum mag niet gelijk zijn aan de startdatum',
             manySplitsProvided: `Het maximale aantal toegestane splitsingen is ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `Het datumbereik mag niet meer dan ${CONST.IOU.SPLITS_LIMIT} dagen zijn.`,
+            unableToSubmitReport: 'Rapport kan niet worden ingediend',
+            allTransactionsPendingDescription: 'Je kunt dit rapport niet indienen omdat alle transacties in behandeling zijn. Het kan een paar dagen duren voordat ze worden verwerkt.',
             stitchOdometerImagesFailed: 'Odometerafbeeldingen combineren mislukt. Probeer het later opnieuw.',
             failedToSaveOdometerDraft: 'De conceptkilometerstand kon niet worden opgeslagen. Probeer het opnieuw.',
         },
@@ -1511,7 +1518,6 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Sommige van deze duplicaten zijn al goedgekeurd of betaald.',
         reviewDuplicates: 'Dubbele items controleren',
         keepAll: 'Alles behouden',
-        keepSelected: 'Selectie behouden',
         noDuplicatesTitle: 'Alles in orde!',
         noDuplicatesDescription: 'Er zijn hier geen dubbele transacties om te beoordelen.',
         confirmApprove: 'Bevestig goedkeuringsbedrag',
@@ -2211,7 +2217,7 @@ const translations: TranslationDeepObject<typeof en> = {
     deviceManagementPage: {
         title: 'Apparaatbeheer',
         description:
-            'Beheer alle apparaten waarop je bent ingelogd met je Expensify-account. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Meer informatie</a>',
+            'Beheer alle apparaten waarop je bent ingelogd met je Expensify-account. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Meer informatie</a>.',
         revoke: 'Intrekken',
         unknownDevice: 'Onbekend Apparaat',
     },
@@ -2226,11 +2232,11 @@ const translations: TranslationDeepObject<typeof en> = {
         disabled: 'Tweeledige verificatie is nu uitgeschakeld',
         noAuthenticatorApp: 'Je hebt geen authenticator-app meer nodig om in te loggen bij Expensify.',
         stepCodes: 'Herstelcodes',
-        keepCodesSafe: 'Bewaar deze herstercodes goed!',
+        keepCodesSafe: 'Bewaar deze codes goed!',
         codesLoseAccess: dedent(`
-            Als je de toegang tot je authenticator-app kwijtraakt en deze codes niet hebt, verlies je de toegang tot je account.
+            Als je de toegang tot je authenticator-app verliest en deze codes niet hebt, verlies je de toegang tot je account.
 
-            Let op: het instellen van tweeledige verificatie zal je uitloggen bij alle andere actieve sessies.
+            <strong>Let op</strong>: Het instellen van twee-factor-authenticatie zal je bij alle andere actieve sessies afmelden.
         `),
         errorStepCodes: 'Kopieer of download de codes voordat je verdergaat',
         stepVerify: 'Verifiëren',
@@ -2259,6 +2265,9 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyOldDeviceDescription: 'Voer de zescijferige code uit je huidige authenticator-app in om te bevestigen dat je daar toegang toe hebt.',
         verifyNewDeviceTitle: 'Nieuw apparaat instellen',
         verifyNewDeviceDescription: 'Scan de QR-code met je nieuwe apparaat en voer daarna de code in om de installatie te voltooien.',
+        downloadCodes: 'Codes downloaden',
+        screenshotTip: 'Tip: maak een screenshot om dit op te slaan in je fotobibliotheek',
+        copyCodes: 'Codes kopiëren',
     },
     recoveryCodeForm: {
         error: {
@@ -2686,6 +2695,7 @@ ${amount} voor ${merchant} - ${date}`,
     reportFraudConfirmationPage: {
         title: 'Kaartfraude gemeld',
         description: 'We hebben je bestaande kaart permanent gedeactiveerd. Wanneer je teruggaat om je kaartgegevens te bekijken, heb je een nieuwe virtuele kaart beschikbaar.',
+        descriptionCardNotReplaced: 'Je kaart is permanent gedeactiveerd. Neem contact op met een beheerder om een nieuwe kaart uit te geven.',
         buttonText: 'Begrepen, dank je!',
     },
     activateCardPage: {
@@ -5361,6 +5371,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                         `Oeps! Je hebt één enkel veld (“${duplicateColumn}”) aan meerdere kolommen gekoppeld. Controleer dit en probeer het opnieuw.`,
                 },
                 fileImportDescription: 'Een handmatige optie als je bank geen feed kan versturen.',
+                duplicateFeedModal: {title: 'Kaartfeed al verbonden', prompt: 'Je kunt dezelfde kaartfeed niet twee keer aan dezelfde workspace toevoegen.'},
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Laatste dag van de maand',
@@ -7813,6 +7824,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
     search: {
         resultsAreLimited: 'Zoekresultaten zijn beperkt.',
         viewResults: 'Resultaten bekijken',
+        applyFilters: 'Filters toepassen',
         appliedFilters: 'Toegepaste filters',
         resetFilters: 'Filters resetten',
         searchResults: {
@@ -7922,7 +7934,12 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             amount: {
                 lessThan: (amount?: string) => `Minder dan ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Groter dan ${amount ?? ''}`,
-                between: (greaterThan: string, lessThan: string) => `Tussen ${greaterThan} en ${lessThan}`,
+                between: (greaterThan?: string, lessThan?: string) => {
+                    if (greaterThan && lessThan) {
+                        return `Tussen ${greaterThan} en ${lessThan}`;
+                    }
+                    return 'Tussen';
+                },
                 equalTo: (amount?: string) => `Gelijk aan ${amount ?? ''}`,
             },
             card: {

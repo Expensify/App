@@ -702,6 +702,13 @@ const staticStyles = (theme: ThemeColors) =>
             height: variables.bottomTabHeight,
         },
 
+        tabNavigatorBarContainer: {
+            zIndex: 1,
+            width: variables.navigationTabBarSize + variables.sideBarWithLHBWidth,
+            marginRight: -variables.sideBarWithLHBWidth,
+            overflow: 'visible',
+        },
+
         navigationTabBarContainer: {
             flexDirection: 'row',
             height: variables.bottomTabHeight,
@@ -2817,6 +2824,7 @@ const staticStyles = (theme: ThemeColors) =>
         twoFactorAuthSection: {
             backgroundColor: theme.appBG,
             padding: 0,
+            paddingTop: 8,
         },
 
         twoFactorLoadingContainer: {
@@ -2839,16 +2847,12 @@ const staticStyles = (theme: ThemeColors) =>
             textAlign: 'center',
         },
 
-        twoFactorAuthCodesButtonsContainer: {
-            flexDirection: 'row',
-            justifyContent: 'center',
-            gap: 12,
-            marginTop: 20,
-            flexWrap: 'wrap',
+        twoFactorAuthCodesButton: {
+            alignSelf: 'stretch',
         },
 
-        twoFactorAuthCodesButton: {
-            minWidth: 112,
+        twoFactorAuthCodesButtonWrapper: {
+            marginTop: 20,
         },
 
         twoFactorAuthCopyCodeButton: {
@@ -3567,7 +3571,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         searchInputSkeleton: {
-            height: 54,
+            height: 46,
             justifyContent: 'center',
         },
 
@@ -5012,6 +5016,26 @@ const staticStyles = (theme: ThemeColors) =>
             marginTop: 3,
         },
 
+        typeFiltersContainer: {
+            borderRightWidth: 1,
+            borderRightColor: theme.border,
+            paddingVertical: 8,
+        },
+
+        typeFilterMenu: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            height: 52,
+            paddingHorizontal: 20,
+            paddingVertical: 4,
+            gap: 12,
+        },
+
+        filterContentContainer: {
+            flex: 1,
+            minWidth: CONST.ADVANCED_FILTERS_CONTENT_WIDTH,
+        },
+
         searchActionsBarContainer: {
             marginBottom: 16,
             paddingHorizontal: 20,
@@ -5023,6 +5047,15 @@ const staticStyles = (theme: ThemeColors) =>
 
         searchActionsBarCreateButton: {
             alignSelf: 'flex-start',
+        },
+
+        searchFiltersClearButton: {
+            flexDirection: 'row',
+            gap: 4,
+            alignItems: 'center',
+            borderRadius: variables.buttonBorderRadius,
+            paddingHorizontal: 12,
+            minHeight: 28,
         },
 
         searchPageInputWideTouchableWrapper: {height: 32, width: 200},
@@ -6639,14 +6672,25 @@ const plainStyles = (theme: ThemeColors) =>
                 },
             }) satisfies CustomPickerStyle,
         mapDirection: {
-            lineColor: theme.success,
-            lineWidth: 7,
+            lineColor: colors.green400,
+            lineWidth: 6,
+            lineCap: 'round',
+        },
+
+        mapDirectionBorder: {
+            lineColor: colors.green600,
+            lineWidth: 8,
             lineCap: 'round',
         },
 
         mapDirectionLayer: {
             layout: {'line-join': 'round', 'line-cap': 'round'},
-            paint: {'line-color': theme.success, 'line-width': 7},
+            paint: {'line-color': colors.green400, 'line-width': 6},
+        },
+
+        mapDirectionLayerBorder: {
+            layout: {'line-join': 'round', 'line-cap': 'round'},
+            paint: {'line-color': colors.green600, 'line-width': 8},
         },
         searchTopBarZIndexStyle: {
             zIndex: variables.searchTopBarZIndex,

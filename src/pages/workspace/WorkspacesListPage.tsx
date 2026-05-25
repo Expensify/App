@@ -49,7 +49,6 @@ import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 import {filterInactiveCards} from '@libs/CardUtils';
 import {hasDomainErrors} from '@libs/DomainUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
-import FreezeWrapper from '@libs/Navigation/AppNavigator/FreezeWrapper';
 import openInternalRouteInNewTab from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import Navigation from '@libs/Navigation/Navigation';
@@ -135,7 +134,7 @@ function isUserReimburserForPolicy(policies: Record<string, PolicyType | undefin
     return policy.achAccount?.reimburser === userEmail;
 }
 
-function WorkspacesListPageContent() {
+function WorkspacesListPage() {
     const icons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Plus', 'Star', 'Trashcan', 'Transfer', 'FallbackWorkspaceAvatar']);
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -866,14 +865,6 @@ function WorkspacesListPageContent() {
             />
             {outstandingBalanceModal}
         </ScreenWrapper>
-    );
-}
-
-function WorkspacesListPage() {
-    return (
-        <FreezeWrapper>
-            <WorkspacesListPageContent />
-        </FreezeWrapper>
     );
 }
 

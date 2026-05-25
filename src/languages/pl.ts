@@ -1045,6 +1045,7 @@ const translations: TranslationDeepObject<typeof en> = {
             repaidLast30Days: 'Spłacono w ciągu ostatnich 30 dni',
             recentTransactions: ({lastFour}: {lastFour: string}) => `Ostatnie transakcje • ${lastFour}`,
         },
+        seeMore: ({count}: {count: number}) => `Zobacz jeszcze ${count}`,
     },
     allSettingsScreen: {
         subscription: 'Subskrypcja',
@@ -1279,7 +1280,7 @@ const translations: TranslationDeepObject<typeof en> = {
         receiptStatusTitle: 'Skanowanie…',
         receiptStatusText: 'Tylko ty widzisz ten paragon podczas skanowania. Sprawdź ponownie później lub wprowadź szczegóły teraz.',
         receiptScanningFailed: 'Skanowanie paragonu nie powiodło się. Wprowadź dane ręcznie.',
-        transactionPendingDescription: 'Transakcja w toku. Zaksięgowanie może potrwać kilka dni.',
+        allTransactionsPendingNextStep: 'Wszystkie transakcje są w toku. Nie możesz złożyć tego raportu, dopóki nie zostaną zaksięgowane za kilka dni.',
         companyInfo: 'Informacje o firmie',
         companyInfoDescription: 'Potrzebujemy jeszcze kilku informacji, zanim będziesz mógł wysłać swoją pierwszą fakturę.',
         yourCompanyName: 'Nazwa Twojej firmy',
@@ -1319,6 +1320,10 @@ const translations: TranslationDeepObject<typeof en> = {
         settlePayment: (formattedAmount: string) => `Zapłać ${formattedAmount}`,
         settleBusiness: (formattedAmount?: string) => (formattedAmount ? `Zapłać ${formattedAmount} jako firma` : `Zapłać z konta firmowego`),
         payElsewhere: (formattedAmount?: string) => (formattedAmount ? `Oznacz ${formattedAmount} jako zapłaconą` : `Oznacz jako zapłacone`),
+        confirmPaymentReceivedModalTitle: 'Potwierdź otrzymanie płatności',
+        receivedPayment: 'Otrzymana płatność',
+        receivedPaymentConfirmation: 'Kontynuuj tylko, jeśli płatność została już otrzymana poza Expensify.',
+        confirmReceivedPayment: 'Tak, otrzymałem(-am) płatność.',
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `zapłacono ${amount} z konta osobistego ${last4Digits}` : `Zapłacono z konta osobistego`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `zapłacono ${amount} z firmowego konta ${last4Digits}` : `Zapłacono z konta firmowego`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `Zapłać ${formattedAmount} przez ${policyName}` : `Zapłać przez ${policyName}`),
@@ -1464,6 +1469,8 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: 'Data zakończenia nie może być taka sama jak data rozpoczęcia',
             manySplitsProvided: `Maksymalna dozwolona liczba podziałów to ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `Zakres dat nie może przekraczać ${CONST.IOU.SPLITS_LIMIT} dni.`,
+            unableToSubmitReport: 'Nie można wysłać raportu',
+            allTransactionsPendingDescription: 'Nie możesz przesłać tego raportu, ponieważ wszystkie transakcje są w toku. Zaksięgowanie ich może zająć kilka dni.',
             stitchOdometerImagesFailed: 'Nie udało się połączyć zdjęć licznika kilometrów. Spróbuj ponownie później.',
             failedToSaveOdometerDraft: 'Nie udało się zapisać Twojego szkicu licznika przebiegu. Spróbuj ponownie.',
         },
@@ -1510,7 +1517,6 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Niektóre z tych duplikatów zostały już zatwierdzone lub opłacone.',
         reviewDuplicates: 'Przejrzyj duplikaty',
         keepAll: 'Zachowaj wszystko',
-        keepSelected: 'Zachowaj wybrane',
         noDuplicatesTitle: 'Wszystko gotowe!',
         noDuplicatesDescription: 'Nie ma tutaj zduplikowanych transakcji do sprawdzenia.',
         confirmApprove: 'Potwierdź kwotę zatwierdzenia',
@@ -2211,7 +2217,7 @@ const translations: TranslationDeepObject<typeof en> = {
     deviceManagementPage: {
         title: 'Zarządzanie urządzeniami',
         description:
-            'Zarządzaj wszystkimi urządzeniami, na które zalogowałeś(-aś) się za pomocą konta Expensify. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Dowiedz się więcej</a>',
+            'Zarządzaj wszystkimi urządzeniami, na które zalogowałeś(-aś) się za pomocą konta Expensify. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Dowiedz się więcej</a>.',
         revoke: 'Cofnąć',
         unknownDevice: 'Nieznane Urządzenie',
     },
@@ -2226,11 +2232,11 @@ const translations: TranslationDeepObject<typeof en> = {
         disabled: 'Uwierzytelnianie dwuskładnikowe jest teraz wyłączone',
         noAuthenticatorApp: 'Nie będziesz już potrzebować aplikacji uwierzytelniającej, aby logować się do Expensify.',
         stepCodes: 'Kody odzyskiwania',
-        keepCodesSafe: 'Zachowaj te kody odzyskiwania w bezpiecznym miejscu!',
+        keepCodesSafe: 'Zachowaj te kody w bezpiecznym miejscu!',
         codesLoseAccess: dedent(`
-            Jeśli utracisz dostęp do aplikacji uwierzytelniającej i nie będziesz mieć tych kodów, stracisz dostęp do swojego konta.
+            Jeśli stracisz dostęp do swojej aplikacji uwierzytelniającej i nie masz tych kodów, stracisz dostęp do swojego konta.
 
-            Uwaga: Włączenie uwierzytelniania dwuskładnikowego spowoduje wylogowanie Cię ze wszystkich innych aktywnych sesji.
+            <strong>Uwaga</strong>: Włączenie uwierzytelniania dwuskładnikowego wyloguje cię ze wszystkich innych aktywnych sesji.
         `),
         errorStepCodes: 'Skopiuj lub pobierz kody przed kontynuowaniem',
         stepVerify: 'Zweryfikuj',
@@ -2259,6 +2265,9 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyOldDeviceDescription: 'Wpisz sześciocyfrowy kod z bieżącej aplikacji uwierzytelniającej, żeby potwierdzić, że masz do niej dostęp.',
         verifyNewDeviceTitle: 'Skonfiguruj nowe urządzenie',
         verifyNewDeviceDescription: 'Zeskanuj kod QR nowym urządzeniem, a następnie wpisz ten kod, aby zakończyć konfigurację.',
+        downloadCodes: 'Pobierz kody',
+        screenshotTip: 'Wskazówka: Zrób zrzut ekranu, żeby zapisać to w swojej galerii zdjęć',
+        copyCodes: 'Skopiuj kody',
     },
     recoveryCodeForm: {
         error: {
@@ -2680,6 +2689,7 @@ ${amount} dla ${merchant} - ${date}`,
     reportFraudConfirmationPage: {
         title: 'Zgłoszono oszustwo kartowe',
         description: 'Trwale dezaktywowaliśmy Twoją dotychczasową kartę. Gdy wrócisz do szczegółów karty, będzie tam dostępna nowa wirtualna karta.',
+        descriptionCardNotReplaced: 'Twoja karta została trwale dezaktywowana. Skontaktuj się z administratorem, aby wydać nową kartę.',
         buttonText: 'Jasne, dzięki!',
     },
     activateCardPage: {
@@ -5352,6 +5362,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     duplicateColumns: (duplicateColumn: string) => `Ups! Przypisałeś jedno pole („${duplicateColumn}”) do wielu kolumn. Sprawdź i spróbuj ponownie.`,
                 },
                 fileImportDescription: 'Ręczna opcja, jeśli Twój bank nie może wysyłać kanału danych.',
+                duplicateFeedModal: {title: 'Kanał karty jest już połączony', prompt: 'Nie możesz dodać tego samego źródła danych karty do tego samego obszaru roboczego dwa razy.'},
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Ostatni dzień miesiąca',
@@ -7801,6 +7812,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
     search: {
         resultsAreLimited: 'Wyniki wyszukiwania są ograniczone.',
         viewResults: 'Zobacz wyniki',
+        applyFilters: 'Zastosuj filtry',
         appliedFilters: 'Zastosowane filtry',
         resetFilters: 'Resetuj filtry',
         searchResults: {
@@ -7910,7 +7922,12 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             amount: {
                 lessThan: (amount?: string) => `Mniej niż ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Większe niż ${amount ?? ''}`,
-                between: (greaterThan: string, lessThan: string) => `Między ${greaterThan} a ${lessThan}`,
+                between: (greaterThan?: string, lessThan?: string) => {
+                    if (greaterThan && lessThan) {
+                        return `Między ${greaterThan} a ${lessThan}`;
+                    }
+                    return 'Między';
+                },
                 equalTo: (amount?: string) => `Równe ${amount ?? ''}`,
             },
             card: {
