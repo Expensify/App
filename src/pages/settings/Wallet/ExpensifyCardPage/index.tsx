@@ -49,6 +49,7 @@ import {
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DomainCardNavigatorParamList, SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {arePersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import {clearRevealedPhysicalCardPin, clearRevealedVirtualCardDetails, useAllRevealedVirtualCardDetails, useRevealedPhysicalCardPin} from '@libs/RevealedCardSecretsStore';
@@ -96,6 +97,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const {convertToDisplayString} = useCurrencyListActions();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const cardList = useNonPersonalCardList();
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${cardList?.[cardID]?.fundID}`);
     const styles = useThemeStyles();
@@ -491,6 +493,11 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                             onPress={() => {
                                                                 if (isAccountLocked) {
                                                                     showLockedAccountModal();
+                                                                    return;
+                                                                }
+
+                                                                if (arePersonalDetailsMissing(privatePersonalDetails)) {
+                                                                    Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS.getRoute(String(card.cardID)));
                                                                     return;
                                                                 }
 

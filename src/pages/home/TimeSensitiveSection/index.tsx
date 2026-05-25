@@ -27,6 +27,7 @@ import useTimeSensitiveLockedBankAccount from './hooks/useTimeSensitiveLockedBan
 import ActivateCard from './items/ActivateCard';
 import AddPaymentCard from './items/AddPaymentCard';
 import AddShippingAddress from './items/AddShippingAddress';
+import AddVirtualCardPersonalDetails from './items/AddVirtualCardPersonalDetails';
 import FixAccountingConnection from './items/FixAccountingConnection';
 import FixCompanyCardConnection from './items/FixCompanyCardConnection';
 import FixFailedBilling from './items/FixFailedBilling';
@@ -78,7 +79,16 @@ function TimeSensitiveSection() {
 
     // Use custom hooks for offers and cards (Release 3)
     const {shouldShowAddPaymentCard} = useTimeSensitiveAddPaymentCard();
-    const {shouldShowAddShippingAddress, shouldShowActivateCard, shouldShowReviewCardFraud, cardsNeedingShippingAddress, cardsNeedingActivation, cardsWithFraud} = useTimeSensitiveCards();
+    const {
+        shouldShowAddShippingAddress,
+        shouldShowActivateCard,
+        shouldShowReviewCardFraud,
+        shouldShowAddVirtualCardPersonalDetails,
+        cardsNeedingShippingAddress,
+        cardsNeedingActivation,
+        cardsWithFraud,
+        virtualCardsNeedingPersonalDetails,
+    } = useTimeSensitiveCards();
     const {shouldShowFixFailedBilling} = useTimeSensitiveBilling();
 
     // Selector for filtering admin policies (Release 4)
@@ -175,7 +185,8 @@ function TimeSensitiveSection() {
         hasBrokenPersonalCards ||
         hasBrokenAccountingConnections ||
         shouldShowAddShippingAddress ||
-        shouldShowActivateCard;
+        shouldShowActivateCard ||
+        shouldShowAddVirtualCardPersonalDetails;
 
     if (!hasAnyTimeSensitiveContent) {
         return null;
@@ -192,6 +203,7 @@ function TimeSensitiveSection() {
     // 8. Broken accounting connections
     // 9. Expensify card shipping
     // 10. Expensify card activation
+    // 11. Virtual Expensify card needs personal details
     const items: React.ReactNode[] = [];
 
     // Priority 1: Validate account
@@ -286,6 +298,17 @@ function TimeSensitiveSection() {
             items.push(
                 <ActivateCard
                     key={`activate-${card.cardID}`}
+                    card={card}
+                />,
+            );
+        }
+    }
+    // Priority 11: Virtual Expensify card needs personal details before reveal
+    if (shouldShowAddVirtualCardPersonalDetails) {
+        for (const card of virtualCardsNeedingPersonalDetails) {
+            items.push(
+                <AddVirtualCardPersonalDetails
+                    key={`virtual-card-details-${card.cardID}`}
                     card={card}
                 />,
             );

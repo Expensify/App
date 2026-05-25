@@ -514,6 +514,86 @@ function clearPersonalDetailsErrors() {
     });
 }
 
+/**
+ * Submits the full set of private personal details (legal name, DOB, address, phone)
+ * collected via the MissingPersonalDetails flow, *without* shipping a new physical card.
+ * Used by the virtual-card reveal flow, where we only need the details on file
+ * for Marqeta sync — the existing card is already issued.
+ *
+ * Dispatches each field via its own existing API command in parallel.
+ * The backend Marqeta sync is triggered by any of these write commands, so no new
+ * write command is required.
+ */
+function updatePersonalDetailsForVirtualCard(values: PersonalDetailsFormValues, countryCode: number) {
+    const params = buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode);
+
+    const legalNameParameters: UpdateLegalNameParams = {legalFirstName: params.legalFirstName, legalLastName: params.legalLastName};
+    API.write(WRITE_COMMANDS.UPDATE_LEGAL_NAME, legalNameParameters, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                value: {legalFirstName: params.legalFirstName, legalLastName: params.legalLastName},
+            },
+        ],
+    });
+
+    const dobParameters: UpdateDateOfBirthParams = {dob: params.dob};
+    API.write(WRITE_COMMANDS.UPDATE_DATE_OF_BIRTH, dobParameters, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                value: {dob: params.dob},
+            },
+        ],
+    });
+
+    const phoneParameters: UpdatePhoneNumberParams = {phoneNumber: params.phoneNumber};
+    API.write(WRITE_COMMANDS.UPDATE_PHONE_NUMBER, phoneParameters, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                value: {phoneNumber: params.phoneNumber},
+            },
+        ],
+    });
+
+    const stateValue = params.addressState || params.addressProvince || '';
+    const addressParameters: UpdateHomeAddressParams = {
+        homeAddressStreet: params.addressStreet,
+        addressStreet2: params.addressStreet2,
+        homeAddressCity: params.addressCity,
+        addressState: stateValue,
+        addressZipCode: params.addressZip,
+        addressCountry: params.addressCountry,
+    };
+    if (params.addressCountry !== CONST.COUNTRY.US) {
+        addressParameters.addressStateLong = stateValue;
+    }
+    API.write(WRITE_COMMANDS.UPDATE_HOME_ADDRESS, addressParameters, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                value: {
+                    addresses: [
+                        {
+                            street: PersonalDetailsUtils.getFormattedStreet(params.addressStreet, params.addressStreet2),
+                            city: params.addressCity,
+                            state: stateValue,
+                            zip: params.addressZip,
+                            country: params.addressCountry,
+                            current: true,
+                        },
+                    ],
+                },
+            },
+        ],
+    });
+}
+
 function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>, validateCode: string, countryCode: number) {
     const parameters: SetPersonalDetailsAndShipExpensifyCardsParams = {
         ...buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode),
@@ -557,6 +637,7 @@ export {
     updatePronouns,
     updateSelectedTimezone,
     updatePersonalDetailsAndShipExpensifyCards,
+    updatePersonalDetailsForVirtualCard,
     clearPersonalDetailsErrors,
     buildSetPersonalDetailsAndShipExpensifyCardsParams,
 };

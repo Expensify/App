@@ -976,6 +976,11 @@ const translations = {
                 subtitle: 'Provide an address to receive your Expensify Card.',
                 cta: 'Add address',
             },
+            addVirtualCardPersonalDetails: {
+                title: 'Add your personal details',
+                subtitle: 'Add your details to view and start using your Expensify Card.',
+                cta: 'Add details',
+            },
             addPaymentCard: {
                 title: 'Add a payment card to keep using Expensify',
                 subtitle: 'Account > Subscription',

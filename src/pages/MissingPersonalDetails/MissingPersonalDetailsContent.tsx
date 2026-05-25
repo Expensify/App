@@ -12,7 +12,8 @@ import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDraftValues} from '@libs/actions/FormActions';
-import {buildSetPersonalDetailsAndShipExpensifyCardsParams} from '@libs/actions/PersonalDetails';
+import {buildSetPersonalDetailsAndShipExpensifyCardsParams, updatePersonalDetailsForVirtualCard} from '@libs/actions/PersonalDetails';
+import {isUkEuExpensifyCard} from '@libs/CardUtils';
 import {normalizeCountryCode} from '@libs/CountryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {findPageIndex} from '@libs/SubPageUtils';
@@ -67,6 +68,12 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
         isExpensifyCardUkEuSupportedSelector(cardList, cardID) &&
         Object.values(cardList ?? {}).some((card) => card?.cardID === Number(cardID) && !card?.nameValuePairs?.isVirtual);
     const [shouldCollectPIN] = useOnyx(ONYXKEYS.CARD_LIST, {selector: shouldCollectPINSelector});
+    // Look up the target card so we can branch when the flow was started from a
+    // virtual-card reveal — in that case we update personal details (no PIN, no ship)
+    // and then trigger the reveal flow that matches the card's program.
+    const targetCardSelector = (cardList: OnyxEntry<CardList>) => (cardID ? cardList?.[cardID] : undefined);
+    const [targetCard] = useOnyx(ONYXKEYS.CARD_LIST, {selector: targetCardSelector});
+    const isVirtualCard = !!targetCard?.nameValuePairs?.isVirtual;
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const {PIN, isConfirmStep} = usePINState();
     const {setIsConfirmStep} = usePINActions();
@@ -108,6 +115,17 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
                 pin: PIN,
                 cardID,
             });
+        } else if (isVirtualCard && targetCard) {
+            // Virtual card reveal flow: submit personal details (without shipping a card),
+            // then route into the card-detail reveal step appropriate for the card program.
+            updatePersonalDetailsForVirtualCard(values, countryCode);
+            clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
+            if (isUkEuExpensifyCard(targetCard)) {
+                Navigation.closeRHPFlow();
+                executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.REVEAL_CARD_DETAILS, {cardID});
+            } else {
+                Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_MAGIC_CODE.getRoute(cardID));
+            }
         } else {
             onComplete();
         }

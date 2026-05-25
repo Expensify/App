@@ -1,5 +1,6 @@
 import useOnyx from '@hooks/useOnyx';
 import {isCard, isCardPendingActivate, isCardPendingIssue, isCardWithCustomZeroLimit, isCardWithPotentialFraud, isExpensifyCard} from '@libs/CardUtils';
+import {arePersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import {getUnresolvedCardFraudAlertAction} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card} from '@src/types/onyx';
@@ -7,10 +8,13 @@ import type {Card} from '@src/types/onyx';
 function useTimeSensitiveCards() {
     const [cards] = useOnyx(ONYXKEYS.CARD_LIST);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const personalDetailsMissing = arePersonalDetailsMissing(privatePersonalDetails);
 
     const cardsNeedingShippingAddress: Card[] = [];
     const cardsNeedingActivation: Card[] = [];
     const cardsWithFraud: Card[] = [];
+    const virtualCardsNeedingPersonalDetails: Card[] = [];
 
     for (const card of Object.values(cards ?? {})) {
         if (!isCard(card)) {
@@ -33,8 +37,11 @@ function useTimeSensitiveCards() {
             continue;
         }
 
-        const isPhysicalCard = !card.nameValuePairs?.isVirtual;
-        if (!isPhysicalCard) {
+        const isVirtualCard = !!card.nameValuePairs?.isVirtual;
+        if (isVirtualCard) {
+            if (personalDetailsMissing) {
+                virtualCardsNeedingPersonalDetails.push(card);
+            }
             continue;
         }
 
@@ -50,14 +57,17 @@ function useTimeSensitiveCards() {
     const shouldShowAddShippingAddress = cardsNeedingShippingAddress.length > 0;
     const shouldShowActivateCard = cardsNeedingActivation.length > 0;
     const shouldShowReviewCardFraud = cardsWithFraud.length > 0;
+    const shouldShowAddVirtualCardPersonalDetails = virtualCardsNeedingPersonalDetails.length > 0;
 
     return {
         shouldShowAddShippingAddress,
         shouldShowActivateCard,
         shouldShowReviewCardFraud,
+        shouldShowAddVirtualCardPersonalDetails,
         cardsNeedingShippingAddress,
         cardsNeedingActivation,
         cardsWithFraud,
+        virtualCardsNeedingPersonalDetails,
     };
 }
 
