@@ -76,6 +76,10 @@ New cards will then be available for assignment.
 
 If your company card feed is broken, you can fix it from the **Time Sensitive** section on **Home**. Click **Fix** to restore the connection. [Learn how to fix a broken company card feed connection](/articles/new-expensify/connect-credit-cards/Fix-a-broken-Company-Card-Feed-Connection). 
 
+## Can I add the same card feed to the same workspace twice?
+
+No. Each card feed can only be connected once per workspace. If you try to add a card feed that is already connected, you'll see a "Card feed already connected" message. To manage an existing feed, go to **Workspaces > [Workspace Name] > Company cards** and select the feed.
+
 ## Can I connect the same company card account across different workspaces? 
 
 Yes, direct company card feeds can be shared across workspaces. [Learn how to add an existing company card feed connection to a workspace](/articles/new-expensify/connect-credit-cards/Share-a-Company-Card-Connection-Across-Workspaces). 
