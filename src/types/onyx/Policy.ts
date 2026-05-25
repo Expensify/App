@@ -308,6 +308,15 @@ type ConnectionLastSync = {
     isConnected?: boolean;
 };
 
+/** Last sync state specific to Merge HR connections */
+type MergeHRConnectionLastSync = ConnectionLastSync & {
+    /** Type of the sync */
+    syncType?: ValueOf<typeof CONST.MERGE_HR.SYNC_TYPE>;
+
+    /** Status of the sync */
+    syncStatus?: ValueOf<typeof CONST.MERGE_HR.SYNC_STATUS>;
+};
+
 /**
  * Model of QBO credentials data.
  */
@@ -1670,9 +1679,9 @@ type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
 >;
 
 /** State of integration connection */
-type Connection<ConnectionData, ConnectionConfig> = {
+type Connection<ConnectionData, ConnectionConfig, TLastSync extends ConnectionLastSync = ConnectionLastSync> = {
     /** State of the last synchronization */
-    lastSync?: ConnectionLastSync;
+    lastSync?: TLastSync;
 
     /** Data imported from integration */
     data?: ConnectionData;
@@ -1708,7 +1717,7 @@ type Connections = {
     [CONST.POLICY.CONNECTIONS.NAME.ZENEFITS]: Connection<ZenefitsConnectionData, ZenefitsConnectionConfig>;
 
     /** Merge HR integration connection */
-    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: Connection<MergeHRConnectionData, MergeHRConnectionConfig>;
+    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: Connection<MergeHRConnectionData, MergeHRConnectionConfig, MergeHRConnectionLastSync>;
 };
 
 /** All integration connections, including unsupported ones */
@@ -2416,6 +2425,7 @@ export type {
     XeroTrackingCategory,
     NetSuiteConnection,
     ConnectionLastSync,
+    MergeHRConnectionLastSync,
     QBDReimbursableExportAccountType,
     NetSuiteSubsidiary,
     NetSuiteCustomList,

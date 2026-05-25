@@ -110,6 +110,15 @@ type Response<TKey extends OnyxKey> = {
     /** PIN for an activated UK/EU Expensify Card */
     pin?: string;
 
+    /** Primary Account Number (full card number) returned from RevealExpensifyCardDetailsWithSCA */
+    pan?: string;
+
+    /** Expiration date returned from RevealExpensifyCardDetailsWithSCA */
+    expiration?: string;
+
+    /** CVV returned from RevealExpensifyCardDetailsWithSCA */
+    cvv?: string;
+
     /** Transactions pending 3DS review returned from GetTransactionsPending3DSReview */
     transactionsPending3DSReview?: TransactionsPending3DSReview;
 };
