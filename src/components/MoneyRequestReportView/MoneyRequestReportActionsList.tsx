@@ -1,11 +1,12 @@
 /* eslint-disable rulesdir/prefer-early-return */
 import {useIsFocused, useRoute} from '@react-navigation/native';
+import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
+import {FlashList} from '@shopify/flash-list';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent, ListRenderItemInfo, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
-import FlatListWithScrollKey from '@components/FlatList/FlatListWithScrollKey';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScrollView from '@components/ScrollView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -23,7 +24,6 @@ import useReportTransactionsCollection from '@hooks/useReportTransactionsCollect
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useScrollToEndOnNewMessageReceived from '@hooks/useScrollToEndOnNewMessageReceived';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import DateUtils from '@libs/DateUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -49,7 +49,6 @@ import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan
 import Visibility from '@libs/Visibility';
 import isSearchTopmostFullScreenRoute from '@navigation/helpers/isSearchTopmostFullScreenRoute';
 import FloatingMessageCounter from '@pages/inbox/report/FloatingMessageCounter';
-import getInitialNumToRender from '@pages/inbox/report/getInitialNumReportActionsToRender';
 import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
 import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
 import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
@@ -656,20 +655,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         }
     }, []);
 
-    const {windowHeight} = useWindowDimensions();
-    /**
-     * Calculates the ideal number of report actions to render in the first render, based on the screen height and on
-     * the height of the smallest report action possible.
-     */
-    const initialNumToRender = useMemo((): number | undefined => {
-        const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom + variables.fontSizeNormalHeight;
-        const availableHeight = windowHeight - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
-        const numToRender = Math.ceil(availableHeight / minimumReportActionHeight);
-        if (linkedReportActionID) {
-            return getInitialNumToRender(numToRender);
-        }
-        return numToRender || undefined;
-    }, [styles.chatItem.paddingBottom, styles.chatItem.paddingTop, windowHeight, linkedReportActionID]);
+    const getItemType = (item: UnifiedListItem) => item.type;
 
     const isReportEmpty = isEmpty(visibleReportActions) && isEmpty(transactions) && !showReportActionsLoadingState;
     const showEmptyState = isReportEmpty;
@@ -696,7 +682,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                 />
                 {/* Exactly one of these two branches is active at a time:
                     1. showEmptyState — genuinely empty report
-                    2. !isReportEmpty — report has data, render the FlatList */}
+                    2. !isReportEmpty — report has data, render the FlashList */}
                 {showEmptyState && (
                     <ScrollView contentContainerStyle={styles.flexGrow1}>
                         <MoneyRequestViewReportFields
@@ -744,21 +730,25 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                                 }
                             };
 
+                            const linkedActionIndex = linkedReportActionID
+                                ? data.findIndex((item) => item.type === 'report-action' && item.action.reportActionID === linkedReportActionID)
+                                : -1;
+                            const initialScrollIndex = linkedActionIndex >= 0 ? linkedActionIndex : undefined;
+
                             const listElement = (
-                                <FlatListWithScrollKey<UnifiedListItem>
-                                    initialNumToRender={initialNumToRender}
+                                <FlashList<UnifiedListItem>
+                                    ref={reportScrollManager.ref as unknown as React.Ref<FlashListRef<UnifiedListItem>>}
                                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                                     testID="money-request-report-actions-list"
-                                    style={styles.overscrollBehaviorContain}
                                     data={data}
                                     renderItem={dispatchRenderItem}
-                                    onViewableItemsChanged={onViewableItemsChanged}
                                     keyExtractor={keyExtractor}
+                                    getItemType={getItemType}
+                                    initialScrollIndex={initialScrollIndex}
+                                    onViewableItemsChanged={onViewableItemsChanged}
                                     onLayout={recordTimeToMeasureItemLayout}
                                     onEndReached={onEndReached}
-                                    onEndReachedThreshold={0.75}
                                     onStartReached={onStartReached}
-                                    onStartReachedThreshold={0.75}
                                     ListHeaderComponent={
                                         <>
                                             <MoneyRequestViewReportFields
@@ -770,13 +760,10 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                                     }
                                     keyboardShouldPersistTaps="handled"
                                     onScroll={trackVerticalScrolling}
-                                    contentContainerStyle={[shouldUseNarrowLayout ? styles.pt4 : styles.pt3]}
-                                    ref={reportScrollManager.ref}
+                                    contentContainerStyle={shouldUseNarrowLayout ? styles.pt4 : styles.pt3}
                                     ListEmptyComponent={
                                         !isOffline && showReportActionsLoadingState ? <ReportActionsListLoadingSkeleton reasonAttributes={skeletonReasonAttributes} /> : undefined
                                     }
-                                    removeClippedSubviews={false}
-                                    initialScrollKey={linkedReportActionID}
                                 />
                             );
 
