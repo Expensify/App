@@ -185,7 +185,7 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
         const targetWillNavigateToRHP = willRouteNavigateToRHP(internalNewExpensifyPath as Route);
         if (!targetWillNavigateToRHP) {
             shouldCloseRHP = true;
-        } else {
+        } else if (hasSameOrigin) {
             // Cross-tab RHP→RHP: swap the background tab in place so the RHP stays mounted and the
             // user sees only the RHP content update + the underlying tab animate, no close+reopen
             // flicker (issue: https://github.com/Expensify/App/issues/89710).
