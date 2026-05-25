@@ -2504,7 +2504,6 @@ describe('SearchUIUtils', () => {
                 translate: translateLocal,
                 formatPhoneNumber,
                 bankAccountList: {},
-                allReportMetadata: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
             });
@@ -2522,7 +2521,6 @@ describe('SearchUIUtils', () => {
                 translate: translateLocal,
                 formatPhoneNumber,
                 bankAccountList: {},
-                allReportMetadata: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
             });
@@ -2541,7 +2539,6 @@ describe('SearchUIUtils', () => {
                 translate: translateLocal,
                 formatPhoneNumber,
                 bankAccountList: {},
-                allReportMetadata: {},
                 conciergeReportID: undefined,
                 convertToDisplayString,
             });
