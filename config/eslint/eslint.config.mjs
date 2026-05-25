@@ -403,11 +403,6 @@ const config = defineConfig([
                     message: 'forwardRef is deprecated. Please use ref as a prop instead. See: contributingGuides/STYLE.md#forwarding-refs',
                 },
                 {
-                    selector: 'CallExpression[callee.name="getUrlWithBackToParam"]',
-                    message:
-                        'Usage of getUrlWithBackToParam function is prohibited. This is legacy code and no new occurrences should be added. Please look into the `How to remove backTo from URL` section in contributingGuides/NAVIGATION.md. and use alternative routing methods instead.',
-                },
-                {
                     selector: 'ImportNamespaceSpecifier[parent.source.value=/^@libs/]',
                     message: 'Namespace imports from @libs are not allowed. Use named imports instead. Example: import { method } from "@libs/module"',
                 },
