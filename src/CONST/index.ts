@@ -10016,6 +10016,8 @@ const CONST = {
     },
 
     HOME: {
+        // Maximum number of items in TimeSensitiveSection and YourSpendSection. Any extra items are revealed via the expand toggle button.
+        SECTION_VISIBLE_LIMIT: 5,
         ANNOUNCEMENTS: [
             {
                 title: 'Expensify and VAT IT Launch Integration Partnership to Simplify Global VAT Reclaim',
