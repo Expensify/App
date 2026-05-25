@@ -523,15 +523,18 @@ function goBack(backToRoute?: Route, options?: GoBackOptions) {
                 return;
             }
 
-            popAndRealignMfaMarker(() => {
-                if (backToRoute) {
-                    goUp(backToRoute, options);
-                } else if (shouldPopToSidebar) {
-                    popToSidebar();
-                } else {
-                    navigationRef.current?.goBack();
-                }
-            });
+            popAndRealignMfaMarker(
+                () => {
+                    if (backToRoute) {
+                        goUp(backToRoute, options);
+                    } else if (shouldPopToSidebar) {
+                        popToSidebar();
+                    } else {
+                        navigationRef.current?.goBack();
+                    }
+                },
+                (callback) => TransitionTracker.runAfterTransitions({callback, waitForUpcomingTransition: true}),
+            );
 
             if (options?.afterTransition) {
                 TransitionTracker.runAfterTransitions({callback: options.afterTransition, waitForUpcomingTransition: true});

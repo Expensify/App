@@ -1,5 +1,4 @@
 import navigationRef from '@libs/Navigation/navigationRef';
-import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import CONST from '@src/CONST';
 
 /**
@@ -37,8 +36,12 @@ function cancelPendingMfaMarkerReattach(): void {
     stripInProgress = false;
 }
 
-/** Strips the marker, runs `pop`, then re-attaches it after the transition. */
-function popAndRealignMfaMarker(pop: () => void): void {
+/**
+ * Strips the marker, runs `pop`, then schedules the re-attach via `scheduleReattach`.
+ * Caller owns the transition-aware scheduler (kept here as a parameter so the helper
+ * doesn't reach into the internal TransitionTracker primitive).
+ */
+function popAndRealignMfaMarker(pop: () => void, scheduleReattach: (callback: () => void) => void): void {
     if (navigationRef.getRootState()?.history?.at(-1) !== MFA_MARKER) {
         pop();
         return;
@@ -49,15 +52,12 @@ function popAndRealignMfaMarker(pop: () => void): void {
     try {
         pop();
     } finally {
-        TransitionTracker.runAfterTransitions({
-            callback: () => {
-                if (!stripInProgress) {
-                    return;
-                }
-                stripInProgress = false;
-                toggleMfaMarker(true);
-            },
-            waitForUpcomingTransition: true,
+        scheduleReattach(() => {
+            if (!stripInProgress) {
+                return;
+            }
+            stripInProgress = false;
+            toggleMfaMarker(true);
         });
     }
 }
