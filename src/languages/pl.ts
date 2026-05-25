@@ -7153,6 +7153,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         hr: {
             title: 'HR',
             connections: 'Połączenia',
+            connectionsSubtitle:
+                "Connect to your HR system to sync employee data, auto-match reimbursements to the right people, and keep your team's expenses accurate without the manual work.",
             subtitle: 'Połącz narzędzia HR i utrzymuj zgody pracowników w synchronizacji.',
             connect: 'Połącz',
             syncNow: 'Synchronizuj teraz',
