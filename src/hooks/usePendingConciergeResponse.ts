@@ -11,6 +11,7 @@ import {getReportActionHtml} from '@libs/ReportActionsUtils';
 import {useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
+import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 
 /** Default trickle duration. Targets ~19 chars/sec start (~7/sec end after ease-out) across a typical multi-paragraph response — visibly streaming without dragging the user past the moment they want to read. */
@@ -36,6 +37,7 @@ function easeOut(t: number): number {
  * the binary reveal at `displayAfter`. `REPORT_ACTIONS` is written at completion.
  */
 function usePendingConciergeResponse(reportID: string | undefined) {
+    const {isOffline} = useNetwork();
     const [pendingResponse] = useOnyx(`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${reportID}`);
     const [pendingFollowupList] = useOnyx(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${reportID}`);
     const reportActionID = pendingResponse?.reportAction?.reportActionID;
@@ -74,10 +76,19 @@ function usePendingConciergeResponse(reportID: string | undefined) {
         accelerateRef.current(Date.now());
     }, [persistedAction]);
 
-    // Clear the pending followup-list skeleton flag as soon as
-    // the server reply (with <followup-list>) overwrites the optimistic action.
-    // A fallback guards against the case where no followup-list ever arrives
-    // so the skeleton won't get stuck.
+    const lastOnlineTransitionAtRef = useRef<number>(0);
+    const wasOfflineRef = useRef<boolean>(isOffline);
+    useEffect(() => {
+        if (wasOfflineRef.current && !isOffline) {
+            lastOnlineTransitionAtRef.current = Date.now();
+        }
+        wasOfflineRef.current = isOffline;
+    }, [isOffline]);
+
+    // Clear the pending followup-list skeleton flag as soon as the server reply
+    // (with <followup-list>) overwrites the optimistic action. A TTL fallback
+    // guards against the case where no followup-list ever arrives so the skeleton
+    // won't get stuck.
     useEffect(() => {
         if (!reportID || !pendingFollowupList) {
             return;
@@ -87,14 +98,18 @@ function usePendingConciergeResponse(reportID: string | undefined) {
             clearPendingFollowupList(reportID);
             return;
         }
-        const remainingTTL = pendingFollowupList.createdAt + PENDING_FOLLOWUP_LIST_HARD_CAP_MS - Date.now();
+        if (isOffline) {
+            return;
+        }
+        const effectiveStart = Math.max(pendingFollowupList.createdAt, lastOnlineTransitionAtRef.current);
+        const remainingTTL = effectiveStart + PENDING_FOLLOWUP_LIST_HARD_CAP_MS - Date.now();
         if (remainingTTL <= 0) {
             clearPendingFollowupList(reportID);
             return;
         }
         const ttlTimer = setTimeout(() => clearPendingFollowupList(reportID), remainingTTL);
         return () => clearTimeout(ttlTimer);
-    }, [reportID, pendingFollowupList, pendingFollowupAction]);
+    }, [reportID, pendingFollowupList, pendingFollowupAction, isOffline]);
 
     useEffect(() => {
         if (!reportID || !reportActionID) {
