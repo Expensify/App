@@ -6,6 +6,6 @@ function dismissForSession() {
 }
 
 export {
-    // eslint-disable-next-line import/prefer-default-export
+    // eslint-disable-next-line import/prefer-default-export -- Action files in src/libs/actions/ use named exports by convention so callers stay consistent as more actions are added
     dismissForSession,
 };
