@@ -121,6 +121,9 @@ type ProcessNodeResult = {
     yKeys: YKey[];
     xAxis: CartesianChartProps['xAxis'];
     yAxis: CartesianChartProps['yAxis'];
+    domain: CartesianChartProps['domain'];
+    domainPadding: CartesianChartProps['domainPadding'];
+    padding: CartesianChartProps['padding'];
     labelItems: LabelItem[];
     legendItems: LegendItem[];
 };

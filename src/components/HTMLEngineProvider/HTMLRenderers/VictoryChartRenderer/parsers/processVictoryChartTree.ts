@@ -14,6 +14,9 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null): Pro
     const yKeys: ProcessNodeResult['yKeys'] = [];
     let xAxis: ProcessNodeResult['xAxis'];
     let yAxis: ProcessNodeResult['yAxis'];
+    let domain: ProcessNodeResult['domain'];
+    let domainPadding: ProcessNodeResult['domainPadding'];
+    let padding: ProcessNodeResult['padding'];
     const labelItems: ProcessNodeResult['labelItems'] = [];
     const legendItems: ProcessNodeResult['legendItems'] = [];
 
@@ -31,6 +34,15 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null): Pro
         }
         if (result.yAxis?.length) {
             yAxis = [...(yAxis ?? []), ...result.yAxis];
+        }
+        if (result.domain) {
+            domain = result.domain;
+        }
+        if (result.domainPadding) {
+            domainPadding = result.domainPadding;
+        }
+        if (result.padding) {
+            padding = result.padding;
         }
         if (result.labelItems) {
             labelItems.push(...result.labelItems);
@@ -50,11 +62,20 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null): Pro
         if (childResult.yAxis?.length) {
             yAxis = [...(yAxis ?? []), ...childResult.yAxis];
         }
+        if (childResult.domain) {
+            domain = childResult.domain;
+        }
+        if (childResult.domainPadding) {
+            domainPadding = childResult.domainPadding;
+        }
+        if (childResult.padding) {
+            padding = childResult.padding;
+        }
         labelItems.push(...childResult.labelItems);
         legendItems.push(...childResult.legendItems);
     }
 
-    return {data, xKey: X_KEY, yKeys, xAxis, yAxis, labelItems, legendItems};
+    return {data, xKey: X_KEY, yKeys, xAxis, yAxis, domain, domainPadding, padding, labelItems, legendItems};
 }
 
 export default processVictoryChartTree;
