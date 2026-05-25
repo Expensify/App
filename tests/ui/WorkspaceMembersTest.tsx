@@ -381,11 +381,7 @@ describe('WorkspaceMembers', () => {
             await waitForBatchedUpdatesWithAct();
 
             const membersOption = TestHelper.translateLocal('workspace.people.members');
-            await waitFor(() => {
-                expect(screen.getAllByText(membersOption).length).toBeGreaterThan(0);
-            });
-            const membersItems = screen.getAllByText(membersOption);
-            fireEvent.press(membersItems[membersItems.length - 1]);
+            fireEvent.press(await screen.findByRole(CONST.ROLE.CHECKBOX, {name: membersOption}));
 
             const applyText = TestHelper.translateLocal('common.apply');
             fireEvent.press(screen.getByText(applyText));
@@ -414,13 +410,8 @@ describe('WorkspaceMembers', () => {
 
             const membersOption = TestHelper.translateLocal('workspace.people.members');
             const adminsOption = TestHelper.translateLocal('workspace.people.admins');
-            await waitFor(() => {
-                expect(screen.getAllByText(membersOption).length).toBeGreaterThan(0);
-            });
-            const memberItems = screen.getAllByText(membersOption);
-            fireEvent.press(memberItems[memberItems.length - 1]);
-            const adminItems = screen.getAllByText(adminsOption);
-            fireEvent.press(adminItems[adminItems.length - 1]);
+            fireEvent.press(await screen.findByRole(CONST.ROLE.CHECKBOX, {name: membersOption}));
+            fireEvent.press(screen.getByRole(CONST.ROLE.CHECKBOX, {name: adminsOption}));
 
             const applyText = TestHelper.translateLocal('common.apply');
             fireEvent.press(screen.getByText(applyText));
