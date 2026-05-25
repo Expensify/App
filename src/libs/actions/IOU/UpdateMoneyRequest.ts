@@ -430,7 +430,7 @@ function updateMoneyRequestVendor(transactionID: string, vendorID: string, trans
 
     const newVendorOptimisticValue = isClearing ? null : {externalID: vendorID, isManuallySet: true};
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const,
@@ -442,7 +442,7 @@ function updateMoneyRequestVendor(transactionID: string, vendorID: string, trans
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const,
@@ -453,6 +453,26 @@ function updateMoneyRequestVendor(transactionID: string, vendorID: string, trans
             },
         },
     ];
+
+    // Optimistically clear any existing inactive-vendor violation. This is the user-driven write
+    // path: the vendor selector RHP only offers vendors from `getQBOVendors(policy)`, so a user
+    // pick is always a valid vendor (resolving the violation); clearing the vendor likewise
+    // resolves it (no vendor → no inactive-vendor). Without this, the stale violation persists
+    // in Onyx until some unrelated recalculation fires, keeping the expense incorrectly flagged.
+    const violationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}` as const;
+    const currentViolations = getAllTransactionViolations()[violationsKey] ?? [];
+    if (currentViolations.some((violation) => violation.name === CONST.VIOLATIONS.INACTIVE_VENDOR)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: violationsKey,
+            value: currentViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.INACTIVE_VENDOR),
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: violationsKey,
+            value: currentViolations,
+        });
+    }
 
     API.write(
         WRITE_COMMANDS.UPDATE_MONEY_REQUEST_VENDOR,
