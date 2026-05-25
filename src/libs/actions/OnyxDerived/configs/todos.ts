@@ -78,7 +78,7 @@ const createTodosReportsAndTransactions = ({
         ) {
             reportsToPay.push(report);
         }
-        if (isExportAction(report, login, policy, reportActions) && policy?.exporter === login) {
+        if (isExportAction(report, login, policy, reportActions)) {
             reportsToExport.push(report);
         }
     }
