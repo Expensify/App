@@ -2000,6 +2000,69 @@ describe('actions/IOU/ReportWorkflow', () => {
         });
     });
 
+    describe('unapproveExpenseReport clears iouReportID on parent chat', () => {
+        beforeEach(() => {
+            jest.clearAllMocks();
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify optimistic/failure data
+            jest.spyOn(API, 'write');
+        });
+
+        it('optimistically clears iouReportID on the parent chat and restores it on failure', () => {
+            const chatReportID = '100';
+            const expenseReportID = '200';
+
+            const expenseReport: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: expenseReportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                total: 10000,
+                currency: CONST.CURRENCY.USD,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                chatReportID,
+            };
+
+            unapproveExpenseReport(expenseReport, {} as Policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, false, false, undefined, undefined);
+
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
+            const calls = (API.write as jest.Mock).mock.calls;
+            const [, , onyxData] = calls.at(-1) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT>];
+
+            // Verify optimistic data clears iouReportID on parent chat
+            const optimisticChatUpdate = (onyxData.optimisticData ?? []).find((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
+            expect(optimisticChatUpdate).toBeDefined();
+            expect((optimisticChatUpdate?.value as Record<string, unknown>)?.iouReportID).toBeNull();
+
+            // Verify failure data restores iouReportID on parent chat
+            const failureChatUpdate = (onyxData.failureData ?? []).find((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
+            expect(failureChatUpdate).toBeDefined();
+            expect((failureChatUpdate?.value as Record<string, unknown>)?.iouReportID).toBe(expenseReportID);
+        });
+
+        it('does not add parent chat updates when chatReportID is absent', () => {
+            const expenseReport: Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                total: 10000,
+                currency: CONST.CURRENCY.USD,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                chatReportID: undefined,
+            };
+
+            unapproveExpenseReport(expenseReport, {} as Policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, false, false, undefined, undefined);
+
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
+            const calls = (API.write as jest.Mock).mock.calls;
+            const [, , onyxData] = calls.at(-1) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT>];
+
+            // No optimistic update should target a chat report with iouReportID: null
+            const optimisticChatUpdate = (onyxData.optimisticData ?? []).find(
+                (update: {key: string; value: unknown}) =>
+                    update.key !== `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}` && (update.value as Record<string, unknown>)?.iouReportID === null,
+            );
+            expect(optimisticChatUpdate).toBeUndefined();
+        });
+    });
+
     describe('canIOUBePaid', () => {
         it('For invoices from archived workspaces', async () => {
             const {policy, convertedInvoiceChat: chatReport}: InvoiceTestData = InvoiceData;
