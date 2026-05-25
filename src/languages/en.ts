@@ -2752,6 +2752,7 @@ const translations = {
     reportFraudConfirmationPage: {
         title: 'Card fraud reported',
         description: 'We’ve permanently deactivated your existing card. When you go back to view your card details, you’ll have a new virtual card available.',
+        descriptionCardNotReplaced: 'Your card was permanently deactivated. Please contact an admin to issue a new card.',
         buttonText: 'Got it, thanks!',
     },
     activateCardPage: {
@@ -5388,6 +5389,10 @@ const translations = {
                     prompt: "We noticed you didn't finish adding your cards. If you found an issue, let us know so we can help get things back on track.",
                     confirmText: 'Report issue',
                     cancelText: 'Skip',
+                },
+                duplicateFeedModal: {
+                    title: 'Card feed already connected',
+                    prompt: "You can't add the same card feed to the same workspace twice.",
                 },
                 csvColumns: {
                     cardNumber: 'Card number',
