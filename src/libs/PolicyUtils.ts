@@ -2005,8 +2005,6 @@ function getConnectedIntegration(policy: Policy | undefined, connectionNames: re
  * AND QBO is connected with an individual card transaction non-reimbursable export type — the only
  * scope the Vendor field is shown for. Mirrors `QuickbooksOnline::hasVendorFeature` on the PHP side
  * so the App and backend agree on which workspaces see the field.
- *
- * @param isVendorMatchingCCBetaEnabled - Prefer `isBetaEnabled(CONST.BETAS.VENDOR_MATCHING_CC)` from `usePermissions()`, not raw betas from Onyx.
  */
 function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingCCBetaEnabled: boolean): boolean {
     if (!isVendorMatchingCCBetaEnabled || !policy) {
