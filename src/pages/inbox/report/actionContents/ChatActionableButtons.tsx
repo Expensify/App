@@ -7,7 +7,6 @@ import FollowupListSkeleton from '@components/ReportActionItem/FollowupListSkele
 import useActivePolicy from '@hooks/useActivePolicy';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -42,17 +41,14 @@ type ChatActionableButtonsProps = {
     reportID: string | undefined;
     originalReportID: string;
     userBillingFundID: number | undefined;
+    hasPendingFollowupListSkeleton: boolean;
 };
 
-function ChatActionableButtons({action, report, originalReport, reportID, originalReportID, userBillingFundID}: ChatActionableButtonsProps) {
+function ChatActionableButtons({action, report, originalReport, reportID, originalReportID, userBillingFundID, hasPendingFollowupListSkeleton}: ChatActionableButtonsProps) {
     const styles = useThemeStyles();
     const personalDetail = useCurrentUserPersonalDetails();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const activePolicy = useActivePolicy();
-
-    const {isOffline} = useNetwork();
-    const [pendingFollowupList] = useOnyx(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${reportID}`);
-    const hasPendingFollowupListSkeleton = !isOffline && pendingFollowupList?.reportActionID === action.reportActionID;
 
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);

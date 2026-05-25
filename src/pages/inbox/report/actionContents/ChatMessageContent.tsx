@@ -151,6 +151,7 @@ function ChatMessageContent({
                                         reportID={reportID}
                                         originalReportID={originalReportID}
                                         userBillingFundID={userBillingFundID}
+                                        hasPendingFollowupListSkeleton={hasPendingFollowupListSkeleton}
                                     />
                                 )}
                             </View>
