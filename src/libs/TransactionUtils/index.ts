@@ -640,19 +640,15 @@ function hasValidModifiedAmount(transaction: OnyxEntry<Transaction> | null): boo
  * Builds the optimistic transaction used when an IOU report is converted to an expense report.
  *
  * Expense reports store amounts with the opposite sign of IOU reports (see `getAmount`/`getConvertedAmount`),
- * so `amount` and `modifiedAmount` are negated. `convertedAmount`/`convertedTaxAmount` are stored as a
- * negative magnitude: IOU transactions can be stored with either sign, and the expense-report convention
- * flips the stored sign for display, so using `-Math.abs(...)` guarantees the table total renders positive
- * regardless of the sign the IOU transaction happened to be stored with. Absent converted values are not
- * added so they keep being derived from the amount.
+ * so `amount`, `modifiedAmount` and `convertedAmount` are negated to match the expense-report convention.
+ * Absent converted values are not added so they keep being derived from the amount.
  */
 function getExpenseReportSignedTransaction(transaction: Transaction): Transaction {
     return {
         ...transaction,
         amount: -transaction.amount,
         modifiedAmount: hasValidModifiedAmount(transaction) ? -Number(transaction.modifiedAmount) : '',
-        ...(transaction.convertedAmount != null && {convertedAmount: -Math.abs(transaction.convertedAmount)}),
-        ...(transaction.convertedTaxAmount != null && {convertedTaxAmount: -Math.abs(transaction.convertedTaxAmount)}),
+        ...(transaction.convertedAmount != null && {convertedAmount: -transaction.convertedAmount}),
     };
 }
 

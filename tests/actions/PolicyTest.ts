@@ -7097,7 +7097,6 @@ describe('actions/Policy', () => {
 
         it('should negate the converted transaction amounts on the optimistic data so the expense-report table total stays positive', async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
-            await waitForBatchedUpdates();
 
             const employeeAccountID = 400;
             const iouReportOwnerEmail = 'employee@example.com';
@@ -7113,52 +7112,58 @@ describe('actions/Policy', () => {
                 total: 5000,
             };
 
-            // IOU transactions can be stored with either sign; use the negative case here so the test fails
-            // if the helper ever regresses to a plain `-convertedAmount` (which would flip back to positive)
+            // IOU transactions are stored with a positive `convertedAmount`; the expense-report
+            // sign convention flips it on storage so the table total renders positive.
             const transaction: Transaction = {
                 ...createRandomTransaction(900),
                 transactionID: 'transaction900',
                 reportID: iouReport.reportID,
                 amount: 5000,
                 modifiedAmount: '',
-                convertedAmount: -6000,
-                convertedTaxAmount: -600,
+                convertedAmount: 6000,
             };
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
 
-            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
-            const isIOUReportUsingReportSpy = jest.spyOn(ReportUtils, 'isIOUReportUsingReport').mockReturnValue(true);
-            const getReportTransactionsSpy = jest.spyOn(ReportUtils, 'getReportTransactions').mockReturnValue([transaction]);
+            mockFetch?.pause?.();
 
             const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[8];
             Policy.createWorkspaceFromIOUPayment(iouReport, undefined, ESH_ACCOUNT_ID, ESH_EMAIL, iouReportOwnerEmail, undefined, CONST.CURRENCY.USD, undefined, mockTranslate, {});
             await waitForBatchedUpdates();
 
-            const writeOptions = apiWriteSpy.mock.calls.at(0)?.at(2) as {
-                optimisticData?: Array<{key?: string; value?: Record<string, Transaction> | null}>;
-                failureData?: Array<{key?: string; value?: Record<string, Transaction> | null}>;
-            };
+            // Optimistic merge: read the stored transaction from Onyx
+            const optimisticTransaction: OnyxEntry<Transaction> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
 
-            const transactionOptimisticUpdate = (writeOptions?.optimisticData ?? []).find((update) => update.key === ONYXKEYS.COLLECTION.TRANSACTION);
-            const optimisticTransaction = transactionOptimisticUpdate?.value?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`];
-
-            // The expense-report sign convention flips the stored sign for display, so the converted magnitudes must be stored negative
             expect(optimisticTransaction?.amount).toBe(-5000);
             expect(optimisticTransaction?.convertedAmount).toBe(-6000);
-            expect(optimisticTransaction?.convertedTaxAmount).toBe(-600);
 
-            // And the failure data restores the original values on rollback
-            const transactionFailureUpdate = (writeOptions?.failureData ?? []).find((update) => update.key === ONYXKEYS.COLLECTION.TRANSACTION);
-            const rolledBackTransaction = transactionFailureUpdate?.value?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`];
+            // Failure rollback: fail the network and verify the original positive values are restored in Onyx
+            mockFetch?.fail?.();
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            const rolledBackTransaction: OnyxEntry<Transaction> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
             expect(rolledBackTransaction?.amount).toBe(5000);
-            expect(rolledBackTransaction?.convertedAmount).toBe(-6000);
-            expect(rolledBackTransaction?.convertedTaxAmount).toBe(-600);
-
-            apiWriteSpy.mockRestore();
-            isIOUReportUsingReportSpy.mockRestore();
-            getReportTransactionsSpy.mockRestore();
+            expect(rolledBackTransaction?.convertedAmount).toBe(6000);
         });
     });
 });

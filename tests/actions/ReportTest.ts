@@ -3934,7 +3934,7 @@ describe('actions/Report', () => {
                 expect(reportValue?.reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
             });
 
-            it('should negate convertedAmount and convertedTaxAmount on the optimistic transactions so the table total stays positive', () => {
+            it('should negate convertedAmount on the optimistic transactions so the table total stays positive', async () => {
                 // Given a policy and an IOU report with a transaction that has positive converted amounts (IOU sign convention)
                 const policyID = '302';
                 const policyWithEmptyFieldList: OnyxTypes.Policy = {
@@ -3961,82 +3961,45 @@ describe('actions/Report', () => {
                     amount: 5000,
                     modifiedAmount: '',
                     convertedAmount: 6000,
-                    convertedTaxAmount: 600,
                 };
 
-                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithEmptyFieldList);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithEmptyFieldList);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                await waitForBatchedUpdates();
 
-                // When converting the IOU report to an expense report
+                // When converting the IOU report to an expense report, apply the resulting optimistic data to Onyx
                 const result = Report.convertIOUReportToExpenseReport(iouReport, policyWithEmptyFieldList, policyID, 'expenseChat302', [transaction]);
+                await Onyx.update(result.optimisticData);
+                await waitForBatchedUpdates();
 
-                // Then the optimistic transaction stores amount, convertedAmount and convertedTaxAmount with the expense-report (negative) sign convention
-                const transactionUpdate = result.optimisticData.find((update) => update.key === ONYXKEYS.COLLECTION.TRANSACTION) as
-                    | OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>
-                    | undefined;
-                const optimisticTransaction = (transactionUpdate?.value as Record<string, OnyxTypes.Transaction> | undefined)?.[
-                    `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`
-                ];
+                // Then the stored transaction in Onyx has amount and convertedAmount negated to the expense-report sign convention
+                const optimisticTransaction: OnyxEntry<OnyxTypes.Transaction> = await new Promise((resolve) => {
+                    const connection = Onyx.connect({
+                        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                        callback: (value) => {
+                            Onyx.disconnect(connection);
+                            resolve(value);
+                        },
+                    });
+                });
                 expect(optimisticTransaction?.amount).toBe(-5000);
                 expect(optimisticTransaction?.convertedAmount).toBe(-6000);
-                expect(optimisticTransaction?.convertedTaxAmount).toBe(-600);
 
                 // And the failure data restores the original positive values on rollback
-                const transactionFailure = result.failureData.find((update) => update.key === ONYXKEYS.COLLECTION.TRANSACTION) as
-                    | OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>
-                    | undefined;
-                const rolledBackTransaction = (transactionFailure?.value as Record<string, OnyxTypes.Transaction> | undefined)?.[
-                    `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`
-                ];
+                await Onyx.update(result.failureData);
+                await waitForBatchedUpdates();
+
+                const rolledBackTransaction: OnyxEntry<OnyxTypes.Transaction> = await new Promise((resolve) => {
+                    const connection = Onyx.connect({
+                        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                        callback: (value) => {
+                            Onyx.disconnect(connection);
+                            resolve(value);
+                        },
+                    });
+                });
                 expect(rolledBackTransaction?.amount).toBe(5000);
                 expect(rolledBackTransaction?.convertedAmount).toBe(6000);
-                expect(rolledBackTransaction?.convertedTaxAmount).toBe(600);
-            });
-
-            it('should store a negative converted magnitude even when the IOU transaction already has negative converted amounts', () => {
-                // Given an IOU transaction whose converted amounts are stored negative (IOU amounts can be stored with either sign)
-                const policyID = '303';
-                const policyWithEmptyFieldList: OnyxTypes.Policy = {
-                    ...createRandomPolicy(Number(policyID)),
-                    id: policyID,
-                    type: CONST.POLICY.TYPE.TEAM,
-                    fieldList: {},
-                    name: 'Test Policy',
-                };
-
-                const iouReport: OnyxTypes.Report = {
-                    ...createRandomReport(3, undefined),
-                    reportID: 'iouReport303',
-                    type: CONST.REPORT.TYPE.IOU,
-                    ownerAccountID: 3,
-                    reportName: 'Original IOU Report Name',
-                    total: 5000,
-                };
-
-                const transaction: OnyxTypes.Transaction = {
-                    ...createRandomTransaction(303),
-                    transactionID: 'transaction303',
-                    reportID: iouReport.reportID,
-                    amount: 5000,
-                    modifiedAmount: '',
-                    convertedAmount: -6000,
-                    convertedTaxAmount: -600,
-                };
-
-                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithEmptyFieldList);
-
-                // When converting the IOU report to an expense report
-                const result = Report.convertIOUReportToExpenseReport(iouReport, policyWithEmptyFieldList, policyID, 'expenseChat303', [transaction]);
-
-                // Then the optimistic transaction still stores a negative converted magnitude so the expense-report
-                // sign convention renders a positive table total (a plain negation would have flipped it back to positive here)
-                const transactionUpdate = result.optimisticData.find((update) => update.key === ONYXKEYS.COLLECTION.TRANSACTION) as
-                    | OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>
-                    | undefined;
-                const optimisticTransaction = (transactionUpdate?.value as Record<string, OnyxTypes.Transaction> | undefined)?.[
-                    `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`
-                ];
-                expect(optimisticTransaction?.convertedAmount).toBe(-6000);
-                expect(optimisticTransaction?.convertedTaxAmount).toBe(-600);
             });
         });
     });
