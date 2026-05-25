@@ -224,13 +224,18 @@ function openEnablePaymentsPage() {
         },
     ];
 
-    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.USER_WALLET>> = [
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.USER_WALLET | typeof ONYXKEYS.RAM_ONLY_HAS_FRESH_WALLET_DATA>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.USER_WALLET,
             value: {
                 isLoading: false,
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.RAM_ONLY_HAS_FRESH_WALLET_DATA,
+            value: true,
         },
     ];
 
