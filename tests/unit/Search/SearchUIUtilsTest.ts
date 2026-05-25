@@ -2444,6 +2444,62 @@ describe('SearchUIUtils', () => {
             ).at(0);
             expect(action).not.toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
+
+        test('Should show `View` as primary action instead of `Submit` when the current user is not the report owner (transaction view)', async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: submitterAccountID});
+            // report1 has ownerAccountID: adminAccountID, so submitterAccountID is not the owner
+            const [sections] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: searchResults.data,
+                currentAccountID: submitterAccountID,
+                currentUserEmail: submitterEmail,
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                allReportMetadata: {},
+                conciergeReportID: undefined,
+                convertToDisplayString,
+            });
+            const transaction = (sections as TransactionListItemType[]).find((item) => item.transactionID === transactionID);
+            expect(transaction?.action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
+        });
+
+        test('Should show `View` as primary action instead of `Submit` when the current user is not the report owner (report view)', async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: submitterAccountID});
+            const [sections] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                data: searchResults.data,
+                currentAccountID: submitterAccountID,
+                currentUserEmail: submitterEmail,
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                allReportMetadata: {},
+                conciergeReportID: undefined,
+                convertToDisplayString,
+            });
+            const reportSection = (sections as TransactionReportGroupListItemType[]).find((item) => item.reportID === reportID);
+            expect(reportSection?.action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
+        });
+
+        test('Should still show `Submit` as primary action when the current user IS the report owner', async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: adminAccountID});
+            // report1 has ownerAccountID: adminAccountID, so adminAccountID is the owner
+            const [sections] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: searchResults.data,
+                currentAccountID: adminAccountID,
+                currentUserEmail: adminEmail,
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                allReportMetadata: {},
+                conciergeReportID: undefined,
+                convertToDisplayString,
+            });
+            const transaction = (sections as TransactionListItemType[]).find((item) => item.transactionID === transactionID);
+            expect(transaction?.action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
+        });
     });
 
     describe('Test getListItem', () => {

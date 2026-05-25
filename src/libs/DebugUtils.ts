@@ -1418,6 +1418,8 @@ function getReasonForShowingRowInLHN({
     isInFocusMode = false,
     betas = undefined,
     draftComment,
+    currentUserLogin,
+    currentUserAccountID,
 }: {
     report: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
@@ -1427,6 +1429,8 @@ function getReasonForShowingRowInLHN({
     isInFocusMode?: boolean;
     betas?: OnyxEntry<Beta[]>;
     draftComment: string | undefined;
+    currentUserLogin?: string;
+    currentUserAccountID?: number;
 }): TranslationPaths | null {
     if (!report) {
         return null;
@@ -1444,6 +1448,8 @@ function getReasonForShowingRowInLHN({
         includeSelfDM: true,
         isReportArchived,
         draftComment,
+        currentUserLogin,
+        currentUserAccountID,
     });
 
     if (!([CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS, CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS] as Array<typeof reason>).includes(reason) && hasRBR) {

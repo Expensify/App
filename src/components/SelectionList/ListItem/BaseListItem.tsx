@@ -191,7 +191,7 @@ function BaseListItem<TItem extends ListItem>({
                     if (shouldPreventEnterKeySubmit && e && 'key' in e && e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
                         return;
                     }
-                    onSelectRow(item);
+                    onSelectRow(item, undefined, e);
                 }}
                 disabled={isDisabled && !item.isSelected}
                 interactive={item.isInteractive}
