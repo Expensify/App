@@ -1,17 +1,13 @@
 import {useEffect} from 'react';
 import {BackHandler} from 'react-native';
 import getPlatform from '@libs/getPlatform';
+import {isMfaMarkerStripInProgress, toggleMfaMarker} from '@libs/Navigation/helpers/mfaModalMarkerPreservation';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import CONST from '@src/CONST';
 
 function dispatchToggle(isVisible: boolean) {
-    Navigation.isNavigationReady().then(() => {
-        navigationRef.dispatch({
-            type: CONST.NAVIGATION.ACTION_TYPE.TOGGLE_MFA_MODAL_NAVIGATOR_WITH_HISTORY,
-            payload: {isVisible},
-        });
-    });
+    Navigation.isNavigationReady().then(() => toggleMfaMarker(isVisible));
 }
 
 function getHistory(): readonly unknown[] {
@@ -73,6 +69,10 @@ function useSyncMfaModalNavigatorWithHistory(isModalOpen: boolean, requestCancel
             previousHistory = currentHistory;
 
             if (wasInHistory && !isInHistory) {
+                // Skip when goBack stripped the marker — it re-attaches after the pop.
+                if (isMfaMarkerStripInProgress()) {
+                    return;
+                }
                 dispatchToggle(true);
                 requestCancel();
             }

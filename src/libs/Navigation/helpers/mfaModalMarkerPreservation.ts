@@ -1,0 +1,54 @@
+import navigationRef from '@libs/Navigation/navigationRef';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import CONST from '@src/CONST';
+
+/**
+ * Keeps the MFA modal marker's synthetic browser entry aligned with
+ * `state.history` across `Navigation.goBack`.
+ *
+ * Example: state.history = [A, B, MFA], goBack pops B.
+ *   Without bracket: useLinking issues `history.go(-2)` and lands the browser
+ *     on A's old snapshot — the MFA marker entry is gone and a later
+ *     browser-back skips past the post-pop screen.
+ *   With bracket: strip → pop → re-attach. Each toggle drives useLinking to
+ *     push/replace a fresh browser entry mapped to the post-pop path.
+ */
+
+const MFA_MARKER = CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_MFA_MODAL_NAVIGATOR;
+
+let stripInProgress = false;
+
+function isMfaMarkerStripInProgress(): boolean {
+    return stripInProgress;
+}
+
+function toggleMfaMarker(isVisible: boolean): void {
+    navigationRef.dispatch({
+        type: CONST.NAVIGATION.ACTION_TYPE.TOGGLE_MFA_MODAL_NAVIGATOR_WITH_HISTORY,
+        payload: {isVisible},
+    });
+}
+
+/** Strips the marker, runs `pop`, then re-attaches it after the transition. */
+function popAndRealignMfaMarker(pop: () => void): void {
+    if (navigationRef.getRootState()?.history?.at(-1) !== MFA_MARKER) {
+        pop();
+        return;
+    }
+
+    stripInProgress = true;
+    toggleMfaMarker(false);
+    try {
+        pop();
+    } finally {
+        TransitionTracker.runAfterTransitions({
+            callback: () => {
+                toggleMfaMarker(true);
+                stripInProgress = false;
+            },
+            waitForUpcomingTransition: true,
+        });
+    }
+}
+
+export {isMfaMarkerStripInProgress, popAndRealignMfaMarker, toggleMfaMarker};

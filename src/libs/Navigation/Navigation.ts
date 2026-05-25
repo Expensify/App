@@ -40,6 +40,7 @@ import isSideModalNavigator from './helpers/isSideModalNavigator';
 import linkTo from './helpers/linkTo';
 import getMinimalAction from './helpers/linkTo/getMinimalAction';
 import type {LinkToOptions} from './helpers/linkTo/types';
+import {popAndRealignMfaMarker} from './helpers/mfaModalMarkerPreservation';
 import replaceWithSplitNavigator from './helpers/replaceWithSplitNavigator';
 import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionToMicrotaskQueue';
 import {linkingConfig} from './linkingConfig';
@@ -517,16 +518,20 @@ function goBack(backToRoute?: Route, options?: GoBackOptions) {
     const runImmediately = !options?.waitForTransition;
     TransitionTracker.runAfterTransitions({
         callback: () => {
-            if (backToRoute) {
-                goUp(backToRoute, options);
-            } else if (shouldPopToSidebar) {
-                popToSidebar();
-            } else if (!navigationRef.current?.canGoBack()) {
+            if (!backToRoute && !shouldPopToSidebar && !navigationRef.current?.canGoBack()) {
                 Log.hmmm('[Navigation] Unable to go back');
                 return;
-            } else {
-                navigationRef.current?.goBack();
             }
+
+            popAndRealignMfaMarker(() => {
+                if (backToRoute) {
+                    goUp(backToRoute, options);
+                } else if (shouldPopToSidebar) {
+                    popToSidebar();
+                } else {
+                    navigationRef.current?.goBack();
+                }
+            });
 
             if (options?.afterTransition) {
                 TransitionTracker.runAfterTransitions({callback: options.afterTransition, waitForUpcomingTransition: true});
