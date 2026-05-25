@@ -286,7 +286,7 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
                             <>
                                 <AreaGradient
                                     points={points.y}
-                                    y0={yScale(Math.min(...yTicks))}
+                                    baselineY={yScale(Math.min(...yTicks))}
                                     color={DEFAULT_CHART_COLOR}
                                 />
                                 <Line

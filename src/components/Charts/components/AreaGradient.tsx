@@ -8,16 +8,16 @@ type AreaGradientProps = {
     points: PointsArray;
 
     /** Baseline y-coordinate where the gradient fades to its faint end (typically the chart's bottom) */
-    y0: number;
+    baselineY: number;
 
     /** Hex color string used as the base for the gradient fill */
     color: string;
 };
 
-function AreaGradient({points, y0, color}: AreaGradientProps) {
-    const {path} = useAreaPath(points, y0, {curveType: 'linear'});
+function AreaGradient({points, baselineY, color}: AreaGradientProps) {
+    const {path} = useAreaPath(points, baselineY, {curveType: 'linear'});
 
-    const topY = points.reduce((min, p) => (typeof p.y === 'number' && p.y < min ? p.y : min), y0);
+    const topY = Math.min(baselineY, ...points.flatMap((p) => (typeof p.y === 'number' ? [p.y] : [])));
 
     return (
         <Path
@@ -26,7 +26,7 @@ function AreaGradient({points, y0, color}: AreaGradientProps) {
             style="fill"
         >
             <LinearGradient
-                start={vec(0, y0)}
+                start={vec(0, baselineY)}
                 end={vec(0, topY)}
                 colors={[`${color}05`, `${color}33`]}
             />
