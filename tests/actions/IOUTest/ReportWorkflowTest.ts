@@ -2007,9 +2007,18 @@ describe('actions/IOU/ReportWorkflow', () => {
             jest.spyOn(API, 'write');
         });
 
-        it('optimistically clears iouReportID on the parent chat and restores it on failure', () => {
+        it('optimistically clears iouReportID and restores the prior value on failure', async () => {
             const chatReportID = '100';
             const expenseReportID = '200';
+            const previousIouReportID = '999';
+
+            // Seed the chat report in Onyx so getReportOrDraftReport can find it
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {
+                ...createRandomReport(0, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: chatReportID,
+                iouReportID: previousIouReportID,
+            });
+            await waitForBatchedUpdates();
 
             const expenseReport: Report = {
                 ...createRandomReport(1, undefined),
@@ -2032,10 +2041,10 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(optimisticChatUpdate).toBeDefined();
             expect((optimisticChatUpdate?.value as Record<string, unknown>)?.iouReportID).toBeNull();
 
-            // Verify failure data restores iouReportID on parent chat
+            // Verify failure data restores the chat's original iouReportID, not the expense report ID
             const failureChatUpdate = (onyxData.failureData ?? []).find((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
             expect(failureChatUpdate).toBeDefined();
-            expect((failureChatUpdate?.value as Record<string, unknown>)?.iouReportID).toBe(expenseReportID);
+            expect((failureChatUpdate?.value as Record<string, unknown>)?.iouReportID).toBe(previousIouReportID);
         });
 
         it('does not add parent chat updates when chatReportID is absent', () => {
