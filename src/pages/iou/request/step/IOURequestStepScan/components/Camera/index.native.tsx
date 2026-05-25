@@ -220,6 +220,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                             didCapturePhoto={didCapturePhoto}
                             onInitialized={handleCameraInitialized}
                             canUseMultiScan={canUseMultiScan}
+                            cameraPermissionStatus={cameraPermissionStatus}
                             flash={flash}
                             hasFlash={hasFlash}
                             setFlash={setFlash}
