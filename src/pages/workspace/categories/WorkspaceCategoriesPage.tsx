@@ -88,7 +88,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const [selectedCategoryKeys, setSelectedCategoryKeys] = useState<string[]>([]);
     const canSelectMultiple = isSmallScreenWidth ? isMobileSelectionModeEnabled : true;
     const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
-    const shouldShowApproverColumn = isControlPolicyWithWideLayout && !!policy?.areRulesEnabled;
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Download', 'Gear', 'Plus', 'Table', 'Trashcan']);
     const illustrations = useMemoizedLazyIllustrations(['FolderOpen']);
     const genericIllustration = useGenericEmptyStateIllustration();
@@ -232,9 +231,20 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         [policy, policyCategories, showCannotDeleteOrDisableLastCategoryModal, updateWorkspaceCategoryEnabled],
     );
 
-    const categoryRows = useMemo<WorkspaceCategoryTableRowData[]>(() => {
-        const categories = Object.values(policyCategories ?? {});
+    const categories = Object.values(policyCategories ?? {});
+    const categoryApproverEmails: Record<string, string> = {};
 
+    for (const category of categories) {
+        const approverEmail = getCategoryApproverRule(policy?.rules?.approvalRules ?? [], category.name)?.approver;
+
+        if (approverEmail) {
+            categoryApproverEmails[category.name] = approverEmail;
+        }
+    }
+
+    const shouldShowApproverColumn = isControlPolicyWithWideLayout && !!policy?.areRulesEnabled && Object.keys(categoryApproverEmails).length > 0;
+
+    const categoryRows = useMemo<WorkspaceCategoryTableRowData[]>(() => {
         return categories.reduce<WorkspaceCategoryTableRowData[]>((acc, value) => {
             const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
@@ -242,7 +252,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 return acc;
             }
 
-            const approverEmail = shouldShowApproverColumn ? (getCategoryApproverRule(policy?.rules?.approvalRules ?? [], value.name)?.approver ?? '') : '';
+            const approverEmail = shouldShowApproverColumn ? categoryApproverEmails[value.name] : undefined;
             const approverPersonalDetail = getPersonalDetailByEmail(approverEmail);
             const {avatar: approverAvatar, displayName = approverEmail, accountID: approverAccountID} = approverPersonalDetail ?? {};
             const approverDisplayName = displayName ? formatPhoneNumber(displayName) : '';
