@@ -75,6 +75,7 @@ import Log from '@libs/Log';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
 import Navigation from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
@@ -2440,7 +2441,11 @@ function navigateToAndOpenChildReport(
 ) {
     const report = childReport ?? createChildReport(childReport, parentReportAction, parentReport, currentUserAccountID, introSelected, betas, isSelfTourViewed, personalDetails);
 
-    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, Navigation.getActiveRoute()));
+    if (isSearchTopmostFullScreenRoute()) {
+        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: report.reportID, backTo: Navigation.getActiveRoute()}));
+    } else {
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, Navigation.getActiveRoute()));
+    }
 }
 
 /**
@@ -2533,7 +2538,11 @@ function explain(
     // Check if explanation thread report already exists
     const report = childReport ?? createChildReport(childReport, reportAction, originalReport, currentUserAccountID, introSelected, betas, isSelfTourViewed);
 
-    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, Navigation.getActiveRoute()));
+    if (isSearchTopmostFullScreenRoute()) {
+        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: report.reportID, backTo: Navigation.getActiveRoute()}));
+    } else {
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, Navigation.getActiveRoute()));
+    }
     // Schedule adding the explanation comment on the next animation frame
     // so it runs immediately after navigation completes.
     requestAnimationFrame(() => {
@@ -7416,6 +7425,8 @@ function buildOptimisticChangePolicyData(
         let newTotal = 0;
         let newNonReimbursableTotal = 0;
         let newUnheldNonReimbursableTotal = 0;
+        let newReimbursableTotal = 0;
+        let newUnheldReimbursableTotal = 0;
 
         for (const transaction of transactions) {
             const transactionCurrency = getCurrency(transaction);
@@ -7426,6 +7437,11 @@ function buildOptimisticChangePolicyData(
                 newTotal -= transactionAmount;
                 if (!transaction.reimbursable) {
                     newNonReimbursableTotal -= transactionAmount;
+                } else {
+                    newReimbursableTotal -= transactionAmount;
+                    if (!isOnHold(transaction)) {
+                        newUnheldReimbursableTotal -= transactionAmount;
+                    }
                 }
                 if (!transaction.reimbursable || isOnHold(transaction)) {
                     newUnheldNonReimbursableTotal -= transactionAmount;
@@ -7441,6 +7457,8 @@ function buildOptimisticChangePolicyData(
                 total: newTotal,
                 nonReimbursableTotal: newNonReimbursableTotal,
                 unheldNonReimbursableTotal: newUnheldNonReimbursableTotal,
+                reimbursableTotal: newReimbursableTotal,
+                unheldReimbursableTotal: newUnheldReimbursableTotal,
                 pendingFields: {
                     ...(report.pendingFields ?? {}),
                     total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -7464,6 +7482,8 @@ function buildOptimisticChangePolicyData(
                 total: report.total,
                 nonReimbursableTotal: report.nonReimbursableTotal,
                 unheldNonReimbursableTotal: report.unheldNonReimbursableTotal,
+                reimbursableTotal: report.reimbursableTotal,
+                unheldReimbursableTotal: report.unheldReimbursableTotal,
                 pendingFields: {
                     ...(report.pendingFields ?? {}),
                     total: null,
