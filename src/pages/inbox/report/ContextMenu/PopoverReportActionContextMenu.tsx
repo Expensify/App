@@ -499,6 +499,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     originalReportID={originalReportIDRef.current}
                     disabledActions={disabledActions}
                     setIsEmojiPickerActive={onEmojiPickerToggle.current}
+                    enableEdgeToEdgeBottomSafeAreaPadding
                 />
             </PopoverWithMeasuredContent>
             <ConfirmModal

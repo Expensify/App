@@ -109,6 +109,9 @@ type BaseReportActionContextMenuProps = {
 
     /** Function to update emoji picker state */
     setIsEmojiPickerActive?: (state: boolean) => void;
+
+    /** Whether to add bottom safe area padding for edge-to-edge modal content */
+    enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
 };
 
 function BaseReportActionContextMenu({
@@ -125,6 +128,7 @@ function BaseReportActionContextMenu({
     checkIfContextMenuActive,
     disabledActions = [],
     setIsEmojiPickerActive,
+    enableEdgeToEdgeBottomSafeAreaPadding = false,
 }: BaseReportActionContextMenuProps) {
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
@@ -371,7 +375,7 @@ function BaseReportActionContextMenu({
     // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
     const card = useGetExpensifyCardFromReportAction({reportAction: (reportAction ?? null) as ReportAction, policyID});
 
-    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, style: wrapperStyle});
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: enableEdgeToEdgeBottomSafeAreaPadding, style: wrapperStyle});
 
     return (
         (isVisible || shouldKeepOpen || !isMini) && (
