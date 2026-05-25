@@ -14,6 +14,7 @@ import {
     buildSearchQueryJSON,
     buildSearchQueryString,
     buildUserReadableQueryString,
+    getAdvancedFiltersToReset,
     getDateRangeDisplayValueFromFormValue,
     getDisplayQueryFiltersForKey,
     getFilterDisplayValue,
@@ -2947,6 +2948,77 @@ describe('SearchQueryUtils', () => {
             const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'food'}];
             const serialized = JSON.parse(serializeQueryJSONForBackend({filters: undefined, rawFilterList})) as {rawFilterList: typeof rawFilterList};
             expect(serialized.rawFilterList.at(0)?.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+        });
+    });
+
+    describe('getAdvancedFiltersToReset', () => {
+        it('should return an empty object when input is empty', () => {
+            const result = getAdvancedFiltersToReset({});
+            expect(result).toEqual({});
+        });
+
+        it('should reset status to ALL when it has a non-ALL value', () => {
+            const form: Partial<SearchAdvancedFiltersForm> = {
+                status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
+            };
+            const result = getAdvancedFiltersToReset(form);
+            expect(result).toEqual({
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            });
+        });
+
+        it('should not include status in reset when it is already ALL', () => {
+            const form: Partial<SearchAdvancedFiltersForm> = {
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            };
+            const result = getAdvancedFiltersToReset(form);
+            expect(result.status).toBeUndefined();
+        });
+
+        it('should reset type to EXPENSE when it has a non-EXPENSE value', () => {
+            const form: Partial<SearchAdvancedFiltersForm> = {
+                type: CONST.SEARCH.DATA_TYPES.CHAT,
+            };
+            const result = getAdvancedFiltersToReset(form);
+            expect(result).toEqual({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            });
+        });
+
+        it('should not include type in reset when it is already EXPENSE', () => {
+            const form: Partial<SearchAdvancedFiltersForm> = {
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            };
+            const result = getAdvancedFiltersToReset(form);
+            expect(result.type).toBeUndefined();
+        });
+
+        it('should reset other filter keys to undefined', () => {
+            const form: Partial<SearchAdvancedFiltersForm> = {
+                merchant: 'Marriott',
+                currency: ['USD', 'EUR'],
+                dateAfter: '2024-01-01',
+                keyword: 'hotel',
+            };
+            const result = getAdvancedFiltersToReset(form);
+            expect(result).toEqual({
+                merchant: undefined,
+                currency: undefined,
+                dateAfter: undefined,
+                keyword: undefined,
+            });
+        });
+
+        it('should exclude columns from being reset', () => {
+            const form: Partial<SearchAdvancedFiltersForm> = {
+                columns: [CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE.DATE, CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE.MERCHANT],
+                merchant: 'test',
+            };
+            const result = getAdvancedFiltersToReset(form);
+            expect(result.columns).toBeUndefined();
+            expect(result).toEqual({
+                merchant: undefined,
+            });
         });
     });
 });
