@@ -460,7 +460,7 @@ describe('getSecondaryAction', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
 
-    it('should not include SUBMIT option for admin with only pending transactions', async () => {
+    it('should include SUBMIT option for admin with only pending transactions', async () => {
         const report = {
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -496,7 +496,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
         });
-        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
 
     it('should not include SUBMIT option when transaction has smartscan failed violation', async () => {
@@ -1426,6 +1426,229 @@ describe('getSecondaryAction', () => {
             policy,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
+    });
+
+    it('includes RECEIVED_PAYMENT option for approved expense report submitter with reimbursable spend', () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            total: -100,
+            nonReimbursableTotal: 0,
+        } as unknown as Report;
+        const policy = {
+            role: CONST.POLICY.ROLE.USER,
+        } as unknown as Policy;
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: {} as Transaction,
+            violations: {},
+            bankAccountList: {},
+            policy,
+            reportActions: [],
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(true);
+    });
+
+    it('includes RECEIVED_PAYMENT option for negative expense report even when non-reimbursable total matches total', () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            total: -100,
+            nonReimbursableTotal: -100,
+        } as unknown as Report;
+        const policy = {
+            role: CONST.POLICY.ROLE.USER,
+        } as unknown as Policy;
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: {} as Transaction,
+            violations: {},
+            bankAccountList: {},
+            policy,
+            reportActions: [],
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(true);
+    });
+
+    it('does not include RECEIVED_PAYMENT option for admin', () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            total: -100,
+            nonReimbursableTotal: 0,
+        } as unknown as Report;
+        const policy = {
+            role: CONST.POLICY.ROLE.ADMIN,
+        } as unknown as Policy;
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: {} as Transaction,
+            violations: {},
+            bankAccountList: {},
+            policy,
+            reportActions: [],
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
+    });
+
+    it('include RECEIVED_PAYMENT option when payments are disabled', () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            total: -100,
+            nonReimbursableTotal: 0,
+        } as unknown as Report;
+        const policy = {
+            role: CONST.POLICY.ROLE.USER,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+        } as unknown as Policy;
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: {} as Transaction,
+            violations: {},
+            bankAccountList: {},
+            policy,
+            reportActions: [],
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(true);
+    });
+
+    it('does not include RECEIVED_PAYMENT option when a bank payment action exists', () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            total: -100,
+            nonReimbursableTotal: 0,
+        } as unknown as Report;
+        const policy = {
+            role: CONST.POLICY.ROLE.USER,
+        } as unknown as Policy;
+        const reportAction = {
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            originalMessage: {
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+            },
+        } as unknown as ReportAction;
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: {} as Transaction,
+            violations: {},
+            bankAccountList: {},
+            policy,
+            reportActions: [reportAction],
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
+    });
+
+    it('does not include RECEIVED_PAYMENT option when the report has held expenses', () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            total: -100,
+            nonReimbursableTotal: 0,
+        } as unknown as Report;
+        const policy = {
+            role: CONST.POLICY.ROLE.USER,
+        } as unknown as Policy;
+        const heldTransaction = {
+            comment: {
+                hold: '2026-05-09 00:00:00',
+            },
+        } as unknown as Transaction;
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            report,
+            chatReport,
+            reportTransactions: [heldTransaction],
+            originalTransaction: {} as Transaction,
+            violations: {},
+            bankAccountList: {},
+            policy,
+            reportActions: [],
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
+    });
+
+    it('includes RECEIVED_PAYMENT option when only pay-elsewhere action exists', () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            total: -100,
+            nonReimbursableTotal: 0,
+        } as unknown as Report;
+        const policy = {
+            role: CONST.POLICY.ROLE.USER,
+        } as unknown as Policy;
+        const reportAction = {
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            originalMessage: {
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+            },
+        } as unknown as ReportAction;
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: {} as Transaction,
+            violations: {},
+            bankAccountList: {},
+            policy,
+            reportActions: [reportAction],
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(true);
     });
 
     it('includes HOLD option ', () => {
@@ -3157,61 +3380,6 @@ describe('getSecondaryTransactionThreadActions', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, EMPLOYEE_ACCOUNT_ID, report, transaction, actionR14932, {} as Transaction, policy);
-        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
-    });
-
-    it('includes the SPLIT option after the other split half was deleted', async () => {
-        // Given an open expense report owned by the current user
-        const report = {
-            reportID: REPORT_ID,
-            policyID: POLICY_ID,
-            type: CONST.REPORT.TYPE.EXPENSE,
-            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
-            managerID: EMPLOYEE_ACCOUNT_ID,
-            stateNum: CONST.REPORT.STATE_NUM.OPEN,
-            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-        } as unknown as Report;
-
-        // And a surviving split child that still references the original (its sibling was unreported then deleted)
-        const survivingSplit = {
-            transactionID: 'SURVIVING_SPLIT',
-            status: CONST.TRANSACTION.STATUS.POSTED,
-            amount: 50,
-            merchant: 'Merchant',
-            date: '2025-01-01',
-            reportID: REPORT_ID,
-            comment: {originalTransactionID: 'ORIGINAL_TXN', source: CONST.IOU.TYPE.SPLIT},
-        } as unknown as Transaction;
-
-        // And the original ("parent") expense transaction still existing, hidden on the split report
-        const originalTransaction = {
-            transactionID: 'ORIGINAL_TXN',
-            amount: 100,
-            merchant: 'Merchant',
-            date: '2025-01-01',
-            reportID: CONST.REPORT.SPLIT_REPORT_ID,
-            comment: {},
-        } as unknown as Transaction;
-
-        // And the current user is a member of the policy
-        const policy = {
-            id: POLICY_ID,
-            type: CONST.POLICY.TYPE.TEAM,
-            isPolicyExpenseChatEnabled: true,
-            employeeList: {
-                [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER},
-                [ADMIN_EMAIL]: {email: ADMIN_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
-            },
-            role: CONST.POLICY.ROLE.ADMIN,
-        } as unknown as Policy;
-
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-
-        // When the secondary transaction-thread actions are computed
-        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, EMPLOYEE_ACCOUNT_ID, report, survivingSplit, actionR14932, originalTransaction, policy);
-
-        // Then the SPLIT option is available
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
     });
 

@@ -277,12 +277,8 @@ function isPartialTransaction(transaction: OnyxEntry<Transaction>): boolean {
     return false;
 }
 
-function isPendingCardOrScanningTransaction(transaction: OnyxEntry<Transaction>): boolean {
-    return (
-        (isExpensifyCardTransaction(transaction) && isPending(transaction)) ||
-        (isScanRequest(transaction) && isMerchantMissing(transaction) && isAmountMissing(transaction)) ||
-        (isScanRequest(transaction) && isScanning(transaction))
-    );
+function isScanningTransaction(transaction: OnyxEntry<Transaction>): boolean {
+    return (isScanRequest(transaction) && isMerchantMissing(transaction) && isAmountMissing(transaction)) || (isScanRequest(transaction) && isScanning(transaction));
 }
 
 /**
@@ -1339,6 +1335,28 @@ function isPending(transaction: OnyxEntry<Transaction>): boolean {
         return false;
     }
     return transaction.status === CONST.TRANSACTION.STATUS.PENDING;
+}
+
+/**
+ * Check if all transactions are pending Expensify card transactions.
+ */
+function hasOnlyPendingCardTransactions(transactions: Array<OnyxEntry<Transaction>>): boolean {
+    return transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
+}
+
+/**
+ * Show a confirm modal explaining that pending card transactions cannot be submitted.
+ */
+function showPendingCardTransactionsBlockModal(
+    showConfirmModal: (options: {title: string; prompt: string; confirmText: string; shouldShowCancelButton: boolean}) => void | Promise<unknown>,
+    translate: LocaleContextProps['translate'],
+) {
+    showConfirmModal({
+        title: translate('iou.error.unableToSubmitReport'),
+        prompt: translate('iou.error.allTransactionsPendingDescription'),
+        confirmText: translate('common.buttonConfirm'),
+        shouldShowCancelButton: false,
+    });
 }
 
 /**
@@ -2856,6 +2874,8 @@ export {
     isManagedCardTransaction,
     isDuplicate,
     isPending,
+    hasOnlyPendingCardTransactions,
+    showPendingCardTransactionsBlockModal,
     isOnHold,
     getWaypoints,
     isAmountMissing,
@@ -2903,7 +2923,7 @@ export {
     isPerDiemRequest,
     isViolationDismissed,
     isPartialTransaction,
-    isPendingCardOrScanningTransaction,
+    isScanningTransaction,
     isScanning,
     isCategoryBeingAnalyzed,
     getOriginalTransactionWithSplitInfo,
