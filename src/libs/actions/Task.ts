@@ -1,6 +1,6 @@
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
-import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
