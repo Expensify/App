@@ -125,6 +125,7 @@ function ScanRouter({report, action, iouType, reportID, transactionID, transacti
                 report={report}
                 transactionID={transactionID}
                 backTo={backTo}
+                isEditing={isEditing}
             />
         );
     }

@@ -22,19 +22,18 @@ type ScanEditReceiptProps = {
     report: OnyxEntry<Report>;
     transactionID: string;
     backTo: Route | undefined;
+    isEditing: boolean;
 };
 
 /**
  * ScanEditReceipt — replace an existing receipt and navigate back.
  * Simplest variant: no multi-scan, no participants, no confirmation page.
  */
-function ScanEditReceipt({report, transactionID, backTo}: ScanEditReceiptProps) {
+function ScanEditReceipt({report, transactionID, backTo, isEditing}: ScanEditReceiptProps) {
     const {translate} = useLocalize();
     const policy = usePolicy(report?.policyID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
-    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
-    const isDraftTransaction = !!draftTransaction;
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
 
     const navigateBack = () => {
@@ -52,13 +51,11 @@ function ScanEditReceipt({report, transactionID, backTo}: ScanEditReceiptProps) 
     };
 
     const handleCapture = (file: FileObject, source: string) => {
-        // Drafts (e.g. multi-scan transactions on the confirmation page) live in TRANSACTION_DRAFT and have no
-        // backend record yet, so we just update the draft locally. Saved transactions need the replace-receipt API call.
-        if (isDraftTransaction) {
-            setMoneyRequestReceipt(transactionID, source, file.name ?? '', true, file.type);
-        } else {
+        if (isEditing) {
             setMoneyRequestReceipt(transactionID, source, file.name ?? '', false, file.type);
             replaceReceipt({transactionID, file: file as File, source, transactionPolicy: policy, transactionPolicyCategories: policyCategories, transactionPolicyTagList: policyTagList});
+        } else {
+            setMoneyRequestReceipt(transactionID, source, file.name ?? '', true, file.type);
         }
         navigateBack();
     };
