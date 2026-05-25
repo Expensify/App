@@ -68,7 +68,6 @@ type SelectionToolbarMobileSelectionModeProps = {
     isDelegateAccessRestricted: boolean;
     showDelegateNoAccessModal: () => void;
     dismissedRejectUseExplanation: boolean | undefined;
-    route: PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>;
     clearSelectedTransactions: ReturnType<typeof useSearchActionsContext>['clearSelectedTransactions'];
     setSelectedTransactions: ReturnType<typeof useSearchActionsContext>['setSelectedTransactions'];
 };
@@ -87,7 +86,6 @@ function SelectionToolbarMobileSelectionMode({
     isDelegateAccessRestricted,
     showDelegateNoAccessModal,
     dismissedRejectUseExplanation,
-    route,
     clearSelectedTransactions,
     setSelectedTransactions,
 }: SelectionToolbarMobileSelectionModeProps) {

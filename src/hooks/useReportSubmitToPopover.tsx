@@ -21,7 +21,7 @@ const ANCHOR_ALIGNMENT = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
-export type ReportSubmitToPopoverOpenOptions = {
+type ReportSubmitToPopoverOpenOptions = {
     onSubmitSuccess?: () => void;
 };
 
@@ -116,4 +116,5 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess}: UseReportSubmitTo
     };
 }
 
+export type {ReportSubmitToPopoverOpenOptions}
 export default useReportSubmitToPopover;
