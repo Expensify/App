@@ -2028,6 +2028,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currency: CONST.CURRENCY.USD,
                 statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
                 chatReportID,
+                isCancelledIOU: true,
             };
 
             unapproveExpenseReport(expenseReport, {} as Policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, false, false, undefined, undefined);
@@ -2047,14 +2048,15 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect((failureChatUpdate?.value as Record<string, unknown>)?.iouReportID).toBe(previousIouReportID);
         });
 
-        it('does not add parent chat updates when chatReportID is absent', () => {
+        it('does not add parent chat updates when isCancelledIOU is false', () => {
             const expenseReport: Report = {
                 ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 total: 10000,
                 currency: CONST.CURRENCY.USD,
                 statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-                chatReportID: undefined,
+                chatReportID: '100',
+                isCancelledIOU: false,
             };
 
             unapproveExpenseReport(expenseReport, {} as Policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, false, false, undefined, undefined);
