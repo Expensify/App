@@ -10261,6 +10261,19 @@ function navigateToLinkedReportAction(
     visibleReportActionsData?: VisibleReportActionsDerivedValue,
 ) {
     if (isInNarrowPaneModal) {
+        const rootState = navigationRef.current?.getRootState();
+        const topmostRHP = rootState?.routes.findLast((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
+        const rhpState = topmostRHP?.state;
+        const rhpIndex = rhpState?.index ?? (rhpState?.routes.length ? rhpState.routes.length - 1 : -1);
+        const routeBelow = rhpIndex > 0 ? rhpState?.routes.at(rhpIndex - 1) : undefined;
+        const routeBelowParams = routeBelow?.params as {reportID?: string} | undefined;
+
+        if (routeBelow?.key && routeBelowParams?.reportID === ancestor.report.reportID) {
+            Navigation.setParams({reportActionID: ancestor.reportAction.reportActionID}, routeBelow.key, rhpState?.key);
+            Navigation.goBack();
+            return;
+        }
+
         Navigation.navigate(
             ROUTES.SEARCH_REPORT.getRoute({
                 reportID: ancestor.report.reportID,
