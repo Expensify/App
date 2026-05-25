@@ -4244,9 +4244,9 @@ function getReasonAndReportActionThatRequiresAttention(
 
     if (actionTypeForAssigneeToComplete) {
         const isAssigneeExpenseAction = actionTypeForAssigneeToComplete === CONST.REPORT.ACTION_TYPES_FOR_ASSIGNEE_TO_COMPLETE.EXPENSE;
-        const expenseBadge = isAssigneeExpenseAction
+        const assigneeBadge = isAssigneeExpenseAction
             ? getBadgeFromIOUReport(optionOrReport, undefined, policy, optionReportMetadata, invoiceReceiverPolicy, currentUserLogin, currentUserAccountID)
-            : undefined;
+            : CONST.REPORT.ACTION_BADGE.TASK;
         return {
             reason: CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION,
             reportAction: Object.values(reportActions)
@@ -4254,7 +4254,7 @@ function getReasonAndReportActionThatRequiresAttention(
                 // eslint-disable-next-line rulesdir/prefer-locale-compare-from-context
                 .sort((a, b) => (!a.created || !b.created ? 0 : a.created.localeCompare(b.created)))
                 .at(0),
-            ...(expenseBadge ? {actionBadge: expenseBadge} : {}),
+            ...(assigneeBadge ? {actionBadge: assigneeBadge} : {}),
         };
     }
 
