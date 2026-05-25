@@ -96,7 +96,7 @@ type TransactionListItemData = {type: 'section-header'; groupKey: string; group:
 /**
  * Bundle of data + JSX nodes the parent needs to render the unified list around the transaction-list state.
  * Wide on purpose: this is the single integration point between TransactionList's internal state and the parent
- * FlatList that virtualises both transactions and report actions in one scroll. Splitting would just smear the
+ * FlatList that virtualizes both transactions and report actions in one scroll. Splitting would just smear the
  * same locals across multiple call sites without earning an abstraction.
  */
 type MoneyRequestReportTransactionListController = {
@@ -640,118 +640,87 @@ function MoneyRequestReportTransactionList({
         return visibleTransactions.at(-1)?.transactionID;
     }, [shouldShowGroupedTransactions, groupedTransactions, resolvedTransactions, isOffline]);
 
-    const listItems = useMemo<TransactionListItemData[]>(() => {
-        if (shouldShowGroupedTransactions) {
-            const items: TransactionListItemData[] = [];
-            for (const group of groupedTransactions) {
-                items.push({type: 'section-header', groupKey: group.groupKey, group});
-                for (const transaction of group.transactions) {
-                    items.push({type: 'transaction', transaction});
-                }
+    const listItems: TransactionListItemData[] = [];
+    if (shouldShowGroupedTransactions) {
+        for (const group of groupedTransactions) {
+            listItems.push({type: 'section-header', groupKey: group.groupKey, group});
+            for (const transaction of group.transactions) {
+                listItems.push({type: 'transaction', transaction});
             }
-            return items;
         }
-        return resolvedTransactions.map((transaction) => ({type: 'transaction', transaction}));
-    }, [shouldShowGroupedTransactions, groupedTransactions, resolvedTransactions]);
+    } else {
+        for (const transaction of resolvedTransactions) {
+            listItems.push({type: 'transaction', transaction});
+        }
+    }
 
-    const keyExtractor = useCallback((item: TransactionListItemData) => {
+    const keyExtractor = (item: TransactionListItemData) => {
         if (item.type === 'section-header') {
             return `group-${item.groupKey}`;
         }
         return item.transaction.transactionID;
-    }, []);
+    };
 
-    const renderTransactionListItem = useCallback(
-        (item: TransactionListItemData, position: {isFirst: boolean; isLast: boolean}) => {
-            const narrowSectionWrapperStyle = shouldUseNarrowLayout
-                ? [styles.highlightBG, position.isFirst && styles.tableTopRadius, position.isLast && styles.tableBottomRadius, (position.isFirst || position.isLast) && styles.overflowHidden]
-                : undefined;
+    const renderTransactionListItem = (item: TransactionListItemData, position: {isFirst: boolean; isLast: boolean}) => {
+        const narrowSectionWrapperStyle = shouldUseNarrowLayout
+            ? [styles.highlightBG, position.isFirst && styles.tableTopRadius, position.isLast && styles.tableBottomRadius, (position.isFirst || position.isLast) && styles.overflowHidden]
+            : undefined;
 
-            if (item.type === 'section-header') {
-                const selectionState = groupSelectionState.get(item.groupKey) ?? {
-                    isSelected: false,
-                    isIndeterminate: false,
-                    isDisabled: false,
-                    pendingAction: undefined,
-                };
-                return (
-                    <View style={styles.ph5}>
-                        <View style={narrowSectionWrapperStyle}>
-                            <MoneyRequestReportGroupHeader
-                                group={item.group}
-                                groupKey={item.groupKey}
-                                currency={report?.currency ?? ''}
-                                isGroupedByTag={currentGroupBy === CONST.REPORT_LAYOUT.GROUP_BY.TAG}
-                                isSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                isSelected={selectionState.isSelected}
-                                isIndeterminate={selectionState.isIndeterminate}
-                                isDisabled={selectionState.isDisabled}
-                                onToggleSelection={toggleGroupSelection}
-                                pendingAction={selectionState.pendingAction}
-                                shouldUseNarrowLayout={shouldUseNarrowLayout}
-                            />
-                        </View>
-                    </View>
-                );
-            }
-            const transaction = item.transaction;
+        if (item.type === 'section-header') {
+            const selectionState = groupSelectionState.get(item.groupKey) ?? {
+                isSelected: false,
+                isIndeterminate: false,
+                isDisabled: false,
+                pendingAction: undefined,
+            };
             return (
                 <View style={styles.ph5}>
                     <View style={narrowSectionWrapperStyle}>
-                        <MoneyRequestReportTransactionItem
-                            transaction={transaction}
-                            shouldBeHighlighted={highlightedTransactionIDs.has(transaction.transactionID)}
-                            columns={columnsToShow}
-                            report={report}
-                            policy={policy}
+                        <MoneyRequestReportGroupHeader
+                            group={item.group}
+                            groupKey={item.groupKey}
+                            currency={report?.currency ?? ''}
+                            isGroupedByTag={currentGroupBy === CONST.REPORT_LAYOUT.GROUP_BY.TAG}
                             isSelectionModeEnabled={isMobileSelectionModeEnabled}
-                            toggleTransaction={toggleTransaction}
-                            isSelected={isTransactionSelected(transaction.transactionID)}
-                            handleOnPress={handleOnPress}
-                            handleLongPress={handleLongPress}
-                            dateColumnSize={dateColumnSize}
-                            amountColumnSize={amountColumnSize}
-                            taxAmountColumnSize={taxAmountColumnSize}
-                            scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
-                            onArrowRightPress={handleArrowRightPress}
-                            nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards ?? {}}
-                            isLastItem={!showPendingExpensePlaceholder && transaction.transactionID === lastTransactionID}
-                            shouldScrollHorizontally={shouldScrollHorizontally}
+                            isSelected={selectionState.isSelected}
+                            isIndeterminate={selectionState.isIndeterminate}
+                            isDisabled={selectionState.isDisabled}
+                            onToggleSelection={toggleGroupSelection}
+                            pendingAction={selectionState.pendingAction}
+                            shouldUseNarrowLayout={shouldUseNarrowLayout}
                         />
                     </View>
                 </View>
             );
-        },
-        [
-            groupSelectionState,
-            report,
-            currentGroupBy,
-            isMobileSelectionModeEnabled,
-            toggleGroupSelection,
-            highlightedTransactionIDs,
-            columnsToShow,
-            policy,
-            toggleTransaction,
-            isTransactionSelected,
-            handleOnPress,
-            handleLongPress,
-            dateColumnSize,
-            amountColumnSize,
-            taxAmountColumnSize,
-            newTransactions,
-            scrollToNewTransaction,
-            handleArrowRightPress,
-            nonPersonalAndWorkspaceCards,
-            showPendingExpensePlaceholder,
-            lastTransactionID,
-            shouldScrollHorizontally,
-            styles.highlightBG,
-            styles.tableTopRadius,
-            styles.tableBottomRadius,
-            styles.overflowHidden,
-            styles.ph5,
-        ],
-    );
+        }
+        const transaction = item.transaction;
+        return (
+            <View style={styles.ph5}>
+                <View style={narrowSectionWrapperStyle}>
+                    <MoneyRequestReportTransactionItem
+                        transaction={transaction}
+                        shouldBeHighlighted={highlightedTransactionIDs.has(transaction.transactionID)}
+                        columns={columnsToShow}
+                        report={report}
+                        policy={policy}
+                        isSelectionModeEnabled={isMobileSelectionModeEnabled}
+                        toggleTransaction={toggleTransaction}
+                        isSelected={isTransactionSelected(transaction.transactionID)}
+                        handleOnPress={handleOnPress}
+                        handleLongPress={handleLongPress}
+                        dateColumnSize={dateColumnSize}
+                        amountColumnSize={amountColumnSize}
+                        taxAmountColumnSize={taxAmountColumnSize}
+                        scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
+                        onArrowRightPress={handleArrowRightPress}
+                        nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards ?? {}}
+                        isLastItem={!showPendingExpensePlaceholder && transaction.transactionID === lastTransactionID}
+                        shouldScrollHorizontally={shouldScrollHorizontally}
+                    />
+                </View>
+            </View>
+        );
+    };
 
     const tableHeaderContent = (
         <OfflineWithFeedback pendingAction={reportPendingAction}>

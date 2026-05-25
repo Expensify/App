@@ -79,7 +79,7 @@ const DELAY_FOR_SCROLLING_TO_END = 100;
 // when the initial load is truncated, so skip backfill for smaller reports.
 const BACKFILL_MIN_ACTIONS_THRESHOLD = 50;
 
-/** Single virtualised data item rendered by the unified FlatList. Mixes transactions, a footer marker, and report actions in one scroll. */
+/** Single virtualized data item rendered by the unified FlatList. Mixes transactions, a footer marker, and report actions in one scroll. */
 type UnifiedListItem = TransactionListItemData | {readonly type: 'transactions-footer'} | {readonly type: 'report-action'; readonly action: OnyxTypes.ReportAction};
 
 const TRANSACTIONS_FOOTER_ITEM: UnifiedListItem = {type: 'transactions-footer'};
