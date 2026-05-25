@@ -1,5 +1,6 @@
 import type {ForwardedRef, RefObject} from 'react';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
+import {ActivityIndicator} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
@@ -20,6 +21,7 @@ import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSortedActions from '@hooks/useSortedActions';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import FS from '@libs/Fullstory';
 import type {Options, SearchOption} from '@libs/OptionsListUtils';
@@ -147,6 +149,7 @@ function SearchAutocompleteList({
     autocompleteSubstitutions,
     ref,
 }: SearchAutocompleteListProps) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -515,15 +518,10 @@ function SearchAutocompleteList({
             };
             if (isSearchingForReports && serverRows.length === 0) {
                 bottomSection.customHeader = (
-                    <OptionsListSkeletonView
-                        fixedNumItems={3}
-                        shouldStyleAsTable
-                        speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
-                        reasonAttributes={{
-                            context: 'SearchAutocompleteList',
-                            isRecentSearchesDataLoaded,
-                            isSearchingForReports,
-                        }}
+                    <ActivityIndicator
+                        size="large"
+                        style={[styles.flex1, styles.mt4]}
+                        color={theme.spinner}
                     />
                 );
             }
