@@ -196,6 +196,7 @@ function runCrossReportMergeToSourceReportRequest(fixtures: CrossReportMergeToSo
         currentUserEmailParam: 'existing@example.com',
         isASAPSubmitBetaEnabled: false,
         selfDMReport: undefined,
+        delegateAccountID: undefined,
     });
 }
 
@@ -308,6 +309,7 @@ describe('mergeTransactionRequest', () => {
             currentUserAccountIDParam: 123,
             currentUserEmailParam: 'existing@example.com',
             isASAPSubmitBetaEnabled: false,
+            delegateAccountID: undefined,
             selfDMReport: undefined,
         });
 
@@ -452,6 +454,7 @@ describe('mergeTransactionRequest', () => {
             currentUserAccountIDParam: 123,
             currentUserEmailParam: 'user@example.com',
             isASAPSubmitBetaEnabled: false,
+            delegateAccountID: undefined,
             selfDMReport: undefined,
         });
 
@@ -613,6 +616,7 @@ describe('mergeTransactionRequest', () => {
             currentUserAccountIDParam: 123,
             currentUserEmailParam: 'existing@example.com',
             isASAPSubmitBetaEnabled: false,
+            delegateAccountID: undefined,
             selfDMReport: undefined,
         });
 
@@ -715,6 +719,7 @@ describe('mergeTransactionRequest', () => {
             currentUserAccountIDParam: 123,
             currentUserEmailParam: 'existing@example.com',
             isASAPSubmitBetaEnabled: false,
+            delegateAccountID: undefined,
             selfDMReport: undefined,
         });
 
@@ -942,6 +947,7 @@ describe('mergeTransactionRequest', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 isASAPSubmitBetaEnabled: false,
+                delegateAccountID: undefined,
                 selfDMReport: undefined,
             });
 
@@ -1138,6 +1144,7 @@ describe('mergeTransactionRequest', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 isASAPSubmitBetaEnabled: false,
+                delegateAccountID: undefined,
                 selfDMReport: undefined,
             });
 
@@ -1286,6 +1293,7 @@ describe('mergeTransactionRequest', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 isASAPSubmitBetaEnabled: false,
+                delegateAccountID: undefined,
                 selfDMReport,
             });
 

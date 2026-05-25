@@ -52,6 +52,7 @@ import {
     navigateToDetailsPage,
     rejectMoneyRequestReason,
 } from '@libs/ReportUtils';
+import getShouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     getOriginalTransactionWithSplitInfo,
@@ -73,7 +74,7 @@ import HoldOrRejectEducationalModal from './HoldOrRejectEducationalModal';
 import HoldSubmitterEducationalModal from './HoldSubmitterEducationalModal';
 import {ModalActions} from './Modal/Global/ModalContext';
 import {usePersonalDetails} from './OnyxListItemProvider';
-import {useSearchActionsContext, useSearchStateContext} from './Search/SearchContext';
+import {useSearchQueryContext, useSearchSelectionActions} from './Search/SearchContext';
 import {useWideRHPState} from './WideRHPContextProvider';
 
 type MoneyRequestHeaderSecondaryActionsProps = {
@@ -161,8 +162,8 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const {showConfirmModal} = useConfirmModal();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const {currentSearchHash} = useSearchStateContext();
-    const {removeTransaction} = useSearchActionsContext();
+    const {currentSearchHash} = useSearchQueryContext();
+    const {removeTransaction} = useSearchSelectionActions();
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transaction?.transactionID ? [transaction.transactionID] : []);
     const isReportInSearch = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT || route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT;
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -241,8 +242,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 recentWaypoints,
                 targetPolicyTags,
                 conciergeReportID,
-                currentUserAccountID: accountID,
-                currentUserLogin: currentUserLogin ?? '',
+                currentUser: {accountID, email: currentUserLogin ?? ''},
             });
         }
     };
@@ -539,6 +539,8 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         return null;
     }
 
+    const shouldPopoverUseScrollView = getShouldPopoverUseScrollView(applicableSecondaryActions);
+
     return (
         <>
             <ButtonWithDropdownMenu
@@ -548,6 +550,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 shouldAlwaysShowDropdownMenu
                 customText={translate('common.more')}
                 options={applicableSecondaryActions}
+                shouldPopoverUseScrollView={shouldPopoverUseScrollView}
                 isSplitButton={false}
                 wrapperStyle={!isNarrowButton && !hasPrimaryAction ? [styles.flexGrow4] : undefined}
             />
