@@ -29,6 +29,12 @@ function webUpdate() {
             if (window.confirm('Refresh the page to get the latest updates!')) {
                 window.location.reload();
             }
+        })
+        .catch(() => {
+            // During deploy rollouts, version.json may be temporarily unavailable and the
+            // SPA fallback can return index.html (HTML) with a 200 status, causing
+            // response.json() to throw a SyntaxError. Silently ignore and retry on the
+            // next visibility change or update interval.
         });
 }
 
