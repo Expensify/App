@@ -62,11 +62,11 @@ function getReportActionByIDSelector(reportActions: OnyxEntry<ReportActions>, re
  */
 function findIouActionForReceiptScanFailed(
     reportActions: OnyxEntry<ReportActions>,
-    isIouReport: boolean,
+    isIOUReport: boolean,
     parentReportActionID: string | undefined,
     actionReportID: string | undefined,
 ): OnyxEntry<ReportAction> {
-    if (!isIouReport && parentReportActionID) {
+    if (!isIOUReport && parentReportActionID) {
         const candidate = reportActions?.[parentReportActionID];
         if (isActionOfType(candidate, CONST.REPORT.ACTIONS.TYPE.IOU)) {
             return candidate;
@@ -85,13 +85,13 @@ function findIouActionForReceiptScanFailed(
 }
 
 /** Resolves the IOU action for a RECEIPT_SCAN_FAILED message and returns only the primitive fields the UI needs. */
-function getReceiptScanFailedIouActionDataSelector(
+function getReceiptScanFailedIOUActionDataSelector(
     reportActions: OnyxEntry<ReportActions>,
-    isIouReport: boolean,
+    isIOUReport: boolean,
     parentReportActionID: string | undefined,
     actionReportID: string | undefined,
 ): {transactionID: string | undefined; actorAccountID: number | undefined} {
-    const iouAction = findIouActionForReceiptScanFailed(reportActions, isIouReport, parentReportActionID, actionReportID);
+    const iouAction = findIouActionForReceiptScanFailed(reportActions, isIOUReport, parentReportActionID, actionReportID);
 
     return {
         transactionID: getLinkedTransactionID(iouAction),
@@ -99,4 +99,4 @@ function getReceiptScanFailedIouActionDataSelector(
     };
 }
 
-export {getParentReportActionSelector, getLastClosedReportAction, getReportActionsForReportIDs, getReportActionByIDSelector, getReceiptScanFailedIouActionDataSelector};
+export {getParentReportActionSelector, getLastClosedReportAction, getReportActionsForReportIDs, getReportActionByIDSelector, getReceiptScanFailedIOUActionDataSelector};

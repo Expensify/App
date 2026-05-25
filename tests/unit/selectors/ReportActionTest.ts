@@ -1,4 +1,4 @@
-import {getReceiptScanFailedIouActionDataSelector} from '@selectors/ReportAction';
+import {getReceiptScanFailedIOUActionDataSelector} from '@selectors/ReportAction';
 import CONST from '@src/CONST';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 
@@ -7,7 +7,7 @@ const OTHER_USER_ACCOUNT_ID = 987654321;
 const TRANSACTION_ID = 'txn123';
 const OTHER_TRANSACTION_ID = 'txn456';
 
-const createIouAction = (reportActionID: string, overrides: Partial<ReportAction> = {}): ReportAction => ({
+const createIOUAction = (reportActionID: string, overrides: Partial<ReportAction> = {}): ReportAction => ({
     reportActionID,
     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
     actorAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -22,9 +22,9 @@ const createIouAction = (reportActionID: string, overrides: Partial<ReportAction
     ...overrides,
 });
 
-describe('getReceiptScanFailedIouActionDataSelector', () => {
+describe('getReceiptScanFailedIOUActionDataSelector', () => {
     it('returns undefined transactionID and actorAccountID when reportActions is undefined', () => {
-        expect(getReceiptScanFailedIouActionDataSelector(undefined, false, 'iou1', 'thread1')).toEqual({
+        expect(getReceiptScanFailedIOUActionDataSelector(undefined, false, 'iou1', 'thread1')).toEqual({
             transactionID: undefined,
             actorAccountID: undefined,
         });
@@ -32,8 +32,8 @@ describe('getReceiptScanFailedIouActionDataSelector', () => {
 
     it('returns transactionID and actorAccountID for the IOU action matching parentReportActionID on a transaction thread report', () => {
         const reportActions: ReportActions = {
-            iou1: createIouAction('iou1'),
-            other: createIouAction('other', {
+            iou1: createIOUAction('iou1'),
+            other: createIOUAction('other', {
                 childReportID: 'thread1',
                 originalMessage: {
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
@@ -44,7 +44,7 @@ describe('getReceiptScanFailedIouActionDataSelector', () => {
             }),
         };
 
-        expect(getReceiptScanFailedIouActionDataSelector(reportActions, false, 'iou1', 'thread1')).toEqual({
+        expect(getReceiptScanFailedIOUActionDataSelector(reportActions, false, 'iou1', 'thread1')).toEqual({
             transactionID: TRANSACTION_ID,
             actorAccountID: CURRENT_USER_ACCOUNT_ID,
         });
@@ -52,8 +52,8 @@ describe('getReceiptScanFailedIouActionDataSelector', () => {
 
     it('skips parentReportActionID lookup when the report is an IOU report', () => {
         const reportActions: ReportActions = {
-            parentIou: createIouAction('parentIou'),
-            childMatch: createIouAction('childMatch', {
+            parentIOU: createIOUAction('parentIOU'),
+            childMatch: createIOUAction('childMatch', {
                 childReportID: 'thread1',
                 originalMessage: {
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
@@ -64,7 +64,7 @@ describe('getReceiptScanFailedIouActionDataSelector', () => {
             }),
         };
 
-        expect(getReceiptScanFailedIouActionDataSelector(reportActions, true, 'parentIou', 'thread1')).toEqual({
+        expect(getReceiptScanFailedIOUActionDataSelector(reportActions, true, 'parentIOU', 'thread1')).toEqual({
             transactionID: OTHER_TRANSACTION_ID,
             actorAccountID: CURRENT_USER_ACCOUNT_ID,
         });
@@ -72,11 +72,11 @@ describe('getReceiptScanFailedIouActionDataSelector', () => {
 
     it('falls back to childReportID match when parentReportActionID does not point to an IOU action', () => {
         const reportActions: ReportActions = {
-            comment1: createIouAction('comment1', {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}),
-            iou1: createIouAction('iou1', {childReportID: 'thread1'}),
+            comment1: createIOUAction('comment1', {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}),
+            iou1: createIOUAction('iou1', {childReportID: 'thread1'}),
         };
 
-        expect(getReceiptScanFailedIouActionDataSelector(reportActions, false, 'comment1', 'thread1')).toEqual({
+        expect(getReceiptScanFailedIOUActionDataSelector(reportActions, false, 'comment1', 'thread1')).toEqual({
             transactionID: TRANSACTION_ID,
             actorAccountID: CURRENT_USER_ACCOUNT_ID,
         });
@@ -84,8 +84,8 @@ describe('getReceiptScanFailedIouActionDataSelector', () => {
 
     it('returns transactionID and actorAccountID for the IOU action whose childReportID matches actionReportID', () => {
         const reportActions: ReportActions = {
-            iou1: createIouAction('iou1', {childReportID: 'thread1'}),
-            iou2: createIouAction('iou2', {
+            iou1: createIOUAction('iou1', {childReportID: 'thread1'}),
+            iou2: createIOUAction('iou2', {
                 childReportID: 'thread2',
                 originalMessage: {
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
@@ -96,16 +96,16 @@ describe('getReceiptScanFailedIouActionDataSelector', () => {
             }),
         };
 
-        expect(getReceiptScanFailedIouActionDataSelector(reportActions, true, undefined, 'thread1')).toEqual({
+        expect(getReceiptScanFailedIOUActionDataSelector(reportActions, true, undefined, 'thread1')).toEqual({
             transactionID: TRANSACTION_ID,
             actorAccountID: CURRENT_USER_ACCOUNT_ID,
         });
     });
 
     it('returns transactionID and actorAccountID for the only IOU action on one-transaction reports', () => {
-        const reportActions: ReportActions = {iou1: createIouAction('iou1')};
+        const reportActions: ReportActions = {iou1: createIOUAction('iou1')};
 
-        expect(getReceiptScanFailedIouActionDataSelector(reportActions, true, undefined, undefined)).toEqual({
+        expect(getReceiptScanFailedIOUActionDataSelector(reportActions, true, undefined, undefined)).toEqual({
             transactionID: TRANSACTION_ID,
             actorAccountID: CURRENT_USER_ACCOUNT_ID,
         });
@@ -113,11 +113,11 @@ describe('getReceiptScanFailedIouActionDataSelector', () => {
 
     it('returns undefined transactionID and actorAccountID when multiple IOU actions exist and none match actionReportID', () => {
         const reportActions: ReportActions = {
-            iou1: createIouAction('iou1', {childReportID: 'thread1'}),
-            iou2: createIouAction('iou2', {childReportID: 'thread2'}),
+            iou1: createIOUAction('iou1', {childReportID: 'thread1'}),
+            iou2: createIOUAction('iou2', {childReportID: 'thread2'}),
         };
 
-        expect(getReceiptScanFailedIouActionDataSelector(reportActions, true, undefined, 'thread3')).toEqual({
+        expect(getReceiptScanFailedIOUActionDataSelector(reportActions, true, undefined, 'thread3')).toEqual({
             transactionID: undefined,
             actorAccountID: undefined,
         });
@@ -125,10 +125,10 @@ describe('getReceiptScanFailedIouActionDataSelector', () => {
 
     it('returns undefined transactionID and actorAccountID when no IOU actions exist', () => {
         const reportActions: ReportActions = {
-            comment1: createIouAction('comment1', {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}),
+            comment1: createIOUAction('comment1', {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}),
         };
 
-        expect(getReceiptScanFailedIouActionDataSelector(reportActions, false, 'comment1', 'thread1')).toEqual({
+        expect(getReceiptScanFailedIOUActionDataSelector(reportActions, false, 'comment1', 'thread1')).toEqual({
             transactionID: undefined,
             actorAccountID: undefined,
         });
@@ -136,10 +136,10 @@ describe('getReceiptScanFailedIouActionDataSelector', () => {
 
     it('returns actorAccountID for the matched IOU action when it belongs to another user', () => {
         const reportActions: ReportActions = {
-            iou1: createIouAction('iou1', {actorAccountID: OTHER_USER_ACCOUNT_ID}),
+            iou1: createIOUAction('iou1', {actorAccountID: OTHER_USER_ACCOUNT_ID}),
         };
 
-        expect(getReceiptScanFailedIouActionDataSelector(reportActions, false, 'iou1', 'thread1')).toEqual({
+        expect(getReceiptScanFailedIOUActionDataSelector(reportActions, false, 'iou1', 'thread1')).toEqual({
             transactionID: TRANSACTION_ID,
             actorAccountID: OTHER_USER_ACCOUNT_ID,
         });

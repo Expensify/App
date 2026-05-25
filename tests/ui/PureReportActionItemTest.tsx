@@ -2753,7 +2753,7 @@ describe('PureReportActionItem', () => {
 
     // Path: No FE flow creates IOU + reject/cancel/delete/approve actions; this defensive path is only
     // reachable from BE-emitted actions
-    describe('IouReportActionMessage edge subtypes', () => {
+    describe('IOUReportActionMessage edge subtypes', () => {
         const TEST_REPORT_ID = 'iouEdgeReport123';
         const TEST_TRANSACTION_ID = 'iouEdgeTx456';
 
