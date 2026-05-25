@@ -446,11 +446,11 @@ const ViolationsUtils = {
         // transaction is left as-is when the violation fires (or when the feature is disabled) —
         // we never clear the user's selection just because the vendor list changed; the admin
         // needs to see what was previously set so they can re-pick. Gated behind the
-        // `vendorMatchingCC` beta so Web-Expensify can ship the auto-match write path
+        // `vendorMatching` beta so Web-Expensify can ship the auto-match write path
         // independently — no production workspace sees the violation until the beta is enabled.
-        const isVendorMatchingCCBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.VENDOR_MATCHING_CC, allBetas);
+        const isVendorMatchingBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.VENDOR_MATCHING, allBetas);
         const hasInactiveVendorViolation = newTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.INACTIVE_VENDOR);
-        const isVendorFeatureActive = hasVendorFeature(policy, isVendorMatchingCCBetaEnabled);
+        const isVendorFeatureActive = hasVendorFeature(policy, isVendorMatchingBetaEnabled);
         const transactionVendorID = updatedTransaction.comment?.vendor?.externalID;
         if (!isVendorFeatureActive) {
             // Feature off (e.g. admin switched export type away from credit/debit card) — clear any

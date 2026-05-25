@@ -2001,13 +2001,13 @@ function getConnectedIntegration(policy: Policy | undefined, connectionNames: re
 }
 
 /**
- * QBO vendor feature gate. Returns true when the workspace has the `vendorMatchingCC` beta enabled
+ * QBO vendor feature gate. Returns true when the workspace has the `vendorMatching` beta enabled
  * AND QBO is connected with an individual card transaction non-reimbursable export type — the only
  * scope the Vendor field is shown for. Mirrors `QuickbooksOnline::hasVendorFeature` on the PHP side
  * so the App and backend agree on which workspaces see the field.
  */
-function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingCCBetaEnabled: boolean): boolean {
-    if (!isVendorMatchingCCBetaEnabled || !policy) {
+function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled: boolean): boolean {
+    if (!isVendorMatchingBetaEnabled || !policy) {
         return false;
     }
     const qboConnection = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO];

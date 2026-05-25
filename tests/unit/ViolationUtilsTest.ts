@@ -1325,7 +1325,7 @@ describe('getViolationsOnyxData', () => {
         beforeEach(() => {
             // Default to beta-enabled so the four branches of the violation logic are reachable.
             // The "beta disabled" test overrides this below.
-            isBetaEnabledSpy = jest.spyOn(Permissions, 'isBetaEnabled').mockImplementation((beta) => beta === CONST.BETAS.VENDOR_MATCHING_CC);
+            isBetaEnabledSpy = jest.spyOn(Permissions, 'isBetaEnabled').mockImplementation((beta) => beta === CONST.BETAS.VENDOR_MATCHING);
         });
 
         afterEach(() => {
@@ -1382,7 +1382,7 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).not.toContainEqual(inactiveVendorViolation);
         });
 
-        it('does not add the violation when the vendorMatchingCC beta is disabled, even with QBO configured', () => {
+        it('does not add the violation when the vendorMatching beta is disabled, even with QBO configured', () => {
             isBetaEnabledSpy.mockImplementation(() => false);
             policy = policyWithQBOVendorFeature();
             transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', isManuallySet: true}};
