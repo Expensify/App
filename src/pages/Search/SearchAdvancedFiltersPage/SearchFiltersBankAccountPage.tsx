@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
@@ -9,6 +10,7 @@ import type {SearchMultipleSelectionPickerItem} from '@components/Search/SearchM
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getBankAccountSearchLabel} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -21,10 +23,12 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 function SearchFiltersBankAccountPage() {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
     const {isLargeScreenWidth} = useResponsiveLayout();
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [bankAccountList, bankAccountListMetadata] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [searchAdvancedFiltersForm, searchAdvancedFiltersFormResult] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const isLoadingOnyxData = isLoadingOnyxValue(bankAccountListMetadata, searchAdvancedFiltersFormResult);
     const selectedBankAccountIDs = searchAdvancedFiltersForm?.bankAccount ?? [];
 
     const bankAccountItems: Array<SearchMultipleSelectionPickerItem<string>> = [];
@@ -71,16 +75,25 @@ function SearchFiltersBankAccountPage() {
                     Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                 }}
             />
-            <View style={[styles.flex1]}>
-                {!isLoadingOnyxValue(searchAdvancedFiltersFormResult) && (
+            {isLoadingOnyxData && (
+                <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                    <ActivityIndicator
+                        color={theme.spinner}
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        style={[styles.pl3]}
+                    />
+                </View>
+            )}
+            {!isLoadingOnyxData && (
+                <View style={[styles.flex1]}>
                     <SearchMultipleSelectionPicker
                         items={bankAccountItems}
                         initiallySelectedItems={initiallySelectedItems}
                         onSaveSelection={onSaveSelection}
                         shouldShowTextInput={bankAccountItems.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
                     />
-                )}
-            </View>
+                </View>
+            )}
         </ScreenWrapper>
     );
 }
