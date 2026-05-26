@@ -5908,6 +5908,12 @@ ${amount} para ${merchant} - ${date}`,
             selectWorkspaces: 'Selecciona espacios de trabajo',
             description: 'Elige los espacios de trabajo a los que quieres copiar la configuración y luego selecciona los ajustes que quieras copiar.',
             searchPlaceholder: 'Buscar espacios de trabajo',
+            selectFeatures: 'Selecciona las funciones que quieres copiar',
+            whichFeatures: 'Selecciona los ajustes que se sobrescribirán en tus espacios de trabajo existentes.',
+            workflowsWithoutMembersConfirm: 'Continuar sin miembros',
+            workflowsWithoutMembersPrompt: 'Copiar flujos de trabajo sin miembros no copiará los flujos de trabajo de aprobación. La configuración de envío y pago sí se copiará.',
+            accountingMismatch: ({part}: {part: string}) =>
+                `Solo puedes copiar ${part} si todos los espacios de trabajo usan el mismo sistema de contabilidad y la misma conexión de empresa.`,
         },
         emptyWorkspace: {
             title: 'Aún no hay espacios de trabajo',
@@ -6315,6 +6321,8 @@ ${amount} para ${merchant} - ${date}`,
         hr: {
             title: 'HR',
             connections: 'Conexiones',
+            connectionsSubtitle:
+                'Conéctate a tu sistema de RR. HH. para sincronizar los datos de empleados, emparejar automáticamente los reembolsos con las personas correctas y mantener los gastos de tu equipo precisos sin trabajo manual.',
             subtitle: 'Conecta herramientas de HR y mantén sincronizadas las aprobaciones de empleados.',
             connect: 'Conectar',
             syncNow: 'Sincronizar ahora',

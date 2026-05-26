@@ -6073,8 +6073,15 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             error: 'Beim Kopieren der Arbeitsbereichseinstellungen ist ein Fehler aufgetreten. Bitte versuche es erneut.',
             title: 'Einstellungen kopieren',
             selectWorkspaces: 'Arbeitsbereiche auswählen',
-            description: 'Wählen Sie die Arbeitsbereiche aus, in die Sie Einstellungen kopieren möchten, und wählen Sie dann die Einstellungen aus, die Sie kopieren möchten.',
-            searchPlaceholder: 'Workspaces durchsuchen',
+            description: 'Wählen Sie die Arbeitsbereiche, in die Sie Einstellungen kopieren möchten, und wählen Sie dann die Einstellungen aus, die Sie kopieren möchten.',
+            searchPlaceholder: 'Arbeitsbereiche suchen',
+            selectFeatures: 'Zu kopierende Funktionen auswählen',
+            whichFeatures: 'Wählen Sie die Einstellungen aus, die in Ihren bestehenden Arbeitsbereichen überschrieben werden sollen.',
+            workflowsWithoutMembersConfirm: 'Ohne Mitglieder fortfahren',
+            workflowsWithoutMembersPrompt:
+                'Beim Kopieren von Workflows ohne Mitglieder werden Genehmigungs-Workflows nicht kopiert. Einstellungen für Einreichung und Zahlung werden weiterhin kopiert.',
+            accountingMismatch: ({part}: {part: string}) =>
+                `Sie können ${part} nur kopieren, wenn alle Arbeitsbereiche dasselbe Buchhaltungssystem und dieselbe Unternehmensverbindung verwenden.`,
         },
         emptyWorkspace: {
             title: 'Du hast keine Arbeitsbereiche',
@@ -7215,6 +7222,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         hr: {
             title: 'Personalwesen',
             connections: 'Verbindungen',
+            connectionsSubtitle:
+                'Verbinden Sie sich mit Ihrem HR-System, um Mitarbeiterdaten zu synchronisieren, Erstattungen automatisch den richtigen Personen zuzuordnen und die Ausgaben Ihres Teams ohne manuellen Aufwand korrekt zu halten.',
             subtitle: 'HR-Tools verbinden und Mitarbeitergenehmigungen synchron halten.',
             connect: 'Verbinden',
             syncNow: 'Jetzt synchronisieren',

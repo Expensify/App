@@ -6038,6 +6038,12 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             selectWorkspaces: 'Wybierz przestrzenie robocze',
             description: 'Wybierz przestrzenie robocze, do których chcesz skopiować ustawienia, a potem zaznacz ustawienia, które chcesz skopiować.',
             searchPlaceholder: 'Szukaj przestrzeni roboczych',
+            selectFeatures: 'Wybierz funkcje do skopiowania',
+            whichFeatures: 'Wybierz ustawienia, które chcesz nadpisać w swoich istniejących przestrzeniach roboczych.',
+            workflowsWithoutMembersConfirm: 'Kontynuuj bez członków',
+            workflowsWithoutMembersPrompt: 'Kopiowanie obiegów zadań bez członków nie skopiuje obiegów akceptacji. Ustawienia przesyłania i płatności nadal zostaną skopiowane.',
+            accountingMismatch: ({part}: {part: string}) =>
+                `Możesz skopiować ${part} tylko wtedy, gdy wszystkie przestrzenie robocze używają tego samego systemu księgowego i połączenia z firmą.`,
         },
         emptyWorkspace: {
             title: 'Nie masz żadnych przestrzeni roboczych',
@@ -7172,6 +7178,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         hr: {
             title: 'HR',
             connections: 'Połączenia',
+            connectionsSubtitle:
+                'Połącz się ze swoim systemem HR, aby synchronizować dane pracowników, automatycznie dopasowywać zwroty do właściwych osób i utrzymywać wydatki zespołu w porządku bez ręcznej pracy.',
             subtitle: 'Połącz narzędzia HR i utrzymuj zgody pracowników w synchronizacji.',
             connect: 'Połącz',
             syncNow: 'Synchronizuj teraz',

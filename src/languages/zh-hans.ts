@@ -5887,8 +5887,13 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             error: '复制工作区设置时发生错误。请重试。',
             title: '复制设置',
             selectWorkspaces: '选择工作区',
-            description: '选择要复制设置到的工作区，然后选择你想复制的设置。',
+            description: '选择要复制设置到的工作区，然后选择你想要复制的设置。',
             searchPlaceholder: '搜索工作区',
+            selectFeatures: '选择要复制的功能',
+            whichFeatures: '选择要覆盖现有工作区的设置。',
+            workflowsWithoutMembersConfirm: '继续，无成员',
+            workflowsWithoutMembersPrompt: '在没有成员的情况下复制工作流程时，将不会复制审批流程。但提交和付款设置仍会被复制。',
+            accountingMismatch: ({part}: {part: string}) => `仅当所有工作区使用相同的会计系统和公司连接时，您才能复制 ${part}。`,
         },
         emptyWorkspace: {
             title: '你还没有工作区',
@@ -6992,6 +6997,7 @@ ${reportName}
         hr: {
             title: '人力资源',
             connections: '连接',
+            connectionsSubtitle: '连接您的 HR 系统以同步员工数据，自动将报销匹配到正确的员工，并在无需手动操作的情况下保持团队报销的准确性。',
             subtitle: '连接人力资源工具，保持员工审批同步。',
             connect: '连接',
             syncNow: '立即同步',
