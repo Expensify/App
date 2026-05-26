@@ -1,0 +1,242 @@
+diff --git a/node_modules/victory-native/dist/cartesian/CartesianChart.d.ts b/node_modules/victory-native/dist/cartesian/CartesianChart.d.ts
+index 5b718aa..28a2dd8 100644
+--- a/node_modules/victory-native/dist/cartesian/CartesianChart.d.ts
++++ b/node_modules/victory-native/dist/cartesian/CartesianChart.d.ts
+@@ -14,6 +14,10 @@ export type CartesianChartRef<T = undefined> = {
+     canvas: CanvasRef | null;
+     actions: CartesianActionsHandle<T>;
+ };
++export type CartesianChartExplicitSize = {
++    width: number;
++    height: number;
++};
+ type CartesianChartProps<RawData extends Record<string, unknown>, XK extends keyof InputFields<RawData>, YK extends keyof NumericalFields<RawData>> = {
+     data: RawData[];
+     xKey: XK;
+@@ -62,6 +66,16 @@ type CartesianChartProps<RawData extends Record<string, unknown>, XK extends key
+         x: InputFields<RawData>[XK];
+         y: Record<YK, number>;
+     }> | undefined>>;
++    /**
++     * When provided, initializes chart dimensions without waiting for React Native
++     * `onLayout`. Required when using `headless`.
++     */
++    explicitSize?: CartesianChartExplicitSize;
++    /**
++     * When `true` (with `explicitSize`), renders a Skia-only subtree suitable for
++     * headless renderers that cannot mount React Native views.
++     */
++    headless?: boolean;
+ };
+ export declare function CartesianChart<RawData extends Record<string, unknown>, XK extends keyof InputFields<RawData>, YK extends keyof NumericalFields<RawData>>({ transformState, children, ref, ...rest }: CartesianChartProps<RawData, XK, YK>): React.JSX.Element;
+ export {};
+diff --git a/node_modules/victory-native/dist/cartesian/CartesianChart.js b/node_modules/victory-native/dist/cartesian/CartesianChart.js
+index a3a842c..11f1772 100644
+--- a/node_modules/victory-native/dist/cartesian/CartesianChart.js
++++ b/node_modules/victory-native/dist/cartesian/CartesianChart.js
+@@ -71,18 +71,22 @@ function CartesianChart(_a) {
+     </CartesianTransformContext_1.CartesianTransformProvider>);
+ }
+ exports.CartesianChart = CartesianChart;
+-function CartesianChartContent({ data, xKey, yKeys, padding, domainPadding, children, renderOutside = () => null, axisOptions, domain, chartPressState, chartPressConfig, gestureHandlerConfig, onChartBoundsChange, onScaleChange, gestureLongPressDelay = 100, xAxis, yAxis, frame, transformState, transformConfig, customGestures, actionsRef, viewport, ref, }) {
++function CartesianChartContent({ data, xKey, yKeys, padding, domainPadding, children, renderOutside = () => null, axisOptions, domain, chartPressState, chartPressConfig, gestureHandlerConfig, onChartBoundsChange, onScaleChange, gestureLongPressDelay = 100, xAxis, yAxis, frame, transformState, transformConfig, customGestures, actionsRef, viewport, ref, explicitSize, headless, }) {
+     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
+-    const [size, setSize] = React.useState({ width: 0, height: 0 });
++    const [size, setSize] = React.useState(explicitSize !== null && explicitSize !== void 0 ? explicitSize : { width: 0, height: 0 });
+     const chartBoundsRef = React.useRef(undefined);
+     const xScaleRef = React.useRef(undefined);
+     const yScaleRef = React.useRef(undefined);
+     const canvasRef = React.useRef(null);
+-    const [hasMeasuredLayoutSize, setHasMeasuredLayoutSize] = React.useState(false);
++    const [hasMeasuredLayoutSize, setHasMeasuredLayoutSize] = React.useState(Boolean(explicitSize));
++    const isHeadless = Boolean(headless && explicitSize);
+     const onLayout = React.useCallback(({ nativeEvent: { layout } }) => {
++        if (explicitSize) {
++            return;
++        }
+         setHasMeasuredLayoutSize(true);
+         setSize(layout);
+-    }, []);
++    }, [explicitSize]);
+     const normalizedAxisProps = (0, useBuildChartAxis_1.useBuildChartAxis)({
+         xAxis,
+         yAxis,
+@@ -458,8 +462,7 @@ function CartesianChartContent({ data, xKey, yKeys, padding, domainPadding, chil
+         : null;
+     const XAxisComponents = hasMeasuredLayoutSize && (axisOptions || xAxis) ? (<XAxis_1.XAxis {...normalizedAxisProps.xAxis} xScale={xScale} yScale={zoomY.rescaleY(primaryYScale)} ix={_tData.ix} isNumericalData={isNumericalData} chartBounds={chartBounds} zoom={zoomX}/>) : null;
+     const FrameComponent = hasMeasuredLayoutSize && (axisOptions || frame) ? (<Frame_1.Frame {...normalizedAxisProps.frame} xScale={xScale} yScale={primaryYScale}/>) : null;
+-    // Body of the chart.
+-    const body = (<react_native_skia_1.Canvas ref={canvasRef} style={{ flex: 1 }}>
++    const chartContent = (<>
+       {YAxisComponents}
+       {XAxisComponents}
+       {FrameComponent}
+@@ -471,6 +474,9 @@ function CartesianChartContent({ data, xKey, yKeys, padding, domainPadding, chil
+         </react_native_skia_1.Group>
+       </CartesianChartContext_1.CartesianChartProvider>
+       {hasMeasuredLayoutSize && (renderOutside === null || renderOutside === void 0 ? void 0 : renderOutside(renderArg))}
++    </>);
++    const body = isHeadless ? (<react_native_skia_1.Group>{chartContent}</react_native_skia_1.Group>) : (<react_native_skia_1.Canvas ref={canvasRef} style={{ flex: 1 }}>
++      {chartContent}
+     </react_native_skia_1.Canvas>);
+     let composed = customGestures !== null && customGestures !== void 0 ? customGestures : react_native_gesture_handler_1.Gesture.Race();
+     if (transformState) {
+@@ -486,8 +492,11 @@ function CartesianChartContent({ data, xKey, yKeys, padding, domainPadding, chil
+     if (chartPressState) {
+         composed = react_native_gesture_handler_1.Gesture.Race(composed, panGesture);
+     }
++    if (isHeadless) {
++        return body;
++    }
+     return (<react_native_gesture_handler_1.GestureHandlerRootView>
+-      <react_native_1.View style={{ flex: 1, overflow: "hidden" }} onLayout={onLayout}>
++      <react_native_1.View style={{ flex: explicitSize ? undefined : 1, width: explicitSize === null || explicitSize === void 0 ? void 0 : explicitSize.width, height: explicitSize === null || explicitSize === void 0 ? void 0 : explicitSize.height, overflow: "hidden" }} onLayout={explicitSize ? undefined : onLayout}>
+         {body}
+         <GestureHandler_1.GestureHandler config={gestureHandlerConfig} gesture={composed} transformState={transformState} dimensions={{
+             x: Math.min(xScale.range()[0], 0),
+diff --git a/node_modules/victory-native/dist/index.d.ts b/node_modules/victory-native/dist/index.d.ts
+index 86ccba5..b590cc5 100644
+--- a/node_modules/victory-native/dist/index.d.ts
++++ b/node_modules/victory-native/dist/index.d.ts
+@@ -1,7 +1,7 @@
+ /**
+  * Cartesian chart exports (including useful types)
+  */
+-export { CartesianChart, type CartesianActionsHandle, type CartesianChartRef, } from "./cartesian/CartesianChart";
++export { CartesianChart, type CartesianActionsHandle, type CartesianChartExplicitSize, type CartesianChartRef, } from "./cartesian/CartesianChart";
+ export { type InputDatum, type CartesianChartRenderArg, type Viewport, type ChartBounds, type YAxisSide, type XAxisSide, type PointsArray, type Scale, type MaybeNumber, } from "./types";
+ export { type CurveType } from "./cartesian/utils/curves";
+ export { type RoundedCorners } from "./utils/createRoundedRectPath";
+diff --git a/node_modules/victory-native/src/cartesian/CartesianChart.tsx b/node_modules/victory-native/src/cartesian/CartesianChart.tsx
+index 9b82b54..f48b723 100644
+--- a/node_modules/victory-native/src/cartesian/CartesianChart.tsx
++++ b/node_modules/victory-native/src/cartesian/CartesianChart.tsx
+@@ -72,6 +72,11 @@ export type CartesianChartRef<T = undefined> = {
+   actions: CartesianActionsHandle<T>;
+ };
+ 
++export type CartesianChartExplicitSize = {
++  width: number;
++  height: number;
++};
++
+ type CartesianChartProps<
+   RawData extends Record<string, unknown>,
+   XK extends keyof InputFields<RawData>,
+@@ -130,6 +135,16 @@ type CartesianChartProps<
+       | undefined
+     >
+   >;
++  /**
++   * When provided, initializes chart dimensions without waiting for React Native
++   * `onLayout`. Required when using `headless`.
++   */
++  explicitSize?: CartesianChartExplicitSize;
++  /**
++   * When `true` (with `explicitSize`), renders a Skia-only subtree suitable for
++   * headless renderers that cannot mount React Native views.
++   */
++  headless?: boolean;
+ };
+ 
+ export function CartesianChart<
+@@ -180,8 +195,12 @@ function CartesianChartContent<
+   actionsRef,
+   viewport,
+   ref,
++  explicitSize,
++  headless,
+ }: CartesianChartProps<RawData, XK, YK>) {
+-  const [size, setSize] = React.useState({ width: 0, height: 0 });
++  const [size, setSize] = React.useState(
++    explicitSize ?? { width: 0, height: 0 },
++  );
+   const chartBoundsRef = React.useRef<ChartBounds | undefined>(undefined);
+   const xScaleRef = React.useRef<
+     ScaleLogarithmic<number, number> | ScaleLinear<number, number> | undefined
+@@ -191,14 +210,20 @@ function CartesianChartContent<
+     undefined,
+   );
+   const canvasRef = React.useRef<CanvasRef | null>(null);
+-  const [hasMeasuredLayoutSize, setHasMeasuredLayoutSize] =
+-    React.useState(false);
++  const [hasMeasuredLayoutSize, setHasMeasuredLayoutSize] = React.useState(
++    Boolean(explicitSize),
++  );
++  const isHeadless = Boolean(headless && explicitSize);
+   const onLayout = React.useCallback(
+     ({ nativeEvent: { layout } }: LayoutChangeEvent) => {
++      if (explicitSize) {
++        return;
++      }
++
+       setHasMeasuredLayoutSize(true);
+       setSize(layout);
+     },
+-    [],
++    [explicitSize],
+   );
+   const normalizedAxisProps = useBuildChartAxis({
+     xAxis,
+@@ -707,9 +732,8 @@ function CartesianChartContent<
+       />
+     ) : null;
+ 
+-  // Body of the chart.
+-  const body = (
+-    <Canvas ref={canvasRef} style={{ flex: 1 }}>
++  const chartContent = (
++    <>
+       {YAxisComponents}
+       {XAxisComponents}
+       {FrameComponent}
+@@ -721,6 +745,14 @@ function CartesianChartContent<
+         </Group>
+       </CartesianChartProvider>
+       {hasMeasuredLayoutSize && renderOutside?.(renderArg)}
++    </>
++  );
++
++  const body = isHeadless ? (
++    <Group>{chartContent}</Group>
++  ) : (
++    <Canvas ref={canvasRef} style={{ flex: 1 }}>
++      {chartContent}
+     </Canvas>
+   );
+ 
+@@ -748,9 +780,21 @@ function CartesianChartContent<
+     composed = Gesture.Race(composed, panGesture);
+   }
+ 
++  if (isHeadless) {
++    return body;
++  }
++
+   return (
+     <GestureHandlerRootView>
+-      <View style={{ flex: 1, overflow: "hidden" }} onLayout={onLayout}>
++      <View
++        style={{
++          flex: explicitSize ? undefined : 1,
++          width: explicitSize?.width,
++          height: explicitSize?.height,
++          overflow: "hidden",
++        }}
++        onLayout={explicitSize ? undefined : onLayout}
++      >
+         {body}
+         <GestureHandler
+           config={gestureHandlerConfig}
+diff --git a/node_modules/victory-native/src/index.ts b/node_modules/victory-native/src/index.ts
+index 3065639..e291087 100644
+--- a/node_modules/victory-native/src/index.ts
++++ b/node_modules/victory-native/src/index.ts
+@@ -4,6 +4,7 @@
+ export {
+   CartesianChart,
+   type CartesianActionsHandle,
++  type CartesianChartExplicitSize,
+   type CartesianChartRef,
+ } from "./cartesian/CartesianChart";
+ 

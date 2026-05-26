@@ -273,6 +273,7 @@
     "@types/mime-db": "^1.43.5",
     "@types/node": "^20.11.5",
     "@types/pako": "^2.0.3",
+    "@types/pngjs": "^6.0.5",
     "@types/pusher-js": "^5.1.0",
     "@types/react": "^19.2.0",
     "@types/react-collapse": "^5.0.1",
@@ -336,6 +337,8 @@
     "openai": "^6.16.0",
     "patch-package": "^8.1.0-canary.1",
     "peggy": "^4.0.3",
+    "pixelmatch": "^7.2.0",
+    "pngjs": "^7.0.0",
     "portfinder": "^1.0.34",
     "prettier": "3.7.4",
     "react-native-clean-project": "^4.0.0-alpha4.0",
@@ -421,6 +424,9 @@
       "expo": "55.0.25"
     }
   },
+  "trustedDependencies": [
+    "@shopify/react-native-skia"
+  ],
   "expo": {
     "autolinking": {
       "exclude": [
