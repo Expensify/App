@@ -39,18 +39,6 @@ Gusto syncs all employees to **one** Expensify workspace. If your company uses m
 5. When prompted, enter your Gusto admin credentials and authorize Expensify to access your Gusto account.
 6. Wait for the sync to complete and for the message **Successfully synced your Gusto connection** to appear.
 
-<!-- SCREENSHOT:
-Suggestion: The HR tab showing Gusto as an available integration with the Connect button
-Location: After step 6
-Purpose: Helps admins identify where to find the Gusto connection option
--->
-
-<!-- SCREENSHOT:
-Suggestion: The sync results panel showing employees added, removed, and skipped
-Location: After step 6
-Purpose: Shows admins what to expect after a successful sync
--->
-
 ---
 
 ## What happens after you connect Gusto to Expensify
