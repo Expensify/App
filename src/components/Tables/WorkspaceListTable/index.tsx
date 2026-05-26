@@ -2,7 +2,7 @@ import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
 import type {ValueOf} from 'type-fest';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
+import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Table from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -17,11 +17,9 @@ import WorkspaceRow from './WorkspaceTableRow';
 
 type WorkspaceTableColumnKey = 'workspaces' | 'owner' | 'type' | 'actions';
 
-type WorkspaceRowData = {
-    keyForList: string;
+type WorkspaceRowData = TableData & {
     title: string;
     icon: AvatarSource;
-    disabled: boolean;
     isDefault: boolean;
     isDeleted: boolean;
     isLoadingBill: boolean;

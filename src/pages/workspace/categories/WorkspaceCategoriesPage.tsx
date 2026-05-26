@@ -232,15 +232,19 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     );
 
     const categories = Object.values(policyCategories ?? {});
-    const categoryApproverEmails: Record<string, string> = {};
 
-    for (const category of categories) {
-        const approverEmail = getCategoryApproverRule(policy?.rules?.approvalRules ?? [], category.name)?.approver;
+    const categoryApproverEmails = useMemo(() => {
+        const approverEmails: Record<string, string> = {};
 
-        if (approverEmail) {
-            categoryApproverEmails[category.name] = approverEmail;
+        for (const category of categories) {
+            const approverEmail = getCategoryApproverRule(policy?.rules?.approvalRules ?? [], category.name)?.approver;
+
+            if (approverEmail) {
+                approverEmails[category.name] = approverEmail;
+            }
         }
-    }
+        return approverEmails;
+    }, [categories, policy?.rules?.approvalRules]);
 
     const shouldShowApproverColumn = isControlPolicyWithWideLayout && !!policy?.areRulesEnabled && Object.keys(categoryApproverEmails).length > 0;
 
@@ -275,12 +279,12 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
             return acc;
         }, []);
-    }, [policyCategories, isOffline, shouldShowApproverColumn, policy?.rules?.approvalRules, navigateToCategory, handleCategoryToggle, policyId]);
+    }, [categories, isOffline, shouldShowApproverColumn, categoryApproverEmails, navigateToCategory, handleCategoryToggle, policyId, policyCategories]);
 
     useAutoTurnSelectionModeOffWhenHasNoActiveOption(categoryRows);
 
-    const handleCategorySelectionChange = (categories: WorkspaceCategoryTableRowData[]) => {
-        setSelectedCategoryKeys(categories.map((category) => category.keyForList));
+    const handleCategorySelectionChange = (selectedCategories: WorkspaceCategoryTableRowData[]) => {
+        setSelectedCategoryKeys(selectedCategories.map((category) => category.keyForList));
     };
 
     const navigateToCategoriesSettings = useCallback(() => {
@@ -391,7 +395,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
-    // eslint-disable react-hooks/refs
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
         const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
