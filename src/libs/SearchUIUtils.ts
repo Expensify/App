@@ -592,6 +592,7 @@ type GetSectionsParams = {
     isActionLoadingSet?: ReadonlySet<string>;
     isOffline?: boolean;
     cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>;
+    cardList?: OnyxEntry<OnyxTypes.CardList>;
     customCardNames?: Record<number, string>;
     allTransactionViolations?: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     visibleReportActionsData?: OnyxTypes.VisibleReportActionsDerivedValue;
@@ -3085,6 +3086,7 @@ function getCardSections(
     translate: LocalizedTranslate,
     cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>,
     customCardNames?: Record<number, string>,
+    cardList?: OnyxEntry<OnyxTypes.CardList>,
 ): [TransactionCardGroupListItemType[], number, boolean] {
     const cardSections: Record<string, TransactionCardGroupListItemType> = {};
     const cardDescriptionByCardID = new Map<number, string>();
@@ -3128,7 +3130,18 @@ function getCardSections(
                 ...personalDetails,
                 ...cardGroup,
                 formattedCardName,
-                formattedFeedName: getFeedNameForDisplay(translate, cardGroup.bank as OnyxTypes.CompanyCardFeed, cardFeeds, undefined, true, cardGroup?.feedCountry),
+                formattedFeedName: getFeedNameForDisplay(
+                    translate,
+                    cardGroup.bank as OnyxTypes.CompanyCardFeed,
+                    cardFeeds,
+                    cardList?.[cardGroup.cardID]?.fundID
+                        ? cardFeeds?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${cardList[cardGroup.cardID].fundID}`]?.settings?.companyCardNicknames?.[
+                              cardGroup.bank as OnyxTypes.CompanyCardFeed
+                          ]
+                        : undefined,
+                    true,
+                    cardGroup?.feedCountry,
+                ),
                 keyForList: key,
             };
         }
@@ -3472,6 +3485,7 @@ function getSections({
     isActionLoadingSet,
     isOffline,
     cardFeeds,
+    cardList,
     customCardNames,
     allTransactionViolations,
     visibleReportActionsData,
@@ -3518,7 +3532,7 @@ function getSections({
             case CONST.SEARCH.GROUP_BY.FROM:
                 return getMemberSections(data, queryJSON, formatPhoneNumber);
             case CONST.SEARCH.GROUP_BY.CARD:
-                return getCardSections(data, queryJSON, translate, cardFeeds, customCardNames);
+                return getCardSections(data, queryJSON, translate, cardFeeds, customCardNames, cardList);
             case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
                 return getWithdrawalIDSections(data, queryJSON);
             case CONST.SEARCH.GROUP_BY.CATEGORY:
