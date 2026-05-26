@@ -125,6 +125,7 @@ type ProcessNodeResult = {
     domainPadding: CartesianChartProps['domainPadding'];
     padding: CartesianChartProps['padding'];
     isHorizontal: boolean | undefined;
+    categories: string[] | undefined;
     labelItems: LabelItem[];
     legendItems: LegendItem[];
 };

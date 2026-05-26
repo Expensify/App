@@ -18,6 +18,7 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
     let domainPadding: ProcessNodeResult['domainPadding'];
     let padding: ProcessNodeResult['padding'];
     let isHorizontal: ProcessNodeResult['isHorizontal'];
+    let categories: ProcessNodeResult['categories'];
     const labelItems: ProcessNodeResult['labelItems'] = [];
     const legendItems: ProcessNodeResult['legendItems'] = [];
 
@@ -48,6 +49,9 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
         if (result.isHorizontal) {
             isHorizontal = result.isHorizontal;
         }
+        if (result.categories) {
+            categories = result.categories;
+        }
         if (result.labelItems) {
             labelItems.push(...result.labelItems);
         }
@@ -57,7 +61,7 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
     }
 
     // If we have `rootProcessedResult` then forward it as it, otherwise we must be the root so pass the data that we just built
-    const rootProcessedNodeResult = rootProcessedResult ?? {data, xKey: X_KEY, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, labelItems, legendItems};
+    const rootProcessedNodeResult = rootProcessedResult ?? {data, xKey: X_KEY, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, categories, labelItems, legendItems};
 
     for (const child of tnode.children) {
         const childResult = processVictoryChartTree(child, typeface, rootProcessedNodeResult);
@@ -81,11 +85,14 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
         if (childResult.isHorizontal) {
             isHorizontal = childResult.isHorizontal;
         }
+        if (childResult.categories) {
+            categories = childResult.categories;
+        }
         labelItems.push(...childResult.labelItems);
         legendItems.push(...childResult.legendItems);
     }
 
-    return {data, xKey: X_KEY, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, labelItems, legendItems};
+    return {data, xKey: X_KEY, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, categories, labelItems, legendItems};
 }
 
 export default processVictoryChartTree;

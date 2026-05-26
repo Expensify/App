@@ -1,6 +1,7 @@
+import type {SkTypeface} from '@shopify/react-native-skia';
 import type {TNode} from 'react-native-render-html';
 import {X_KEY} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
-import type {CartesianChartData, PartialProcessNodeResult, RawChartData} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+import type {CartesianChartData, PartialProcessNodeResult, ProcessNodeResult, RawChartData} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import getYKey from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getYKey';
 import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 
@@ -8,16 +9,26 @@ import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/Victory
  * Parse data points from a `<victorybar>` or `<victoryline>` node.
  * Both series types share the same data structure: an array of {x, y} points.
  */
-function parseVictorySeriesNode(tnode: TNode): PartialProcessNodeResult {
+function parseVictorySeriesNode(tnode: TNode, typeface: SkTypeface | null, rootProcessedResult: ProcessNodeResult | null): PartialProcessNodeResult {
+    const isHorizontal = rootProcessedResult?.isHorizontal;
+    const categories = rootProcessedResult?.categories;
     const points = parseAttribute<RawChartData[]>(tnode.attributes.data) ?? [];
     const yKey = getYKey(tnode);
     const data: Record<string, CartesianChartData> = {};
     for (const point of points) {
-        data[point.x] = {
-            [X_KEY]: point.x,
-            [yKey]: point.y,
-        } as CartesianChartData;
+        if (isHorizontal) {
+            data[point.y] = {
+                [X_KEY]: point.y,
+                [yKey]: typeof point.x === 'number' ? point.x : categories?.indexOf(point.x),
+            } as CartesianChartData;
+        } else {
+            data[point.x] = {
+                [X_KEY]: point.x,
+                [yKey]: point.y,
+            } as CartesianChartData;
+        }
     }
+    console.log({data});
     return {data, yKeys: [yKey]};
 }
 

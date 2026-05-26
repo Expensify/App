@@ -17,6 +17,7 @@ type VictoryChartContextValue = {
     domainPadding: ProcessNodeResult['domainPadding'];
     padding: ProcessNodeResult['padding'];
     isHorizontal: ProcessNodeResult['isHorizontal'];
+    categories: ProcessNodeResult['categories'];
     labelItems: ProcessNodeResult['labelItems'];
     legendItems: ProcessNodeResult['legendItems'];
     chartContentStyles: ReturnType<typeof parseStyles>['nodeStyles'];
@@ -32,7 +33,7 @@ const VictoryChartContext = createContext<VictoryChartContextValue | null>(null)
  */
 function VictoryChartProvider({tnode, children}: {tnode: TNode; children: React.ReactNode}) {
     const {regular: regularTypeface} = useChartDefaultTypeface();
-    const {data, xKey, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, labelItems, legendItems} = processVictoryChartTree(tnode, regularTypeface, null);
+    const {data, xKey, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, categories, labelItems, legendItems} = processVictoryChartTree(tnode, regularTypeface, null);
     const {nodeStyles: chartContentStyles, parentNodeStyles: chartContainerStyles} = parseStyles(tnode);
 
     const hasCartesianData = Object.keys(data).length > 0;
@@ -63,6 +64,7 @@ function VictoryChartProvider({tnode, children}: {tnode: TNode; children: React.
         domainPadding,
         padding,
         isHorizontal,
+        categories,
         labelItems,
         legendItems,
         chartContentStyles,
