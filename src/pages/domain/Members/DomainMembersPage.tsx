@@ -333,7 +333,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                                 ctaText={translate('domain.verifyDomain.title')}
                                 ctaAccessibilityLabel={translate('domain.verifyDomain.title')}
                                 onCtaPress={() => {
-                                    Navigation.navigate(ROUTES.DOMAIN_VERIFY.getRoute(domainAccountID));
+                                    Navigation.navigate(ROUTES.DOMAIN_MEMBERS_VERIFY.getRoute(domainAccountID));
                                 }}
                                 illustrationBackgroundColor={colors.ice800}
                                 illustration={illustrations.LaptopWithMembers}

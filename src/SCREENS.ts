@@ -1046,8 +1046,10 @@ const SCREENS = {
     WORKSPACES_DOMAIN_ADDED: 'Workspaces_Domain_Added',
     WORKSPACES_DOMAIN_ACCESS_RESTRICTED: 'Workspaces_Domain_Access_Restricted',
     DOMAIN: {
-        VERIFY: 'Domain_Verify',
-        VERIFIED: 'Domain_Verified',
+        SAML_VERIFY: 'Domain_SAML_Verify',
+        SAML_VERIFIED: 'Domain_SAML_Verified',
+        MEMBERS_VERIFY: 'Domain_Members_Verify',
+        MEMBERS_VERIFIED: 'Domain_Members_Verified',
         INITIAL: 'Domain_Initial',
         SAML: 'Domain_SAML',
         ADMINS: 'Domain_Admins',

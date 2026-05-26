@@ -1364,14 +1364,20 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.TIME_TRACKING_DEFAULT_RATE]: {
                             path: ROUTES.WORKSPACE_TIME_TRACKING_DEFAULT_RATE.route,
                         },
-                        [SCREENS.DOMAIN.VERIFY]: {
-                            path: ROUTES.DOMAIN_VERIFY.route,
+                        [SCREENS.DOMAIN.SAML_VERIFY]: {
+                            path: ROUTES.DOMAIN_SAML_VERIFY.route,
+                        },
+                        [SCREENS.DOMAIN.SAML_VERIFIED]: {
+                            path: ROUTES.DOMAIN_SAML_VERIFIED.route,
+                        },
+                        [SCREENS.DOMAIN.MEMBERS_VERIFY]: {
+                            path: ROUTES.DOMAIN_MEMBERS_VERIFY.route,
+                        },
+                        [SCREENS.DOMAIN.MEMBERS_VERIFIED]: {
+                            path: ROUTES.DOMAIN_MEMBERS_VERIFIED.route,
                         },
                         [SCREENS.DOMAIN.ADD_ADMIN]: {
                             path: ROUTES.DOMAIN_ADD_ADMIN.route,
-                        },
-                        [SCREENS.DOMAIN.VERIFIED]: {
-                            path: ROUTES.DOMAIN_VERIFIED.route,
                         },
                         [SCREENS.DOMAIN.ADMIN_DETAILS]: {
                             path: ROUTES.DOMAIN_ADMIN_DETAILS.route,

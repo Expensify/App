@@ -1564,10 +1564,16 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.TIME_TRACKING_DEFAULT_RATE]: {
         policyID: string;
     };
-    [SCREENS.DOMAIN.VERIFY]: {
+    [SCREENS.DOMAIN.SAML_VERIFY]: {
         domainAccountID: number;
     };
-    [SCREENS.DOMAIN.VERIFIED]: {
+    [SCREENS.DOMAIN.SAML_VERIFIED]: {
+        domainAccountID: number;
+    };
+    [SCREENS.DOMAIN.MEMBERS_VERIFY]: {
+        domainAccountID: number;
+    };
+    [SCREENS.DOMAIN.MEMBERS_VERIFIED]: {
         domainAccountID: number;
     };
     [SCREENS.DOMAIN.ADMIN_DETAILS]: {

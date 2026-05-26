@@ -64,18 +64,18 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
     }, [domainAccountID, domain?.hasValidationSucceeded, forwardTo]);
 
     useEffect(() => {
-        if (!doesDomainExist) {
+        if (!doesDomainExist || domain?.validated) {
             return;
         }
         getDomainValidationCode(domainAccountID, domainName);
-    }, [domainAccountID, domainName, doesDomainExist]);
+    }, [domainAccountID, domainName, doesDomainExist, domain?.validated]);
 
     useEffect(() => {
-        if (!doesDomainExist) {
+        if (!doesDomainExist || domain?.validated) {
             return;
         }
         resetDomainValidationError(domainAccountID);
-    }, [domainAccountID, doesDomainExist]);
+    }, [domainAccountID, doesDomainExist, domain?.validated]);
 
     const isLoadingDomain = isLoadingOnyxValue(domainMetadata);
     if (isLoadingDomain) {
@@ -88,6 +88,15 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
 
     if (!domain) {
         return <NotFoundPage onLinkPress={() => Navigation.dismissModal()} />;
+    }
+
+    if (domain.validated) {
+        return (
+            <NotFoundPage
+                onLinkPress={() => Navigation.dismissModal()}
+                shouldForceFullScreen
+            />
+        );
     }
 
     return (

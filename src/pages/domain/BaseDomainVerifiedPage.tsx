@@ -26,9 +26,12 @@ type BaseDomainVerifiedPageProps = {
 
     /** Route to redirect to when trying to access the page for an unverified domain */
     redirectTo: Route;
+
+    /** Route to navigate to when the user confirms verification success */
+    confirmDestination?: Route;
 };
 
-function BaseDomainVerifiedPage({domainAccountID, redirectTo}: BaseDomainVerifiedPageProps) {
+function BaseDomainVerifiedPage({domainAccountID, redirectTo, confirmDestination = ROUTES.DOMAIN_INITIAL.getRoute(domainAccountID)}: BaseDomainVerifiedPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -37,12 +40,14 @@ function BaseDomainVerifiedPage({domainAccountID, redirectTo}: BaseDomainVerifie
     const isAdmin = isAdminSelector(currentUserAccountID)(domain);
     const doesDomainExist = !!domain;
 
+    const isDomainVerified = domain?.validated || domain?.hasValidationSucceeded;
+
     useEffect(() => {
-        if (!doesDomainExist || domain?.validated) {
+        if (!doesDomainExist || isDomainVerified) {
             return;
         }
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(redirectTo, {forceReplace: true}));
-    }, [domainAccountID, domain?.validated, doesDomainExist, redirectTo]);
+    }, [domainAccountID, isDomainVerified, doesDomainExist, redirectTo]);
 
     if (isLoadingOnyxValue(domainMetadata)) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {
@@ -73,7 +78,7 @@ function BaseDomainVerifiedPage({domainAccountID, redirectTo}: BaseDomainVerifie
                 innerContainerStyle={styles.p10}
                 buttonText={translate('common.buttonConfirm')}
                 shouldShowButton
-                onButtonPress={() => Navigation.navigate(ROUTES.DOMAIN_INITIAL.getRoute(domainAccountID))}
+                onButtonPress={() => Navigation.navigate(confirmDestination)}
             />
         </ScreenWrapper>
     );

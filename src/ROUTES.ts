@@ -4006,13 +4006,21 @@ const ROUTES = {
         route: 'domain/:domainAccountID/saml',
         getRoute: (domainAccountID: number) => `domain/${domainAccountID}/saml` as const,
     },
-    DOMAIN_VERIFY: {
-        route: 'domain/:domainAccountID/verify',
-        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/verify` as const,
+    DOMAIN_SAML_VERIFY: {
+        route: 'domain/:domainAccountID/saml/verify',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/saml/verify` as const,
     },
-    DOMAIN_VERIFIED: {
-        route: 'domain/:domainAccountID/verified',
-        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/verified` as const,
+    DOMAIN_SAML_VERIFIED: {
+        route: 'domain/:domainAccountID/saml/verified',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/saml/verified` as const,
+    },
+    DOMAIN_MEMBERS_VERIFY: {
+        route: 'domain/:domainAccountID/members/verify',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/members/verify` as const,
+    },
+    DOMAIN_MEMBERS_VERIFIED: {
+        route: 'domain/:domainAccountID/members/verified',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/members/verified` as const,
     },
     DOMAIN_ADMINS: {
         route: 'domain/:domainAccountID/admins',
