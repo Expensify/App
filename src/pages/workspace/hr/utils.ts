@@ -115,7 +115,7 @@ function getHRSyncState(
         isSyncInProgress,
         isInitialSyncInProgress: undefined,
         hasError: hasSynchronizationErrorMessage(policy, connectionName, isSyncInProgress),
-        syncStageInProgress: isSyncInProgress && syncProgress?.stageInProgress ? syncProgress.stageInProgress : undefined,
+        syncStageInProgress: isSyncInProgress ? syncProgress?.stageInProgress : undefined,
         successfulDate: getIntegrationLastSuccessfulDate(getLocalDateFromDatetime, connection, syncProgress),
     };
 }
@@ -128,7 +128,7 @@ function getHRCardState({policy, connectionName, connectionSyncProgress, getLoca
     const syncState =
         connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR ? getMergeHRSyncState(policy) : getHRSyncState(policy, connectionName, connectionSyncProgress, getLocalDateFromDatetime);
 
-    const lastSyncErrorMessage = syncState.hasError ? (policy?.connections?.[connectionName]?.lastSync?.errorMessage ?? undefined) : undefined;
+    const lastSyncErrorMessage = syncState.hasError ? policy?.connections?.[connectionName]?.lastSync?.errorMessage : undefined;
 
     return {
         isConnected,
