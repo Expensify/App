@@ -28,6 +28,9 @@ type ReportActionItemEmojiReactionsProps = {
     /** The ID of the chat report this action belongs to */
     reportID: string | undefined;
 
+    /** True when this message is edited inline on a wide layout; right-aligns the reaction row under the composer. */
+    isEditingInline: boolean;
+
     /** We disable reacting with emojis on report actions that have errors */
     shouldBlockReactions?: boolean;
 
@@ -61,7 +64,7 @@ type FormattedReaction = {
     pendingAction?: PendingAction;
 };
 
-function ReportActionItemEmojiReactions({reportAction, reportID, shouldBlockReactions = false, setIsEmojiPickerActive}: ReportActionItemEmojiReactionsProps) {
+function ReportActionItemEmojiReactions({reportAction, reportID, isEditingInline, shouldBlockReactions = false, setIsEmojiPickerActive}: ReportActionItemEmojiReactionsProps) {
     const styles = useThemeStyles();
     const {preferredLocale} = useLocalize();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -117,8 +120,14 @@ function ReportActionItemEmojiReactions({reportAction, reportID, shouldBlockReac
 
     const totalReactionCount = formattedReactions.reduce((prev, curr) => (curr === null ? prev : prev + curr.reactionCount), 0);
 
+    if (totalReactionCount === 0) {
+        return null;
+    }
+
+    const wrapperStyle = isEditingInline ? styles.chatItemReactionsDraftRight : {};
+
     return (
-        totalReactionCount > 0 && (
+        <View style={wrapperStyle}>
             <View style={[styles.flexRow, styles.flexWrap, styles.gap1, styles.mt2]}>
                 {formattedReactions.map((reaction) => {
                     if (reaction === null) {
@@ -150,7 +159,7 @@ function ReportActionItemEmojiReactions({reportAction, reportID, shouldBlockReac
                     />
                 )}
             </View>
-        )
+        </View>
     );
 }
 

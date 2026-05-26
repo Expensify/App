@@ -69,7 +69,7 @@ type AmountFormProps = {
 
     /** Callback when the input is focused */
     onFocus?: () => void;
-} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'autoGrowMarginSide'>;
+} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'autoGrowMarginSide' | 'onBlur'>;
 
 /**
  * Wrapper around NumberWithSymbolForm with currency handling.
@@ -95,6 +95,7 @@ function AmountForm({
     autoGrowMarginSide,
     onSubmitEditing,
     onFocus,
+    onBlur,
     ref,
     numberFormRef,
 }: AmountFormProps) {
@@ -139,6 +140,7 @@ function AmountForm({
             onSubmitEditing={onSubmitEditing}
             disabled={disabled}
             onFocus={onFocus}
+            onBlur={onBlur}
         />
     );
 }

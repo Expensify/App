@@ -27,7 +27,7 @@ import {addErrorMessage} from '@libs/ErrorUtils';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import Navigation from '@libs/Navigation/Navigation';
 import {AddWorkEmail} from '@userActions/Session';
-import {setOnboardingErrorMessage, setOnboardingMergeAccountStepValue} from '@userActions/Welcome';
+import {addWorkEmailFormError, clearWorkEmailFormErrors, setOnboardingErrorMessage, setOnboardingMergeAccountStepValue} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import Log from '@src/libs/Log';
@@ -52,7 +52,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [formValue] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM);
     const workEmail = formValue?.[INPUT_IDS.ONBOARDING_WORK_EMAIL];
-    const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY);
+    const [onboardingErrorMessageTranslationKey] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY);
     const isVsb = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
@@ -100,6 +100,29 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
 
     const submitWorkEmail = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
         AddWorkEmail(values[INPUT_IDS.ONBOARDING_WORK_EMAIL].trim());
+    }, []);
+
+    useEffect(() => {
+        if (!onboardingErrorMessageTranslationKey) {
+            clearWorkEmailFormErrors();
+            return;
+        }
+
+        addWorkEmailFormError(translate(onboardingErrorMessageTranslationKey));
+    }, [onboardingErrorMessageTranslationKey, translate]);
+
+    const clearOnboardingErrorMessage = useCallback(() => {
+        if (!onboardingErrorMessageTranslationKey) {
+            return;
+        }
+        setOnboardingErrorMessage(null);
+    }, [onboardingErrorMessageTranslationKey]);
+
+    const shouldRenderOfflineFeedback = useCallback((errorTranslation: string) => {
+        if (errorTranslation !== 'onboarding.workEmail2FAError' && errorTranslation !== 'onboarding.mergeBlockScreen.workAccountClosedSubtitle') {
+            return true;
+        }
+        return false;
     }, []);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
@@ -182,7 +205,11 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                         <OfflineWithFeedback
                             shouldDisplayErrorAbove
                             style={styles.mb3}
-                            errors={onboardingErrorMessage ? {addWorkEmailError: translate(onboardingErrorMessage)} : undefined}
+                            errors={
+                                onboardingErrorMessageTranslationKey && shouldRenderOfflineFeedback(onboardingErrorMessageTranslationKey)
+                                    ? {addWorkEmailError: translate(onboardingErrorMessageTranslationKey)}
+                                    : undefined
+                            }
                             errorRowStyles={[styles.mt2, styles.textWrap]}
                             onClose={() => setOnboardingErrorMessage(null)}
                         >
@@ -260,6 +287,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                             maxLength={CONST.LOGIN_CHARACTER_LIMIT}
                             spellCheck={false}
                             autoComplete="email"
+                            onValueChange={clearOnboardingErrorMessage}
                         />
                     </View>
                 </FormProvider>
