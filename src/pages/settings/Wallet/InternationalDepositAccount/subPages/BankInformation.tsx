@@ -9,6 +9,7 @@ import ValuePicker from '@components/ValuePicker';
 import useInternationalBankAccountFormSubmit from '@hooks/useInternationalBankAccountFormSubmit';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getTextInputAutocorrectProps from '@libs/getTextInputAutocorrectProps';
 import type CustomSubPageProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
 import {getValidationErrors} from '@pages/settings/Wallet/InternationalDepositAccount/utils';
 import Text from '@src/components/Text';
@@ -109,10 +110,7 @@ function BankInformation({isEditing, onNext, formValues, fieldsMap}: CustomSubPa
                                         lng: '',
                                     }}
                                     forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                                    autoCorrect={InputComponent === TextInput ? false : undefined}
-                                    spellCheck={InputComponent === TextInput ? false : undefined}
-                                    autoComplete={InputComponent === TextInput ? 'off' : undefined}
-                                    autoCapitalize={InputComponent === TextInput ? 'none' : undefined}
+                                    {...getTextInputAutocorrectProps(InputComponent)}
                                 />
                             </View>
                         );

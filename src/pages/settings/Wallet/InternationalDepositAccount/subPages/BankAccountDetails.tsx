@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getTextInputAutocorrectProps from '@libs/getTextInputAutocorrectProps';
 import type CustomSubPageProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
 import {getValidationErrors} from '@pages/settings/Wallet/InternationalDepositAccount/utils';
 import {fetchCorpayFields} from '@userActions/BankAccounts';
@@ -96,10 +97,7 @@ function BankAccountDetails({isEditing, onNext, onMove, formValues, fieldsMap}: 
                                 items={(field.valueSet ?? []).map(({id, text}) => ({value: id, label: text}))}
                                 shouldSaveDraft={!isEditing}
                                 forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                                autoCorrect={!isValuePicker ? false : undefined}
-                                spellCheck={!isValuePicker ? false : undefined}
-                                autoComplete={!isValuePicker ? 'off' : undefined}
-                                autoCapitalize={!isValuePicker ? 'none' : undefined}
+                                {...getTextInputAutocorrectProps(isValuePicker ? ValuePicker : TextInput)}
                             />
                         </View>
                     );

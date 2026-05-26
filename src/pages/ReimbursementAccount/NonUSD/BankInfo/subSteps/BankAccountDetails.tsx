@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getTextInputAutocorrectProps from '@libs/getTextInputAutocorrectProps';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type BankInfoSubStepProps from '@pages/ReimbursementAccount/NonUSD/BankInfo/types';
 import {getBankInfoStepValues} from '@pages/ReimbursementAccount/NonUSD/utils/getBankInfoStepValues';
@@ -107,10 +108,7 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
                         country: '',
                     }}
                     forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                    autoCorrect={InputComponent === TextInput ? false : undefined}
-                    spellCheck={InputComponent === TextInput ? false : undefined}
-                    autoComplete={InputComponent === TextInput ? 'off' : undefined}
-                    autoCapitalize={InputComponent === TextInput ? 'none' : undefined}
+                    {...getTextInputAutocorrectProps(InputComponent)}
                 />
             </View>
         );
