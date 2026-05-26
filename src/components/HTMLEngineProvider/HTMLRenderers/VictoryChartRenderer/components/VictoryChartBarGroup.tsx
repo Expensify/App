@@ -7,6 +7,7 @@ import {useVictoryChartRenderArgs} from '@components/HTMLEngineProvider/HTMLRend
 import getYKey from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getYKey';
 import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 import parseCornerRadius from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseCornerRadius';
+import parseOffset from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseOffset';
 import parseStyles from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseStyles';
 
 type VictoryCharBarGroupProps = {
@@ -14,19 +15,26 @@ type VictoryCharBarGroupProps = {
     isHorizontal?: boolean;
 };
 
-const BAR_BETWEEN_GROUP_PADDING = 2 / 3;
-const BAR_WITHIN_GROUP_PADDING = BAR_INNER_PADDING;
-
 function VictoryCharBarGroup({tnode, isHorizontal}: VictoryCharBarGroupProps) {
     const {points, chartBounds} = useVictoryChartRenderArgs();
     const barChildren = tnode.children.filter((child) => child.tagName === 'victorybar');
+    const firstBarChild = barChildren.at(0);
+
+    if (!firstBarChild) {
+        return null;
+    }
+
+    const roundedCorners = parseCornerRadius(firstBarChild?.attributes?.cornerradius ?? '');
+    const barWidth = Number(parseAttribute(firstBarChild.attributes?.barwidth ?? ''));
+    const betweenGroupPadding = parseOffset(tnode.attributes.offset, chartBounds, barChildren.length, barWidth, points[getYKey(firstBarChild)].length, isHorizontal ?? false);
+
     return (
         <BarGroup
             chartBounds={chartBounds}
-            betweenGroupPadding={BAR_BETWEEN_GROUP_PADDING}
-            withinGroupPadding={BAR_WITHIN_GROUP_PADDING}
-            roundedCorners={parseCornerRadius(barChildren.at(0)?.attributes?.cornerradius ?? '')}
-            barWidth={parseAttribute(barChildren.at(0)?.attributes?.barwidth ?? '')}
+            betweenGroupPadding={betweenGroupPadding}
+            withinGroupPadding={BAR_INNER_PADDING}
+            roundedCorners={roundedCorners}
+            barWidth={barWidth}
             isHorizontal={isHorizontal}
         >
             {barChildren.map((child) => {
