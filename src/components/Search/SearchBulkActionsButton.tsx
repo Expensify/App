@@ -149,7 +149,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                             <ButtonWithDropdownMenu
                                 buttonRef={buttonRef}
                                 options={headerButtonsOptions}
-                                customText={translate('workspace.common.selected', {count: selectedItemsCount})}
+                                customText={selectionButtonText}
                                 shouldAlwaysShowDropdownMenu
                                 isDisabled={headerButtonsOptions.length === 0}
                                 onPress={() => null}
