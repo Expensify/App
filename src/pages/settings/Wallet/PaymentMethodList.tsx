@@ -1,6 +1,7 @@
 import {isUserValidatedSelector} from '@selectors/Account';
 import {createPoliciesForDomainCardsSelector} from '@selectors/Policy';
 import {FlashList} from '@shopify/flash-list';
+import {format, parseISO} from 'date-fns';
 import lodashSortBy from 'lodash/sortBy';
 import type {ReactElement} from 'react';
 import React from 'react';
@@ -266,14 +267,19 @@ function PaymentMethodList({
                     const isCSVImportCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD;
                     let cardTitle = isCSVImportCard ? (card.nameValuePairs?.cardTitle ?? card.cardName) : maskCardNumber(card.cardName, card.bank);
                     const pressHandler = onPress as CardPressHandler;
+                    const lastScrapeText = card.lastScrape ? translate('walletPage.lastSynced', format(parseISO(card.lastScrape), CONST.DATE.FNS_FORMAT_STRING)) : '';
                     let cardDescription;
                     if (isUserPersonalCard) {
                         cardTitle = customCardNames?.[card.cardID] ?? cardTitle;
-                        cardDescription = lastFourPAN;
+                        cardDescription = lastScrapeText ? `${lastFourPAN} ${CONST.DOT_SEPARATOR} ${lastScrapeText}` : lastFourPAN;
                     } else if (lastFourPAN) {
-                        cardDescription = `${lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName, policiesForAssignedCards)}`;
+                        const domainDesc = getDescriptionForPolicyDomainCard(card.domainName, policiesForAssignedCards);
+                        cardDescription = lastScrapeText
+                            ? `${lastFourPAN} ${CONST.DOT_SEPARATOR} ${domainDesc} ${CONST.DOT_SEPARATOR} ${lastScrapeText}`
+                            : `${lastFourPAN} ${CONST.DOT_SEPARATOR} ${domainDesc}`;
                     } else {
-                        cardDescription = getDescriptionForPolicyDomainCard(card.domainName, policiesForAssignedCards);
+                        const domainDesc = getDescriptionForPolicyDomainCard(card.domainName, policiesForAssignedCards);
+                        cardDescription = lastScrapeText ? `${domainDesc} ${CONST.DOT_SEPARATOR} ${lastScrapeText}` : domainDesc;
                     }
                     // Personal cards (including CSV imported) navigate to the personal card details page
                     // Company cards use the pressHandler callback (for 3-dot menu behavior)

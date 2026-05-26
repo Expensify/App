@@ -333,10 +333,16 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
         const getBadgeText = (accountState: string | undefined) => {
             switch (accountState) {
+                case CONST.BANK_ACCOUNT.STATE.OPEN:
+                    return translate('walletPage.bankAccountStatus.active');
                 case CONST.BANK_ACCOUNT.STATE.SETUP:
-                    return translate('common.actionRequired');
+                    return translate('walletPage.bankAccountStatus.incomplete');
+                case CONST.BANK_ACCOUNT.STATE.PENDING:
+                    return translate('walletPage.bankAccountStatus.pending');
+                case CONST.BANK_ACCOUNT.STATE.VERIFYING:
+                    return translate('walletPage.bankAccountStatus.verifying');
                 case CONST.BANK_ACCOUNT.STATE.LOCKED:
-                    return translate('common.locked');
+                    return translate('walletPage.bankAccountStatus.locked');
                 default:
                     return undefined;
             }
@@ -569,7 +575,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                     badgeText={getBadgeText(accountData?.state)}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BANK_ACCOUNT}
                                     badgeIcon={isAccountInSetupState || (isBusinessBankAccountLocked && isPolicyAdmin) ? expensifyIcons.DotIndicator : undefined}
-                                    isBadgeSuccess={isAccountInSetupState}
+                                    isBadgeSuccess={isAccountInSetupState || state === CONST.BANK_ACCOUNT.STATE.OPEN || state === CONST.BANK_ACCOUNT.STATE.PENDING}
                                     isBadgeError={isBusinessBankAccountLocked && isPolicyAdmin}
                                     shouldShowRightIcon
                                     shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
