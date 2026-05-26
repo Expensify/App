@@ -688,9 +688,11 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     {shouldShowHRSyncLink &&
                         hrImportedCount > 0 &&
                         ` ${translate('workspace.people.hrImportedCount', {count: hrImportedCount, integration: connectedHRProvider?.displayName ?? ''})}`}
-                    {shouldShowHRSyncLink && ' '}
+                    {shouldShowHRSyncLink && '. '}
                     {shouldShowHRSyncLink && (
-                        <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID))}>{translate('workspace.people.manageConnection')}</TextLink>
+                        <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID))}>
+                            {translate('workspace.people.configureHRSync', connectedHRProvider?.displayName ?? '')}
+                        </TextLink>
                     )}
                 </Text>
                 {shouldShowHRSyncLink && isHRSyncInProgress && (
