@@ -14,8 +14,7 @@ import {getCommandURL} from './ApiUtils';
 import HttpsError from './Errors/HttpsError';
 import Log from './Log';
 import {setLoadTestParameters} from './Network/LoadTestState';
-import {getCredentials} from './Network/NetworkStore';
-import {registerPrefetchTokenRefresh} from './NitroFetchTokenRefresh';
+import registerPrefetchTokenRefresh from './NitroFetchTokenRefresh';
 import {PREFETCH_HEADER_KEY} from './PrefetchQueries';
 import prepareRequestPayload from './prepareRequestPayload';
 import markAppStartupNetworkRequestEnd from './telemetry/markAppStartupNetworkRequestEnd';
@@ -91,8 +90,7 @@ function processHTTPRequest<TKey extends OnyxKey>(
     // Prefetch the request on next app start if the prefetch key is present in the headers
     // This allows to fetch the request natively before the JS bundle is loaded. Once the request with this prefetch key is made, it will already be cached and served from the cache.
     if (shouldPrefetchOnAppStart) {
-        const credentials = getCredentials();
-        registerPrefetchTokenRefresh(credentials);
+        registerPrefetchTokenRefresh();
         prefetchOnAppStart(url, fetchParams)
             .then(() => {})
             .catch((error) => {
