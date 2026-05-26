@@ -15,7 +15,7 @@ Report previews are summaries shown directly in your workspace chat in the **Inb
 ## Visibility of Report Previews
 - Visible to **all members** in the workspace chat.
 - Only the **report creator** sees interactive options like **Add expense**.  
-- **Workspace admins** can approve and pay reports.
+- **Workspace admins** can approve and pay reports, as well as reject and hold reports.
 
 ## Preview Details
 - Report title and status (e.g., Approved, Paid)  
@@ -61,10 +61,25 @@ Each row represents an expense and includes:
 
 ## How to move expenses between reports
 
-1. Select the expenses using checkboxes.
+**From the report table**
+
+1. Select the expense(s) using checkboxes.
 2. Click **Move to report** from the bulk action menu.
-3. In the right-hand panel, select a destination draft report.  
-4. Expenses are moved, and a system message logs the action.
+3. In the right-hand panel, select from the following options:
+   - Create report
+   - An existing draft report
+   - Remove from report 
+5. Expenses are moved, and a system message logs the action.
+
+**From the expense details**
+
+1. Click the expense to edit it in the right-hand panel.
+2. Click **Move to report** from the bulk action menu.
+3. In the right-hand panel, select from the following options:
+   - Create report
+   - An existing draft report
+   - Remove from report 
+5. Expense is moved, and a system message logs the action.
 
 ## How to add a new expense to the table
 - The expense appears in the table.  
@@ -104,7 +119,7 @@ To view other available filters, click into the **search box** on the **Spend** 
 
 You can also combine filters with a keyword search for even more precision. For example, searching **"Uber in March"** will show only Uber rides from March.
 
-**Note**: If no filters are applied, the page defaults to showing your most recent unreported expenses.
+**Note**: If no filters are applied, the page defaults to showing all your unreported expenses.
 
 ---
 
