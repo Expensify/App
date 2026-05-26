@@ -393,6 +393,7 @@ function EmptySearchViewContent({
                         ...defaultViewItemHeader.folder,
                         title: translate('search.searchResults.emptyInvoiceResults.title'),
                         subtitle: translate(
+                            // Nested ternary selects among three subtitle variants based on invoice permission and tour status
                             // eslint-disable-next-line no-nested-ternary
                             !userCanSendInvoice
                                 ? 'search.searchResults.emptyInvoiceResults.subtitleCannotSend'
