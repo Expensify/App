@@ -1958,6 +1958,11 @@ function isAnyHRConnected(policy?: OnyxEntry<Policy>): boolean {
     return isGustoConnected(policy) || isZenefitsConnected(policy) || isMergeHRConnected(policy);
 }
 
+/** Returns the number of policy members that were imported from an HR integration (i.e. have an `employeePayrollID`). */
+function getHRImportedMemberCount(policy: OnyxEntry<Policy>): number {
+    return Object.values(policy?.employeeList ?? {}).filter((employee) => !!employee.employeePayrollID && employee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
+}
+
 /** Returns true if any connected HR integration uses a read-only approval mode (basic or manager), which blocks manual workflow editing. */
 function isAnyHRReadOnlyWorkflowMode(policy?: OnyxEntry<Policy>): boolean {
     const gustoMode = policy?.connections?.gusto?.config?.approvalMode;
@@ -2551,6 +2556,7 @@ export {
     isMergeHRConnected,
     getConnectedHRProvider,
     isAnyHRConnected,
+    getHRImportedMemberCount,
     isAnyHRReadOnlyWorkflowMode,
     getHRApprovalMode,
     isSubmitPolicy,

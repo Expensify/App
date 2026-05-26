@@ -69,6 +69,7 @@ import {
     canEditWorkspaceSettings,
     getConnectedHRProvider,
     getConnectionExporters,
+    getHRImportedMemberCount,
     getMemberAccountIDsForWorkspace,
     isControlPolicy,
     isDeletedPolicyEmployee,
@@ -629,6 +630,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
     const memberCount = data.filter((member) => member.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
     const connectedHRProvider = getConnectedHRProvider(policy);
+    const hrImportedCount = connectedHRProvider ? getHRImportedMemberCount(policy) : 0;
     const shouldShowHRSyncLink = isPolicyAdmin && !!connectedHRProvider;
     const isMergeHRSyncInProgress =
         connectedHRProvider?.connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR &&
@@ -683,11 +685,12 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             <View style={[styles.pl5, styles.mb5, styles.mt3, styles.flexRow, styles.alignItemsCenter]}>
                 <Text style={[styles.textSupporting, styles.flexShrink1, isPendingAddOrDelete && styles.offlineFeedbackPending]}>
                     {translate('workspace.people.workspaceMembersCount', memberCount)}
-                    {shouldShowHRSyncLink && '. '}
+                    {shouldShowHRSyncLink &&
+                        hrImportedCount > 0 &&
+                        ` ${translate('workspace.people.hrImportedCount', {count: hrImportedCount, integration: connectedHRProvider?.displayName ?? ''})}`}
+                    {shouldShowHRSyncLink && ' '}
                     {shouldShowHRSyncLink && (
-                        <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID))}>
-                            {translate('workspace.people.configureHRSync', connectedHRProvider?.displayName ?? '')}
-                        </TextLink>
+                        <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID))}>{translate('workspace.people.manageConnection')}</TextLink>
                     )}
                 </Text>
                 {shouldShowHRSyncLink && isHRSyncInProgress && (

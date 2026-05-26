@@ -6141,6 +6141,8 @@ const translations = {
             addedWithPrimary: 'Some members were added with their primary logins.',
             invitedBySecondaryLogin: (secondaryLogin: string) => `Added by secondary login ${secondaryLogin}.`,
             workspaceMembersCount: (count: number) => `Total workspace members: ${count}`,
+            hrImportedCount: ({count, integration}: {count: number; integration: string}) => `${count} ${count === 1 ? 'member' : 'members'} imported from ${integration}.`,
+            manageConnection: 'Manage connection',
             configureHRSync: (providerName: string) => `Configure ${providerName} sync.`,
             syncWithHR: (providerName: string) => `Sync with ${providerName}`,
             allMembers: 'All members',
