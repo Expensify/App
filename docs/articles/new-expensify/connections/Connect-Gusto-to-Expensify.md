@@ -116,7 +116,7 @@ Employees may be skipped if they do not have a work email address in Gusto, or i
 
 ## Will my employees receive a notification when synced?
 
-Yes. Each synced employee that is newly invited to a workdpace receives a welcome email at their work email address with account setup instructions.
+Yes. Each synced employee that is newly invited to a workspace receives a welcome email at their work email address with account setup instructions.
 
 ## Can I change the approval mode after connecting?
 
