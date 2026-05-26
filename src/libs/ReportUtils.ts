@@ -11616,12 +11616,7 @@ function prepareOnboardingOnyxData({
         onboardingMessage = getOnboardingMessages().onboardingMessages[CONST.ONBOARDING_CHOICES.SUBMIT];
     }
 
-    // Every MANAGE_TEAM signup uses the bespoke direct-post path. The server generates the
-    // per-tier welcome body in `UserAPI::buildBespokeWelcomeMessage`, so the App no longer
-    // needs a cohort gate or the suggestedFollowups beta to opt in.
-    const shouldUseFollowupsInsteadOfTasks = engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM;
-    // Post to #admins room when followups fire OR the existing tasks-in-admins predicate approves.
-    const shouldPostTasksInAdminsRoom = shouldUseFollowupsInsteadOfTasks || isPostingTasksInAdminsRoom(engagementChoice);
+    const shouldPostTasksInAdminsRoom = isPostingTasksInAdminsRoom(engagementChoice);
     const adminsChatReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`];
     const conciergeChat =
         getChatByParticipants([CONST.ACCOUNT_ID.CONCIERGE, deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID], deprecatedAllReports, false) ??
@@ -11692,10 +11687,10 @@ function prepareOnboardingOnyxData({
         reportComment: textComment.commentText,
     };
 
-    // Generate a deduplication ID for the server-side bespoke welcome. The server posts directly using
-    // this ID via addComment (idempotent on reportActionID), so we never add an optimistic action
-    // here — the real message arrives from the server without a flash.
-    const optimisticConciergeReportActionID: string | undefined = shouldUseFollowupsInsteadOfTasks ? rand64() : undefined;
+    // Generate a deduplication ID so Auth can post the bespoke welcome idempotently for the
+    // inbAdminsWel variant. The App never adds an optimistic action for this ID — the real
+    // message arrives from the server.
+    const optimisticConciergeReportActionID: string | undefined = engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? rand64() : undefined;
 
     let createWorkspaceTaskReportID;
     let addExpenseApprovalsTaskReportID;
@@ -11804,7 +11799,7 @@ function prepareOnboardingOnyxData({
         description: taskDescription ?? '',
     }));
 
-    const hasOutstandingChildTask = !shouldUseFollowupsInsteadOfTasks && tasksData.some((task) => !task.completedTaskReportAction);
+    const hasOutstandingChildTask = tasksData.some((task) => !task.completedTaskReportAction);
 
     const tasksForOptimisticData = tasksData.reduce<
         Array<
@@ -11957,10 +11952,8 @@ function prepareOnboardingOnyxData({
         return acc;
     }, []);
 
-    const optimisticData: Array<TupleToUnion<typeof tasksForOptimisticData> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = shouldUseFollowupsInsteadOfTasks
-        ? []
-        : [...tasksForOptimisticData];
-    const skipSignOff = shouldUseFollowupsInsteadOfTasks || engagementChoice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
+    const optimisticData: Array<TupleToUnion<typeof tasksForOptimisticData> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [...tasksForOptimisticData];
+    const skipSignOff = engagementChoice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
     const lastVisibleActionCreated = skipSignOff ? textCommentAction.created : welcomeSignOffCommentAction.created;
     optimisticData.push(
         {
@@ -11968,7 +11961,7 @@ function prepareOnboardingOnyxData({
             key: `${ONYXKEYS.COLLECTION.REPORT}${targetChatReportID}`,
             value: {
                 hasOutstandingChildTask,
-                ...(shouldUseFollowupsInsteadOfTasks || (skipSignOff && !message) ? {} : {lastVisibleActionCreated}),
+                ...(skipSignOff && !message ? {} : {lastVisibleActionCreated}),
                 lastActorAccountID: actorAccountID,
             },
         },
@@ -11984,7 +11977,7 @@ function prepareOnboardingOnyxData({
             },
         },
     );
-    if (!shouldUseFollowupsInsteadOfTasks && message) {
+    if (message) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
@@ -12004,7 +11997,7 @@ function prepareOnboardingOnyxData({
 
     const successData: Array<
         TupleToUnion<typeof tasksForSuccessData> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.NVP_ONBOARDING>
-    > = shouldUseFollowupsInsteadOfTasks ? [] : [...tasksForSuccessData];
+    > = [...tasksForSuccessData];
 
     if (message) {
         successData.push({
@@ -12038,7 +12031,7 @@ function prepareOnboardingOnyxData({
     const failureData: Array<
         | TupleToUnion<typeof tasksForFailureData>
         | OnyxUpdate<typeof ONYXKEYS.NVP_INTRO_SELECTED | typeof ONYXKEYS.NVP_ONBOARDING | typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>
-    > = shouldUseFollowupsInsteadOfTasks ? [] : [...tasksForFailureData];
+    > = [...tasksForFailureData];
     failureData.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -12120,7 +12113,7 @@ function prepareOnboardingOnyxData({
 
     // If we post tasks in the #admins room and introSelected?.choice does not exist, it means that a guide is assigned and all messages except tasks are handled by the backend
     const guidedSetupData: GuidedSetupData = [];
-    if (!shouldUseFollowupsInsteadOfTasks && message) {
+    if (message) {
         guidedSetupData.push({type: 'message', ...textMessage});
     }
 
