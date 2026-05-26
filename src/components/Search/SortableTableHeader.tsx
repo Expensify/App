@@ -16,6 +16,7 @@ type ColumnConfig = {
     icon?: IconAsset;
     isColumnSortable?: boolean;
     canBeMissing?: boolean;
+    canEdit?: boolean;
 };
 
 type SearchTableHeaderProps = {
@@ -28,12 +29,14 @@ type SearchTableHeaderProps = {
     approvedColumnSize?: TableColumnSize;
     postedColumnSize?: TableColumnSize;
     exportedColumnSize?: TableColumnSize;
+    withdrawnColumnSize?: TableColumnSize;
     amountColumnSize: TableColumnSize;
     taxAmountColumnSize: TableColumnSize;
     containerStyles?: StyleProp<ViewStyle>;
     shouldShowColumn: (columnName: SearchColumnType) => boolean;
     onSortPress: (column: SearchColumnType, order: SortOrder) => void;
     shouldRemoveTotalColumnFlex?: boolean;
+    isActionColumnWide?: boolean;
 };
 
 function SortableTableHeader({
@@ -46,12 +49,14 @@ function SortableTableHeader({
     approvedColumnSize,
     postedColumnSize,
     exportedColumnSize,
+    withdrawnColumnSize,
     containerStyles,
     shouldShowSorting,
     onSortPress,
     amountColumnSize,
     taxAmountColumnSize,
     shouldRemoveTotalColumnFlex,
+    isActionColumnWide,
 }: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -60,7 +65,7 @@ function SortableTableHeader({
     return (
         <View style={[styles.flex1]}>
             <View style={[styles.flex1, styles.flexRow, styles.gap3, containerStyles]}>
-                {columns.map(({columnName, translationKey, icon, isColumnSortable}) => {
+                {columns.map(({columnName, translationKey, icon, isColumnSortable, canEdit}) => {
                     if (!shouldShowColumn(columnName)) {
                         return null;
                     }
@@ -79,17 +84,19 @@ function SortableTableHeader({
                             isActive={isActive}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.SORTABLE_HEADER}
                             containerStyle={[
-                                StyleUtils.getReportTableColumnStyles(
-                                    columnName,
-                                    dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
-                                    amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
-                                    taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
-                                    submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
-                                    approvedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
-                                    postedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
-                                    exportedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                canEdit && styles.editableCellHeader,
+                                StyleUtils.getReportTableColumnStyles(columnName, {
+                                    isDateColumnWide: dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    isSubmittedColumnWide: submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    isApprovedColumnWide: approvedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    isPostedColumnWide: postedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    isExportedColumnWide: exportedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    isTaxAmountColumnWide: taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    isAmountColumnWide: amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     shouldRemoveTotalColumnFlex,
-                                ),
+                                    isWithdrawnColumnWide: withdrawnColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    isActionColumnWide,
+                                }),
                             ]}
                             isSortable={isSortable}
                             onPress={(order: SortOrder) => onSortPress(columnName, order)}

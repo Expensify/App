@@ -1,61 +1,55 @@
-import {useCallback, useMemo, useRef} from 'react';
+import {useRef} from 'react';
 import type {PlaybackContextVideoRefs, StopVideo} from './types';
 
 function usePlaybackContextVideoRefs(resetCallback: () => void) {
     const currentVideoPlayerRef: PlaybackContextVideoRefs['playerRef'] = useRef(null);
     const currentVideoViewRef: PlaybackContextVideoRefs['viewRef'] = useRef(null);
 
-    const playVideo: PlaybackContextVideoRefs['play'] = useCallback(() => {
+    const playVideo: PlaybackContextVideoRefs['play'] = () => {
         currentVideoPlayerRef.current?.play();
-    }, []);
+    };
 
-    const pauseVideo: PlaybackContextVideoRefs['pause'] = useCallback(() => {
+    const pauseVideo: PlaybackContextVideoRefs['pause'] = () => {
         currentVideoPlayerRef.current?.pause();
-    }, []);
+    };
 
-    const replayVideo: PlaybackContextVideoRefs['replay'] = useCallback(() => {
+    const replayVideo: PlaybackContextVideoRefs['replay'] = () => {
         currentVideoPlayerRef.current?.replay();
-    }, []);
+    };
 
-    const stopVideo: StopVideo = useCallback(() => {
+    const stopVideo: StopVideo = () => {
         if (!currentVideoPlayerRef.current) {
             return;
         }
         currentVideoPlayerRef.current.pause();
         currentVideoPlayerRef.current.currentTime = 0;
-    }, [currentVideoPlayerRef]);
+    };
 
-    const checkIfVideoIsPlaying: PlaybackContextVideoRefs['isPlaying'] = useCallback(
-        (statusCallback) => statusCallback(currentVideoPlayerRef.current?.playing ?? false),
-        [currentVideoPlayerRef],
-    );
+    const checkIfVideoIsPlaying: PlaybackContextVideoRefs['isPlaying'] = (statusCallback) => statusCallback(currentVideoPlayerRef.current?.playing ?? false);
 
-    const resetVideoPlayerData: PlaybackContextVideoRefs['resetPlayerData'] = useCallback(() => {
+    const resetVideoPlayerData: PlaybackContextVideoRefs['resetPlayerData'] = () => {
         stopVideo();
         currentVideoPlayerRef.current = null;
         currentVideoViewRef.current = null;
         resetCallback();
-    }, [resetCallback, stopVideo]);
+    };
 
     const updateCurrentVideoPlayerRefs: PlaybackContextVideoRefs['updateRefs'] = (playerRef, viewRef) => {
         currentVideoPlayerRef.current = playerRef;
         currentVideoViewRef.current = viewRef;
     };
 
-    return useMemo(
-        (): PlaybackContextVideoRefs => ({
-            playerRef: currentVideoPlayerRef,
-            viewRef: currentVideoViewRef,
-            play: playVideo,
-            pause: pauseVideo,
-            replay: replayVideo,
-            stop: stopVideo,
-            isPlaying: checkIfVideoIsPlaying,
-            resetPlayerData: resetVideoPlayerData,
-            updateRefs: updateCurrentVideoPlayerRefs,
-        }),
-        [checkIfVideoIsPlaying, pauseVideo, playVideo, replayVideo, resetVideoPlayerData, stopVideo],
-    );
+    return {
+        playerRef: currentVideoPlayerRef,
+        viewRef: currentVideoViewRef,
+        play: playVideo,
+        pause: pauseVideo,
+        replay: replayVideo,
+        stop: stopVideo,
+        isPlaying: checkIfVideoIsPlaying,
+        resetPlayerData: resetVideoPlayerData,
+        updateRefs: updateCurrentVideoPlayerRefs,
+    };
 }
 
 export default usePlaybackContextVideoRefs;

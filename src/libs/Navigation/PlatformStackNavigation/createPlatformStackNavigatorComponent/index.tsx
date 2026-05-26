@@ -4,6 +4,7 @@ import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navig
 import {StackView} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
 import convertToWebNavigationOptions from '@libs/Navigation/PlatformStackNavigation/navigationOptions/convertToWebNavigationOptions';
+import screenLayout from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
 import type {
     CreatePlatformStackNavigatorComponentOptions,
     CustomCodeProps,
@@ -12,6 +13,7 @@ import type {
     PlatformStackNavigatorProps,
     PlatformStackRouterOptions,
 } from '@libs/Navigation/PlatformStackNavigation/types';
+import wrapDescriptorsWithFreeze from './wrapDescriptorsWithFreeze';
 
 function createPlatformStackNavigatorComponent<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions>(
     displayName: string,
@@ -23,6 +25,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
     const ExtraContent = options?.ExtraContent;
     const NavigationContentWrapper = options?.NavigationContentWrapper;
     const useCustomEffects = options?.useCustomEffects ?? (() => undefined);
+    const freezeNonTopScreens = options?.freezeNonTopScreens;
 
     function PlatformNavigator({
         id,
@@ -61,6 +64,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                 sidebarScreen,
                 parentRoute,
                 persistentScreens,
+                screenLayout,
             },
             convertToWebNavigationOptions,
         );
@@ -99,29 +103,26 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
             };
         }, [persistentScreens, state]);
 
+        const wrappedDescriptors = freezeNonTopScreens ? wrapDescriptorsWithFreeze(descriptors, state, persistentScreens) : descriptors;
+
         const Content = useMemo(
             () => (
                 <NavigationContent>
                     <StackView
-                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
                         direction="ltr"
                         state={mappedState}
-                        descriptors={descriptors}
+                        descriptors={wrappedDescriptors}
                         navigation={navigation}
                         describe={describe}
                     />
 
-                    {!!ExtraContent && (
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        <ExtraContent {...customCodePropsWithCustomState} />
-                    )}
+                    {!!ExtraContent && <ExtraContent {...customCodePropsWithCustomState} />}
                 </NavigationContent>
             ),
-            [NavigationContent, customCodePropsWithCustomState, describe, descriptors, mappedState, navigation, props],
+            [NavigationContent, customCodePropsWithCustomState, describe, wrappedDescriptors, mappedState, navigation, props],
         );
 
-        // eslint-disable-next-line react/jsx-props-no-spreading
         return NavigationContentWrapper === undefined ? Content : <NavigationContentWrapper {...customCodePropsWithCustomState}>{Content}</NavigationContentWrapper>;
     }
     PlatformNavigator.displayName = displayName;

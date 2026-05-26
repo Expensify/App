@@ -102,10 +102,9 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
                 return;
             }
 
-            const {addressState, addressProvince, ...basePersonalDetailsParams} = buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode);
+            const personalDetailsParams = buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode);
             executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PIN_ORDER_CARD, {
-                ...basePersonalDetailsParams,
-                addressProvince: addressProvince ?? addressState ?? '',
+                ...personalDetailsParams,
                 pin: PIN,
                 cardID,
             });

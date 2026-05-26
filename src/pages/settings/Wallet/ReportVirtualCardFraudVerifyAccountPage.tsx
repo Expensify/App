@@ -1,9 +1,11 @@
 import React, {useEffect} from 'react';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
+import useInitialOnyxValue from '@hooks/useInitialOnyxValue';
 import useLocalize from '@hooks/useLocalize';
 import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import {clearCardListErrors, reportVirtualExpensifyCardFraud} from '@libs/actions/Card';
 import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
 import {getLatestErrorFieldForAnyField} from '@libs/ErrorUtils';
@@ -26,18 +28,18 @@ function ReportVirtualCardFraudVerifyAccountPage({
     const cardList = useNonPersonalCardList();
     const virtualCard = cardList?.[cardID];
     const {translate} = useLocalize();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
     const [formData] = useOnyx(ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD);
-    const latestIssuedVirtualCardID = Object.keys(cardList ?? {})?.pop();
+    const [physicalCardForm] = useOnyx(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM);
+    const initialCardList = useInitialOnyxValue(ONYXKEYS.CARD_LIST);
+    const replacementCardID = Object.keys(cardList ?? {}).find((key) => !Object.hasOwn(initialCardList ?? {}, key) && cardList?.[key]?.cardID) ?? '';
 
-    const primaryLogin = account?.primaryLogin ?? '';
+    const primaryLogin = usePrimaryContactMethod();
     const cardError = getLatestErrorFieldForAnyField(virtualCard);
     const codeError = getLatestErrorFieldForAnyField(validateCodeAction);
     const prevIsLoading = usePrevious(formData?.isLoading);
 
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (!prevIsLoading || formData?.isLoading) {
             return;
         }
@@ -45,11 +47,12 @@ function ReportVirtualCardFraudVerifyAccountPage({
             return;
         }
 
-        if (latestIssuedVirtualCardID) {
+        if (replacementCardID || physicalCardForm?.cardTerminatedWithoutReplacement) {
+            const confirmationCardID = replacementCardID || cardID;
             Navigation.removeScreenFromNavigationState(SCREENS.SETTINGS.WALLET.DOMAIN_CARD);
-            Navigation.goBack(ROUTES.SETTINGS_REPORT_FRAUD_CONFIRMATION.getRoute(latestIssuedVirtualCardID));
+            Navigation.goBack(ROUTES.SETTINGS_REPORT_FRAUD_CONFIRMATION.getRoute(confirmationCardID));
         }
-    }, [formData?.isLoading, latestIssuedVirtualCardID, cardError, codeError, prevIsLoading]);
+    }, [cardError, cardID, codeError, formData?.isLoading, physicalCardForm?.cardTerminatedWithoutReplacement, prevIsLoading, replacementCardID]);
 
     const handleValidateCodeEntered = (validateCode: string) => {
         if (!virtualCard) {
@@ -70,7 +73,7 @@ function ReportVirtualCardFraudVerifyAccountPage({
     return (
         <ValidateCodeActionContent
             title={translate('cardPage.validateCardTitle')}
-            descriptionPrimary={translate('cardPage.enterMagicCode', primaryLogin)}
+            descriptionPrimary={translate('cardPage.enterMagicCode', primaryLogin ?? '')}
             sendValidateCode={() => requestValidateCodeAction()}
             validateCodeActionErrorField="reportVirtualCard"
             handleSubmitForm={handleValidateCodeEntered}

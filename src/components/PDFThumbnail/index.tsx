@@ -1,5 +1,5 @@
 // eslint-disable-next-line import/extensions
-import pdfWorkerSource from 'pdfjs-dist/build/pdf.worker.min.mjs';
+import pdfWorkerSource from 'pdfjs-dist/legacy/build/pdf.worker.min.mjs';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {Document, pdfjs, Thumbnail} from 'react-pdf';
@@ -8,9 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import PDFThumbnailError from './PDFThumbnailError';
 import type PDFThumbnailProps from './types';
 
-if (!pdfjs.GlobalWorkerOptions.workerSrc) {
-    pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([pdfWorkerSource], {type: 'text/javascript'}));
-}
+pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([pdfWorkerSource], {type: 'text/javascript'}));
 
 function PDFThumbnail({previewSourceURL, style, enabled = true, onPassword, onLoadError, onLoadSuccess}: PDFThumbnailProps) {
     const styles = useThemeStyles();

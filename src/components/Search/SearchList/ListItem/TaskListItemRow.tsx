@@ -1,3 +1,4 @@
+import {delegateEmailSelector} from '@selectors/Account';
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -10,6 +11,7 @@ import TextWithTooltip from '@components/TextWithTooltip';
 import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useParentReport from '@hooks/useParentReport';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -21,6 +23,7 @@ import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 import {canActionTask, completeTask} from '@libs/actions/Task';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import AvatarWithTextCell from './AvatarWithTextCell';
 import DateCell from './DateCell';
@@ -79,6 +82,7 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
     const hasOutstandingChildTask = useHasOutstandingChildTask(taskItem.report);
     const parentReportAction = useParentReportAction(taskItem.report);
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const isTaskActionable = canActionTask(taskItem.report, parentReportAction, session?.accountID, parentReport, isParentReportArchived);
     const isTaskCompleted = taskItem.statusNum === CONST.REPORT.STATUS_NUM.APPROVED && taskItem.stateNum === CONST.REPORT.STATE_NUM.APPROVED;
 
@@ -108,7 +112,7 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
             style={[styles.w100]}
             isDisabled={!isTaskActionable}
             onPress={callFunctionIfActionIsAllowed(() => {
-                completeTask(taskItem as Report, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, taskItem.reportID);
+                completeTask(taskItem as Report, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, delegateEmail, taskItem.reportID);
             })}
         />
     );
@@ -134,6 +138,7 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
                                 accountID={item.createdBy.accountID}
                                 avatar={item.createdBy.avatar}
                                 displayName={item.formattedCreatedBy}
+                                isLargeScreenWidth={isLargeScreenWidth}
                             />
                         </View>
 
@@ -150,6 +155,7 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
                             <AvatarWithTextCell
                                 reportName={item?.parentReportName}
                                 icon={item?.parentReportIcon}
+                                isLargeScreenWidth={isLargeScreenWidth}
                             />
                         </View>
                     </View>
@@ -203,7 +209,7 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
     return (
         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, containerStyle]}>
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, item.shouldShowYear)]}>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, {isDateColumnWide: item.shouldShowYear})]}>
                     <DateCell
                         date={item.created}
                         showTooltip={showTooltip}
@@ -229,12 +235,14 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
                         accountID={item.createdBy.accountID}
                         avatar={item.createdBy.avatar}
                         displayName={item.formattedCreatedBy}
+                        isLargeScreenWidth={isLargeScreenWidth}
                     />
                 </View>
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.IN)]}>
                     <AvatarWithTextCell
                         reportName={item?.parentReportName}
                         icon={item?.parentReportIcon}
+                        isLargeScreenWidth={isLargeScreenWidth}
                     />
                 </View>
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE)]}>
@@ -242,9 +250,10 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
                         accountID={item.assignee.accountID}
                         avatar={item.assignee.avatar}
                         displayName={item.formattedAssignee}
+                        isLargeScreenWidth={isLargeScreenWidth}
                     />
                 </View>
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION, {isActionColumnWide: true})]}>
                     <ActionCell
                         taskItem={item}
                         showTooltip={showTooltip}

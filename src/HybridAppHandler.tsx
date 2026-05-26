@@ -1,4 +1,4 @@
-import {useCallback, useEffect} from 'react';
+import {useEffect} from 'react';
 import CONFIG from './CONFIG';
 import CONST from './CONST';
 import useOnyx from './hooks/useOnyx';
@@ -9,35 +9,27 @@ import Log from './libs/Log';
 import {endSpan, startSpan} from './libs/telemetry/activeSpans';
 import {addBootsplashBreadcrumb} from './libs/telemetry/bootsplashTelemetry';
 import ONYXKEYS from './ONYXKEYS';
-import {useSplashScreenActions, useSplashScreenState} from './SplashScreenStateContext';
+import {useSplashScreenActions} from './SplashScreenStateContext';
 import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
 
 function HybridAppHandler() {
-    const {splashScreenState} = useSplashScreenState();
     const {setSplashScreenState} = useSplashScreenActions();
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
 
-    const finalizeTransitionFromOldDot = useCallback(
-        (hybridAppSettings: HybridAppSettings) => {
-            const loggedOutFromOldDot = !!hybridAppSettings.hybridApp.loggedOutFromOldDot;
+    const finalizeTransitionFromOldDot = (hybridAppSettings: HybridAppSettings) => {
+        const loggedOutFromOldDot = !!hybridAppSettings.hybridApp.loggedOutFromOldDot;
 
-            setupNewDotAfterTransitionFromOldDot(hybridAppSettings, tryNewDot).then(() => {
-                if (splashScreenState !== CONST.BOOT_SPLASH_STATE.VISIBLE) {
-                    addBootsplashBreadcrumb('HybridAppHandler: Splash no longer VISIBLE, skipping state transition', {splashScreenState});
-                    return;
-                }
-
-                if (loggedOutFromOldDot) {
-                    setSplashScreenState(CONST.BOOT_SPLASH_STATE.HIDDEN);
-                    endSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_LOGGED_OUT);
-                } else {
-                    setSplashScreenState(CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
-                }
-            });
-        },
-        [setSplashScreenState, splashScreenState, tryNewDot],
-    );
+        setupNewDotAfterTransitionFromOldDot(hybridAppSettings, tryNewDot).then(() => {
+            if (loggedOutFromOldDot) {
+                endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP);
+                endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT);
+                endSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_LOGGED_OUT);
+            } else {
+                setSplashScreenState(CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
+            }
+        });
+    };
 
     useEffect(() => {
         if (!CONFIG.IS_HYBRID_APP || isLoadingTryNewDot) {
@@ -55,6 +47,14 @@ function HybridAppHandler() {
 
             addBootsplashBreadcrumb('HybridAppHandler: Settings received', {loggedOutFromOldDot: String(!!hybridAppSettings.hybridApp.loggedOutFromOldDot)});
 
+            // Resolve splash state ASAP — this is the earliest moment we know
+            // whether the native splash is on screen or not
+            if (hybridAppSettings.hybridApp.loggedOutFromOldDot) {
+                setSplashScreenState(CONST.BOOT_SPLASH_STATE.HIDDEN);
+            } else {
+                setSplashScreenState(CONST.BOOT_SPLASH_STATE.VISIBLE);
+            }
+
             if (hybridAppSettings.hybridApp.loggedOutFromOldDot) {
                 startSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_LOGGED_OUT, {
                     name: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_LOGGED_OUT,
@@ -71,7 +71,7 @@ function HybridAppHandler() {
 
             finalizeTransitionFromOldDot(hybridAppSettings);
         });
-    }, [finalizeTransitionFromOldDot, isLoadingTryNewDot]);
+    }, [finalizeTransitionFromOldDot, isLoadingTryNewDot, setSplashScreenState]);
 
     return null;
 }

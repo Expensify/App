@@ -1,16 +1,16 @@
-import React, {useState} from 'react';
+import {Str} from 'expensify-common';
+import React from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import CategorySelector from '@components/CategorySelector';
+import CustomUnitDefaultCategorySelector from '@components/CustomUnitDefaultCategorySelector';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import type {ListItem} from '@components/SelectionList/types';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
-import type {UnitItemType} from '@components/UnitPicker';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,17 +19,16 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
+import {getUnitTranslationKey} from '@libs/WorkspacesSettingsUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import {setPolicyCustomUnitDefaultCategory} from '@userActions/Policy/Category';
-import {clearPolicyDistanceRatesErrorFields, setPolicyDistanceRatesUnit} from '@userActions/Policy/DistanceRate';
+import {clearPolicyDistanceRatesErrorFields} from '@userActions/Policy/DistanceRate';
 import {enableDistanceRequestTax} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CustomUnit} from '@src/types/onyx/Policy';
-import UnitSelector from './UnitSelector';
 
 type PolicyDistanceRatesSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS>;
 
@@ -39,7 +38,6 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
 
     const styles = useThemeStyles();
-    const [isCategoryPickerVisible, setIsCategoryPickerVisible] = useState(false);
     const {translate} = useLocalize();
     const customUnit = getDistanceRateCustomUnit(policy);
     const isDistanceTrackTaxEnabled = !!customUnit?.attributes?.taxEnabled;
@@ -51,22 +49,6 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
 
     const FullPageBlockingView = !customUnit ? FullPageOfflineBlockingView : View;
 
-    const setNewUnit = (unit: UnitItemType) => {
-        if (!customUnit) {
-            return;
-        }
-        const attributes = {...customUnit?.attributes, unit: unit.value};
-        setPolicyDistanceRatesUnit(policyID, customUnit, {...customUnit, attributes});
-    };
-
-    const setNewCategory = (category: ListItem) => {
-        if (!category.searchText || !customUnit || defaultCategory === category.searchText) {
-            return;
-        }
-
-        setPolicyCustomUnitDefaultCategory(policyID, customUnit.customUnitID, customUnit.defaultCategory, category.searchText);
-    };
-
     const clearErrorFields = (fieldName: keyof CustomUnit) => {
         if (!customUnit?.customUnitID) {
             return;
@@ -76,7 +58,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
     };
 
     const onToggleTrackTax = (isOn: boolean) => {
-        if (!customUnit || !customUnit.attributes) {
+        if (!customUnit?.attributes) {
             return;
         }
         const attributes = {...customUnit?.attributes, taxEnabled: isOn};
@@ -109,30 +91,28 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                     errorRowStyles={styles.mh5}
                                     onClose={() => clearErrorFields('attributes')}
                                 >
-                                    <UnitSelector
-                                        label={translate('workspace.distanceRates.unit')}
-                                        defaultValue={defaultUnit}
+                                    <MenuItemWithTopDescription
+                                        shouldShowRightIcon
+                                        title={defaultUnit ? Str.recapitalize(translate(getUnitTranslationKey(defaultUnit))) : ''}
+                                        description={translate('workspace.distanceRates.unit')}
+                                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_UNIT.getRoute(policyID))}
                                         wrapperStyle={[styles.ph5, styles.mt3]}
-                                        setNewUnit={setNewUnit}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.UNIT_SELECTOR}
                                     />
                                 </OfflineWithFeedback>
                             )}
-                            {!!policy?.areCategoriesEnabled && hasEnabledOptions(policyCategories ?? {}) && (
+                            {!!policy?.areCategoriesEnabled && hasEnabledOptions(policyCategories ?? {}) && !!customUnit?.customUnitID && (
                                 <OfflineWithFeedback
                                     errors={getLatestErrorField(customUnit ?? {}, 'defaultCategory')}
                                     pendingAction={customUnit?.pendingFields?.defaultCategory}
                                     errorRowStyles={styles.mh5}
                                     onClose={() => clearErrorFields('defaultCategory')}
                                 >
-                                    <CategorySelector
-                                        policyID={policyID}
+                                    <CustomUnitDefaultCategorySelector
                                         label={translate('workspace.common.defaultCategory')}
                                         defaultValue={defaultCategory}
                                         wrapperStyle={[styles.ph5, styles.mt3]}
-                                        setNewCategory={setNewCategory}
-                                        isPickerVisible={isCategoryPickerVisible}
-                                        showPickerModal={() => setIsCategoryPickerVisible(true)}
-                                        hidePickerModal={() => setIsCategoryPickerVisible(false)}
+                                        customUnitID={customUnit.customUnitID}
                                     />
                                 </OfflineWithFeedback>
                             )}

@@ -10,6 +10,8 @@ import HoldSubmitterEducationalModal from '@components/HoldSubmitterEducationalM
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
+import ReportPDFDownloadModal from '@components/ReportPDFDownloadModal';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -24,7 +26,9 @@ import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {useSearchActionsContext, useSearchStateContext} from './SearchContext';
+import BulkDuplicateHandler from './BulkDuplicateHandler';
+import BulkDuplicateReportHandler from './BulkDuplicateReportHandler';
+import {useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
 import type {BulkPaySelectionData, SearchQueryJSON} from './types';
 
 type SearchBulkActionsButtonProps = {
@@ -37,8 +41,8 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     // We need isSmallScreenWidth (not just shouldUseNarrowLayout) because DecisionModal requires it for correct modal type
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
-    const {selectedTransactions, areAllMatchingItemsSelected, shouldShowSelectAllMatchingItems} = useSearchStateContext();
-    const {selectAllMatchingItems} = useSearchActionsContext();
+    const {selectedTransactions, selectedReports, areAllMatchingItemsSelected, shouldShowSelectAllMatchingItems} = useSearchSelectionContext();
+    const {selectAllMatchingItems} = useSearchSelectionActions();
     const kycWallRef = useContext(KYCWallContext);
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
@@ -50,6 +54,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
 
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {
         headerButtonsOptions,
         selectedPolicyIDs,
@@ -64,10 +69,20 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         emptyReportsCount,
         handleOfflineModalClose,
         handleDownloadErrorModalClose,
+        isPdfModalVisible,
+        setIsPdfModalVisible,
+        pdfReportID,
+        handlePdfModalHide,
         dismissModalAndUpdateUseHold,
         dismissRejectModalBasedOnAction,
+        isDuplicateOptionVisible,
+        setDuplicateHandler,
+        isDuplicateReportOptionVisible,
+        setDuplicateReportHandler,
+        allTransactions,
+        allReports,
+        searchData,
     } = useSearchBulkActions({queryJSON});
-
     const currentSelectedPolicyID = selectedPolicyIDs?.at(0);
     const currentSelectedReportID = selectedTransactionReportIDs?.at(0) ?? selectedReportIDs?.at(0);
     const currentPolicy = usePolicy(currentSelectedPolicyID);
@@ -79,7 +94,6 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     const isExpenseReportType = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
     const popoverUseScrollView = shouldPopoverUseScrollView(headerButtonsOptions);
-
     const selectedItemsCount = useMemo(() => {
         if (!selectedTransactions) {
             return 0;
@@ -101,6 +115,23 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
 
     return (
         <>
+            {isDuplicateOptionVisible && (
+                <BulkDuplicateHandler
+                    selectedTransactionsKeys={selectedTransactionsKeys}
+                    allTransactions={allTransactions}
+                    allReports={allReports}
+                    searchData={searchData}
+                    onHandlerReady={setDuplicateHandler}
+                />
+            )}
+            {isDuplicateReportOptionVisible && (
+                <BulkDuplicateReportHandler
+                    selectedReports={selectedReports}
+                    allReports={allReports}
+                    searchData={searchData}
+                    onHandlerReady={setDuplicateReportHandler}
+                />
+            )}
             <KYCWall
                 ref={kycWallRef}
                 chatReportID={currentSelectedReportID}
@@ -144,6 +175,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                         setPendingPaymentAdditionalData: (data) => {
                                             pendingPaymentAdditionalDataRef.current = data;
                                         },
+                                        currentUserAccountID: currentUserPersonalDetails.accountID,
                                     })
                                 }
                                 success
@@ -158,11 +190,10 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                             />
                         </View>
                     ) : (
-                        <View style={[styles.flexRow, styles.gap3]}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                             <ButtonWithDropdownMenu
                                 onPress={() => null}
                                 shouldAlwaysShowDropdownMenu
-                                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
                                 customText={selectionButtonText}
                                 options={headerButtonsOptions}
                                 shouldPopoverUseScrollView={popoverUseScrollView}
@@ -185,6 +216,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                         setPendingPaymentAdditionalData: (data) => {
                                             pendingPaymentAdditionalDataRef.current = data;
                                         },
+                                        currentUserAccountID: currentUserPersonalDetails.accountID,
                                     })
                                 }
                                 isSplitButton={false}
@@ -228,6 +260,14 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                 isVisible={isDownloadErrorModalVisible}
                 onClose={handleDownloadErrorModalClose}
             />
+            {!!pdfReportID && (
+                <ReportPDFDownloadModal
+                    reportID={pdfReportID}
+                    isVisible={isPdfModalVisible}
+                    onClose={() => setIsPdfModalVisible(false)}
+                    onModalHide={handlePdfModalHide}
+                />
+            )}
             {!!rejectModalAction && (
                 <HoldOrRejectEducationalModal
                     onClose={dismissRejectModalBasedOnAction}

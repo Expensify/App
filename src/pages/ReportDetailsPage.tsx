@@ -1,12 +1,14 @@
 import {StackActions} from '@react-navigation/native';
+import {delegateEmailSelector} from '@selectors/Account';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import DisplayNames from '@components/DisplayNames';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import MenuItem from '@components/MenuItem';
@@ -14,14 +16,13 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import type {PromotedAction} from '@components/PromotedActionsBar';
 import PromotedActionsBar, {PromotedActions} from '@components/PromotedActionsBar';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import {SUPER_WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider/WIDE_RIGHT_MODALS';
 import useActivePolicy from '@hooks/useActivePolicy';
 import useAncestors from '@hooks/useAncestors';
@@ -48,7 +49,6 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDetailsNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
-import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
 import {isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil, shouldShowPolicy} from '@libs/PolicyUtils';
@@ -65,12 +65,12 @@ import {
     createDraftTransactionAndNavigateToParticipantSelector,
     getAvailableReportFields,
     getChatRoomSubtitle,
-    getDisplayNamesWithTooltips,
     getIcons,
     getOriginalReportID,
     getParentNavigationSubtitle,
     getParticipantsAccountIDsForDisplay,
     getParticipantsList,
+    getPolicyName,
     getReportDescription,
     getReportFieldKey,
     getReportForHeader,
@@ -106,11 +106,11 @@ import {
     navigateBackOnDeleteTransaction,
     navigateToPrivateNotes,
     shouldDisableRename as shouldDisableRenameUtil,
-    shouldUseFullTitleToDisplay,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {isDemoTransaction} from '@libs/TransactionUtils';
-import {deleteTrackExpense, getNavigationUrlAfterTrackExpenseDelete, getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU';
+import {getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU/DeleteMoneyRequest';
+import {deleteTrackExpense, getNavigationUrlAfterTrackExpenseDelete} from '@userActions/IOU/TrackExpense';
 import {
     clearAvatarErrors,
     clearPolicyRoomNameErrors,
@@ -145,6 +145,7 @@ type ReportDetailsPageMenuItem = {
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
     subtitle?: number;
     shouldShowRightIcon?: boolean;
+    subtitleStyle?: StyleProp<ViewStyle>;
 };
 
 type ReportDetailsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.ROOT>;
@@ -157,13 +158,27 @@ const CASES = {
 
 type CaseID = ValueOf<typeof CASES>;
 
-function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetailsPageProps) {
-    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+function ReportDetailsPage({policy, report, route, reportMetadata, reportLoadingState}: ReportDetailsPageProps) {
+    const {translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const activePolicy = useActivePolicy();
     const styles = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Users', 'Gear', 'Send', 'Folder', 'UserPlus', 'Pencil', 'Checkmark', 'Building', 'Exit', 'Bug', 'Camera', 'Trashcan']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'Users',
+        'Gear',
+        'Send',
+        'Folder',
+        'UserPlus',
+        'Pencil',
+        'Checkmark',
+        'Building',
+        'Exit',
+        'Bug',
+        'Camera',
+        'Trashcan',
+        'ArrowSplit',
+    ]);
     const backTo = route.params.backTo;
 
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
@@ -182,14 +197,12 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const {reportActions} = usePaginatedReportActions(report.reportID);
     const [reportActionsForOriginalReportID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`);
 
-    const {removeTransaction} = useSearchActionsContext();
-    const {currentSearchHash} = useSearchStateContext();
+    const {removeTransaction} = useSearchSelectionActions();
 
     const transactionThreadReportID = useMemo(() => getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline), [reportActions, isOffline, report, chatReport]);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
-    /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -197,12 +210,12 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {showConfirmModal} = useConfirmModal();
     const isPolicyAdmin = useMemo(() => isPolicyAdminUtil(policy), [policy]);
     const isPolicyEmployee = useMemo(() => isPolicyEmployeeUtil(report?.policyID, policy), [report?.policyID, policy]);
     const isPolicyExpenseChat = useMemo(() => isPolicyExpenseChatUtil(report), [report]);
-    const shouldUseFullTitle = useMemo(() => shouldUseFullTitleToDisplay(report), [report]);
     const isChatRoom = useMemo(() => isChatRoomUtil(report), [report]);
     const isUserCreatedPolicyRoom = useMemo(() => isUserCreatedPolicyRoomUtil(report), [report]);
     const isDefaultRoom = useMemo(() => isDefaultRoomUtil(report), [report]);
@@ -230,7 +243,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const parentNavigationSubtitleData = getParentNavigationSubtitle(report, policy, conciergeReportID, isParentReportArchived);
     const base62ReportID = getBase62ReportID(Number(report.reportID));
     const ancestors = useAncestors(report);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
+
     const chatRoomSubtitle = useMemo(() => {
         const subtitle = getChatRoomSubtitle(report, false, isReportArchived);
 
@@ -269,10 +282,10 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         if (!detail) {
             return [];
         }
-        return !pendingMember || pendingMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? accountID : [];
+        return pendingMember?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? accountID : [];
     });
 
-    const isPrivateNotesFetchTriggered = reportMetadata?.isLoadingPrivateNotes !== undefined;
+    const isPrivateNotesFetchTriggered = reportLoadingState?.isLoadingPrivateNotes !== undefined;
     const requestParentReportAction = useMemo(() => {
         // 2. MoneyReport case
         if (caseID === CASES.MONEY_REPORT) {
@@ -311,19 +324,26 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
     const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(iouTransactionID ? [iouTransactionID] : []);
-    const {deleteTransactions} = useDeleteTransactions({
+    const {deleteTransactions, shouldOpenSplitExpenseEditFlowOnDelete} = useDeleteTransactions({
         report: parentReport,
         reportActions: requestParentReportAction ? [requestParentReportAction] : [],
         policy,
     });
     const isCardTransactionCanBeDeleted = canDeleteCardTransactionByLiabilityType(iouTransaction);
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || (canDeleteRequest && isCardTransactionCanBeDeleted) || isDemoTransaction(iouTransaction);
+    const shouldShowEditSplitOnDeleteAction = iouTransactionID ? shouldOpenSplitExpenseEditFlowOnDelete([iouTransactionID]) : false;
+    let deleteMenuItemTitle = translate('reportActionContextMenu.deleteAction', {action: requestParentReportAction});
+    if (shouldShowEditSplitOnDeleteAction) {
+        deleteMenuItemTitle = translate('iou.editSplits');
+    } else if (caseID === CASES.DEFAULT) {
+        deleteMenuItemTitle = translate('common.delete');
+    }
     const reportAttributes = useReportAttributes();
     const isWorkspaceChat = useMemo(() => isWorkspaceChatUtil(report?.chatType ?? ''), [report?.chatType]);
 
     useEffect(() => {
-        // Do not fetch private notes if isLoadingPrivateNotes is already defined, or if the network is offline, or if the report is a self DM.
-        if (isPrivateNotesFetchTriggered || isOffline || isSelfDM) {
+        // Do not fetch private notes if the feature is disabled, isLoadingPrivateNotes is already defined, the network is offline, or if the report is a self DM.
+        if (!Permissions.canUsePrivateNotes() || isPrivateNotesFetchTriggered || isOffline || isSelfDM) {
             return;
         }
 
@@ -355,17 +375,14 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         leaveChat();
     }, [showConfirmModal, translate, leaveChat]);
 
-    const shouldShowLeaveButton = canLeaveChat(report, policy, !!reportNameValuePairs?.private_isArchived);
+    const shouldShowLeaveButton = canLeaveChat(report, policy, currentUserPersonalDetails?.accountID, !!reportNameValuePairs?.private_isArchived);
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, currentUserPersonalDetails?.email) && !policy?.isJoinRequestPending;
 
     const reportForHeader = useMemo(() => getReportForHeader(report), [report]);
     const shouldParseFullTitle = parentReportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && !isGroupChat;
     const rawReportName = getReportNameFromReportNameUtils(reportForHeader, reportAttributes);
     const reportName = shouldParseFullTitle ? Parser.htmlToText(rawReportName) : rawReportName;
-    const additionalRoomDetails =
-        (isPolicyExpenseChat && !!report?.isOwnPolicyExpenseChat) || isExpenseReportUtil(report) || isPolicyExpenseChat || isInvoiceRoom
-            ? chatRoomSubtitle
-            : `${translate('threads.in')} ${chatRoomSubtitle}`;
+    const additionalRoomDetails = isExpenseReportUtil(report) || isPolicyExpenseChat || isInvoiceRoom ? chatRoomSubtitle : `${translate('threads.in')} ${chatRoomSubtitle}`;
 
     let roomDescription: string | undefined;
     if (caseID === CASES.MONEY_REQUEST) {
@@ -409,6 +426,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 translationKey: 'common.members',
                 icon: expensifyIcons.Users,
                 subtitle: activeChatMembers.length,
+                subtitleStyle: [styles.ph2],
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
                 action: () => {
@@ -449,6 +467,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             const actionReportID = getOriginalReportID(report.reportID, parentReportAction, reportActionsForOriginalReportID);
             const whisperAction = getTrackExpenseActionableWhisper(iouTransactionID, moneyRequestReport?.reportID);
             const actionableWhisperReportActionID = whisperAction?.reportActionID;
+            const currentUserLocalCurrency = currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD;
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.SUBMIT,
                 translationKey: 'actionableMentionTrackExpense.submit',
@@ -469,6 +488,9 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                         isRestrictedToPreferredPolicy,
                         preferredPolicyID,
                         transaction: iouTransaction,
+                        currentUserAccountID: currentUserPersonalDetails.accountID,
+                        currentUserEmail: currentUserPersonalDetails.email ?? '',
+                        currentUserLocalCurrency,
                     });
                 },
             });
@@ -491,6 +513,9 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             amountOwed,
                             ownerBillingGracePeriodEnd,
                             transaction: iouTransaction,
+                            currentUserAccountID: currentUserPersonalDetails.accountID,
+                            currentUserEmail: currentUserPersonalDetails.email ?? '',
+                            currentUserLocalCurrency,
                         });
                     },
                 });
@@ -512,21 +537,24 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             amountOwed,
                             ownerBillingGracePeriodEnd,
                             transaction: iouTransaction,
+                            currentUserAccountID: currentUserPersonalDetails.accountID,
+                            currentUserEmail: currentUserPersonalDetails.email ?? '',
+                            currentUserLocalCurrency,
                         });
                     },
                 });
             }
         }
 
-        // Prevent displaying private notes option for threads and task reports
-        if (!isChatThread && !isMoneyRequestReport && !isInvoiceReport && !isTaskReport) {
+        // Prevent displaying private notes option for threads and task reports, or when the feature is disabled
+        if (Permissions.canUsePrivateNotes() && !isChatThread && !isMoneyRequestReport && !isInvoiceReport && !isTaskReport) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.PRIVATE_NOTES,
                 translationKey: 'privateNotes.title',
                 icon: expensifyIcons.Pencil,
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
-                action: () => navigateToPrivateNotes(report, currentUserPersonalDetails.accountID, backTo),
+                action: () => navigateToPrivateNotes(report, currentUserPersonalDetails.accountID),
                 brickRoadIndicator: hasErrorInPrivateNotes(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             });
         }
@@ -541,7 +569,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     isAnonymousAction: false,
                     action: callFunctionIfActionIsAllowed(() => {
                         Navigation.goBack(backTo);
-                        reopenTask(report, parentReport, currentUserPersonalDetails?.accountID);
+                        reopenTask(report, parentReport, currentUserPersonalDetails?.accountID, delegateEmail);
                     }),
                 });
             }
@@ -626,6 +654,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         iouTransactionID,
         moneyRequestReport?.reportID,
         currentUserPersonalDetails.accountID,
+        currentUserPersonalDetails.email,
+        currentUserPersonalDetails.localCurrencyCode,
         isTaskActionable,
         isRootGroupChat,
         leaveChat,
@@ -642,27 +672,14 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         amountOwed,
         ownerBillingGracePeriodEnd,
         iouTransaction,
+        styles.ph2,
+        delegateEmail,
     ]);
-
-    const displayNamesWithTooltips = useMemo(() => {
-        const hasMultipleParticipants = participants.length > 1;
-        return getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(participants, personalDetails), hasMultipleParticipants, localeCompare, formatPhoneNumber);
-    }, [participants, personalDetails, localeCompare, formatPhoneNumber]);
 
     const icons = useMemo(
         () => getIcons(report, formatPhoneNumber, personalDetails, null, '', -1, policy, undefined, isReportArchived),
         [report, formatPhoneNumber, personalDetails, policy, isReportArchived],
     );
-
-    const chatRoomSubtitleText = chatRoomSubtitle ? (
-        <DisplayNames
-            fullTitle={chatRoomSubtitle}
-            tooltipEnabled
-            numberOfLines={1}
-            textStyles={[styles.sidebarLinkText, styles.textLabelSupporting, styles.pre, styles.mt1, styles.textAlignCenter]}
-            shouldUseFullTitle
-        />
-    ) : null;
 
     const renderedAvatar = useMemo(() => {
         if (isChatRoom && !isThread) {
@@ -750,64 +767,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         return result;
     }, [canJoin, report, backTo, currentUserPersonalDetails.accountID]);
 
-    const nameSectionExpenseIOU = (
-        <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
-            {shouldDisableRename && (
-                <>
-                    <View style={[styles.alignSelfCenter, styles.w100, styles.mt1]}>
-                        <DisplayNames
-                            fullTitle={reportName}
-                            displayNamesWithTooltips={displayNamesWithTooltips}
-                            shouldParseFullTitle={!isGroupChat}
-                            tooltipEnabled
-                            numberOfLines={isChatRoom && !isChatThread ? 0 : 1}
-                            textStyles={[styles.textHeadline, styles.textAlignCenter, isChatRoom && !isChatThread ? undefined : styles.pre]}
-                            shouldUseFullTitle={shouldUseFullTitle}
-                        />
-                    </View>
-                    {isPolicyAdmin ? (
-                        <PressableWithoutFeedback
-                            style={[styles.w100]}
-                            disabled={policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-                            role={CONST.ROLE.BUTTON}
-                            accessibilityLabel={chatRoomSubtitle}
-                            accessible
-                            sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.WORKSPACE_LINK}
-                            onPress={() => {
-                                let policyID = report?.policyID;
-
-                                if (!policyID) {
-                                    policyID = '';
-                                }
-
-                                Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
-                            }}
-                        >
-                            {chatRoomSubtitleText}
-                        </PressableWithoutFeedback>
-                    ) : (
-                        chatRoomSubtitleText
-                    )}
-                </>
-            )}
-            {!isEmptyObject(parentNavigationSubtitleData) && (isMoneyRequestReport || isInvoiceReport || isMoneyRequest || isTaskReport) && (
-                <View style={[styles.w100, styles.mt1, styles.alignItemsCenter]}>
-                    <View style={styles.mw100}>
-                        <ParentNavigationSubtitle
-                            parentNavigationSubtitleData={parentNavigationSubtitleData}
-                            reportID={report?.reportID}
-                            parentReportID={report?.parentReportID}
-                            parentReportActionID={report?.parentReportActionID}
-                            pressableStyles={[styles.mt1, styles.mw100]}
-                            textStyles={[styles.textAlignCenter]}
-                            subtitleNumberOfLines={2}
-                        />
-                    </View>
-                </View>
-            )}
-        </View>
-    );
-
+    const shouldDisplayGroupWorkspaceAsPushRow = !isThread && (isGroupChat || isUserCreatedPolicyRoom || isDefaultRoom);
     const nameSectionGroupWorkspace = (
         <OfflineWithFeedback
             pendingAction={report?.pendingFields?.reportName}
@@ -820,11 +780,11 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     shouldShowRightIcon={!shouldDisableRename}
                     interactive={!shouldDisableRename}
                     title={StringUtils.lineBreaksToSpaces(reportName)}
-                    titleStyle={styles.newKansasLarge}
-                    titleContainerStyle={shouldDisableRename && styles.alignItemsCenter}
+                    titleStyle={[styles.newKansasLarge, !shouldDisplayGroupWorkspaceAsPushRow && styles.textAlignCenter]}
+                    titleContainerStyle={!shouldDisplayGroupWorkspaceAsPushRow && styles.alignItemsCenter}
                     shouldCheckActionAllowedOnPress={false}
-                    description={!shouldDisableRename ? roomDescription : ''}
-                    furtherDetails={chatRoomSubtitle && !isGroupChat ? additionalRoomDetails : ''}
+                    description={shouldDisplayGroupWorkspaceAsPushRow ? roomDescription : ''}
+                    furtherDetails={chatRoomSubtitle && !isGroupChat && !shouldDisplayGroupWorkspaceAsPushRow ? additionalRoomDetails : ''}
                     furtherDetailsNumberOfLines={isWorkspaceChat ? 0 : undefined}
                     furtherDetailsStyle={isWorkspaceChat ? [styles.textAlignCenter, styles.breakWord] : undefined}
                     onPress={() => {
@@ -833,6 +793,14 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     numberOfLinesTitle={isThread ? 2 : 0}
                     shouldBreakWord
                 />
+                {shouldDisplayGroupWorkspaceAsPushRow && !isGroupChat && (
+                    <MenuItemWithTopDescription
+                        shouldShowRightIcon={false}
+                        interactive={false}
+                        description={translate('workspace.common.workspace')}
+                        title={getPolicyName({report})}
+                    />
+                )}
             </View>
         </OfflineWithFeedback>
     );
@@ -844,16 +812,27 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const fieldKey = getReportFieldKey(titleField?.fieldID);
     const isFieldDisabled = isReportFieldDisabled(report, titleField, policy);
 
-    const shouldShowEditableTitleField = caseID !== CASES.MONEY_REQUEST && canEditReportTitle(report, policy);
+    const shouldShowEditableTitleField = caseID !== CASES.MONEY_REQUEST && canEditReportTitle(report, policy, currentUserPersonalDetails?.accountID);
 
     const nameSectionFurtherDetailsContent = (
-        <ParentNavigationSubtitle
-            parentNavigationSubtitleData={parentNavigationSubtitleData}
-            reportID={report?.reportID}
-            parentReportID={report?.parentReportID}
-            parentReportActionID={report?.parentReportActionID}
-            pressableStyles={[styles.mt1, styles.mw100]}
-            subtitleNumberOfLines={2}
+        <MenuItemWithTopDescription
+            shouldShowRightIcon={false}
+            interactive={false}
+            titleComponent={
+                <ParentNavigationSubtitle
+                    parentNavigationSubtitleData={parentNavigationSubtitleData}
+                    reportID={report?.reportID}
+                    parentReportID={report?.parentReportID}
+                    parentReportActionID={report?.parentReportActionID}
+                    pressableStyles={[styles.mt1, styles.mw100]}
+                    textStyles={[styles.popoverMenuText, styles.flexShrink1, styles.preWrap, styles.mw100]}
+                    subtitleNumberOfLines={2}
+                    shouldShowFromPrefix={false}
+                />
+            }
+            description={translate('threads.from')}
+            descriptionTextStyle={[styles.mutedNormalTextLabel, styles.mb1]}
+            shouldCheckActionAllowedOnPress={false}
         />
     );
 
@@ -867,22 +846,25 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         >
             <View style={[styles.flex1]}>
                 <MenuItemWithTopDescription
-                    shouldShowRightIcon={!isFieldDisabled}
-                    interactive={!isFieldDisabled}
+                    shouldShowRightIcon={shouldShowEditableTitleField && !isFieldDisabled}
+                    interactive={shouldShowEditableTitleField && !isFieldDisabled}
                     title={reportName}
                     titleStyle={styles.newKansasLarge}
                     shouldCheckActionAllowedOnPress={false}
                     description={translate('task.title')}
-                    onPress={() => {
-                        let policyID = report.policyID;
+                    onPress={
+                        shouldShowEditableTitleField
+                            ? () => {
+                                  let policyID = report.policyID;
 
-                        if (!policyID) {
-                            policyID = '';
-                        }
+                                  if (!policyID) {
+                                      policyID = '';
+                                  }
 
-                        Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, policyID, CONST.REPORT_FIELD_TITLE_FIELD_ID, backTo));
-                    }}
-                    furtherDetailsComponent={nameSectionFurtherDetailsContent}
+                                  Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, policyID, CONST.REPORT_FIELD_TITLE_FIELD_ID, backTo));
+                              }
+                            : undefined
+                    }
                 />
             </View>
         </OfflineWithFeedback>
@@ -890,7 +872,17 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     const deleteTransaction = useCallback(() => {
         if (caseID === CASES.DEFAULT) {
-            deleteTask(report, parentReport, isReportArchived, currentUserPersonalDetails.accountID, hasOutstandingChildTask, parentReportAction, conciergeReportID, ancestors);
+            deleteTask(
+                report,
+                parentReport,
+                isReportArchived,
+                currentUserPersonalDetails.accountID,
+                hasOutstandingChildTask,
+                parentReportAction,
+                conciergeReportID,
+                delegateEmail,
+                ancestors,
+            );
             return;
         }
 
@@ -915,9 +907,13 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 isChatIOUReportArchived,
                 allTransactionViolationsParam: allTransactionViolations,
                 currentUserAccountID: currentUserPersonalDetails.accountID,
+                currentUserEmail: currentUserPersonalDetails.email ?? '',
             });
         } else if (iouTransactionID) {
-            deleteTransactions([iouTransactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, isSingleTransactionView);
+            const deleteResult = deleteTransactions([iouTransactionID], duplicateTransactions, duplicateTransactionViolations, undefined, isSingleTransactionView);
+            if (deleteResult.action === 'redirected') {
+                return;
+            }
             removeTransaction(iouTransactionID);
         }
     }, [
@@ -928,6 +924,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         parentReport,
         isReportArchived,
         currentUserPersonalDetails.accountID,
+        currentUserPersonalDetails.email,
         hasOutstandingChildTask,
         parentReportAction,
         ancestors,
@@ -941,9 +938,9 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         isChatIOUReportArchived,
         allTransactionViolations,
         deleteTransactions,
-        currentSearchHash,
         removeTransaction,
         conciergeReportID,
+        delegateEmail,
     ]);
 
     // Where to navigate back to after deleting the transaction and its report.
@@ -1026,18 +1023,26 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         if (action !== ModalActions.CONFIRM) {
             return;
         }
+        const shouldOpenSplitExpenseEditFlow = iouTransactionID ? shouldOpenSplitExpenseEditFlowOnDelete([iouTransactionID]) : false;
         Navigation.setNavigationActionToMicrotaskQueue(() => {
+            if (shouldOpenSplitExpenseEditFlow) {
+                deleteTransaction();
+                return;
+            }
+
             navigateToTargetUrl();
             // Delay deletion until the RHP close animation finishes to prevent a brief
             // "Not Found" flash inside the animating-out panel on slower devices.
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 deleteTransaction();
             });
         });
-    }, [showConfirmModal, translate, caseID, navigateToTargetUrl, deleteTransaction]);
+    }, [showConfirmModal, translate, caseID, iouTransactionID, shouldOpenSplitExpenseEditFlowOnDelete, navigateToTargetUrl, deleteTransaction]);
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: report.reportID, exactlyMatch: true}), [report.reportID]);
+
+    const shouldShowFurtherDetailsContent =
+        !isEmptyObject(parentNavigationSubtitleData) && (shouldShowEditableTitleField || isMoneyRequestReport || isInvoiceReport || isMoneyRequest || isTaskReport);
 
     return (
         <ScreenWrapper testID="ReportDetailsPage">
@@ -1047,11 +1052,9 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     onBackButtonPress={() => Navigation.goBack(backTo)}
                 />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
-                    <View style={[styles.reportDetailsTitleContainer, styles.pb0]}>
-                        {renderedAvatar}
-                        {isExpenseReport && !shouldShowEditableTitleField && nameSectionExpenseIOU}
-                    </View>
-                    {isExpenseReport && shouldShowEditableTitleField && nameSectionTitleField}
+                    <View style={[styles.reportDetailsTitleContainer, styles.pb0]}>{renderedAvatar}</View>
+                    {isExpenseReport && nameSectionTitleField}
+                    {isExpenseReport && shouldShowFurtherDetailsContent && nameSectionFurtherDetailsContent}
 
                     {!isExpenseReport && nameSectionGroupWorkspace}
 
@@ -1067,7 +1070,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                                     characterLimit={100}
                                     shouldCheckActionAllowedOnPress={false}
                                     description={translate('reportDescriptionPage.roomDescription')}
-                                    onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID, Navigation.getActiveRoute()))}
+                                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DESCRIPTION.path))}
                                 />
                             </MentionReportContext.Provider>
                         </OfflineWithFeedback>
@@ -1109,15 +1112,16 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             isAnonymousAction={item.isAnonymousAction}
                             shouldShowRightIcon={item.shouldShowRightIcon}
                             brickRoadIndicator={item.brickRoadIndicator}
+                            subtitleStyle={item.subtitleStyle}
                         />
                     ))}
 
                     {shouldShowDeleteButton && (
                         <MenuItem
                             key={CONST.REPORT_DETAILS_MENU_ITEM.DELETE}
-                            icon={expensifyIcons.Trashcan}
-                            title={caseID === CASES.DEFAULT ? translate('common.delete') : translate('reportActionContextMenu.deleteAction', {action: requestParentReportAction})}
-                            onPress={showDeleteModal}
+                            icon={shouldShowEditSplitOnDeleteAction ? expensifyIcons.ArrowSplit : expensifyIcons.Trashcan}
+                            title={deleteMenuItemTitle}
+                            onPress={shouldShowEditSplitOnDeleteAction ? deleteTransaction : showDeleteModal}
                         />
                     )}
                 </ScrollView>

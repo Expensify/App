@@ -10,11 +10,12 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import {setSidebarLoaded} from '@libs/actions/App';
-import {trackExpense} from '@libs/actions/IOU';
+import {trackExpense} from '@libs/actions/IOU/TrackExpense';
 import {addComment, deleteReportComment, markCommentAsUnread, readNewestAction} from '@libs/actions/Report';
 import {subscribeToUserEvents} from '@libs/actions/User';
 import {lastItem} from '@libs/CollectionUtils';
 import DateUtils from '@libs/DateUtils';
+import {setHasRadio} from '@libs/NetworkState';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import {rand64} from '@libs/NumberUtils';
 import {getReportActionText} from '@libs/ReportActionsUtils';
@@ -38,7 +39,6 @@ jest.setTimeout(120000);
 jest.mock('@react-navigation/native');
 jest.mock('../../src/libs/Notification/LocalNotification');
 jest.mock('../../src/components/ConfirmedRoute.tsx');
-jest.mock('@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators', () => jest.fn());
 
 TestHelper.setupApp();
 TestHelper.setupGlobalFetchMock();
@@ -175,7 +175,7 @@ async function signInAndGetAppWithUnreadChat(): Promise<void> {
     renderAppOnce();
     await waitForBatchedUpdatesWithAct();
 
-    subscribeToUserEvents(USER_A_ACCOUNT_ID, undefined);
+    subscribeToUserEvents(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined);
 
     await waitForBatchedUpdates();
 
@@ -511,6 +511,7 @@ describe('Unread Indicators', () => {
                     text: 'Current User Comment 1',
                     timezoneParam: CONST.DEFAULT_TIME_ZONE,
                     currentUserAccountID: USER_A_ACCOUNT_ID,
+                    delegateAccountID: undefined,
                 });
                 return waitForBatchedUpdates();
             })
@@ -591,6 +592,7 @@ describe('Unread Indicators', () => {
                         text: 'Current User Comment 1',
                         timezoneParam: CONST.DEFAULT_TIME_ZONE,
                         currentUserAccountID: USER_A_ACCOUNT_ID,
+                        delegateAccountID: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -638,7 +640,15 @@ describe('Unread Indicators', () => {
         await navigateToSidebarOption(0);
 
         const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
-        addComment({report, notifyReportID: REPORT_ID, ancestors: [], text: 'Comment 1', timezoneParam: CONST.DEFAULT_TIME_ZONE, currentUserAccountID: USER_A_ACCOUNT_ID});
+        addComment({
+            report,
+            notifyReportID: REPORT_ID,
+            ancestors: [],
+            text: 'Comment 1',
+            timezoneParam: CONST.DEFAULT_TIME_ZONE,
+            currentUserAccountID: USER_A_ACCOUNT_ID,
+            delegateAccountID: undefined,
+        });
 
         await waitForBatchedUpdates();
 
@@ -649,7 +659,15 @@ describe('Unread Indicators', () => {
 
             await waitForBatchedUpdates();
 
-            addComment({report, notifyReportID: REPORT_ID, ancestors: [], text: 'Comment 2', timezoneParam: CONST.DEFAULT_TIME_ZONE, currentUserAccountID: USER_A_ACCOUNT_ID});
+            addComment({
+                report,
+                notifyReportID: REPORT_ID,
+                ancestors: [],
+                text: 'Comment 2',
+                timezoneParam: CONST.DEFAULT_TIME_ZONE,
+                currentUserAccountID: USER_A_ACCOUNT_ID,
+                delegateAccountID: undefined,
+            });
 
             await waitForBatchedUpdates();
 
@@ -692,7 +710,7 @@ describe('Unread Indicators', () => {
     it('Do not display the new line indicator when tracking an expense on self DM while offline', async () => {
         // Given a self DM report and an offline network
         await signInAndGetAppWithUnreadChat();
-        await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: true});
+        setHasRadio(false);
         // Remove unnecessary report
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, null);
 
@@ -754,10 +772,8 @@ describe('Unread Indicators', () => {
                 created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
             },
             isASAPSubmitBetaEnabled: true,
-            currentUserAccountIDParam: USER_A_ACCOUNT_ID,
-            currentUserEmailParam: USER_A_EMAIL,
+            currentUser: {accountID: USER_A_ACCOUNT_ID, email: USER_A_EMAIL},
             introSelected: undefined,
-            activePolicyID: undefined,
             quickAction: undefined,
             recentWaypoints,
             betas: [CONST.BETAS.ALL],
@@ -823,7 +839,15 @@ describe('Unread Indicators', () => {
         const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
 
         // When USER_A add a comment
-        addComment({report, notifyReportID: REPORT_ID, ancestors: [], text: 'Current User Comment', timezoneParam: CONST.DEFAULT_TIME_ZONE, currentUserAccountID: USER_A_ACCOUNT_ID});
+        addComment({
+            report,
+            notifyReportID: REPORT_ID,
+            ancestors: [],
+            text: 'Current User Comment',
+            timezoneParam: CONST.DEFAULT_TIME_ZONE,
+            currentUserAccountID: USER_A_ACCOUNT_ID,
+            delegateAccountID: undefined,
+        });
         await waitForBatchedUpdates();
 
         const reportActions: OnyxEntry<ReportActions> = await new Promise((resolve) => {

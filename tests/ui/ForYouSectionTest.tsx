@@ -11,6 +11,8 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
 }));
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
@@ -99,6 +101,7 @@ describe('ForYouSection', () => {
             isExtraSmallScreenWidth: false,
             isSmallScreen: false,
             onboardingIsMediumOrLargerScreenWidth: true,
+            isInLandscapeMode: false,
         });
 
         await act(async () => {
@@ -186,6 +189,7 @@ describe('ForYouSection', () => {
                     isExtraSmallScreenWidth: false,
                     isSmallScreen: false,
                     onboardingIsMediumOrLargerScreenWidth: true,
+                    isInLandscapeMode: false,
                 });
             });
 
@@ -279,6 +283,7 @@ describe('ForYouSection', () => {
                     isExtraSmallScreenWidth: false,
                     isSmallScreen: true,
                     onboardingIsMediumOrLargerScreenWidth: false,
+                    isInLandscapeMode: false,
                 });
             });
 

@@ -1,18 +1,18 @@
 import {useEffect} from 'react';
-import useHasPoliciesConnectedToSageIntacct from '@hooks/useHasPoliciesConnectedToSageIntacct';
+import useHasReusablePoliciesConnectedTo from '@hooks/useHasReusablePoliciesConnectedTo';
 import useOnyx from '@hooks/useOnyx';
 import {isAuthenticationError} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 type ConnectToSageIntacctFlowProps = {
     policyID: string;
 };
 
 function ConnectToSageIntacctFlow({policyID}: ConnectToSageIntacctFlowProps) {
-    const hasPoliciesConnectedToSageIntacct = useHasPoliciesConnectedToSageIntacct();
+    const hasReusablePoliciesConnectedToSageIntacct = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, policyID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const shouldGoToEnterCredentials = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT);
 
@@ -21,8 +21,8 @@ function ConnectToSageIntacctFlow({policyID}: ConnectToSageIntacctFlowProps) {
             Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTER_CREDENTIALS.getRoute(policyID));
             return;
         }
-        if (!hasPoliciesConnectedToSageIntacct) {
-            Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.getRoute(policyID));
+        if (!hasReusablePoliciesConnectedToSageIntacct) {
+            Navigation.navigate(`${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}/${DYNAMIC_ROUTES.SAGE_INTACCT_PREREQUISITES.path}`);
             return;
         }
         Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXISTING_CONNECTIONS.getRoute(policyID));

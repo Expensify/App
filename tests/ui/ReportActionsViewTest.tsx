@@ -13,7 +13,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import DateUtils from '@libs/DateUtils';
-// eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportActionsUtils to mock
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import ReportActionsView from '@pages/inbox/report/ReportActionsView';
 import CONST from '@src/CONST';
@@ -177,11 +176,13 @@ describe('ReportActionsView', () => {
             isExtraSmallScreenWidth: false,
             isSmallScreen: false,
             onboardingIsMediumOrLargerScreenWidth: true,
+            isInLandscapeMode: false,
         });
 
         mockUseTransactionsAndViolationsForReport.mockReturnValue({
             transactions: {},
             violations: {},
+            isLoaded: true,
         });
 
         mockUsePaginatedReportActions.mockReturnValue({
@@ -198,10 +199,10 @@ describe('ReportActionsView', () => {
             if (key === ONYXKEYS.IS_LOADING_APP) {
                 return [false, {status: 'loaded'}];
             }
-            if (key === ONYXKEYS.ARE_TRANSLATIONS_LOADING) {
+            if (key === ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING) {
                 return [false, {status: 'loaded'}];
             }
-            if (key.includes('reportMetadata')) {
+            if (key.includes('reportLoadingState')) {
                 return [{isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true}, {status: 'loaded'}];
             }
             if (key.includes('reportActions')) {
@@ -232,10 +233,10 @@ describe('ReportActionsView', () => {
                 if (key === ONYXKEYS.IS_LOADING_APP) {
                     return [true, {status: 'loaded'}];
                 }
-                if (key === ONYXKEYS.ARE_TRANSLATIONS_LOADING) {
+                if (key === ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING) {
                     return [false, {status: 'loaded'}];
                 }
-                if (key.includes('reportMetadata')) {
+                if (key.includes('reportLoadingState')) {
                     return [{isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true}, {status: 'loaded'}];
                 }
                 if (key.includes('reportActions')) {
@@ -269,10 +270,10 @@ describe('ReportActionsView', () => {
                 if (key === ONYXKEYS.IS_LOADING_APP) {
                     return [false, {status: 'loaded'}];
                 }
-                if (key === ONYXKEYS.ARE_TRANSLATIONS_LOADING) {
+                if (key === ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING) {
                     return [false, {status: 'loaded'}];
                 }
-                if (key.includes('reportMetadata')) {
+                if (key.includes('reportLoadingState')) {
                     return [{isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true}, {status: 'loaded'}];
                 }
                 if (key.includes('reportActions')) {
@@ -301,10 +302,10 @@ describe('ReportActionsView', () => {
                 if (key === ONYXKEYS.IS_LOADING_APP) {
                     return [true, {status: 'loaded'}];
                 }
-                if (key === ONYXKEYS.ARE_TRANSLATIONS_LOADING) {
+                if (key === ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING) {
                     return [false, {status: 'loaded'}];
                 }
-                if (key.includes('reportMetadata')) {
+                if (key.includes('reportLoadingState')) {
                     return [{isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true}, {status: 'loaded'}];
                 }
                 if (key.includes('reportActions')) {
@@ -333,10 +334,10 @@ describe('ReportActionsView', () => {
                 if (key === ONYXKEYS.IS_LOADING_APP) {
                     return [false, {status: 'loaded'}];
                 }
-                if (key === ONYXKEYS.ARE_TRANSLATIONS_LOADING) {
+                if (key === ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING) {
                     return [false, {status: 'loaded'}];
                 }
-                if (key.includes('reportMetadata')) {
+                if (key.includes('reportLoadingState')) {
                     return [{isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true}, {status: 'loaded'}];
                 }
                 if (key.includes('reportActions')) {
@@ -399,10 +400,10 @@ describe('ReportActionsView', () => {
                 if (key === ONYXKEYS.IS_LOADING_APP) {
                     return [false, {status: 'loaded'}];
                 }
-                if (key === ONYXKEYS.ARE_TRANSLATIONS_LOADING) {
+                if (key === ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING) {
                     return [false, {status: 'loaded'}];
                 }
-                if (key.includes('reportMetadata')) {
+                if (key.includes('reportLoadingState')) {
                     return [{isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true}, {status: 'loaded'}];
                 }
                 if (key.includes('reportActions')) {

@@ -16,7 +16,7 @@ function addBootsplashBreadcrumb(message: string, data?: Record<string, string>,
 }
 
 type BootsplashGateStatus = {
-    splashScreenState: string;
+    splashScreenState: string | undefined;
     isOnyxMigrated: boolean;
     isCheckingPublicRoom: boolean;
     hasAttemptedToOpenPublicRoom: boolean;
@@ -35,7 +35,7 @@ function startBootsplashMonitor(gateStatusRef: React.RefObject<BootsplashGateSta
         const appState = AppState.currentState;
         Log.info('[BootSplash] splash screen status', false, {appState, splashScreenState: currentGateStatus?.splashScreenState});
 
-        if (currentGateStatus?.splashScreenState !== CONST.BOOT_SPLASH_STATE.VISIBLE) {
+        if (currentGateStatus?.splashScreenState !== CONST.BOOT_SPLASH_STATE.VISIBLE && currentGateStatus?.splashScreenState !== undefined) {
             clearInterval(intervalId);
             return;
         }

@@ -224,6 +224,8 @@ function createPolicyTag({
             currentUserAccountID,
             setupTagsHasOutstandingChildTask ?? false,
             setupTagsParentReportAction,
+            // delegateEmail: will be threaded in PR 16; buildOptimisticTaskReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
+            undefined,
         );
     }
 
@@ -236,6 +238,8 @@ function createPolicyTag({
             currentUserAccountID,
             setupCategoriesAndTagsHasOutstandingChildTask ?? false,
             setupCategoriesAndTagsParentReportAction,
+            // delegateEmail: will be threaded in PR 16; buildOptimisticTaskReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
+            undefined,
         );
     }
 }
@@ -848,7 +852,7 @@ function enablePolicyTags(policyData: PolicyData, enabled: boolean) {
     API.write(WRITE_COMMANDS.ENABLE_POLICY_TAGS, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout()) {
-        goBackWhenEnableFeature(policyID);
+        goBackWhenEnableFeature();
     }
 }
 
@@ -871,10 +875,6 @@ function setImportedSpreadsheetIsFirstLineHeader(containsHeader: boolean) {
 
 function setImportedSpreadsheetIsGLAdjacent(isGLAdjacent: boolean) {
     Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {isGLAdjacent});
-}
-
-function setImportedSpreadsheetFileURI(fileURI: string) {
-    Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {fileURI});
 }
 
 function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet | undefined) {
@@ -1074,7 +1074,7 @@ function setPolicyRequiresTag(policyData: PolicyData, requiresTag: boolean) {
 
 function setPolicyTagsRequired(policyData: PolicyData, requiresTag: boolean, tagListIndex: number) {
     const policyTag = PolicyUtils.getTagLists(policyData.tags)?.at(tagListIndex);
-    if (!policyTag || !policyTag.name) {
+    if (!policyTag?.name) {
         return;
     }
 
@@ -1344,6 +1344,5 @@ export {
     setImportedSpreadsheetIsImportingIndependentMultiLevelTags,
     setImportedSpreadsheetIsFirstLineHeader,
     setImportedSpreadsheetIsGLAdjacent,
-    setImportedSpreadsheetFileURI,
     importMultiLevelTags,
 };

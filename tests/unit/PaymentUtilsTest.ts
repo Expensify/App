@@ -1,7 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {BankAccountMenuItem} from '@components/Search/types';
 import {setPersonalBankAccountContinueKYCOnSuccess} from '@libs/actions/BankAccounts';
-import {approveMoneyRequest} from '@libs/actions/IOU';
+import {approveMoneyRequest} from '@libs/actions/IOU/ReportWorkflow';
 import Navigation from '@libs/Navigation/Navigation';
 import {getActivePaymentType, getBusinessBankAccountOptions, handleUnvalidatedAccount, selectPaymentType} from '@libs/PaymentUtils';
 import type {SelectPaymentTypeParams} from '@libs/PaymentUtils';
@@ -28,7 +28,7 @@ jest.mock('@libs/actions/BankAccounts', () => ({
     setPersonalBankAccountContinueKYCOnSuccess: jest.fn(),
 }));
 
-jest.mock('@libs/actions/IOU', () => ({
+jest.mock('@libs/actions/IOU/ReportWorkflow', () => ({
     approveMoneyRequest: jest.fn(),
 }));
 
@@ -67,7 +67,7 @@ describe('PaymentUtils', () => {
                 description: 'non-search route defaults to regular report verification',
                 reportID: undefined,
                 activeRoute: 'r',
-                expectedRoute: 'settings/profile/contact-methods/verify?backTo=r',
+                expectedRoute: 'r/verify-account',
             },
         ])('should navigate to $expectedRoute when on $description', ({reportID, activeRoute, expectedRoute}) => {
             mockGetActiveRoute.mockReturnValue(activeRoute);
@@ -185,6 +185,7 @@ describe('PaymentUtils', () => {
             event: undefined,
             iouPaymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             triggerKYCFlow: mockTriggerKYCFlow,
+            expenseReportPolicy: testPolicy,
             policy: testPolicy,
             onPress: mockOnPress,
             currentAccountID: 1,
@@ -198,6 +199,7 @@ describe('PaymentUtils', () => {
             userBillingGracePeriodEnds: undefined,
             amountOwed: 0,
             ownerBillingGracePeriodEnd: undefined,
+            delegateEmail: undefined,
         };
 
         beforeEach(() => {
@@ -224,12 +226,12 @@ describe('PaymentUtils', () => {
             expect(mockOnPress).toHaveBeenCalledWith({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE});
         });
 
-        it('should pass amountOwed and ownerBillingGracePeriodEnd to shouldRestrictUserBillableActions', () => {
+        it('should pass amountOwed, ownerBillingGracePeriodEnd and policy to shouldRestrictUserBillableActions', () => {
             const params = {...baseParams, amountOwed: 42, ownerBillingGracePeriodEnd: 999};
 
             selectPaymentType(params);
 
-            expect(mockShouldRestrict).toHaveBeenCalledWith(testPolicyID, 999, params.userBillingGracePeriodEnds, 42);
+            expect(mockShouldRestrict).toHaveBeenCalledWith(testPolicy, 999, params.userBillingGracePeriodEnds, 42, params.currentAccountID);
         });
 
         it('should trigger KYC flow for EXPENSIFY payment type when user is validated', () => {
@@ -268,6 +270,7 @@ describe('PaymentUtils', () => {
 
             expect(approveMoneyRequest).toHaveBeenCalledWith({
                 expenseReport: params.iouReport,
+                expenseReportPolicy: params.expenseReportPolicy,
                 policy: params.policy,
                 currentUserAccountIDParam: params.currentAccountID,
                 currentUserEmailParam: params.currentEmail,
@@ -279,6 +282,7 @@ describe('PaymentUtils', () => {
                 amountOwed: 42,
                 ownerBillingGracePeriodEnd: 999,
                 full: true,
+                delegateEmail: undefined,
             });
         });
 
@@ -289,6 +293,7 @@ describe('PaymentUtils', () => {
 
             expect(approveMoneyRequest).toHaveBeenCalledWith({
                 expenseReport: params.iouReport,
+                expenseReportPolicy: params.expenseReportPolicy,
                 policy: params.policy,
                 currentUserAccountIDParam: params.currentAccountID,
                 currentUserEmailParam: params.currentEmail,
@@ -300,6 +305,7 @@ describe('PaymentUtils', () => {
                 amountOwed: undefined,
                 ownerBillingGracePeriodEnd: undefined,
                 full: true,
+                delegateEmail: undefined,
             });
         });
 
@@ -325,7 +331,7 @@ describe('PaymentUtils', () => {
 
             selectPaymentType(params);
 
-            expect(mockShouldRestrict).toHaveBeenCalledWith(testPolicyID, params.userBillingGracePeriodEnds, undefined, undefined);
+            expect(mockShouldRestrict).toHaveBeenCalledWith(testPolicy, undefined, params.userBillingGracePeriodEnds, undefined, params.currentAccountID);
         });
     });
 
@@ -398,6 +404,31 @@ describe('PaymentUtils', () => {
             expect(result.at(0)?.methodID).toBe(1);
             expect(result.at(1)?.text).toBe('Account B');
             expect(result.at(1)?.methodID).toBe(2);
+        });
+
+        it('returns all valid accounts when no currency is specified', () => {
+            const methods: PaymentMethod[] = [
+                createMockPaymentMethod({title: 'USD Account', bankCurrency: CONST.CURRENCY.USD}),
+                createMockPaymentMethod({title: 'EUR Account', bankCurrency: 'EUR', methodID: 789}),
+            ];
+            const result = getBusinessBankAccountOptions(methods);
+            expect(result).toHaveLength(2);
+        });
+
+        it('filters accounts by matching currency', () => {
+            const methods: PaymentMethod[] = [
+                createMockPaymentMethod({title: 'USD Account', bankCurrency: CONST.CURRENCY.USD}),
+                createMockPaymentMethod({title: 'EUR Account', bankCurrency: 'EUR', methodID: 789}),
+            ];
+            const result = getBusinessBankAccountOptions(methods, 'EUR');
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.text).toBe('EUR Account');
+        });
+
+        it('excludes accounts with non-matching currency', () => {
+            const methods: PaymentMethod[] = [createMockPaymentMethod({title: 'USD Account', bankCurrency: CONST.CURRENCY.USD})];
+            const result = getBusinessBankAccountOptions(methods, 'GBP');
+            expect(result).toHaveLength(0);
         });
 
         it('filters to only valid BUSINESS OPEN or LOCKED with methodID and maps rest correctly', () => {

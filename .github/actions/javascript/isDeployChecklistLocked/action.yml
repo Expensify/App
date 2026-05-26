@@ -10,5 +10,5 @@ outputs:
     NUMBER:
         description: Deploy checklist issue number
 runs:
-    using: 'node20'
+    using: 'node24'
     main: 'index.js'

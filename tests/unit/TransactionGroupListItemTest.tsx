@@ -1,3 +1,4 @@
+import type * as CoreNavigation from '@react-navigation/core';
 import * as NativeNavigation from '@react-navigation/native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import React, {act} from 'react';
@@ -6,7 +7,7 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-import {SearchContextProvider} from '@components/Search/SearchContext';
+import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 import type {TransactionGroupListItemProps, TransactionListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import TransactionGroupListItem from '@src/components/Search/SearchList/ListItem/TransactionGroupListItem';
 import CONST from '@src/CONST';
@@ -32,6 +33,7 @@ jest.mock('@react-navigation/native', () => ({
     useNavigation: () => ({
         navigate: jest.fn(),
         addListener: jest.fn(),
+        getState: jest.fn(() => undefined),
     }),
     useFocusEffect: jest.fn((callback: () => void) => callback()),
     useRoute: () => ({
@@ -39,6 +41,15 @@ jest.mock('@react-navigation/native', () => ({
     }),
     usePreventRemove: jest.fn(),
 }));
+
+jest.mock('@react-navigation/core', () => ({
+    ...jest.requireActual<typeof CoreNavigation>('@react-navigation/core'),
+    useNavigation: jest.fn(() => ({getState: jest.fn(() => undefined)})),
+}));
+
+jest.mock('@hooks/useRootNavigationState', () => jest.fn((selector: (state: undefined) => unknown) => selector(undefined)));
+
+jest.mock('@hooks/useResponsiveLayout');
 
 const mockEmptyReport: TransactionReportGroupListItemType = {
     accountID: 1,
@@ -302,13 +313,7 @@ describe('TransactionGroupListItem', () => {
     }
 
     const renderTransactionGroupListItem = () => {
-        return render(
-            <TransactionGroupListItem
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...defaultProps}
-            />,
-            {wrapper: TestWrapper},
-        );
+        return render(<TransactionGroupListItem {...defaultProps} />, {wrapper: TestWrapper});
     };
 
     const expand = async () => {
@@ -415,7 +420,7 @@ describe('Empty Report Selection', () => {
         item: mockEmptyReport,
         showTooltip: false,
         onSelectRow: mockOnSelectRow,
-        onCheckboxPress: mockOnCheckboxPress,
+        onSelectionButtonPress: mockOnCheckboxPress,
         searchType: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
         canSelectMultiple: true,
         keyForList: '1',
@@ -432,13 +437,7 @@ describe('Empty Report Selection', () => {
     }
 
     const renderTransactionGroupListItem = () => {
-        return render(
-            <TransactionGroupListItem
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...defaultProps}
-            />,
-            {wrapper: TestWrapper},
-        );
+        return render(<TransactionGroupListItem {...defaultProps} />, {wrapper: TestWrapper});
     };
 
     it('should render an empty report with checkbox', async () => {
@@ -523,13 +522,7 @@ describe('Empty Report Selection', () => {
             item: mockNonEmptyReport,
         };
 
-        const {unmount: unmountNonEmpty} = render(
-            <TransactionGroupListItem
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...nonEmptyProps}
-            />,
-            {wrapper: TestWrapper},
-        );
+        const {unmount: unmountNonEmpty} = render(<TransactionGroupListItem {...nonEmptyProps} />, {wrapper: TestWrapper});
         await waitForBatchedUpdatesWithAct();
 
         const nonEmptyCheckbox = screen.getByRole(CONST.ROLE.CHECKBOX);
@@ -567,13 +560,7 @@ describe('Empty Report Selection', () => {
             item: mockNonEmptyReport,
         };
 
-        render(
-            <TransactionGroupListItem
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...nonEmptyProps}
-            />,
-            {wrapper: TestWrapper},
-        );
+        render(<TransactionGroupListItem {...nonEmptyProps} />, {wrapper: TestWrapper});
         await waitForBatchedUpdatesWithAct();
 
         // Non-empty reports should have an expand button

@@ -1,10 +1,6 @@
-// eslint-disable-next-line no-restricted-syntax -- disabled because we need CurrencyUtils to mock
-import * as CurrencyUtils from '@libs/CurrencyUtils';
 import type {FormulaContext} from '@libs/Formula';
 import {compute, hasCircularReferences, parse, resolveReportFieldValue} from '@libs/Formula';
-// eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportActionsUtils to mock
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-// eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportUtils to mock
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {PersonalDetails, Policy, PolicyReportField, Report, ReportActions, Transaction} from '@src/types/onyx';
@@ -18,14 +14,8 @@ jest.mock('@libs/ReportUtils', () => ({
     getReportTransactions: jest.fn(),
 }));
 
-jest.mock('@libs/CurrencyUtils', () => ({
-    ...jest.requireActual<typeof CurrencyUtils>('@libs/CurrencyUtils'),
-    isValidCurrencyCode: jest.fn(),
-}));
-
 const mockReportActionsUtils = ReportActionsUtils as jest.Mocked<typeof ReportActionsUtils>;
 const mockReportUtils = ReportUtils as jest.Mocked<typeof ReportUtils>;
-const mockCurrencyUtils = CurrencyUtils as jest.Mocked<typeof CurrencyUtils>;
 
 describe('CustomFormula', () => {
     describe('parse()', () => {
@@ -95,8 +85,6 @@ describe('CustomFormula', () => {
 
         beforeEach(() => {
             jest.clearAllMocks();
-
-            mockCurrencyUtils.isValidCurrencyCode.mockImplementation((code: string) => ['USD', 'EUR', 'JPY', 'NPR'].includes(code));
 
             const mockReportActions = {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -515,6 +503,24 @@ describe('CustomFormula', () => {
                     const result = compute('{report:total:UNKNOWN}', currencyContext);
                     expect(result).toBe('{report:total:UNKNOWN}');
                 });
+
+                test('case-only source currency variations - should format like the canonical code', () => {
+                    currencyContext.report.currency = 'eur';
+                    const lowercase = compute('{report:total}', currencyContext);
+                    currencyContext.report.currency = 'EUR';
+                    const canonical = compute('{report:total}', currencyContext);
+                    expect(lowercase).toBe(canonical);
+                    expect(lowercase).not.toBe('{report:total}');
+                });
+
+                test('whitespace source currency variations - should format like the canonical code', () => {
+                    currencyContext.report.currency = '  USD  ';
+                    const padded = compute('{report:total}', currencyContext);
+                    currencyContext.report.currency = 'USD';
+                    const canonical = compute('{report:total}', currencyContext);
+                    expect(padded).toBe(canonical);
+                    expect(padded).not.toBe('{report:total}');
+                });
             });
         });
     });
@@ -675,71 +681,6 @@ describe('CustomFormula', () => {
             const context = createMockContext(policy);
 
             expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-08');
-            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-14');
-        });
-
-        test('should use context.transaction for trip end date when adding a new expense to existing report', () => {
-            // First transaction already in Onyx (oldest expense, dated Jan 8)
-            mockReportUtils.getReportTransactions.mockReturnValue([
-                {transactionID: 'existing1', reportID: '123', created: '2025-01-08T12:00:00Z', merchant: 'Hotel', amount: 5000} as Transaction,
-            ]);
-
-            const policy = {autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP} as Policy;
-            // Second transaction passed via context (newest expense, dated Jan 14 — not in Onyx yet)
-            const context: FormulaContext = {
-                report: mockReport,
-                policy,
-                transaction: {transactionID: 'optimistic1', reportID: '123', created: '2025-01-14T16:00:00Z', merchant: 'Restaurant', amount: 3000} as Transaction,
-            };
-
-            // Start should be oldest (Jan 8 from Onyx), end should be newest (Jan 14 from context)
-            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-08');
-            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-14');
-        });
-
-        test('should use allTransactions for trip dates when Onyx is empty (new report optimistic flow)', () => {
-            mockReportUtils.getReportTransactions.mockReturnValue([]);
-
-            const policy = {autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP} as Policy;
-            const context: FormulaContext = {
-                report: mockReport,
-                policy,
-                allTransactions: {
-                    trans1: {transactionID: 'trans1', reportID: '123', created: '2025-01-08T12:00:00Z', merchant: 'Hotel', amount: 5000} as Transaction,
-                },
-            };
-
-            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-08');
-            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-08');
-        });
-
-        test('should use allTransactions to merge Onyx + optimistic transaction for trip date range', () => {
-            mockReportUtils.getReportTransactions.mockReturnValue([
-                {transactionID: 'existing1', reportID: '123', created: '2025-01-08T12:00:00Z', merchant: 'Hotel', amount: 5000} as Transaction,
-            ]);
-
-            const policy = {autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP} as Policy;
-            const context: FormulaContext = {
-                report: mockReport,
-                policy,
-                allTransactions: {
-                    existing1: {transactionID: 'existing1', reportID: '123', created: '2025-01-08T12:00:00Z', merchant: 'Hotel', amount: 5000} as Transaction,
-                    optimistic1: {transactionID: 'optimistic1', reportID: '123', created: '2025-01-14T16:00:00Z', merchant: 'Restaurant', amount: 3000} as Transaction,
-                },
-            };
-
-            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-08');
-            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-14');
-        });
-
-        test('should fallback to current date for trip frequency when no transactions', () => {
-            mockReportUtils.getReportTransactions.mockReturnValue([]);
-
-            const policy = {autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP} as Policy;
-            const context = createMockContext(policy);
-
-            // Should fall back to current date (2025-01-19 from jest.setSystemTime)
-            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-19');
             expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-19');
         });
 

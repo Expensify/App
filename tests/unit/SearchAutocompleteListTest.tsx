@@ -38,18 +38,17 @@ jest.mock('@src/libs/API', () => ({
 // The jest-expo preset resolves to the .native.tsx file which defers rendering via onLayout (which never fires in tests).
 // Mock the deferred wrapper to directly render SearchAutocompleteList.
 jest.mock('@components/Search/DeferredSearchAutocompleteList', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const module = jest.requireActual<{default: React.ComponentType}>('@components/Search/SearchAutocompleteList');
     return {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         __esModule: true,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
         default: module.default,
     };
 });
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     dismissModalWithReport: jest.fn(),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
     getTopmostReportId: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
     isDisplayedInModal: jest.fn(() => false),
@@ -57,13 +56,11 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@src/hooks/useRootNavigationState', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({contextualReportID: undefined, isSearchRouterScreen: false}),
 }));
 
 jest.mock('@hooks/useExportedToFilterOptions', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({
         exportedToFilterOptions: [],
@@ -121,10 +118,10 @@ const mockedOptions = createOptionList(mockedPersonalDetails, EMPTY_PRIVATE_IS_A
 
 const mockOnClose = jest.fn();
 
-function SearchRouterWrapper() {
+function SearchRouterWrapper({options = mockedOptions}: {options?: ReturnType<typeof createOptionList>}) {
     return (
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <OptionsListStateContext.Provider value={useMemo(() => ({options: mockedOptions, areOptionsInitialized: true}), [])}>
+            <OptionsListStateContext.Provider value={useMemo(() => ({options, areOptionsInitialized: true}), [options])}>
                 <OptionsListActionsContext.Provider value={useMemo(() => ({initializeOptions: () => {}, resetOptions: () => {}}), [])}>
                     <SearchRouter onRouterClose={mockOnClose} />
                 </OptionsListActionsContext.Provider>
@@ -139,7 +136,6 @@ function SearchRouterWrapper() {
  */
 async function flushAllUpdates() {
     for (let i = 0; i < 10; i++) {
-        // eslint-disable-next-line no-await-in-loop
         await act(async () => {
             jest.advanceTimersByTime(100);
             await waitForBatchedUpdates();

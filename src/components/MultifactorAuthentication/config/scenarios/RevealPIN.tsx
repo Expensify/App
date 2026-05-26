@@ -7,8 +7,8 @@ import type {
     MultifactorAuthenticationScenarioCustomConfig,
 } from '@components/MultifactorAuthentication/config/types';
 import {revealPINForCard} from '@libs/actions/MultifactorAuthentication';
-import {setRevealedPIN} from '@libs/CardPINStore';
 import Navigation from '@libs/Navigation/Navigation';
+import {setRevealedPhysicalCardPin} from '@libs/RevealedCardSecretsStore';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -48,16 +48,16 @@ const ServerFailureScreen = createScreenWithDefaults(
  * This scenario is used when a UK/EU cardholder reveals the PIN of their physical card.
  *
  * Callback behavior:
- * - Success: Store the revealed PIN in CardPINStore and return SKIP_OUTCOME_SCREEN
+ * - Success: Store the revealed PIN in RevealedCardSecretsStore and return SKIP_OUTCOME_SCREEN
  * - Authentication failure: Return SHOW_OUTCOME_SCREEN to show failure screen
  */
 export default {
-    allowedAuthenticationMethods: [CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS, CONST.MULTIFACTOR_AUTHENTICATION.TYPE.PASSKEYS],
+    allowedAuthenticationMethods: [CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS_HSM, CONST.MULTIFACTOR_AUTHENTICATION.TYPE.PASSKEYS],
     action: revealPINForCard,
     callback: async (isSuccessful, callbackInput, payload) => {
         if (isSuccessful && isRevealPINPayload(payload)) {
             const pin = typeof callbackInput.body?.pin === 'string' ? callbackInput.body.pin : '';
-            setRevealedPIN(payload.cardID, pin);
+            setRevealedPhysicalCardPin(payload.cardID, pin);
             Navigation.closeRHPFlow();
             Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(String(payload.cardID)));
             return CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SKIP_OUTCOME_SCREEN;

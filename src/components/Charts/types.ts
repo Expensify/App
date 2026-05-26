@@ -1,5 +1,6 @@
+import type {SkParagraph} from '@shopify/react-native-skia';
 import type {ValueOf} from 'type-fest';
-import type {LABEL_ROTATIONS} from './constants';
+import type {LABEL_ROTATIONS} from './VictoryTheme';
 
 type ChartDataPoint = {
     /** Label displayed under the data point (e.g., "Amazon", "Nov 2025") */
@@ -68,4 +69,6 @@ type PieSlice = {
 
 type LabelRotation = ValueOf<typeof LABEL_ROTATIONS>;
 
-export type {ChartDataPoint, ChartProps, CartesianChartProps, LabelRotation, PieSlice, UnitPosition, UnitWithFallback};
+type ParagraphWithWidth = {para: SkParagraph | null; width: number};
+
+export type {ChartDataPoint, ChartProps, CartesianChartProps, LabelRotation, ParagraphWithWidth, PieSlice, UnitPosition, UnitWithFallback};

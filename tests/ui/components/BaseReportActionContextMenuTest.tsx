@@ -47,6 +47,7 @@ jest.mock('@components/FocusTrap/FocusTrapForModal', () => {
 
 jest.mock('@components/OnyxListItemProvider', () => ({
     useSession: () => ({encryptedAuthToken: 'token'}),
+    usePersonalDetails: () => ({}),
 }));
 
 jest.mock('@hooks/useArrowKeyFocusManager', () => () => [-1, jest.fn()] as const);
@@ -128,6 +129,8 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: (...args: unknown[]) => mockNavigate(...args) as void,
     setParams: (...args: unknown[]) => mockSetParams(...args) as void,
     getActiveRoute: () => mockGetActiveRoute(),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
     navigationRef: {
         isReady: () => mockIsReady(),
         getCurrentRoute: () => mockGetCurrentRoute(),
@@ -135,6 +138,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 const currentUserAccountID = 1;
+const currentUserLogin = 'user@test.com';
 const originalReportID = '100';
 const reportActionID = '200';
 const childReportID = '300';
@@ -392,6 +396,6 @@ describe('BaseReportActionContextMenu hold/unhold action', () => {
         });
 
         expect(mockUnholdRequest).toHaveBeenCalledTimes(1);
-        expect(mockUnholdRequest).toHaveBeenCalledWith(transactionID, childReportID, expect.objectContaining({id: policyID}), false);
+        expect(mockUnholdRequest).toHaveBeenCalledWith(transactionID, childReportID, expect.objectContaining({id: policyID}), false, currentUserLogin, currentUserAccountID);
     });
 });

@@ -4,6 +4,7 @@ import {NativeStackView} from '@react-navigation/native-stack';
 import type {NativeStackNavigationEventMap, NativeStackNavigationOptions} from '@react-navigation/native-stack';
 import React, {useMemo} from 'react';
 import convertToNativeNavigationOptions from '@libs/Navigation/PlatformStackNavigation/navigationOptions/convertToNativeNavigationOptions';
+import screenLayout from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
 import type {
     CreatePlatformStackNavigatorComponentOptions,
     CustomCodeProps,
@@ -12,6 +13,7 @@ import type {
     PlatformStackNavigatorProps,
     PlatformStackRouterOptions,
 } from '@libs/Navigation/PlatformStackNavigation/types';
+import wrapDescriptorsWithFreeze from './wrapDescriptorsWithFreeze';
 
 function createPlatformStackNavigatorComponent<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions>(
     displayName: string,
@@ -23,6 +25,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
     const useCustomEffects = options?.useCustomEffects ?? (() => undefined);
     const ExtraContent = options?.ExtraContent;
     const NavigationContentWrapper = options?.NavigationContentWrapper;
+    const freezeNonTopScreens = options?.freezeNonTopScreens;
 
     function PlatformNavigator({
         id,
@@ -59,6 +62,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                 sidebarScreen,
                 defaultCentralScreen,
                 parentRoute,
+                screenLayout,
             },
             convertToNativeNavigationOptions,
         );
@@ -87,27 +91,24 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
         // Executes custom effects defined in "useCustomEffects" navigator option.
         useCustomEffects(customCodePropsWithCustomState);
 
+        const wrappedDescriptors = freezeNonTopScreens ? wrapDescriptorsWithFreeze(descriptors, state) : descriptors;
+
         const Content = useMemo(
             () => (
                 <NavigationContent>
                     <NativeStackView
-                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
                         state={state}
-                        descriptors={descriptors}
+                        descriptors={wrappedDescriptors}
                         navigation={navigation}
                         describe={describe}
                     />
-                    {!!ExtraContent && (
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        <ExtraContent {...customCodePropsWithCustomState} />
-                    )}
+                    {!!ExtraContent && <ExtraContent {...customCodePropsWithCustomState} />}
                 </NavigationContent>
             ),
-            [NavigationContent, customCodePropsWithCustomState, describe, descriptors, navigation, props, state],
+            [NavigationContent, customCodePropsWithCustomState, describe, wrappedDescriptors, navigation, props, state],
         );
 
-        // eslint-disable-next-line react/jsx-props-no-spreading
         return NavigationContentWrapper === undefined ? Content : <NavigationContentWrapper {...customCodePropsWithCustomState}>{Content}</NavigationContentWrapper>;
     }
     PlatformNavigator.displayName = displayName;

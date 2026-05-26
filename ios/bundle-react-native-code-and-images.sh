@@ -29,4 +29,4 @@ if [[ -z "$BUNDLE_COMMAND" ]]; then
   export BUNDLE_COMMAND="bundle"
 fi
 
-"$NODE_BINARY" --print "require('path').dirname(require.resolve('react-native/package.json')) + '/scripts/react-native-xcode.sh'"
+eval "$("$NODE_BINARY" --print "require('path').dirname(require.resolve('react-native/package.json')) + '/scripts/react-native-xcode.sh'")"

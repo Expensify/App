@@ -23,9 +23,7 @@ function withSafeAreaInsets(WrappedComponent: React.ComponentType<WithSafeAreaIn
     function WithSafeAreaInsets(props: WithSafeAreaInsetsProps & {ref: React.ForwardedRef<unknown>}) {
         return (
             <WrappedComponent
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
-                // eslint-disable-next-line react/prop-types
                 ref={props.ref}
                 insets={insets}
             />
@@ -35,7 +33,6 @@ function withSafeAreaInsets(WrappedComponent: React.ComponentType<WithSafeAreaIn
     function WithSafeAreaInsetsWithRef(props: WithSafeAreaInsetsProps & {ref: ForwardedRef<unknown>}) {
         return (
             <WithSafeAreaInsets
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 ref={props.ref}
             />

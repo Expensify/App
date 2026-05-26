@@ -105,6 +105,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Last update result */
     lastScrapeResult?: number;
 
+    /** Last import attempt */
+    lastImportAttempt?: string;
+
     /** Card related error messages */
     errors?: OnyxCommon.Errors;
 
@@ -186,6 +189,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
         /** Date when card expires (YYYY-MM-DD format) */
         validThru?: string;
+
+        /** Whether the card's PIN is currently blocked due to too many incorrect entries */
+        isPINBlocked?: boolean;
 
         /** Collection of errors coming from BE */
         errors?: OnyxCommon.Errors;
@@ -424,5 +430,4 @@ export type {
     CardAssignmentData,
     UnassignedCard,
     PossibleFraudData,
-    FrozenCardData,
 };

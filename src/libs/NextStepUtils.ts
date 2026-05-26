@@ -21,7 +21,7 @@ import {
     isInvoiceReport,
     isOpenExpenseReport,
     isPayer,
-    isReportOwner,
+    shouldBlockSubmitDueToPreventSelfApproval,
 } from './ReportUtils';
 import {hasSubmissionBlockingViolations} from './TransactionUtils';
 
@@ -67,7 +67,11 @@ function buildNextStepMessage(nextStep: ReportNextStep, translate: LocaleContext
         etaType = CONST.NEXT_STEP.ETA_TYPE.DATE_TIME;
     }
 
-    return `<next-step>${translate(`nextStep.message.${nextStep.messageKey}`, {actor, actorType, eta, etaType})}</next-step>`;
+    return `<next-step>${translate(`nextStep.message.${nextStep.messageKey}`, actor, actorType, eta, etaType)}</next-step>`;
+}
+
+function doesReportContainTransactions(report: OnyxEntry<Report>): boolean {
+    return (report?.transactionCount ?? 0) > 0;
 }
 
 function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep | null {
@@ -94,14 +98,11 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
     const autoReportingFrequency = getCorrectedAutoReportingFrequency(policy);
     const isInstantSubmitEnabled = autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
     const shouldShowFixMessage = hasViolations && isInstantSubmitEnabled && !isASAPSubmitBetaEnabled;
-    const isReportContainingTransactions =
-        report &&
-        ((report.total !== 0 && report.total !== undefined) ||
-            (report.unheldTotal !== 0 && report.unheldTotal !== undefined) ||
-            (report.unheldNonReimbursableTotal !== 0 && report.unheldNonReimbursableTotal !== undefined));
+    const hasTransactions = doesReportContainTransactions(report);
     const approverAccountID = bypassNextApproverID ?? getNextApproverAccountID(report, isUnapprove);
     const reimburserAccountID = getReimburserAccountID(policy);
     const hasValidAccount = !!policy?.achAccount?.accountNumber || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+    const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
     const nextStepFixOrPayExpense: ReportNextStep = {
         messageKey: shouldShowFixMessage ? CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES : CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
@@ -153,7 +154,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             };
 
             // Scheduled submit enabled
-            if (policy?.harvesting?.enabled && isReportContainingTransactions) {
+            if (policy?.harvesting?.enabled && hasTransactions) {
                 nextStep = {
                     messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -197,7 +198,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             }
 
             // Manual submission
-            if (report?.total !== 0 && !policy?.harvesting?.enabled) {
+            if (hasTransactions && !policy?.harvesting?.enabled) {
                 nextStep = {
                     messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -210,7 +211,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
         // Generates an optimistic nextStep once a report has been submitted
         case CONST.REPORT.STATUS_NUM.SUBMITTED: {
             if (policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL) {
-                nextStep = nextStepFixOrPayExpense;
+                nextStep = reimbursableSpend === 0 ? nextStepNoActionRequired : nextStepFixOrPayExpense;
                 break;
             }
 
@@ -244,7 +245,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
 
         // Generates an optimistic nextStep once a report has been approved
         case CONST.REPORT.STATUS_NUM.APPROVED:
-            if (isInvoiceReport(report) || !isPayer(currentUserAccountIDParam, currentUserEmailParam, report, undefined)) {
+            if (isInvoiceReport(report) || !isPayer(currentUserAccountIDParam, currentUserEmailParam, report, undefined) || reimbursableSpend === 0) {
                 nextStep = nextStepNoActionRequired;
                 break;
             }
@@ -277,8 +278,8 @@ function parseMessage(messages: Message[] | undefined, currentUserEmail: string)
             const nextPart = messages.at(index + 1);
 
             if (currentUserEmail === part.text || part.clickToCopyText === currentUserEmail) {
-                tagType = 'strong';
                 content = nextPart?.text === `'s` ? 'your' : 'you';
+                tagType = content === 'your' ? 'span' : 'strong';
             } else if (part.text === `'s` && (previousPart?.text === currentUserEmail || previousPart?.clickToCopyText === currentUserEmail)) {
                 content = '';
             } else if (isEmail) {
@@ -363,7 +364,11 @@ function getReportNextStep(
     currentUserEmail: string,
     currentUserAccountID: number,
 ) {
-    const nextApproverAccountID = getNextApproverAccountID(moneyRequestReport);
+    const {reimbursableSpend} = getMoneyRequestSpendBreakdown(moneyRequestReport);
+    const shouldShowNoFurtherAction =
+        reimbursableSpend === 0 &&
+        (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.APPROVED ||
+            (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED && policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL));
 
     if (
         isOpenExpenseReport(moneyRequestReport) &&
@@ -376,14 +381,23 @@ function getReportNextStep(
         return buildOptimisticFixIssueNextStep(moneyRequestReport?.ownerAccountID ?? -1);
     }
 
-    const isSubmitterSameAsNextApprover =
-        isReportOwner(moneyRequestReport) && (nextApproverAccountID === moneyRequestReport?.ownerAccountID || moneyRequestReport?.managerID === moneyRequestReport?.ownerAccountID);
-
     // When prevent self-approval is enabled & the current user is submitter AND they're submitting to themselves, we need to show the optimistic next step
     // We should always show this optimistic message for policies with preventSelfApproval
     // to avoid any flicker during transitions between online/offline states
-    if (isSubmitterSameAsNextApprover && policy?.preventSelfApproval) {
+    if (shouldBlockSubmitDueToPreventSelfApproval(moneyRequestReport, policy)) {
         return buildOptimisticNextStepForPreventSelfApprovalsEnabled();
+    }
+
+    if (shouldShowNoFurtherAction) {
+        return buildNextStepNew({
+            report: moneyRequestReport,
+            policy,
+            currentUserAccountIDParam: currentUserAccountID,
+            currentUserEmailParam: currentUserEmail,
+            hasViolations: false,
+            isASAPSubmitBetaEnabled: false,
+            predictedNextStatus: moneyRequestReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
+        });
     }
 
     return currentNextStep;
@@ -468,11 +482,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
         currentUserAccountID: currentUserAccountIDParam ?? CONST.DEFAULT_NUMBER_ID,
         shouldChangeUserDisplayName: true,
     });
-    const isReportContainingTransactions =
-        report &&
-        ((report.total !== 0 && report.total !== undefined) ||
-            (report.unheldTotal !== 0 && report.unheldTotal !== undefined) ||
-            (report.unheldNonReimbursableTotal !== 0 && report.unheldNonReimbursableTotal !== undefined));
+    const hasTransactions = doesReportContainTransactions(report);
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
     const ownerDisplayName =
@@ -614,7 +624,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
                         text: ' to ',
                     },
                     {
-                        text: isReportContainingTransactions ? 'submit' : 'add',
+                        text: hasTransactions ? 'submit' : 'add',
                     },
                     {
                         text: ' %expenses.',
@@ -623,7 +633,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
             };
 
             // Scheduled submit enabled
-            if (policy?.harvesting?.enabled && isReportContainingTransactions) {
+            if (policy?.harvesting?.enabled && hasTransactions) {
                 optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',
@@ -677,7 +687,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
             }
 
             // Manual submission
-            if (report?.total !== 0 && !policy?.harvesting?.enabled) {
+            if (hasTransactions && !policy?.harvesting?.enabled) {
                 optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',
@@ -826,11 +836,10 @@ export {
     buildNextStepMessage,
     buildOptimisticNextStep,
     parseMessage,
-    buildOptimisticNextStepForPreventSelfApprovalsEnabled,
     buildOptimisticNextStepForStrictPolicyRuleViolations,
     buildOptimisticNextStepForDynamicExternalWorkflowSubmitError,
     buildOptimisticNextStepForDynamicExternalWorkflowApproveError,
     buildOptimisticNextStepForDEWOffline,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    buildOptimisticNextStepForPreventSelfApprovalsEnabled,
     buildNextStepNew,
 };

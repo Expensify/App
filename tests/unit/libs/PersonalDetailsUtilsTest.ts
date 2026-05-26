@@ -5,13 +5,17 @@ import {
     createDisplayName,
     createPersonalDetailsLookupByAccountID,
     getAccountIDsByLogins,
+    getDisplayNameOrYou,
     getEffectiveDisplayName,
     getPersonalDetailByEmail,
     getPersonalDetailsOnyxDataForOptimisticUsers,
+    newGetPersonalDetailsByIDs,
 } from '@libs/PersonalDetailsUtils';
+import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
-import {formatPhoneNumber} from '../../utils/TestHelper';
+import {formatPhoneNumber, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 type PersonalDetailsForDisplayName = Pick<PersonalDetails, 'firstName' | 'lastName'> & {
@@ -24,6 +28,7 @@ describe('PersonalDetailsUtils', () => {
         Onyx.init({
             keys: ONYXKEYS,
         });
+        return IntlStore.load(CONST.LOCALES.EN);
     });
 
     afterEach(() => Onyx.clear());
@@ -650,6 +655,11 @@ describe('PersonalDetailsUtils', () => {
                 displayName: 'Test User',
             });
         });
+
+        it('should return undefined when email is undefined', async () => {
+            const result = getPersonalDetailByEmail(undefined);
+            expect(result).toBeUndefined();
+        });
     });
 
     describe('createPersonalDetailsLookupByAccountID', () => {
@@ -695,6 +705,50 @@ describe('PersonalDetailsUtils', () => {
 
             // The second entry should overwrite the first
             expect(result[1]).toEqual({accountID: 1, login: 'second@example.com', displayName: 'Second'});
+        });
+    });
+
+    describe('newGetPersonalDetailsByIDs', () => {
+        const accountID1 = 1;
+        const accountID2 = 2;
+        const personalDetails: PersonalDetailsList = {
+            [accountID1]: {
+                accountID: accountID1,
+                login: 'user1@example.com',
+                displayName: 'User One',
+            },
+            [accountID2]: {
+                accountID: accountID2,
+                login: 'user2@example.com',
+                displayName: 'User Two',
+            },
+        };
+
+        it('should return an empty array if accountIDs is empty', () => {
+            const result = newGetPersonalDetailsByIDs([], personalDetails);
+            expect(result).toEqual([]);
+        });
+
+        it('should return personal details for the given accountIDs', () => {
+            const result = newGetPersonalDetailsByIDs([accountID1, accountID2], personalDetails);
+            expect(result).toEqual([personalDetails[accountID1], personalDetails[accountID2]]);
+        });
+
+        it('should filter out accountIDs that do not have corresponding personal details', () => {
+            const result = newGetPersonalDetailsByIDs([accountID1, 999], personalDetails);
+            expect(result).toEqual([personalDetails[accountID1]]);
+        });
+    });
+
+    describe('getDisplayNameOrYou', () => {
+        test('should return "you" translation when accountID is the same as currentUserAccountID', () => {
+            const result = getDisplayNameOrYou('John Doe', 123, 123, translateLocal);
+            expect(result).toBe('You');
+        });
+
+        test('should return displayName when accountID is not the same as currentUserAccountID', () => {
+            const result = getDisplayNameOrYou('John Doe', 123, 456, translateLocal);
+            expect(result).toBe('John Doe');
         });
     });
 });

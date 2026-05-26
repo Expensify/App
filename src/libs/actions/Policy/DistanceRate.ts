@@ -122,7 +122,7 @@ function enablePolicyDistanceRates(policyID: string, enabled: boolean, customUni
     API.write(WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout()) {
-        goBackWhenEnableFeature(policyID);
+        goBackWhenEnableFeature();
     }
 }
 
@@ -447,7 +447,7 @@ function deletePolicyDistanceRates(
     for (const transactionID of transactionIDsAffected) {
         const currentTransactionViolations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         if (currentTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY)) {
-            return;
+            continue;
         }
 
         optimisticTransactionsViolations.push({

@@ -58,5 +58,6 @@ function parseFollowupsFromHtml(html: string): Followup[] | null {
         return {text, response};
     });
 }
+
 export {containsActionableFollowUps, parseFollowupsFromHtml};
 export type {Followup};

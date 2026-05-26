@@ -46,7 +46,7 @@ function ModalProvider({children}: {children: React.ReactNode}) {
         // This is a promise that will resolve when the modal is closed
         let closeModalPromise: CloseModalPromiseWithResolvers | null = id ? modalPromisesStack.current?.[id] : null;
 
-        const newModalId = id ?? String(modalIDRef.current++);
+        const modalID = id ?? String(modalIDRef.current++);
 
         if (!closeModalPromise) {
             // Create a new promise with resolvers to be resolved when the modal is closed
@@ -56,11 +56,21 @@ function ModalProvider({children}: {children: React.ReactNode}) {
             // New modal => update modals stack
             setModalStack((prevState) => ({
                 ...prevState,
-                modals: [...prevState.modals, {component: component as React.FunctionComponent<ModalProps>, props, isCloseable, id: newModalId}],
+                modals: [...prevState.modals, {component: component as React.FunctionComponent<ModalProps>, props, isCloseable, id: modalID}],
             }));
+            modalPromisesStack.current[modalID] = closeModalPromise;
+        } else {
+            // If it is an existing modal, update props in place instead of stacking a new modal
+            setModalStack((prevState) => {
+                const modals = prevState.modals.map((modal) => {
+                    if (modal.id === id) {
+                        return {component: component as React.FunctionComponent<ModalProps>, props, isCloseable, id: modalID};
+                    }
+                    return modal;
+                });
+                return {...prevState, modals};
+            });
         }
-
-        modalPromisesStack.current[newModalId] = closeModalPromise;
 
         return closeModalPromise.promise;
     };
@@ -96,7 +106,6 @@ function ModalProvider({children}: {children: React.ReactNode}) {
             {children}
             {!!ModalComponent && (
                 <ModalComponent
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...modalToRender.props}
                     key={modalToRender.id}
                     closeModal={closeModal}

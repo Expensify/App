@@ -3,6 +3,7 @@ import Button from '@components/Button';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import CONST from '@src/CONST';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import actionTranslationsMap from './actionTranslationsMap';
@@ -11,7 +12,7 @@ import PayActionCell from './PayActionCell';
 type ActionCellProps = {
     action?: SearchTransactionAction;
     isSelected?: boolean;
-    goToItem: () => void;
+    onButtonPress: (event?: ModifiedMouseEvent) => void;
     isChildListItem?: boolean;
     isLoading?: boolean;
     policyID?: string;
@@ -25,7 +26,7 @@ type ActionCellProps = {
 function ActionCell({
     action = CONST.SEARCH.ACTION_TYPES.VIEW,
     isSelected = false,
-    goToItem,
+    onButtonPress,
     isChildListItem = false,
     isLoading = false,
     policyID = '',
@@ -41,7 +42,7 @@ function ActionCell({
 
     const shouldUseViewAction = action === CONST.SEARCH.ACTION_TYPES.VIEW || action === CONST.SEARCH.ACTION_TYPES.PAID || action === CONST.SEARCH.ACTION_TYPES.DONE;
 
-    if (shouldUseViewAction || isChildListItem) {
+    if (shouldUseViewAction || (isChildListItem && action !== CONST.SEARCH.ACTION_TYPES.UNDELETE)) {
         const text = translate(actionTranslationsMap[CONST.SEARCH.ACTION_TYPES.VIEW]);
         const buttonInnerStyles = isSelected ? styles.buttonDefaultSelected : {};
 
@@ -49,7 +50,7 @@ function ActionCell({
             <Button
                 testID="ActionCell"
                 text={text}
-                onPress={goToItem}
+                onPress={onButtonPress}
                 small={!extraSmall}
                 extraSmall={extraSmall}
                 style={[styles.w100, shouldDisablePointerEvents && styles.pointerEventsNone]}
@@ -80,17 +81,21 @@ function ActionCell({
 
     const text = translate(actionTranslationsMap[action]);
 
+    const shouldBeDisabledOffline = action !== CONST.SEARCH.ACTION_TYPES.UNDELETE && isOffline;
+    const buttonInnerStyles = isSelected && action === CONST.SEARCH.ACTION_TYPES.UNDELETE ? styles.buttonDefaultSelected : {};
+
     return (
         <Button
             text={text}
-            onPress={goToItem}
+            onPress={onButtonPress}
             small={!extraSmall}
             extraSmall={extraSmall}
             style={[styles.w100, shouldDisablePointerEvents && styles.pointerEventsNone]}
             isLoading={isLoading}
-            success
-            isDisabled={isOffline || shouldDisablePointerEvents}
+            success={action !== CONST.SEARCH.ACTION_TYPES.UNDELETE}
+            isDisabled={shouldBeDisabledOffline || shouldDisablePointerEvents}
             shouldStayNormalOnDisable={shouldDisablePointerEvents}
+            innerStyles={buttonInnerStyles}
             isNested
             sentryLabel={CONST.SENTRY_LABEL.SEARCH.ACTION_CELL_ACTION}
         />

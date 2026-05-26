@@ -1,0 +1,30 @@
+import React from 'react';
+import SingleSelect from '@components/Search/FilterComponents/SingleSelect';
+import type {PolicyReportField} from '@src/types/onyx';
+
+type ReportFieldListProps = {
+    field: PolicyReportField;
+    value: string | undefined;
+    allowDeselect?: boolean;
+    onChange: (newValue: string | undefined) => void;
+};
+
+function ReportFieldList({field, value, allowDeselect, onChange}: ReportFieldListProps) {
+    const items = field.values.map((fieldValue) => ({
+        value: fieldValue,
+        text: fieldValue,
+    }));
+    const selectedValue = value ? {text: value, value} : undefined;
+
+    return (
+        <SingleSelect
+            items={items}
+            value={selectedValue}
+            allowDeselect={allowDeselect}
+            onChange={(item) => onChange(item?.value)}
+            hasHeader
+        />
+    );
+}
+
+export default ReportFieldList;

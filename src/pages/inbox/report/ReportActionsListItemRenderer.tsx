@@ -1,10 +1,8 @@
 import React, {memo, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import useOnyx from '@hooks/useOnyx';
 import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isChatThread} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Report, ReportAction} from '@src/types/onyx';
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
@@ -31,9 +29,6 @@ type ReportActionsListItemRendererProps = {
     /** Should the comment have the appearance of being grouped with the previous comment? */
     displayAsGroup: boolean;
 
-    /** The ID of the most recent IOU report action connected with the shown report */
-    mostRecentIOUReportActionID?: string | null;
-
     /** If the thread divider line should be hidden */
     shouldHideThreadDividerLine: boolean;
 
@@ -55,31 +50,11 @@ type ReportActionsListItemRendererProps = {
     /** Animate highlight action in few seconds */
     shouldHighlight?: boolean;
 
-    /** The original report ID for draft message lookups */
-    originalReportID: string | undefined;
-
-    /** User wallet tierName */
-    userWalletTierName: string | undefined;
-
-    /** Whether the user is validated */
-    isUserValidated: boolean | undefined;
-
     /** Personal details list */
     personalDetails: OnyxEntry<PersonalDetailsList>;
 
-    /** User billing fund ID */
-    userBillingFundID: number | undefined;
-
-    /** Did the user dismiss trying out NewDot? If true, it means they prefer using OldDot */
-    isTryNewDotNVPDismissed: boolean | undefined;
-    /** Whether the report is archived */
-    isReportArchived: boolean;
-
-    /** Report name value pairs origin */
-    reportNameValuePairsOrigin?: string;
-
-    /** Report name value pairs originalID */
-    reportNameValuePairsOriginalID?: string;
+    /** Whether the action is the "Created" action of a harvest-created expense report */
+    isHarvestCreatedExpenseReport?: boolean;
 };
 
 function ReportActionsListItemRenderer({
@@ -89,7 +64,6 @@ function ReportActionsListItemRenderer({
     report,
     transactionThreadReport,
     displayAsGroup,
-    mostRecentIOUReportActionID = '',
     shouldHideThreadDividerLine,
     shouldDisplayNewMarker,
     linkedReportActionID = '',
@@ -98,21 +72,10 @@ function ReportActionsListItemRenderer({
     shouldUseThreadDividerLine = false,
     shouldHighlight = false,
     parentReportActionForTransactionThread,
-    originalReportID,
-    userWalletTierName,
-    isUserValidated,
-    userBillingFundID,
     personalDetails,
-    isTryNewDotNVPDismissed = false,
-    isReportArchived = false,
-    reportNameValuePairsOrigin,
-    reportNameValuePairsOriginalID,
+    isHarvestCreatedExpenseReport = false,
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
-
-    const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportAction.reportActionID}`);
-    const [reportDraftMessages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`);
-    const draftMessage = reportDraftMessages?.[reportAction.reportActionID]?.message;
 
     /**
      * Create a lightweight ReportAction so as to keep the re-rendering as light as possible by
@@ -200,12 +163,7 @@ function ReportActionsListItemRenderer({
                 index={index}
                 isFirstVisibleReportAction={isFirstVisibleReportAction}
                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
-                userWalletTierName={userWalletTierName}
-                isUserValidated={isUserValidated}
                 personalDetails={personalDetails}
-                userBillingFundID={userBillingFundID}
-                isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
-                isReportArchived={isReportArchived}
             />
         );
     }
@@ -221,20 +179,12 @@ function ReportActionsListItemRenderer({
             linkedReportActionID={linkedReportActionID}
             displayAsGroup={displayAsGroup}
             shouldDisplayNewMarker={shouldDisplayNewMarker}
-            isMostRecentIOUReportAction={reportAction.reportActionID === mostRecentIOUReportActionID}
             index={index}
             isFirstVisibleReportAction={isFirstVisibleReportAction}
             shouldUseThreadDividerLine={shouldUseThreadDividerLine}
             shouldHighlight={shouldHighlight}
-            userWalletTierName={userWalletTierName}
-            isUserValidated={isUserValidated}
             personalDetails={personalDetails}
-            draftMessage={draftMessage}
-            emojiReactions={emojiReactions}
-            userBillingFundID={userBillingFundID}
-            isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
-            reportNameValuePairsOrigin={reportNameValuePairsOrigin}
-            reportNameValuePairsOriginalID={reportNameValuePairsOriginalID}
+            isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReport}
         />
     );
 }

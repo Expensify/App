@@ -1,13 +1,15 @@
 import {isUserValidatedSelector} from '@selectors/Account';
 import {Str} from 'expensify-common';
 import React, {useState} from 'react';
+import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import type {CombinedCardFeed, CompanyCardFeedWithDomainID} from '@hooks/useCardFeeds';
@@ -160,7 +162,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     };
 
     const otherMenuItemFeeds = (
-        <>
+        <View style={[styles.w100, styles.flexColumn]}>
             <MenuItem
                 title={translate('workspace.companyCards.addCards')}
                 icon={icons.Plus}
@@ -174,20 +176,26 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                         const isFeedWithError = feedWithError?.feed === feed.value;
                         const itemWithError = isFeedWithError && feedWithError?.error ? {...feed, errors: feedWithError.error} : feed;
                         return (
-                            <RadioListItem
+                            <SingleSelectListItem
                                 isDisabled={isOffline}
                                 onDismissError={onDismissError}
-                                key={feed.value}
-                                keyForList={feed.value}
+                                key={feed.keyForList}
+                                keyForList={itemWithError.keyForList}
                                 showTooltip={false}
                                 item={itemWithError}
                                 onSelectRow={selectOtherFeed}
+                                isMultilineSupported
+                                isAlternateTextMultilineSupported
+                                alternateTextNumberOfLines={2}
+                                titleNumberOfLines={2}
+                                // BaseSelectListItem defaults to flex1 on the row; inside a column footer that makes rows split height and overlap. Size rows to content instead.
+                                wrapperStyle={[styles.flexReset, styles.w100]}
                             />
                         );
                     })}
                 </>
             )}
-        </>
+        </View>
     );
 
     return (
@@ -207,7 +215,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                 />
                 {feeds.length ? (
                     <SelectionList
-                        ListItem={RadioListItem}
+                        ListItem={SingleSelectListItem}
                         onSelectRow={selectFeed}
                         data={feeds}
                         alternateNumberOfSupportedLines={2}
@@ -216,7 +224,13 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                         listFooterContent={otherMenuItemFeeds}
                     />
                 ) : (
-                    otherMenuItemFeeds
+                    <ScrollView
+                        addBottomSafeAreaPadding
+                        style={styles.flex1}
+                        keyboardShouldPersistTaps="handled"
+                    >
+                        {otherMenuItemFeeds}
+                    </ScrollView>
                 )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

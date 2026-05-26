@@ -54,10 +54,12 @@ import {
     doesReportContainRequestsFromMultipleUsers,
     getTransactionDetails,
     hasExportError as hasExportErrorUtils,
+    hasHeldExpensesFromTransactions,
     hasOnlyHeldExpenses,
     hasOnlyNonReimbursableTransactions,
     hasReportBeenReopened as hasReportBeenReopenedUtils,
     hasReportBeenRetracted as hasReportBeenRetractedUtils,
+    isActionCreator,
     isArchivedReport,
     isAwaitingFirstLevelApproval,
     isClosedReport as isClosedReportUtils,
@@ -68,6 +70,7 @@ import {
     isInvoiceReport as isInvoiceReportUtils,
     isIOUReport as isIOUReportUtils,
     isMoneyRequestReportEligibleForMerge,
+    isOpenExpenseReport,
     isOpenReport as isOpenReportUtils,
     isPayer as isPayerUtils,
     isProcessingReport as isProcessingReportUtils,
@@ -91,6 +94,7 @@ import {
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isReceiptBeingScanned,
     isScanning as isScanningTransactionUtils,
+    shouldRedirectDeleteToSplitExpenseEdit,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from './TransactionUtils';
 
@@ -229,10 +233,6 @@ function isSubmitAction({
     }
 
     if (primaryAction === CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_RESOLVED) {
-        return false;
-    }
-
-    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
         return false;
     }
 
@@ -439,6 +439,32 @@ function isCancelPaymentAction(
     return isPaymentProcessing && !hasDailyNachaCutoffPassed;
 }
 
+function isReceivedPaymentAction(report: Report, reportTransactions: Transaction[] = [], reportActions: ReportAction[] = [], policy?: Policy): boolean {
+    if (!isExpenseReportUtils(report) || !isCurrentUserSubmitter(report)) {
+        return false;
+    }
+
+    if (policy?.role === CONST.POLICY.ROLE.ADMIN || report.isWaitingOnBankAccount || hasHeldExpensesFromTransactions(reportTransactions)) {
+        return false;
+    }
+
+    const isSupportedState = isReportApprovedUtils({report}) || isClosedReportUtils(report) || isSettled(report);
+    if (!isSupportedState) {
+        return false;
+    }
+
+    const allReportActions = reportActions.length > 0 ? reportActions : Object.values(getAllReportActions(report.reportID));
+    const hasBankPaymentAction = allReportActions.some((action) => {
+        if (!isPayAction(action)) {
+            return false;
+        }
+
+        return getOriginalMessage(action)?.paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
+    });
+
+    return !hasBankPaymentAction;
+}
+
 function isExportAction(currentAccountID: number, currentUserLogin: string, report: Report, bankAccountList: OnyxEntry<BankAccountList>, policy?: Policy): boolean {
     if (!policy) {
         return false;
@@ -530,7 +556,14 @@ function isMarkAsExportedAction(currentAccountID: number, currentUserLogin: stri
     return (isAdmin && syncEnabled) || (isExporter && !syncEnabled);
 }
 
-function isHoldAction(report: Report, chatReport: OnyxEntry<Report>, reportTransactions: Transaction[], reportActions: ReportAction[] | undefined, policy: OnyxEntry<Policy>): boolean {
+function isHoldAction(
+    report: Report,
+    chatReport: OnyxEntry<Report>,
+    reportTransactions: Transaction[],
+    reportActions: ReportAction[] | undefined,
+    policy: OnyxEntry<Policy>,
+    currentUserAccountID: number | undefined,
+): boolean {
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions);
     const isOneExpenseReport = reportTransactions.length === 1;
     const transaction = reportTransactions.at(0);
@@ -540,15 +573,26 @@ function isHoldAction(report: Report, chatReport: OnyxEntry<Report>, reportTrans
     }
 
     const action = !!reportActions && getIOUActionForTransactionID(reportActions, transaction.transactionID);
-    return !!action && isHoldActionForTransaction(report, transaction, action, policy);
+    return !!action && isHoldActionForTransaction(report, transaction, action, policy, currentUserAccountID);
 }
 
-function isHoldActionForTransaction(report: Report, reportTransaction: Transaction, reportAction: ReportAction, policy: OnyxEntry<Policy>): boolean {
+function isHoldActionForTransaction(
+    report: Report,
+    reportTransaction: Transaction,
+    reportAction: ReportAction,
+    policy: OnyxEntry<Policy>,
+    currentUserAccountID: number | undefined,
+): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
     const isIOUReport = isIOUReportUtils(report);
     const iouOrExpenseReport = isExpenseReport || isIOUReport;
     const holdReportAction = getReportAction(reportAction?.childReportID, `${reportTransaction?.comment?.hold ?? ''}`);
-    const {canHoldRequest} = canHoldUnholdReportAction(report, reportAction, holdReportAction, reportTransaction, policy);
+    const {canHoldRequest} = canHoldUnholdReportAction(report, reportAction, holdReportAction, reportTransaction, policy, currentUserAccountID);
+    const isActionOwner = isActionCreator(reportAction);
+
+    if (isOpenExpenseReport(report)) {
+        return isActionOwner && canHoldRequest;
+    }
 
     if (!iouOrExpenseReport || !canHoldRequest) {
         return false;
@@ -560,24 +604,7 @@ function isHoldActionForTransaction(report: Report, reportTransaction: Transacti
         return false;
     }
 
-    const isOpenReport = isOpenReportUtils(report);
-    const isSubmitter = isCurrentUserSubmitter(report);
-    const isReportManager = isReportManagerUtils(report);
-
-    if (isIOUReport) {
-        return (isSubmitter || isReportManager) && !isSettled(report);
-    }
-
-    if (isOpenReport && (isSubmitter || isReportManager)) {
-        return true;
-    }
-
-    if (isSubmitter) {
-        return isAwaitingFirstLevelApproval(report);
-    }
-
-    const isProcessingReport = isProcessingReportUtils(report);
-    return isProcessingReport;
+    return true;
 }
 
 function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy>, currentUserLogin: string, reportActions?: ReportAction[]): boolean {
@@ -628,8 +655,26 @@ function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy
     return hasAvailablePolicies && canEditReportPolicy(report, reportPolicy) && !isExportedUtils(reportActions, report);
 }
 
-function isDeleteAction(report: Report, reportTransactions: Transaction[], reportActions: ReportAction[]): boolean {
-    return canDeleteMoneyRequestReport(report, reportTransactions, reportActions);
+function isDeleteAction(report: Report, reportTransactions: Transaction[], reportActions?: ReportAction[]): boolean {
+    return canDeleteMoneyRequestReport(report, reportTransactions, reportActions ?? []);
+}
+
+function shouldShowEditSplitInDeleteAction(
+    report: Report,
+    reportTransactions: Transaction[],
+    reportActions: ReportAction[] | undefined,
+    originalTransaction: OnyxEntry<Transaction>,
+): boolean {
+    if (reportTransactions.length !== 1) {
+        return false;
+    }
+
+    const reportTransaction = reportTransactions.at(0);
+    if (!reportTransaction) {
+        return false;
+    }
+
+    return shouldRedirectDeleteToSplitExpenseEdit(reportTransaction, originalTransaction) && isDeleteAction(report, reportTransactions, reportActions);
 }
 
 function isRetractAction(report: Report, policy?: Policy): boolean {
@@ -880,8 +925,19 @@ function getSecondaryReportActions({
     const didExportFail = !isExported && hasExportError;
 
     if (
-        isPrimaryPayAction(report, currentUserAccountID, currentUserLogin, bankAccountList, policy, reportNameValuePairs, isChatReportArchived, undefined, reportActions, true) &&
-        (hasOnlyHeldExpenses(report?.reportID) || didExportFail)
+        isPrimaryPayAction({
+            report,
+            reportTransactions,
+            currentUserAccountID,
+            currentUserLogin,
+            bankAccountList,
+            policy,
+            reportNameValuePairs,
+            isChatReportArchived,
+            reportActions,
+            isSecondaryAction: true,
+        }) &&
+        (hasOnlyHeldExpenses(reportTransactions) || didExportFail)
     ) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.PAY);
     }
@@ -927,6 +983,10 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.APPROVE);
     }
 
+    if (isReceivedPaymentAction(report, reportTransactions, reportActions, policy)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT);
+    }
+
     if (isUnapproveAction(currentUserLogin, currentUserAccountID, report, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE);
     }
@@ -943,7 +1003,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REOPEN);
     }
 
-    if (isHoldAction(report, chatReport, reportTransactions, reportActions, policy)) {
+    if (isHoldAction(report, chatReport, reportTransactions, reportActions, policy, currentUserAccountID)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.HOLD);
     }
 
@@ -955,7 +1015,10 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REJECT);
     }
 
-    if (isSplitAction(report, reportTransactions, originalTransaction, currentUserLogin, currentUserAccountID, policy)) {
+    if (
+        isSplitAction(report, reportTransactions, originalTransaction, currentUserLogin, currentUserAccountID, policy) &&
+        !shouldShowEditSplitInDeleteAction(report, reportTransactions, reportActions, originalTransaction)
+    ) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
     }
 
@@ -1055,7 +1118,7 @@ function getSecondaryTransactionThreadActions(
 ): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
 
-    if (!!reportAction && isHoldActionForTransaction(parentReport, reportTransaction, reportAction, policy)) {
+    if (!!reportAction && isHoldActionForTransaction(parentReport, reportTransaction, reportAction, policy, currentUserAccountID)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
     }
 
@@ -1067,7 +1130,10 @@ function getSecondaryTransactionThreadActions(
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
     }
 
-    if (isSplitAction(parentReport, [reportTransaction], originalTransaction, currentUserLogin, currentUserAccountID, policy)) {
+    if (
+        isSplitAction(parentReport, [reportTransaction], originalTransaction, currentUserLogin, currentUserAccountID, policy) &&
+        !shouldShowEditSplitInDeleteAction(parentReport, [reportTransaction], reportAction ? [reportAction] : [], originalTransaction)
+    ) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT);
     }
 
@@ -1096,12 +1162,4 @@ function getSecondaryTransactionThreadActions(
 
     return options;
 }
-export {
-    getSecondaryReportActions,
-    getSecondaryTransactionThreadActions,
-    isMergeAction,
-    isMergeActionForSelectedTransactions,
-    getSecondaryExportReportActions,
-    isSplitAction,
-    isChangeWorkspaceAction,
-};
+export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isMergeActionForSelectedTransactions, getSecondaryExportReportActions, isSplitAction, isChangeWorkspaceAction};

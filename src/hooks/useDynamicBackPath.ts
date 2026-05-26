@@ -1,5 +1,5 @@
+import findMatchingDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/findMatchingDynamicSuffix';
 import getPathWithoutDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/getPathWithoutDynamicSuffix';
-import splitPathAndQuery from '@libs/Navigation/helpers/dynamicRoutesUtils/splitPathAndQuery';
 import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
 import type {State} from '@libs/Navigation/types';
 import type {DynamicRouteSuffix, Route} from '@src/ROUTES';
@@ -7,10 +7,15 @@ import ROUTES from '@src/ROUTES';
 import useRootNavigationState from './useRootNavigationState';
 
 /**
- * Returns the back path for a dynamic route by removing the dynamic suffix from the current URL.
- * Only removes the suffix if it's the last segment of the path (ignoring trailing slashes and query parameters).
- * @param dynamicRouteSuffix The dynamic route suffix to remove from the current path
- * @returns The back path without the dynamic route suffix, or HOME if path is null/undefined
+ * Removes the given dynamic suffix from the end of the current URL to produce a "back" path.
+ *
+ * Supported suffix types: static (`/edit`), parametric (`/:reportID`),
+ * and parametric with optional params (`/:reportID/:reportActionID?`).
+ *
+ * If the suffix doesn't match the tail of the current path, returns the path as-is.
+ *
+ * @param dynamicRouteSuffix - The dynamic route pattern to remove from the current URL.
+ * @returns The back path for the dynamic route.
  */
 function useDynamicBackPath(dynamicRouteSuffix: DynamicRouteSuffix): Route {
     const path = useRootNavigationState((state) => {
@@ -25,16 +30,12 @@ function useDynamicBackPath(dynamicRouteSuffix: DynamicRouteSuffix): Route {
         return ROUTES.HOME;
     }
 
-    // Remove leading slashes for consistent processing
-    const pathWithoutLeadingSlash = path.replace(/^\/+/, '');
-
-    const [normalizedPath] = splitPathAndQuery(pathWithoutLeadingSlash);
-
-    if (normalizedPath?.endsWith(`/${dynamicRouteSuffix}`)) {
-        return getPathWithoutDynamicSuffix(pathWithoutLeadingSlash, dynamicRouteSuffix);
+    const pathWithoutLeadingSlash = path.replaceAll(/^\/+/g, '');
+    const match = findMatchingDynamicSuffix(pathWithoutLeadingSlash);
+    if (match && match.pattern === dynamicRouteSuffix) {
+        return getPathWithoutDynamicSuffix(pathWithoutLeadingSlash, match.actualSuffix, match.pattern);
     }
 
-    // If suffix is not the last segment, return the original path
     return pathWithoutLeadingSlash as Route;
 }
 
