@@ -40,6 +40,7 @@ import openInternalRouteInNewTab from '@libs/Navigation/helpers/openInternalRout
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {
@@ -587,7 +588,11 @@ function WorkspacesListPage() {
         }
 
         tableRef.current?.scrollToIndex({index: duplicateWorkspaceIndex, animated: false});
-        clearDuplicateWorkspace();
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => clearDuplicateWorkspace(),
+        });
+
+        return () => handle.cancel();
     }, [duplicateWorkspace?.policyID, isFocused]);
 
     const headerButton = !isRestrictedPolicyCreation && !!workspaceRows.length && (
